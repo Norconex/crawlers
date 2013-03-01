@@ -13,7 +13,7 @@
     <repository>
       <releases>
         <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
+        <updatePolicy>daily</updatePolicy>
         <checksumPolicy>fail</checksumPolicy>
       </releases>
       <id>norconex-http-repo</id>
@@ -68,7 +68,6 @@
     	<version>1.2</version>
     </dependency>
   </dependencies>
-
   
   <build>
     <plugins>
@@ -79,11 +78,34 @@
           <source>1.6</source>
           <target>1.6</target>
         </configuration>
-      </plugin>
+      </plugin> 
     </plugins>
   </build>
+  
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.0.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <!-- 
+          <stylesheetfile>${basedir}/src/main/javadoc/stylesheet.css</stylesheetfile>
+           -->
+          <show>public</show>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>  
+
   <organization>
   	<name>Norconex Inc.</name>
   	<url>http://www.norconex.com</url>
   </organization>
+  <url>http://importer.norconex.com</url>
 </project>

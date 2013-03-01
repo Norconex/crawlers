@@ -1,0 +1,133 @@
+            ------
+            Home
+            ------
+            Norconex Inc.
+            ------
+
+Welcome to Norconex Importer
+
+  Norconex Importer is a Java library or application meant to "parse" and
+  "extract" content out of a computer file as plain text, whatever its format
+  (HTML, PDF, Word, etc).  In addition, it allows you to perform
+  any manipulation on the extracted text before importing/using it in
+  your own service or application.
+
+  A typical but not limited usage is to "import" crawled content into a 
+  search engine (indexing pipeline).   We invite you to consider Norconex HTTP
+  Collector for this purpose (which relies on the Norconex Importer).
+
+  Out-of-the-box Norconex Importer relies heavily on Apache Tika for its parsing
+  portion, but you can establish your own parsing stragegy for the 
+  mime-types of your choice.  
+
+  The current version of {{{http://importer.norconex.com}Norconex Importer}} is
+  1.0.
+  
+  
+  <<SITE IN HEAVY DEVELOPMENT.  PLEASE IGNORE.  DO NOT RELY>>
+  
+  Commercial Support
+  
+  License
+  
+  Talk about flexibility of configuration by pointing to Configuration Javadoc?
+  
+  
+
++-----+
+...
+asdf
++-----+ 
+
+
+Section title
+
+* Sub-section title
+
+** Sub-sub-section title
+
+*** Sub-sub-sub-section title
+
+**** Sub-sub-sub-sub-section title
+
+      * List item 1.
+
+      * List item 2.
+
+        Paragraph contained in list item 2.
+
+            * Sub-list item 1.
+
+            * Sub-list item 2.
+
+      * List item 3.
+        Force end of list:
+
+      []
+
++------------------------------------------+
+Verbatim text not contained in list item 3
++------------------------------------------+
+
+      [[1]] Numbered item 1.
+
+                [[A]] Numbered item A.
+
+                [[B]] Numbered item B.
+
+      [[2]] Numbered item 2.
+
+  List numbering schemes: [[1]], [[a]], [[A]], [[i]], [[I]].
+
+      [Defined term 1] of definition list.
+
+      [Defined term 2] of definition list.
+
++-------------------------------+
+Verbatim text
+                        in a box
++-------------------------------+
+
+  --- instead of +-- suppresses the box around verbatim text.
+
+[Figure name] Figure caption
+
+*----------*--------------+----------------:
+| Centered | Left-aligned | Right-aligned  |
+| cell 1,1 | cell 1,2     | cell 1,3       |
+*----------*--------------+----------------:
+| cell 2,1 | cell 2,2     | cell 2,3       |
+*----------*--------------+----------------:
+Table caption
+
+  No grid, no caption:
+
+*-----*------*
+ cell | cell
+*-----*------*
+ cell | cell
+*-----*------*
+
+  Horizontal line:
+
+=======================================================================
+
+^L
+  New page.
+
+  <Italic> font. <<Bold>> font. <<<Monospaced>>> font.
+
+  {Anchor}. Link to {{anchor}}. Link to {{http://www.pixware.fr}}.
+  Link to {{{anchor}showing alternate text}}.
+  Link to {{{http://www.pixware.fr}Pixware home page}}.
+
+  Force line\
+  break.
+
+  Non\ breaking\ space.
+
+  Escaped special characters: \~, \=, \-, \+, \*, \[, \], \<, \>, \{, \}, \\.
+
+  Copyright symbol: \251, \xA9, \u00a9.
+
+~~Commented out.
