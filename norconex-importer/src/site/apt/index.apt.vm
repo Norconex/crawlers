@@ -16,9 +16,11 @@ Welcome to Norconex Importer
   search engine (indexing pipeline).   We invite you to consider Norconex HTTP
   Collector for this purpose (which relies on the Norconex Importer).
 
-  Out-of-the-box Norconex Importer relies heavily on 
+  Norconex Importer relies heavily on 
   {{{http://tika.apache.org/}Apache Tika}} for 
-  its parsing portion, but you can establish your own parsing strategy for the 
+  its parsing capabilities (see its 
+  {{{http://tika.apache.org/1.3/formats.html}supported formats}}). 
+  You can establish your own parsing strategy for the 
   content-types of your choice.  
 
   The current version of {{{http://importer.norconex.com}Norconex Importer}} is
@@ -32,6 +34,8 @@ Welcome to Norconex Importer
   License
   
   Talk about flexibility of configuration by pointing to Configuration Javadoc?
+  
+  Add Google adds?
   
   
 
