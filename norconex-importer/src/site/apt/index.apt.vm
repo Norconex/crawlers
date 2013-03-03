@@ -1,0 +1,37 @@
+            ------
+            Home
+            ------
+            Norconex Inc.
+            ------
+
+Welcome to Norconex Importer
+
+  Norconex Importer is a Java library and command-line application meant to 
+  "parse" and "extract" content out of a computer file as plain text, 
+  whatever its format (HTML, PDF, Word, etc).  In addition, it allows you to 
+  perform any manipulation on the extracted text before importing/using it in
+  your own service or application.
+
+  A typical but not limited usage is to "import" crawled content into a 
+  search engine (indexing pipeline).   We invite you to consider Norconex HTTP
+  Collector for this purpose (which relies on the Norconex Importer).
+
+  Out-of-the-box Norconex Importer relies heavily on 
+  {{{http://tika.apache.org/}Apache Tika}} for 
+  its parsing portion, but you can establish your own parsing strategy for the 
+  content-types of your choice.  
+
+  The current version of {{{http://importer.norconex.com}Norconex Importer}} is
+  ${project.version}
+  
+  
+  <<SITE IN HEAVY DEVELOPMENT.  PLEASE IGNORE.  DO NOT RELY>>
+  
+  Commercial Support
+  
+  License
+  
+  Talk about flexibility of configuration by pointing to Configuration Javadoc?
+  
+  
+

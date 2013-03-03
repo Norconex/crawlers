@@ -9,13 +9,6 @@
     <src>images/rightbanner.jpg</src>
     <href>http://www.norconex.com</href>
   </bannerRight>
-  <!-- 
-  <skin>
-    <groupId>org.apache.maven.skins</groupId>
-    <artifactId>maven-default-skin</artifactId>
-    <version>maven-default-skin</version>
-  </skin>
-   -->
   <body>
     <links>
       <item name="Norconex" href="http://TODO" />
@@ -27,20 +20,14 @@
       <item name="Introduction" href="index.html"/>
       <item name="Usage" href="usage.html"/>
       <item name="Configuration" href="configuration.html"/>
-      <item name="Examples" href="examples.html"/>
-      <item name="FAQ" href="faq.html"/>
-      <item name="Migrate" href="migrate.html"/>
-      <item name="Maven 3" href="maven-3.html"/>
+      <item name="License" href="license.html"/>
+      <item name="Download" href="download.html"/>
+      <item name="Support" href="support.html"/>
+      <!-- <item name="FAQ" href="faq.html"/>-->
+      <!-- <item name="Release Notes" href="release-notes.html" /> -->
+      <!-- <item name="Road Map" href="roadmap.html" /> -->
     </menu>
 
-    <menu name="Maven 2.0">
-      <item name="Introduction" href="asdfindex.html"/>
-      <item name="Download" href="download.html"/>
-      <item name="Release Notes" href="release-notes.html" />
-      <item name="General Information" href="about.html"/>
-      <item name="For Maven 1.x Users" href="maven1.html"/>
-      <item name="Road Map" href="roadmap.html" />
-    </menu>
     <menu ref="reports"/>
 
 

@@ -70,6 +70,14 @@
   </dependencies>
   
   <build>
+    <pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.0</version>
+            </plugin>
+        </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -87,7 +95,20 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.0.1</version>
+        <version>2.6</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>summary</report>
+              <report>dependencies</report>
+<!--               <report>mailing-list</report>   -->
+<!--               <report>cim</report> -->
+              <report>issue-tracking</report>
+              <report>license</report>
+              <report>scm</report>
+            </reports>
+          </reportSet>
+        </reportSets>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -99,6 +120,16 @@
            -->
           <show>public</show>
         </configuration>
+        <reportSets>
+          <reportSet>
+            <id>default</id>
+            <configuration>
+            </configuration>
+            <reports>
+              <report>javadoc</report>
+            </reports>
+          </reportSet>
+        </reportSets>
       </plugin>
     </plugins>
   </reporting>  
@@ -108,4 +139,12 @@
   	<url>http://www.norconex.com</url>
   </organization>
   <url>http://importer.norconex.com</url>
+  <description>Norconex Importer is a Java library and command-line application meant to &quot;parse&quot; and &quot;extract&quot; content out of a computer file as plain text, whatever its format (HTML, PDF, Word, etc). In addition, it allows you to perform any manipulation on the extracted text before importing/using it in your own service or application.</description>
+  <issueManagement>
+  	<system>GitHub</system>
+  	<url>https://github.com/Norconex/collectors/issues</url>
+  </issueManagement>
+  <scm>
+  	<url>https://github.com/Norconex/collectors/tree/master/norconex-importer</url>
+  </scm>
 </project>
