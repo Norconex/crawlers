@@ -1,0 +1,41 @@
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+  <id>distribution</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeSiteDirectory>true</includeSiteDirectory>
+  <fileSets>
+    <fileSet>
+      <directory>${basedir}/src/main/scripts</directory>
+      <includes>
+        <include>**</include>
+      </includes>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
+    <!-- TODO: move examples below src/??? -->
+    <fileSet>
+      <directory>${basedir}</directory>
+      <includes>
+        <include>examples/**</include>
+      </includes>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
+  </fileSets>
+  <files>
+    <file>
+      <source>src/main/assembly/log4j.properties</source>
+      <outputDirectory>/classes</outputDirectory>
+    </file>
+    <file>
+      <source>src/main/assembly/HOWTO_RUN_EXAMPLES.txt</source>
+      <outputDirectory>/examples</outputDirectory>
+    </file>
+  </files>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>lib</outputDirectory>
+    </dependencySet>
+  </dependencySets>
+</assembly>
