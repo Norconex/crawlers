@@ -16,7 +16,7 @@
         <updatePolicy>daily</updatePolicy>
         <checksumPolicy>fail</checksumPolicy>
       </releases>
-      <id>norconex-http</id>
+      <id>norconex-http-repo</id>
       <url>http://dev.norconex.com/maven/</url>
     </repository>
   </repositories>
@@ -117,11 +117,11 @@
   
   <distributionManagement>
     <site>
-      <id>norconex-scp</id>
+      <id>norconex-scp-site</id>
       <url>scp://dev.norconex.com/var/www/importer/</url>
     </site>
     <repository>
-      <id>norconex-scp</id>
+      <id>norconex-scp-repo</id>
       <url>scp://dev.norconex.com/var/www/maven/</url>
     </repository>
   </distributionManagement>
