@@ -70,6 +70,13 @@
   </dependencies>
   
   <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh</artifactId>
+        <version>1.0</version>
+      </extension>
+    </extensions>
     <pluginManagement>
         <plugins>
             <plugin>
