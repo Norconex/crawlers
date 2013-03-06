@@ -1,0 +1,19 @@
+            ------
+            Home
+            ------
+            Norconex Inc.
+            ------
+
+Welcome to Norconex Committer
+
+  Norconex Committer offers common means to "commit" data to 
+  any target datasource such as search engine for indexing.  It is not meant
+  to be used standalone and is dependant on concrete-implementations.
+  
+  It is used by Norconex Collectors.
+  
+  The current version of 
+  {{{http://committer.norconex.com}Norconex Committer}} is 
+  ${project.version}
+  
+  Latest {{{./apidocs/index.html}Javadoc}}.
