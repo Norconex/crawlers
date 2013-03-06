@@ -118,7 +118,7 @@
   <distributionManagement>
     <site>
       <id>norconex-scp-site</id>
-      <url>scp://dev.norconex.com/var/www/importer/</url>
+      <url>scp://dev.norconex.com/var/www/products/importer/</url>
     </site>
     <repository>
       <id>norconex-scp-repo</id>
