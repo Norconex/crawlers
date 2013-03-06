@@ -124,6 +124,13 @@
     </plugins>
   </build>
   
+  <distributionManagement>
+    <repository>
+      <id>norconex-scp-repo</id>
+      <url>scp://dev.norconex.com/var/www/maven/</url>
+    </repository>
+  </distributionManagement>
+  
   <reporting>
     <plugins>
       <plugin>
