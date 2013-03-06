@@ -140,8 +140,6 @@
             <reports>
               <report>summary</report>
               <report>dependencies</report>
-<!--               <report>mailing-list</report>   -->
-<!--               <report>cim</report> -->
               <report>issue-tracking</report>
               <report>license</report>
               <report>scm</report>
@@ -154,10 +152,7 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.9</version>
         <configuration>
-          <!-- 
-          <stylesheetfile>${basedir}/src/main/javadoc/stylesheet.css</stylesheetfile>
-           -->
-          <show>public</show>
+          <show>protected</show>
         </configuration>
         <reportSets>
           <reportSet>
