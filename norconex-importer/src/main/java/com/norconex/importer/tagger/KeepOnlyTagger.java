@@ -12,7 +12,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
