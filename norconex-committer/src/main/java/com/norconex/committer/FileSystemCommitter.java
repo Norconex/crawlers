@@ -16,7 +16,7 @@ import org.apache.commons.lang3.SystemUtils;
 
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.io.FileUtils;
+import com.norconex.commons.lang.io.FileUtil;
 import com.norconex.commons.lang.meta.Metadata;
 
 
@@ -63,7 +63,7 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
         }
         try {
             File targetFile = createFile(dir);
-            FileUtils.moveFile(document, targetFile);
+            FileUtil.moveFile(document, targetFile);
             FileOutputStream out = new FileOutputStream(
                     new File(targetFile.getAbsolutePath() + ".meta"));
             metadata.store(out);
