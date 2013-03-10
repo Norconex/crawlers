@@ -198,8 +198,10 @@ public class HttpCrawler extends AbstractResumableJob {
                             processNextQueuedURL(queuedURL, database);
                             setProgress(progress, database);
                             watch.stop();
-                            LOG.debug(watch.toString() + " to process: " 
-                                    + queuedURL.getUrl());
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug(watch.toString() + " to process: " 
+                                        + queuedURL.getUrl());
+                            }
                         } else {
                             if (!database.hasActiveURLs() 
                                     && !database.hasQueuedURLs()) {
@@ -244,7 +246,7 @@ public class HttpCrawler extends AbstractResumableJob {
         //QueuedURL queuedURL = database.getNextQueuedURL();
         String url = queuedURL.getUrl();
         int urlDepth = queuedURL.getDepth();
-        URLMemento memento = new URLMemento(URLStatus.OK, urlDepth);
+        URLMemento memento = new URLMemento(CrawlStatus.OK, urlDepth);
 
         String baseFilename = getDownloadDir().getAbsolutePath() 
                 + SystemUtils.FILE_SEPARATOR +  PathUtils.urlToPath(url);
@@ -254,7 +256,7 @@ public class HttpCrawler extends AbstractResumableJob {
         
         try {
 	        if (!isUrlDepthValid(url, urlDepth)) {
-	            memento.setStatus(URLStatus.TOO_DEEP);
+	            memento.setStatus(CrawlStatus.TOO_DEEP);
 	            return;
 	        }
 	        if (LOG.isDebugEnabled()) {
@@ -265,7 +267,7 @@ public class HttpCrawler extends AbstractResumableJob {
 
             //--- URL Filters --------------------------------------------------
             if (isURLRejected(url, httpConfig.getURLFilters(), null)) {
-	            memento.setStatus(URLStatus.REJECTED);
+	            memento.setStatus(CrawlStatus.REJECTED);
                 return;
             }
 
@@ -275,7 +277,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 robotsTxt = httpConfig.getRobotsTxtProvider().getRobotsTxt(
                         httpClient, url);
                 if (isURLRejected(url, robotsTxt.getFilters(), robotsTxt)) {
-    	            memento.setStatus(URLStatus.REJECTED);
+    	            memento.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
             }
@@ -288,7 +290,7 @@ public class HttpCrawler extends AbstractResumableJob {
             if (hdFetcher != null) {
                 Metadata metadata = hdFetcher.fetchHTTPHeaders(httpClient, url);
                 if (metadata == null) {
-                    memento.setStatus(URLStatus.REJECTED);
+                    memento.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
                 doc.getMetadata().addProperty(metadata.getProperties());
@@ -301,7 +303,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 //--- HTTP Headers Filters -------------------------------------
                 if (isHeadersRejected(url, doc.getMetadata(), 
                         httpConfig.getHttpHeadersFilters())) {
-                    memento.setStatus(URLStatus.REJECTED);
+                    memento.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
                 
@@ -309,14 +311,14 @@ public class HttpCrawler extends AbstractResumableJob {
                 //TODO only if an INCREMENTAL run... else skip.
                 if (isHeadersChecksumRejected(
                         database, memento, url, doc.getMetadata())) {
-                    memento.setStatus(URLStatus.UNMODIFIED);
+                    memento.setStatus(CrawlStatus.UNMODIFIED);
                     return;
                 }
             }
             
             //--- Document Fetcher ---------------------------------------------            
 	        memento.setStatus(fetchDocument(doc));
-	        if (memento.getStatus() != URLStatus.OK) {
+	        if (memento.getStatus() != CrawlStatus.OK) {
 	            return;
 	        }
 
@@ -333,7 +335,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 //--- HTTP Headers Filters -------------------------------------
                 if (isHeadersRejected(url, doc.getMetadata(), 
                         httpConfig.getHttpHeadersFilters())) {
-                    memento.setStatus(URLStatus.REJECTED);
+                    memento.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
                 
@@ -341,14 +343,14 @@ public class HttpCrawler extends AbstractResumableJob {
                 //TODO only if an INCREMENTAL run... else skip.
                 if (isHeadersChecksumRejected(
                         database, memento, url, doc.getMetadata())) {
-                    memento.setStatus(URLStatus.UNMODIFIED);
+                    memento.setStatus(CrawlStatus.UNMODIFIED);
                     return;
                 }
             }
             
             //--- Document Filters ---------------------------------------------
             if (isDocumentRejected(doc, httpConfig.getHttpDocumentfilters())) {
-	            memento.setStatus(URLStatus.REJECTED);
+	            memento.setStatus(CrawlStatus.REJECTED);
                 return;
             }
 
@@ -365,7 +367,7 @@ public class HttpCrawler extends AbstractResumableJob {
             
             //--- IMPORT Module ------------------------------------------------
             if (!importDocument(doc, outputFile)) {
-	            memento.setStatus(URLStatus.REJECTED);
+	            memento.setStatus(CrawlStatus.REJECTED);
                 return;
             }
             for (IHttpCrawlerEventListener listener : listeners) {
@@ -376,7 +378,7 @@ public class HttpCrawler extends AbstractResumableJob {
             //--- HTTP Document Checksum ---------------------------------------
             //TODO only if an INCREMENTAL run... else skip.
             if (isDocumentChecksumRejected(database, memento, url, doc)) {
-	            memento.setStatus(URLStatus.UNMODIFIED);
+	            memento.setStatus(CrawlStatus.UNMODIFIED);
                 return;
             }
             
@@ -421,7 +423,7 @@ public class HttpCrawler extends AbstractResumableJob {
             //TODO do we really want to catch anything other than 
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
-            memento.setStatus(URLStatus.ERROR);
+            memento.setStatus(CrawlStatus.ERROR);
             if (LOG.isDebugEnabled()) {
                 LOG.error("Could not process document: " + url
                         + " (" + e.getMessage() + ")", e);
@@ -433,7 +435,7 @@ public class HttpCrawler extends AbstractResumableJob {
             //--- Flag URL for deletion ----------------------------------------
 	        ICommitter committer = httpConfig.getCommitter();
             if (database.shouldDeleteURL(url, memento)) {
-            	memento.setStatus(URLStatus.DELETED);
+            	memento.setStatus(CrawlStatus.DELETED);
                 if (committer != null) {
                     committer.queueRemove(url, outputFile, doc.getMetadata());
                 }
@@ -648,12 +650,12 @@ public class HttpCrawler extends AbstractResumableJob {
         }
     }
     
-    private URLStatus fetchDocument(HttpDocument doc) {
+    private CrawlStatus fetchDocument(HttpDocument doc) {
         //TODO for now we assume the document is downloadable.
 		// download as file
-        URLStatus status = httpConfig.getHttpDocumentFetcher().fetchDocument(
+        CrawlStatus status = httpConfig.getHttpDocumentFetcher().fetchDocument(
                 httpClient, doc);
-        if (status == URLStatus.OK) {
+        if (status == CrawlStatus.OK) {
             for (IHttpCrawlerEventListener listener : listeners) {
                 listener.documentFetched(
                         this, doc, httpConfig.getHttpDocumentFetcher());

@@ -194,10 +194,10 @@ public class HttpCrawlerDatabase {
         if (lastMemento == null) {
         	return false;
         }
-        URLStatus cur = memento.getStatus();
-        URLStatus last = lastMemento.getStatus();
-    	return cur != URLStatus.OK && cur != URLStatus.UNMODIFIED
-    			&& (last == URLStatus.OK ||  last == URLStatus.UNMODIFIED);
+        CrawlStatus cur = memento.getStatus();
+        CrawlStatus last = lastMemento.getStatus();
+    	return cur != CrawlStatus.OK && cur != CrawlStatus.UNMODIFIED
+    			&& (last == CrawlStatus.OK ||  last == CrawlStatus.UNMODIFIED);
     			//TODO ERROR too?
     }
     synchronized public void addProcessedURL(String url, URLMemento memento) {
@@ -403,11 +403,11 @@ public class HttpCrawlerDatabase {
     
     
     public static class URLMemento{
-    	private URLStatus status;
+    	private CrawlStatus status;
     	final private int depth;
     	private String headChecksum;
     	private String docChecksum;
-		public URLMemento(URLStatus status, int depth) {
+		public URLMemento(CrawlStatus status, int depth) {
 			super();
 			this.status = status;
 			this.depth = depth;
@@ -427,10 +427,10 @@ public class HttpCrawlerDatabase {
 		public void setDocChecksum(String docChecksum) {
 			this.docChecksum = docChecksum;
 		}
-		public URLStatus getStatus() {
+		public CrawlStatus getStatus() {
 			return status;
 		}
-		public void setStatus(URLStatus status) {
+		public void setStatus(CrawlStatus status) {
 			this.status = status;
 		}
 		@Override
@@ -465,7 +465,7 @@ public class HttpCrawlerDatabase {
 						"Could not parse processed URL from String: " + str, e);
 			}
 			URLMemento url = new URLMemento(
-					URLStatus.valueOf(props.getProperty("s")),
+					CrawlStatus.valueOf(props.getProperty("s")),
 					Integer.parseInt(props.getProperty("d")));
 			url.setDocChecksum(props.getProperty("dc"));
 			url.setHeadChecksum(props.getProperty("hc"));

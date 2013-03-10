@@ -1,6 +1,6 @@
 package com.norconex.collector.http.crawler;
 
-public enum URLStatus { 
+public enum CrawlStatus { 
     OK, 
     REJECTED, 
     ERROR, 

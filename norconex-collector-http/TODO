@@ -6,3 +6,6 @@
 - Consider changing .properties to .variables to avoid properties editor
   to escape some characters in Eclipse?
 - Delete .raw copy even when status is "unmodified"
+- In Cralwer, rename document[Pre|Post]Processed to [before|after]DocumentImport
+     or just [before|after]Import if we consider removing all the "document" 
+     in methods. 

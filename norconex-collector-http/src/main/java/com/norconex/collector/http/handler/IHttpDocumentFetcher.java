@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import org.apache.commons.httpclient.HttpClient;
 
-import com.norconex.collector.http.crawler.URLStatus;
+import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.doc.HttpDocument;
 
 /**
@@ -21,7 +21,7 @@ public interface IHttpDocumentFetcher extends Serializable {
 	 * @param doc HttpDocument the document to fetch and save
 	 * @return URL status
 	 */
-	URLStatus fetchDocument(
+	CrawlStatus fetchDocument(
 			HttpClient httpClient, HttpDocument doc);
 	
 }

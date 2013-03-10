@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.collector.http.HttpCollectorException;
-import com.norconex.collector.http.crawler.URLStatus;
+import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.handler.IHttpDocumentFetcher;
 import com.norconex.collector.http.util.QuietConfigurationLoader;
@@ -63,7 +63,7 @@ public class DefaultDocumentFetcher
     
     
 	@Override
-	public URLStatus fetchDocument(
+	public CrawlStatus fetchDocument(
 			HttpClient httpClient, HttpDocument doc) {
 	    //TODO replace signature with Writer class.
 	    LOG.debug("Fetching document: " + doc.getUrl());
@@ -96,7 +96,7 @@ public class DefaultDocumentFetcher
                 IOUtils.copy(is, os);
                 IOUtils.closeQuietly(is);
                 IOUtils.closeQuietly(os);
-                return URLStatus.OK;
+                return CrawlStatus.OK;
             } else {
                 // read response anyway to be safer, but ignore content
                 BufferedInputStream bis = new BufferedInputStream(is);
@@ -106,11 +106,11 @@ public class DefaultDocumentFetcher
                 }        
                 IOUtils.closeQuietly(bis);
                 if (statusCode == 404) {
-                    return URLStatus.NOT_FOUND;
+                    return CrawlStatus.NOT_FOUND;
                 } else {
                     LOG.debug("Unsupported HTTP Response: "
                             + method.getStatusLine());
-                    return URLStatus.BAD_STATUS;
+                    return CrawlStatus.BAD_STATUS;
                 }
 //	        	throw new HttpCollectorException("Invalid HTTP status code: "
 //                        + method.getStatusLine());
