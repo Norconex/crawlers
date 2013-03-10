@@ -1,0 +1,4 @@
+- Add advanced delay scheduling (e.g. more agressive at night)
+- Interface for URL Store
+- Interface for Document Store??? Filesystem default, but could be 
+  others like MongoDB?
