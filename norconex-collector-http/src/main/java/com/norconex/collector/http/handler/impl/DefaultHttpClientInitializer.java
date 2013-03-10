@@ -26,7 +26,7 @@ import com.norconex.collector.http.util.QuietConfigurationLoader;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;httpClientInitializer class="com.norconex.connector.http.handler.impl.DefaultHttpClientInitializer"&gt;
+ *  &lt;httpClientInitializer class="com.norconex.collector.http.handler.impl.DefaultHttpClientInitializer"&gt;
  *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
  *      &lt;userAgent&gt;...&lt;/userAgent&gt;
  *      &lt;authMethod&gt;[form|basic|digest]&lt;/authMethod&gt;

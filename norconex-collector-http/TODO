@@ -2,3 +2,7 @@
 - Interface for URL Store
 - Interface for Document Store??? Filesystem default, but could be 
   others like MongoDB?
+- User commons-cli for command line arguments, much like importer
+- Consider changing .properties to .variables to avoid properties editor
+  to escape some characters in Eclipse?
+- Delete .raw copy even when status is "unmodified"

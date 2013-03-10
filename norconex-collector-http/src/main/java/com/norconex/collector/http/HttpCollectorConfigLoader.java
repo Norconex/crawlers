@@ -16,7 +16,7 @@ public final class HttpCollectorConfigLoader {
     private static final Logger LOG = LogManager.getLogger(
             HttpCollectorConfigLoader.class);
     
-    public static HttpCollectorConfig loadConnectorConfig(
+    public static HttpCollectorConfig loadCollectorConfig(
             File configFile, File configVariables) {
 
         if (LOG.isDebugEnabled()) {
@@ -30,18 +30,18 @@ public final class HttpCollectorConfigLoader {
         XMLConfiguration xml = configLoader.loadXML(
                 configFile, configVariables);
 
-        String connectorID = xml.getString("[@id]");
+        String collectorID = xml.getString("[@id]");
         HttpCrawlerConfig[] crawlers = 
                 HttpCrawlerConfigLoader.loadCrawlerConfigs(xml);
 
-        HttpCollectorConfig config = new HttpCollectorConfig(connectorID);
+        HttpCollectorConfig config = new HttpCollectorConfig(collectorID);
         config.setCrawlerConfigs(crawlers);
 
         config.setLogsDir(xml.getString("logsDir"));
         config.setProgressDir(xml.getString("progressDir"));
 
         if (LOG.isInfoEnabled()) {
-            LOG.info("Configuration loaded: id=" + connectorID
+            LOG.info("Configuration loaded: id=" + collectorID
                     + "; logsDir=" + config.getLogsDir()
                     + "; progressDir=" + config.getProgressDir());
         }

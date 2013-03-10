@@ -94,7 +94,7 @@ public final class HttpCrawlerConfigLoader {
             String collectorId = node.getString("[@id]", null);
             if (StringUtils.isBlank(collectorId)) {
                 throw new HttpCollectorException(
-                        "Connector ID is missing in configuration.");
+                        "Collector ID is missing in configuration.");
             }
             config.setId(collectorId);
         }

@@ -26,7 +26,7 @@ public class HttpCollector implements IJobSuiteFactory {
     private File configurationFile;
     private File variablesFile;
     private HttpCrawler[] crawlers;
-    private HttpCollectorConfig connectorConfig;
+    private HttpCollectorConfig collectorConfig;
     
     public HttpCollector() {
         super();
@@ -35,8 +35,8 @@ public class HttpCollector implements IJobSuiteFactory {
 	    this.configurationFile = configFile;
 	    this.variablesFile = variablesFile;
 	}
-    public HttpCollector(HttpCollectorConfig connectorConfig) {
-        this.connectorConfig = connectorConfig;
+    public HttpCollector(HttpCollectorConfig collectorConfig) {
+        this.collectorConfig = collectorConfig;
     }
 	public File getConfigurationFile() {
         return configurationFile;
@@ -113,20 +113,20 @@ public class HttpCollector implements IJobSuiteFactory {
     
     @Override
     public JobSuite createJobSuite() {
-        if (connectorConfig == null) {
+        if (collectorConfig == null) {
             try {
-                connectorConfig = HttpCollectorConfigLoader.loadConnectorConfig(
+                collectorConfig = HttpCollectorConfigLoader.loadCollectorConfig(
                         getConfigurationFile(), getVariablesFile());
             } catch (Exception e) {
                 throw new HttpCollectorException(e);
             }
         }
-        if (connectorConfig == null) {
+        if (collectorConfig == null) {
         	throw new HttpCollectorException(
         			"Configuration file does not exists: "
         			+ getConfigurationFile());
         }
-        HttpCrawlerConfig[] configs = connectorConfig.getCrawlerConfigs();
+        HttpCrawlerConfig[] configs = collectorConfig.getCrawlerConfigs();
         crawlers = new HttpCrawler[configs.length];
         for (int i = 0; i < configs.length; i++) {
             HttpCrawlerConfig crawlerConfig = configs[i];
@@ -136,7 +136,7 @@ public class HttpCollector implements IJobSuiteFactory {
         IJob rootJob = null;
         if (crawlers.length > 1) {
             rootJob = new AsyncJobGroup(
-                    connectorConfig.getId(), crawlers
+                    collectorConfig.getId(), crawlers
             );
         } else if (crawlers.length == 1) {
             rootJob = crawlers[0];
@@ -145,10 +145,10 @@ public class HttpCollector implements IJobSuiteFactory {
         JobSuite suite = new JobSuite(
                 rootJob, 
                 new JobProgressPropertiesFileSerializer(
-                        connectorConfig.getProgressDir()),
-                new FileLogManager(connectorConfig.getLogsDir()),
-                new FileStopRequestHandler(connectorConfig.getId(), 
-                        connectorConfig.getProgressDir()));
+                        collectorConfig.getProgressDir()),
+                new FileLogManager(collectorConfig.getLogsDir()),
+                new FileStopRequestHandler(collectorConfig.getId(), 
+                        collectorConfig.getProgressDir()));
         LOG.info("Suite of " + crawlers.length + " HTTP crawler jobs created.");
         return suite;
     }
@@ -156,11 +156,11 @@ public class HttpCollector implements IJobSuiteFactory {
 
 	private static void usageError() {
         System.err.println(
-                "Usage: <connector> start|stop configFile [variables]");
+                "Usage: <collector> start|stop configFile [variables]");
         System.err.println("Where:");
         System.err.println(
-                "  start|stop -> Whether to start or stop the connector.");
-        System.err.println("  configFile -> Connector configuration file.");
+                "  start|stop -> Whether to start or stop the collector.");
+        System.err.println("  configFile -> Collector configuration file.");
         System.err.println("  variables  -> Optional variables file.\n");
         System.exit(-1);
 	}

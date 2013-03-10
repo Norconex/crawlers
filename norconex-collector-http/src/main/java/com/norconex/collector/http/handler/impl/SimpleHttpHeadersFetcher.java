@@ -27,7 +27,7 @@ import com.norconex.collector.http.util.QuietConfigurationLoader;
  * </p>
  * <pre>
  *  &lt;httpHeadersFetcher 
- *      class="com.norconex.connector.http.handler.impl.SimpleHttpHeadersFetcher" &gt;
+ *      class="com.norconex.collector.http.handler.impl.SimpleHttpHeadersFetcher" &gt;
  *      &lt;validStatusCodes&gt;200&lt;/validStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
  *  &lt;/httpHeadersFetcher&gt;

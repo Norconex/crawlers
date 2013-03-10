@@ -26,7 +26,7 @@ import com.norconex.collector.http.util.QuietConfigurationLoader;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;filter class="com.norconex.connector.http.filter.impl.RegexHeaderFilter"
+ *  &lt;filter class="com.norconex.collector.http.filter.impl.RegexHeaderFilter"
  *          onMatch="[include|exclude]" 
  *          caseSensitive="[false|true]" &gt;
  *          header="(name of header to match)"

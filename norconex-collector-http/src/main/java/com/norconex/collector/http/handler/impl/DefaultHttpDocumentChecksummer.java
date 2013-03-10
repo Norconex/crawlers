@@ -26,7 +26,7 @@ import com.norconex.collector.http.util.QuietConfigurationLoader;
  * XML configuration usage (not required since default):
  * </p>
  * <pre>
- *  &lt;httpDocumentChecksummer class="com.norconex.connector.http.handler.DefaultHttpDocumentChecksummer"&gt;
+ *  &lt;httpDocumentChecksummer class="com.norconex.collector.http.handler.DefaultHttpDocumentChecksummer"&gt;
  *      &lt;field&gt;(optional field name)&lt;/field&gt;
  *  &lt;/httpDocumentChecksummer &gt;
  * </pre>

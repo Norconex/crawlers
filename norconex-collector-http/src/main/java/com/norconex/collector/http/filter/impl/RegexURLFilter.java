@@ -27,7 +27,7 @@ import com.norconex.collector.http.util.QuietConfigurationLoader;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;filter class="com.norconex.connector.http.filter.impl.RegexURLFilter"
+ *  &lt;filter class="com.norconex.collector.http.filter.impl.RegexURLFilter"
  *          exclude="[false|true]" 
  *          caseSensitive="[false|true]" &gt;
  *      (regular expression)

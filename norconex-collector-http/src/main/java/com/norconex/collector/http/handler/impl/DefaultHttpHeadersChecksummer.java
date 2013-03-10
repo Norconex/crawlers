@@ -21,7 +21,7 @@ import com.norconex.collector.http.util.QuietConfigurationLoader;
  * XML configuration usage (not required since default):
  * </p>
  * <pre>
- *  &lt;httpHeadersChecksummer class="com.norconex.connector.http.handler.DefaultHttpHeadersChecksummer"&gt;
+ *  &lt;httpHeadersChecksummer class="com.norconex.collector.http.handler.DefaultHttpHeadersChecksummer"&gt;
  *      &lt;header&gt;(optional alternate header field name)&lt;/header&gt;
  *  &lt;/httpHeadersChecksummer&gt;
  * </pre>

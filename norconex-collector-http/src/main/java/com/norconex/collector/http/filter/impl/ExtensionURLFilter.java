@@ -28,7 +28,7 @@ import com.norconex.commons.lang.meta.Metadata;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;filter class="com.norconex.connector.http.filter.impl.ExtensionURLFilter"
+ *  &lt;filter class="com.norconex.collector.http.filter.impl.ExtensionURLFilter"
  *          onMatch="[include|exclude]" 
  *          caseSensitive="[false|true]" &gt;
  *      (comma-separated list of extensions)

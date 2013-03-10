@@ -32,7 +32,7 @@ import com.norconex.collector.http.util.QuietConfigurationLoader;
  * </p>
  * <pre>
  *  &lt;httpDocumentFetcher  
- *      class="com.norconex.connector.http.handler.impl.DefaultDocumentFetcher"&gt;
+ *      class="com.norconex.collector.http.handler.impl.DefaultDocumentFetcher"&gt;
  *      &lt;validStatusCodes&gt;200&lt;/validStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
  *  &lt;/httpDocumentFetcher&gt;
@@ -112,7 +112,7 @@ public class DefaultDocumentFetcher
                             + method.getStatusLine());
                     return URLStatus.BAD_STATUS;
                 }
-//	        	throw new HttpConnectorException("Invalid HTTP status code: "
+//	        	throw new HttpCollectorException("Invalid HTTP status code: "
 //                        + method.getStatusLine());
 	        }
 			
