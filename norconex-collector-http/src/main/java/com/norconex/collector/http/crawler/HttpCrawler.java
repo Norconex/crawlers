@@ -23,8 +23,9 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.HttpCollectorException;
-import com.norconex.collector.http.crawler.HttpCrawlerDatabase.QueuedURL;
-import com.norconex.collector.http.crawler.HttpCrawlerDatabase.URLMemento;
+import com.norconex.collector.http.db.CrawlURL;
+import com.norconex.collector.http.db.ICrawlURLDatabase;
+import com.norconex.collector.http.db.impl.DefaultCrawlURLDatabase;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
@@ -52,11 +53,6 @@ public class HttpCrawler extends AbstractResumableJob {
 	
 	private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
 	
-	
-	
-//	private static final String DOC_STATUS_REJECTED = "REJECTED";
-//    private static final String DOC_STATUS_ERROR = "ERROR";
-//    private static final String DOC_STATUS_OK = "OK";
 	
     private final MultiThreadedHttpConnectionManager connectionManager = 
             new MultiThreadedHttpConnectionManager();
@@ -113,19 +109,21 @@ public class HttpCrawler extends AbstractResumableJob {
     
     @Override
     protected void resumeExecution(JobProgress progress, JobSuite suite) {
-        HttpCrawlerDatabase database = 
-        		new HttpCrawlerDatabase(httpConfig, true);
+        //TODO grab from factory here.
+        ICrawlURLDatabase database = new DefaultCrawlURLDatabase(
+                httpConfig, false);
         execute(database, progress, suite);
     }
 
     @Override
     protected void startExecution(JobProgress progress, JobSuite suite) {
-        HttpCrawlerDatabase database = 
-        		new HttpCrawlerDatabase(httpConfig, false);
+        //TODO grab from factory here.
+        ICrawlURLDatabase database = new DefaultCrawlURLDatabase(
+                httpConfig, false);
         String[] startURLs = httpConfig.getStartURLs();
         for (int i = 0; i < startURLs.length; i++) {
             String startURL = startURLs[i];
-            database.addQueuedURL(startURL, 0);
+            database.queue(startURL, 0);
         }
         for (IHttpCrawlerEventListener listener : listeners) {
             listener.crawlerStarted(this);
@@ -134,7 +132,7 @@ public class HttpCrawler extends AbstractResumableJob {
     }
 	
     private void execute(
-            HttpCrawlerDatabase database, JobProgress progress, JobSuite suite) {
+            ICrawlURLDatabase database, JobProgress progress, JobSuite suite) {
 
         //TODO print initialization information
         LOG.info("RobotsTxt support " + 
@@ -145,14 +143,9 @@ public class HttpCrawler extends AbstractResumableJob {
 
         //TODO consider offering threading here?
         processURLs(database, progress);
-        while (!database.isLastProcessedURLsEmpty()) {
-        	database.copyLastProcessedURLBatchToQueue(10);
-            processURLs(database, progress);
-        }
-        
-        
-//        progress.setProgress(getProgressMaximum());
 
+        database.queueCache();
+        processURLs(database, progress);
         ICommitter committer = httpConfig.getCommitter();
         if (committer != null) {
             LOG.info("Crawler \"" + getId() + "\" " 
@@ -178,7 +171,7 @@ public class HttpCrawler extends AbstractResumableJob {
     
     
     private void processURLs(
-    		final HttpCrawlerDatabase database, final JobProgress progress) {
+    		final ICrawlURLDatabase database, final JobProgress progress) {
         
         int numThreads = httpConfig.getNumThreads();
         final CountDownLatch latch = new CountDownLatch(numThreads);
@@ -191,7 +184,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 public void run() {
                     LOG.debug("Crawler thread #" + threadIndex + " started.");
                     while (!isStopped()) {
-                        QueuedURL queuedURL = database.getNextQueuedURL();
+                        CrawlURL queuedURL = database.next();
                         if (queuedURL != null) {
                             StopWatch watch = new StopWatch();
                             watch.start();
@@ -203,8 +196,8 @@ public class HttpCrawler extends AbstractResumableJob {
                                         + queuedURL.getUrl());
                             }
                         } else {
-                            if (!database.hasActiveURLs() 
-                                    && !database.hasQueuedURLs()) {
+                            if (database.getActiveCount() == 0
+                                    && database.isQueueEmpty()) {
                                 break;
                             }
                             Sleeper.sleepMillis(10);
@@ -224,9 +217,9 @@ public class HttpCrawler extends AbstractResumableJob {
     }
     
 
-    private void setProgress(JobProgress progress, HttpCrawlerDatabase db) {
-        int queued = db.getQueuedURLCount();
-        int processed = db.getProcessedURLCount();
+    private void setProgress(JobProgress progress, ICrawlURLDatabase db) {
+        int queued = db.getQueueSize();
+        int processed = db.getProcessedCount();
         int total = queued + processed;
         if (total == 0) {
             progress.setProgress(progress.getJobContext().getProgressMaximum());
@@ -241,12 +234,10 @@ public class HttpCrawler extends AbstractResumableJob {
                 + NumberFormat.getIntegerInstance().format(total));
     }
 
-    private void processNextQueuedURL(QueuedURL queuedURL, HttpCrawlerDatabase database) {
-        //long timerStart = System.currentTimeMillis();
-        //QueuedURL queuedURL = database.getNextQueuedURL();
-        String url = queuedURL.getUrl();
-        int urlDepth = queuedURL.getDepth();
-        URLMemento memento = new URLMemento(CrawlStatus.OK, urlDepth);
+    private void processNextQueuedURL(
+            CrawlURL crawlURL, ICrawlURLDatabase database) {
+        String url = crawlURL.getUrl();
+        int urlDepth = crawlURL.getDepth();
 
         String baseFilename = getDownloadDir().getAbsolutePath() 
                 + SystemUtils.FILE_SEPARATOR +  PathUtils.urlToPath(url);
@@ -256,18 +247,16 @@ public class HttpCrawler extends AbstractResumableJob {
         
         try {
 	        if (!isUrlDepthValid(url, urlDepth)) {
-	            memento.setStatus(CrawlStatus.TOO_DEEP);
+	            crawlURL.setStatus(CrawlStatus.TOO_DEEP);
 	            return;
 	        }
 	        if (LOG.isDebugEnabled()) {
 	            LOG.debug("Processing URL: " + url);
 	        }
 
-
-
             //--- URL Filters --------------------------------------------------
             if (isURLRejected(url, httpConfig.getURLFilters(), null)) {
-	            memento.setStatus(CrawlStatus.REJECTED);
+                crawlURL.setStatus(CrawlStatus.REJECTED);
                 return;
             }
 
@@ -277,7 +266,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 robotsTxt = httpConfig.getRobotsTxtProvider().getRobotsTxt(
                         httpClient, url);
                 if (isURLRejected(url, robotsTxt.getFilters(), robotsTxt)) {
-    	            memento.setStatus(CrawlStatus.REJECTED);
+                    crawlURL.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
             }
@@ -290,7 +279,7 @@ public class HttpCrawler extends AbstractResumableJob {
             if (hdFetcher != null) {
                 Metadata metadata = hdFetcher.fetchHTTPHeaders(httpClient, url);
                 if (metadata == null) {
-                    memento.setStatus(CrawlStatus.REJECTED);
+                    crawlURL.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
                 doc.getMetadata().addProperty(metadata.getProperties());
@@ -303,22 +292,22 @@ public class HttpCrawler extends AbstractResumableJob {
                 //--- HTTP Headers Filters -------------------------------------
                 if (isHeadersRejected(url, doc.getMetadata(), 
                         httpConfig.getHttpHeadersFilters())) {
-                    memento.setStatus(CrawlStatus.REJECTED);
+                    crawlURL.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
                 
                 //--- HTTP Headers Checksum ------------------------------------
                 //TODO only if an INCREMENTAL run... else skip.
                 if (isHeadersChecksumRejected(
-                        database, memento, url, doc.getMetadata())) {
-                    memento.setStatus(CrawlStatus.UNMODIFIED);
+                        database, crawlURL, doc.getMetadata())) {
+                    crawlURL.setStatus(CrawlStatus.UNMODIFIED);
                     return;
                 }
             }
             
             //--- Document Fetcher ---------------------------------------------            
-	        memento.setStatus(fetchDocument(doc));
-	        if (memento.getStatus() != CrawlStatus.OK) {
+            crawlURL.setStatus(fetchDocument(doc));
+	        if (crawlURL.getStatus() != CrawlStatus.OK) {
 	            return;
 	        }
 
@@ -335,22 +324,22 @@ public class HttpCrawler extends AbstractResumableJob {
                 //--- HTTP Headers Filters -------------------------------------
                 if (isHeadersRejected(url, doc.getMetadata(), 
                         httpConfig.getHttpHeadersFilters())) {
-                    memento.setStatus(CrawlStatus.REJECTED);
+                    crawlURL.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
                 
                 //--- HTTP Headers Checksum ------------------------------------
                 //TODO only if an INCREMENTAL run... else skip.
                 if (isHeadersChecksumRejected(
-                        database, memento, url, doc.getMetadata())) {
-                    memento.setStatus(CrawlStatus.UNMODIFIED);
+                        database, crawlURL, doc.getMetadata())) {
+                    crawlURL.setStatus(CrawlStatus.UNMODIFIED);
                     return;
                 }
             }
             
             //--- Document Filters ---------------------------------------------
             if (isDocumentRejected(doc, httpConfig.getHttpDocumentfilters())) {
-	            memento.setStatus(CrawlStatus.REJECTED);
+                crawlURL.setStatus(CrawlStatus.REJECTED);
                 return;
             }
 
@@ -367,7 +356,7 @@ public class HttpCrawler extends AbstractResumableJob {
             
             //--- IMPORT Module ------------------------------------------------
             if (!importDocument(doc, outputFile)) {
-	            memento.setStatus(CrawlStatus.REJECTED);
+                crawlURL.setStatus(CrawlStatus.REJECTED);
                 return;
             }
             for (IHttpCrawlerEventListener listener : listeners) {
@@ -377,8 +366,8 @@ public class HttpCrawler extends AbstractResumableJob {
             
             //--- HTTP Document Checksum ---------------------------------------
             //TODO only if an INCREMENTAL run... else skip.
-            if (isDocumentChecksumRejected(database, memento, url, doc)) {
-	            memento.setStatus(CrawlStatus.UNMODIFIED);
+            if (isDocumentChecksumRejected(database, crawlURL, doc)) {
+                crawlURL.setStatus(CrawlStatus.UNMODIFIED);
                 return;
             }
             
@@ -423,7 +412,7 @@ public class HttpCrawler extends AbstractResumableJob {
             //TODO do we really want to catch anything other than 
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
-            memento.setStatus(CrawlStatus.ERROR);
+            crawlURL.setStatus(CrawlStatus.ERROR);
             if (LOG.isDebugEnabled()) {
                 LOG.error("Could not process document: " + url
                         + " (" + e.getMessage() + ")", e);
@@ -434,40 +423,40 @@ public class HttpCrawler extends AbstractResumableJob {
 	    } finally {
             //--- Flag URL for deletion ----------------------------------------
 	        ICommitter committer = httpConfig.getCommitter();
-            if (database.shouldDeleteURL(url, memento)) {
-            	memento.setStatus(CrawlStatus.DELETED);
+            if (database.isVanished(crawlURL)) {
+                crawlURL.setStatus(CrawlStatus.DELETED);
                 if (committer != null) {
                     committer.queueRemove(url, outputFile, doc.getMetadata());
                 }
             }
 	    	
             //--- Mark URL as Processed ----------------------------------------
-            database.addProcessedURL(url, memento);
+            database.processed(crawlURL);
             if (LOG.isInfoEnabled()) {
                 LOG.info(StringUtils.leftPad(
-                		memento.getStatus().toString(), 10) + " > " + url);
+                        crawlURL.getStatus().toString(), 10) + " > " + url);
             }
 	    }
 	}
 
     private void storeURLs(
-            HttpDocument doc, HttpCrawlerDatabase database, int urlDepth) {
+            HttpDocument doc, ICrawlURLDatabase database, int urlDepth) {
         Collection<String> urls = doc.getMetadata().getDocumentUrls();
         for (String urlToProcess : urls) {
-            if (database.isActiveURL(urlToProcess)) {
+            if (database.isActive(urlToProcess)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Already being processed: " + urlToProcess);
                 }
-            } else if (database.isQueuedURL(urlToProcess)) {
+            } else if (database.isQueued(urlToProcess)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Already queued: " + urlToProcess);
                 }
-            } else if (database.isProcessedURL(urlToProcess)) {
+            } else if (database.isProcessed(urlToProcess)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Already processed: " + urlToProcess);
                 }
             } else {
-                database.addQueuedURL(urlToProcess, urlDepth + 1);
+                database.queue(urlToProcess, urlDepth + 1);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Queued for processing: " + urlToProcess);
                 }
@@ -536,61 +525,64 @@ public class HttpCrawler extends AbstractResumableJob {
     }
 
     private boolean isHeadersChecksumRejected(
-    		HttpCrawlerDatabase database, URLMemento memento, 
-    		String url, Metadata headers) {
+            ICrawlURLDatabase database, CrawlURL crawlURL, Metadata headers) {
     	IHttpHeadersChecksummer check = httpConfig.getHttpHeadersChecksummer();
         if (check == null) {
             return false;
         }
         String newHeadChecksum = check.createChecksum(headers);
-        memento.setHeadChecksum(newHeadChecksum);
+        crawlURL.setHeadChecksum(newHeadChecksum);
         String oldHeadChecksum = null;
-        URLMemento oldMemento = database.getURLMemento(url);;
-        if (oldMemento != null) {
-        	oldHeadChecksum = oldMemento.getHeadChecksum();
+        CrawlURL cachedURL = database.getCached(crawlURL.getUrl());
+        if (cachedURL != null) {
+        	oldHeadChecksum = cachedURL.getHeadChecksum();
         } else {
             LOG.debug("ACCEPTED document headers checkum (new): URL="
-            		+ url);
+            		+ crawlURL.getUrl());
         	return false;
         }
         if (StringUtils.isNotBlank(newHeadChecksum) 
         		&& ObjectUtils.equals(newHeadChecksum, oldHeadChecksum)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("REJECTED document headers checkum (unmodified): URL="
-                		+ url);
+                		+ crawlURL.getUrl());
             }
             return true;
         }
-        LOG.debug("ACCEPTED document headers checkum (modified): URL=" + url);
+        LOG.debug("ACCEPTED document headers checkum (modified): URL=" 
+                + crawlURL.getUrl());
         return false;
     }
 
     private boolean isDocumentChecksumRejected(
-    		HttpCrawlerDatabase database, URLMemento memento, 
-    		String url, HttpDocument document) {
+            ICrawlURLDatabase database, CrawlURL crawlURL, 
+            HttpDocument document) {
     	IHttpDocumentChecksummer check = 
     			httpConfig.getHttpDocumentChecksummer();
         if (check == null) {
             return false;
         }
         String newDocChecksum = check.createChecksum(document);
-        memento.setDocChecksum(newDocChecksum);
+        crawlURL.setDocChecksum(newDocChecksum);
         String oldDocChecksum = null;
-        URLMemento oldMemento = database.getURLMemento(url);;
-        if (oldMemento != null) {
-        	oldDocChecksum = oldMemento.getDocChecksum();
+        CrawlURL cachedURL = database.getCached(crawlURL.getUrl());
+        if (cachedURL != null) {
+        	oldDocChecksum = cachedURL.getDocChecksum();
         } else {
-            LOG.debug("ACCEPTED document checkum (new): URL=" + url);
+            LOG.debug("ACCEPTED document checkum (new): URL=" 
+                    + crawlURL.getUrl());
         	return false;
         }
         if (StringUtils.isNotBlank(newDocChecksum) 
         		&& ObjectUtils.equals(newDocChecksum, oldDocChecksum)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("REJECTED document checkum (unmodified): URL=" + url);
+                LOG.debug("REJECTED document checkum (unmodified): URL=" 
+                        + crawlURL.getUrl());
             }
             return true;
         }
-        LOG.debug("ACCEPTED document checkum (modified): URL=" + url);
+        LOG.debug("ACCEPTED document checkum (modified): URL=" 
+                + crawlURL.getUrl());
         return false;
     }
 

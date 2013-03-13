@@ -1,6 +1,8 @@
 package com.norconex.collector.http.crawler;
 
-public enum CrawlStatus { 
+import java.io.Serializable;
+
+public enum CrawlStatus implements Serializable { 
     OK, 
     REJECTED, 
     ERROR, 

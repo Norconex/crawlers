@@ -7,16 +7,14 @@ import com.norconex.collector.http.crawler.CrawlStatus;
 public class CrawlURL implements Serializable {
 
     private static final long serialVersionUID = -2219206220476107409L;
-    private final int depth;
-    private final String url;
+    private int depth;
+    private String url;
     private CrawlStatus status;
     private String headChecksum;
     private String docChecksum;
     
-    public CrawlURL(String url, int depth) {
+    public CrawlURL() {
         super();
-        this.depth = depth;
-        this.url = url;
     }
     public int getDepth() {
         return depth;
@@ -41,6 +39,12 @@ public class CrawlURL implements Serializable {
     }
     public void setDocChecksum(String docChecksum) {
         this.docChecksum = docChecksum;
+    }
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
+    public void setUrl(String url) {
+        this.url = url;
     }
     @Override
     public int hashCode() {

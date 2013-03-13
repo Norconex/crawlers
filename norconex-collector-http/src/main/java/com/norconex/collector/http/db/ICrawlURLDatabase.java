@@ -20,18 +20,19 @@ package com.norconex.collector.http.db;
  * @author Pascal Essiembre
  *
  */
-interface ICrawlURLDatabase {
+public interface ICrawlURLDatabase {
 
     
     /**
      * Queues a URL for future processing.
      * @param url the URL to eventually be processed
      * @param depth how many clicks away from starting URL(s)
+     * @return a crawl url instance
      */
     
     //TODO should the method check if already processed first or crawler will do?
 
-    void queue(CrawlURL crawlURL);
+    CrawlURL queue(String url, int depth);
     //was: void addQueuedURL(String url, int depth);
 
     /**
@@ -45,14 +46,15 @@ interface ICrawlURLDatabase {
      * Gets the size of the URL queue (number of URLs left to process).
      * @return queue size
      */
-    long getQueueSize();
+    int getQueueSize();
     //was: int getQueuedURLCount();
 
     /**
      * Whether the given URL is in the queue or not (waiting to be processed).
+     * @param url url
      * @return <code>true</code> if the URL is in the queue
      */
-    boolean isQueued(CrawlURL crawlURL);
+    boolean isQueued(String url);
     //was: boolean isQueuedURL(String url);
 
     /**
@@ -68,17 +70,25 @@ interface ICrawlURLDatabase {
      * @param crawlURL the url
      * @return <code>true</code> if active
      */
-    boolean isActive(CrawlURL crawlURL);
+    boolean isActive(String url);
     //was: boolean isActiveURL(String url);
     
+
+    /**
+     * Gets the number of active URLs (currently being processed).
+     * @return number of active URLs.
+     */
+    int getActiveCount();
+    //was: boolean hasActiveURLs();
+
     
     /**
      * Gets the cached URL from previous time crawler was run
      * (e.g. for comparison purposes).
-     * @param savedURL URL saved from previous run
+     * @param cacheURL URL cached from previous run
      * @return url
      */
-    CrawlURL getCached(String processedURL);
+    CrawlURL getCached(String cacheURL);
     //was: URLMemento getURLMemento(String processedURL);
     
     /**
@@ -99,27 +109,26 @@ interface ICrawlURLDatabase {
 
     /**
      * Whether the given URL has been processed.
-     * @param crawlURL url
+     * @param url url
      * @return <code>true</code> if processed
      */
-    boolean isProcessed(CrawlURL crawlURL);
+    boolean isProcessed(String url);
     //was: boolean isProcessedURL(String url);
 
     /**
      * Gets the number of URLs processed.
      * @return number of URLs processed.
      */
-    long getProcessedCount();
+    int getProcessedCount();
     //was: int getProcessedURLCount();
 
     /**
-     * Queues a segment of all URLs cached from a previous run. 
-     * This method will be called several time, until the cache becomes empty.
-     * How many URLs gets queued from the cache when this method is called
-     * is left to implementors, based on performance in moving from cache to
-     * queue.
+     * Queues URLs cached from a previous run so they can be processed again.
+     * This method is normally called when a job is done crawling,
+     * and entries remain in the cache.  Those are re-processed in case
+     * they changed or are no longer valid. 
      */
-    void queueCacheSegment();
+    void queueCache();
     //was: void copyLastProcessedURLBatchToQueue(int batchSize);
     
     
@@ -127,12 +136,12 @@ interface ICrawlURLDatabase {
     //TODO: Should we have deleted here??? Or a deleted document is simply a
     // processed one from a database standpoint???
     /**
-     * Marks this URL as deleted. A URL should only be deleted when it was
-     * successfully crawled on a previous run, but is not rejected for some
-     * reason.
+     * Whether a url has been deleted.  To find this out, the URL has to be 
+     * of an invalid state (e.g. NOT_FOUND) and must exists in the URL cache
+     * in a valid state.
      * @param crawlURL the URL
      */
-    void delete(CrawlURL crawlURL);
+    boolean isVanished(CrawlURL crawlURL);
     //was: boolean shouldDeleteURL(String url, CrawlURL memento);
     
     
@@ -141,8 +150,6 @@ interface ICrawlURLDatabase {
     //TODO have a isDeleted() ???
     
     
-    //NO EQUIVALENT??  Try to do within Store
-    //boolean hasActiveURLs();
 
     //RENAMED:
     
