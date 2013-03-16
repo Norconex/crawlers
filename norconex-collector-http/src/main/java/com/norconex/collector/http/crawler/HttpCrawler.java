@@ -25,7 +25,6 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.db.CrawlURL;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
-import com.norconex.collector.http.db.impl.DefaultCrawlURLDatabase;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
@@ -109,17 +108,17 @@ public class HttpCrawler extends AbstractResumableJob {
     
     @Override
     protected void resumeExecution(JobProgress progress, JobSuite suite) {
-        //TODO grab from factory here.
-        ICrawlURLDatabase database = new DefaultCrawlURLDatabase(
-                httpConfig, false);
+        ICrawlURLDatabase database = 
+                httpConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
+                        httpConfig, true);
         execute(database, progress, suite);
     }
 
     @Override
     protected void startExecution(JobProgress progress, JobSuite suite) {
-        //TODO grab from factory here.
-        ICrawlURLDatabase database = new DefaultCrawlURLDatabase(
-                httpConfig, false);
+        ICrawlURLDatabase database = 
+                httpConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
+                        httpConfig, false);
         String[] startURLs = httpConfig.getStartURLs();
         for (int i = 0; i < startURLs.length; i++) {
             String startURL = startURLs[i];
@@ -142,10 +141,10 @@ public class HttpCrawler extends AbstractResumableJob {
         
 
         //TODO consider offering threading here?
-        processURLs(database, progress);
+        processURLs(database, progress, suite);
 
         database.queueCache();
-        processURLs(database, progress);
+        processURLs(database, progress, suite);
         ICommitter committer = httpConfig.getCommitter();
         if (committer != null) {
             LOG.info("Crawler \"" + getId() + "\" " 
@@ -171,7 +170,9 @@ public class HttpCrawler extends AbstractResumableJob {
     
     
     private void processURLs(
-    		final ICrawlURLDatabase database, final JobProgress progress) {
+    		final ICrawlURLDatabase database,
+    		final JobProgress progress, 
+    		final JobSuite suite) {
         
         int numThreads = httpConfig.getNumThreads();
         final CountDownLatch latch = new CountDownLatch(numThreads);
@@ -184,23 +185,31 @@ public class HttpCrawler extends AbstractResumableJob {
                 public void run() {
                     LOG.debug("Crawler thread #" + threadIndex + " started.");
                     while (!isStopped()) {
-                        CrawlURL queuedURL = database.next();
-                        if (queuedURL != null) {
-                            StopWatch watch = new StopWatch();
-                            watch.start();
-                            processNextQueuedURL(queuedURL, database);
-                            setProgress(progress, database);
-                            watch.stop();
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug(watch.toString() + " to process: " 
-                                        + queuedURL.getUrl());
+                        try {
+                            CrawlURL queuedURL = database.next();
+                            if (queuedURL != null) {
+                                StopWatch watch = new StopWatch();
+                                watch.start();
+                                processNextQueuedURL(queuedURL, database);
+                                setProgress(progress, database);
+                                watch.stop();
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug(watch.toString() + " to process: " 
+                                            + queuedURL.getUrl());
+                                }
+                            } else {
+                                if (database.getActiveCount() == 0
+                                        && database.isQueueEmpty()) {
+                                    break;
+                                }
+                                Sleeper.sleepMillis(10);
                             }
-                        } else {
-                            if (database.getActiveCount() == 0
-                                    && database.isQueueEmpty()) {
-                                break;
-                            }
-                            Sleeper.sleepMillis(10);
+                        } catch (Exception e) {
+                            LOG.fatal("An error occured that could compromise "
+                                    + "the stability of the crawler component. "
+                                    + "Stopping excution to avoid further "
+                                    + "issues...", e);
+                            stop(progress, suite);
                         }
                     }
                     latch.countDown();

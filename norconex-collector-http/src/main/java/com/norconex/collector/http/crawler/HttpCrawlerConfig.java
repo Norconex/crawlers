@@ -5,6 +5,8 @@ import java.io.Serializable;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
+import com.norconex.collector.http.db.impl.DefaultCrawlURLDatabaseFactory;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
@@ -53,6 +55,8 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
             new DefaultRobotsTxtProvider();
 
     //private IRobotsMetaBuilder robotMetaBuilder;
+    private ICrawlURLDatabaseFactory crawlURLDatabaseFactory =
+            new DefaultCrawlURLDatabaseFactory();
     
     private ImporterConfig importerConfig = new ImporterConfig();
 
@@ -228,6 +232,14 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
 			IHttpDocumentChecksummer httpDocumentChecksummer) {
 		this.httpDocumentChecksummer = httpDocumentChecksummer;
 	}
+    public ICrawlURLDatabaseFactory getCrawlURLDatabaseFactory() {
+        return crawlURLDatabaseFactory;
+    }
+    public void setCrawlURLDatabaseFactory(
+            ICrawlURLDatabaseFactory crawlURLDatabaseFactory) {
+        this.crawlURLDatabaseFactory = crawlURLDatabaseFactory;
+    }
+	
 	@Override
     protected Object clone() throws CloneNotSupportedException {
         try {

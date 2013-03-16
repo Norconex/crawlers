@@ -15,7 +15,7 @@ public class HttpCollectorConfig implements Cloneable, Serializable {
     private HttpCrawlerConfig[] crawlerConfigs;
     private String progressDir = DEFAULT_PROGRESS_DIR;
     private String logsDir = DEFAULT_LOGS_DIR;
-	
+    
 	public HttpCollectorConfig(String id) {
         super();
         this.id = id;
@@ -49,5 +49,4 @@ public class HttpCollectorConfig implements Cloneable, Serializable {
     public void setLogsDir(String logsDir) {
         this.logsDir = logsDir;
     }
-
 }

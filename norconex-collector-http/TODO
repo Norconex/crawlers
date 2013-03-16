@@ -1,5 +1,4 @@
 - Add advanced delay scheduling (e.g. more agressive at night)
-- Interface for URL Store -- Need to make configurable
 - Interface for Document Store??? Filesystem default, but could be 
   others like MongoDB?
 - User commons-cli for command line arguments, much like importer
@@ -10,3 +9,10 @@
      or just [before|after]Import if we consider removing all the "document" 
      in methods. 
 - Add junit tests
+
+- Add option to delete unreacheables (URLs in cache but not crawled).  Saying
+  true would simply ignore/flush the remaining URLs in the cache.
+  
+- Add URL Normalizer so that variants of the same page do not get queued and 
+  downloaded multiple times.  This normnalizer would be a first step 
+  performed before being queued.

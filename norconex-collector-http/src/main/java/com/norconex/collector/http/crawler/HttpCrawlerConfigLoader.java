@@ -27,6 +27,7 @@ import com.norconex.collector.http.handler.IRobotsTxtProvider;
 import com.norconex.collector.http.handler.IURLExtractor;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtils;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.ImporterConfigLoader;
@@ -115,6 +116,9 @@ public final class HttpCrawlerConfigLoader {
                 crawlerListeners.length == 0 
                         ? config.getCrawlerListeners() : crawlerListeners);
         
+        config.setCrawlURLDatabaseFactory(ConfigurationUtils.newInstance(
+                node.configurationAt("crawlURLDatabaseFactory"), 
+                config.getCrawlURLDatabaseFactory()));
         
         //--- HTTP Initializer -------------------------------------------------
         config.setHttpClientInitializer((IHttpClientInitializer) newInstance(
@@ -291,7 +295,8 @@ public final class HttpCrawlerConfigLoader {
             return null;
         }
     }
-    
+
+    //TODO remove this method and use ConfigurationUtils.newInstance() instead.
     private static Object newInstance(
             XMLConfiguration node, Object defaultObject)
             throws Exception {
