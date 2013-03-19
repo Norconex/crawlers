@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Test;
 
-import com.norconex.commons.lang.config.ConfigurationUtils;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 
 public class ReplaceTaggerTest {
 
@@ -17,7 +17,7 @@ public class ReplaceTaggerTest {
         tagger.addReplacement("fromValue1", "toValue1", "fromName2", "toName2");
         tagger.addReplacement("fromValue3", "toValue3", "fromName3", "toName3");
         System.out.println("Writing/Reading this: " + tagger);
-        ConfigurationUtils.assertWriteRead(tagger);
+        ConfigurationUtil.assertWriteRead(tagger);
     }
 
 }

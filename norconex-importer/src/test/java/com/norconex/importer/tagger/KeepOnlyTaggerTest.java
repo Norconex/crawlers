@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Test;
 
-import com.norconex.commons.lang.config.ConfigurationUtils;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 
 public class KeepOnlyTaggerTest {
 
@@ -16,7 +16,7 @@ public class KeepOnlyTaggerTest {
         tagger.addField("field2");
         tagger.addField("field3");
         System.out.println("Writing/Reading this: " + tagger);
-        ConfigurationUtils.assertWriteRead(tagger);
+        ConfigurationUtil.assertWriteRead(tagger);
     }
 
 }

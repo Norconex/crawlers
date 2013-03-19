@@ -18,12 +18,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.handler.IHttpDocumentFetcher;
-import com.norconex.collector.http.util.QuietConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.IXMLConfigurable;
 
 /**
  * Default implementation of {@link IHttpDocumentFetcher}.  
@@ -152,7 +152,7 @@ public class DefaultDocumentFetcher
     }
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = QuietConfigurationLoader.load(in);
+        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         String validCodes = xml.getString("validStatusCodes");
         int[] intCodes = SimpleHttpHeadersFetcher.DEFAULT_VALID_STATUS_CODES;
         if (StringUtils.isNotBlank(validCodes)) {

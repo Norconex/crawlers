@@ -7,7 +7,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.norconex.commons.lang.config.ConfigurationUtils;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 
 
 public class FileSystemCommitterTest {
@@ -30,7 +30,7 @@ public class FileSystemCommitterTest {
         FileSystemCommitter outCommitter = new FileSystemCommitter();
         outCommitter.setDirectory("C:\\FakeTestDirectory\\");
         System.out.println("Writing/Reading this: " + outCommitter);
-        ConfigurationUtils.assertWriteRead(outCommitter);
+        ConfigurationUtil.assertWriteRead(outCommitter);
     }
 
 }

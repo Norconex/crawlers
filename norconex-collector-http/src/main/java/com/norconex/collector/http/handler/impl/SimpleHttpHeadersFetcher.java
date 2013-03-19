@@ -14,11 +14,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.meta.Metadata;
 import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.handler.IHttpHeadersFetcher;
-import com.norconex.collector.http.util.QuietConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.meta.Metadata;
 
 /**
  * Default implementation of {@link IHttpHeadersFetcher}.  
@@ -125,7 +125,7 @@ public class SimpleHttpHeadersFetcher
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = QuietConfigurationLoader.load(in);
+        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         String validCodes = xml.getString("validStatusCodes");
         int[] intCodes = DEFAULT_VALID_STATUS_CODES;
         if (StringUtils.isNotBlank(validCodes)) {

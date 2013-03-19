@@ -12,15 +12,15 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
 
-import com.norconex.commons.lang.meta.Metadata;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.filter.AbstractOnMatchFilter;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.collector.http.filter.OnMatch;
-import com.norconex.collector.http.util.QuietConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.meta.Metadata;
 /**
  * Filters URL based on a regular expression.
  * <p>
@@ -102,7 +102,7 @@ public class RegexURLFilter extends AbstractOnMatchFilter implements
 
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = QuietConfigurationLoader.load(in);
+        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         setRegex(xml.getString(""));
         setOnMatch(getOnMatch(xml));
         setCaseSensitive(xml.getBoolean("[@caseSensitive]", false));

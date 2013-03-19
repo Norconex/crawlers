@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Test;
 
-import com.norconex.commons.lang.config.ConfigurationUtils;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 
 public class ConstantTaggerTest {
 
@@ -18,7 +18,7 @@ public class ConstantTaggerTest {
         tagger.addConstant("constant2", "valueA");
         tagger.addConstant("constant3", "valueZ");
         System.out.println("Writing/Reading this: " + tagger);
-        ConfigurationUtils.assertWriteRead(tagger);
+        ConfigurationUtil.assertWriteRead(tagger);
     }
 
 }

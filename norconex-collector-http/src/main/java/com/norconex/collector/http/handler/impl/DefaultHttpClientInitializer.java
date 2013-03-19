@@ -15,10 +15,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.handler.IHttpClientInitializer;
-import com.norconex.collector.http.util.QuietConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.IXMLConfigurable;
 
 /**
  * Default implementation of {@link IHttpClientInitializer}.  
@@ -102,7 +102,7 @@ public class DefaultHttpClientInitializer implements
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = QuietConfigurationLoader.load(in);
+        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         cookiesDisabled = xml.getBoolean("cookiesDisabled", cookiesDisabled);
         authMethod = xml.getString("authMethod", authMethod);
         authUsernameField = 

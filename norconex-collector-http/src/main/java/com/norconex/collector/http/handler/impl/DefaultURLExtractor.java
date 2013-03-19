@@ -14,9 +14,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.collector.http.handler.IURLExtractor;
-import com.norconex.collector.http.util.QuietConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.importer.ContentType;
 
 /**
@@ -120,7 +120,7 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
 
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = QuietConfigurationLoader.load(in);
+        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         setMaxURLLength(xml.getInt("maxURLLength", DEFAULT_MAX_URL_LENGTH));
     }
     @Override
