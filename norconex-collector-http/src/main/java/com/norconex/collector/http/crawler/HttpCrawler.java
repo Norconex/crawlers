@@ -39,6 +39,7 @@ import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.util.PathUtils;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.io.FileUtil;
 import com.norconex.commons.lang.meta.Metadata;
 import com.norconex.importer.Importer;
 import com.norconex.importer.ImporterConfig;
@@ -60,7 +61,6 @@ public class HttpCrawler extends AbstractResumableJob {
     private HttpClient httpClient;
     private final IHttpCrawlerEventListener[] listeners;
     private boolean stopped;
-    private final DelayBlocker delayBlocker;
 	//TODO have config being overwritable... JEF CCOnfig does that...
     
 	public HttpCrawler(
@@ -75,7 +75,6 @@ public class HttpCrawler extends AbstractResumableJob {
 	        this.listeners = httpConfig.getCrawlerListeners();
 		}
         httpConfig.getWorkDir().mkdirs();
-        delayBlocker = new DelayBlocker(httpConfig.getDelay());
 	}
 	
 	@Override
@@ -157,7 +156,7 @@ public class HttpCrawler extends AbstractResumableJob {
         connectionManager.deleteClosedConnections();
 
         LOG.debug("Removing empty directories");
-        PathUtils.removeEmptyDirectories(getDownloadDir());
+        FileUtil.deleteEmptyDirs(getDownloadDir());
         
         if (!stopped) {
             for (IHttpCrawlerEventListener listener : listeners) {
@@ -281,7 +280,7 @@ public class HttpCrawler extends AbstractResumableJob {
             }
 
             //--- Wait for delay to expire -------------------------------------
-            delayBlocker.wait(robotsTxt, url);
+            httpConfig.getDelayResolver().delay(robotsTxt, url);
             
             //--- HTTP Headers Fetcher and Filters -----------------------------
             IHttpHeadersFetcher hdFetcher = httpConfig.getHttpHeadersFetcher();
@@ -679,7 +678,7 @@ public class HttpCrawler extends AbstractResumableJob {
     private boolean importDocument(
             HttpDocument doc, File output) throws IOException {
         Importer importer = new Importer(importConfig);
-        PathUtils.ensureDirectoryForFile(output);
+        FileUtil.createDirsForFile(output);
         if (importer.importDocument(
                 doc.getLocalFile(),
                 doc.getMetadata().getContentType(),

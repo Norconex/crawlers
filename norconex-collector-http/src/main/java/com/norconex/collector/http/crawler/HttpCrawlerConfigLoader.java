@@ -27,7 +27,7 @@ import com.norconex.collector.http.handler.IRobotsTxtProvider;
 import com.norconex.collector.http.handler.IURLExtractor;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.config.ConfigurationLoader;
-import com.norconex.commons.lang.config.ConfigurationUtils;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.ImporterConfigLoader;
@@ -100,7 +100,8 @@ public final class HttpCrawlerConfigLoader {
             config.setId(collectorId);
         }
         
-        config.setDelay(node.getInt("delay", config.getDelay()));
+        config.setDelayResolver(ConfigurationUtil.newInstance(
+                node.configurationAt("delay"), config.getDelayResolver()));
         config.setNumThreads(node.getInt("numThreads", config.getNumThreads()));
         config.setDepth(node.getInt("depth", config.getDepth()));
         config.setWorkDir(new File(node.getString(
@@ -116,7 +117,7 @@ public final class HttpCrawlerConfigLoader {
                 crawlerListeners.length == 0 
                         ? config.getCrawlerListeners() : crawlerListeners);
         
-        config.setCrawlURLDatabaseFactory(ConfigurationUtils.newInstance(
+        config.setCrawlURLDatabaseFactory(ConfigurationUtil.newInstance(
                 node.configurationAt("crawlURLDatabaseFactory"), 
                 config.getCrawlURLDatabaseFactory()));
         

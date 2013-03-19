@@ -10,6 +10,7 @@ import com.norconex.collector.http.db.impl.DefaultCrawlURLDatabaseFactory;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
+import com.norconex.collector.http.handler.IDelayResolver;
 import com.norconex.collector.http.handler.IHttpClientInitializer;
 import com.norconex.collector.http.handler.IHttpDocumentChecksummer;
 import com.norconex.collector.http.handler.IHttpDocumentFetcher;
@@ -20,6 +21,7 @@ import com.norconex.collector.http.handler.IRobotsTxtProvider;
 import com.norconex.collector.http.handler.IURLExtractor;
 import com.norconex.committer.ICommitter;
 import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.http.handler.impl.DefaultDelayResolver;
 import com.norconex.collector.http.handler.impl.DefaultDocumentFetcher;
 import com.norconex.collector.http.handler.impl.DefaultHttpClientInitializer;
 import com.norconex.collector.http.handler.impl.DefaultHttpDocumentChecksummer;
@@ -36,10 +38,11 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     private int depth = -1;
     private File workDir = new File("./work");
     private String[] startURLs;
-    private int delay = 1000;
     private int numThreads = 2;
     private boolean ignoreRobotsTxt;
     private boolean keepDownloads;
+
+    private IDelayResolver delayResolver = new DefaultDelayResolver();
     
     private IHttpClientInitializer httpClientInitializer =
             new DefaultHttpClientInitializer();
@@ -55,6 +58,7 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
             new DefaultRobotsTxtProvider();
 
     //private IRobotsMetaBuilder robotMetaBuilder;
+
     private ICrawlURLDatabaseFactory crawlURLDatabaseFactory =
             new DefaultCrawlURLDatabaseFactory();
     
@@ -101,12 +105,6 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
     public File getWorkDir() {
         return workDir;
-    }
-    public int getDelay() {
-        return delay;
-    }
-    public void setDelay(int delay) {
-        this.delay = delay;
     }
     public int getNumThreads() {
         return numThreads;
@@ -171,6 +169,12 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
 //    public Object getDocumentStateDetectorStrategy() {return null;}
            // states: new, existing_modified, existing_unmodified, orphan, unreacheable
 
+    public IDelayResolver getDelayResolver() {
+        return delayResolver;
+    }
+    public void setDelayResolver(IDelayResolver delayResolver) {
+        this.delayResolver = delayResolver;
+    }
     public IHttpCrawlerEventListener[] getCrawlerListeners() {
         return crawlerListeners;
     }
