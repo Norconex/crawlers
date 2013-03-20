@@ -33,6 +33,9 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         super();
         LOG.info("Initializing crawl database...");
         this.dbDir = config.getWorkDir().getPath() + "/db";
+        
+        System.setProperty("derby.system.home", dbDir + "log");
+        
         this.datasource = createDataSource();
         try {
             ensureTablesExist();

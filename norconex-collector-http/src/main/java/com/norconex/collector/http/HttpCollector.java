@@ -4,11 +4,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.jef.AsyncJobGroup;
 import com.norconex.jef.IJob;
 import com.norconex.jef.JobRunner;
@@ -61,25 +68,22 @@ public class HttpCollector implements IJobSuiteFactory {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-	    if (args.length != 2 && args.length != 3) {
-	        usageError();
-	    }
-	    String command = args[0];
-        File configFile = new File(args[1]);
-        File configVariables = null;
-        if (args.length > 2) {
-            configVariables = new File(args[2]);
+	    CommandLine cmd = parseCommandLineArguments(args);
+        String action = cmd.getOptionValue("action");
+        File configFile = new File(cmd.getOptionValue("config"));
+        File varFile = null;
+        if (cmd.hasOption("variables")) {
+            varFile = new File(cmd.getOptionValue("variables"));
         }
+	    
         try {
-            HttpCollector conn = new HttpCollector(configFile, configVariables);
-    	    if ("start".equalsIgnoreCase(command)) {
+            HttpCollector conn = new HttpCollector(configFile, varFile);
+    	    if ("start".equalsIgnoreCase(action)) {
     	        conn.crawl(false);
-    	    } else if ("resume".equalsIgnoreCase(command)) {
+    	    } else if ("resume".equalsIgnoreCase(action)) {
                 conn.crawl(true);
-    	    } else if ("stop".equalsIgnoreCase(command)) {
+    	    } else if ("stop".equalsIgnoreCase(action)) {
     	        conn.stop();
-    	    } else {
-    	        usageError();
     	    }
         } catch (Exception e) {
         	File errorFile = new File(
@@ -99,6 +103,36 @@ public class HttpCollector implements IJobSuiteFactory {
         }
 	}
 
+    private static CommandLine parseCommandLineArguments(String[] args) {
+        Options options = new Options();
+        options.addOption("c", "config", true, 
+                "Required: HTTP Collector configuration file.");
+        options.addOption("v", "variables", true, 
+                "Optional: variable file.");
+        options.addOption("a", "action", true, 
+                "Required: one of start|resume|stop");
+        
+        CommandLineParser parser = new PosixParser();
+        CommandLine cmd = null;
+        try {
+            cmd = parser.parse( options, args);
+            if(!cmd.hasOption("config") 
+                    || !cmd.hasOption("action")
+                    || EqualsUtil.equalsNone(cmd.getOptionValue("action"),
+                            "start", "resume", "stop")) {
+                HelpFormatter formatter = new HelpFormatter();
+                formatter.printHelp( "collector-http[.bat|.sh]", options );
+                System.exit(-1);
+            }
+        } catch (ParseException e1) {
+            e1.printStackTrace();
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp( "collector-http[.bat|.sh]", options );
+            System.exit(-1);
+        }
+        return cmd;
+    }
+	
     public void crawl(boolean resumeNonCompleted) {
         JobSuite suite = createJobSuite();
         JobRunner jobRunner = new JobRunner();
@@ -153,29 +187,4 @@ public class HttpCollector implements IJobSuiteFactory {
         return suite;
     }
 	
-
-	private static void usageError() {
-        System.err.println(
-                "Usage: <collector> start|stop configFile [variables]");
-        System.err.println("Where:");
-        System.err.println(
-                "  start|stop -> Whether to start or stop the collector.");
-        System.err.println("  configFile -> Collector configuration file.");
-        System.err.println("  variables  -> Optional variables file.\n");
-        System.exit(-1);
-	}
-	
-	
-	/*
-	 * 
-
-
-[PROCESS_URL]
-  * Get URL
-  * Check 
-   * Check against database of already crawled URLs 
-
-
-	 * 
-	 */
 }

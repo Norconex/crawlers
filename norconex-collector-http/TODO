@@ -1,9 +1,5 @@
-- DONE: Add advanced delay scheduling (e.g. more agressive at night)
 - Interface for Document Store??? Filesystem default, but could be 
   others like MongoDB?
-- User commons-cli for command line arguments, much like importer
-- Consider changing .properties to .variables to avoid properties editor (support both types?)
-  to escape some characters in Eclipse?
 - Delete .raw copy even when status is "unmodified"
 - In Cralwer, rename document[Pre|Post]Processed to [before|after]DocumentImport
      or just [before|after]Import if we consider removing all the "document" 
