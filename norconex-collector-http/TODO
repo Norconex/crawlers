@@ -1,6 +1,5 @@
 - Interface for Document Store??? Filesystem default, but could be 
   others like MongoDB?
-- Delete .raw copy even when status is "unmodified"
 - In Cralwer, rename document[Pre|Post]Processed to [before|after]DocumentImport
      or just [before|after]Import if we consider removing all the "document" 
      in methods. 

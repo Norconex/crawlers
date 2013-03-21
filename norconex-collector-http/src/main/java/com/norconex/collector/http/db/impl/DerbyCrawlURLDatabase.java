@@ -32,9 +32,10 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     public DerbyCrawlURLDatabase(HttpCrawlerConfig config, boolean resume) {
         super();
         LOG.info("Initializing crawl database...");
-        this.dbDir = config.getWorkDir().getPath() + "/db";
+        this.dbDir = config.getWorkDir().getPath() + "/crawldb/db";
         
-        System.setProperty("derby.system.home", dbDir + "log");
+        System.setProperty("derby.system.home", 
+                config.getWorkDir().getPath() + "/crawldb/log");
         
         this.datasource = createDataSource();
         try {

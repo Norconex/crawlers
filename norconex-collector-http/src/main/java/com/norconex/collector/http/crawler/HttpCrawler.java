@@ -156,7 +156,7 @@ public class HttpCrawler extends AbstractResumableJob {
         connectionManager.deleteClosedConnections();
 
         LOG.debug("Removing empty directories");
-        FileUtil.deleteEmptyDirs(getDownloadDir());
+        FileUtil.deleteEmptyDirs(gelCrawlerDownloadDir());
         
         if (!stopped) {
             for (IHttpCrawlerEventListener listener : listeners) {
@@ -222,6 +222,20 @@ public class HttpCrawler extends AbstractResumableJob {
         } catch (InterruptedException e) {
              throw new HttpCollectorException(e);
         }
+        
+        //--- Delete Download Dir ----------------------------------------------
+        if (!httpConfig.isKeepDownloads()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Deleting downloads directory: "
+                        + gelBaseDownloadDir());
+            }
+            try {
+                FileUtil.deleteFile(gelBaseDownloadDir());
+            } catch (IOException e) {
+                LOG.error("Could not delete the downloads directory: "
+                        + gelBaseDownloadDir(), e);
+            }
+        }
     }
     
 
@@ -247,7 +261,7 @@ public class HttpCrawler extends AbstractResumableJob {
         String url = crawlURL.getUrl();
         int urlDepth = crawlURL.getDepth();
 
-        String baseFilename = getDownloadDir().getAbsolutePath() 
+        String baseFilename = gelCrawlerDownloadDir().getAbsolutePath() 
                 + SystemUtils.FILE_SEPARATOR +  PathUtils.urlToPath(url);
         File rawFile = new File(baseFilename + ".raw"); 
         File outputFile = new File(baseFilename + ".txt");
@@ -370,7 +384,6 @@ public class HttpCrawler extends AbstractResumableJob {
             for (IHttpCrawlerEventListener listener : listeners) {
                 listener.documentImported(this, doc);
             }
-            //TODO boolean importSuccess = importDocument(doc)  if false return.
             
             //--- HTTP Document Checksum ---------------------------------------
             //TODO only if an INCREMENTAL run... else skip.
@@ -401,15 +414,6 @@ public class HttpCrawler extends AbstractResumableJob {
             }
 
             
-            //--- Locale File Delete -------------------------------------------
-            if (!httpConfig.isKeepDownloads()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Deletting" + doc.getLocalFile());
-                }
-                FileUtils.deleteQuietly(doc.getLocalFile());
-            }
-
-
             for (IHttpCrawlerEventListener listener : listeners) {
                 listener.documentCrawled(this, doc);
             }
@@ -443,6 +447,14 @@ public class HttpCrawler extends AbstractResumableJob {
             if (LOG.isInfoEnabled()) {
                 LOG.info(StringUtils.leftPad(
                         crawlURL.getStatus().toString(), 10) + " > " + url);
+            }
+            
+            //--- Delete Local File Download -----------------------------------
+            if (!httpConfig.isKeepDownloads()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Deleting" + doc.getLocalFile());
+                }
+                FileUtils.deleteQuietly(doc.getLocalFile());
             }
 	    }
 	}
@@ -734,9 +746,11 @@ public class HttpCrawler extends AbstractResumableJob {
         stopped = true;
         LOG.info("Stopping the crawler \"" + progress.getJobId() +  "\".");
     }
-
-    private File getDownloadDir() {
-        return new File(httpConfig.getWorkDir().getAbsolutePath() 
-                + "/files/" + httpConfig.getId());
+    private File gelBaseDownloadDir() {
+        return new File(
+                httpConfig.getWorkDir().getAbsolutePath() + "/downloads");
+    }
+    private File gelCrawlerDownloadDir() {
+        return new File(gelBaseDownloadDir() + "/" + httpConfig.getId());
     }
 }
