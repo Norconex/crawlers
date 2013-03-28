@@ -100,6 +100,9 @@ public final class HttpCrawlerConfigLoader {
             config.setId(collectorId);
         }
         
+        config.setUrlNormalizer(ConfigurationUtil.newInstance(
+                node.configurationAt("urlNormalizer"), 
+                config.getUrlNormalizer()));
         config.setDelayResolver(ConfigurationUtil.newInstance(
                 node.configurationAt("delay"), config.getDelayResolver()));
         config.setNumThreads(node.getInt("numThreads", config.getNumThreads()));
@@ -108,6 +111,9 @@ public final class HttpCrawlerConfigLoader {
                 "workDir", config.getWorkDir().toString())));
         config.setKeepDownloads(node.getBoolean(
                 "keepDownloads", config.isKeepDownloads()));
+        config.setDeleteOrphans(node.getBoolean(
+                "deleteOrphans", config.isDeleteOrphans()));
+        
         String[] startURLs = node.getStringArray("startURLs.url");
         config.setStartURLs(ArrayUtils.isEmpty(startURLs) 
                 ? config.getStartURLs() : startURLs);

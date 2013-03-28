@@ -21,7 +21,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.meta.Metadata;
 
 /**
- * Default implementation of {@link IHttpHeadersFetcher}.  
+ * Basic implementation of {@link IHttpHeadersFetcher}.  
  * <p>
  * XML configuration usage:
  * </p>

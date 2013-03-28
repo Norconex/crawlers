@@ -19,6 +19,7 @@ import com.norconex.collector.http.handler.IHttpHeadersChecksummer;
 import com.norconex.collector.http.handler.IHttpHeadersFetcher;
 import com.norconex.collector.http.handler.IRobotsTxtProvider;
 import com.norconex.collector.http.handler.IURLExtractor;
+import com.norconex.collector.http.handler.IURLNormalizer;
 import com.norconex.committer.ICommitter;
 import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.handler.impl.DefaultDelayResolver;
@@ -41,6 +42,9 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     private int numThreads = 2;
     private boolean ignoreRobotsTxt;
     private boolean keepDownloads;
+    private boolean deleteOrphans;
+
+    private IURLNormalizer urlNormalizer;
 
     private IDelayResolver delayResolver = new DefaultDelayResolver();
     
@@ -163,12 +167,24 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     public void setRobotsTxtProvider(IRobotsTxtProvider robotsTxtProvider) {
         this.robotsTxtProvider = robotsTxtProvider;
     }
-
     
+
     
 //    public Object getDocumentStateDetectorStrategy() {return null;}
            // states: new, existing_modified, existing_unmodified, orphan, unreacheable
 
+    public IURLNormalizer getUrlNormalizer() {
+        return urlNormalizer;
+    }
+    public void setUrlNormalizer(IURLNormalizer urlNormalizer) {
+        this.urlNormalizer = urlNormalizer;
+    }
+    public boolean isDeleteOrphans() {
+        return deleteOrphans;
+    }
+    public void setDeleteOrphans(boolean deleteOrphans) {
+        this.deleteOrphans = deleteOrphans;
+    }
     public IDelayResolver getDelayResolver() {
         return delayResolver;
     }
@@ -245,7 +261,7 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
 	
 	@Override
-    protected Object clone() throws CloneNotSupportedException {
+    protected Object clone() {
         try {
             return (HttpCrawlerConfig) BeanUtils.cloneBean(this);
         } catch (Exception e) {
@@ -253,4 +269,6 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
         }
 //        return (HttpCrawlerConfig) SerializationUtils.clone(this);
     }
+	
+	
 }

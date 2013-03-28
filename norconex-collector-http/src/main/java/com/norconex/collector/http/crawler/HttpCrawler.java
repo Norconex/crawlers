@@ -56,7 +56,7 @@ public class HttpCrawler extends AbstractResumableJob {
 	
     private final MultiThreadedHttpConnectionManager connectionManager = 
             new MultiThreadedHttpConnectionManager();
-	private final HttpCrawlerConfig httpConfig;
+	private final HttpCrawlerConfig crawlerConfig;
     private final ImporterConfig importConfig;
     private HttpClient httpClient;
     private final IHttpCrawlerEventListener[] listeners;
@@ -64,17 +64,17 @@ public class HttpCrawler extends AbstractResumableJob {
 	//TODO have config being overwritable... JEF CCOnfig does that...
     
 	public HttpCrawler(
-	        HttpCrawlerConfig httpConfig) {
+	        HttpCrawlerConfig crawlerConfig) {
 		super();
-		this.httpConfig = httpConfig;
-		this.importConfig = httpConfig.getImporterConfig();
-		IHttpCrawlerEventListener[] ls = httpConfig.getCrawlerListeners();
+		this.crawlerConfig = crawlerConfig;
+		this.importConfig = crawlerConfig.getImporterConfig();
+		IHttpCrawlerEventListener[] ls = crawlerConfig.getCrawlerListeners();
 		if (ls == null) {
 		    this.listeners = new IHttpCrawlerEventListener[]{};
 		} else {
-	        this.listeners = httpConfig.getCrawlerListeners();
+	        this.listeners = crawlerConfig.getCrawlerListeners();
 		}
-        httpConfig.getWorkDir().mkdirs();
+        crawlerConfig.getWorkDir().mkdirs();
 	}
 	
 	@Override
@@ -98,7 +98,7 @@ public class HttpCrawler extends AbstractResumableJob {
 	
 	@Override
 	public String getId() {
-		return httpConfig.getId();
+		return crawlerConfig.getId();
 	}
 
     public boolean isStopped() {
@@ -108,17 +108,17 @@ public class HttpCrawler extends AbstractResumableJob {
     @Override
     protected void resumeExecution(JobProgress progress, JobSuite suite) {
         ICrawlURLDatabase database = 
-                httpConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
-                        httpConfig, true);
+                crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
+                        crawlerConfig, true);
         execute(database, progress, suite);
     }
 
     @Override
     protected void startExecution(JobProgress progress, JobSuite suite) {
         ICrawlURLDatabase database = 
-                httpConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
-                        httpConfig, false);
-        String[] startURLs = httpConfig.getStartURLs();
+                crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
+                        crawlerConfig, false);
+        String[] startURLs = crawlerConfig.getStartURLs();
         for (int i = 0; i < startURLs.length; i++) {
             String startURL = startURLs[i];
             database.queue(startURL, 0);
@@ -134,17 +134,19 @@ public class HttpCrawler extends AbstractResumableJob {
 
         //TODO print initialization information
         LOG.info("RobotsTxt support " + 
-                (httpConfig.isIgnoreRobotsTxt() ? "disabled." : "enabled"));
+                (crawlerConfig.isIgnoreRobotsTxt() ? "disabled." : "enabled"));
         
         initializeHTTPClient();
         
 
         //TODO consider offering threading here?
-        processURLs(database, progress, suite);
+        processURLs(database, progress, suite, false);
 
+        // Process what remains in cache
         database.queueCache();
-        processURLs(database, progress, suite);
-        ICommitter committer = httpConfig.getCommitter();
+        processURLs(database, progress, suite, crawlerConfig.isDeleteOrphans());
+
+        ICommitter committer = crawlerConfig.getCommitter();
         if (committer != null) {
             LOG.info("Crawler \"" + getId() + "\" " 
                     + (stopped ? "stopping" : "finishing")
@@ -171,9 +173,10 @@ public class HttpCrawler extends AbstractResumableJob {
     private void processURLs(
     		final ICrawlURLDatabase database,
     		final JobProgress progress, 
-    		final JobSuite suite) {
+    		final JobSuite suite,
+    		final boolean delete) {
         
-        int numThreads = httpConfig.getNumThreads();
+        int numThreads = crawlerConfig.getNumThreads();
         final CountDownLatch latch = new CountDownLatch(numThreads);
         ExecutorService pool = Executors.newFixedThreadPool(numThreads);
 
@@ -189,7 +192,8 @@ public class HttpCrawler extends AbstractResumableJob {
                             if (queuedURL != null) {
                                 StopWatch watch = new StopWatch();
                                 watch.start();
-                                processNextQueuedURL(queuedURL, database);
+                                processNextQueuedURL(
+                                        queuedURL, database, delete);
                                 setProgress(progress, database);
                                 watch.stop();
                                 if (LOG.isDebugEnabled()) {
@@ -224,7 +228,7 @@ public class HttpCrawler extends AbstractResumableJob {
         }
         
         //--- Delete Download Dir ----------------------------------------------
-        if (!httpConfig.isKeepDownloads()) {
+        if (!crawlerConfig.isKeepDownloads()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Deleting downloads directory: "
                         + gelBaseDownloadDir());
@@ -257,7 +261,7 @@ public class HttpCrawler extends AbstractResumableJob {
     }
 
     private void processNextQueuedURL(
-            CrawlURL crawlURL, ICrawlURLDatabase database) {
+            CrawlURL crawlURL, ICrawlURLDatabase database, boolean delete) {
         String url = crawlURL.getUrl();
         int urlDepth = crawlURL.getDepth();
 
@@ -268,6 +272,16 @@ public class HttpCrawler extends AbstractResumableJob {
         HttpDocument doc = new HttpDocument(url, rawFile);
         
         try {
+            if (delete) {
+                LOG.debug("Deleting URL: " + url);
+                ICommitter committer = crawlerConfig.getCommitter();
+                crawlURL.setStatus(CrawlStatus.DELETED);
+                if (committer != null) {
+                    committer.queueRemove(url, outputFile, doc.getMetadata());
+                }
+                return;
+            }
+            
 	        if (!isUrlDepthValid(url, urlDepth)) {
 	            crawlURL.setStatus(CrawlStatus.TOO_DEEP);
 	            return;
@@ -277,15 +291,15 @@ public class HttpCrawler extends AbstractResumableJob {
 	        }
 
             //--- URL Filters --------------------------------------------------
-            if (isURLRejected(url, httpConfig.getURLFilters(), null)) {
+            if (isURLRejected(url, crawlerConfig.getURLFilters(), null)) {
                 crawlURL.setStatus(CrawlStatus.REJECTED);
                 return;
             }
 
             //--- Robots.txt Filters -------------------------------------------
             RobotsTxt robotsTxt = null;
-            if (!httpConfig.isIgnoreRobotsTxt()) {
-                robotsTxt = httpConfig.getRobotsTxtProvider().getRobotsTxt(
+            if (!crawlerConfig.isIgnoreRobotsTxt()) {
+                robotsTxt = crawlerConfig.getRobotsTxtProvider().getRobotsTxt(
                         httpClient, url);
                 if (isURLRejected(url, robotsTxt.getFilters(), robotsTxt)) {
                     crawlURL.setStatus(CrawlStatus.REJECTED);
@@ -294,10 +308,10 @@ public class HttpCrawler extends AbstractResumableJob {
             }
 
             //--- Wait for delay to expire -------------------------------------
-            httpConfig.getDelayResolver().delay(robotsTxt, url);
+            crawlerConfig.getDelayResolver().delay(robotsTxt, url);
             
             //--- HTTP Headers Fetcher and Filters -----------------------------
-            IHttpHeadersFetcher hdFetcher = httpConfig.getHttpHeadersFetcher();
+            IHttpHeadersFetcher hdFetcher = crawlerConfig.getHttpHeadersFetcher();
             if (hdFetcher != null) {
                 Metadata metadata = hdFetcher.fetchHTTPHeaders(httpClient, url);
                 if (metadata == null) {
@@ -313,7 +327,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 
                 //--- HTTP Headers Filters -------------------------------------
                 if (isHeadersRejected(url, doc.getMetadata(), 
-                        httpConfig.getHttpHeadersFilters())) {
+                        crawlerConfig.getHttpHeadersFilters())) {
                     crawlURL.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
@@ -345,7 +359,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 enhanceHTTPHeaders(doc.getMetadata());
                 //--- HTTP Headers Filters -------------------------------------
                 if (isHeadersRejected(url, doc.getMetadata(), 
-                        httpConfig.getHttpHeadersFilters())) {
+                        crawlerConfig.getHttpHeadersFilters())) {
                     crawlURL.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
@@ -360,15 +374,16 @@ public class HttpCrawler extends AbstractResumableJob {
             }
             
             //--- Document Filters ---------------------------------------------
-            if (isDocumentRejected(doc, httpConfig.getHttpDocumentfilters())) {
+            if (isDocumentRejected(
+                    doc, crawlerConfig.getHttpDocumentfilters())) {
                 crawlURL.setStatus(CrawlStatus.REJECTED);
                 return;
             }
 
             //--- Document Pre-Processing --------------------------------------
-            if (httpConfig.getHttpPreProcessors() != null) {
+            if (crawlerConfig.getHttpPreProcessors() != null) {
                 for (IHttpDocumentProcessor preProc :
-                        httpConfig.getHttpPreProcessors()) {
+                        crawlerConfig.getHttpPreProcessors()) {
                     preProc.processDocument(httpClient, doc);
                     for (IHttpCrawlerEventListener listener : listeners) {
                         listener.documentPreProcessed(this, doc, preProc);
@@ -393,9 +408,9 @@ public class HttpCrawler extends AbstractResumableJob {
             }
             
             //--- Document Post-Processing -------------------------------------
-            if (httpConfig.getHttpPostProcessors() != null) {
+            if (crawlerConfig.getHttpPostProcessors() != null) {
                 for (IHttpDocumentProcessor postProc :
-                        httpConfig.getHttpPostProcessors()) {
+                        crawlerConfig.getHttpPostProcessors()) {
                     postProc.processDocument(httpClient, doc);
                     for (IHttpCrawlerEventListener listener : listeners) {
                         listener.documentPostProcessed(this, doc, postProc);
@@ -408,7 +423,7 @@ public class HttpCrawler extends AbstractResumableJob {
 	        // one, but people could skip writing to file altogether???
 
             //--- Document Commit ----------------------------------------------
-	        ICommitter committer = httpConfig.getCommitter();
+	        ICommitter committer = crawlerConfig.getCommitter();
             if (committer != null) {
                 committer.queueAdd(url, outputFile, doc.getMetadata());
             }
@@ -434,7 +449,7 @@ public class HttpCrawler extends AbstractResumableJob {
             }
 	    } finally {
             //--- Flag URL for deletion ----------------------------------------
-	        ICommitter committer = httpConfig.getCommitter();
+	        ICommitter committer = crawlerConfig.getCommitter();
             if (database.isVanished(crawlURL)) {
                 crawlURL.setStatus(CrawlStatus.DELETED);
                 if (committer != null) {
@@ -450,7 +465,7 @@ public class HttpCrawler extends AbstractResumableJob {
             }
             
             //--- Delete Local File Download -----------------------------------
-            if (!httpConfig.isKeepDownloads()) {
+            if (!crawlerConfig.isKeepDownloads()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Deleting" + doc.getLocalFile());
                 }
@@ -546,7 +561,7 @@ public class HttpCrawler extends AbstractResumableJob {
 
     private boolean isHeadersChecksumRejected(
             ICrawlURLDatabase database, CrawlURL crawlURL, Metadata headers) {
-    	IHttpHeadersChecksummer check = httpConfig.getHttpHeadersChecksummer();
+    	IHttpHeadersChecksummer check = crawlerConfig.getHttpHeadersChecksummer();
         if (check == null) {
             return false;
         }
@@ -578,7 +593,7 @@ public class HttpCrawler extends AbstractResumableJob {
             ICrawlURLDatabase database, CrawlURL crawlURL, 
             HttpDocument document) {
     	IHttpDocumentChecksummer check = 
-    			httpConfig.getHttpDocumentChecksummer();
+    			crawlerConfig.getHttpDocumentChecksummer();
         if (check == null) {
             return false;
         }
@@ -633,7 +648,8 @@ public class HttpCrawler extends AbstractResumableJob {
     }
     
 	private boolean isUrlDepthValid(String url, int urlDepth) {
-	    if (httpConfig.getDepth() != -1 && urlDepth > httpConfig.getDepth()) {
+	    if (crawlerConfig.getDepth() != -1 
+	            && urlDepth > crawlerConfig.getDepth()) {
 	        if (LOG.isDebugEnabled()) {
 	            LOG.debug("URL too deep to process (" + urlDepth + "): " + url);
 	        }
@@ -646,7 +662,7 @@ public class HttpCrawler extends AbstractResumableJob {
         //TODO set HTTPClient user-agent from config before calling init..
 
         httpClient = new HttpClient(connectionManager);
-        httpConfig.getHttpClientInitializer().initializeHTTPClient(httpClient);
+        crawlerConfig.getHttpClientInitializer().initializeHTTPClient(httpClient);
 	}
 
     private void enhanceHTTPHeaders(Metadata metadata) {
@@ -665,18 +681,18 @@ public class HttpCrawler extends AbstractResumableJob {
     private CrawlStatus fetchDocument(HttpDocument doc) {
         //TODO for now we assume the document is downloadable.
 		// download as file
-        CrawlStatus status = httpConfig.getHttpDocumentFetcher().fetchDocument(
-                httpClient, doc);
+        CrawlStatus status = 
+                crawlerConfig.getHttpDocumentFetcher().fetchDocument(
+                        httpClient, doc);
         if (status == CrawlStatus.OK) {
             for (IHttpCrawlerEventListener listener : listeners) {
                 listener.documentFetched(
-                        this, doc, httpConfig.getHttpDocumentFetcher());
+                        this, doc, crawlerConfig.getHttpDocumentFetcher());
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug("SAVED DOC: " + doc.getLocalFile().toURI()
-                      + " [mime type: " + doc.getMetadata().getContentType() + "]");
-          //TODO find better way: http://www.rgagnon.com/javadetails/java-0487.html
-          //new MimetypesFileTypeMap().getContentType(documentFile) + "]");
+                LOG.debug("SAVED DOC: " 
+                      + doc.getLocalFile().toURI() + " [mime type: "
+                      + doc.getMetadata().getContentType() + "]");
             }
         }
         return status;
@@ -708,12 +724,7 @@ public class HttpCrawler extends AbstractResumableJob {
         return false;
     }
 
-//    private void commitDocument(HttpDocument doc) throws IOException {
-//        //TODO this is just for now:
-//        doc.getMetadata().writeToFile(new File(
-//                doc.getLocalFile().getAbsolutePath() + "-meta.txt"));
-//    }
-    
+   
     /**
      * Extract URLs before sending to importer (because the importer may
      * strip some "valid" urls in producing content-centric material.
@@ -726,11 +737,14 @@ public class HttpCrawler extends AbstractResumableJob {
     private void extractUrls(HttpDocument doc) throws IOException,
             IOException {
         FileReader reader = new FileReader(doc.getLocalFile());
-		IURLExtractor urlExtractor = 
-		        httpConfig.getUrlExtractor();
+		IURLExtractor urlExtractor = crawlerConfig.getUrlExtractor();
 		Set<String> urls = urlExtractor.extractURLs(
 		        reader, doc.getUrl(), doc.getMetadata().getContentType());
 		reader.close();
+		
+		// URL Normalizer
+		
+		
         if (urls != null) {
             doc.getMetadata().addPropertyValue(
                     HttpMetadata.REFERNCED_URLS, urls.toArray(
@@ -748,9 +762,9 @@ public class HttpCrawler extends AbstractResumableJob {
     }
     private File gelBaseDownloadDir() {
         return new File(
-                httpConfig.getWorkDir().getAbsolutePath() + "/downloads");
+                crawlerConfig.getWorkDir().getAbsolutePath() + "/downloads");
     }
     private File gelCrawlerDownloadDir() {
-        return new File(gelBaseDownloadDir() + "/" + httpConfig.getId());
+        return new File(gelBaseDownloadDir() + "/" + crawlerConfig.getId());
     }
 }

@@ -5,14 +5,11 @@
      in methods. 
 - Add junit tests
 
-- Add option to delete unreacheables (URLs in cache but not crawled).  Saying
-  true would simply ignore/flush the remaining URLs in the cache.
-  
-- Watch out not to delete 500 statuses (only 404)
-  
-- Add URL Normalizer so that variants of the same page do not get queued and 
-  downloaded multiple times.  This normnalizer would be a first step 
-  performed before being queued.
+- Add option to skip certain http response code (like 500).  Those docs 
+  that should not be added nor deleted because they are in a temporary bad 
+  state.  Is it really useful?
+
+- Move log4j out and put it in assembly, to go in /classes.
   
 - Document on site why another crawler:
    - Portability (changing values can be extracted and just right files 
@@ -27,7 +24,8 @@
    - Easy for developers to extend.
    - Easy for non-technical people to use.
    - Good documentation
-   - Good support (commercial support available)
+   - Community Support
+   - Commercial Support
    - Open Source
    - Powerful (allows for all kinds of document manipulation).
    - Cross-platform.
@@ -55,6 +53,7 @@
    - FAST, can skip downloading of unmodified documents, based on HTTP headers
      only.
    - Multi-threaded.
+   - Can normalize URLs.
    
    
    
