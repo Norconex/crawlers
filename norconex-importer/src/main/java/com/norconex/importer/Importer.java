@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
 import org.apache.tika.io.TikaInputStream;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.filter.IDocumentFilter;
 import com.norconex.importer.parser.DocumentParserException;
 import com.norconex.importer.parser.IDocumentParser;
@@ -65,7 +65,7 @@ public class Importer {
         File outputFile = new File(output);
         File metadataFile = new File(output + ".meta");
         String reference = cmd.getOptionValue("reference");
-        Metadata metadata = new Metadata();
+        Properties metadata = new Properties();
         try {
             ImporterConfig config = null;
             if (cmd.hasOption("config")) {
@@ -75,7 +75,7 @@ public class Importer {
             new Importer(config).importDocument(
                     inputFile, contentType, outputFile, metadata, reference);
             FileOutputStream out = new FileOutputStream(metadataFile);
-            metadata.store(out);
+            metadata.store(out, null);
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -115,13 +115,13 @@ public class Importer {
     }
     
     public boolean importDocument(
-            InputStream input, Writer output, Metadata metadata)
+            InputStream input, Writer output, Properties metadata)
             throws IOException {
         return importDocument(input, null, output, metadata, null);
     }
     public boolean importDocument(
             InputStream input, ContentType contentType, 
-            Writer output, Metadata metadata, String docReference)
+            Writer output, Properties metadata, String docReference)
             throws IOException {
         File tmpInput = File.createTempFile("NorconexImporter", "input");
         FileWriter inputWriter = new FileWriter(tmpInput);
@@ -138,13 +138,13 @@ public class Importer {
                 tmpInput, contentType, tmpOutput, metadata, docReference);
     }
     public boolean importDocument(
-            File input, File output, Metadata metadata)
+            File input, File output, Properties metadata)
             throws IOException {
         return importDocument(input, null, output, metadata, null);
     }
     public boolean importDocument(
             File input, ContentType contentType, 
-            File output, Metadata metadata, String docReference)
+            File output, Properties metadata, String docReference)
             throws IOException {
 
         ContentType finalContentType = contentType;
@@ -158,8 +158,8 @@ public class Importer {
             finalDocRef = input.getAbsolutePath();
         }
         
-        metadata.addPropertyValue(DOC_REFERENCE, finalDocRef); 
-    	metadata.addPropertyValue(
+        metadata.addString(DOC_REFERENCE, finalDocRef); 
+    	metadata.addString(
     	        DOC_CONTENT_TYPE, finalContentType.toString()); 
         
     	parseDocument(input, finalContentType, output, metadata, finalDocRef);
@@ -174,7 +174,7 @@ public class Importer {
     
     private void parseDocument(
             File rawFile, ContentType contentType, 
-            File outputFile, Metadata metadata, String docReference)
+            File outputFile, Properties metadata, String docReference)
             throws IOException {
         
         InputStream input = TikaInputStream.get(rawFile);
@@ -192,7 +192,7 @@ public class Importer {
     }
 
     private void tagDocument(
-            String docReference, File outputFile, Metadata metadata)
+            String docReference, File outputFile, Properties metadata)
             throws IOException {
         IDocumentTagger[] taggers = importerConfig.getTaggers();
         if (taggers == null) {
@@ -206,7 +206,7 @@ public class Importer {
     }
     
     private void transformDocument(
-            String docReference, File outputFile, Metadata metadata)
+            String docReference, File outputFile, Properties metadata)
             throws IOException {
         IDocumentTransformer[] trsfmrs = importerConfig.getTransformers();
         if (trsfmrs == null) {
@@ -218,7 +218,7 @@ public class Importer {
     }
     
     private boolean acceptDocument(
-            File outFile, Metadata metadata)
+            File outFile, Properties metadata)
             throws IOException {
         IDocumentFilter[] filters = importerConfig.getFilters();
         if (filters == null) {
@@ -241,7 +241,7 @@ public class Importer {
     private void transformDocument(
             String docReference,
             IDocumentTransformer transformer,
-            File inputFile, Metadata metadata)
+            File inputFile, Properties metadata)
             throws IOException {
         File outputFile = new File(inputFile.getAbsolutePath()
                 + "." + System.currentTimeMillis());

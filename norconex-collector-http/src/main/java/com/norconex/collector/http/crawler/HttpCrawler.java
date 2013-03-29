@@ -40,7 +40,7 @@ import com.norconex.collector.http.util.PathUtils;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.FileUtil;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.Importer;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.jef.AbstractResumableJob;
@@ -313,12 +313,12 @@ public class HttpCrawler extends AbstractResumableJob {
             //--- HTTP Headers Fetcher and Filters -----------------------------
             IHttpHeadersFetcher hdFetcher = crawlerConfig.getHttpHeadersFetcher();
             if (hdFetcher != null) {
-                Metadata metadata = hdFetcher.fetchHTTPHeaders(httpClient, url);
+                Properties metadata = hdFetcher.fetchHTTPHeaders(httpClient, url);
                 if (metadata == null) {
                     crawlURL.setStatus(CrawlStatus.REJECTED);
                     return;
                 }
-                doc.getMetadata().addProperty(metadata.getProperties());
+                doc.getMetadata().putAll(metadata);
                 enhanceHTTPHeaders(doc.getMetadata());
                 for (IHttpCrawlerEventListener listener : listeners) {
                     listener.documentHeadersFetched(
@@ -534,7 +534,7 @@ public class HttpCrawler extends AbstractResumableJob {
     }
 
     private boolean isHeadersRejected(
-            String url, Metadata headers, IHttpHeadersFilter[] filters) {
+            String url, Properties headers, IHttpHeadersFilter[] filters) {
         if (filters == null) {
             return false;
         }
@@ -560,7 +560,7 @@ public class HttpCrawler extends AbstractResumableJob {
     }
 
     private boolean isHeadersChecksumRejected(
-            ICrawlURLDatabase database, CrawlURL crawlURL, Metadata headers) {
+            ICrawlURLDatabase database, CrawlURL crawlURL, Properties headers) {
     	IHttpHeadersChecksummer check = crawlerConfig.getHttpHeadersChecksummer();
         if (check == null) {
             return false;
@@ -665,16 +665,14 @@ public class HttpCrawler extends AbstractResumableJob {
         crawlerConfig.getHttpClientInitializer().initializeHTTPClient(httpClient);
 	}
 
-    private void enhanceHTTPHeaders(Metadata metadata) {
-        String contentType = metadata.getPropertyValue("Content-Type");
+    private void enhanceHTTPHeaders(Properties metadata) {
+        String contentType = metadata.getString("Content-Type");
         if (contentType != null) {
             String mimeType = contentType.replaceFirst("(.*?)(;.*)", "$1");
             String charset = contentType.replaceFirst("(.*?)(; )(.*)", "$3");
             charset = charset.replaceFirst("(charset=)(.*)", "$2");
-            metadata.addPropertyValue(
-                    HttpMetadata.DOC_MIMETYPE, mimeType);
-            metadata.addPropertyValue(
-                    HttpMetadata.DOC_CHARSET, charset);
+            metadata.addString(HttpMetadata.DOC_MIMETYPE, mimeType);
+            metadata.addString(HttpMetadata.DOC_CHARSET, charset);
         }
     }
     
@@ -746,7 +744,7 @@ public class HttpCrawler extends AbstractResumableJob {
 		
 		
         if (urls != null) {
-            doc.getMetadata().addPropertyValue(
+            doc.getMetadata().addString(
                     HttpMetadata.REFERNCED_URLS, urls.toArray(
                     		ArrayUtils.EMPTY_STRING_ARRAY));
         }

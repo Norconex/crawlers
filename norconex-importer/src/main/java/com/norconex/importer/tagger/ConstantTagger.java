@@ -19,7 +19,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Define and add constant values to documents.  To add multiple constant values
@@ -46,13 +46,13 @@ public class ConstantTagger
             new HashMap<String, List<String>>();
     
     public void tagDocument(
-            String reference, Reader document, Metadata metadata)
+            String reference, Reader document, Properties metadata)
             throws IOException {
         for (String name : constants.keySet()) {
             List<String> values = constants.get(name);
             if (values != null) {
                 for (String value : values) {
-                    metadata.addPropertyValue(name, value);
+                    metadata.addString(name, value);
                 }
             }
         }

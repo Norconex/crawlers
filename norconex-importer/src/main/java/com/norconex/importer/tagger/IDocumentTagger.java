@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Tags a document with extra metadata information, or manipulate existing
@@ -21,6 +21,6 @@ public interface IDocumentTagger extends Serializable {
      * @param metadata document metadata
      * @throws IOException problem reading the document
      */
-    void tagDocument(String reference, Reader document, Metadata metadata)
+    void tagDocument(String reference, Reader document, Properties metadata)
             throws IOException;
 }

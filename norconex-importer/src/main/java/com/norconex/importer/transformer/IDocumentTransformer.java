@@ -5,7 +5,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.Writer;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Transformers allow to manipulate and convert extracted text and
@@ -22,6 +22,6 @@ public interface IDocumentTransformer extends Serializable {
      * @param metadata document metadata
      */
     void transformDocument(
-            String reference, Reader input, Writer output, Metadata metadata)
+            String reference, Reader input, Writer output, Properties metadata)
             throws IOException;
 }

@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 //TODO Implement more efficiently. 
 //TODO A regex version?
@@ -55,7 +55,7 @@ public class ReplaceTagger implements IDocumentTagger, IXMLConfigurable {
             new HashMap<String, Replacement>();
     
     public void tagDocument(
-            String reference, Reader document, Metadata metadata)
+            String reference, Reader document, Properties metadata)
             throws IOException {
         for (String name : replacements.keySet()) {
             Replacement repl = replacements.get(name);
@@ -65,7 +65,7 @@ public class ReplaceTagger implements IDocumentTagger, IXMLConfigurable {
             }
 
             // Do the potential replacement
-            String value = metadata.getPropertyValue(name);
+            String value = metadata.getString(name);
 
             if(repl.details.containsKey(value))
             {
@@ -78,9 +78,9 @@ public class ReplaceTagger implements IDocumentTagger, IXMLConfigurable {
                         value = detail.toValue;
                     }
                     if ((detail.toName != null) && (detail.toName.length() > 0)) {
-                        metadata.addPropertyValue(detail.toName, value);
+                        metadata.addString(detail.toName, value);
                     } else {
-                        metadata.setPropertyValue(repl.fromName, value);
+                        metadata.setString(repl.fromName, value);
                     }
             }
             else{

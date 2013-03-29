@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.http.handler.IHttpHeadersChecksummer;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Default implementation of {@link IHttpHeadersChecksummer} which 
@@ -40,9 +40,9 @@ public class DefaultHttpHeadersChecksummer
 	private String field = DEFAULT_FIELD;
 	
     @Override
-    public String createChecksum(Metadata metadata) {
+    public String createChecksum(Properties metadata) {
     	if (StringUtils.isNotBlank(field)) {
-    		String checksum = metadata.getPropertyValue(field);
+    		String checksum = metadata.getString(field);
 			LOG.debug("Headers checksum: " + checksum);
     		return checksum;
     	}

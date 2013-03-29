@@ -46,7 +46,7 @@ public class DefaultHttpDocumentChecksummer
 	public String createChecksum(HttpDocument document) {
 		// If field is not specified, perform checksum on whole text file.
 		if (StringUtils.isNotBlank(field)) {
-    		String value = document.getMetadata().getPropertyValue(field);
+    		String value = document.getMetadata().getString(field);
     		if (StringUtils.isNotBlank(value)) {
     			String checksum = DigestUtils.md5Hex(value);;
     			LOG.debug("Document checksum: " + checksum);

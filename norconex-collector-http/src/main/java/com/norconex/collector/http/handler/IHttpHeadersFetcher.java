@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import org.apache.commons.httpclient.HttpClient;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Fetches the HTTP Header, typically via a HEAD request.
@@ -19,6 +19,6 @@ public interface IHttpHeadersFetcher extends Serializable {
      * @param url the url from which to fetch the headers
      * @return  HTTP headers as metadata
      */
-    Metadata fetchHTTPHeaders(HttpClient httpClient, String url);
+    Properties fetchHTTPHeaders(HttpClient httpClient, String url);
 	
 }

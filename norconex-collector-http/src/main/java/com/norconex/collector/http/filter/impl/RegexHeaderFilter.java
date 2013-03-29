@@ -19,7 +19,7 @@ import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.OnMatch;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 /**
  * Accepts or rejects one or more HTTP header values using regular expression.
  * <p>
@@ -93,12 +93,12 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
     }
 
     @Override
-    public boolean acceptHeaders(String url, Metadata headers) {
+    public boolean acceptHeaders(String url, Properties headers) {
         if (StringUtils.isBlank(regex)) {
             return getOnMatch() == OnMatch.INCLUDE;
         }
 
-        Collection<String> values = headers.getPropertyValues(header);
+        Collection<String> values = headers.getStrings(header);
         for (Object value : values) {
             String strVal = ObjectUtils.toString(value);
             if (pattern.matcher(strVal).matches()) {

@@ -3,7 +3,7 @@ package com.norconex.committer;
 import java.io.File;
 import java.io.Serializable;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Commits documents to their final destination (e.g. search engine).
@@ -18,7 +18,7 @@ public interface ICommitter extends Serializable {
      * @param document text document 
      * @param metadata document metadata
      */
-    void queueAdd(String reference, File document, Metadata metadata);    
+    void queueAdd(String reference, File document, Properties metadata);    
 
     /**
      * Queues a document for removal.   These queued documents should
@@ -27,7 +27,7 @@ public interface ICommitter extends Serializable {
      * @param document text document 
      * @param metadata document metadata
      */
-    void queueRemove(String reference, File document, Metadata metadata);    
+    void queueRemove(String reference, File document, Properties metadata);    
 
     /**
      * Commits queued documents.  Effectively apply the additions and removals.

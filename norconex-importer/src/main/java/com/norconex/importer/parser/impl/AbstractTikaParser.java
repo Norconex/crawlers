@@ -17,7 +17,7 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.ContentType;
 import com.norconex.importer.Importer;
 import com.norconex.importer.parser.DocumentParserException;
@@ -40,7 +40,7 @@ public class AbstractTikaParser implements IDocumentParser {
 
     public final void parseDocument(
             InputStream inputStream, ContentType contentType,
-            Writer output, Metadata metadata)
+            Writer output, Properties metadata)
             throws DocumentParserException {
 
         org.apache.tika.metadata.Metadata tikaMetadata = 
@@ -48,7 +48,7 @@ public class AbstractTikaParser implements IDocumentParser {
         tikaMetadata.set(org.apache.tika.metadata.Metadata.CONTENT_TYPE, 
                 contentType.toString());
         tikaMetadata.set(org.apache.tika.metadata.Metadata.RESOURCE_NAME_KEY, 
-                metadata.getPropertyValue(Importer.DOC_REFERENCE));
+                metadata.getString(Importer.DOC_REFERENCE));
         SAXTransformerFactory factory = (SAXTransformerFactory)
         SAXTransformerFactory.newInstance();
         TransformerHandler handler;
@@ -72,20 +72,20 @@ public class AbstractTikaParser implements IDocumentParser {
     }
     
     protected void addTikaMetadata(
-            org.apache.tika.metadata.Metadata tikaMeta, Metadata metadata) {
+            org.apache.tika.metadata.Metadata tikaMeta, Properties metadata) {
         String[]  names = tikaMeta.names();
         for (int i = 0; i < names.length; i++) {
             String name = names[i];
-            metadata.addPropertyValue(name, tikaMeta.getValues(name));
+            metadata.addString(name, tikaMeta.getValues(name));
         }
     }
     
     protected class RecursiveMetadataParser extends ParserDecorator {
         private static final long serialVersionUID = -5011890258694908887L;
         private final Writer writer;
-        private final Metadata metadata;
+        private final Properties metadata;
         public RecursiveMetadataParser(
-                Parser parser, Writer writer, Metadata metadata) {
+                Parser parser, Writer writer, Properties metadata) {
             super(parser);
             this.writer = writer;
             this.metadata = metadata;

@@ -8,7 +8,7 @@ import com.norconex.collector.http.handler.IHttpDocumentFetcher;
 import com.norconex.collector.http.handler.IHttpDocumentProcessor;
 import com.norconex.collector.http.handler.IHttpHeadersFetcher;
 import com.norconex.collector.http.robot.RobotsTxt;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * <p>Allows implementers to react to any crawler-specific events.</p>
@@ -32,9 +32,9 @@ public interface IHttpCrawlerEventListener {
     void documentURLRejected(
             HttpCrawler crawler, String url, IURLFilter filter);
     void documentHeadersFetched(HttpCrawler crawler,
-            String url, IHttpHeadersFetcher headersFetcher, Metadata headers);
+            String url, IHttpHeadersFetcher headersFetcher, Properties headers);
     void documentHeadersRejected(HttpCrawler crawler,
-            String url, IHttpHeadersFilter filter, Metadata headers);
+            String url, IHttpHeadersFilter filter, Properties headers);
     void documentFetched(HttpCrawler crawler, 
             HttpDocument document, IHttpDocumentFetcher fetcher);
     void documentURLsExtracted(HttpCrawler crawler,HttpDocument document);

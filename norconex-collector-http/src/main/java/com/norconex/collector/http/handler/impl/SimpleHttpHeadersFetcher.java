@@ -18,7 +18,7 @@ import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.handler.IHttpHeadersFetcher;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Basic implementation of {@link IHttpHeadersFetcher}.  
@@ -71,8 +71,8 @@ public class SimpleHttpHeadersFetcher
         this.headersPrefix = headersPrefix;
     }
     @Override
-	public Metadata fetchHTTPHeaders(HttpClient httpClient, String url) {
-	    Metadata metadata = new Metadata();
+	public Properties fetchHTTPHeaders(HttpClient httpClient, String url) {
+	    Properties metadata = new Properties();
 	    HttpMethod method = null;
 	    try {
 	        method = new HeadMethod(url);
@@ -94,7 +94,7 @@ public class SimpleHttpHeadersFetcher
 	            	name = headersPrefix + name;
 	            }
 	            
-	            metadata.addPropertyValue(name, header.getValue());
+	            metadata.addString(name, header.getValue());
 //	            enhanceHTTPHeaders(metadata, header);
 	        }
 	        return metadata;

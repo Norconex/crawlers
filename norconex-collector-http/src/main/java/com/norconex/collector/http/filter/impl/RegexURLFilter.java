@@ -20,7 +20,7 @@ import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.collector.http.filter.OnMatch;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 /**
  * Filters URL based on a regular expression.
  * <p>
@@ -141,7 +141,7 @@ public class RegexURLFilter extends AbstractOnMatchFilter implements
         return acceptURL(document.getUrl());
     }
     @Override
-    public boolean acceptHeaders(String url, Metadata headers) {
+    public boolean acceptHeaders(String url, Properties headers) {
         return acceptURL(url);
     }
 }

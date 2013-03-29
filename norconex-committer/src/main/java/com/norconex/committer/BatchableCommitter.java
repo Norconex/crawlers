@@ -5,7 +5,7 @@ import java.io.File;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Base implementation offering to batch the committing of documents.
@@ -38,20 +38,20 @@ public abstract class BatchableCommitter implements ICommitter {
     }
 
     public final void queueAdd(
-            String reference, File document, Metadata metadata) {
+            String reference, File document, Properties metadata) {
         queueBatchableAdd(reference, document, metadata);
         commitIfReady();
     }
     abstract protected void queueBatchableAdd(
-            String reference, File document, Metadata metadata);
+            String reference, File document, Properties metadata);
 
     public final void queueRemove(
-            String ref, File document, Metadata metadata) {
+            String ref, File document, Properties metadata) {
         queueBatchableRemove(ref, document, metadata);
         commitIfReady();
     }
     abstract protected void queueBatchableRemove(
-            String ref, File document, Metadata metadata);
+            String ref, File document, Properties metadata);
     
 
     private void commitIfReady() {

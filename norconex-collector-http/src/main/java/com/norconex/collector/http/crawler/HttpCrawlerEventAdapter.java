@@ -8,7 +8,7 @@ import com.norconex.collector.http.handler.IHttpDocumentFetcher;
 import com.norconex.collector.http.handler.IHttpDocumentProcessor;
 import com.norconex.collector.http.handler.IHttpHeadersFetcher;
 import com.norconex.collector.http.robot.RobotsTxt;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Adapter for {@link IHttpCrawlerEventListener}.  None of the method
@@ -23,9 +23,9 @@ public class HttpCrawlerEventAdapter implements IHttpCrawlerEventListener{
             String url, IURLFilter filter, RobotsTxt robotsTxt) {}
     public void documentURLRejected(HttpCrawler crawler,String url, IURLFilter filter) {}
     public void documentHeadersFetched(HttpCrawler crawler,
-            String url, IHttpHeadersFetcher headersFetcher, Metadata headers) {}
+            String url, IHttpHeadersFetcher headersFetcher, Properties headers) {}
     public void documentHeadersRejected(HttpCrawler crawler,
-            String url, IHttpHeadersFilter filter, Metadata headers) {}
+            String url, IHttpHeadersFilter filter, Properties headers) {}
     public void documentFetched(HttpCrawler crawler,
             HttpDocument document, IHttpDocumentFetcher fetcher) {}
     public void documentURLsExtracted(HttpCrawler crawler, HttpDocument document) {}

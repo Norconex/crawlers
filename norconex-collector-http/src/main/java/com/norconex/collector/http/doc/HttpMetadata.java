@@ -2,10 +2,10 @@ package com.norconex.collector.http.doc;
 
 import java.util.Collection;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.ContentType;
 
-public class HttpMetadata extends Metadata {
+public class HttpMetadata extends Properties {
 
 	//TODO allow for custom properties? (e.g. JEF ConfigProperties?)
 	
@@ -27,21 +27,21 @@ public class HttpMetadata extends Metadata {
 	
 	public HttpMetadata(String documentURL) {
 		super(false);
-		addPropertyValue(DOC_URL, documentURL);
+		addString(DOC_URL, documentURL);
 	}
 
 	public ContentType getContentType() {
-	    String type = getPropertyValue(HTTP_CONTENT_TYPE);
+	    String type = getString(HTTP_CONTENT_TYPE);
 	    if (type != null) {
 	        type = type.replaceFirst("(.*?)(\\;)(.*)", "$1");
 	    }
 		return ContentType.newContentType(type);
 	}
 	public String getDocumentUrl() {
-	    return getPropertyValue(DOC_URL);
+	    return getString(DOC_URL);
 	}
 	public Collection<String> getDocumentUrls() {
-	    return getPropertyValues(REFERNCED_URLS);
+	    return getStrings(REFERNCED_URLS);
 	}
 	
 }

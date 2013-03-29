@@ -17,7 +17,7 @@ import org.apache.commons.lang3.SystemUtils;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.io.FileUtil;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 
 /**
@@ -55,8 +55,8 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
 	}
 
 	@Override
-    public void queueAdd(String reference, File document, Metadata metadata) {
-	    metadata.addPropertyValue(DOC_REFERENCE, reference);
+    public void queueAdd(String reference, File document, Properties metadata) {
+	    metadata.addString(DOC_REFERENCE, reference);
         File dir = getAddDir();
         if (!dir.exists()) {
             dir.mkdirs();
@@ -66,7 +66,7 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
             FileUtil.moveFile(document, targetFile);
             FileOutputStream out = new FileOutputStream(
                     new File(targetFile.getAbsolutePath() + ".meta"));
-            metadata.store(out);
+            metadata.store(out, "");
             IOUtils.closeQuietly(out);
         } catch (IOException e) {
             throw new CommitterException(
@@ -76,8 +76,8 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
     }
     @Override
     public void queueRemove(
-            String reference, File document, Metadata metadata) {
-        metadata.addPropertyValue(DOC_REFERENCE, reference);
+            String reference, File document, Properties metadata) {
+        metadata.addString(DOC_REFERENCE, reference);
         File dir = getRemoveDir();
         if (!dir.exists()) {
             dir.mkdirs();

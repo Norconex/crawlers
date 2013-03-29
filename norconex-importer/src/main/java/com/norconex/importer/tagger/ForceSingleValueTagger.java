@@ -19,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * <p>
@@ -57,10 +57,10 @@ public class ForceSingleValueTagger
             new HashMap<String, String>();
     
     public void tagDocument(
-            String reference, Reader document, Metadata metadata)
+            String reference, Reader document, Properties metadata)
             throws IOException {
         for (String name : singleFields.keySet()) {
-            List<String> values = metadata.getPropertyValues(name);  
+            List<String> values = metadata.getStrings(name);  
             String action = singleFields.get(name);
             if (values != null && !values.isEmpty() 
                     && StringUtils.isNotBlank(action)) {
@@ -76,7 +76,7 @@ public class ForceSingleValueTagger
                 } else {
                     singleValue = StringUtils.join(values, ",");
                 }
-                metadata.setPropertyValue(name, singleValue);
+                metadata.setString(name, singleValue);
             }
         }
     }

@@ -17,8 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.meta.MetaProperty;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * <p>
@@ -41,12 +40,11 @@ public class DeleteTagger
     private final List<String> fields = new ArrayList<String>();
     
     public void tagDocument(
-            String reference, Reader document, Metadata metadata)
+            String reference, Reader document, Properties metadata)
             throws IOException {
-        MetaProperty[] props = metadata.getProperties();
-        for (MetaProperty prop : props) {
-            if (exists(prop.getName())) {
-                metadata.removeProperty(prop.getName());
+        for (String name : metadata.keySet()) {
+            if (exists(name)) {
+                metadata.remove(name);
             }
         }
     }

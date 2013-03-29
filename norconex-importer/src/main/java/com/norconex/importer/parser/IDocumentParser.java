@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.io.Writer;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.ContentType;
 
 /**
@@ -28,6 +28,6 @@ public interface IDocumentParser extends Serializable {
      */
     void parseDocument(
             InputStream inputStream, ContentType contentType,
-            Writer outputStream, Metadata metadata)
+            Writer outputStream, Properties metadata)
         throws DocumentParserException;
 }

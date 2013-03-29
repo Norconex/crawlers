@@ -3,7 +3,7 @@ package com.norconex.importer.filter;
 import java.io.IOException;
 import java.io.Reader;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Filters documents.
@@ -18,6 +18,6 @@ public interface IDocumentFilter {
      * @return <code>true</code> if document is accepted
      * @throws IOException problem reading the document
      */
-    boolean acceptDocument(Reader document, Metadata metadata)
+    boolean acceptDocument(Reader document, Properties metadata)
         throws IOException;
 }

@@ -84,9 +84,8 @@ public class DefaultDocumentFetcher
                     if (StringUtils.isNotBlank(headersPrefix)) {
                         name = headersPrefix + name;
                     }
-                    if (doc.getMetadata().getProperty(name) == null) {
-                        doc.getMetadata().addPropertyValue(
-                                name, header.getValue());
+                    if (doc.getMetadata().getString(name) == null) {
+                        doc.getMetadata().addString(name, header.getValue());
                     }
                 }
                 

@@ -14,7 +14,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.transformer.IDocumentTransformer;
 
 public class ImporterTest {
@@ -30,7 +30,7 @@ public class ImporterTest {
             Pattern pattern = Pattern.compile("[^a-zA-Z ]", Pattern.MULTILINE);
             @Override
             public void transformDocument(String reference, Reader input,
-                    Writer output, Metadata metadata) throws IOException {
+                    Writer output, Properties metadata) throws IOException {
                 // Clean up what we know is extra noise for a given format
                 String txt = IOUtils.toString(input);
                 txt = pattern.matcher(txt).replaceAll("");
@@ -56,19 +56,19 @@ public class ImporterTest {
         // MS Doc
         File docxInput = new File(inputName + ".docx");
         File docxOutput = File.createTempFile("ImporterTest-doc-", ".txt");
-        Metadata metaDocx = new Metadata();
+        Properties metaDocx = new Properties();
         importer.importDocument(docxInput, docxOutput, metaDocx);
         
         // PDF
         File pdfInput = new File(inputName + ".pdf");
         File pdfOutput = File.createTempFile("ImporterTest-pdf-", ".txt");
-        Metadata metaPdf = new Metadata();
+        Properties metaPdf = new Properties();
         importer.importDocument(pdfInput, pdfOutput, metaPdf);
 
         // ZIP/RTF
         File rtfInput = new File(inputName + ".zip");
         File rtfOutput = File.createTempFile("ImporterTest-zip-rtf-", ".txt");
-        Metadata metaRtf = new Metadata();
+        Properties metaRtf = new Properties();
         importer.importDocument(rtfInput, rtfOutput, metaRtf);
 
         Assert.assertTrue("Converted file size is too small to be valid.",

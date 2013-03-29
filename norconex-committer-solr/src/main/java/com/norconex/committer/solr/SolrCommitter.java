@@ -37,8 +37,7 @@ import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.io.FileUtil;
 import com.norconex.commons.lang.io.IFileVisitor;
-import com.norconex.commons.lang.meta.MetaProperty;
-import com.norconex.commons.lang.meta.Metadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Commits documents to Apache Solr.
@@ -218,7 +217,7 @@ public class SolrCommitter extends BatchableCommitter
     
     private void addDocument(Map<File, SolrInputDocument> docList, File file) 
             throws IOException {
-        Metadata metadata = new Metadata();
+        Properties metadata = new Properties();
         File metaFile = new File(file.getAbsolutePath() + ".meta");
         if (metaFile.exists()) {
             FileInputStream is = new FileInputStream(metaFile);
@@ -232,7 +231,7 @@ public class SolrCommitter extends BatchableCommitter
         if (StringUtils.isBlank(idField)) {
             idField = FileSystemCommitter.DOC_REFERENCE;
         }
-        doc.addField("id", metadata.getPropertyValue(idField));
+        doc.addField("id", metadata.getString(idField));
         
         
         
@@ -242,9 +241,9 @@ public class SolrCommitter extends BatchableCommitter
 //        String mimeType = contentType.replaceFirst("(.*?)(;.*)", "$1");
 //        metadata.setValue("mime-type", mimeType);
         
-        for (MetaProperty property: metadata.getProperties()) {
-            for (String value : property.getValues()) {
-                doc.addField(property.getName(), value);
+        for (String name : metadata.keySet()) {
+            for (String value : metadata.get(name)) {
+                doc.addField(name, value);
             }
         }
         FileReader reader = new FileReader(file);
@@ -276,13 +275,13 @@ public class SolrCommitter extends BatchableCommitter
 
     @Override
     protected void queueBatchableAdd(
-            String reference, File document, Metadata metadata) {
+            String reference, File document, Properties metadata) {
         queue.queueAdd(reference, document, metadata);
     }
 
     @Override
     protected void queueBatchableRemove(
-            String ref, File document, Metadata metadata) {
+            String ref, File document, Properties metadata) {
         queue.queueRemove(ref, document, metadata);
     }
 
