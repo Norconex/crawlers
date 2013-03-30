@@ -6,7 +6,7 @@ import com.norconex.collector.http.robot.RobotsTxt;
 
 /**
  * Resolves and creates "delays" between each document crawled.
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IDelayResolver extends Serializable  {
 

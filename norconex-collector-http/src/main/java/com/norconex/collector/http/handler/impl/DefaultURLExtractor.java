@@ -32,7 +32,7 @@ import com.norconex.importer.ContentType;
  *      &lt;/maxURLLength&gt;
  *  &lt;/urlExtractor&gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
 

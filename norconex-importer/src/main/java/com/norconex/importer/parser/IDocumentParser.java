@@ -10,7 +10,7 @@ import com.norconex.importer.ContentType;
 /**
  * Implementations are responsible for parsing a document (InputStream) to 
  * extract its text and metadata.
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 @SuppressWarnings("nls")
 public interface IDocumentParser extends Serializable {

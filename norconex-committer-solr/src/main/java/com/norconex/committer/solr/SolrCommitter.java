@@ -63,7 +63,7 @@ import com.norconex.commons.lang.map.Properties;
  *      &lt;/solrBatchSize&gt;
  *  &lt;/committer&gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public class SolrCommitter extends BatchableCommitter 
         implements IXMLConfigurable {

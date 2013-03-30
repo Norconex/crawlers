@@ -15,7 +15,7 @@ package com.norconex.collector.http.db;
  *       the next run.</li>
  * </ul>
  *    
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface ICrawlURLDatabase {
 

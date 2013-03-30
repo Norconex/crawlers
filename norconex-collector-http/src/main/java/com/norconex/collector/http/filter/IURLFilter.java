@@ -12,7 +12,7 @@ import java.io.Serializable;
  * can know exactly why documents got accepted/rejected rejected if need be.
  * </p>
  * <p>URL Filters should be immutable.</p>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IURLFilter extends Serializable {
 

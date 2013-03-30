@@ -41,7 +41,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * The "validStatusCodes" attribute expects a coma-separated list of HTTP
  * response code.
  * </p>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public class DefaultDocumentFetcher 
         implements IHttpDocumentFetcher, 

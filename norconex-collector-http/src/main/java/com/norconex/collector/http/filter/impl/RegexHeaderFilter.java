@@ -33,7 +33,7 @@ import com.norconex.commons.lang.map.Properties;
  *      (regular expression of value to match)
  *  &lt;/filter&gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public class RegexHeaderFilter extends AbstractOnMatchFilter
         implements IHttpHeadersFilter, IXMLConfigurable {

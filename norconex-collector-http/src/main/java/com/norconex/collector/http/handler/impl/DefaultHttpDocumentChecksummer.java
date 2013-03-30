@@ -30,7 +30,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *      &lt;field&gt;(optional field name)&lt;/field&gt;
  *  &lt;/httpDocumentChecksummer &gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public class DefaultHttpDocumentChecksummer 
         implements IHttpDocumentChecksummer, 

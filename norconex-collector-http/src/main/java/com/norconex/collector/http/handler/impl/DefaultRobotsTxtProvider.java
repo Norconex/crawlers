@@ -29,7 +29,7 @@ import com.norconex.collector.http.robot.RobotsTxt;
  * <pre>
  *  &lt;robotsTxt ignore="false" class="com.norconex.collector.http.handler.DefaultHttpClientInitializer"/&gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
 

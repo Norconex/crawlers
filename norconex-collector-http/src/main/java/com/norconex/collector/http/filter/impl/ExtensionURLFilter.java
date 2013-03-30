@@ -34,7 +34,7 @@ import com.norconex.commons.lang.map.Properties;
  *      (comma-separated list of extensions)
  *  &lt;/filter&gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 @SuppressWarnings("nls")
 public class ExtensionURLFilter extends AbstractOnMatchFilter implements 

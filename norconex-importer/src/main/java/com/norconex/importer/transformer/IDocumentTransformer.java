@@ -10,7 +10,7 @@ import com.norconex.commons.lang.map.Properties;
 /**
  * Transformers allow to manipulate and convert extracted text and
  * save the modified text back.
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IDocumentTransformer extends Serializable {
 

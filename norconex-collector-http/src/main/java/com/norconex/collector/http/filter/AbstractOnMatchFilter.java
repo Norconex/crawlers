@@ -8,7 +8,7 @@ import com.norconex.collector.http.HttpCollectorException;
 /**
  * Convenience base class for implementing filters offering the include/exclude
  * "onmatch" option.  Default behavior on match is to include.
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public abstract class AbstractOnMatchFilter implements IXMLConfigurable {
 	private static final long serialVersionUID = 40888302227887743L;

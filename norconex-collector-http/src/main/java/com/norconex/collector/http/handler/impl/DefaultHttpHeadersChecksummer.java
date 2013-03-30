@@ -25,7 +25,7 @@ import com.norconex.commons.lang.map.Properties;
  *      &lt;header&gt;(optional alternate header field name)&lt;/header&gt;
  *  &lt;/httpHeadersChecksummer&gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public class DefaultHttpHeadersChecksummer 
         implements IHttpHeadersChecksummer, 

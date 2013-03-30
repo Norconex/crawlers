@@ -14,7 +14,7 @@ import com.norconex.commons.lang.map.Properties;
  * can know exactly why documents got accepted/rejected rejected if need be.
  * </p>
  * <p>HTTP Header Filters should be immutable.</p>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IHttpHeadersFilter extends Serializable {
 

@@ -11,7 +11,7 @@ import com.norconex.collector.http.doc.HttpDocument;
  * just before of just after a document has been imported.  This is to
  * perform processing on the raw document.  To perform processing on
  * its extracted content, see the Importer for that.
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IHttpDocumentProcessor extends Serializable {
 

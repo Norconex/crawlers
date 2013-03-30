@@ -34,7 +34,7 @@ import com.norconex.commons.lang.map.Properties;
  *      &lt;-- multiple constant tags allowed --&gt;
  *  &lt;/tagger&gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 @SuppressWarnings("nls")
 public class ConstantTagger 

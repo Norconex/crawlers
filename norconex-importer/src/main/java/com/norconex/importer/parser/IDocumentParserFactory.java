@@ -6,7 +6,7 @@ import com.norconex.importer.ContentType;
 
 /**
  * Factory providing document parsers for documents.
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IDocumentParserFactory extends Serializable{
 

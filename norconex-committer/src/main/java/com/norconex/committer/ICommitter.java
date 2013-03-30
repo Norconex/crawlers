@@ -7,7 +7,7 @@ import com.norconex.commons.lang.map.Properties;
 
 /**
  * Commits documents to their final destination (e.g. search engine).
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface ICommitter extends Serializable {
 

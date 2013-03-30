@@ -15,7 +15,7 @@ import com.norconex.collector.http.filter.IURLFilter;
  * to not even consider it for processing (it won't go through the regular
  * document processing flow).  You may want to consider {@link IURLFilter} 
  * to exclude URLs as part has the regular document processing flow.
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IURLNormalizer extends Serializable {
 

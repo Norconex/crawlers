@@ -42,7 +42,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *      &lt;proxyRealm&gt;...&lt;/proxyRealm&gt;
  *  &lt;/httpClientInitializer&gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public class DefaultHttpClientInitializer implements
 		IHttpClientInitializer, IXMLConfigurable {

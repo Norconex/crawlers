@@ -31,7 +31,7 @@ import com.norconex.commons.lang.map.Properties;
  *      &lt;directory&gt;(path where to save files)&lt;/directory&gt;
  *  &lt;/committer&gt;
  * </pre>
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
 

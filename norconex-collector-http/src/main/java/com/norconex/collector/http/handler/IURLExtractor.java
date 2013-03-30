@@ -9,7 +9,7 @@ import com.norconex.importer.ContentType;
 
 /**
  * Responsible for extracting URLs out of a document.
- * @author Pascal Essiembre
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IURLExtractor extends Serializable  {
 
