@@ -51,7 +51,7 @@ public class ImporterTest {
     public void testImportDocument() throws IOException {
         // Save the same story found under three format and compare body outputs
         String inputName = 
-                "examples/books/alice-in-wonderland-book-chapter-1";
+                "src/main/examples/books/alice-in-wonderland-book-chapter-1";
         
         // MS Doc
         File docxInput = new File(inputName + ".docx");

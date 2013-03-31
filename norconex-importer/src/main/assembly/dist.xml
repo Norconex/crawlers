@@ -16,21 +16,17 @@
     </fileSet>
     <!-- TODO: move examples below src/??? -->
     <fileSet>
-      <directory>${basedir}</directory>
+      <directory>${basedir}/src/main/examples</directory>
       <includes>
-        <include>examples/**</include>
+        <include>**</include>
       </includes>
-      <outputDirectory>/</outputDirectory>
+      <outputDirectory>/examples</outputDirectory>
     </fileSet>
   </fileSets>
   <files>
     <file>
       <source>src/main/assembly/log4j.properties</source>
       <outputDirectory>/classes</outputDirectory>
-    </file>
-    <file>
-      <source>src/main/assembly/HOWTO_RUN_EXAMPLES.txt</source>
-      <outputDirectory>/examples</outputDirectory>
     </file>
   </files>
   <dependencySets>
