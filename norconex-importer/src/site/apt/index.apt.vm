@@ -26,6 +26,7 @@ Welcome to Norconex Importer
   The current version of {{{http://importer.norconex.com}Norconex Importer}} is
   ${project.version}
   
+  Latest {{{./apidocs/index.html}API documentation}}.
   
   <<SITE IN HEAVY DEVELOPMENT.  PLEASE IGNORE.  DO NOT RELY>>
   
@@ -36,6 +37,8 @@ Welcome to Norconex Importer
   Talk about flexibility of configuration by pointing to Configuration Javadoc?
   
   Add Google adds?
+  
+  asdf
   
   
 

@@ -39,6 +39,7 @@ public class DeleteTagger
     private static final long serialVersionUID = 8705987779553672659L;
     private final List<String> fields = new ArrayList<String>();
     
+    @Override
     public void tagDocument(
             String reference, Reader document, Properties metadata)
             throws IOException {

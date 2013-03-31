@@ -40,6 +40,7 @@ public class KeepOnlyTagger
 
     private final List<String> fields = new ArrayList<String>();
     
+    @Override
     public void tagDocument(
             String reference, Reader document, Properties metadata)
             throws IOException {

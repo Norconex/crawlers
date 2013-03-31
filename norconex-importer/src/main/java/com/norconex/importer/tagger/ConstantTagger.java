@@ -45,6 +45,7 @@ public class ConstantTagger
     private final Map<String, List<String>> constants = 
             new HashMap<String, List<String>>();
     
+    @Override
     public void tagDocument(
             String reference, Reader document, Properties metadata)
             throws IOException {
@@ -58,8 +59,6 @@ public class ConstantTagger
         }
     }
 
-    
-    
     public Map<String, List<String>> getConstants() {
         return Collections.unmodifiableMap(constants);
     }

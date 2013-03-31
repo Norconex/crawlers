@@ -30,6 +30,11 @@ import com.norconex.importer.parser.IDocumentParserFactory;
 import com.norconex.importer.tagger.IDocumentTagger;
 import com.norconex.importer.transformer.IDocumentTransformer;
 
+/**
+ * Principal class responsible for importing documents.
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ *
+ */
 public class Importer {
     
     public static final String IMPORTER_PREFIX = "importer.";
@@ -40,9 +45,16 @@ public class Importer {
 	private static final Logger LOG = LogManager.getLogger(Importer.class);
     private final ImporterConfig importerConfig;
     
+    /**
+     * Creates a new importer with default configuration.
+     */
     public Importer() {
         this(new ImporterConfig());
     }
+    /**
+     * Creates a new importer with the given configuration.
+     * @param importerConfig
+     */
     public Importer(ImporterConfig importerConfig) {
         super();
         if (importerConfig != null) {
@@ -52,6 +64,11 @@ public class Importer {
         }
     }
 
+    /**
+     * Invokes the importer from the command line.  
+     * @param args Invoke it once without any arguments to get a 
+     *    list of command-line options.
+     */
     public static void main(String[] args) {
         
         CommandLine cmd = parseCommandLineArguments(args);
@@ -82,6 +99,104 @@ public class Importer {
         }
     }
 
+    /**
+     * Imports a document according to the importer configuration.
+     * @param input document input
+     * @param output document output
+     * @param metadata the document starting metadata
+     * @return <code>true</code> if the document has successfully been imported,
+     *         <code>false</code> if the document was rejected (i.e. filtered)
+     * @throws IOException problem importing document
+     */
+    public boolean importDocument(
+            InputStream input, Writer output, Properties metadata)
+            throws IOException {
+        return importDocument(input, null, output, metadata, null);
+    }
+    /**
+     * Imports a document according to the importer configuration.
+     * @param input document input
+     * @param contentType document content-type
+     * @param output document output
+     * @param metadata the document starting metadata
+     * @return <code>true</code> if the document has successfully been imported,
+     *         <code>false</code> if the document was rejected (i.e. filtered)
+     * @param docReference document reference (e.g. URL, file path, etc)
+     * @throws IOException problem importing document
+     */
+    public boolean importDocument(
+            InputStream input, ContentType contentType, 
+            Writer output, Properties metadata, String docReference)
+            throws IOException {
+        File tmpInput = File.createTempFile("NorconexImporter", "input");
+        FileWriter inputWriter = new FileWriter(tmpInput);
+        IOUtils.copy(input, inputWriter);
+
+        File tmpOutput = File.createTempFile("NorconexImporter", "output");
+        
+        ContentType finalContentType = contentType;
+        if (finalContentType == null) {
+            Tika tika = new Tika();
+            finalContentType = ContentType.newContentType(tika.detect(input));
+        }
+        return importDocument(
+                tmpInput, contentType, tmpOutput, metadata, docReference);
+    }
+    /**
+     * Imports a document according to the importer configuration.
+     * @param input document input
+     * @param output document output
+     * @param metadata the document starting metadata
+     * @return <code>true</code> if the document has successfully been imported,
+     *         <code>false</code> if the document was rejected (i.e. filtered)
+     * @throws IOException problem importing document
+     */
+    public boolean importDocument(
+            File input, File output, Properties metadata)
+            throws IOException {
+        return importDocument(input, null, output, metadata, null);
+    }
+    /**
+     * Imports a document according to the importer configuration.
+     * @param input document input
+     * @param contentType document content-type
+     * @param output document output
+     * @param metadata the document starting metadata
+     * @return <code>true</code> if the document has successfully been imported,
+     *         <code>false</code> if the document was rejected (i.e. filtered)
+     * @param docReference document reference (e.g. URL, file path, etc)
+     * @throws IOException problem importing document
+     */    
+    public boolean importDocument(
+            File input, ContentType contentType, 
+            File output, Properties metadata, String docReference)
+            throws IOException {
+
+        ContentType finalContentType = contentType;
+        if (finalContentType == null 
+                || StringUtils.isBlank(finalContentType.toString())) {
+            Tika tika = new Tika();
+            finalContentType = ContentType.newContentType(tika.detect(input));
+        }
+        String finalDocRef = docReference;
+        if (StringUtils.isBlank(docReference)) {
+            finalDocRef = input.getAbsolutePath();
+        }
+        
+        metadata.addString(DOC_REFERENCE, finalDocRef); 
+    	metadata.addString(
+    	        DOC_CONTENT_TYPE, finalContentType.toString()); 
+        
+    	parseDocument(input, finalContentType, output, metadata, finalDocRef);
+        tagDocument(finalDocRef, output, metadata);
+        transformDocument(finalDocRef, output, metadata);
+        boolean accepted = acceptDocument(output, metadata);
+        if (!accepted) {
+            return false;
+        }
+        return true;
+    }
+    
     private static CommandLine parseCommandLineArguments(String[] args) {
         Options options = new Options();
         options.addOption("i", "inputFile", true, 
@@ -112,64 +227,6 @@ public class Importer {
             System.exit(-1);
         }
         return cmd;
-    }
-    
-    public boolean importDocument(
-            InputStream input, Writer output, Properties metadata)
-            throws IOException {
-        return importDocument(input, null, output, metadata, null);
-    }
-    public boolean importDocument(
-            InputStream input, ContentType contentType, 
-            Writer output, Properties metadata, String docReference)
-            throws IOException {
-        File tmpInput = File.createTempFile("NorconexImporter", "input");
-        FileWriter inputWriter = new FileWriter(tmpInput);
-        IOUtils.copy(input, inputWriter);
-
-        File tmpOutput = File.createTempFile("NorconexImporter", "output");
-        
-        ContentType finalContentType = contentType;
-        if (finalContentType == null) {
-            Tika tika = new Tika();
-            finalContentType = ContentType.newContentType(tika.detect(input));
-        }
-        return importDocument(
-                tmpInput, contentType, tmpOutput, metadata, docReference);
-    }
-    public boolean importDocument(
-            File input, File output, Properties metadata)
-            throws IOException {
-        return importDocument(input, null, output, metadata, null);
-    }
-    public boolean importDocument(
-            File input, ContentType contentType, 
-            File output, Properties metadata, String docReference)
-            throws IOException {
-
-        ContentType finalContentType = contentType;
-        if (finalContentType == null 
-                || StringUtils.isBlank(finalContentType.toString())) {
-            Tika tika = new Tika();
-            finalContentType = ContentType.newContentType(tika.detect(input));
-        }
-        String finalDocRef = docReference;
-        if (StringUtils.isBlank(docReference)) {
-            finalDocRef = input.getAbsolutePath();
-        }
-        
-        metadata.addString(DOC_REFERENCE, finalDocRef); 
-    	metadata.addString(
-    	        DOC_CONTENT_TYPE, finalContentType.toString()); 
-        
-    	parseDocument(input, finalContentType, output, metadata, finalDocRef);
-        tagDocument(finalDocRef, output, metadata);
-        transformDocument(finalDocRef, output, metadata);
-        boolean accepted = acceptDocument(output, metadata);
-        if (!accepted) {
-            return false;
-        }
-        return true;
     }
     
     private void parseDocument(

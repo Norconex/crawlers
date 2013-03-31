@@ -23,21 +23,29 @@ import com.norconex.importer.Importer;
 import com.norconex.importer.parser.DocumentParserException;
 import com.norconex.importer.parser.IDocumentParser;
 
+/**
+ * Base class wrapping Apache Tika parser for use by the importer.
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ */
 public class AbstractTikaParser implements IDocumentParser {
 
     private static final long serialVersionUID = -6183461314335335495L;
 
-    //TODO need a way to recreate (such as a "create" method) since
-    //it is not serializable, and failing in some frameworks (e.g. Wicket).
-    private transient final Parser parser;
+    private final Parser parser;
     private final String format;
 
+    /**
+     * Creates a new Tika-based parser.
+     * @param parser Tika parser
+     * @param format one of Tika parser supported format
+     */
     public AbstractTikaParser(Parser parser, String format) {
         super();
         this.parser = parser;
         this.format = format;
     }
 
+    @Override
     public final void parseDocument(
             InputStream inputStream, ContentType contentType,
             Writer output, Properties metadata)
@@ -96,7 +104,7 @@ public class AbstractTikaParser implements IDocumentParser {
                 ParseContext context)
                 throws IOException, SAXException, TikaException {
 
-            //TODO Make it a file writer somehow... storing it as new documetn
+            //TODO Make it a file writer somehow?? storing it as new document
             // so we can have a zip and its containing files separate.
             ContentHandler content = new BodyContentHandler(writer);
             super.parse(stream, content, tikaMeta, context);

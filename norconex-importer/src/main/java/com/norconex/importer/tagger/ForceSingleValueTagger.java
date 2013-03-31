@@ -56,6 +56,7 @@ public class ForceSingleValueTagger
     private final Map<String, String> singleFields = 
             new HashMap<String, String>();
     
+    @Override
     public void tagDocument(
             String reference, Reader document, Properties metadata)
             throws IOException {
@@ -81,8 +82,6 @@ public class ForceSingleValueTagger
         }
     }
 
-    
-    
     public Map<String, String> getSingleValueFields() {
         return Collections.unmodifiableMap(singleFields);
     }

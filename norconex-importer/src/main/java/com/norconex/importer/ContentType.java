@@ -4,10 +4,13 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represent a document content type (also called MIME-Type or Media Type).
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ */
 public class ContentType implements Serializable {
+  //TODO make part of norconex.commons.lang ????
 
-    //TODO make part of norconex.commons.lang ????
-    
     private static final long serialVersionUID = 6416074869536512030L;
     private String contentType;
     private static final Map<String, ContentType> registry = 
@@ -24,6 +27,12 @@ public class ContentType implements Serializable {
         registry.put(contentType, this);
     }
 
+    /**
+     * Creates a new content type.  Returns an existing instance if the 
+     * same content type is requested more than once.
+     * @param contentType the official media type name
+     * @return content type
+     */
     public static ContentType newContentType(String contentType) {
         ContentType type = registry.get(contentType);
         if (type != null) {

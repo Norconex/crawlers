@@ -45,9 +45,17 @@ public class DefaultDocumentParserFactory
     private IDocumentParser fallbackParser;
     private String format;
     
+    /**
+     * Creates a new document parser factory of "text" format.
+     */
     public DefaultDocumentParserFactory() {
         this(DEFAULT_FORMAT);
     }
+    /**
+     * Creates a new document parser factory of the given format.
+     * @param format dependent on parser expectations but typically, one 
+     *        of "text" or "xml"
+     */
     public DefaultDocumentParserFactory(String format) {
         super();
         this.format = format;
@@ -67,7 +75,6 @@ public class DefaultDocumentParserFactory
         }
         return parser;
     }
-    
     
     public String getFormat() {
         return format;

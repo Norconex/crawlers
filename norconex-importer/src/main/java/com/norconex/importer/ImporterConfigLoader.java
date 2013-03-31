@@ -11,6 +11,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.importer.filter.IDocumentFilter;
@@ -18,6 +19,11 @@ import com.norconex.importer.parser.IDocumentParserFactory;
 import com.norconex.importer.tagger.IDocumentTagger;
 import com.norconex.importer.transformer.IDocumentTransformer;
 
+/**
+ * Importer configuration loader.  Configuration options are defined
+ * as part of general product documentation.
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ */
 @SuppressWarnings("nls")
 public final class ImporterConfigLoader {
 
@@ -28,46 +34,66 @@ public final class ImporterConfigLoader {
         super();
     }
 
+    /**
+     * Loads importer configuration.
+     * @param configFile configuration file
+     * @param configVariables configuration variables 
+     *        (.variables or .properties)
+     * @return importer configuration
+     * @throws ConfigurationException problem loading configuration
+     */
     public static ImporterConfig loadImporterConfig(
-            File configFile, File configVariables) throws Exception {
-        ConfigurationLoader configLoader = new ConfigurationLoader();
-        XMLConfiguration xml = configLoader.loadXML(
-                configFile, configVariables);
-        return loadImporterConfig(xml);
+            File configFile, File configVariables) 
+                    throws ConfigurationException {
+        try {
+            ConfigurationLoader configLoader = new ConfigurationLoader();
+            XMLConfiguration xml = configLoader.loadXML(
+                    configFile, configVariables);
+            return loadImporterConfig(xml);
+        } catch (Exception e) {
+            throw new ConfigurationException(
+                    "Could not load configuration file: " + configFile, e);
+        }
     }    
-    
+    /**
+     * Loads importer configuration.
+     * @param xml XMLConfiguration instance
+     * @return importer configuration
+     * @throws ConfigurationException problem loading configuration
+     */
     public static ImporterConfig loadImporterConfig(
-            XMLConfiguration xml) throws Exception {
-
+            XMLConfiguration xml) throws ConfigurationException {
         if (xml == null) {
             return null;
         }
-        
         ImporterConfig config = new ImporterConfig();
-        
-        //--- Document Parser Factory ------------------------------------------
-        config.setParserFactory((IDocumentParserFactory) newInstance(
-                new XMLConfiguration(configurationAt(
-                        xml, "documentParserFactory")),
-                config.getParserFactory()));
+        try {
+            //--- Document Parser Factory --------------------------------------
+            config.setParserFactory((IDocumentParserFactory) newInstance(
+                    new XMLConfiguration(configurationAt(
+                            xml, "documentParserFactory")),
+                    config.getParserFactory()));
 
-        //--- Document Taggers -------------------------------------------------
-        IDocumentTagger[] taggers = 
-                loadTaggers(xml, "taggers.tagger");
-        config.setTaggers(
-                taggers.length == 0  ? config.getTaggers() : taggers);
-        
-        //--- Document Transformers --------------------------------------------
-        IDocumentTransformer[] tfmrs = 
-                loadTransformers(xml, "transformers.transformer");
-        config.setTransformers(
-                tfmrs.length == 0  ? config.getTransformers() : tfmrs);
+            //--- Document Taggers ---------------------------------------------
+            IDocumentTagger[] taggers = 
+                    loadTaggers(xml, "taggers.tagger");
+            config.setTaggers(
+                    taggers.length == 0  ? config.getTaggers() : taggers);
+            
+            //--- Document Transformers ----------------------------------------
+            IDocumentTransformer[] tfmrs = 
+                    loadTransformers(xml, "transformers.transformer");
+            config.setTransformers(
+                    tfmrs.length == 0  ? config.getTransformers() : tfmrs);
 
-        //--- Document Filters -------------------------------------------------
-        IDocumentFilter[] filters = loadFilters(xml, "filters.filter");
-        config.setFilters(
-                filters.length == 0  ? config.getFilters() : filters);
-
+            //--- Document Filters ---------------------------------------------
+            IDocumentFilter[] filters = loadFilters(xml, "filters.filter");
+            config.setFilters(
+                    filters.length == 0  ? config.getFilters() : filters);
+        } catch (Exception e) {
+            throw new ConfigurationException("Could not load configuration "
+                    + "from XMLConfiguration instance.", e);
+        }
         return config;
     }
 

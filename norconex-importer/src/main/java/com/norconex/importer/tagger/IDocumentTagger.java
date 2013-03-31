@@ -10,7 +10,6 @@ import com.norconex.commons.lang.map.Properties;
  * Tags a document with extra metadata information, or manipulate existing
  * metadata information.
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
- *
  */
 public interface IDocumentTagger extends Serializable {
 

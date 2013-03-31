@@ -54,6 +54,7 @@ public class ReplaceTagger implements IDocumentTagger, IXMLConfigurable {
     private final Map<String, Replacement> replacements = 
             new HashMap<String, Replacement>();
     
+    @Override
     public void tagDocument(
             String reference, Reader document, Properties metadata)
             throws IOException {

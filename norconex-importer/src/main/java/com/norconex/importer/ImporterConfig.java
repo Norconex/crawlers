@@ -8,6 +8,10 @@ import com.norconex.importer.parser.IDocumentParserFactory;
 import com.norconex.importer.tagger.IDocumentTagger;
 import com.norconex.importer.transformer.IDocumentTransformer;
 
+/**
+ * Importer configuration.
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ */
 public class ImporterConfig implements Serializable {
 
     private static final long serialVersionUID = -7110188100703942075L;
