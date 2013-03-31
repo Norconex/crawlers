@@ -4,7 +4,10 @@ import java.io.Serializable;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
-
+/**
+ * HTTP Collector configuration.
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ */
 public class HttpCollectorConfig implements Cloneable, Serializable {
 
     public static final String DEFAULT_LOGS_DIR = "./logs";
@@ -16,6 +19,13 @@ public class HttpCollectorConfig implements Cloneable, Serializable {
     private String progressDir = DEFAULT_PROGRESS_DIR;
     private String logsDir = DEFAULT_LOGS_DIR;
     
+    /**
+     * Creates a new collector with the given unique id.  It is important
+     * the id of the collector is unique amongst your collectors.  This
+     * facilitates integration with different systems and facilitates
+     * tracking.
+     * @param id unique identifier
+     */
 	public HttpCollectorConfig(String id) {
         super();
         this.id = id;

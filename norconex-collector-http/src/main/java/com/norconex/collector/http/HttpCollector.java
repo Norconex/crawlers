@@ -25,6 +25,18 @@ import com.norconex.jef.suite.FileStopRequestHandler;
 import com.norconex.jef.suite.IJobSuiteFactory;
 import com.norconex.jef.suite.JobSuite;
 
+/**
+ * Main application class. In order to use it properly, you must first configure
+ * it, either by providing a populated instance of {@link HttpCollectorConfig},
+ * or by XML configuration, loaded using {@link HttpCollectorConfigLoader}.
+ * Instances of this class can hold several crawler, running at once.
+ * This is convenient when there are configuration setting to be shared amonsht
+ * crawlers.  When you have many crawler jobs defined that have nothing
+ * in common, it may be best to configure and run them separately, to facilitate
+ * troubleshooting.  There is no fair rule for this, experienting with your
+ * target sites will help you.
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ */
 @SuppressWarnings("nls")
 public class HttpCollector implements IJobSuiteFactory {
 
@@ -35,13 +47,30 @@ public class HttpCollector implements IJobSuiteFactory {
     private HttpCrawler[] crawlers;
     private HttpCollectorConfig collectorConfig;
     
+    /**
+     * Creates a non-configured HTTP collector.
+     */
     public HttpCollector() {
         super();
     }
+    /**
+     * Creates an HTTP Collector configured using the provided
+     * configuration fine and variable files.  Sample configuration files
+     * and documentation on configuration options and the differences 
+     * between a variables file and configuration are found on 
+     * the HTTP Collector web site.
+     * @param configFile a configuration file
+     * @param variablesFile a variables file
+     */
 	public HttpCollector(File configFile, File variablesFile) {
 	    this.configurationFile = configFile;
 	    this.variablesFile = variablesFile;
 	}
+	/**
+	 * Creates and configure an HTTP Collector with the provided
+	 * configuration.
+	 * @param collectorConfig HTTP Collector configuration
+	 */
     public HttpCollector(HttpCollectorConfig collectorConfig) {
         this.collectorConfig = collectorConfig;
     }
@@ -65,8 +94,10 @@ public class HttpCollector implements IJobSuiteFactory {
     }
     
     /**
-	 * @param args
-	 */
+     * Invokes the HTTP Collector from the command line.  
+     * @param args Invoke it once without any arguments to get a 
+     *    list of command-line options.
+     */
 	public static void main(String[] args) {
 	    CommandLine cmd = parseCommandLineArguments(args);
         String action = cmd.getOptionValue("action");
@@ -103,47 +134,26 @@ public class HttpCollector implements IJobSuiteFactory {
         }
 	}
 
-    private static CommandLine parseCommandLineArguments(String[] args) {
-        Options options = new Options();
-        options.addOption("c", "config", true, 
-                "Required: HTTP Collector configuration file.");
-        options.addOption("v", "variables", true, 
-                "Optional: variable file.");
-        options.addOption("a", "action", true, 
-                "Required: one of start|resume|stop");
-        
-        CommandLineParser parser = new PosixParser();
-        CommandLine cmd = null;
-        try {
-            cmd = parser.parse( options, args);
-            if(!cmd.hasOption("config") 
-                    || !cmd.hasOption("action")
-                    || EqualsUtil.equalsNone(cmd.getOptionValue("action"),
-                            "start", "resume", "stop")) {
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp( "collector-http[.bat|.sh]", options );
-                System.exit(-1);
-            }
-        } catch (ParseException e1) {
-            e1.printStackTrace();
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "collector-http[.bat|.sh]", options );
-            System.exit(-1);
-        }
-        return cmd;
-    }
-	
+    /**
+     * Launched all crawlers defined in configuration.
+     * @param resumeNonCompleted whether to resume where previous crawler
+     *        aborted (if applicable) 
+     */
     public void crawl(boolean resumeNonCompleted) {
         JobSuite suite = createJobSuite();
         JobRunner jobRunner = new JobRunner();
         jobRunner.runSuite(suite, resumeNonCompleted);
     }
 
+    /**
+     * Stops a running instance of this HTTP Collector.
+     */
     public void stop() {
         JobSuite suite = createJobSuite();
         ((FileStopRequestHandler) 
                 suite.getStopRequestHandler()).fireStopRequest();
     }
+    
     
     @Override
     public JobSuite createJobSuite() {
@@ -186,5 +196,34 @@ public class HttpCollector implements IJobSuiteFactory {
         LOG.info("Suite of " + crawlers.length + " HTTP crawler jobs created.");
         return suite;
     }
-	
+
+    private static CommandLine parseCommandLineArguments(String[] args) {
+        Options options = new Options();
+        options.addOption("c", "config", true, 
+                "Required: HTTP Collector configuration file.");
+        options.addOption("v", "variables", true, 
+                "Optional: variable file.");
+        options.addOption("a", "action", true, 
+                "Required: one of start|resume|stop");
+        
+        CommandLineParser parser = new PosixParser();
+        CommandLine cmd = null;
+        try {
+            cmd = parser.parse( options, args);
+            if(!cmd.hasOption("config") 
+                    || !cmd.hasOption("action")
+                    || EqualsUtil.equalsNone(cmd.getOptionValue("action"),
+                            "start", "resume", "stop")) {
+                HelpFormatter formatter = new HelpFormatter();
+                formatter.printHelp( "collector-http[.bat|.sh]", options );
+                System.exit(-1);
+            }
+        } catch (ParseException e1) {
+            e1.printStackTrace();
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp( "collector-http[.bat|.sh]", options );
+            System.exit(-1);
+        }
+        return cmd;
+    }
 }

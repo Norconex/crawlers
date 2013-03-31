@@ -10,7 +10,11 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfigLoader;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 
-
+/**
+ * HTTP Collector configuration loader.  Configuration options are defined
+ * as part of general product documentation.
+ * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ */
 public final class HttpCollectorConfigLoader {
 
     private static final Logger LOG = LogManager.getLogger(
