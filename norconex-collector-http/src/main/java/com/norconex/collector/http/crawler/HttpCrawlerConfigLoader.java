@@ -82,12 +82,12 @@ public final class HttpCrawlerConfigLoader {
                 "crawlerDefaults".equalsIgnoreCase(node.getRootElementName());
         
         if (!loadingDefaults) {
-            String collectorId = node.getString("[@id]", null);
-            if (StringUtils.isBlank(collectorId)) {
+            String crawlerId = node.getString("[@id]", null);
+            if (StringUtils.isBlank(crawlerId)) {
                 throw new HttpCollectorException(
-                        "Collector ID is missing in configuration.");
+                        "Crawler ID is missing in configuration.");
             }
-            config.setId(collectorId);
+            config.setId(crawlerId);
         }
 
         config.setUrlNormalizer(ConfigurationUtil.newInstance(
@@ -195,7 +195,6 @@ public final class HttpCrawlerConfigLoader {
         //--- Document Committers ----------------------------------------------
         config.setCommitter(ConfigurationUtil.newInstance(
                 node, "committer", config.getCommitter()));
-
     }
     
     private static IURLFilter[] loadURLFilters(

@@ -468,8 +468,8 @@ public class HttpCrawler extends AbstractResumableJob {
             if (LOG.isInfoEnabled()) {
                 LOG.info(StringUtils.leftPad(
                         crawlURL.getStatus().toString(), 10) + " > " 
-                      + StringUtils.leftPad("[" 
-                              + crawlURL.getDepth() + "] ", 6)
+                      + StringUtils.leftPad("(" 
+                              + crawlURL.getDepth() + ") ", 6)
                       + url);
             }
             

@@ -33,7 +33,7 @@
       
       <!-- Decide what to do with your files by specifying a committer. -->
       <committer class="com.norconex.committer.FileSystemCommitter">
-        <directory>./minimalCrawlFiles</directory>
+        <directory>./minimunCrawlFiles</directory>
       </committer>
 
     </crawler>
