@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This self-documented configuration file is meant to be used as a reference
+     or starting point for a new configuration. 
+     It contains all core features offered in this release.  Sometimes
+     multiple implementations are available for a given feature. Refer 
+     to site documentation for more options and complete description of 
+     each features.
+     -->
+<httpcollector id="norconex-techwiki">
+
+  <!-- Variables: Optionally define variables in this configuration file
+       using the "set" directive, or by using a file of the same name
+       but with the extension ".variables" or ".properties".  Refer 
+       to site documentation to find out what each extension does.
+       Finally, once can pass an optional properties file when starting the
+       crawler.  The following is good practice to reference frequently 
+       used classes in a shorter way.
+       -->
+  #set($workdir = "c:\path\to\your\workdir")
+  #set($basepkg = "com.norconex.collector.http")
+  #set($extension = "$basepkg.filter.impl.ExtensionURLFilter")
+  #set($urlRegex = "$basepkg.filter.impl.RegexURLFilter")
+  #set($robotsTxt = "$basepkg.handler.impl.DefaultRobotsTxtProvider")
+  #set($headersRegex = "$basepkg.filter.impl.RegexHeaderFilter")
+  #set($docFetcher = "$basepkg.handler.impl.DefaultDocumentFetcher")
+  #set($urlExtractor = "$basepkg.handler.impl.DefaultURLExtractor")
+  
+  <!-- Location where internal progress files are stored. -->
+  <progressDir>$workdir\progress</progressDir>
+
+  <!-- Location where logs are stored. -->
+  <logsDir>$workdir\logs</logsDir>
+
+  <!-- All crawler configuration options can be specified as default 
+       (including start URLs).  Settings defined here will be inherited by 
+       all individual crawlers defined further down, unless overwritten.
+       -->
+  <crawlerDefaults>
+
+    <!-- === Step 0: General Configuration ================================  -->
+    
+    <!-- Mandatory starting URL(s) where crawling begins.  If you put more 
+         than one URL, they will be processed together.  If you are interested
+         in providing a seed list instead, feel free to  -->    
+    <startURLs>
+      <url>http://www.example.com</url>
+      <url>http://www.sample.com</url>
+    </startURLs>
+
+    <!-- Optional URL normalization feature. The class must implement
+         *.handler.IURLNormalizer, like the following class does.
+      -->
+    <urlNormalizer class="$basepkg.handler.impl.GenericURLNormalizer">
+      <normalizations>
+        lowerCaseSchemeHost, upperCaseEscapeSequence 
+        decodeUnreservedCharacters, removeDefaultPort 
+      </normalizations>
+      <replacements>
+        <replace>
+           <match>&amp;view=print</match>
+           <replacement>&amp;view=html</replacement>
+        </replace>
+      </replacements>
+    </urlNormalizer>
+
+    <!-- Optional delay resolver defining how polite or aggressive you want
+         your crawling to be.  The class must implement 
+         *.handler.IDelayResolver.
+         The following is the default implementation:
+      -->
+    <delay default="1000" ignoreRobotsCrawlDelay="true"
+           class="$basepkg.handler.impl.DefaultDelayResolver">
+          <schedule dayOfWeek="from Monday to Friday" 
+                    time="from 8:00 to 6:30">10000</schedule>
+    </delay>
+
+    <!-- How many threads you want a crawler to use.  Regardless of how many
+         thread you have running, the frequency of each URL being invoked
+         will remain dictated by the &lt;delay/&gt option above.  Using more
+         than one thread is a good idea to ensure the delay is respected
+         in case you run into single downloads taking more time than the
+         delay specified. Default is 2 threads.
+      -->
+    <numThreads>2</numThreads>
+
+    <!-- How many level deep can the crawler go. I.e, within how many clicks 
+         away from the main page (start URL) each page can be to be considered.
+         Beyond the depth specified, pages are rejected.
+         The starting URLs all have a zero-depth.  Default is -1 (unlimited)
+         -->
+    <depth>5</depth>
+
+    <!-- Crawler "work" directory.  This is where files dowloaded or created as
+         part of crawling activities (besides logs and progress) get stored.
+         It should be unique to each crawlers.
+         -->
+    <workDir>/crawler/workdir/path</workDir>
+
+    <!-- Keep downloaded files. Default is false (deletes them after they have
+         been processed).
+         -->
+    <keepDownloads>false</keepDownloads>
+
+    <!-- Whether to mark orphan pages for deletion.  Orphans are URLs/pages, 
+         which on subsequent crawls can no longer be reached when spidering
+         the site (there are no links pointing to that page anymore).
+         Default behavior is false to keep them as they still exist.
+         -->
+    <deleteOrphans>false</deleteOrphans>
+
+    <!-- One or more optional listeners to be notified on various crawling
+         events (e.g. document rejected, document imported, etc). 
+         Class must implement *.crawler.IHttpCrawlerEventListener
+         -->
+    <crawlerListeners>
+      <listener class="YourClass"/>
+    </crawlerListeners>
+
+    <!-- Factory class creating a database for storing crawl status and
+         other information.  Classes must implement 
+         *.db.ICrawlURLDatabaseFactory.  Default implementation is the 
+         following.
+         -->
+    <crawlURLDatabaseFactory 
+         class="$basepkg.db.impl.DefaultCrawlURLDatabaseFactory" />
+
+    <!-- === Step 1: Initialize HTTP Client ================================ -->
+
+    <!-- Initialize the HTTP client use to make connections.  Classes
+         must implement *.handler.IHttpClientInitializer.
+         Default implementation offers many options. The following shows
+         a sample use of the default with credentials.
+         -->
+    <httpClientInitializer class="${httpClientInit}">
+      <authUsername>myusername</authUsername>
+      <authPassword>mypassword</authPassword>
+      <authURL>https://www.example.com/login.php</authURL>
+    </httpClientInitializer>
+    
+    <!-- === Step 2 (Loop): Process a URL/Document ========================= -->
+
+      <!-- Optionally filter URL BEFORE any download. Classes must
+           implement *.filter.IURLFilter, like the following examples.
+           -->
+      <httpURLFilters>
+        <filter class="$extension" onMatch="exclude" >
+            jpg,gif,png,ico,css,js</filter>
+        <filter class="$urlRegex">https://www.example.com/.*</filter>
+      </httpURLFilters>
+
+      <!-- Filter BEFORE download with RobotsTxt rules. Classes must
+           implement *.handler.IRobotsTxtProvider.  Default implementation
+           is the following.
+           -->
+      <robotsTxt ignore="false" class="$robotsTxt"/>
+      
+      <!-- Fetch Document HTTP Headers.  Classes must implement
+           *.handler.IHttpHeadersFetcher.  The following is a simple
+            implementation.
+           -->
+      <httpHeadersFetcher 
+          class="$basepkg.handler.impl.SimpleHttpHeadersFetcher"
+          validStatusCodes="200" />
+
+      <!-- Optionally filter AFTER download of HTTP headers.  Classes must 
+           implement *.handler.IHttpHeadersFetcher.  
+           -->
+      <httpHeadersFilters>
+        <filter class="$headersRegex" 
+                onMatch="exclude"
+                caseSensitive="false"
+                header="Content-Type">.*css.*</filter>
+      </httpHeadersFilters>        
+        
+      <!-- Generates a checksum value from document headers to find out if 
+           a document has changed based. Class must implement
+           *.handler.IHttpHeadersChecksummer.  Default implementation 
+           is the following. 
+           -->
+      <httpHeadersChecksummer class="$headersChecksummer" />
+
+      <!-- Fetches document.  Class must implement 
+           *.handler.IHttpDocumentFetcher.  Default implementation is the 
+           following.
+           -->
+      <httpDocumentFetcher class="$docFetcher" validStatusCodes="200" />
+
+      <!-- Extract URLs from a document.  Classes must implement
+           *.handler.IURLExtractor. Default implementation is the following.
+           -->
+      <urlExtractor class="$urlExtractor" />
+
+      <!--  Optionally filters a document. Classes must implement 
+            *.filter.IHttpDocumentFilter-->
+      <httpDocumentFilters>
+          <filter class="YourClass" />
+      </httpDocumentFilters>
+
+      <!-- Optionally process a document BEFORE importing it. Classes must
+           implement *.handler.IHttpDocumentProcessor.
+           -->
+      <httpPreProcessors>
+         <processor class="YourClass"></processor>
+      </httpPreProcessors>
+        
+      <!-- Import a document.  This step calls the Importer module.  The
+           importer is a different module with its own set of XML configuration
+           options.  Please refer to importer for complete documentation.
+           Below gives you an overview of the main importer tags.
+           -->
+      <importer>
+        <documentParserFactory class="..." />
+        <taggers>
+          <tagger class="..." />
+        </taggers>
+        <transformers >
+          <transformer class="..." />
+        </transformers>
+        <filters>
+          <filter class="..." />
+        </filters>
+      </importer>           
+
+      <!-- Create a checksum out of a document to figure out if a document
+           has changed, AFTER it has been imported.
+           Class must implement *.handler.IHttpDocumentChecksummer.
+           Default implementation is the following.
+           -->
+      <httpDocumentChecksummer class="$docChecksummer" />
+
+      <!-- Optionally process a document AFTER importing it. Classes must
+           implement *.handler.IHttpDocumentProcessor.
+           -->
+      <httpPostProcessors>
+         <processor class="YourClass"></processor>
+      </httpPostProcessors>
+        
+      <!-- Commits a document to a data source of your choice.
+           This step calls the Committer module.  The
+           committer is a different module with its own set of XML configuration
+           options.  Please refer to committer for complete documentation.
+           Below is an example using the FileSystemCommitter.
+           -->
+      <committer class="com.norconex.committer.FileSystemCommitter">
+        <directory>$workdir\crawledFiles</directory>
+      </committer>
+
+  </crawlerDefaults>
+
+
+  <!-- Individual crawlers can be defined here.  All crawler default
+       configuration settings will apply to all crawlers created unless 
+       explicitly overwritten in crawler configuration.
+       For configuration options where multiple items can be present 
+       (e.g. filters), the whole list will in crawler defaults would be
+       overwritten.
+       Since the options are the same as the defaults above, the documentation 
+       is not repeated here.
+       The only difference from "crawlerDefaults" is the addition of the "id"
+       attribute on the crawler tag.  The "id" attribute uniquelly identifies
+       each of your crawlers.  
+       -->
+  <crawlers>
+    <crawler id="Test Web Site">
+       <!-- Overwrite any defaults here. -->
+    </crawler>
+  </crawlers>
+
+</httpcollector>

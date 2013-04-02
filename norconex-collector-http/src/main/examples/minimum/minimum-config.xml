@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This configuration shows the minimum required and minimum recommended to 
+     run a crawler.  
+     -->
+<httpcollector id="Minimal Config HTTP Collector">
+
+  <crawlers>
+    <crawler id="Minimal Config Crawl">
+
+      <!-- === Minimum required: =========================================== -->
+
+      <!-- Requires at least one start URL. -->
+      <startURLs>
+        <url>http://en.wikipedia.org/wiki/Alice%27s_Adventures_in_Wonderland</url>
+      </startURLs>
+
+      <!-- === Minimum recommended: ======================================== -->
+
+      <!-- Put a maximum depth to avoid infinite crawling (e.g. calendars). -->
+      <depth>0</depth>
+
+      <!-- Be as nice as you can to sites you crawl. -->
+      <delay default="5000" />
+      
+      <!-- At a minimum make sure you stay on your domain. -->
+      <httpURLFilters>
+        <filter 
+            class="com.norconex.collector.http.filter.impl.RegexURLFilter"
+            onMatch="include" >
+          http://en\.wikipedia\.org/wiki/.*
+        </filter>
+      </httpURLFilters>
+      
+      <!-- Decide what to do with your files by specifying a committer. -->
+      <committer class="com.norconex.committer.FileSystemCommitter">
+        <directory>./minimalCrawlFiles</directory>
+      </committer>
+
+    </crawler>
+  </crawlers>
+
+</httpcollector>

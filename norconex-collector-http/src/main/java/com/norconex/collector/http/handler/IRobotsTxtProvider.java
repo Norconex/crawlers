@@ -20,7 +20,4 @@ public interface IRobotsTxtProvider extends Serializable {
    
     RobotsTxt getRobotsTxt(HttpClient httpClient, String url);
     
-    //TODO kill this method.
-//    boolean isAllowed(HttpClient httpClient, String url);
-    
 }

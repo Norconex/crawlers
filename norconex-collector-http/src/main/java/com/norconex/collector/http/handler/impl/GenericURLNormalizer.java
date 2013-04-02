@@ -26,7 +26,7 @@ import com.norconex.commons.lang.url.URLNormalizer;
 /**
  * <p>
  * Generic implementation of {@link IURLNormalizer} that should satisfy
- * most URL normalization needs.  This impleemntation relies on 
+ * most URL normalization needs.  This implementation relies on 
  * {@link URLNormalizer}.  Please refer to it for complete documentation and 
  * examples. 
  * </p>

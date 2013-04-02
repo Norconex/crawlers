@@ -1,8 +1,6 @@
 package com.norconex.collector.http.crawler;
 
 import java.io.File;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,18 +15,9 @@ import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.handler.IHttpClientInitializer;
-import com.norconex.collector.http.handler.IHttpDocumentChecksummer;
-import com.norconex.collector.http.handler.IHttpDocumentFetcher;
 import com.norconex.collector.http.handler.IHttpDocumentProcessor;
-import com.norconex.collector.http.handler.IHttpHeadersChecksummer;
-import com.norconex.collector.http.handler.IHttpHeadersFetcher;
-import com.norconex.collector.http.handler.IRobotsTxtProvider;
-import com.norconex.collector.http.handler.IURLExtractor;
-import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.ConfigurationUtil;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.ImporterConfigLoader;
 
@@ -49,7 +38,8 @@ public final class HttpCrawlerConfigLoader {
     public static HttpCrawlerConfig[] loadCrawlerConfigs(
             HierarchicalConfiguration xml) {
         try {
-            XMLConfiguration defaults = configurationAt(xml, "crawlerDefaults");
+            XMLConfiguration defaults = 
+                    ConfigurationUtil.getXmlAt(xml, "crawlerDefaults");
             HttpCrawlerConfig defaultConfig = new HttpCrawlerConfig();
             if (defaults != null) {
                 loadCrawlerConfig(defaultConfig, defaults);
@@ -99,12 +89,11 @@ public final class HttpCrawlerConfigLoader {
             }
             config.setId(collectorId);
         }
-        
+
         config.setUrlNormalizer(ConfigurationUtil.newInstance(
-                node.configurationAt("urlNormalizer"), 
-                config.getUrlNormalizer()));
+                node, "urlNormalizer", config.getUrlNormalizer()));
         config.setDelayResolver(ConfigurationUtil.newInstance(
-                node.configurationAt("delay"), config.getDelayResolver()));
+                node, "delay", config.getDelayResolver()));
         config.setNumThreads(node.getInt("numThreads", config.getNumThreads()));
         config.setDepth(node.getInt("depth", config.getDepth()));
         config.setWorkDir(new File(node.getString(
@@ -124,12 +113,12 @@ public final class HttpCrawlerConfigLoader {
                         ? config.getCrawlerListeners() : crawlerListeners);
         
         config.setCrawlURLDatabaseFactory(ConfigurationUtil.newInstance(
-                node.configurationAt("crawlURLDatabaseFactory"), 
+                node, "crawlURLDatabaseFactory", 
                 config.getCrawlURLDatabaseFactory()));
         
         //--- HTTP Initializer -------------------------------------------------
-        config.setHttpClientInitializer((IHttpClientInitializer) newInstance(
-                configurationAt(node, "httpClientInitializer"),
+        config.setHttpClientInitializer(ConfigurationUtil.newInstance(
+                node, "httpClientInitializer",
                 config.getHttpClientInitializer()));
 
         //--- URL Filters ------------------------------------------------------
@@ -138,16 +127,14 @@ public final class HttpCrawlerConfigLoader {
                 urlFilters.length == 0 ? config.getURLFilters() : urlFilters);
 
         //--- RobotsTxt provider -----------------------------------------------
-        config.setRobotsTxtProvider((IRobotsTxtProvider) newInstance(
-                configurationAt(node, "robotsTxt"),
-                config.getRobotsTxtProvider()));
+        config.setRobotsTxtProvider(ConfigurationUtil.newInstance(
+                node, "robotsTxt", config.getRobotsTxtProvider()));
         config.setIgnoreRobotsTxt(node.getBoolean(
                 "robotsTxt[@ignore]", config.isIgnoreRobotsTxt()));
         
         //--- HTTP Headers Fetcher ---------------------------------------------
-        config.setHttpHeadersFetcher((IHttpHeadersFetcher) newInstance(
-                configurationAt(node, "httpHeadersFetcher"),
-                config.getHttpHeadersFetcher()));
+        config.setHttpHeadersFetcher(ConfigurationUtil.newInstance(
+                node, "httpHeadersFetcher", config.getHttpHeadersFetcher()));
         
         //--- HTTP Headers Filters ---------------------------------------------
         IHttpHeadersFilter[] headersFilters = 
@@ -157,19 +144,18 @@ public final class HttpCrawlerConfigLoader {
                         ? config.getHttpHeadersFilters() : headersFilters);
 
         //--- HTTP Headers Checksummer -----------------------------------------
-        config.setHttpHeadersChecksummer((IHttpHeadersChecksummer)
-        		newInstance(configurationAt(node, "httpHeadersChecksummer"),
-        				config.getHttpHeadersChecksummer()));
+        config.setHttpHeadersChecksummer(ConfigurationUtil.newInstance(
+        		node, "httpHeadersChecksummer", 
+        		config.getHttpHeadersChecksummer()));
         
         //--- HTTP Document Fetcher --------------------------------------------
-        config.setHttpDocumentFetcher((IHttpDocumentFetcher) newInstance(
-                configurationAt(node, "httpDocumentFetcher"),
+        config.setHttpDocumentFetcher(ConfigurationUtil.newInstance(
+                node, "httpDocumentFetcher",
                 config.getHttpDocumentFetcher()));
         
         //--- URL Extractor ----------------------------------------------------
-        config.setUrlExtractor((IURLExtractor) newInstance(
-                configurationAt(node, "urlExtractor"),
-                config.getUrlExtractor()));
+        config.setUrlExtractor(ConfigurationUtil.newInstance(
+                node, "urlExtractor", config.getUrlExtractor()));
 
         //--- Document Filters -------------------------------------------------
         IHttpDocumentFilter[] docFilters = 
@@ -186,7 +172,8 @@ public final class HttpCrawlerConfigLoader {
                         ? config.getHttpPreProcessors() : preProcFilters);
 
         //--- IMPORTER ---------------------------------------------------------
-        XMLConfiguration importerNode = configurationAt(node, "importer");
+        XMLConfiguration importerNode = 
+                ConfigurationUtil.getXmlAt(node, "importer");
         ImporterConfig importerConfig = 
                 ImporterConfigLoader.loadImporterConfig(importerNode);
         config.setImporterConfig(importerConfig == null
@@ -201,14 +188,13 @@ public final class HttpCrawlerConfigLoader {
                         ? config.getHttpPostProcessors() : postProcFilters);
 
         //--- HTTP Document Checksummer -----------------------------------------
-        config.setHttpDocumentChecksummer(((IHttpDocumentChecksummer)
-        		newInstance(configurationAt(node, "httpDocumentChecksummer"),
-        				config.getHttpDocumentChecksummer())));
+        config.setHttpDocumentChecksummer(ConfigurationUtil.newInstance(
+                node, "httpDocumentChecksummer",
+        		config.getHttpDocumentChecksummer()));
 
         //--- Document Committers ----------------------------------------------
-        config.setCommitter((ICommitter) newInstance(
-                configurationAt(node, "committer"),
-                config.getCommitter()));
+        config.setCommitter(ConfigurationUtil.newInstance(
+                node, "committer", config.getCommitter()));
 
     }
     
@@ -220,8 +206,7 @@ public final class HttpCrawlerConfigLoader {
                 node.configurationsAt(xmlPath);
         
         for (HierarchicalConfiguration filterNode : filterNodes) {
-            IURLFilter urlFilter = (IURLFilter) newInstance(
-                    new XMLConfiguration(filterNode), null);
+            IURLFilter urlFilter = ConfigurationUtil.newInstance(filterNode);
             urlFilters.add(urlFilter);
             LOG.info("URL filter loaded: " + urlFilter);
         }
@@ -236,8 +221,8 @@ public final class HttpCrawlerConfigLoader {
                 node.configurationsAt(xmlPath);
         
         for (HierarchicalConfiguration filterNode : filterNodes) {
-            IHttpHeadersFilter filter = (IHttpHeadersFilter) newInstance(
-                    new XMLConfiguration(filterNode), null);
+            IHttpHeadersFilter filter = 
+                    ConfigurationUtil.newInstance(filterNode);
             filters.add(filter);
             LOG.info("HTTP headers filter loaded: " + filter);
         }
@@ -253,8 +238,7 @@ public final class HttpCrawlerConfigLoader {
         
         for (HierarchicalConfiguration filterNode : filterNodes) {
             IHttpDocumentFilter filter = 
-                    (IHttpDocumentFilter) newInstance(
-                            new XMLConfiguration(filterNode), null);
+                    ConfigurationUtil.newInstance(filterNode);
             filters.add(filter);
             LOG.info("HTTP document filter loaded: " + filter);
         }
@@ -269,8 +253,8 @@ public final class HttpCrawlerConfigLoader {
                 node.configurationsAt(xmlPath);
         
         for (HierarchicalConfiguration listenerNode : listenerNodes) {
-            IHttpCrawlerEventListener listener = (IHttpCrawlerEventListener) 
-                    newInstance(new XMLConfiguration(listenerNode), null);
+            IHttpCrawlerEventListener listener = 
+                    ConfigurationUtil.newInstance(listenerNode);
             listeners.add(listener);
             LOG.info("HTTP Crawler event listener loaded: " + listener);
         }
@@ -285,56 +269,11 @@ public final class HttpCrawlerConfigLoader {
                 node.configurationsAt(xmlPath);
         
         for (HierarchicalConfiguration filterNode : filterNodes) {
-            IHttpDocumentProcessor filter = (IHttpDocumentProcessor) 
-                    newInstance(new XMLConfiguration(filterNode), null);
+            IHttpDocumentProcessor filter = 
+                    ConfigurationUtil.newInstance(filterNode);
             filters.add(filter);
             LOG.info("HTTP document processor loaded: " + filter);
         }
         return filters.toArray(new IHttpDocumentProcessor[]{});
-    }
-    
-    
-    private static XMLConfiguration configurationAt(
-            HierarchicalConfiguration node, String key) {
-        try {
-            return new XMLConfiguration(node.configurationAt(key));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    //TODO remove this method and use ConfigurationUtils.newInstance() instead.
-    private static Object newInstance(
-            XMLConfiguration node, Object defaultObject)
-            throws Exception {
-        Object obj = null;
-        if (node == null) {
-            obj = defaultObject;
-        } else {
-            String clazz = node.getString("[@class]", null);
-            if (clazz != null) {
-                try {
-                    obj = Class.forName(clazz).newInstance();
-                } catch (Exception e) {
-                    LOG.error("This class could not be instantiated: \""
-                            + clazz + "\".", e);
-                    throw e;
-                }
-            } else {
-                LOG.warn("A configuration entry was found without class "
-                       + "reference where one was needed; "
-                       + "using default value:" + defaultObject);
-                obj = defaultObject;
-            }
-        }
-        if (obj != null && node != null && obj instanceof IXMLConfigurable) {
-            StringWriter w = new StringWriter();
-            node.save(w);
-            StringReader r = new StringReader(w.toString());
-            ((IXMLConfigurable) obj).loadFromXML(r);
-            w.close();
-            r.close();
-        }
-        return obj;
     }
 }

@@ -30,6 +30,7 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
+import com.norconex.collector.http.handler.IDelayResolver;
 import com.norconex.collector.http.handler.IHttpDocumentChecksummer;
 import com.norconex.collector.http.handler.IHttpDocumentProcessor;
 import com.norconex.collector.http.handler.IHttpHeadersChecksummer;
@@ -308,7 +309,12 @@ public class HttpCrawler extends AbstractResumableJob {
             }
 
             //--- Wait for delay to expire -------------------------------------
-            crawlerConfig.getDelayResolver().delay(robotsTxt, url);
+            IDelayResolver delayResolver = crawlerConfig.getDelayResolver();
+            if (delayResolver != null) {
+                synchronized (delayResolver) {
+                    delayResolver.delay(robotsTxt, url);
+                }
+            }
             
             //--- HTTP Headers Fetcher and Filters -----------------------------
             IHttpHeadersFetcher hdFetcher = crawlerConfig.getHttpHeadersFetcher();
@@ -461,7 +467,10 @@ public class HttpCrawler extends AbstractResumableJob {
             database.processed(crawlURL);
             if (LOG.isInfoEnabled()) {
                 LOG.info(StringUtils.leftPad(
-                        crawlURL.getStatus().toString(), 10) + " > " + url);
+                        crawlURL.getStatus().toString(), 10) + " > " 
+                      + StringUtils.leftPad("[" 
+                              + crawlURL.getDepth() + "] ", 6)
+                      + url);
             }
             
             //--- Delete Local File Download -----------------------------------

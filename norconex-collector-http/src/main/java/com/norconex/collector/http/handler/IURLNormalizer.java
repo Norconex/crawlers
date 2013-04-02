@@ -14,7 +14,10 @@ import com.norconex.collector.http.filter.IURLFilter;
  * for further processing.  Returning null will effectively tells the crawler
  * to not even consider it for processing (it won't go through the regular
  * document processing flow).  You may want to consider {@link IURLFilter} 
- * to exclude URLs as part has the regular document processing flow.
+ * to exclude URLs as part has the regular document processing flow
+ * (may create a trace in the logs and gives you more options).
+ * Implementors also implementing IXMLConfigurable must name their XML tag
+ * <code>urlNormalizer</code> to ensure it gets loaded properly.
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IURLNormalizer extends Serializable {

@@ -10,5 +10,5 @@ import com.norconex.collector.http.robot.RobotsTxt;
  */
 public interface IDelayResolver extends Serializable  {
 
-	void delay(RobotsTxt robotsTxt, String url);
+    void delay(RobotsTxt robotsTxt, String url);
 }

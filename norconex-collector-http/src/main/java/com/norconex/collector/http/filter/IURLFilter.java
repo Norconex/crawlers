@@ -11,7 +11,8 @@ import java.io.Serializable;
  * It is a good idea to include specifics of this filter so crawler users 
  * can know exactly why documents got accepted/rejected rejected if need be.
  * </p>
- * <p>URL Filters should be immutable.</p>
+ * <p> Implementors also implementing IXMLConfigurable must name their XML tag
+ * <code>filter</code> to ensure it gets loaded properly.</p>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IURLFilter extends Serializable {

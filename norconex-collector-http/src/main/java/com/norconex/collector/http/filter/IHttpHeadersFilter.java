@@ -13,7 +13,6 @@ import com.norconex.commons.lang.map.Properties;
  * It is a good idea to include specifics of this filter so crawler users 
  * can know exactly why documents got accepted/rejected rejected if need be.
  * </p>
- * <p>HTTP Header Filters should be immutable.</p>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IHttpHeadersFilter extends Serializable {

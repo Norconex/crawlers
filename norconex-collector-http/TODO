@@ -9,8 +9,19 @@
   that should not be added nor deleted because they are in a temporary bad 
   state.  Is it really useful?
 
-- Move log4j out and put it in assembly, to go in /classes.
-  
+  <!-- TODO: Add JEF Listeners -->
+  <jef>
+      <errorHandlers> 
+         <handler class=""></handler>
+      </errorHandlers>
+      <jobProgressListener> 
+         <listener class=""></listener>
+      </jobProgressListener>
+      <suiteLifeCycleListener> 
+         <listener class=""></listener>
+      </suiteLifeCycleListener>
+  </jef>
+
 - Document on site why another crawler:
    - Portability (changing values can be extracted and just right files 
       uploaded)

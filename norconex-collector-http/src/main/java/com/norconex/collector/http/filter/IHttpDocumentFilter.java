@@ -12,7 +12,6 @@ import com.norconex.collector.http.doc.HttpDocument;
  * It is a good idea to include specifics of this filter so crawler users 
  * can know exactly why documents got accepted/rejected rejected if need be.
  * </p>
- * <p>HTTP Document Filters should be immutable.</p>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IHttpDocumentFilter extends Serializable {

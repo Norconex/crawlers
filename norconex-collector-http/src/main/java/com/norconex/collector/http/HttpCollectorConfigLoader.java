@@ -41,8 +41,9 @@ public final class HttpCollectorConfigLoader {
         HttpCollectorConfig config = new HttpCollectorConfig(collectorID);
         config.setCrawlerConfigs(crawlers);
 
-        config.setLogsDir(xml.getString("logsDir"));
-        config.setProgressDir(xml.getString("progressDir"));
+        config.setLogsDir(xml.getString("logsDir", config.getLogsDir()));
+        config.setProgressDir(
+                xml.getString("progressDir", config.getProgressDir()));
 
         if (LOG.isInfoEnabled()) {
             LOG.info("Configuration loaded: id=" + collectorID

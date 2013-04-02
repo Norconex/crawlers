@@ -63,27 +63,27 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     @Override
-    public void queue(String url, int depth) {
+    public synchronized void queue(String url, int depth) {
         sqlUpdate("INSERT INTO queue (url, depth) VALUES (?,?)", url, depth);
     }
 
     @Override
-    public boolean isQueueEmpty() {
+    public synchronized boolean isQueueEmpty() {
         return getQueueSize()  == 0;
     }
 
     @Override
-    public int getQueueSize() {
+    public synchronized int getQueueSize() {
         return sqlQueryInteger("SELECT count(*) FROM queue");
     }
 
     @Override
-    public boolean isQueued(String url) {
+    public synchronized boolean isQueued(String url) {
         return sqlQueryInteger("SELECT 1 FROM queue where url = ?", url) > 0;
     }
 
     @Override
-    public CrawlURL next() {
+    public synchronized CrawlURL next() {
         CrawlURL crawlURL = sqlQueryCrawlURL(
                 "SELECT url, depth FROM queue ORDER BY depth");
         if (crawlURL != null) {
@@ -95,29 +95,29 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     @Override
-    public boolean isActive(String url) {
+    public synchronized boolean isActive(String url) {
         return sqlQueryInteger("SELECT 1 FROM active where url = ?", url) > 0;
     }
 
     @Override
-    public int getActiveCount() {
+    public synchronized int getActiveCount() {
         return sqlQueryInteger("SELECT count(*) FROM active");
     }
 
     @Override
-    public CrawlURL getCached(String url) {
+    public synchronized CrawlURL getCached(String url) {
         return sqlQueryCrawlURL(
                 "SELECT url, depth, docchecksum, headchecksum, status "
               + "FROM cache WHERE url = ?", url);
     }
 
     @Override
-    public boolean isCacheEmpty() {
+    public synchronized boolean isCacheEmpty() {
         return sqlQueryInteger("SELECT count(*) FROM cache") == 0;
     }
 
     @Override
-    public void processed(CrawlURL crawlURL) {
+    public synchronized void processed(CrawlURL crawlURL) {
         sqlUpdate("INSERT INTO processed ("
                 + "url, depth, docchecksum, headchecksum, status) "
                 + "values (?, ?, ?, ?, ?)",
@@ -129,23 +129,23 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     @Override
-    public boolean isProcessed(String url) {
+    public synchronized boolean isProcessed(String url) {
         return sqlQueryInteger(
                 "SELECT 1 FROM processed where url = ?", url) > 0;
     }
 
     @Override
-    public int getProcessedCount() {
+    public synchronized int getProcessedCount() {
         return sqlQueryInteger("SELECT count(*) FROM processed");
     }
 
     @Override
-    public void queueCache() {
+    public synchronized void queueCache() {
         copyURLDepthToQueue("cache");
     }
 
     @Override
-    public boolean isVanished(CrawlURL crawlURL) {
+    public synchronized boolean isVanished(CrawlURL crawlURL) {
         CrawlURL cachedURL = getCached(crawlURL.getUrl());
         if (cachedURL == null) {
             return false;
