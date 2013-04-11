@@ -1,6 +1,7 @@
 package com.norconex.importer.tagger;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Collections;
@@ -26,6 +27,7 @@ import com.norconex.commons.lang.map.Properties;
  * Forces a metadata field to be single-value.  The action can be one of the 
  * following:
  * </p>
+ * <p>Can be used both as a pre-parse or post-parse handler.</p>
  * <pre>
  *    keepFirst          Keeps the first occurrence found.
  *    keepLast           Keeps the first occurrence found.
@@ -34,7 +36,7 @@ import com.norconex.commons.lang.map.Properties;
  * </pre>
  * <p>
  * If you do not specify any action, the default behavior is to merge all
- * occurrences, joining values with a coma.
+ * occurrences, joining values with a comma.
  * </p> 
  * <p>
  * XML configuration usage:
@@ -58,7 +60,8 @@ public class ForceSingleValueTagger
     
     @Override
     public void tagDocument(
-            String reference, Reader document, Properties metadata)
+            String reference, InputStream document, 
+            Properties metadata, boolean parsed)
             throws IOException {
         for (String name : singleFields.keySet()) {
             List<String> values = metadata.getStrings(name);  

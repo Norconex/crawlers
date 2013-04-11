@@ -1,23 +1,18 @@
 package com.norconex.importer;
 
 import java.io.File;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.commons.configuration.tree.ExpressionEngine;
+import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
-import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.importer.filter.IDocumentFilter;
-import com.norconex.importer.parser.IDocumentParserFactory;
-import com.norconex.importer.tagger.IDocumentTagger;
-import com.norconex.importer.transformer.IDocumentTransformer;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 
 /**
  * Importer configuration loader.  Configuration options are defined
@@ -27,9 +22,6 @@ import com.norconex.importer.transformer.IDocumentTransformer;
 @SuppressWarnings("nls")
 public final class ImporterConfigLoader {
 
-    private static final Logger LOG = LogManager.getLogger(
-            ImporterConfigLoader.class);
-    
     private ImporterConfigLoader() {
         super();
     }
@@ -55,6 +47,20 @@ public final class ImporterConfigLoader {
                     "Could not load configuration file: " + configFile, e);
         }
     }    
+    
+    
+    public static ImporterConfig loadImporterConfig(Reader config)
+            throws ConfigurationException {
+        try {
+            XMLConfiguration xml = ConfigurationLoader.loadXML(config);
+            return loadImporterConfig(xml);
+        } catch (Exception e) {
+            throw new ConfigurationException(
+                    "Could not load configuration file from Reader.", e);
+        }
+    }
+    
+    
     /**
      * Loads importer configuration.
      * @param xml XMLConfiguration instance
@@ -68,123 +74,37 @@ public final class ImporterConfigLoader {
         }
         ImporterConfig config = new ImporterConfig();
         try {
+            //--- Pre-Import Handlers ------------------------------------------
+            config.setPreParseHandlers(
+                    loadImportHandlers(xml, "preParseHandlers"));
+
             //--- Document Parser Factory --------------------------------------
-            config.setParserFactory((IDocumentParserFactory) newInstance(
-                    new XMLConfiguration(configurationAt(
-                            xml, "documentParserFactory")),
-                    config.getParserFactory()));
+            config.setParserFactory(ConfigurationUtil.newInstance(
+                    xml, "documentParserFactory", config.getParserFactory()));
 
-            //--- Document Taggers ---------------------------------------------
-            IDocumentTagger[] taggers = 
-                    loadTaggers(xml, "taggers.tagger");
-            config.setTaggers(
-                    taggers.length == 0  ? config.getTaggers() : taggers);
-            
-            //--- Document Transformers ----------------------------------------
-            IDocumentTransformer[] tfmrs = 
-                    loadTransformers(xml, "transformers.transformer");
-            config.setTransformers(
-                    tfmrs.length == 0  ? config.getTransformers() : tfmrs);
-
-            //--- Document Filters ---------------------------------------------
-            IDocumentFilter[] filters = loadFilters(xml, "filters.filter");
-            config.setFilters(
-                    filters.length == 0  ? config.getFilters() : filters);
+            //--- Post-Import Handlers -----------------------------------------
+            config.setPostParseHandlers(
+                    loadImportHandlers(xml, "postParseHandlers"));
         } catch (Exception e) {
             throw new ConfigurationException("Could not load configuration "
                     + "from XMLConfiguration instance.", e);
         }
         return config;
     }
-
-    private static IDocumentTagger[] loadTaggers(
-            XMLConfiguration node, String xmlPath)
-            throws Exception {
-        List<IDocumentTagger> list = new ArrayList<IDocumentTagger>();
-        List<HierarchicalConfiguration> nodes = node.configurationsAt(xmlPath);
-        
-        for (HierarchicalConfiguration committerNode : nodes) {
-            IDocumentTagger item = (IDocumentTagger) newInstance(
-                    new XMLConfiguration(committerNode), null);
-            list.add(item);
-            LOG.info("Tagger loaded: " + item);
-        }
-        return list.toArray(new IDocumentTagger[]{});
-    }
     
-    private static IDocumentTransformer[] loadTransformers(
-            XMLConfiguration node, String xmlPath)
-            throws Exception {
-        List<IDocumentTransformer> list = new ArrayList<IDocumentTransformer>();
-        List<HierarchicalConfiguration> nodes = node.configurationsAt(xmlPath);
-        
-        for (HierarchicalConfiguration committerNode : nodes) {
-            IDocumentTransformer item = (IDocumentTransformer) newInstance(
-                    new XMLConfiguration(committerNode), null);
-            list.add(item);
-            LOG.info("Transformer loaded: " + item);
-        }
-        return list.toArray(new IDocumentTransformer[]{});
-    }
+    private static IImportHandler[] loadImportHandlers(
+            XMLConfiguration xml, String xmlPath) throws Exception {
+        List<IImportHandler> handlers = new ArrayList<IImportHandler>();
 
-    
-    private static IDocumentFilter[] loadFilters(
-            XMLConfiguration node, String xmlPath)
-            throws Exception {
-        List<IDocumentFilter> filters = new ArrayList<IDocumentFilter>();
-        List<HierarchicalConfiguration> filterNodes = 
-                node.configurationsAt(xmlPath);
-        
-        for (HierarchicalConfiguration committerNode : filterNodes) {
-            IDocumentFilter filter = (IDocumentFilter) newInstance(
-                    new XMLConfiguration(committerNode), null);
-            filters.add(filter);
-            LOG.info("Import Filter loaded: " + filter);
+        ExpressionEngine originalEngine = xml.getExpressionEngine();
+        xml.setExpressionEngine(new XPathExpressionEngine());
+        List<HierarchicalConfiguration> xmlHandlers = 
+                xml.configurationsAt(xmlPath + "/*");
+        xml.setExpressionEngine(originalEngine);
+        for (HierarchicalConfiguration xmlHandler : xmlHandlers) {
+            handlers.add(
+                    (IImportHandler) ConfigurationUtil.newInstance(xmlHandler));
         }
-        return filters.toArray(new IDocumentFilter[]{});
+        return handlers.toArray(new IImportHandler[]{});
     }
-
-    private static Object newInstance(
-            XMLConfiguration node, Object defaultObject)
-            throws Exception {
-        Object obj = null;
-        if (node == null) {
-            obj = defaultObject;
-        } else {
-            String clazz = node.getString("[@class]", null);
-            if (clazz != null) {
-                try {
-                    obj = Class.forName(clazz).newInstance();
-                } catch (Exception e) {
-                    LOG.error("This class could not be instantiated: \""
-                            + clazz + "\".");
-                    throw e;
-                }
-            } else {
-                LOG.warn("A configuration entry was found without class "
-                       + "reference where one was needed; "
-                       + "using default value:" + defaultObject);
-                obj = defaultObject;
-            }
-        }
-        if (obj != null && node != null && obj instanceof IXMLConfigurable) {
-            StringWriter w = new StringWriter();
-            node.save(w);
-            StringReader r = new StringReader(w.toString());
-            ((IXMLConfigurable) obj).loadFromXML(r);
-            w.close();
-            r.close();
-        }
-        return obj;
-    }
-    private static HierarchicalConfiguration configurationAt(
-            HierarchicalConfiguration node, String key) {
-        try {
-            return node.configurationAt(key);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-    
-
 }

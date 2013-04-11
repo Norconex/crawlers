@@ -2,11 +2,8 @@ package com.norconex.importer;
 
 import java.io.Serializable;
 
-import com.norconex.importer.filter.IDocumentFilter;
 import com.norconex.importer.parser.DefaultDocumentParserFactory;
 import com.norconex.importer.parser.IDocumentParserFactory;
-import com.norconex.importer.tagger.IDocumentTagger;
-import com.norconex.importer.transformer.IDocumentTransformer;
 
 /**
  * Importer configuration.
@@ -18,10 +15,12 @@ public class ImporterConfig implements Serializable {
 
     private IDocumentParserFactory documentParserFactory = 
             new DefaultDocumentParserFactory();
-    private IDocumentTagger[] taggers;
-    private IDocumentTransformer[] transformers;
-    private IDocumentFilter[] filters;
+//    private IDocumentTagger[] taggers;
+//    private IDocumentTransformer[] transformers;
+//    private IDocumentFilter[] filters;
 
+    private IImportHandler[] preParseHandlers;
+    private IImportHandler[] postParseHandlers;
     
     public IDocumentParserFactory getParserFactory() {
         return documentParserFactory;
@@ -29,22 +28,39 @@ public class ImporterConfig implements Serializable {
     public void setParserFactory(IDocumentParserFactory parserFactory) {
         this.documentParserFactory = parserFactory;
     }
-    public IDocumentFilter[] getFilters() {
-        return filters;
+    
+
+    public void setPreParseHandlers(IImportHandler... handlers) {
+        preParseHandlers = handlers;
     }
-    public void setFilters(IDocumentFilter[] filters) {
-        this.filters = filters;
+    public IImportHandler[] getPreParseHandlers() {
+        return preParseHandlers;
     }
-    public IDocumentTagger[] getTaggers() {
-        return taggers;
+    public void setPostParseHandlers(IImportHandler... handlers) {
+        postParseHandlers = handlers;
     }
-    public void setTaggers(IDocumentTagger[] taggers) {
-        this.taggers = taggers;
+    public IImportHandler[] getPostParseHandlers() {
+        return postParseHandlers;
     }
-    public IDocumentTransformer[] getTransformers() {
-        return transformers;
-    }
-    public void setTransformers(IDocumentTransformer[] transformers) {
-        this.transformers = transformers;
-    }
+    
+    
+    
+//    public IDocumentFilter[] getFilters() {
+//        return filters;
+//    }
+//    public void setFilters(IDocumentFilter[] filters) {
+//        this.filters = filters;
+//    }
+//    public IDocumentTagger[] getTaggers() {
+//        return taggers;
+//    }
+//    public void setTaggers(IDocumentTagger[] taggers) {
+//        this.taggers = taggers;
+//    }
+//    public IDocumentTransformer[] getTransformers() {
+//        return transformers;
+//    }
+//    public void setTransformers(IDocumentTransformer[] transformers) {
+//        this.transformers = transformers;
+//    }
 }

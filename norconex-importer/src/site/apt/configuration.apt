@@ -34,8 +34,8 @@ Configuration
     </transformers>
 
     <filters>
-        <filter class="...">
-    </filter>
+        <filter class="..." />
+    </filters>
 
 </importer>
 +-------------------------------+

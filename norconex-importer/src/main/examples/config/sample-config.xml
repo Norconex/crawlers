@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<importer>
+
+
+    <preParseHandlers>
+      <tagger class="com.norconex.importer.tagger.ConstantTagger">
+        <constant name="docType">Book</constant>
+      </tagger>
+<!-- 
+        <transformer class="..." />
+        <filter class="..." />
+ -->    
+    </preParseHandlers>
+
+</importer>

@@ -1,6 +1,7 @@
 package com.norconex.importer.tagger;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import com.norconex.commons.lang.map.Properties;
  * <p>
  * Delete the metadata fields provided.
  * </p>
+ * <p>Can be used both as a pre-parse or post-parse handler.</p>
  * <p>
  * XML configuration usage:
  * </p>
@@ -41,7 +43,8 @@ public class DeleteTagger
     
     @Override
     public void tagDocument(
-            String reference, Reader document, Properties metadata)
+            String reference, InputStream document, 
+            Properties metadata, boolean parsed)
             throws IOException {
         for (String name : metadata.keySet()) {
             if (exists(name)) {

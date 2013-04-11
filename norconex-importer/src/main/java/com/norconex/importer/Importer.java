@@ -1,8 +1,8 @@
 package com.norconex.importer;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -129,18 +129,24 @@ public class Importer {
             Writer output, Properties metadata, String docReference)
             throws IOException {
         File tmpInput = File.createTempFile("NorconexImporter", "input");
-        FileWriter inputWriter = new FileWriter(tmpInput);
-        IOUtils.copy(input, inputWriter);
+        FileOutputStream out = new FileOutputStream(tmpInput);
+        IOUtils.copy(input, out);
+        out.close();
 
         File tmpOutput = File.createTempFile("NorconexImporter", "output");
         
         ContentType finalContentType = contentType;
         if (finalContentType == null) {
             Tika tika = new Tika();
-            finalContentType = ContentType.newContentType(tika.detect(input));
+            finalContentType = ContentType.newContentType(
+                    tika.detect(tmpInput));
         }
-        return importDocument(
+        boolean accepted = importDocument(
                 tmpInput, contentType, tmpOutput, metadata, docReference);
+        InputStream is = new FileInputStream(tmpOutput);
+        IOUtils.copy(is, output);
+        is.close();
+        return accepted;
     }
     /**
      * Imports a document according to the importer configuration.
@@ -187,13 +193,43 @@ public class Importer {
     	metadata.addString(
     	        DOC_CONTENT_TYPE, finalContentType.toString()); 
         
+    	if (!executeHandlers(docReference, output, metadata, 
+    	        importerConfig.getPreParseHandlers(), false)) {
+    	    return false;
+    	}
+    	
     	parseDocument(input, finalContentType, output, metadata, finalDocRef);
-        tagDocument(finalDocRef, output, metadata);
-        transformDocument(finalDocRef, output, metadata);
-        boolean accepted = acceptDocument(output, metadata);
-        if (!accepted) {
+
+        if (!executeHandlers(docReference, output, metadata, 
+                importerConfig.getPostParseHandlers(), true)) {
             return false;
         }
+        return true;
+    }
+    
+    private boolean executeHandlers(
+            String docReference, File outputFile, Properties metadata,
+            IImportHandler[] handlers, boolean parsed)
+            throws IOException {
+        if (handlers == null) {
+            return true;
+        }
+        for (IImportHandler h : handlers) {
+            if (h instanceof IDocumentTagger) {
+                tagDocument(docReference, 
+                        (IDocumentTagger) h, outputFile, metadata, parsed);
+            } else if (h instanceof IDocumentTransformer) {
+                transformDocument(docReference, (IDocumentTransformer) h, 
+                        outputFile, metadata, parsed);
+            } else if (h instanceof IDocumentFilter) {
+                if (!acceptDocument(
+                        (IDocumentFilter) h, outputFile, metadata, parsed)){
+                    return false;
+                }
+            } else {
+                LOG.error("Unsupported Import Handler: " + h);
+            }
+        }        
         return true;
     }
     
@@ -248,49 +284,27 @@ public class Importer {
         output.close();
     }
 
-    private void tagDocument(
-            String docReference, File outputFile, Properties metadata)
+    private void tagDocument(String docReference, 
+            IDocumentTagger tagger, File outputFile, 
+            Properties metadata, boolean parsed)
             throws IOException {
-        IDocumentTagger[] taggers = importerConfig.getTaggers();
-        if (taggers == null) {
-            return;
-        }
-        for (IDocumentTagger tagger : taggers) {
-            FileReader reader = new FileReader(outputFile);
-            tagger.tagDocument(docReference, reader, metadata);
-            reader.close();
-        }
-    }
-    
-    private void transformDocument(
-            String docReference, File outputFile, Properties metadata)
-            throws IOException {
-        IDocumentTransformer[] trsfmrs = importerConfig.getTransformers();
-        if (trsfmrs == null) {
-            return;
-        }
-        for (IDocumentTransformer transformer : trsfmrs) {
-            transformDocument(docReference, transformer, outputFile, metadata);
-        }
+        FileInputStream is = new FileInputStream(outputFile);
+        tagger.tagDocument(docReference, is, metadata, parsed);
+        is.close();
     }
     
     private boolean acceptDocument(
-            File outFile, Properties metadata)
+            IDocumentFilter filter, File outFile, 
+            Properties metadata, boolean parsed)
             throws IOException {
-        IDocumentFilter[] filters = importerConfig.getFilters();
-        if (filters == null) {
-            return true;
-        }
-        for (IDocumentFilter filter : filters) {
-            FileReader reader = new FileReader(outFile);
-            boolean accepted = filter.acceptDocument(reader, metadata);
-            reader.close();
-            if (!accepted) {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("Document import rejected. Filter=" + filter);
-                }
-                return false;
+        FileInputStream reader = new FileInputStream(outFile);
+        boolean accepted = filter.acceptDocument(reader, metadata, parsed);
+        reader.close();
+        if (!accepted) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Document import rejected. Filter=" + filter);
             }
+            return false;
         }
         return true;
     }
@@ -298,13 +312,14 @@ public class Importer {
     private void transformDocument(
             String docReference,
             IDocumentTransformer transformer,
-            File inputFile, Properties metadata)
+            File inputFile, Properties metadata, boolean parsed)
             throws IOException {
         File outputFile = new File(inputFile.getAbsolutePath()
                 + "." + System.currentTimeMillis());
-        FileReader reader = new FileReader(inputFile);
-        FileWriter writer = new FileWriter(outputFile);
-        transformer.transformDocument(docReference, reader, writer, metadata);
+        FileInputStream reader = new FileInputStream(inputFile);
+        FileOutputStream writer = new FileOutputStream(outputFile);
+        transformer.transformDocument(
+                docReference, reader, writer, metadata, parsed);
         reader.close();
         writer.close();
         FileUtils.deleteQuietly(inputFile);

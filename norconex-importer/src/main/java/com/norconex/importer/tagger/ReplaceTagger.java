@@ -1,6 +1,7 @@
 package com.norconex.importer.tagger;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import com.norconex.commons.lang.map.Properties;
  * Replaces an existing metadata value with another one.  The "toName" argument
  * is optional (the same field will be used for the replacement if no
  * "toName" is specified").
+ * <p>Can be used both as a pre-parse or post-parse handler.</p>
  * <p>
  * XML configuration usage:
  * </p>
@@ -56,7 +58,8 @@ public class ReplaceTagger implements IDocumentTagger, IXMLConfigurable {
     
     @Override
     public void tagDocument(
-            String reference, Reader document, Properties metadata)
+            String reference, InputStream document,
+            Properties metadata, boolean parsed)
             throws IOException {
         for (String name : replacements.keySet()) {
             Replacement repl = replacements.get(name);

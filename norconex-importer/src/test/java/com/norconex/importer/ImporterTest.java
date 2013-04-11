@@ -2,8 +2,8 @@ package com.norconex.importer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
@@ -24,13 +24,14 @@ public class ImporterTest {
     @Before
     public void setUp() throws Exception {
         ImporterConfig config = new ImporterConfig();
-        config.setTransformers(new IDocumentTransformer[] {
-                new IDocumentTransformer() {
+        config.setPreParseHandlers(new IDocumentTransformer[] {
+                new IDocumentTransformer() {        
             private static final long serialVersionUID = -4814791150728184883L;
             Pattern pattern = Pattern.compile("[^a-zA-Z ]", Pattern.MULTILINE);
             @Override
-            public void transformDocument(String reference, Reader input,
-                    Writer output, Properties metadata) throws IOException {
+            public void transformDocument(String reference, InputStream input,
+                    OutputStream output, Properties metadata, boolean parsed)
+                            throws IOException {
                 // Clean up what we know is extra noise for a given format
                 String txt = IOUtils.toString(input);
                 txt = pattern.matcher(txt).replaceAll("");
@@ -49,27 +50,21 @@ public class ImporterTest {
     
     @Test
     public void testImportDocument() throws IOException {
-        // Save the same story found under three format and compare body outputs
-        String inputName = 
-                "src/main/examples/books/alice-in-wonderland-book-chapter-1";
         
         // MS Doc
-        File docxInput = new File(inputName + ".docx");
         File docxOutput = File.createTempFile("ImporterTest-doc-", ".txt");
         Properties metaDocx = new Properties();
-        importer.importDocument(docxInput, docxOutput, metaDocx);
+        importer.importDocument(TestUtil.getAliceDocxFile(), docxOutput, metaDocx);
         
         // PDF
-        File pdfInput = new File(inputName + ".pdf");
         File pdfOutput = File.createTempFile("ImporterTest-pdf-", ".txt");
         Properties metaPdf = new Properties();
-        importer.importDocument(pdfInput, pdfOutput, metaPdf);
+        importer.importDocument(TestUtil.getAlicePdfFile(), pdfOutput, metaPdf);
 
         // ZIP/RTF
-        File rtfInput = new File(inputName + ".zip");
         File rtfOutput = File.createTempFile("ImporterTest-zip-rtf-", ".txt");
         Properties metaRtf = new Properties();
-        importer.importDocument(rtfInput, rtfOutput, metaRtf);
+        importer.importDocument(TestUtil.getAliceZipFile(), rtfOutput, metaRtf);
 
         Assert.assertTrue("Converted file size is too small to be valid.",
                 pdfOutput.length() > 10);

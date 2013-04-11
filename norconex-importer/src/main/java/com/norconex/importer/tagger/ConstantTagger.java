@@ -1,6 +1,7 @@
 package com.norconex.importer.tagger;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -22,9 +23,11 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 
 /**
- * Define and add constant values to documents.  To add multiple constant values
- * under the same constant name, repeat the constant entry with a different 
- * value.
+ * <p>Define and add constant values to documents.  To add multiple constant 
+ * values under the same constant name, repeat the constant entry with a 
+ * different value.
+ * </p>
+ * <p>Can be used both as a pre-parse or post-parse handler.</p>
  * <p>
  * XML configuration usage:
  * </p>
@@ -47,7 +50,8 @@ public class ConstantTagger
     
     @Override
     public void tagDocument(
-            String reference, Reader document, Properties metadata)
+            String reference, InputStream document, 
+            Properties metadata, boolean parsed)
             throws IOException {
         for (String name : constants.keySet()) {
             List<String> values = constants.get(name);

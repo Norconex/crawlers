@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<importer>
+
+    <preParseHandlers>
+      <tagger class="com.norconex.importer.tagger.ConstantTagger">
+        <constant name="Author">Lewis Carroll</constant>
+      </tagger>
+      
+<!-- 
+        <transformer class="..." />
+        <filter class="..." />
+
+ -->    
+    </preParseHandlers>
+
+</importer>

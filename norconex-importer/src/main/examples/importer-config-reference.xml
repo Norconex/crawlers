@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This self-documented configuration file is meant to be used as a reference
+     or starting point for a new configuration. 
+     It contains all core features offered in this release.  Sometimes
+     multiple implementations are available for a given feature. Refer 
+     to site documentation for more options and complete description of 
+     each features.
+     -->
+<importer>
+
+    <preParseHandlers>
+        <!-- These tags can be mixed, in the desired order of execution. -->
+        <tagger class="..." contentType="csv,list,of,contentTypes,torestric,this,to" />
+        <transformer class="..." />
+        <filter class="..." />
+    </preParseHandlers>
+
+    <documentParserFactory class="..." />
+
+    <postParseHandlers>
+        <!-- These tags can be mixed, in the desired order of execution. -->
+        <tagger class="..." />
+        <transformer class="..." />
+        <filter class="..." />
+    </postParseHandlers>
+
+</importer>

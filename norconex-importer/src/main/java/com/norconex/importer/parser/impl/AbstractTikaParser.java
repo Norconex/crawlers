@@ -58,7 +58,10 @@ public class AbstractTikaParser implements IDocumentParser {
         tikaMetadata.set(org.apache.tika.metadata.Metadata.RESOURCE_NAME_KEY, 
                 metadata.getString(Importer.DOC_REFERENCE));
         SAXTransformerFactory factory = (SAXTransformerFactory)
-        SAXTransformerFactory.newInstance();
+                SAXTransformerFactory.newInstance();
+
+//        ContentHandler bodyhandler = new BodyContentHandler();
+        
         TransformerHandler handler;
         try {
             handler = factory.newTransformerHandler();
@@ -66,6 +69,10 @@ public class AbstractTikaParser implements IDocumentParser {
                     OutputKeys.METHOD, format);
             handler.getTransformer().setOutputProperty(
                     OutputKeys.INDENT, "yes");
+            
+//            ByteArrayOutputStream os = new ByteArrayOutputStream(50000);
+            
+//            handler.setResult(new StreamResult(os));
             handler.setResult(new StreamResult(output));
             
             Parser parser = new RecursiveMetadataParser(
@@ -74,6 +81,8 @@ public class AbstractTikaParser implements IDocumentParser {
             context.set(Parser.class, parser);
 
             parser.parse(inputStream, handler, tikaMetadata, context);
+            
+//            System.err.println("STRING:" + os.toString());
         } catch (Exception e) {
             throw new DocumentParserException(e);
         }
@@ -108,6 +117,7 @@ public class AbstractTikaParser implements IDocumentParser {
             // so we can have a zip and its containing files separate.
             ContentHandler content = new BodyContentHandler(writer);
             super.parse(stream, content, tikaMeta, context);
+//            super.parse(stream, handler, tikaMeta, context);
             addTikaMetadata(tikaMeta, metadata);
         }
     }
