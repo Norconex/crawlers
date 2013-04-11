@@ -23,19 +23,19 @@ Configuration
 +-------------------------------+
 <importer>
 
+    <preParseHandlers>
+        <tagger class="..." />
+        <transformer class="..." />
+        <filter class="..." />
+    </preParseHandlers>
+
     <documentParserFactory class="..." />
 
-    <taggers>
+    <postParseHandlers>
         <tagger class="..." />
-    </taggers>
-
-    <transformers >
         <transformer class="..." />
-    </transformers>
-
-    <filters>
         <filter class="..." />
-    </filters>
+    </postParseHandlers>
 
 </importer>
 +-------------------------------+
@@ -51,9 +51,9 @@ Configuration
 *----------+--------------+----------------+----------------+
 | <<<documentParserFactory>>> | Factory dictating which document parser to use content types encountered.| {{{./apidocs/com/norconex/importer/parser/DefaultDocumentParserFactory.html}DefaultDocumentParserFactory}} (Default) | {{{./apidocs/com/norconex/importer/parser/IDocumentParserFactory.html}IDocumentParserFactory}} |
 *----------+--------------+----------------+----------------+
-| <<<tagger>>> | Taggers allow to add to or modify existing document metadata. | {{{./apidocs/com/norconex/importer/tagger/ConstantTagger.html}ConstantTagger}}, {{{TODO}ReplaceTagger}}, {{{./apidocs/com/norconex/importer/tagger/ForceSingleValueTagger.html}ForceSingleValueTagger}}, {{{./apidocs/com/norconex/importer/tagger/KeepOnlyTagger.html}KeepOnlyTagger}}, {{{./apidocs/com/norconex/importer/tagger/DeleteTagger.html}DeleteTagger}} | {{{./apidocs/com/norconex/importer/tagger/IDocumentTagger.html}IDocumentTagger}} |
+| <<<tagger>>> | Taggers allow to add to or modify existing document metadata. | {{{./apidocs/com/norconex/importer/tagger/ConstantTagger.html}ConstantTagger}}, {{{./apidocs/com/norconex/importer/tagger/ReplaceTagger.html}ReplaceTagger}}, {{{./apidocs/com/norconex/importer/tagger/ForceSingleValueTagger.html}ForceSingleValueTagger}}, {{{./apidocs/com/norconex/importer/tagger/KeepOnlyTagger.html}KeepOnlyTagger}}, {{{./apidocs/com/norconex/importer/tagger/DeleteTagger.html}DeleteTagger}} | {{{./apidocs/com/norconex/importer/tagger/IDocumentTagger.html}IDocumentTagger}} |
 *----------+--------------+----------------+----------------+
-| <<<transformer>>> | Transformers allow to manipulate and convert extracted text and save the modified text back. |  | {{{./apidocs/com/norconex/importer/transformer/IDocumentTransformer.html}IDocumentTransformer}} |
+| <<<transformer>>> | Transformers allow to manipulate and convert extracted text and save the modified text back. | {{{./apidocs/com/norconex/importer/transformer/StripBetweenTransformer.html}StripBetweenTransformer}} | {{{./apidocs/com/norconex/importer/transformer/IDocumentTransformer.html}IDocumentTransformer}} |
 *----------+--------------+----------------+----------------+
 | <<<filter>>> | Allows to filter out certain incoming documents. |  | {{{./apidocs/com/norconex/importer/filter/IDocumentFilter.html}IDocumentFilter}} |
 *----------+--------------+----------------+----------------+
@@ -71,14 +71,14 @@ Configuration
 +-------------------------------+
 <importer>
 
-    <taggers>
+    <postParseHandlers>
         <tagger class="com.norconex.importer.tagger.ConstantTagger">
             <constant name="doctype">News</constant>
         </tagger>
         <tagger class="com.norconex.importer.tagger.SingleValueTagger">
             <singleValue field="title" action="keepFirst"/>
         </tagger>
-    </taggers>
+    </postParseHandlers>
 
 </importer>
 +-------------------------------+
