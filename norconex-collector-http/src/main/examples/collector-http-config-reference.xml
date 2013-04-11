@@ -6,7 +6,7 @@
      to site documentation for more options and complete description of 
      each features.
      -->
-<httpcollector id="norconex-techwiki">
+<httpcollector id="httpcollector-template">
 
   <!-- Variables: Optionally define variables in this configuration file
        using the "set" directive, or by using a file of the same name
@@ -209,16 +209,17 @@
            Below gives you an overview of the main importer tags.
            -->
       <importer>
-        <documentParserFactory class="..." />
-        <taggers>
-          <tagger class="..." />
-        </taggers>
-        <transformers >
-          <transformer class="..." />
-        </transformers>
-        <filters>
-          <filter class="..." />
-        </filters>
+          <preParseHandlers>
+              <tagger class="..."/>
+              <transformer class="..." />
+              <filter class="..." />
+          </preParseHandlers>
+          <documentParserFactory class="..." />
+          <postParseHandlers>
+              <tagger class="..."/>
+              <transformer class="..." />
+              <filter class="..." />
+          </postParseHandlers>
       </importer>           
 
       <!-- Create a checksum out of a document to figure out if a document

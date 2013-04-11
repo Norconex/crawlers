@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<httpcollector id="Complex Crawl">
+
+  #set($basepkg = "com.norconex.collector.http")
+  #set($normalizer = "$basepkg.handler.impl.GenericURLNormalizer")
+  #set($extension = "$basepkg.filter.impl.ExtensionURLFilter")
+  #set($urlRegex = "$basepkg.filter.impl.RegexURLFilter")
+  
+  <progressDir>$workdir\progress</progressDir>
+  <logsDir>$workdir\logs</logsDir>
+
+  <crawlerDefaults>
+
+    <urlNormalizer class="$normalizer" />
+    <numThreads>2</numThreads>
+    <depth>1</depth>
+    <workDir>$workdir</workDir>
+    <deleteOrphans>true</deleteOrphans>
+
+    <httpURLFilters>
+      <filter class="$extension" onMatch="exclude">jpg,gif,png,ico,css,js</filter>
+      <filter class="$urlRegex">http://en.wikipedia.com/wiki/.*</filter>
+      <filter class="$urlRegex" onMatch="exclude">.*:.*</filter>
+    </httpURLFilters>
+
+  </crawlerDefaults>
+
+  <crawlers>
+
+    <crawler id="Alice Crawl">
+      <startURLs>
+        <url>http://en.wikipedia.org/wiki/Alice%27s_Adventures_in_Wonderland</url>
+      </startURLs>
+      #parse("shared/importer-config.xml")
+      <committer class="com.norconex.committer.FileSystemCommitter">
+        <directory>$workdir\AliceCrawledFiles</directory>
+      </committer>
+    </crawler>
+
+    <crawler id="Wizard of Oz Crawl">
+      <startURLs>
+        <url>http://en.wikipedia.org/wiki/The_Wonderful_Wizard_of_Oz</url>
+      </startURLs>
+      #parse("shared/importer-config.xml")
+      <committer class="com.norconex.committer.FileSystemCommitter">
+        <directory>$workdir\OzCrawledFiles</directory>
+      </committer>
+
+    </crawler>
+
+  </crawlers>
+
+</httpcollector>

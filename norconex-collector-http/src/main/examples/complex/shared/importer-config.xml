@@ -1,0 +1,10 @@
+<importer>
+
+  <postParseHandlers>
+     <tagger class="com.norconex.importer.tagger.ConstantTagger">
+       <constant name="SITE">Wikipedia</constant>
+     </tagger>
+     <tagger class="com.norconex.importer.tagger.DeleteTagger" 
+            fields="$fieldsToDelete"/>
+  </postParseHandlers>
+</importer>           

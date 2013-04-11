@@ -5,7 +5,7 @@
 <httpcollector id="Minimal Config HTTP Collector">
 
   <crawlers>
-    <crawler id="Minimal Config Crawl">
+    <crawler id="Minimal Config Wikipedia 1-page Crawl">
 
       <!-- === Minimum required: =========================================== -->
 
