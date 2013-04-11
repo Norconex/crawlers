@@ -10,7 +10,7 @@
 
     <preParseHandlers>
         <!-- These tags can be mixed, in the desired order of execution. -->
-        <tagger class="..." contentType="csv,list,of,contentTypes,torestric,this,to" />
+        <tagger class="..." />
         <transformer class="..." />
         <filter class="..." />
     </preParseHandlers>
