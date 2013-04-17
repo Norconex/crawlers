@@ -1,3 +1,19 @@
+~~ Copyright 2010-2013 Norconex Inc.
+~~ 
+~~ This file is part of Norconex Importer.
+~~ 
+~~ Norconex Importer is free software: you can redistribute it and/or modify
+~~ it under the terms of the GNU General Public License as published by
+~~ the Free Software Foundation, either version 3 of the License, or
+~~ (at your option) any later version.
+~~ 
+~~ Norconex Importer is distributed in the hope that it will be useful, 
+~~ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+~~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+~~ GNU General Public License for more details.
+~~ 
+~~ You should have received a copy of the GNU General Public License
+~~ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
             ------
             Configuration
             ------
@@ -17,8 +33,9 @@ Configuration
   by implementing the proper Java interfaces. Refer to the  
   {{{./apidocs/index.html}Importer JavaDoc}} 
   and/or see further down what interfaces you can implement to provide custom 
-  functionality. Got to the {{{./extend.html} Extend}} page for more details on 
-  adding your own implementations.
+  functionality. Got to the 
+  {{{./usage.html#Extend_the_Importer} Extend the Importer}} section 
+  for more details on adding your own implementations.
   
 +-------------------------------+
 <importer>
@@ -83,11 +100,10 @@ Configuration
 </importer>
 +-------------------------------+
 
-  Refer to this {{{TODO}additional documentation}} for more generic 
-  configuration options such as creating reusable configuration fragments
-  and using variables to make your file easier to maintain and more portable
-  across different environments.
-
-
-
-
+* More Options 
+  There is a lot more you can do to structure your configuration files
+  the way you like.  Refer to this 
+  {{{../commons-lang/apidocs/com/norconex/commons/lang/config/ConfigurationLoader.html}additional documentation}}
+  for more generic configuration options such as creating reusable 
+  configuration fragments and using variables to make your file easier 
+  to maintain and more portable across different environments.
