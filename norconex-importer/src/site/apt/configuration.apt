@@ -101,9 +101,10 @@ Configuration
 +-------------------------------+
 
 * More Options 
+
   There is a lot more you can do to structure your configuration files
   the way you like.  Refer to this 
   {{{../commons-lang/apidocs/com/norconex/commons/lang/config/ConfigurationLoader.html}additional documentation}}
-  for more generic configuration options such as creating reusable 
+  for more configuration options such as creating reusable 
   configuration fragments and using variables to make your file easier 
   to maintain and more portable across different environments.

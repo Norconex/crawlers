@@ -29,8 +29,9 @@ Welcome to Norconex Importer
   your own service or application.
 
   A typical but not limited usage is to "import" crawled content into a 
-  search engine (indexing pipeline).   We invite you to consider Norconex HTTP
-  Collector for this purpose (which relies on the Norconex Importer).
+  search engine (indexing pipeline).   We invite you to consider 
+  {{{http://www.norconex.com/product/collector-http}Norconex HTTP Collector}}
+  for this purpose (which relies on the Norconex Importer).
 
   Norconex Importer relies heavily on 
   {{{http://tika.apache.org/}Apache Tika}} for 
@@ -41,6 +42,6 @@ Welcome to Norconex Importer
 
   The current stable version of 
   {{{http://www.norconex.com/product/importer}Norconex Importer}} is
-  ${currentStableVersion} ({{{./donwload.html}download}}). 
+  ${currentStableVersion} ({{{./download.html}download}}). 
 
   Latest {{{./apidocs/index.html}API documentation}}.

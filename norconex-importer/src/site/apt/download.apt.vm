@@ -39,8 +39,7 @@ Download
 
   Snapshot releases:
 
-  * TODO
-~~{{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/importer/1.0.0-SNAPSHOT/norconex-commons-lang-1.0.0-20130415.212224-1.zip} 1.0.0-20130415.212224-1}}
+  {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-importer/1.0.0-SNAPSHOT/norconex-importer-1.0.0-20130417.175304-1.jar} 1.0.0-20130417.175304-1}}
 
   []
 
@@ -70,11 +69,11 @@ Download
 
  <dependency>
    <groupId>com.norconex.commons</groupId>
-   <artifactId>norconex-commons-lang</artifactId>
+   <artifactId>norconex-importer</artifactId>
    <version>${currentStableVersion}</version>
  </dependency>
 
- <!-- Optional (unstable): -->
+ <!-- At your own risk: -->
  <repository>  
    <id>norconex-snapshot-repo</id>  
    <name>Norconex Snapshot Repository</name>  
