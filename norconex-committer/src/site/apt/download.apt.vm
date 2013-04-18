@@ -1,19 +1,19 @@
 ~~ Copyright 2010-2013 Norconex Inc.
 ~~ 
-~~ This file is part of Norconex Importer.
+~~ This file is part of Norconex Committer.
 ~~ 
-~~ Norconex Importer is free software: you can redistribute it and/or modify
+~~ Norconex Committer is free software: you can redistribute it and/or modify
 ~~ it under the terms of the GNU General Public License as published by
 ~~ the Free Software Foundation, either version 3 of the License, or
 ~~ (at your option) any later version.
 ~~ 
-~~ Norconex Importer is distributed in the hope that it will be useful, 
+~~ Norconex Committer is distributed in the hope that it will be useful, 
 ~~ but WITHOUT ANY WARRANTY; without even the implied warranty of 
 ~~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ~~ GNU General Public License for more details.
 ~~ 
 ~~ You should have received a copy of the GNU General Public License
-~~ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
+~~ along with Norconex Committer. If not, see <http://www.gnu.org/licenses/>.
             ------
             Download
             ------
@@ -22,7 +22,7 @@
 
 Download
 
-* Binaries
+* Committer Core Binaries
 
   Latest stable release
    
@@ -39,18 +39,26 @@ Download
 
   Snapshot releases:
 
-  {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-importer/1.0.0-SNAPSHOT/norconex-importer-1.0.0-20130417.175304-1.jar} 1.0.0-20130417.175304-1}}
+~~ TODO:  {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-importer/1.0.0-SNAPSHOT/norconex-importer-1.0.0-20130417.175304-1.jar} 1.0.0-20130417.175304-1}}
 
   []
 
   <<Note:>> Snapshot releases are only listed until first stable release.
   After that, they will be available through the Norconex Snapshot maven
   repository (see below).
+
+* Committer Implementations
+
+  * <<Solr>>
+  
+    * 1.0.0: {{{TODO}Zip}}, 
+     {{{http://www.norconex.com/product/committer-solr/apidocs/com/norconex/committer/solr/SolrCommitter.html}Javadoc}}, 
+     {{{TODO}Source}}
   
 * Source
   
   Source code can be obtained on GitHub: 
-  {{https://github.com/Norconex/collectors/tree/master/norconex-importer}}.
+  {{https://github.com/Norconex/collectors/tree/master/norconex-committer}}.
   
   Maven users can add the following to their pom.xml:
   
@@ -69,7 +77,7 @@ Download
 
  <dependency>
    <groupId>com.norconex.collectors</groupId>
-   <artifactId>norconex-importer</artifactId>
+   <artifactId>norconex-committer</artifactId>
    <version>${currentStableVersion}</version>
  </dependency>
 

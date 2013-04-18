@@ -1,3 +1,19 @@
+~~ Copyright 2010-2013 Norconex Inc.
+~~ 
+~~ This file is part of Norconex Committer.
+~~ 
+~~ Norconex Committer is free software: you can redistribute it and/or modify
+~~ it under the terms of the GNU General Public License as published by
+~~ the Free Software Foundation, either version 3 of the License, or
+~~ (at your option) any later version.
+~~ 
+~~ Norconex Committer is distributed in the hope that it will be useful, 
+~~ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+~~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+~~ GNU General Public License for more details.
+~~ 
+~~ You should have received a copy of the GNU General Public License
+~~ along with Norconex Committer. If not, see <http://www.gnu.org/licenses/>.
             ------
             Home
             ------
@@ -6,25 +22,28 @@
 
 Welcome to Norconex Committer
 
-  The Norconex Committer is a Java library meant to be used as part of bigger
-  projects, such as Norconex HTTP Collector. It is responsible for "committing"
-  or "applying" the result of a document extraction or transformation. 
-  In the case of Norconex HTTP Collector, it specifies what to do with the files
-  that were successfully crawled. Taken on its own, this is not an "executable"
-  product.
+  The Norconex Committer is a Java library responsible for "committing"
+  or "applying" the result of a document extraction or transformation
+  to a target data source.  It is used by the 
+  {{{http://www.norconex.com/product/collector-http}Norconex HTTP Collector}}
+  to handle files successfully crawled. Taken on its own, this is not an 
+  "executable" product (but may one day become).
 
-  Concrete implementations for the {{{TODO}ICommitter}} interface must be 
-  provided.  Based on your target data source, Norconex may already provide 
-  existing implementations. For instance, Norconex has a Solr Committer 
+  Concrete implementations for the 
+  {{{./apidocs/com/norconex/committer/ICommitter.html}ICommitter}} interface 
+  must be provided.  Based on your target data source, Norconex may already 
+  provide existing implementations for your data sources or can create one. 
+  For instance, Norconex has a 
+  {{{./download.html#Committer_Implementations}Solr Committer}} 
   available for Solr users.
 
   One concrete implementation is provided, mostly for troubleshooting purposes: 
-  {{{TODO}FileSystemCommitter}}
+  {{{./apidocs/com/norconex/committer/FileSystemCommitter.html}FileSystemCommitter}}
 
 
-  The current version of 
-  {{{http://committer.norconex.com}Norconex Committer}} is 
-  ${project.version}
+  The current stable version of 
+  {{{http://www.norconex.com/product/committer}Norconex Committer}} is
+  ${currentStableVersion} ({{{./download.html}download}}). 
   
   Latest {{{./apidocs/index.html}Javadoc}}.
 
@@ -32,7 +51,7 @@ Welcome to Norconex Committer
 
   Typically, when XML configuration is made available for committers, it is 
   of that form, where "class" must be replace with your concrete implementation
-  of {{{TODO}com.norconex.committer.ICommitter}}: 
+  of {{{./apidocs/com/norconex/committer/ICommitter.html}com.norconex.committer.ICommitter}}: 
 
 +-------------------------------+
 <committer class="..." />
@@ -40,6 +59,10 @@ Welcome to Norconex Committer
   
 * Extend the Committer
 
-  To create your own feature implementations, create a new Java project in your
+  Maven users can easily add the necessary {{{./download.html}pom.xml}} 
+  information to have all dependencies automatically resolved.  
+
+  For others, create a new Java project in your
   favourite IDE. Add to your classpath all the files contained in the "lib" 
-  folder of the Importer installation.
+  folder of the Committer installation.
+  

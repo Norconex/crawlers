@@ -1,11 +1,64 @@
-/*
+/* Copyright 2010-2013 Norconex Inc.
+ * 
+ * This file is part of Norconex Committer.
+ * 
+ * Norconex Committer is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Norconex Committer is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Norconex Committer. If not, see <http://www.gnu.org/licenses/>.
+ */
+#banner {
+  min-width: 990px;
+  border-bottom-width: 3px;
+  border-bottom-color: #D78E24;
+}
+
+#breadcrumbs {
+  background-color: #FFFFFF; 
+  border-top-width: 2px;
+  border-bottom-color: #D78E24;
+  border-bottom-width: 0px;
+}
+
+#leftColumn {
+  border-radius: 5px;
+  border-width: 1px 1px 1px 1px;
+  border-color: #D78E24;
+  background-color: #FFFEF6;
+}
+
 h2 {
   padding: 4px 4px 4px 6px;
-  border: 1px solid #999;
-  color: #09A;
-  background-color: #ddd;
-  font-weight:000;
+  border-width: 0px 0px 1px 0px;
+  color: #D78E24;
+  background-color: #FFFFFF;
+  font-weight: bold;
   font-size: x-large;
 }
-*/
 
+
+h3 {
+  padding: 4px 4px 4px 6px;
+  border-width: 0px 0px 1px 1px;
+  border-radius: 0px 0px 0px 5px;
+  color: #D78E24;
+  background-color: #FFFFFF;
+  font-weight: bold;
+  font-size: medium;
+}
+
+h4 {
+  padding: 4px 4px 4px 6px;
+  border-width: 0px 0px 1px 0px;
+  color: #D78E24;
+  background-color: #FFFFFF;
+  font-size: medium;
+}

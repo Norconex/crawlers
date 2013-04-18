@@ -184,6 +184,22 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-javadoc</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   
