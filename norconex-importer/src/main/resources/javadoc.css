@@ -46,16 +46,14 @@ tr.TableHeadingColor, tr.TableHeadingColor th {
     border-width: 1px 1px 1px 1px;
     border-color: #A86B21;
     border-style: solid;
-    xbackground-color: white;
     background-color: #D78E24;
     xcolor: #D78E24;
 }
-tr.TableRowColor, tr.TableRowColor td {
+tr.TableRowColor {
     border-width: 1px 1px 1px 1px;  
     border-color: #A86B21;
     border-style: solid;
     background-color: white;
-    xxcolor: #D78E24;
 }
 
 

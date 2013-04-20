@@ -191,6 +191,7 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
         <configuration>
           <stylesheetfile>${basedir}/src/main/resources/javadoc.css</stylesheetfile>
           <show>protected</show>
+          <detectLinks>true</detectLinks>
         </configuration>
         <executions>
           <execution>
@@ -250,6 +251,7 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
         <configuration>
           <stylesheetfile>${basedir}/src/main/resources/javadoc.css</stylesheetfile>
           <show>protected</show>
+          <detectLinks>true</detectLinks>
         </configuration>
         <reportSets>
           <reportSet>
