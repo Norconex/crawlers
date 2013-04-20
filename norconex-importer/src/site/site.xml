@@ -41,6 +41,7 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
       <item name="Introduction" href="index.html"/>
       <item name="Usage" href="usage.html"/>
       <item name="Configuration" href="configuration.html"/>
+      <item name="Javadoc (Latest release)" href="apidocs/index.html"/>
       <item name="License" href="license.html"/>
       <item name="Download" href="download.html"/>
       <item name="Support" href="support.html"/>
