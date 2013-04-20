@@ -1,0 +1,89 @@
+~~ Copyright 2010-2013 Norconex Inc.
+~~ 
+~~ This file is part of Norconex HTTP Collector.
+~~ 
+~~ Norconex HTTP Collector is free software: you can redistribute it and/or 
+~~ modify it under the terms of the GNU General Public License as published by
+~~ the Free Software Foundation, either version 3 of the License, or
+~~ (at your option) any later version.
+~~ 
+~~ Norconex HTTP Collector is distributed in the hope that it will be useful, 
+~~ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+~~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+~~ GNU General Public License for more details.
+~~ 
+~~ You should have received a copy of the GNU General Public License
+~~ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
+            ------
+            Download
+            ------
+            Norconex Inc.
+            ------
+
+Download
+
+* Binaries
+
+  Latest stable release
+   
+  * None yet.
+~~  {{{}${currentStableVersion}}} 
+
+  []
+
+  Older releases:
+  
+  * None yet.
+
+  []    
+
+  Snapshot releases:
+
+  {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-importer/1.0.0-SNAPSHOT/norconex-importer-1.0.0-20130417.175304-1.jar} 1.0.0-20130417.175304-1}}
+
+  []
+
+  <<Note:>> Snapshot releases are only listed until first stable release.
+  After that, they will be available through the Norconex Snapshot maven
+  repository (see below).
+  
+* Source
+  
+  Source code can be obtained on GitHub: 
+  {{https://github.com/Norconex/collectors/tree/master/norconex-importer}}.
+  
+  Maven users can add the following to their pom.xml:
+  
++-------------------------------+
+ <repository>  
+   <id>norconex-release-repo</id>  
+   <name>Norconex Release Repository</name>  
+   <url>http://norconex.s3.amazonaws.com/repo/release</url>  
+   <releases>  
+     <enabled>true</enabled>  
+   </releases>  
+   <snapshots>  
+     <enabled>false</enabled>  
+   </snapshots>  
+ </repository>  
+
+ <dependency>
+   <groupId>com.norconex.collectors</groupId>
+   <artifactId>norconex-importer</artifactId>
+   <version>${currentStableVersion}</version>
+ </dependency>
+
+ <!-- At your own risk: -->
+ <repository>  
+   <id>norconex-snapshot-repo</id>  
+   <name>Norconex Snapshot Repository</name>  
+   <url>http://norconex.s3.amazonaws.com/repo/snapshot</url>  
+   <releases>  
+     <enabled>false</enabled>  
+   </releases>  
+   <snapshots>  
+     <enabled>true</enabled>  
+   </snapshots>  
+ </repository>  
++-------------------------------+
+  

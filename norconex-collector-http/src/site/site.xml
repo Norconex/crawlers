@@ -1,18 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Norconex Importer">
+<!-- 
+Copyright 2010-2013 Norconex Inc.
+
+This file is part of Norconex HTTP Collector.
+
+Norconex HTTP Collector is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Norconex HTTP Collector is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
+-->
+<project name="Norconex Collector HTTP">
   <bannerLeft>
     <name>Norconex HTTP Collector</name>
     <src>images/leftbanner.png</src>
-    <href>http://importer.norconex.com</href>
+    <href>http://www.norconex.com</href>
   </bannerLeft>
   <bannerRight>
-    <src>images/rightbanner.jpg</src>
-    <href>http://www.norconex.com</href>
+    <src>images/rightbanner.png</src>
+    <href>http://www.norconex.com/product/collector-http</href>
   </bannerRight>
   <body>
     <links>
-      <item name="Norconex" href="http://TODO" />
-      <item name="Support" href="http://TODO"/>
+      <item name="Norconex" href="http://www.norconex.com" />
+      <item name="Support" href="support.html"/>
     </links>
 
 
@@ -20,6 +38,7 @@
       <item name="Introduction" href="index.html"/>
       <item name="Usage" href="usage.html"/>
       <item name="Configuration" href="configuration.html"/>
+      <item name="Javadoc (Latest release)" href="apidocs/index.html"/>
       <item name="License" href="license.html"/>
       <item name="Download" href="download.html"/>
       <item name="Support" href="support.html"/>
@@ -30,6 +49,23 @@
 
     <menu ref="reports"/>
 
+    <menu name="Norconex Products">
+      <item name="Search Analytics" href="http://www.norconex.com/analytics"/>
+      <item name="JEF" href="http://www.norconex.com/product/jef"/>
+      <item name="Importer"  href="http://www.norconex.com/product/importer"/>
+      <item name="Committer" href="http://www.norconex.com/product/committer"/>
+      <item name="Commons Lang" href="http://www.norconex.com/product/commons-lang"/>
+    </menu>
 
   </body>
+
+  <googleAnalyticsAccountId>UA-23162620-1</googleAnalyticsAccountId>
+
+  <poweredBy>
+    <logo name="Maven" href="http://maven.apache.org/" position="right"
+          img="images/build-by-maven-white.png"/>
+    <logo name="GPL" href="http://www.gnu.org/licenses/gpl.html" position="right"
+          img="images/gplv3-88x31.png"/>
+  </poweredBy>
+
 </project>

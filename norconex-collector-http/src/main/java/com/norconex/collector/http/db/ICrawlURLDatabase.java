@@ -23,7 +23,6 @@ public interface ICrawlURLDatabase {
      * Queues a URL for future processing.
      * @param url the URL to eventually be processed
      * @param depth how many clicks away from starting URL(s)
-     * @return a crawl url instance
      */
     void queue(String url, int depth);
 
@@ -55,7 +54,7 @@ public interface ICrawlURLDatabase {
     
     /**
      * Whether the given URL is currently being processed (i.e. active).
-     * @param crawlURL the url
+     * @param url the url
      * @return <code>true</code> if active
      */
     boolean isActive(String url);

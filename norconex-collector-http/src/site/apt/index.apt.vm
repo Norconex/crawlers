@@ -1,3 +1,19 @@
+~~ Copyright 2010-2013 Norconex Inc.
+~~ 
+~~ This file is part of Norconex HTTP Collector.
+~~ 
+~~ Norconex HTTP Collector is free software: you can redistribute it and/or 
+~~ modify it under the terms of the GNU General Public License as published by
+~~ the Free Software Foundation, either version 3 of the License, or
+~~ (at your option) any later version.
+~~ 
+~~ Norconex HTTP Collector is distributed in the hope that it will be useful, 
+~~ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+~~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+~~ GNU General Public License for more details.
+~~ 
+~~ You should have received a copy of the GNU General Public License
+~~ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
             ------
             Home
             ------
@@ -6,17 +22,272 @@
 
 Welcome to Norconex HTTP Collector
 
-  Norconex HTTP Collector is 
-  
-  The current version of {{{http://collecttor-http.norconex.com}Norconex HTTP Collector}} is
-  ${project.version}
-  
-  
-  <<SITE IN HEAVY DEVELOPMENT.  PLEASE IGNORE.  DO NOT RELY>>
-  
-  
+  Norconex HTTP Collector is a web spider, or crawler that aims to make
+  Enterprise Search integrators and developers's life easier.
 
+  The current stable version of 
+  {{{http://www.norconex.com/product/collector-http}Norconex HTTP Collector}} is
+  ${currentStableVersion} ({{{./download.html}download}}). 
 
+  Latest {{{./apidocs/index.html}API documentation}}.
+
+* Another crawler... really?
+ 
+  Pretty much all commercial Enterprise Search vendors sell their own HTTP 
+  crawler, and there are several open-source offerings already, so this begs 
+  the question: why another crawler? 
+  
+  The answer is simple: none were entirely satisfying to us.  At Norconex, 
+  we have extensive experience with different crawler implementations 
+  as Enterprise Search integrators.  While they all have
+  their strength and weaknesses, we always wished we could get our hands 
+  on one that combines all the things we like, while minimizing many of the
+  reccurent pain points we kept experiencing.  After years of waiting for it
+  we took matters into our own hands and the results is here.   While at first
+  its main goal was to faciltate our own job as integrators, we now hope it 
+  can benefit you too. Please be vocal about things you would like to see 
+  included in future releases.
+
+* Features
+
+  We made sure the minimum set of features we wish a crawler should have
+  was part of the original release of Norconex HTTP Connector.  
+  While you will find many of these features in several HTTP crawlers out 
+  there, we never found one that supported all these out-of-the-box, to our 
+  satisfaction (we are picky!). Features and qualities are:
+  
+  * <<Portability>>\
+    Deploy your configuration to different 
+    location (staging, prod, etc) and environment specific settings
+    (IPs, URLs, etc) are kept in separate, environment-specific variable files.
+
+[]
+
+  * <<Extensibility>>\
+    Almost every feature can be replaced by custom code
+    or be extended.  
+
+[]
+
+  * <<Reusability>>\
+    Break your configuration the way you like in configuration
+    fragments, and share entire configuration sections between many
+    crawler instances.
+
+[]
+
+  * <<Ease of maintenance>>\
+    Only one central copy of the crawler binaries is
+    required and/or needs to be updated.  No more duplication of binaries or 
+    identical configuration values across several crawlers.
+
+[]
+
+  * <<Easy for developers to extend>>\
+    Many insertion points.  Basic Java, no custom framework to learn.
+    Interfaces are clearly defined and to use your own
+    implementation, you simply write your class name where appripriate in
+    your configuration file.  The
+    HTTP Collector is expected to be extended very often by its users.
+
+[]
+
+  * <<Supports different hit interval according to different schedules>>\
+    For long running crawls, if your web site customer traffic is high during 
+    the day, but low at night or weekends, you can define the delay between
+    each URL crawled for different time period.
+
+[]
+
+  * <<Easy for non-technical people to use>>\
+    While developers will see more benefits, the out-of-the-box features
+    remain well-documented and easy to configure for non-developers.
+
+[]
+    
+  * <<Good documentation>>\
+    Besides examples provided on this site or in distributed package, up-to-date
+    Javadocs are automatically generated with every release, and they constitute
+    most of documentation.  This prevents from having to maintain to sets of 
+    documentation and having discrepencies over time.
+
+[]
+   
+  * <<Community support>>\
+    Can get free help from other users of HTTP Collector or from GitHub free 
+    ticket system.  No need to be a paying customer to get basic help.
+    Share your tips and tricks!
+
+[]
+    
+  * <<Commercial Support>>\
+    Norconex provides professional support for all its open-source products
+    ({{{mailto:info@norconex.com}info@norconex.com}}).
+
+[]
+    
+  * <<Free/Open Source>>\
+    Free is good.  Open-source: you do not like something, fix it and 
+    never get stuck again!
+
+[]
+    
+  * <<No vendor lock-in>>\
+    Being open-source, you are not tied to a vendor agenda, or
+    even to a vendor existence.
+
+[]
+
+  * <<Cross vendors>>\
+    Not tied to a specific search engine.  You can swith to another search 
+    vendor and still use this connector.
+
+[]
+  
+  * <<Powerful>>\
+    Can do more than just crawling.  Allows for any kinds of document 
+    manipulation, before of after their text is extracted.
+
+[]
+    
+  * <<Cross-platform>>\
+    100% Java-based.  As long as you can get Java on your operating system,
+    you are good to go.  For instance, the same HTTP Collector installation 
+    can run on Windows or Linux.
+
+[]
+    
+  * <<Obtain and manipulate document metadata>>\
+    All metadata found in documents are extracted by default (both from 
+    document properties and HTTP headers). 
+    You can easily add, modify, remove, rename, etc.  
+
+[]
+    
+  * <<Handles deleted documents>>\
+    The HTTP Collector will detect and perform appropriate action when a URL
+    no longer exists (e.g. remove from search index).
+
+[]
+    
+  * <<Robots.txt support>>\
+    Can easily be turned off for your own sites.
+
+[]
+    
+  * <<Embeddable>>\
+    Can be integrated and run from other java applications (while still
+    using file-based configuration or not).
+
+[]
+
+  * <<Easy to create reports>>\
+    Offers listeners for most crawling events, allowing you to build 
+    your own reports.
+
+[]
+
+  * <<Logs are meaningful and verbose>>\
+    Can log every document failure with exact cause of failure. Uses log4j to
+    control log level.  
+
+[]
+
+  * <<Resumable upon failure>>\
+    Upon a major crash (e.g. server shutdown), you can resume the HTTP Collector
+    and it will pick-up exactly where it left.  You can also stop it and
+    resume it yourself.
+
+[]
+    
+  * <<Can indicate progress>>\
+    Uses {{{http://www.norconex.com/product/jef}Norconex JEF}} which 
+    automatically stores it progress on file.  With the use of tools such as
+    Norconex JEF Monitor, you can visualize the crawl progression.
+
+[]
+    
+  * <<XML Configurable>>\
+    Configured via simple XML.
+
+[]
+    
+  * <<Supports various website authentication schemes>>\
+    Supports "form", "basic", and "digest" implementations out-of-the-box.
+    If you use custom authentication mechanism, you can plug your own 
+    authentication logic.
+
+[]
+
+  * <<Broken down into reusable modules>>\
+    HTTP Collector uses 
+    {{{http://www.norconex.com/product/importer}Norconex Importer}} and 
+    {{{http://www.norconex.com/product/committer}Norconex Committer}}
+    which can both be used on their own for your own purpose (e.g. to build
+    your own collectors).
+
+[]
+    
+  * <<Supports cookies>>\
+    Humm... cookies!
+
+[]
+    
+  * <<Relies on proven technology>>\
+    Many of HTTP Collector core features rely on proven technology such
+    as Apacke Tika and Apache Derby.
+
+[]
+
+  * <<Detects modified documents>>\
+    Detect if documents have been modified from previous run.
+
+[]
+    
+  * <<Fast>>\
+    Can control the crawling speed.  Also offers to skip downloading of 
+    unmodified documents, based on HTTP headers only (for subsequent runs).
+
+[]
+    
+  * <<Multi-threaded>>\
+    Can use multiple threads to crawl web sites faster, while respecting 
+    the minimum delay between each page crawling.
+
+[]
+    
+  * <<Can normalize URLs>>\
+    Offers URL normalization to treat URL variations as one.
+
+[]
+   
+  * <<Flexibility:>>\
+    There more than one way to do something. 
+    Experiment and have fun!
+   
+  []
+
+* Does it meet every web crawling needs?
+  
+  <<No.>>  The original focus of the Norconex HTTP Collector is Enterprise 
+  Search, especially when several crawlers are required to perform all kinds
+  customer-specific requests (even weird ones) and you wish to avoid
+  maintenance and support headaches.  There are things it is not optimized
+  for, even though it may be one day (provided by Norconex or community).
+  For example:
+  
+  * Does not focus on BigData.
+  
+  * Does not focus on preserving document structure.
+
+  * Does not try to please every human soul.
+  
+  []
+  
+  While we hope you use and like this HTTP Crawler, you are still encouraged 
+  to use the HTTP crawler you best see fit for your needs.  
+  {{{mailto:info@norconex.com}Let us know}}
+  how Norconex HTTP Collector can be improved to better suit your needs.
   
   
-
+  
