@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- 
 Copyright 2010-2013 Norconex Inc.
 
@@ -16,7 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 -->
-<?xml version="1.0" encoding="UTF-8"?>
 <httpcollector id="Complex Crawl">
 
   #set($basepkg = "com.norconex.collector.http")
