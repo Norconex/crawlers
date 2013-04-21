@@ -218,9 +218,9 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <!-- Optionally process a document BEFORE importing it. Classes must
            implement *.handler.IHttpDocumentProcessor.
            -->
-      <httpPreProcessors>
+      <preImportProcessors>
          <processor class="YourClass"></processor>
-      </httpPreProcessors>
+      </preImportProcessors>
         
       <!-- Import a document.  This step calls the Importer module.  The
            importer is a different module with its own set of XML configuration
@@ -251,9 +251,9 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <!-- Optionally process a document AFTER importing it. Classes must
            implement *.handler.IHttpDocumentProcessor.
            -->
-      <httpPostProcessors>
+      <postImportProcessors>
          <processor class="YourClass"></processor>
-      </httpPostProcessors>
+      </postImportProcessors>
         
       <!-- Commits a document to a data source of your choice.
            This step calls the Committer module.  The

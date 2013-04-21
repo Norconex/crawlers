@@ -405,9 +405,9 @@ public class HttpCrawler extends AbstractResumableJob {
             }
 
             //--- Document Pre-Processing --------------------------------------
-            if (crawlerConfig.getHttpPreProcessors() != null) {
+            if (crawlerConfig.getPreImportProcessors() != null) {
                 for (IHttpDocumentProcessor preProc :
-                        crawlerConfig.getHttpPreProcessors()) {
+                        crawlerConfig.getPreImportProcessors()) {
                     preProc.processDocument(httpClient, doc);
                     for (IHttpCrawlerEventListener listener : listeners) {
                         listener.documentPreProcessed(this, doc, preProc);
@@ -432,9 +432,9 @@ public class HttpCrawler extends AbstractResumableJob {
             }
             
             //--- Document Post-Processing -------------------------------------
-            if (crawlerConfig.getHttpPostProcessors() != null) {
+            if (crawlerConfig.getPostImportProcessors() != null) {
                 for (IHttpDocumentProcessor postProc :
-                        crawlerConfig.getHttpPostProcessors()) {
+                        crawlerConfig.getPostImportProcessors()) {
                     postProc.processDocument(httpClient, doc);
                     for (IHttpCrawlerEventListener listener : listeners) {
                         listener.documentPostProcessed(this, doc, postProc);

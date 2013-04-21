@@ -94,8 +94,8 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     private IHttpHeadersChecksummer httpHeadersChecksummer = 
     		new DefaultHttpHeadersChecksummer();
 	
-    private IHttpDocumentProcessor[] httpPreProcessors;
-    private IHttpDocumentProcessor[] httpPostProcessors;
+    private IHttpDocumentProcessor[] preImportProcessors;
+    private IHttpDocumentProcessor[] postImportProcessors;
 
     private IHttpDocumentChecksummer httpDocumentChecksummer =
     		new DefaultHttpDocumentChecksummer();
@@ -223,19 +223,19 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
         this.httpHeadersFilters = httpHeadersFilters;
     }
 
-    public IHttpDocumentProcessor[] getHttpPreProcessors() {
-        return httpPreProcessors;
+    public IHttpDocumentProcessor[] getPreImportProcessors() {
+        return preImportProcessors;
     }
-    public void setHttpPreProcessors(
+    public void setPreImportProcessors(
     		IHttpDocumentProcessor[] httpPreProcessors) {
-        this.httpPreProcessors = httpPreProcessors;
+        this.preImportProcessors = httpPreProcessors;
     }
-    public IHttpDocumentProcessor[] getHttpPostProcessors() {
-        return httpPostProcessors;
+    public IHttpDocumentProcessor[] getPostImportProcessors() {
+        return postImportProcessors;
     }
-    public void setHttpPostProcessors(
+    public void setPostImportProcessors(
     		IHttpDocumentProcessor[] httpPostProcessors) {
-        this.httpPostProcessors = httpPostProcessors;
+        this.postImportProcessors = httpPostProcessors;
     }
     public boolean isIgnoreRobotsTxt() {
         return ignoreRobotsTxt;

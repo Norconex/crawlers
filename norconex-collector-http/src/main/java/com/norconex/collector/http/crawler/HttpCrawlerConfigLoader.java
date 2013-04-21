@@ -184,10 +184,10 @@ public final class HttpCrawlerConfigLoader {
 
         //--- HTTP Pre-Processors ----------------------------------------------
         IHttpDocumentProcessor[] preProcFilters = 
-                loadProcessors(node, "httpPreProcessors.processor");
-        config.setHttpPreProcessors(
+                loadProcessors(node, "preImportProcessors.processor");
+        config.setPreImportProcessors(
                 preProcFilters.length == 0 
-                        ? config.getHttpPreProcessors() : preProcFilters);
+                        ? config.getPreImportProcessors() : preProcFilters);
 
         //--- IMPORTER ---------------------------------------------------------
         XMLConfiguration importerNode = 
@@ -200,10 +200,10 @@ public final class HttpCrawlerConfigLoader {
         
         //--- HTTP Post-Processors ---------------------------------------------
         IHttpDocumentProcessor[] postProcFilters = 
-                loadProcessors(node, "httpPostProcessors.processor");
-        config.setHttpPostProcessors(
+                loadProcessors(node, "postImportProcessors.processor");
+        config.setPostImportProcessors(
                 postProcFilters.length == 0 
-                        ? config.getHttpPostProcessors() : postProcFilters);
+                        ? config.getPostImportProcessors() : postProcFilters);
 
         //--- HTTP Document Checksummer -----------------------------------------
         config.setHttpDocumentChecksummer(ConfigurationUtil.newInstance(

@@ -45,7 +45,7 @@ import com.norconex.collector.http.robot.RobotsTxt;
  * XML configuration usage (not required since default):
  * </p>
  * <pre>
- *  &lt;robotsTxt ignore="false" class="com.norconex.collector.http.handler.DefaultHttpClientInitializer"/&gt;
+ *  &lt;robotsTxt ignore="false" class="com.norconex.collector.http.handler.DefaultRobotsTxtProvider"/&gt;
  * </pre>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
