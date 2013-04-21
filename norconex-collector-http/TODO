@@ -1,8 +1,6 @@
 - Interface for Document Store??? Filesystem default, but could be 
   others like MongoDB?
-- In Cralwer, rename document[Pre|Post]Processed to [before|after]DocumentImport
-     or just [before|after]Import if we consider removing all the "document" 
-     in methods. 
+
 - Add junit tests
 
 - Add option to skip certain http response code (like 500).  Those docs 
@@ -22,49 +20,3 @@
       </suiteLifeCycleListener>
   </jef>
 
-- Document on site why another crawler:
-   - Portability (changing values can be extracted and just right files 
-      uploaded)
-   - Extensibility (almost every feature can be replaced by custom code or 
-      extended).
-   - Flexibility (flexible configuration)
-   - Reusability (can reuse config parts)
-   - Ease of maintenance (only one copy of the jars required.  
-      No duplicate of config values.)
-   - Supports different hit interval according to different schedules.
-   - Easy for developers to extend.
-   - Easy for non-technical people to use.
-   - Good documentation
-   - Community Support
-   - Commercial Support
-   - Open Source
-   - Powerful (allows for all kinds of document manipulation).
-   - Cross-platform.
-   - Cross vendors.
-   - Can easily manipulate document metadata (add, modify, remove, rename, etc)
-   - Identifies deleted documents
-   - Robots.txt support (can easily be turned off)
-   - Embeddable (while still using configs or not).
-   - Easy to build reporting for data discovery (listeners for most events)
-   - Logs are meaningful and verbose.
-   - Resumable upon failure
-   - Can indicate progress so far (check JEF Monitor).
-   - XML Configurable
-   - Centralized configuration (1 master config file for everything with
-       reusable configuration fragments being optional).
-   - Supports various website authentication schemes.
-   - Extracts all document meta data by default (both from document properties 
-      and HTTP headers).
-   - Broken down into reusable modules (e.g. Importer which can be used 
-      on its own).
-   - Supports cookies
-   - Relies on proven technology for its core features 
-     (uses apache tika and Derby)
-   - Detect if documents have been modified from previous run.
-   - FAST, can skip downloading of unmodified documents, based on HTTP headers
-     only.
-   - Multi-threaded.
-   - Can normalize URLs.
-   
-   
-   

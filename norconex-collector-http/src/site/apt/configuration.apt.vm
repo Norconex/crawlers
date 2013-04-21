@@ -25,16 +25,16 @@ Configuration
 * Quick start
 
   To get started quickly, download the latest version of Norconex HTTP Collector
-  and locate the file "examples/HOWTO_RUN_EXAMPLES.txt".  This file will point 
-  you to functional configuration files and we have you running a very simple
-  crawler in no time.  These sample files are also made available here 
+  and locate the file {{./examples/HOWTO_RUN_EXAMPLES.txt}}.  This file will 
+  point you to functional configuration files and we have you running a very 
+  simple crawler in no time.  These sample files are also made available here 
   for your convinience:
   
-  * {{{TODO} Minimum Configuration Sample}}
+  * {{{./examples/minimum/minimum-config.xml}Minimum Configuration Sample}}
   
-  * {{{TODO} Complex Configuration Sample}}
+  * {{{./examples/complex/complex-config.xml}Complex Configuration Sample}}
 
-  * {{{TODO} Self-Documented Configuration Reference}}
+  * {{{./examples/collector-http-config-reference.xml}Self-Documented Configuration Reference}}
   
 * Configuration Options
   
@@ -179,13 +179,13 @@ Configuration
 *----------+--------------+----------------+----------------+
 | <<<preImportProcessors>>> | Process a document before import. |  | {{{$api/handler/IHttpDocumentProcessor.html}IHttpDocumentProcessor}} |
 *----------+--------------+----------------+----------------+
-| <<<importer>>> | Performs document import.  Many options available, refer to {{{TODO}Import module}}. |  |  |
+| <<<importer>>> | Performs document import.  Many options available, refer to {{{http://www.norconex.com/product/importer}Import module}}. |  |  |
 *----------+--------------+----------------+----------------+
 | <<<httpDocumentChecksummer>>> | Create a checksum from document. | {{{$api/handler/impl/DefaultHttpDocumentChecksummer.html}DefaultHttpDocumentChecksummer}} | {{{$api/handler/IHttpDocumentChecksummer.html}IHttpDocumentChecksummer}} |
 *----------+--------------+----------------+----------------+
 | <<<postImportProcessors>>> | Process a document after import. |  | {{{$api/handler/IHttpDocumentProcessor.html}IHttpDocumentProcessor}} |
 *----------+--------------+----------------+----------------+
-| <<<committer>>> | Where to commit a document when processed.  Different implementations available, refer to {{{TODO}Committer module}}. |  |  |
+| <<<committer>>> | Where to commit a document when processed.  Different implementations available, refer to {{{http://www.norconex.com/product/committer}Committer module}}. |  |  |
 *----------+--------------+----------------+----------------+
 | <<<crawler>>> | Define as many crawlers as you like.  They much each have a unique identifier. | N/A | N/A |
 *----------+--------------+----------------+----------------+

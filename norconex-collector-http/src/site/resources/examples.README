@@ -1,0 +1,3 @@
+The "examples" directory under src/site/resources is created and overwritten
+every time the site is generated, do not edit it.  Use raw source under
+src/main/examples instead.

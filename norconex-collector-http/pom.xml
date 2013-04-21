@@ -232,6 +232,27 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           </execution>
         </executions>
       </plugin>
+      <!-- 
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy todir="src/site/resources/examples" overwrite="true">
+                  <fileset dir="src/main/examples"/>
+                </copy>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+       -->
     </plugins>
   </build>
   
