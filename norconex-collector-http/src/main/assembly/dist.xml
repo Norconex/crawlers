@@ -23,7 +23,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   <formats>
     <format>zip</format>
   </formats>
-  <includeSiteDirectory>true</includeSiteDirectory>
+  <includeSiteDirectory>false</includeSiteDirectory>
   <fileSets>
     <fileSet>
       <directory>${basedir}/src/main/scripts</directory>
@@ -38,6 +38,21 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <include>**</include>
       </includes>
       <outputDirectory>/examples</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/src/main/assembly/</directory>
+      <excludes>
+        <exclude>dist.xml</exclude>
+      </excludes>
+      <includes>
+        <include>third-party/**</include>
+        <include>*.txt</include>
+      </includes>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/site/apidocs</directory>
+      <outputDirectory>apidocs</outputDirectory>
     </fileSet>
   </fileSets>
   <files>
