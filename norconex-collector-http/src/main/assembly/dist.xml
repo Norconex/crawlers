@@ -33,7 +33,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <outputDirectory>/</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${basedir}/src/main/examples</directory>
+      <directory>${basedir}/src/site/resources/examples</directory>
       <includes>
         <include>**</include>
       </includes>
