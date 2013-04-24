@@ -41,8 +41,8 @@ along with Norconex Committer. If not, see <http://www.gnu.org/licenses/>.
       <sourceLineNumbersEnabled>false</sourceLineNumbersEnabled>
       <twitter>
         <user>searchhelp</user>
-        <showUser>true</showUser>
-        <showFollowers>true</showFollowers>
+        <showUser>false</showUser>
+        <showFollowers>false</showFollowers>
       </twitter>
     </fluidoSkin>
   </custom>  
