@@ -38,10 +38,10 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
   <custom>
     <fluidoSkin>
       <sideBarEnabled>true</sideBarEnabled>
-      <sourceLineNumbersEnabled>true</sourceLineNumbersEnabled>
+      <sourceLineNumbersEnabled>false</sourceLineNumbersEnabled>
       <twitter>
         <user>searchhelp</user>
-        <showUser>false</showUser>
+        <showUser>true</showUser>
         <showFollowers>true</showFollowers>
       </twitter>
     </fluidoSkin>

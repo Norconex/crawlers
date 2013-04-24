@@ -27,10 +27,10 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <site.baseurl>[overwrite me in settings.xml]</site.baseurl>
+    <site.baseurl/>
     <currentStableVersion>coming soon</currentStableVersion>
   </properties>
-  <inceptionYear>2010</inceptionYear>
+  <inceptionYear>2009</inceptionYear>
 
   <licenses>
     <license>
