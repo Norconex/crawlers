@@ -36,6 +36,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -81,6 +82,7 @@ public class HttpCrawler extends AbstractResumableJob {
     private final IHttpCrawlerEventListener[] listeners;
     private boolean stopped;
 	//TODO have config being overwritable... JEF CCOnfig does that...
+    private int okURLsCount;
     
 	public HttpCrawler(
 	        HttpCrawlerConfig crawlerConfig) {
@@ -127,16 +129,17 @@ public class HttpCrawler extends AbstractResumableJob {
     @Override
     protected void resumeExecution(JobProgress progress, JobSuite suite) {
         ICrawlURLDatabase database = 
-                crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
-                        crawlerConfig, true);
+              crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
+                      crawlerConfig, true);
+        okURLsCount = NumberUtils.toInt(progress.getMetadata());
         execute(database, progress, suite);
     }
 
     @Override
     protected void startExecution(JobProgress progress, JobSuite suite) {
         ICrawlURLDatabase database = 
-                crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
-                        crawlerConfig, false);
+              crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
+                      crawlerConfig, false);
         String[] startURLs = crawlerConfig.getStartURLs();
         for (int i = 0; i < startURLs.length; i++) {
             String startURL = startURLs[i];
@@ -256,16 +259,19 @@ public class HttpCrawler extends AbstractResumableJob {
             final boolean delete) {
         CrawlURL queuedURL = database.next();
         if (queuedURL != null) {
-            int processed = database.getProcessedCount();
             if (crawlerConfig.getMaxURLs() > -1 
-                    && processed >= crawlerConfig.getMaxURLs()) {
+                    && okURLsCount >= crawlerConfig.getMaxURLs()) {
                 LOG.info("Maximum URLs reached: " + crawlerConfig.getMaxURLs());
                 return false;
             }
             StopWatch watch = new StopWatch();
             watch.start();
+            int preOKCount = okURLsCount;
             processNextQueuedURL(queuedURL, database, delete);
-            setProgress(progress, database, processed);
+            if (preOKCount != okURLsCount) {
+                progress.setMetadata(Integer.toString(okURLsCount));
+            }
+            setProgress(progress, database);
             watch.stop();
             if (LOG.isDebugEnabled()) {
                 LOG.debug(watch.toString() 
@@ -280,9 +286,9 @@ public class HttpCrawler extends AbstractResumableJob {
         return true;
     }
     
-    private void setProgress(
-            JobProgress progress, ICrawlURLDatabase db, int processed) {
+    private void setProgress(JobProgress progress, ICrawlURLDatabase db) {
         int queued = db.getQueueSize();
+        int processed = db.getProcessedCount();
         int total = queued + processed;
         if (total == 0) {
             progress.setProgress(progress.getJobContext().getProgressMaximum());
@@ -497,6 +503,7 @@ public class HttpCrawler extends AbstractResumableJob {
             }
 	    	
             //--- Mark URL as Processed ----------------------------------------
+            okURLsCount++;
             database.processed(crawlURL);
             if (LOG.isInfoEnabled()) {
                 LOG.info(StringUtils.leftPad(
