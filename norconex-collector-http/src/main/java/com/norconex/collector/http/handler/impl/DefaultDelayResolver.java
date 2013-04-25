@@ -121,9 +121,9 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
     public void loadFromXML(Reader in) throws IOException {
         try {
             XMLConfiguration xml = ConfigurationLoader.loadXML(in);
-            defaultDelay = xml.getLong("[@default]");
-            ignoreRobotsCrawlDelay = 
-                    xml.getBoolean("[@ignoreRobotsCrawlDelay]");
+            defaultDelay = xml.getLong("[@default]", defaultDelay);
+            ignoreRobotsCrawlDelay = xml.getBoolean(
+                    "[@ignoreRobotsCrawlDelay]", ignoreRobotsCrawlDelay);
             List<HierarchicalConfiguration> nodes =
                     xml.configurationsAt("schedule");
             for (HierarchicalConfiguration node : nodes) {
