@@ -54,10 +54,12 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
 
     private static final long serialVersionUID = -3350877963428801802L;
     private String id;
-    private int depth = -1;
+    private int maxDepth = -1;
     private File workDir = new File("./work");
     private String[] startURLs;
     private int numThreads = 2;
+    private int maxURLs = -1;
+    
     private boolean ignoreRobotsTxt;
     private boolean keepDownloads;
     private boolean deleteOrphans;
@@ -116,11 +118,11 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     public void setStartURLs(String[] startURLs) {
         this.startURLs = startURLs;
     }
-    public void setDepth(int depth) {
-        this.depth = depth;
+    public void setMaxDepth(int depth) {
+        this.maxDepth = depth;
     }
-    public int getDepth() {
-        return depth;
+    public int getMaxDepth() {
+        return maxDepth;
     }
     public void setWorkDir(File workDir) {
         this.workDir = workDir;
@@ -133,6 +135,12 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
     public void setNumThreads(int numThreads) {
         this.numThreads = numThreads;
+    }
+    public int getMaxURLs() {
+        return maxURLs;
+    }
+    public void setMaxURLs(int maxURLs) {
+        this.maxURLs = maxURLs;
     }
     public IHttpDocumentFilter[] getHttpDocumentfilters() {
         return documentfilters;

@@ -207,24 +207,9 @@ public class HttpCrawler extends AbstractResumableJob {
                     LOG.debug("Crawler thread #" + threadIndex + " started.");
                     while (!isStopped()) {
                         try {
-                            CrawlURL queuedURL = database.next();
-                            if (queuedURL != null) {
-                                StopWatch watch = new StopWatch();
-                                watch.start();
-                                processNextQueuedURL(
-                                        queuedURL, database, delete);
-                                setProgress(progress, database);
-                                watch.stop();
-                                if (LOG.isDebugEnabled()) {
-                                    LOG.debug(watch.toString() + " to process: " 
-                                            + queuedURL.getUrl());
-                                }
-                            } else {
-                                if (database.getActiveCount() == 0
-                                        && database.isQueueEmpty()) {
-                                    break;
-                                }
-                                Sleeper.sleepMillis(10);
+                            if (!processURL(
+                                    database, progress, suite, delete)) {
+                                break;
                             }
                         } catch (Exception e) {
                             LOG.fatal("An error occured that could compromise "
@@ -261,10 +246,43 @@ public class HttpCrawler extends AbstractResumableJob {
         }
     }
     
-
-    private void setProgress(JobProgress progress, ICrawlURLDatabase db) {
+    /**
+     * @return <code>true</code> if more urls to process
+     */
+    private boolean processURL(
+            final ICrawlURLDatabase database,
+            final JobProgress progress, 
+            final JobSuite suite,
+            final boolean delete) {
+        CrawlURL queuedURL = database.next();
+        if (queuedURL != null) {
+            int processed = database.getProcessedCount();
+            if (crawlerConfig.getMaxURLs() > -1 
+                    && processed >= crawlerConfig.getMaxURLs()) {
+                LOG.info("Maximum URLs reached: " + crawlerConfig.getMaxURLs());
+                return false;
+            }
+            StopWatch watch = new StopWatch();
+            watch.start();
+            processNextQueuedURL(queuedURL, database, delete);
+            setProgress(progress, database, processed);
+            watch.stop();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(watch.toString() 
+                        + " to process: " + queuedURL.getUrl());
+            }
+        } else {
+            if (database.getActiveCount() == 0 && database.isQueueEmpty()) {
+                return false;
+            }
+            Sleeper.sleepMillis(10);
+        }
+        return true;
+    }
+    
+    private void setProgress(
+            JobProgress progress, ICrawlURLDatabase db, int processed) {
         int queued = db.getQueueSize();
-        int processed = db.getProcessedCount();
         int total = queued + processed;
         if (total == 0) {
             progress.setProgress(progress.getJobContext().getProgressMaximum());
@@ -456,9 +474,6 @@ public class HttpCrawler extends AbstractResumableJob {
             for (IHttpCrawlerEventListener listener : listeners) {
                 listener.documentCrawled(this, doc);
             }
-            
-	        //Sleep
-//            sleep(robotsTxt, timerStart, url);
         } catch (Exception e) {
             //TODO do we really want to catch anything other than 
             // HTTPFetchException?  In case we want special treatment to the 
@@ -675,8 +690,8 @@ public class HttpCrawler extends AbstractResumableJob {
     }
     
 	private boolean isUrlDepthValid(String url, int urlDepth) {
-	    if (crawlerConfig.getDepth() != -1 
-	            && urlDepth > crawlerConfig.getDepth()) {
+	    if (crawlerConfig.getMaxDepth() != -1 
+	            && urlDepth > crawlerConfig.getMaxDepth()) {
 	        if (LOG.isDebugEnabled()) {
 	            LOG.debug("URL too deep to process (" + urlDepth + "): " + url);
 	        }

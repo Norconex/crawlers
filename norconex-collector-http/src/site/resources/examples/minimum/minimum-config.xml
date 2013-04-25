@@ -35,7 +35,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <!-- === Minimum recommended: ======================================== -->
 
       <!-- Put a maximum depth to avoid infinite crawling (e.g. calendars). -->
-      <depth>0</depth>
+      <maxDepth>0</maxDepth>
 
       <!-- Be as nice as you can to sites you crawl. -->
       <delay default="5000" />

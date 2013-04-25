@@ -113,7 +113,8 @@ public final class HttpCrawlerConfigLoader {
         config.setDelayResolver(ConfigurationUtil.newInstance(
                 node, "delay", config.getDelayResolver()));
         config.setNumThreads(node.getInt("numThreads", config.getNumThreads()));
-        config.setDepth(node.getInt("depth", config.getDepth()));
+        config.setMaxDepth(node.getInt("maxDepth", config.getMaxDepth()));
+        config.setMaxURLs(node.getInt("maxURLs", config.getMaxURLs()));
         config.setWorkDir(new File(node.getString(
                 "workDir", config.getWorkDir().toString())));
         config.setKeepDownloads(node.getBoolean(
@@ -224,8 +225,13 @@ public final class HttpCrawlerConfigLoader {
         
         for (HierarchicalConfiguration filterNode : filterNodes) {
             IURLFilter urlFilter = ConfigurationUtil.newInstance(filterNode);
-            urlFilters.add(urlFilter);
-            LOG.info("URL filter loaded: " + urlFilter);
+            if (urlFilter != null) {
+                urlFilters.add(urlFilter);
+                LOG.error("Problem loading filter, "
+                        + "please check for other log messages.");
+            } else {
+                LOG.info("URL filter loaded: " + urlFilter);
+            }
         }
         return urlFilters.toArray(new IURLFilter[]{});
     }

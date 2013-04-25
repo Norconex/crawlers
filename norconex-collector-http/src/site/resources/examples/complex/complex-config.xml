@@ -20,9 +20,9 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 <httpcollector id="Complex Crawl">
 
   #set($basepkg = "com.norconex.collector.http")
-  #set($normalizer = "$basepkg.handler.impl.GenericURLNormalizer")
-  #set($extension = "$basepkg.filter.impl.ExtensionURLFilter")
-  #set($urlRegex = "$basepkg.filter.impl.RegexURLFilter")
+  #set($normalizer = "${basepkg}.handler.impl.GenericURLNormalizer")
+  #set($extension = "${basepkg}.filter.impl.ExtensionURLFilter")
+  #set($urlRegex = "${basepkg}.filter.impl.RegexURLFilter")
   
   <progressDir>$workdir\progress</progressDir>
   <logsDir>$workdir\logs</logsDir>
@@ -31,7 +31,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
     <urlNormalizer class="$normalizer" />
     <numThreads>2</numThreads>
-    <depth>1</depth>
+    <maxDepth>1</maxDepth>
     <workDir>$workdir</workDir>
     <deleteOrphans>true</deleteOrphans>
 

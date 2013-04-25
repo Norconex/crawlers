@@ -1,3 +1,9 @@
+
+- Put rules rejection and status changes logging in separate class so
+  log level can be set for this only.
+
+- Fix charset issue with japanese and others.
+
 - Interface for Document Store??? Filesystem default, but could be 
   others like MongoDB?
 

@@ -37,12 +37,12 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
        -->
   #set($workdir = "c:\path\to\your\workdir")
   #set($basepkg = "com.norconex.collector.http")
-  #set($extension = "$basepkg.filter.impl.ExtensionURLFilter")
-  #set($urlRegex = "$basepkg.filter.impl.RegexURLFilter")
-  #set($robotsTxt = "$basepkg.handler.impl.DefaultRobotsTxtProvider")
-  #set($headersRegex = "$basepkg.filter.impl.RegexHeaderFilter")
-  #set($docFetcher = "$basepkg.handler.impl.DefaultDocumentFetcher")
-  #set($urlExtractor = "$basepkg.handler.impl.DefaultURLExtractor")
+  #set($extension = "${basepkg}.filter.impl.ExtensionURLFilter")
+  #set($urlRegex = "${basepkg}.filter.impl.RegexURLFilter")
+  #set($robotsTxt = "${basepkg}.handler.impl.DefaultRobotsTxtProvider")
+  #set($headersRegex = "${basepkg}.filter.impl.RegexHeaderFilter")
+  #set($docFetcher = "${basepkg}.handler.impl.DefaultDocumentFetcher")
+  #set($urlExtractor = "${basepkg}.handler.impl.DefaultURLExtractor")
   
   <!-- Location where internal progress files are stored. -->
   <progressDir>$workdir\progress</progressDir>
@@ -107,7 +107,15 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
          Beyond the depth specified, pages are rejected.
          The starting URLs all have a zero-depth.  Default is -1 (unlimited)
          -->
-    <depth>5</depth>
+    <maxDepth>5</maxDepth>
+    
+    <!-- Stop crawling after how many successfully processed URLs.  
+         A successful URL is one that is either new or modified, that was 
+         not rejected, not deleted, or did not generate any error.  As an
+         example, this is a URL that will end up in your search engine. 
+         Default is -1 (unlimited)
+          -->
+    <maxURLs>-1</maxURLs>
 
     <!-- Crawler "work" directory.  This is where files dowloaded or created as
          part of crawling activities (besides logs and progress) get stored.
