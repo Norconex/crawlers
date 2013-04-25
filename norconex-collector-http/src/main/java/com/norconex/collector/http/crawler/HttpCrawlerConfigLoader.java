@@ -227,10 +227,10 @@ public final class HttpCrawlerConfigLoader {
             IURLFilter urlFilter = ConfigurationUtil.newInstance(filterNode);
             if (urlFilter != null) {
                 urlFilters.add(urlFilter);
+                LOG.info("URL filter loaded: " + urlFilter);
+            } else {
                 LOG.error("Problem loading filter, "
                         + "please check for other log messages.");
-            } else {
-                LOG.info("URL filter loaded: " + urlFilter);
             }
         }
         return urlFilters.toArray(new IURLFilter[]{});

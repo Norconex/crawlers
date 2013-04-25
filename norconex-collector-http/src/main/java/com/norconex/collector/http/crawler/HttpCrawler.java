@@ -81,7 +81,6 @@ public class HttpCrawler extends AbstractResumableJob {
     private HttpClient httpClient;
     private final IHttpCrawlerEventListener[] listeners;
     private boolean stopped;
-	//TODO have config being overwritable... JEF CCOnfig does that...
     private int okURLsCount;
     
 	public HttpCrawler(
@@ -210,7 +209,7 @@ public class HttpCrawler extends AbstractResumableJob {
                     LOG.debug("Crawler thread #" + threadIndex + " started.");
                     while (!isStopped()) {
                         try {
-                            if (!processURL(
+                            if (!processNextURL(
                                     database, progress, suite, delete)) {
                                 break;
                             }
@@ -252,7 +251,7 @@ public class HttpCrawler extends AbstractResumableJob {
     /**
      * @return <code>true</code> if more urls to process
      */
-    private boolean processURL(
+    private boolean processNextURL(
             final ICrawlURLDatabase database,
             final JobProgress progress, 
             final JobSuite suite,
@@ -359,9 +358,11 @@ public class HttpCrawler extends AbstractResumableJob {
             }
             
             //--- HTTP Headers Fetcher and Filters -----------------------------
-            IHttpHeadersFetcher hdFetcher = crawlerConfig.getHttpHeadersFetcher();
+            IHttpHeadersFetcher hdFetcher = 
+                    crawlerConfig.getHttpHeadersFetcher();
             if (hdFetcher != null) {
-                Properties metadata = hdFetcher.fetchHTTPHeaders(httpClient, url);
+                Properties metadata = 
+                        hdFetcher.fetchHTTPHeaders(httpClient, url);
                 if (metadata == null) {
                     crawlURL.setStatus(CrawlStatus.REJECTED);
                     return;
@@ -503,20 +504,21 @@ public class HttpCrawler extends AbstractResumableJob {
             }
 	    	
             //--- Mark URL as Processed ----------------------------------------
-            okURLsCount++;
+            if (crawlURL.getStatus() == CrawlStatus.OK) {
+                okURLsCount++;
+            }
             database.processed(crawlURL);
             if (LOG.isInfoEnabled()) {
                 LOG.info(StringUtils.leftPad(
                         crawlURL.getStatus().toString(), 10) + " > " 
                       + StringUtils.leftPad("(" 
-                              + crawlURL.getDepth() + ") ", 6)
-                      + url);
+                              + crawlURL.getDepth() + ") ", 6) + url);
             }
             
             //--- Delete Local File Download -----------------------------------
             if (!crawlerConfig.isKeepDownloads()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Deleting" + doc.getLocalFile());
+                    LOG.debug("Deleting " + doc.getLocalFile());
                 }
                 FileUtils.deleteQuietly(doc.getLocalFile());
             }

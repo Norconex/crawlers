@@ -1,6 +1,5 @@
 
-- Put rules rejection and status changes logging in separate class so
-  log level can be set for this only.
+- Upgrade to HTTPClient 4.x in hope to resolve japanese issue.
 
 - Fix charset issue with japanese and others.
 
