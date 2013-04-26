@@ -20,7 +20,7 @@ package com.norconex.collector.http.handler;
 
 import java.io.Serializable;
 
-import org.apache.commons.httpclient.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.norconex.collector.http.robot.RobotsTxt;
 
@@ -36,6 +36,6 @@ import com.norconex.collector.http.robot.RobotsTxt;
 public interface IRobotsTxtProvider extends Serializable {
 
    
-    RobotsTxt getRobotsTxt(HttpClient httpClient, String url);
+    RobotsTxt getRobotsTxt(DefaultHttpClient httpClient, String url);
     
 }

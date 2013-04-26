@@ -25,14 +25,14 @@ import java.io.Reader;
 import java.io.Writer;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -82,20 +82,22 @@ public class DefaultDocumentFetcher
     
 	@Override
 	public CrawlStatus fetchDocument(
-			HttpClient httpClient, HttpDocument doc) {
+	        DefaultHttpClient httpClient, HttpDocument doc) {
 	    //TODO replace signature with Writer class.
 	    LOG.debug("Fetching document: " + doc.getUrl());
-	    HttpMethod method = null;
+	    HttpGet method = null;
 	    try {
-	        method = new GetMethod(doc.getUrl());
+	        method = new HttpGet(doc.getUrl());
 	    	
 	        // Execute the method.
-	        int statusCode = httpClient.executeMethod(method);
+            HttpResponse response = httpClient.execute(method);
+            int statusCode = response.getStatusLine().getStatusCode();
+
 	        
-            InputStream is = method.getResponseBodyAsStream();
+            InputStream is = response.getEntity().getContent();
             if (ArrayUtils.contains(validStatusCodes, statusCode)) {
                 //--- Fetch headers ---
-                Header[] headers = method.getResponseHeaders();
+                Header[] headers = response.getAllHeaders();
                 for (int i = 0; i < headers.length; i++) {
                     Header header = headers[i];
                     String name = header.getName();
@@ -126,7 +128,7 @@ public class DefaultDocumentFetcher
                     return CrawlStatus.NOT_FOUND;
                 } else {
                     LOG.debug("Unsupported HTTP Response: "
-                            + method.getStatusLine());
+                            + response.getStatusLine());
                     return CrawlStatus.BAD_STATUS;
                 }
 //	        	throw new HttpCollectorException("Invalid HTTP status code: "

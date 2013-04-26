@@ -20,10 +20,10 @@ package com.norconex.collector.http.handler;
 
 import java.io.Serializable;
 
-import org.apache.commons.httpclient.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
- * 
+ * Initializes an HTTP Connection.
  * 
  * Implementors also implementing IXMLConfigurable must name their XML tag
  * <code>httpClientInitializer</code> to ensure it gets loaded properly.
@@ -32,5 +32,5 @@ import org.apache.commons.httpclient.HttpClient;
  */
 public interface IHttpClientInitializer extends Serializable  {
 
-	void initializeHTTPClient(HttpClient httpClient);
+	void initializeHTTPClient(DefaultHttpClient httpClient);
 }

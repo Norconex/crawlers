@@ -16,7 +16,8 @@ commons-compress        - see LICENSE(Apache2.0).txt
 commons-configuration   - see LICENSE(Apache2.0).txt
 commons-dbcp            - see LICENSE(Apache2.0).txt
 commons-dbutils         - see LICENSE(Apache2.0).txt
-commons-httpclient      - see LICENSE(Apache2.0).txt
+httpclient              - see LICENSE(Apache2.0).txt
+httpcore                - see LICENSE(Apache2.0).txt
 commons-jxpath          - see LICENSE(Apache2.0).txt
 commons-io              - see LICENSE(Apache2.0).txt
 commons-lang            - see LICENSE(Apache2.0).txt

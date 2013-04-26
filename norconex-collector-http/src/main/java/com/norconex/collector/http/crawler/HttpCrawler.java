@@ -24,13 +24,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -38,6 +37,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -73,12 +74,9 @@ public class HttpCrawler extends AbstractResumableJob {
 	
 	private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
 	
-	
-    private final MultiThreadedHttpConnectionManager connectionManager = 
-            new MultiThreadedHttpConnectionManager();
 	private final HttpCrawlerConfig crawlerConfig;
     private final ImporterConfig importConfig;
-    private HttpClient httpClient;
+    private DefaultHttpClient httpClient;
     private final IHttpCrawlerEventListener[] listeners;
     private boolean stopped;
     private int okURLsCount;
@@ -147,7 +145,11 @@ public class HttpCrawler extends AbstractResumableJob {
         for (IHttpCrawlerEventListener listener : listeners) {
             listener.crawlerStarted(this);
         }
-        execute(database, progress, suite);
+        try {
+            execute(database, progress, suite);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
     }
 	
     private void execute(
@@ -164,8 +166,10 @@ public class HttpCrawler extends AbstractResumableJob {
         processURLs(database, progress, suite, false);
 
         // Process what remains in cache
-        database.queueCache();
-        processURLs(database, progress, suite, crawlerConfig.isDeleteOrphans());
+        if (!isMaxURLs()) {
+            database.queueCache();
+            processURLs(database, progress, suite, crawlerConfig.isDeleteOrphans());
+        }
 
         ICommitter committer = crawlerConfig.getCommitter();
         if (committer != null) {
@@ -175,9 +179,6 @@ public class HttpCrawler extends AbstractResumableJob {
             committer.commit();
         }
         
-        connectionManager.closeIdleConnections(10);
-        connectionManager.deleteClosedConnections();
-
         LOG.debug("Removing empty directories");
         FileUtil.deleteEmptyDirs(gelCrawlerDownloadDir());
         
@@ -258,8 +259,7 @@ public class HttpCrawler extends AbstractResumableJob {
             final boolean delete) {
         CrawlURL queuedURL = database.next();
         if (queuedURL != null) {
-            if (crawlerConfig.getMaxURLs() > -1 
-                    && okURLsCount >= crawlerConfig.getMaxURLs()) {
+            if (isMaxURLs()) {
                 LOG.info("Maximum URLs reached: " + crawlerConfig.getMaxURLs());
                 return false;
             }
@@ -711,9 +711,15 @@ public class HttpCrawler extends AbstractResumableJob {
 	
 	private void initializeHTTPClient() {
         //TODO set HTTPClient user-agent from config before calling init..
-
-        httpClient = new HttpClient(connectionManager);
-        crawlerConfig.getHttpClientInitializer().initializeHTTPClient(httpClient);
+	    PoolingClientConnectionManager m = new PoolingClientConnectionManager();
+	    if (crawlerConfig.getNumThreads() <= 0) {
+	        m.setMaxTotal(Integer.MAX_VALUE);
+	    } else {
+	        m.setMaxTotal(crawlerConfig.getNumThreads());
+	    }
+        httpClient = new DefaultHttpClient(m);
+        crawlerConfig.getHttpClientInitializer().initializeHTTPClient(
+                httpClient);
 	}
 
     private void enhanceHTTPHeaders(Properties metadata) {
@@ -792,6 +798,17 @@ public class HttpCrawler extends AbstractResumableJob {
 		reader.close();
 		
 		// URL Normalizer
+		// Normalize urls
+		if (crawlerConfig.getUrlNormalizer() != null) {
+		    Set<String> nurls = new HashSet<String>();
+		    for (String url : urls) {
+                String n = crawlerConfig.getUrlNormalizer().normalizeURL(url);
+                if (n != null) {
+                    nurls.add(n);
+                }
+            }
+		    urls = nurls;
+		}
 		
 		
         if (urls != null) {
@@ -815,5 +832,10 @@ public class HttpCrawler extends AbstractResumableJob {
     }
     private File gelCrawlerDownloadDir() {
         return new File(gelBaseDownloadDir() + "/" + crawlerConfig.getId());
+    }
+    
+    private boolean isMaxURLs() {
+        return crawlerConfig.getMaxURLs() > -1 
+                && okURLsCount >= crawlerConfig.getMaxURLs();
     }
 }

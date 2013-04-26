@@ -1,7 +1,5 @@
 
-- Upgrade to HTTPClient 4.x in hope to resolve japanese issue.
-
-- Fix charset issue with japanese and others.
+- Implement AUTH_METHOD_BASIC and AUTH_METHOD_DIGEST
 
 - Interface for Document Store??? Filesystem default, but could be 
   others like MongoDB?

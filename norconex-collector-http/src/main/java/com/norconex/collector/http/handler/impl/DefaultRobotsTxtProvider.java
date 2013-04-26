@@ -25,11 +25,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -60,7 +61,7 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
 
     @Override
     synchronized public RobotsTxt getRobotsTxt(
-            HttpClient httpClient, String url) {
+            DefaultHttpClient httpClient, String url) {
         String baseURL = getBaseURL(url);
         RobotsTxt robotsTxt = robotsTxtCache.get(baseURL);
         if (robotsTxt != null) {
@@ -68,16 +69,16 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
         }
         
         String userAgent = ((String) httpClient.getParams().getParameter(
-                HttpMethodParams.USER_AGENT)).toLowerCase();
+                CoreProtocolPNames.USER_AGENT)).toLowerCase();
         String robotsURL = baseURL + "/robots.txt";
-        GetMethod method = new GetMethod(robotsURL);
+        HttpGet method = new HttpGet(robotsURL);
         List<IURLFilter> filters = 
                 new ArrayList<IURLFilter>();
         float crawlDelay = RobotsTxt.UNSPECIFIED_CRAWL_DELAY;
         try {
-            httpClient.executeMethod(method);
+            HttpResponse response = httpClient.execute(method);
             InputStreamReader isr = 
-                    new InputStreamReader(method.getResponseBodyAsStream());
+                    new InputStreamReader(response.getEntity().getContent());
             BufferedReader br = new BufferedReader(isr);
             boolean agentMatched = false;
             String line;
@@ -116,8 +117,6 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
                 LOG.info("Not able to obtain robots.txt at: " + robotsURL);
             }
         }
-        
-        
         
         robotsTxt = new RobotsTxt(
                 filters.toArray(new IURLFilter[]{}), crawlDelay);

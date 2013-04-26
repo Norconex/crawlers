@@ -20,16 +20,23 @@ package com.norconex.collector.http.handler.impl;
 
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.NameValuePair;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -89,20 +96,31 @@ public class DefaultHttpClientInitializer implements
     private String proxyRealm;
 	
     @Override
-	public void initializeHTTPClient(HttpClient httpClient) {
+	public void initializeHTTPClient(DefaultHttpClient httpClient) {
+        
+        //TODO make charset configurable instead since UTF-8 is not right
+        // charset for URL specifications.  It is used here to overcome
+        // so invalid redirect errors, where the redirect target URL is not 
+        // URL-Encoded and has non-ascii values, and fails
+        // (e.g. like ja.wikipedia.org).
+        // Can consider a custom RedirectStrategy too if need be.
+        httpClient.getParams().setParameter(
+                CoreProtocolPNames.HTTP_ELEMENT_CHARSET, "UTF-8");
         
         if (StringUtils.isNotBlank(proxyHost)) {
-            httpClient.getHostConfiguration().setProxy(proxyHost, proxyPort);
+            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, 
+                    new HttpHost(proxyHost, proxyPort));
             if (StringUtils.isNotBlank(proxyUsername)) {
-                httpClient.getState().setProxyCredentials(
-                        new AuthScope(proxyHost, proxyPort, proxyRealm), 
+                httpClient.getCredentialsProvider().setCredentials(
+                        new AuthScope(proxyHost, proxyPort),
                         new UsernamePasswordCredentials(
                                 proxyUsername, proxyPassword));
             }
         }
         
         if (!cookiesDisabled) {
-            httpClient.getParams().setCookiePolicy(
+            httpClient.getParams().setParameter(
+                    ClientPNames.COOKIE_POLICY,
                     CookiePolicy.BROWSER_COMPATIBILITY);
         }
         if (AUTH_METHOD_FORM.equalsIgnoreCase(authMethod)) {
@@ -114,7 +132,7 @@ public class DefaultHttpClientInitializer implements
         }
         if (userAgent != null) {
             httpClient.getParams().setParameter(
-                    HttpMethodParams.USER_AGENT, userAgent);
+                    CoreProtocolPNames.USER_AGENT, userAgent);
         }
 	}
     
@@ -242,15 +260,19 @@ public class DefaultHttpClientInitializer implements
         this.proxyRealm = proxyRealm;
     }
 
-    protected void authenticateUsingForm(HttpClient httpClient) {
-        PostMethod post = new PostMethod(getAuthURL());
-        NameValuePair[] data = {
-          new NameValuePair(getAuthUsernameField(), getAuthUsername()),
-          new NameValuePair(getAuthPasswordField(), getAuthPassword())
-        };
-        post.setRequestBody(data);
+    protected void authenticateUsingForm(DefaultHttpClient httpClient) {
+        HttpPost post = new HttpPost(getAuthURL());
+
+        List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+        formparams.add(new BasicNameValuePair(
+                getAuthUsernameField(), getAuthUsername()));
+        formparams.add(new BasicNameValuePair(
+                getAuthPasswordField(), getAuthPassword()));
         try {
-            httpClient.executeMethod(post);
+            UrlEncodedFormEntity entity = 
+                    new UrlEncodedFormEntity(formparams, "UTF-8");
+            post.setEntity(entity);
+            httpClient.execute(post);
         } catch (Exception e) {
             throw new HttpCollectorException(e);
         }

@@ -2,4 +2,4 @@
 
 cd $(dirname $0)
 
-java -cp "./lib/*:./classes" com.norconex.collector.http.HttpCollector "$@"
+java -Dfile.encoding=UTF8 -cp "./lib/*:./classes" com.norconex.collector.http.HttpCollector "$@"

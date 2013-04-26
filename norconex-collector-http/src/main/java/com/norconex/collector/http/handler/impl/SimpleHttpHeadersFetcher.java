@@ -22,13 +22,13 @@ import java.io.Reader;
 import java.io.Writer;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -89,22 +89,24 @@ public class SimpleHttpHeadersFetcher
         this.headersPrefix = headersPrefix;
     }
     @Override
-	public Properties fetchHTTPHeaders(HttpClient httpClient, String url) {
+	public Properties fetchHTTPHeaders(
+	        DefaultHttpClient httpClient, String url) {
 	    Properties metadata = new Properties();
-	    HttpMethod method = null;
+	    HttpHead method = null;
 	    try {
-	        method = new HeadMethod(url);
+	        method = new HttpHead(url);
 	        // Execute the method.
-	        int statusCode = httpClient.executeMethod(method);
+	        HttpResponse response = httpClient.execute(method);
+	        int statusCode = response.getStatusLine().getStatusCode();
 	        if (!ArrayUtils.contains(validStatusCodes, statusCode)) {
 	            if (LOG.isDebugEnabled()) {
 	                LOG.debug("Invalid HTTP status code ("
-	                        + method.getStatusLine() + ") for URL: " + url);
+	                        + response.getStatusLine() + ") for URL: " + url);
 	            }
 	            return null;
 	        }
 	        
-	        Header[] headers = method.getResponseHeaders();
+	        Header[] headers = response.getAllHeaders();
 	        for (int i = 0; i < headers.length; i++) {
 	            Header header = headers[i];
 	            String name = header.getName();
