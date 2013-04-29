@@ -19,10 +19,10 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 <importer>
 
   <postParseHandlers>
-     <tagger class="com.norconex.importer.tagger.ConstantTagger">
+     <tagger class="com.norconex.importer.tagger.impl.ConstantTagger">
        <constant name="SITE">Wikipedia</constant>
      </tagger>
-     <tagger class="com.norconex.importer.tagger.DeleteTagger" 
+     <tagger class="com.norconex.importer.tagger.impl.DeleteTagger" 
             fields="$fieldsToDelete"/>
   </postParseHandlers>
 </importer>           

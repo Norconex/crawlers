@@ -32,12 +32,12 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.AbstractOnMatchFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.OnMatch;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.map.Properties;
 /**
  * Accepts or rejects one or more HTTP header values using regular expression.
  * <p>
@@ -56,6 +56,8 @@ import com.norconex.commons.lang.map.Properties;
 public class RegexHeaderFilter extends AbstractOnMatchFilter
         implements IHttpHeadersFilter, IXMLConfigurable {
 
+    //TODO use Importer RegexMetadataFilter here?  Catching import exception
+    
     private static final long serialVersionUID = -8029862304058855686L;
 
     private boolean caseSensitive;
@@ -111,7 +113,7 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
     }
 
     @Override
-    public boolean acceptHeaders(String url, Properties headers) {
+    public boolean acceptDocument(String url, HttpMetadata headers) {
         if (StringUtils.isBlank(regex)) {
             return getOnMatch() == OnMatch.INCLUDE;
         }
@@ -158,7 +160,7 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("RegexHeaderFilter [header=")
+        builder.append("RegexMetadataFilter [header=")
                 .append(header)
                 .append(", regex=").append(regex)
                 .append(", caseSensitive=").append(caseSensitive)

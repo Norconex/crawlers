@@ -585,12 +585,12 @@ public class HttpCrawler extends AbstractResumableJob {
     }
 
     private boolean isHeadersRejected(
-            String url, Properties headers, IHttpHeadersFilter[] filters) {
+            String url, HttpMetadata headers, IHttpHeadersFilter[] filters) {
         if (filters == null) {
             return false;
         }
         for (IHttpHeadersFilter filter : filters) {
-            if (filter.acceptHeaders(url, headers)) {
+            if (filter.acceptDocument(url, headers)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("ACCEPTED document http headers. URL=" + url
                             + " Filter=" + filter);

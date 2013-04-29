@@ -64,7 +64,8 @@ Configuration
     <urlNormalizer class="..." />
     <delay class="..." />
     <numThreads>...</numThreads>
-    <depth>...</depth>
+    <maxDepth>...</maxDepth>
+    <maxURLs>...</maxURLs>
     <workDir>...</workDir>
     <keepDownloads>...</keepDownloads>
     <deleteOrphans>...</deleteOrphans>
@@ -147,7 +148,9 @@ Configuration
 *----------+--------------+----------------+----------------+
 | <<<numThreads>>> | Number of execution threads for a crawler.  Default is 2. | N/A | N/A |
 *----------+--------------+----------------+----------------+
-| <<<depth>>> | How many level deep to crawl from start URL(s).  Default is -1 (unlimited). | N/A | N/A |
+| <<<maxDepth>>> | How many level deep to crawl from start URL(s).  Default is -1 (unlimited). | N/A | N/A |
+*----------+--------------+----------------+----------------+
+| <<<maxURLs>>> | Maximum URLs to successfully process.  Default is -1 (unlimited). | N/A | N/A |
 *----------+--------------+----------------+----------------+
 | <<<workDir>>> | Where to store files created as part of crawling activies.  Default is "./work". | N/A | N/A |
 *----------+--------------+----------------+----------------+

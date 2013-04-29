@@ -31,6 +31,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.AbstractOnMatchFilter;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
@@ -38,7 +39,6 @@ import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.collector.http.filter.OnMatch;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.map.Properties;
 
 /**
  * Filters URL based on coma-separated list of file extensions.
@@ -164,7 +164,7 @@ public class ExtensionURLFilter extends AbstractOnMatchFilter implements
         return acceptURL(document.getUrl());
     }
     @Override
-    public boolean acceptHeaders(String url, Properties headers) {
+    public boolean acceptDocument(String url, HttpMetadata headers) {
         return acceptURL(url);
     }
     @Override

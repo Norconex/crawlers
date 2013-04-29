@@ -20,7 +20,7 @@ package com.norconex.collector.http.filter;
 
 import java.io.Serializable;
 
-import com.norconex.commons.lang.map.Properties;
+import com.norconex.collector.http.doc.HttpMetadata;
 
 /**
  * Filter a document based on their HTTP headers, before the document content
@@ -41,6 +41,6 @@ public interface IHttpHeadersFilter extends Serializable {
      * @param headers HTTP headers associated with the URL
      * @return <code>true</code> if accepted, <code>false</code> otherwise
      */
-    boolean acceptHeaders(String url, Properties headers);
+    boolean acceptDocument(String url, HttpMetadata headers);
     
 }

@@ -200,7 +200,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       </httpHeadersFilters>        
         
       <!-- Generates a checksum value from document headers to find out if 
-           a document has changed based. Class must implement
+           a document has changed. Class must implement
            *.handler.IHttpHeadersChecksummer.  Default implementation 
            is the following. 
            -->

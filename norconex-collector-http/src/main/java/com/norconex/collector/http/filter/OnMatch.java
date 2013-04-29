@@ -20,7 +20,7 @@ package com.norconex.collector.http.filter;
 
 /**
  * Constants indicating the action to perform upon matching a condition.
- * Used by some filter implementations.
+ * Typically used with filtering conditions.
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  *
  */
