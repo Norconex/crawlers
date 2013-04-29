@@ -30,6 +30,7 @@ import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.Importer;
 import com.norconex.importer.TestUtil;
+import com.norconex.importer.transformer.impl.StripBetweenTransformer;
 
 public class StripBetweenTransformerTest {
 
@@ -51,12 +52,12 @@ public class StripBetweenTransformerTest {
         t.transformDocument(
                 htmlFile.getAbsolutePath(), 
                 is, os, metadata, false);
+        System.out.println(os.toString());
         
         Assert.assertEquals(
                 "Length of doc content after transformation is incorrect.",
                 458, os.toString().length());
 
-        //System.out.println(os.toString());
         is.close();
         os.close();
     }
@@ -68,7 +69,7 @@ public class StripBetweenTransformerTest {
         t.setInclusive(true);
         t.addStripEndpoints("<!-- NO INDEX", "/NOINDEX -->");
         t.addStripEndpoints("<!-- HEADER START", "HEADER END -->");
-        t.addExtraTextContentType("application/xml");
+        t.setContentTypeRegex("application/xml");
         System.out.println("Writing/Reading this: " + t);
         ConfigurationUtil.assertWriteRead(t);
     }

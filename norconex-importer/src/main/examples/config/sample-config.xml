@@ -21,7 +21,7 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
 
 
     <preParseHandlers>
-      <tagger class="com.norconex.importer.tagger.ConstantTagger">
+      <tagger class="com.norconex.importer.tagger.impl.ConstantTagger">
         <constant name="docType">Book</constant>
       </tagger>
 <!-- 

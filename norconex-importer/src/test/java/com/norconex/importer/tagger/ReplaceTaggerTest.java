@@ -23,6 +23,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Test;
 
 import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.importer.tagger.impl.ReplaceTagger;
 
 public class ReplaceTaggerTest {
 

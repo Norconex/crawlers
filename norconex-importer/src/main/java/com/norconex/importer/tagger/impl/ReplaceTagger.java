@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.importer.tagger;
+package com.norconex.importer.tagger.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +40,7 @@ import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.tagger.IDocumentTagger;
 
 //TODO Implement more efficiently. 
 //TODO A regex version?

@@ -15,12 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.importer.tagger;
+package com.norconex.importer.tagger.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,99 +33,82 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.tagger.IDocumentTagger;
 
 /**
- * <p>
- * Forces a metadata field to be single-value.  The action can be one of the 
- * following:
+ * <p>Define and add constant values to documents.  To add multiple constant 
+ * values under the same constant name, repeat the constant entry with a 
+ * different value.
  * </p>
  * <p>Can be used both as a pre-parse or post-parse handler.</p>
- * <pre>
- *    keepFirst          Keeps the first occurrence found.
- *    keepLast           Keeps the first occurrence found.
- *    mergeWith:&lt;sep&gt;    Merges all occurrences, joining them with the
- *                       specified separator (&lt;sep&gt;). 
- * </pre>
- * <p>
- * If you do not specify any action, the default behavior is to merge all
- * occurrences, joining values with a comma.
- * </p> 
  * <p>
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;tagger class="com.norconex.importer.tagger.SingleValueTagger"&gt;
- *      &lt;singleValue field="FIELD_NAME" action="[keepFirst|keepLast|mergeWith:&lt;separator&gt;]"/&gt
- *      &lt;-- multiple single value fields allowed --&gt;
+ *  &lt;tagger class="com.norconex.importer.tagger.ConstantTagger"&gt;
+ *      &lt;constant name="CONSTANT_NAME"&gtConstant Value&lt;/constant&gt
+ *      &lt;-- multiple constant tags allowed --&gt;
  *  &lt;/tagger&gt;
  * </pre>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 @SuppressWarnings("nls")
-public class ForceSingleValueTagger 
+public class ConstantTagger 
         implements IDocumentTagger, IXMLConfigurable {
 
-    private static final long serialVersionUID = -430885800148300053L;
-
-    private final Map<String, String> singleFields = 
-            new HashMap<String, String>();
+    private static final long serialVersionUID = -6062036871216739761L;
+    
+    private final Map<String, List<String>> constants = 
+            new HashMap<String, List<String>>();
     
     @Override
     public void tagDocument(
             String reference, InputStream document, 
             Properties metadata, boolean parsed)
             throws IOException {
-        for (String name : singleFields.keySet()) {
-            List<String> values = metadata.getStrings(name);  
-            String action = singleFields.get(name);
-            if (values != null && !values.isEmpty() 
-                    && StringUtils.isNotBlank(action)) {
-                String singleValue = null;
-                if ("keepFirst".equalsIgnoreCase(action)) {
-                    singleValue = values.get(0);
-                } else if ("keepLast".equalsIgnoreCase(action)) {
-                    singleValue = values.get(values.size() - 1);
-                } else if (StringUtils.startsWithIgnoreCase(
-                        action, "mergeWith")) {
-                    String sep = StringUtils.substringAfter(action, ":");
-                    singleValue = StringUtils.join(values, sep);
-                } else {
-                    singleValue = StringUtils.join(values, ",");
+        for (String name : constants.keySet()) {
+            List<String> values = constants.get(name);
+            if (values != null) {
+                for (String value : values) {
+                    metadata.addString(name, value);
                 }
-                metadata.setString(name, singleValue);
             }
         }
     }
 
-    public Map<String, String> getSingleValueFields() {
-        return Collections.unmodifiableMap(singleFields);
+    public Map<String, List<String>> getConstants() {
+        return Collections.unmodifiableMap(constants);
     }
 
-    public void addSingleValueField(String field, String action) {
-        if (field != null && action != null) {
-            singleFields.put(field, action);
+    public void addConstant(String name, String value) {
+        if (name != null && value != null) {
+            List<String> values = constants.get(name);
+            if (values == null) {
+                values = new ArrayList<String>(1);
+                constants.put(name, values);
+            }
+            values.add(value);
         }
     }
-    public void removeSingleValueField(String name) {
-        singleFields.remove(name);
+    public void removeConstant(String name) {
+        constants.remove(name);
     }
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
         try {
             XMLConfiguration xml = ConfigurationLoader.loadXML(in);
-            List<HierarchicalConfiguration> nodes = 
-                    xml.configurationsAt("singleValue");
+            List<HierarchicalConfiguration> nodes =
+                    xml.configurationsAt("constant");
             for (HierarchicalConfiguration node : nodes) {
-                String name = node.getString("[@field]");
-                String action = node.getString("[@action]");
-                addSingleValueField(name, action);
+                String name = node.getString("[@name]");
+                String value = node.getString("");
+                addConstant(name, value);
             }
         } catch (ConfigurationException e) {
             throw new IOException("Cannot load XML.", e);
@@ -138,14 +122,16 @@ public class ForceSingleValueTagger
             XMLStreamWriter writer = factory.createXMLStreamWriter(out);
             writer.writeStartElement("tagger");
             writer.writeAttribute("class", getClass().getCanonicalName());
-
-            for (String name : singleFields.keySet()) {
-                String action = singleFields.get(name);
-                if (action != null) {
-                    writer.writeStartElement("singleValue");
-                    writer.writeAttribute("field", name);
-                    writer.writeAttribute("action", action);
-                    writer.writeEndElement();
+            
+            for (String name : constants.keySet()) {
+                List<String> values = constants.get(name);
+                for (String value : values) {
+                    if (value != null) {
+                        writer.writeStartElement("constant");
+                        writer.writeAttribute("name", name);
+                        writer.writeCharacters(value);
+                        writer.writeEndElement();
+                    }
                 }
             }
             writer.writeEndElement();
@@ -159,18 +145,20 @@ public class ForceSingleValueTagger
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("ForceSingleValueTagger [{");
+        builder.append("ConstantTagger [{");
         boolean first = true;
-        for (String name : singleFields.keySet()) {
-            String action = singleFields.get(name);
-            if (action != null) {
-                if (!first) {
-                    builder.append(", ");
+        for (String name : constants.keySet()) {
+            List<String> values = constants.get(name);
+            for (String value : values) {
+                if (value != null) {
+                    if (!first) {
+                        builder.append(", ");
+                    }
+                    builder.append("[name=").append(name)
+                        .append(", value=").append(value)
+                        .append("]");
+                    first = false;
                 }
-                builder.append("[field=").append(name)
-                    .append(", value=").append(action)
-                    .append("]");
-                first = false;
             }
         }
         builder.append("}]");
@@ -182,7 +170,7 @@ public class ForceSingleValueTagger
         final int prime = 31;
         int result = 1;
         result = prime * result
-                + ((singleFields == null) ? 0 : singleFields.hashCode());
+                + ((constants == null) ? 0 : constants.hashCode());
         return result;
     }
 
@@ -194,12 +182,13 @@ public class ForceSingleValueTagger
             return false;
         if (getClass() != obj.getClass())
             return false;
-        ForceSingleValueTagger other = (ForceSingleValueTagger) obj;
-        if (singleFields == null) {
-            if (other.singleFields != null)
+        ConstantTagger other = (ConstantTagger) obj;
+        if (constants == null) {
+            if (other.constants != null)
                 return false;
-        } else if (!singleFields.equals(other.singleFields))
+        } else if (!constants.equals(other.constants))
             return false;
         return true;
     }
+    
 }

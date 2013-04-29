@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.importer.tagger;
+package com.norconex.importer.tagger.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,91 +23,84 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.tagger.IDocumentTagger;
 
 /**
- * <p>Define and add constant values to documents.  To add multiple constant 
- * values under the same constant name, repeat the constant entry with a 
- * different value.
+ * <p>
+ * Keep only the metadata fields provided, delete all other ones.
  * </p>
  * <p>Can be used both as a pre-parse or post-parse handler.</p>
  * <p>
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;tagger class="com.norconex.importer.tagger.ConstantTagger"&gt;
- *      &lt;constant name="CONSTANT_NAME"&gtConstant Value&lt;/constant&gt
- *      &lt;-- multiple constant tags allowed --&gt;
- *  &lt;/tagger&gt;
+ *  &lt;tagger class="com.norconex.importer.tagger.KeepOnlyTagger"
+ *      fields="[coma-separated list of fields to keep]"/&gt
  * </pre>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 @SuppressWarnings("nls")
-public class ConstantTagger 
+public class KeepOnlyTagger 
         implements IDocumentTagger, IXMLConfigurable {
 
-    private static final long serialVersionUID = -6062036871216739761L;
-    
-    private final Map<String, List<String>> constants = 
-            new HashMap<String, List<String>>();
+    private static final long serialVersionUID = -4075527874358712815L;
+
+    private final List<String> fields = new ArrayList<String>();
     
     @Override
     public void tagDocument(
-            String reference, InputStream document, 
+            String reference, InputStream document,
             Properties metadata, boolean parsed)
             throws IOException {
-        for (String name : constants.keySet()) {
-            List<String> values = constants.get(name);
-            if (values != null) {
-                for (String value : values) {
-                    metadata.addString(name, value);
-                }
+        for (String name : metadata.keySet()) {
+            if (!exists(name)) {
+                metadata.remove(name);
             }
         }
     }
 
-    public Map<String, List<String>> getConstants() {
-        return Collections.unmodifiableMap(constants);
+    private boolean exists(String fieldToMatch) {
+        for (String field : fields) {
+            if (field.equalsIgnoreCase(fieldToMatch)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    
+    public List<String> getFields() {
+        return Collections.unmodifiableList(fields);
     }
 
-    public void addConstant(String name, String value) {
-        if (name != null && value != null) {
-            List<String> values = constants.get(name);
-            if (values == null) {
-                values = new ArrayList<String>(1);
-                constants.put(name, values);
-            }
-            values.add(value);
-        }
+    public void addField(String field) {
+        fields.add(field);
     }
-    public void removeConstant(String name) {
-        constants.remove(name);
+    public void removeField(String field) {
+        fields.remove(field);
     }
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
         try {
             XMLConfiguration xml = ConfigurationLoader.loadXML(in);
-            List<HierarchicalConfiguration> nodes =
-                    xml.configurationsAt("constant");
-            for (HierarchicalConfiguration node : nodes) {
-                String name = node.getString("[@name]");
-                String value = node.getString("");
-                addConstant(name, value);
+            String fieldsStr = xml.getString("[@fields]");
+            String[] fields = StringUtils.split(fieldsStr, ",");
+            for (String field : fields) {
+                addField(field.trim());
             }
         } catch (ConfigurationException e) {
             throw new IOException("Cannot load XML.", e);
@@ -121,18 +114,7 @@ public class ConstantTagger
             XMLStreamWriter writer = factory.createXMLStreamWriter(out);
             writer.writeStartElement("tagger");
             writer.writeAttribute("class", getClass().getCanonicalName());
-            
-            for (String name : constants.keySet()) {
-                List<String> values = constants.get(name);
-                for (String value : values) {
-                    if (value != null) {
-                        writer.writeStartElement("constant");
-                        writer.writeAttribute("name", name);
-                        writer.writeCharacters(value);
-                        writer.writeEndElement();
-                    }
-                }
-            }
+            writer.writeAttribute("fields", StringUtils.join(fields, ","));
             writer.writeEndElement();
             writer.flush();
             writer.close();
@@ -144,22 +126,8 @@ public class ConstantTagger
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("ConstantTagger [{");
-        boolean first = true;
-        for (String name : constants.keySet()) {
-            List<String> values = constants.get(name);
-            for (String value : values) {
-                if (value != null) {
-                    if (!first) {
-                        builder.append(", ");
-                    }
-                    builder.append("[name=").append(name)
-                        .append(", value=").append(value)
-                        .append("]");
-                    first = false;
-                }
-            }
-        }
+        builder.append("KeepOnlyTagger [{");
+        builder.append(StringUtils.join(fields, ","));
         builder.append("}]");
         return builder.toString();
     }
@@ -168,8 +136,7 @@ public class ConstantTagger
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result
-                + ((constants == null) ? 0 : constants.hashCode());
+        result = prime * result + ((fields == null) ? 0 : fields.hashCode());
         return result;
     }
 
@@ -181,13 +148,12 @@ public class ConstantTagger
             return false;
         if (getClass() != obj.getClass())
             return false;
-        ConstantTagger other = (ConstantTagger) obj;
-        if (constants == null) {
-            if (other.constants != null)
+        KeepOnlyTagger other = (KeepOnlyTagger) obj;
+        if (fields == null) {
+            if (other.fields != null)
                 return false;
-        } else if (!constants.equals(other.constants))
+        } else if (!fields.equals(other.fields))
             return false;
         return true;
     }
-    
 }

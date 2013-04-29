@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.importer.tagger;
+package com.norconex.importer.tagger.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,36 +36,36 @@ import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.tagger.IDocumentTagger;
 
 /**
  * <p>
- * Keep only the metadata fields provided, delete all other ones.
+ * Delete the metadata fields provided.
  * </p>
  * <p>Can be used both as a pre-parse or post-parse handler.</p>
  * <p>
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;tagger class="com.norconex.importer.tagger.KeepOnlyTagger"
- *      fields="[coma-separated list of fields to keep]"/&gt
+ *  &lt;tagger class="com.norconex.importer.tagger.DeleteTagger"
+ *      fields="[coma-separated list of fields to delete]"/&gt
  * </pre>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 @SuppressWarnings("nls")
-public class KeepOnlyTagger 
+public class DeleteTagger 
         implements IDocumentTagger, IXMLConfigurable {
 
-    private static final long serialVersionUID = -4075527874358712815L;
-
+    private static final long serialVersionUID = 8705987779553672659L;
     private final List<String> fields = new ArrayList<String>();
     
     @Override
     public void tagDocument(
-            String reference, InputStream document,
+            String reference, InputStream document, 
             Properties metadata, boolean parsed)
             throws IOException {
         for (String name : metadata.keySet()) {
-            if (!exists(name)) {
+            if (exists(name)) {
                 metadata.remove(name);
             }
         }
@@ -125,7 +125,7 @@ public class KeepOnlyTagger
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("KeepOnlyTagger [{");
+        builder.append("DeleteTagger [{");
         builder.append(StringUtils.join(fields, ","));
         builder.append("}]");
         return builder.toString();
@@ -147,7 +147,7 @@ public class KeepOnlyTagger
             return false;
         if (getClass() != obj.getClass())
             return false;
-        KeepOnlyTagger other = (KeepOnlyTagger) obj;
+        DeleteTagger other = (DeleteTagger) obj;
         if (fields == null) {
             if (other.fields != null)
                 return false;

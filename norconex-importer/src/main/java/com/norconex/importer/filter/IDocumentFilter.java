@@ -24,7 +24,10 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.IImportHandler;
 
 /**
- * Filters documents.
+ * Filters documents. Before
+ * import has occurred, the properties are limited (e.g. HTTP headers, if 
+ * coming from HTTP Collector).  After import, all document properties should
+ * be available.
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IDocumentFilter extends IImportHandler {
