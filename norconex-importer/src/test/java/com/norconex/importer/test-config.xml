@@ -20,15 +20,29 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
 <importer>
 
     <preParseHandlers>
-      <tagger class="com.norconex.importer.tagger.ConstantTagger">
+      <tagger class="com.norconex.importer.tagger.impl.ConstantTagger">
         <constant name="Author">Lewis Carroll</constant>
       </tagger>
       
-<!-- 
-        <transformer class="..." />
-        <filter class="..." />
+      <!-- Should not trigger any transformation: -->
+      <transformer class="com.norconex.importer.transformer.impl.StripBetweenTransformer"
+              inclusive="false" 
+              caseSensitive="false" >
+          <contentTypeRegex>text/doesNotExist</contentTypeRegex>
+          <stripBetween>
+              <start>potato</start>
+              <end>carrot</end>
+          </stripBetween>
+      </transformer>
 
- -->    
+      <!-- Should trigger transformation: -->
+      <transformer class="com.norconex.importer.transformer.impl.StripAfterTransformer"
+              inclusive="true" 
+              caseSensitive="false" >
+          <stripAfterRegex>&lt;p&gt;</stripAfterRegex>
+      </transformer>
+
+<!-- <filter class="..." />  --> 
     </preParseHandlers>
 
 </importer>

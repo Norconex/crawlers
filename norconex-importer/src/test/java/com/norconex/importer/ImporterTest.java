@@ -41,7 +41,7 @@ public class ImporterTest {
     @Before
     public void setUp() throws Exception {
         ImporterConfig config = new ImporterConfig();
-        config.setPreParseHandlers(new IDocumentTransformer[] {
+        config.setPostParseHandlers(new IDocumentTransformer[] {
                 new IDocumentTransformer() {        
             private static final long serialVersionUID = -4814791150728184883L;
             Pattern pattern = Pattern.compile("[^a-zA-Z ]", Pattern.MULTILINE);

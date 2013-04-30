@@ -60,7 +60,7 @@ import com.norconex.importer.tagger.IDocumentTagger;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;tagger class="com.norconex.importer.tagger.SingleValueTagger"&gt;
+ *  &lt;tagger class="com.norconex.importer.tagger.impl.SingleValueTagger"&gt;
  *      &lt;singleValue field="FIELD_NAME" action="[keepFirst|keepLast|mergeWith:&lt;separator&gt;]"/&gt
  *      &lt;-- multiple single value fields allowed --&gt;
  *  &lt;/tagger&gt;

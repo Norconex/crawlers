@@ -20,11 +20,6 @@ package com.norconex.importer.transformer.impl;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,11 +27,9 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -44,9 +37,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.transformer.AbstractStringTransformer;
 
 /**
- * <p>Strips any content found between a matching start and end strings.  The
- * matching strings are defined in pairs and multiple ones can be specified
- * at once.</p>
+ * <p>Strips any content found before first match found for given pattern.</p>
  * 
  * <p>This class can be used as a pre-parsing (text content-types only) 
  * or post-parsing handlers.</p>
@@ -54,11 +45,11 @@ import com.norconex.importer.transformer.AbstractStringTransformer;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;transformer class="com.norconex.importer.transformer.impl.StripBetweenTransformer"
+ *  &lt;transformer class="com.norconex.importer.transformer.impl.StripBeforeTransformer"
  *          inclusive="[false|true]" 
  *          caseSensitive="[false|true]" &gt;
  *      &lt;contentTypeRegex&gt;
- *          (regex to identify text content-types for pre-import, 
+ *          (stripBeforeRegex to identify text content-types for pre-import, 
  *           overriding default)
  *      &lt;/contentTypeRegex&gt;
  *      &lt;restrictTo
@@ -66,65 +57,45 @@ import com.norconex.importer.transformer.AbstractStringTransformer;
  *              property="(name of header/metadata name to match)"
  *          (regular expression of value to match)
  *      &lt;/restrictTo&gt;
- *      &lt;stripBetween&gt
- *          &lt;start&gt(regex)&lt;/start&gt
- *          &lt;end&gt(regex)&lt;/end&gt
- *      &lt;/stripBetween&gt
- *      &lt;-- multiple strignBetween tags allowed --&gt;
+ *      &lt;stripBeforeRegex&gt(regex)&lt;/stripBeforeRegex&gt
  *  &lt;/transformer&gt;
  * </pre>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
-public class StripBetweenTransformer extends AbstractStringTransformer
+public class StripBeforeTransformer extends AbstractStringTransformer
         implements IXMLConfigurable {
 
-    private static final long serialVersionUID = 9192256155691565491L;
-    
-    private Set<Pair<String, String>> stripPairs = 
-            new TreeSet<Pair<String,String>>(
-                    new Comparator<Pair<String,String>>() {
-        public int compare(Pair<String,String> o1, Pair<String,String> o2) {
-            return o1.getLeft().length() - o2.getLeft().length();
-        };
-    });
+    private static final long serialVersionUID = 1755678509630926102L;
+
+    private static final Logger LOG = 
+            LogManager.getLogger(StripBeforeTransformer.class);    
+
     private boolean inclusive;
     private boolean caseSensitive;
+    private String stripBeforeRegex;
 
     @Override
     protected void transformStringDocument(String reference,
             StringBuilder content, Properties metadata, boolean parsed,
             boolean partialContent) {
+        if (stripBeforeRegex == null) {
+            LOG.error("No regular expression provided.");
+            return;
+        }
         int flags = Pattern.DOTALL | Pattern.UNICODE_CASE;
         if (!caseSensitive) {
             flags = flags | Pattern.CASE_INSENSITIVE;
         }
-        for (Pair<String, String> pair : stripPairs) {
-            List<Pair<Integer, Integer>> matches = 
-                    new ArrayList<Pair<Integer, Integer>>();
-            Pattern leftPattern = Pattern.compile(pair.getLeft(), flags);
-            Matcher leftMatch = leftPattern.matcher(content);
-            while (leftMatch.find()) {
-                Pattern rightPattern = Pattern.compile(pair.getRight(), flags);
-                Matcher rightMatch = rightPattern.matcher(content);
-                if (rightMatch.find(leftMatch.end())) {
-                    if (inclusive) {
-                        matches.add(new ImmutablePair<Integer, Integer>(
-                                leftMatch.start(), rightMatch.end()));
-                    } else {
-                        matches.add(new ImmutablePair<Integer, Integer>(
-                                leftMatch.end(), rightMatch.start()));
-                    }
-                } else {
-                    break;
-                }
-            }
-            for (int i = matches.size() -1; i >= 0; i--) {
-                Pair<Integer, Integer> matchPair = matches.get(i);
-                content.delete(matchPair.getLeft(), matchPair.getRight());
+        Pattern pattern = Pattern.compile(stripBeforeRegex, flags);
+        Matcher match = pattern.matcher(content);
+        if (match.find()) {
+            if (inclusive) {
+                content.delete(0, match.end());
+            } else {
+                content.delete(0, match.start());
             }
         }
     }
-
         
     public boolean isInclusive() {
         return inclusive;
@@ -148,27 +119,20 @@ public class StripBetweenTransformer extends AbstractStringTransformer
         this.caseSensitive = caseSensitive;
     }
 
-    public void addStripEndpoints(String fromText, String toText) {
-        if (StringUtils.isBlank(fromText) || StringUtils.isBlank(toText)) {
-            return;
-        }
-        stripPairs.add(new ImmutablePair<String, String>(fromText, toText));
+    public String getStripBeforeRegex() {
+        return stripBeforeRegex;
     }
-    public List<Pair<String, String>> getStripEndpoints() {
-        return new ArrayList<Pair<String,String>>(stripPairs);
+    public void setStripBeforeRegex(String regex) {
+        this.stripBeforeRegex = regex;
     }
+
     @Override
     public void loadFromXML(Reader in) throws IOException {
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         setCaseSensitive(xml.getBoolean("[@caseSensitive]", false));
         setInclusive(xml.getBoolean("[@inclusive]", false));
         super.loadFromXML(xml);
-        List<HierarchicalConfiguration> nodes = 
-                xml.configurationsAt("stripBetween");
-        for (HierarchicalConfiguration node : nodes) {
-            addStripEndpoints(
-                    node.getString("start", null), node.getString("end", null));
-        }
+        setStripBeforeRegex(xml.getString("stripBeforeRegex", null));
     }
 
     @Override
@@ -182,16 +146,9 @@ public class StripBetweenTransformer extends AbstractStringTransformer
                     "caseSensitive", Boolean.toString(isCaseSensitive()));
             writer.writeAttribute("inclusive", Boolean.toString(isInclusive()));
             super.saveToXML(writer);
-            for (Pair<String, String> pair : stripPairs) {
-                writer.writeStartElement("stripBetween");
-                writer.writeStartElement("start");
-                writer.writeCharacters(pair.getLeft());
-                writer.writeEndElement();
-                writer.writeStartElement("end");
-                writer.writeCharacters(pair.getRight());
-                writer.writeEndElement();
-                writer.writeEndElement();
-            }
+            writer.writeStartElement("stripBeforeRegex");
+            writer.writeCharacters(stripBeforeRegex);
+            writer.writeEndElement();
             writer.writeEndElement();
             writer.flush();
             writer.close();
@@ -202,9 +159,9 @@ public class StripBetweenTransformer extends AbstractStringTransformer
 
     @Override
     public String toString() {
-        return "StripBetweenTransformer [stripPairs=" + stripPairs
-                + ", inclusive=" + inclusive + ", caseSensitive="
-                + caseSensitive + "]";
+        return "StripAfterTransformer [inclusive=" + inclusive
+                + ", caseSensitive=" + caseSensitive + ", stripBeforeRegex=" 
+                + stripBeforeRegex + "]";
     }
 
     @Override
@@ -213,8 +170,8 @@ public class StripBetweenTransformer extends AbstractStringTransformer
         int result = super.hashCode();
         result = prime * result + (caseSensitive ? 1231 : 1237);
         result = prime * result + (inclusive ? 1231 : 1237);
-        result = prime * result
-                + ((stripPairs == null) ? 0 : stripPairs.hashCode());
+        result = prime * result + ((stripBeforeRegex == null) 
+                ? 0 : stripBeforeRegex.hashCode());
         return result;
     }
 
@@ -226,15 +183,15 @@ public class StripBetweenTransformer extends AbstractStringTransformer
             return false;
         if (getClass() != obj.getClass())
             return false;
-        StripBetweenTransformer other = (StripBetweenTransformer) obj;
+        StripBeforeTransformer other = (StripBeforeTransformer) obj;
         if (caseSensitive != other.caseSensitive)
             return false;
         if (inclusive != other.inclusive)
             return false;
-        if (stripPairs == null) {
-            if (other.stripPairs != null)
+        if (stripBeforeRegex == null) {
+            if (other.stripBeforeRegex != null)
                 return false;
-        } else if (!stripPairs.equals(other.stripPairs))
+        } else if (!stripBeforeRegex.equals(other.stripBeforeRegex))
             return false;
         return true;
     }

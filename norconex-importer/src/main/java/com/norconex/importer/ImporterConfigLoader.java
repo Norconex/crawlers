@@ -119,6 +119,7 @@ public final class ImporterConfigLoader {
                 xml.configurationsAt(xmlPath + "/*");
         xml.setExpressionEngine(originalEngine);
         for (HierarchicalConfiguration xmlHandler : xmlHandlers) {
+            xmlHandler.setExpressionEngine(originalEngine);
             handlers.add(
                     (IImportHandler) ConfigurationUtil.newInstance(xmlHandler));
         }

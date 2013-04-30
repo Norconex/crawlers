@@ -53,6 +53,6 @@ public class ImportHandlerTest {
         is.close();
 
         // Test Constant
-        Assert.assertEquals(metadata.getString("Author"), "Lewis Carroll");
+        Assert.assertEquals("Lewis Carroll", metadata.getString("Author"));
     }
 }

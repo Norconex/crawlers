@@ -1,4 +1,3 @@
 
 - Allow to break documents into smaller documents.
 
-- Create StripBeforeTranformer and StripAfterTransformer

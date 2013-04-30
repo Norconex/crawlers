@@ -117,7 +117,8 @@ public abstract class AbstractCharStreamTransformer
      * @param xml xml configuration
      */
     protected void loadFromXML(XMLConfiguration xml) {
-        setContentTypeRegex(xml.getString("contentTypeRegex", null));
+        setContentTypeRegex(xml.getString(
+                "contentTypeRegex", contentTypeRegex.toString()));
         super.loadFromXML(xml);
     }
     

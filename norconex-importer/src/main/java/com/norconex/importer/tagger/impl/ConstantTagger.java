@@ -50,7 +50,7 @@ import com.norconex.importer.tagger.IDocumentTagger;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;tagger class="com.norconex.importer.tagger.ConstantTagger"&gt;
+ *  &lt;tagger class="com.norconex.importer.tagger.impl.ConstantTagger"&gt;
  *      &lt;constant name="CONSTANT_NAME"&gtConstant Value&lt;/constant&gt
  *      &lt;-- multiple constant tags allowed --&gt;
  *  &lt;/tagger&gt;

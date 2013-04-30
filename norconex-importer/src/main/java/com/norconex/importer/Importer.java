@@ -32,13 +32,16 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
 import org.apache.tika.io.TikaInputStream;
 
+import com.norconex.commons.lang.io.FileUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.filter.IDocumentFilter;
 import com.norconex.importer.parser.DocumentParserException;
@@ -191,10 +194,12 @@ public class Importer {
      * @throws IOException problem importing document
      */    
     public boolean importDocument(
-            File input, ContentType contentType, 
+            final File input, ContentType contentType, 
             File output, Properties metadata, String docReference)
             throws IOException {
 
+        MutableObject<File> workFile = new MutableObject<File>(input);
+        
         ContentType finalContentType = contentType;
         if (finalContentType == null 
                 || StringUtils.isBlank(finalContentType.toString())) {
@@ -207,40 +212,47 @@ public class Importer {
         }
         
         metadata.addString(DOC_REFERENCE, finalDocRef); 
-    	metadata.addString(
-    	        DOC_CONTENT_TYPE, finalContentType.toString()); 
+    	metadata.addString(DOC_CONTENT_TYPE, finalContentType.toString()); 
         
-    	if (!executeHandlers(docReference, output, metadata, 
+    	if (!executeHandlers(docReference, input, workFile, metadata, 
     	        importerConfig.getPreParseHandlers(), false)) {
     	    return false;
     	}
     	
-    	parseDocument(input, finalContentType, output, metadata, finalDocRef);
+    	parseDocument(workFile.getValue(), 
+    	        finalContentType, output, metadata, finalDocRef);
+    	workFile.setValue(output);
 
-        if (!executeHandlers(docReference, output, metadata, 
+    	if (!executeHandlers(docReference, input, workFile, metadata, 
                 importerConfig.getPostParseHandlers(), true)) {
             return false;
         }
+    	
+    	if (!workFile.getValue().equals(output)) {
+            FileUtil.moveFile(workFile.getValue(), output);
+    	}
         return true;
     }
     
     private boolean executeHandlers(
-            String docReference, File outputFile, Properties metadata,
+            String docReference, File rawImportedFile, 
+            MutableObject<File> inFile, Properties metadata, 
             IImportHandler[] handlers, boolean parsed)
             throws IOException {
         if (handlers == null) {
             return true;
         }
+        
         for (IImportHandler h : handlers) {
             if (h instanceof IDocumentTagger) {
-                tagDocument(docReference, 
-                        (IDocumentTagger) h, outputFile, metadata, parsed);
+                tagDocument(docReference, (IDocumentTagger) h, 
+                        inFile.getValue(), metadata, parsed);
             } else if (h instanceof IDocumentTransformer) {
                 transformDocument(docReference, (IDocumentTransformer) h, 
-                        outputFile, metadata, parsed);
+                        rawImportedFile, inFile, metadata, parsed);
             } else if (h instanceof IDocumentFilter) {
-                if (!acceptDocument(
-                        (IDocumentFilter) h, outputFile, metadata, parsed)){
+                if (!acceptDocument((IDocumentFilter) h, inFile.getValue(), 
+                        metadata, parsed)){
                     return false;
                 }
             } else {
@@ -302,10 +314,10 @@ public class Importer {
     }
 
     private void tagDocument(String docReference, 
-            IDocumentTagger tagger, File outputFile, 
+            IDocumentTagger tagger, File inputFile, 
             Properties metadata, boolean parsed)
             throws IOException {
-        FileInputStream is = new FileInputStream(outputFile);
+        FileInputStream is = new FileInputStream(inputFile);
         tagger.tagDocument(docReference, is, metadata, parsed);
         is.close();
     }
@@ -327,23 +339,36 @@ public class Importer {
     }
 
     private void transformDocument(
-            String docReference,
-            IDocumentTransformer transformer,
-            File inputFile, Properties metadata, boolean parsed)
+            String docReference, IDocumentTransformer transformer,
+            File rawImportedFile, MutableObject<File> inFile,
+            Properties metadata, boolean parsed)
             throws IOException {
-        File outputFile = new File(inputFile.getAbsolutePath()
-                + "." + System.currentTimeMillis());
-        FileInputStream reader = new FileInputStream(inputFile);
-        FileOutputStream writer = new FileOutputStream(outputFile);
-        transformer.transformDocument(
-                docReference, reader, writer, metadata, parsed);
-        reader.close();
-        writer.close();
-        FileUtils.deleteQuietly(inputFile);
-        FileUtils.moveFile(outputFile, inputFile);
-        if (LOG.isDebugEnabled() && inputFile.length() == 0) {
-            LOG.debug("Transformer \"" + transformer.getClass()
-                    + "\" did not return any content for: " + docReference);
+        String inPath = inFile.getValue().getAbsolutePath();
+        File outputFile = new File(
+                FileUtils.getTempDirectoryPath()
+              + "/" + FilenameUtils.getBaseName(inPath) 
+              + "-" + System.currentTimeMillis()
+              + "." + FilenameUtils.getExtension(inPath));
+        
+        FileInputStream in = new FileInputStream(inFile.getValue());
+        FileOutputStream out = new FileOutputStream(outputFile);
+        long fileSize = outputFile.length();
+        long lastModified = outputFile.lastModified();
+        
+        transformer.transformDocument(docReference, in, out, metadata, parsed);
+        in.close();
+        out.close();
+
+        if (outputFile.lastModified() != lastModified 
+                || outputFile.length() != fileSize) {
+            if (!inFile.getValue().equals(rawImportedFile)) {
+                FileUtils.deleteQuietly(inFile.getValue());
+            }
+            inFile.setValue(outputFile);
+            if (LOG.isDebugEnabled() && outputFile.length() == 0) {
+                LOG.debug("Transformer \"" + transformer.getClass()
+                        + "\" did not return any content for: " + docReference);
+            }
         }
     }
 }

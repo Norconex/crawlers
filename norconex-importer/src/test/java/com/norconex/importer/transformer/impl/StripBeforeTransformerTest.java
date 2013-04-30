@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.importer.transformer;
+package com.norconex.importer.transformer.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -30,19 +30,15 @@ import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.Importer;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.transformer.impl.StripBetweenTransformer;
 
-public class StripBetweenTransformerTest {
+public class StripBeforeTransformerTest {
 
     @Test
     public void testTransformTextDocument() throws IOException {
-        StripBetweenTransformer t = new StripBetweenTransformer();
-        t.addStripEndpoints("<h2>", "</h2>");
-        t.addStripEndpoints("<P>", "</P>");
-        t.addStripEndpoints("<head>", "</hEad>");
-        t.addStripEndpoints("<Pre>", "</prE>");
+        StripBeforeTransformer t = new StripBeforeTransformer();
+        t.setStripBeforeRegex("So she set to work");
         t.setCaseSensitive(false);
-        t.setInclusive(true);
+        t.setInclusive(false);
         File htmlFile = TestUtil.getAliceHtmlFile();
         FileInputStream is = new FileInputStream(htmlFile);
 
@@ -56,7 +52,7 @@ public class StripBetweenTransformerTest {
         
         Assert.assertEquals(
                 "Length of doc content after transformation is incorrect.",
-                458, os.toString().length());
+                373, os.toString().length());
 
         is.close();
         os.close();
@@ -65,10 +61,9 @@ public class StripBetweenTransformerTest {
     
     @Test
     public void testWriteRead() throws ConfigurationException, IOException {
-        StripBetweenTransformer t = new StripBetweenTransformer();
-        t.setInclusive(true);
-        t.addStripEndpoints("<!-- NO INDEX", "/NOINDEX -->");
-        t.addStripEndpoints("<!-- HEADER START", "HEADER END -->");
+        StripBeforeTransformer t = new StripBeforeTransformer();
+        t.setInclusive(false);
+        t.setStripBeforeRegex("So she set to work");
         t.setContentTypeRegex("application/xml");
         System.out.println("Writing/Reading this: " + t);
         ConfigurationUtil.assertWriteRead(t);

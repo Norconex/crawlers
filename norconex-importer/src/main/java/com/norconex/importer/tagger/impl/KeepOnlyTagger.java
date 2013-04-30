@@ -47,7 +47,7 @@ import com.norconex.importer.tagger.IDocumentTagger;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;tagger class="com.norconex.importer.tagger.KeepOnlyTagger"
+ *  &lt;tagger class="com.norconex.importer.tagger.impl.KeepOnlyTagger"
  *      fields="[coma-separated list of fields to keep]"/&gt
  * </pre>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
