@@ -49,7 +49,7 @@ import com.norconex.importer.transformer.AbstractStringTransformer;
  *          inclusive="[false|true]" 
  *          caseSensitive="[false|true]" &gt;
  *      &lt;contentTypeRegex&gt;
- *          (stripAfterRegex to identify text content-types for pre-import, 
+ *          (regex to identify text content-types for pre-import, 
  *           overriding default)
  *      &lt;/contentTypeRegex&gt;
  *      &lt;restrictTo
