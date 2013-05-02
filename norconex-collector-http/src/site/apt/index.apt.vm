@@ -213,7 +213,7 @@ Welcome to Norconex HTTP Collector
 []
     
   * <<Supports various website authentication schemes>>\
-    Supports "form", "basic", and "digest" implementations out-of-the-box.
+    Supports standard/popular implementations out-of-the-box.
     If you use custom authentication mechanism, you can plug your own 
     authentication logic.
 

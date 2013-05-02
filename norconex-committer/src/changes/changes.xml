@@ -6,6 +6,11 @@
     <author email="info@norconex.com">Norconex Inc.</author>
   </properties>
   <body>
+    <release version="1.0.0-SNAPSHOT" date="2013-05-01" description="Fix SFL4J exception">
+      <action dev="essiembp" type="fix">
+        Fixed missing dependency and jar versions.
+      </action>
+    </release>
     <release version="1.0.0-SNAPSHOT" date="2013-04-22" description="Open Source release">
       <action dev="essiembp" type="add">
         Starting with this release, Norconex Committer is open-source under GPL.

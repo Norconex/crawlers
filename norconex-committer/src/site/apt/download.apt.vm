@@ -39,7 +39,7 @@ Download
 
   Snapshot releases:
 
-  {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-committer/1.0.0-SNAPSHOT/norconex-committer-1.0.0-20130501.020813-3.zip} 1.0.0-20130501.020813-3}}
+  * {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-committer/1.0.0-SNAPSHOT/norconex-committer-1.0.0-20130501.020813-3.zip} 1.0.0-20130501.020813-3}}
 
   []
 
@@ -51,7 +51,7 @@ Download
 
   * <<Solr>>
   
-    * 1.0.0: {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-committer-solr/1.0.0-SNAPSHOT/norconex-committer-solr-1.0.0-20130501.205412-3.zip}1.0.0-20130501.205412-3.zip}}, 
+    * 1.0.0: {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-committer-solr/1.0.0-SNAPSHOT/norconex-committer-solr-1.0.0-20130502.032627-4.zip}1.0.0-20130502.032627-4.zip}}, 
      {{{http://www.norconex.com/product/committer-solr/apidocs/com/norconex/committer/solr/SolrCommitter.html}Javadoc}}, 
   
 * Source
