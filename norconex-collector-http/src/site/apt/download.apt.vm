@@ -22,6 +22,10 @@
 
 Download
 
+  <<WAIT!>> Don't forget you need a
+  {{{download.html#Committer_Implementations}committer implementation}} for your target 
+  data source (see below).
+  
 * Binaries
 
   Latest stable release
@@ -31,21 +35,40 @@ Download
 
   []
 
-  Older releases:
+~~  Older releases:
   
-  * None yet.
+~~  * None yet.
 
-  []    
+~~  []    
 
   Snapshot releases:
 
-  {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-collector-http/1.0.0-SNAPSHOT/norconex-collector-http-1.0.0-20130501.021526-3.zip} 1.0.0-http-1.0.0-20130501.021526-3}}
+  * {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-collector-http/1.0.0-SNAPSHOT/norconex-collector-http-1.0.0-20130501.021526-3.zip} 1.0.0-http-1.0.0-20130501.021526-3}}
 
   []
 
   <<Note:>> Snapshot releases are only listed until first stable release.
   After that, they will be available through the Norconex Snapshot maven
   repository (see below).
+
+** Committer Implementations
+
+  Without a committer matching your data source, all you will be able to
+  do with the HTTP Collector is saving the crawled content on the 
+  file system using the {{{http://www.norconex.com/product/committer/apidocs/com/norconex/committer/FileSystemCommitter.html}FileSystemCommitter}}.
+  With your download of HTTP Collector, also download a 
+  {{{http://www.norconex.com/product/committer}Committer}} 
+  implementation that matches your data source (or 
+  {{{mailto:info@norconex.com}contact Norconex}} to have yours created).
+  
+  <<Available implementations:>>
+  
+  * {{{http://www.norconex.com/product/committer-solr/index.html}Solr Committer}} 
+  
+  * More to come...
+    
+  []
+
   
 * Source
   
