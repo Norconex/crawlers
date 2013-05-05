@@ -508,12 +508,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 okURLsCount++;
             }
             database.processed(crawlURL);
-            if (LOG.isInfoEnabled()) {
-                LOG.info(StringUtils.leftPad(
-                        crawlURL.getStatus().toString(), 10) + " > " 
-                      + StringUtils.leftPad("(" 
-                              + crawlURL.getDepth() + ") ", 6) + url);
-            }
+            crawlURL.getStatus().logInfo(crawlURL);
             
             //--- Delete Local File Download -----------------------------------
             if (!crawlerConfig.isKeepDownloads()) {

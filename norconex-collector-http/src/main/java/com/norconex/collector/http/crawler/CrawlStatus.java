@@ -20,6 +20,12 @@ package com.norconex.collector.http.crawler;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import com.norconex.collector.http.db.CrawlURL;
+
 public enum CrawlStatus implements Serializable { 
     OK, 
     REJECTED, 
@@ -28,5 +34,21 @@ public enum CrawlStatus implements Serializable {
     TOO_DEEP, 
     DELETED, 
     NOT_FOUND, 
-    BAD_STATUS
+    BAD_STATUS;
+    
+    private final Logger LOG;
+    CrawlStatus() {
+        LOG = LogManager.getLogger(
+                this.getClass().getCanonicalName() + "." + toString());
+    }
+    
+    void logInfo(CrawlURL crawlURL){
+        if (LOG.isInfoEnabled()) {
+            LOG.info(StringUtils.leftPad(
+                    crawlURL.getStatus().toString(), 10) + " > " 
+                  + StringUtils.leftPad("(" + crawlURL.getDepth() + ") ", 6)
+                  + crawlURL.getUrl());
+        }
+    }
+
 }
