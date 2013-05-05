@@ -1,0 +1,71 @@
+<!---
+ Copyright 2010-2013 Norconex Inc.
+ 
+ This file is part of Norconex Solr Committer.
+ 
+ Norconex Solr Committer is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ Norconex Solr Committer is distributed in the hope that it will be useful, 
+ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with Norconex Solr Committer. If not, see <http://www.gnu.org/licenses/>.
+-->
+<head><title>Home</title><meta name="Author" content="Norconex Inc." /></head> 
+
+Welcome to Norconex Solr Committer
+==================================
+
+The **Solr Committer** library provides an implementation of 
+[Norconex Committer](http://www.norconex.com/product/committer) targeting
+[Apache Solr](http://lucene.apache.org/solr/).
+
+The current stable version of Norconex Solr Committer is
+${currentStableVersion} ([download](./download.html)). 
+
+Latest [API documentation](./apidocs/index.html).
+
+Installation
+------------
+
+This committer is a library that you must include in another product classpath
+(along with committer dependencies).  For use with a Norconex Collector, 
+follow these simple steps:
+
+  * ([Download](./download.html)) the latest release of Solr Committer
+
+  * Unzip the downloaded file somewhere.
+
+  * Copy the content of the `<committer_unzipped_folder>/lib` folder
+    to `<collector_install_folder>/lib`.
+    
+Configuration
+-------------
+
+When used with a Norconex Collector, you can use the following XML to configure
+the Solr Committer:
+
+    <committer class="com.norconex.committer.solr.SolrCommitter">
+      <solrURL>...</solrURL>
+      <idSourceField>...</idSourceField>
+      <contentTargetField>...</contentTargetField>
+      <queueDir>...</queueDir>
+      <batchSize>...</batchSize>
+      <solrBatchSize>...</solrBatchSize>
+    </committer>
+
+Tag descriptions:
+
+| Tag                | Description   |
+| ------------------ | ------------- |
+| `solrURL` | URL to Solr (where to send documents for indexing). |
+| `idSourceField` | Name of source field that will be mapped to the Solr "id" field. Default is the document reference the Committer stores as "committer.reference". |
+| `contentTargetField` | Solr target field name for a document content/body. Default is: content. |
+| `queueDir` | Optional path where to queue files before sending them to Solr. |
+| `batchSize` | Number of documents or deletes to queue before sending to Solr. |
+| `solrBatchSize` | Maximum number of documents to send Solr at once. |
