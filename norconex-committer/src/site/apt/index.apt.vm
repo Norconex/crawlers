@@ -29,23 +29,28 @@ Welcome to Norconex Committer
   to handle files successfully crawled. Taken on its own, this is not an 
   "executable" product (but may one day become).
 
-  Concrete implementations for the 
-  {{{./apidocs/com/norconex/committer/ICommitter.html}ICommitter}} interface 
-  must be provided.  Based on your target data source, Norconex may already 
-  provide existing implementations for your data sources or can create one. 
-  For instance, Norconex has a 
-  {{{./download.html#Committer_Implementations}Solr Committer}} 
-  available for Solr users.
-
-  One concrete implementation is provided, mostly for troubleshooting purposes: 
-  {{{./apidocs/com/norconex/committer/FileSystemCommitter.html}FileSystemCommitter}}
-
-
   The current stable version of 
   {{{http://www.norconex.com/product/committer}Norconex Committer}} is
   ${currentStableVersion} ({{{./download.html}download}}). 
   
   Latest {{{./apidocs/index.html}Javadoc}}.
+
+  To be useful, concrete implementations for the 
+  {{{./apidocs/com/norconex/committer/ICommitter.html}ICommitter}} interface 
+  must be provided.  One is provided with the core committer library, mostly
+  for troubleshooting purposes: {{{./apidocs/com/norconex/committer/FileSystemCommitter.html}FileSystemCommitter}}
+  
+  Based on your target data source, Norconex may already 
+  provide existing implementations for your data sources or can create one.  
+
+  <<Norconex-supported committer implementations:>>
+
+  * {{{http://www.norconex.com/product/committer-solr/index.html}Solr Committer}} 
+  
+  * More to come...
+  
+  []
+  
 
 * Configuration
 

@@ -31,11 +31,11 @@ Download
 
   []
 
-  Older releases:
+~~  Older releases:
   
-  * None yet.
+~~  * None yet.
 
-  []    
+~~  []    
 
   Snapshot releases:
 
@@ -49,10 +49,14 @@ Download
 
 * Committer Implementations
 
-  * <<Solr>>
+  The core committer library only provides you with a file system committer.
+  The followingi is a list of Committer implementations you can freely use.
   
-    * 1.0.0: {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-committer-solr/1.0.0-SNAPSHOT/norconex-committer-solr-1.0.0-20130502.032627-4.zip}1.0.0-20130502.032627-4.zip}}, 
-     {{{http://www.norconex.com/product/committer-solr/apidocs/com/norconex/committer/solr/SolrCommitter.html}Javadoc}}, 
+  * {{{http://www.norconex.com/product/committer-solr/index.html}Solr Committer}} 
+  
+  * More to come...
+  
+  []
   
 * Source
   
