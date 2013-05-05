@@ -57,8 +57,8 @@ Maven users can add the following to their pom.xml:
     </repository>  
 
     <dependency>
-        <groupId>com.norconex.jef</groupId>
-        <artifactId>norconex-jef</artifactId>
+        <groupId>com.norconex.collectors</groupId>
+        <artifactId>norconex-committer-solr</artifactId>
         <version>${currentStableVersion}</version>
     </dependency>
 
