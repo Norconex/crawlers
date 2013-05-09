@@ -251,14 +251,6 @@ public class SolrCommitter extends BatchableCommitter
         }
         doc.addField("id", metadata.getString(idField));
         
-        
-        
-//        // Make sure there is only 1 content type:
-//        String contentType = metadata.getPropertyValue("content-type");
-//        metadata.setValue("content-type", contentType);
-//        String mimeType = contentType.replaceFirst("(.*?)(;.*)", "$1");
-//        metadata.setValue("mime-type", mimeType);
-        
         for (String name : metadata.keySet()) {
             for (String value : metadata.get(name)) {
                 doc.addField(name, value);
@@ -283,13 +275,6 @@ public class SolrCommitter extends BatchableCommitter
         out.close();
         
         docList.put(file, doc);
-
-        // To immediately commit after adding documents, you could use: 
-//      UpdateRequest req = new UpdateRequest(); 
-//      req.setAction( UpdateRequest.ACTION.COMMIT, false, false );
-//      req.add( docs );
-//      UpdateResponse rsp = req.process( server );  
-        
     }
 
     @Override
