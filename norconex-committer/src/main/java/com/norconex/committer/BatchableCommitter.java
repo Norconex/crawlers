@@ -59,7 +59,7 @@ public abstract class BatchableCommitter implements ICommitter {
         queueBatchableAdd(reference, document, metadata);
         commitIfReady();
     }
-    abstract protected void queueBatchableAdd(
+    protected abstract void queueBatchableAdd(
             String reference, File document, Properties metadata);
 
     public final void queueRemove(
@@ -67,7 +67,7 @@ public abstract class BatchableCommitter implements ICommitter {
         queueBatchableRemove(ref, document, metadata);
         commitIfReady();
     }
-    abstract protected void queueBatchableRemove(
+    protected abstract void queueBatchableRemove(
             String ref, File document, Properties metadata);
     
 

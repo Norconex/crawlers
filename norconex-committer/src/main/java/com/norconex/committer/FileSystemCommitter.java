@@ -52,9 +52,6 @@ import com.norconex.commons.lang.map.Properties;
  */
 public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
 
-//	private static final Logger LOG = LogManager.getLogger(
-//			FileSystemCommitter.class);
-
     private static final long serialVersionUID = 567796374790003396L;
 
     public static final String COMMITTER_PREFIX = "committer.";
@@ -64,6 +61,8 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
     
     private String directory = DEFAULT_DIRECTORY;
 
+    private static final int DATE_FOLDER_CHAR_SIZE = 3;
+    
     public String getDirectory() {
 		return directory;
 	}
@@ -128,7 +127,7 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
             String time = Long.toString(System.currentTimeMillis());
             StringBuilder b = new StringBuilder();
             for (int i = 0; i < time.length(); i++) {
-                if (i % 3 == 0) {
+                if (i % DATE_FOLDER_CHAR_SIZE == 0) {
                     b.append(SystemUtils.FILE_SEPARATOR);
                 }
                 b.append(time.charAt(i));
@@ -172,18 +171,23 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
     }
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         FileSystemCommitter other = (FileSystemCommitter) obj;
         if (directory == null) {
-            if (other.directory != null)
+            if (other.directory != null) {
                 return false;
-        } else if (!directory.equals(other.directory))
+            }
+        } else if (!directory.equals(other.directory)) {
             return false;
+        }
         return true;
     }
 }
