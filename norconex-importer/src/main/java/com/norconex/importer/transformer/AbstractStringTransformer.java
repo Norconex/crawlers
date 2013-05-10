@@ -70,6 +70,8 @@ public abstract class AbstractStringTransformer
             LogManager.getLogger(AbstractStringTransformer.class);
 
     private static final int READ_CHUNK_SIZE = 10 * (int) FileUtils.ONE_KB;
+    private static final int STRING_TOTAL_MEMORY_DIVIDER = 4;
+    private static final int MAX_FROM_END_TO_CUT = 1000;
     
     protected final void transformTextDocument(
             String reference, Reader input,
@@ -77,17 +79,17 @@ public abstract class AbstractStringTransformer
             throws IOException {
         
         // Initial size is half free memory, considering chars take 2 bytes
-        StringBuilder b = new StringBuilder((int)(getFreeMemory() / 4));
+        StringBuilder b = new StringBuilder(
+                (int)(getFreeMemory() / STRING_TOTAL_MEMORY_DIVIDER));
         int i;
         while ((i = input.read()) != -1) {
             char ch = (char) i;
             b.append(ch);
-            if (b.length() * 2 % READ_CHUNK_SIZE == 0) {
-                if (isTakingTooMuchMemory(b)) {
-                    transformStringDocument(
-                            reference, b, metadata, parsed, true);
-                    flushBuffer(b, output, true);
-                }
+            if (b.length() * 2 % READ_CHUNK_SIZE == 0
+                    && isTakingTooMuchMemory(b)) {
+                transformStringDocument(
+                        reference, b, metadata, parsed, true);
+                flushBuffer(b, output, true);
             }
         }
         if (b.length() > 0) {
@@ -104,7 +106,7 @@ public abstract class AbstractStringTransformer
            boolean parsed, boolean partialContent);
    
    
-    // Writes the buffer to output stream.  If content was cut-out due to memory,
+    // Writes the buffer to output stream. If content was cut-out due to memory,
     // try to cut the text wisely nead the end.
     private void flushBuffer(StringBuilder content, Writer out, boolean full)
             throws IOException {
@@ -112,8 +114,8 @@ public abstract class AbstractStringTransformer
         if (full) {
             int index = -1;
             int fromIndex = 0;
-            if (content.length() > 1000) {
-                fromIndex = content.length() - 1000;
+            if (content.length() > MAX_FROM_END_TO_CUT) {
+                fromIndex = content.length() - MAX_FROM_END_TO_CUT;
             }
             index = content.lastIndexOf("\n", fromIndex);
             if (index == -1) {
@@ -131,11 +133,12 @@ public abstract class AbstractStringTransformer
             }
         }
         while (content.length() != 0) {
-            int write_chunk_size = Math.min(content.length(), 1000);
-            char[] chars = new char[write_chunk_size];
-            content.getChars(0, write_chunk_size, chars, 0);           
+            int writeChunkSize = 
+                    Math.min(content.length(), MAX_FROM_END_TO_CUT);
+            char[] chars = new char[writeChunkSize];
+            content.getChars(0, writeChunkSize, chars, 0);           
             out.write(chars);
-            content.delete(0, write_chunk_size);
+            content.delete(0, writeChunkSize);
             chars = null;
         }
         if (remainingText != null) {

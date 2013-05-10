@@ -109,15 +109,16 @@ public class DefaultDocumentParserFactory
     protected final IDocumentParser getFallbackParser() {
         return fallbackParser;
     }
-    protected void registerNamedParsers() {
+
+    private void registerNamedParsers() {
         registerNamedParser(ContentType.HTML, new HTMLParser(format));
         registerNamedParser(ContentType.PDF, new PDFParser(format));
         registerNamedParser(ContentType.XPDF, new PDFParser(format));
     }
-    protected void registerFallbackParser() {
+    private void registerFallbackParser() {
         registerFallbackParser(new FallbackParser(format));
     }
-
+    
     @Override
     public void loadFromXML(Reader in) throws IOException {
         try {

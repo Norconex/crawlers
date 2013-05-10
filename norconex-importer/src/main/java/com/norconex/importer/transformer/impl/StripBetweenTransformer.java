@@ -35,6 +35,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -207,35 +208,42 @@ public class StripBetweenTransformer extends AbstractStringTransformer
                 + caseSensitive + "]";
     }
 
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (caseSensitive ? 1231 : 1237);
-        result = prime * result + (inclusive ? 1231 : 1237);
-        result = prime * result
-                + ((stripPairs == null) ? 0 : stripPairs.hashCode());
-        return result;
+        return new HashCodeBuilder()
+            .append(caseSensitive)
+            .append(inclusive)
+            .append(stripPairs)
+            .toHashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (!super.equals(obj))
+        }
+        if (!super.equals(obj)) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         StripBetweenTransformer other = (StripBetweenTransformer) obj;
-        if (caseSensitive != other.caseSensitive)
+        if (caseSensitive != other.caseSensitive) {
             return false;
-        if (inclusive != other.inclusive)
+        }
+        if (inclusive != other.inclusive) {
             return false;
+        }
         if (stripPairs == null) {
-            if (other.stripPairs != null)
+            if (other.stripPairs != null) {
                 return false;
-        } else if (!stripPairs.equals(other.stripPairs))
+            }
+        } else if (!stripPairs.equals(other.stripPairs)) {
             return false;
+        }
         return true;
     }
+
 }

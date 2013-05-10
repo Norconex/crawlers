@@ -28,6 +28,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -166,33 +167,38 @@ public class StripAfterTransformer extends AbstractStringTransformer
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (caseSensitive ? 1231 : 1237);
-        result = prime * result + (inclusive ? 1231 : 1237);
-        result = prime * result + ((stripAfterRegex == null) 
-                ? 0 : stripAfterRegex.hashCode());
-        return result;
+        return new HashCodeBuilder()
+            .append(caseSensitive)
+            .append(inclusive)
+            .append(stripAfterRegex)
+            .toHashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (!super.equals(obj))
+        }
+        if (!super.equals(obj)) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         StripAfterTransformer other = (StripAfterTransformer) obj;
-        if (caseSensitive != other.caseSensitive)
+        if (caseSensitive != other.caseSensitive) {
             return false;
-        if (inclusive != other.inclusive)
+        }
+        if (inclusive != other.inclusive) {
             return false;
+        }
         if (stripAfterRegex == null) {
-            if (other.stripAfterRegex != null)
+            if (other.stripAfterRegex != null) {
                 return false;
-        } else if (!stripAfterRegex.equals(other.stripAfterRegex))
+            }
+        } else if (!stripAfterRegex.equals(other.stripAfterRegex)) {
             return false;
+        }
         return true;
     }
 }

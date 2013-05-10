@@ -114,26 +114,23 @@ public abstract class AbstractRestrictiveTransformer
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
-        AbstractRestrictiveTransformer other = 
-                (AbstractRestrictiveTransformer) obj;
+        }
+        AbstractRestrictiveTransformer other = (AbstractRestrictiveTransformer) obj;
         if (filter == null) {
-            if (other.filter != null)
+            if (other.filter != null) {
                 return false;
-        } else if (!filter.equals(other.filter))
+            }
+        } else if (!filter.equals(other.filter)) {
             return false;
+        }
         return true;
     }
-
-    @Override
-    public String toString() {
-        return "AbstractRestrictiveTransformer [filter=" + filter + "]";
-    }
-
-    
 }

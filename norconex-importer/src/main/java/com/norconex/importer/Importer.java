@@ -63,7 +63,14 @@ public class Importer {
     		IMPORTER_PREFIX + "contentType";
 
 	private static final Logger LOG = LogManager.getLogger(Importer.class);
-    private final ImporterConfig importerConfig;
+
+	private static final String ARG_INPUTFILE = "inputFile";
+    private static final String ARG_OUTPUTFILE = "outputFile";
+    private static final String ARG_CONTENTTYPE = "contentType";
+    private static final String ARG_REFERENCE = "reference";
+    private static final String ARG_CONFIG = "config";
+
+	private final ImporterConfig importerConfig;
     
     /**
      * Creates a new importer with default configuration.
@@ -92,22 +99,22 @@ public class Importer {
     public static void main(String[] args) {
         
         CommandLine cmd = parseCommandLineArguments(args);
-        File inputFile = new File(cmd.getOptionValue("inputFile"));
+        File inputFile = new File(cmd.getOptionValue(ARG_INPUTFILE));
         ContentType contentType = 
-                ContentType.newContentType(cmd.getOptionValue("contentType"));
-        String output = cmd.getOptionValue("outputFile");
+                ContentType.newContentType(cmd.getOptionValue(ARG_CONTENTTYPE));
+        String output = cmd.getOptionValue(ARG_OUTPUTFILE);
         if (StringUtils.isBlank(output)) {
-            output = cmd.getOptionValue("inputFile") + "-imported.txt";
+            output = cmd.getOptionValue(ARG_INPUTFILE) + "-imported.txt";
         }
         File outputFile = new File(output);
         File metadataFile = new File(output + ".meta");
-        String reference = cmd.getOptionValue("reference");
+        String reference = cmd.getOptionValue(ARG_REFERENCE);
         Properties metadata = new Properties();
         try {
             ImporterConfig config = null;
-            if (cmd.hasOption("config")) {
+            if (cmd.hasOption(ARG_CONFIG)) {
                 config = ImporterConfigLoader.loadImporterConfig(
-                        new File(cmd.getOptionValue("config")), null);
+                        new File(cmd.getOptionValue(ARG_CONFIG)), null);
             }
             new Importer(config).importDocument(
                     inputFile, contentType, outputFile, metadata, reference);
@@ -115,7 +122,8 @@ public class Importer {
             metadata.store(out, null);
             out.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("A problem occured while importing " + inputFile);
+            e.printStackTrace(System.err);
         }
     }
 
@@ -285,8 +293,9 @@ public class Importer {
                 formatter.printHelp( "importer[.bat|.sh]", options );
                 System.exit(-1);
             }
-        } catch (ParseException e1) {
-            e1.printStackTrace();
+        } catch (ParseException e) {
+            System.err.println("A problem occured while parsing arguments.");
+            e.printStackTrace(System.err);
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp( "importer[.bat|.sh]", options );
             System.exit(-1);
@@ -306,8 +315,7 @@ public class Importer {
         try {
             parser.parseDocument(input, contentType, output, metadata);
         } catch (DocumentParserException e) {
-            // TODO handle me
-            e.printStackTrace();
+            LOG.error("A problem occured while parsing " + rawFile, e);
         }
         input.close();
         output.close();

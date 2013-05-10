@@ -147,26 +147,28 @@ public abstract class AbstractCharStreamTransformer
         int result = super.hashCode();
         result = prime
                 * result
-                + ((contentTypeRegex == null) ? 0 : 
-                    contentTypeRegex.toString().hashCode());
+                + ((contentTypeRegex == null) ? 0 : contentTypeRegex.hashCode());
         return result;
     }
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (!super.equals(obj))
+        }
+        if (!super.equals(obj)) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         AbstractCharStreamTransformer other = (AbstractCharStreamTransformer) obj;
         if (contentTypeRegex == null) {
-            if (other.contentTypeRegex != null)
+            if (other.contentTypeRegex != null) {
                 return false;
-        } else if (!contentTypeRegex.toString().equals(
-                other.contentTypeRegex.toString()))
+            }
+        } else if (!contentTypeRegex.equals(other.contentTypeRegex)) {
             return false;
+        }
         return true;
     }
-    
 }

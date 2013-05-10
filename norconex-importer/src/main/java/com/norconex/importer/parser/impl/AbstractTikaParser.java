@@ -77,8 +77,6 @@ public class AbstractTikaParser implements IDocumentParser {
         SAXTransformerFactory factory = (SAXTransformerFactory)
                 SAXTransformerFactory.newInstance();
 
-//        ContentHandler bodyhandler = new BodyContentHandler();
-        
         TransformerHandler handler;
         try {
             handler = factory.newTransformerHandler();
@@ -87,19 +85,15 @@ public class AbstractTikaParser implements IDocumentParser {
             handler.getTransformer().setOutputProperty(
                     OutputKeys.INDENT, "yes");
             
-//            ByteArrayOutputStream os = new ByteArrayOutputStream(50000);
-            
-//            handler.setResult(new StreamResult(os));
+
             handler.setResult(new StreamResult(output));
             
-            Parser parser = new RecursiveMetadataParser(
+            Parser recursiveParser = new RecursiveMetadataParser(
                     this.parser, output, metadata);
             ParseContext context = new ParseContext();
-            context.set(Parser.class, parser);
+            context.set(Parser.class, recursiveParser);
 
-            parser.parse(inputStream, handler, tikaMetadata, context);
-            
-//            System.err.println("STRING:" + os.toString());
+            recursiveParser.parse(inputStream, handler, tikaMetadata, context);
         } catch (Exception e) {
             throw new DocumentParserException(e);
         }
@@ -131,10 +125,9 @@ public class AbstractTikaParser implements IDocumentParser {
                 throws IOException, SAXException, TikaException {
 
             //TODO Make it a file writer somehow?? storing it as new document
-            // so we can have a zip and its containing files separate.
+            //TODO so we can have a zip and its containing files separate.
             ContentHandler content = new BodyContentHandler(writer);
             super.parse(stream, content, tikaMeta, context);
-//            super.parse(stream, handler, tikaMeta, context);
             addTikaMetadata(tikaMeta, metadata);
         }
     }

@@ -28,6 +28,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -164,35 +165,42 @@ public class StripBeforeTransformer extends AbstractStringTransformer
                 + stripBeforeRegex + "]";
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (caseSensitive ? 1231 : 1237);
-        result = prime * result + (inclusive ? 1231 : 1237);
-        result = prime * result + ((stripBeforeRegex == null) 
-                ? 0 : stripBeforeRegex.hashCode());
-        return result;
-    }
 
     @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+            .append(caseSensitive)
+            .append(inclusive)
+            .append(stripBeforeRegex)
+            .toHashCode();
+    }
+    
+    @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (!super.equals(obj))
+        }
+        if (!super.equals(obj)) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         StripBeforeTransformer other = (StripBeforeTransformer) obj;
-        if (caseSensitive != other.caseSensitive)
+        if (caseSensitive != other.caseSensitive) {
             return false;
-        if (inclusive != other.inclusive)
+        }
+        if (inclusive != other.inclusive) {
             return false;
+        }
         if (stripBeforeRegex == null) {
-            if (other.stripBeforeRegex != null)
+            if (other.stripBeforeRegex != null) {
                 return false;
-        } else if (!stripBeforeRegex.equals(other.stripBeforeRegex))
+            }
+        } else if (!stripBeforeRegex.equals(other.stripBeforeRegex)) {
             return false;
+        }
         return true;
     }
+
 }

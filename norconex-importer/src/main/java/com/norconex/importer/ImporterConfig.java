@@ -32,9 +32,6 @@ public class ImporterConfig implements Serializable {
 
     private IDocumentParserFactory documentParserFactory = 
             new DefaultDocumentParserFactory();
-//    private IDocumentTagger[] taggers;
-//    private IDocumentTransformer[] transformers;
-//    private IDocumentFilter[] filters;
 
     private IImportHandler[] preParseHandlers;
     private IImportHandler[] postParseHandlers;
@@ -59,25 +56,4 @@ public class ImporterConfig implements Serializable {
     public IImportHandler[] getPostParseHandlers() {
         return postParseHandlers;
     }
-    
-    
-    
-//    public IDocumentFilter[] getFilters() {
-//        return filters;
-//    }
-//    public void setFilters(IDocumentFilter[] filters) {
-//        this.filters = filters;
-//    }
-//    public IDocumentTagger[] getTaggers() {
-//        return taggers;
-//    }
-//    public void setTaggers(IDocumentTagger[] taggers) {
-//        this.taggers = taggers;
-//    }
-//    public IDocumentTransformer[] getTransformers() {
-//        return transformers;
-//    }
-//    public void setTransformers(IDocumentTransformer[] transformers) {
-//        this.transformers = transformers;
-//    }
 }

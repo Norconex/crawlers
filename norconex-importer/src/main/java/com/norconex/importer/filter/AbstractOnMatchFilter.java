@@ -57,17 +57,17 @@ public abstract class AbstractOnMatchFilter implements Serializable {
      * @param xml xml configuration
      */
     protected final void loadFromXML(XMLConfiguration xml) {
-        OnMatch onMatch = OnMatch.INCLUDE;
+        OnMatch configOnMatch = OnMatch.INCLUDE;
         String onMatchStr = xml.getString(
                 "[@onMatch]", OnMatch.INCLUDE.toString()).toUpperCase();
         try {
-            onMatch = OnMatch.valueOf(onMatchStr);
+            configOnMatch = OnMatch.valueOf(onMatchStr);
         } catch (IllegalArgumentException e)  {
             throw new ImporterException("Configuration error: "
                     + "Invalid \"onMatch\" attribute value: \"" + onMatchStr
-                    + "\".  Must be one of \"include\" or \"exclude\".");
+                    + "\".  Must be one of \"include\" or \"exclude\".", e);
         }
-        this.onMatch = onMatch;
+        this.onMatch = configOnMatch;
     }
     
     /**
@@ -95,15 +95,19 @@ public abstract class AbstractOnMatchFilter implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         AbstractOnMatchFilter other = (AbstractOnMatchFilter) obj;
-        if (onMatch != other.onMatch)
+        if (onMatch != other.onMatch) {
             return false;
+        }
         return true;
     }
 }

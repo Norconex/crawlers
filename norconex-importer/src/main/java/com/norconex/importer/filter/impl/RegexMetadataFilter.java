@@ -32,6 +32,8 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -78,10 +80,10 @@ public class RegexMetadataFilter extends AbstractOnMatchFilter
             String header, String regex, 
             OnMatch onMatch, boolean caseSensitive) {
         super();
-        setCaseSensitive(caseSensitive);
-        setProperty(header);
+        this.caseSensitive = caseSensitive;
+        this.property = header;
         setOnMatch(onMatch);
-        setRegex(regex);
+        this.regex = regex;
     }
     
     public String getRegex() {
@@ -168,38 +170,36 @@ public class RegexMetadataFilter extends AbstractOnMatchFilter
                 .append(", onMatch=").append(getOnMatch()).append("]");
         return builder.toString();
     }
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (caseSensitive ? 1231 : 1237);
-        result = prime * result + ((property == null) ? 0 : property.hashCode());
-        result = prime * result + ((regex == null) ? 0 : regex.hashCode());
-        return result;
+        return new HashCodeBuilder()
+            .append(caseSensitive)
+            .append(pattern)
+            .append(property)
+            .append(regex)
+            .toHashCode();
     }
+
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (!super.equals(obj))
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (!(obj instanceof RegexMetadataFilter)) {
             return false;
+        }
         RegexMetadataFilter other = (RegexMetadataFilter) obj;
-        if (caseSensitive != other.caseSensitive)
-            return false;
-        if (property == null) {
-            if (other.property != null)
-                return false;
-        } else if (!property.equals(other.property))
-            return false;
-        if (regex == null) {
-            if (other.regex != null)
-                return false;
-        } else if (!regex.equals(other.regex))
-            return false;
-        return true;
+        return new EqualsBuilder()
+            .append(caseSensitive, other.caseSensitive)
+            .append(pattern, other.pattern)
+            .append(property, other.property)
+            .append(regex, other.regex)
+            .isEquals();
     }
-    
+
 }
 

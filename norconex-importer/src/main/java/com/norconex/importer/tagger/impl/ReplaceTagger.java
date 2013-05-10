@@ -33,6 +33,8 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -159,34 +161,27 @@ public class ReplaceTagger implements IDocumentTagger, IXMLConfigurable {
         }
         @Override
         public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result
-                    + ((details == null) ? 0 : details.hashCode());
-            result = prime * result
-                    + ((fromName == null) ? 0 : fromName.hashCode());
-            return result;
+            return new HashCodeBuilder()
+                .append(details)
+                .append(fromName)
+            .toHashCode();
         }
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if (!(obj instanceof ReplaceTagger.Replacement)) {
                 return false;
-            Replacement other = (Replacement) obj;
-            if (details == null) {
-                if (other.details != null)
-                    return false;
-            } else if (!details.equals(other.details))
-                return false;
-            if (fromName == null) {
-                if (other.fromName != null)
-                    return false;
-            } else if (!fromName.equals(other.fromName))
-                return false;
-            return true;
+            }
+            ReplaceTagger.Replacement other = (ReplaceTagger.Replacement) obj;
+            return new EqualsBuilder()
+                .append(details, other.details)
+                .append(fromName, other.fromName)
+                .isEquals();
         }
     }
     public class ReplacementDetails {
@@ -209,41 +204,29 @@ public class ReplaceTagger implements IDocumentTagger, IXMLConfigurable {
         }
         @Override
         public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result
-                    + ((fromValue == null) ? 0 : fromValue.hashCode());
-            result = prime * result
-                    + ((toName == null) ? 0 : toName.hashCode());
-            result = prime * result
-                    + ((toValue == null) ? 0 : toValue.hashCode());
-            return result;
+            return new HashCodeBuilder()
+                .append(fromValue)
+                .append(toName)
+                .append(toValue)
+                .toHashCode();
         }
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if (!(obj instanceof ReplaceTagger.ReplacementDetails)) {
                 return false;
-            ReplacementDetails other = (ReplacementDetails) obj;
-            if (fromValue == null) {
-                if (other.fromValue != null)
-                    return false;
-            } else if (!fromValue.equals(other.fromValue))
-                return false;
-            if (toName == null) {
-                if (other.toName != null)
-                    return false;
-            } else if (!toName.equals(other.toName))
-                return false;
-            if (toValue == null) {
-                if (other.toValue != null)
-                    return false;
-            } else if (!toValue.equals(other.toValue))
-                return false;
-            return true;
+            }
+            ReplaceTagger.ReplacementDetails other = (ReplaceTagger.ReplacementDetails) obj;
+            return new EqualsBuilder()
+                .append(fromValue, other.fromValue)
+                .append(toName, other.toName)
+                .append(toValue, other.toValue)
+                .isEquals();
         }
     }
     
@@ -305,6 +288,7 @@ public class ReplaceTagger implements IDocumentTagger, IXMLConfigurable {
         return "ReplaceTagger [replacements=" + replacements + "]";
     }
 
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -314,20 +298,26 @@ public class ReplaceTagger implements IDocumentTagger, IXMLConfigurable {
         return result;
     }
 
+
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         ReplaceTagger other = (ReplaceTagger) obj;
         if (replacements == null) {
-            if (other.replacements != null)
+            if (other.replacements != null) {
                 return false;
-        } else if (!replacements.equals(other.replacements))
+            }
+        } else if (!replacements.equals(other.replacements)) {
             return false;
+        }
         return true;
     }
 }

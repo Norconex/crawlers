@@ -98,8 +98,8 @@ public class KeepOnlyTagger
         try {
             XMLConfiguration xml = ConfigurationLoader.loadXML(in);
             String fieldsStr = xml.getString("[@fields]");
-            String[] fields = StringUtils.split(fieldsStr, ",");
-            for (String field : fields) {
+            String[] configFields = StringUtils.split(fieldsStr, ",");
+            for (String field : configFields) {
                 addField(field.trim());
             }
         } catch (ConfigurationException e) {
@@ -142,18 +142,23 @@ public class KeepOnlyTagger
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         KeepOnlyTagger other = (KeepOnlyTagger) obj;
         if (fields == null) {
-            if (other.fields != null)
+            if (other.fields != null) {
                 return false;
-        } else if (!fields.equals(other.fields))
+            }
+        } else if (!fields.equals(other.fields)) {
             return false;
+        }
         return true;
     }
 }

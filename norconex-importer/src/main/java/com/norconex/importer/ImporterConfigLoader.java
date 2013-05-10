@@ -52,8 +52,7 @@ public final class ImporterConfigLoader {
      * @throws ConfigurationException problem loading configuration
      */
     public static ImporterConfig loadImporterConfig(
-            File configFile, File configVariables) 
-                    throws ConfigurationException {
+            File configFile, File configVariables) {
         try {
             ConfigurationLoader configLoader = new ConfigurationLoader();
             XMLConfiguration xml = configLoader.loadXML(
@@ -65,9 +64,14 @@ public final class ImporterConfigLoader {
         }
     }    
     
-    
-    public static ImporterConfig loadImporterConfig(Reader config)
-            throws ConfigurationException {
+
+    /**
+     * Loads importer configuration.
+     * @param config reader for the configuration file
+     * @return importer configuration
+     * @throws ConfigurationException problem loading configuration
+     */    
+    public static ImporterConfig loadImporterConfig(Reader config)  {
         try {
             XMLConfiguration xml = ConfigurationLoader.loadXML(config);
             return loadImporterConfig(xml);
@@ -85,7 +89,7 @@ public final class ImporterConfigLoader {
      * @throws ConfigurationException problem loading configuration
      */
     public static ImporterConfig loadImporterConfig(
-            XMLConfiguration xml) throws ConfigurationException {
+            XMLConfiguration xml) {
         if (xml == null) {
             return null;
         }
@@ -110,7 +114,7 @@ public final class ImporterConfigLoader {
     }
     
     private static IImportHandler[] loadImportHandlers(
-            XMLConfiguration xml, String xmlPath) throws Exception {
+            XMLConfiguration xml, String xmlPath) {
         List<IImportHandler> handlers = new ArrayList<IImportHandler>();
 
         ExpressionEngine originalEngine = xml.getExpressionEngine();

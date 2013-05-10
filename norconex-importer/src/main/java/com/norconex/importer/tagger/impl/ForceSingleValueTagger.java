@@ -189,18 +189,23 @@ public class ForceSingleValueTagger
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         ForceSingleValueTagger other = (ForceSingleValueTagger) obj;
         if (singleFields == null) {
-            if (other.singleFields != null)
+            if (other.singleFields != null) {
                 return false;
-        } else if (!singleFields.equals(other.singleFields))
+            }
+        } else if (!singleFields.equals(other.singleFields)) {
             return false;
+        }
         return true;
     }
 }

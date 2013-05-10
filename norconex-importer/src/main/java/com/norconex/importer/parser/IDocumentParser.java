@@ -32,8 +32,8 @@ import com.norconex.importer.ContentType;
 @SuppressWarnings("nls")
 public interface IDocumentParser extends Serializable {
 
-    static final String RDF_BASE_URI = "http://norconex.com/Document";
-    static final String RDF_SUBJECT_CONTENT = "Content";
+    String RDF_BASE_URI = "http://norconex.com/Document";
+    String RDF_SUBJECT_CONTENT = "Content";
 
     /**
      * Parses a document.

@@ -176,19 +176,23 @@ public class ConstantTagger
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         ConstantTagger other = (ConstantTagger) obj;
         if (constants == null) {
-            if (other.constants != null)
+            if (other.constants != null) {
                 return false;
-        } else if (!constants.equals(other.constants))
+            }
+        } else if (!constants.equals(other.constants)) {
             return false;
+        }
         return true;
     }
-    
 }

@@ -25,12 +25,12 @@ import java.util.Map;
  * Represent a document content type (also called MIME-Type or Media Type).
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
-public class ContentType implements Serializable {
+public final class ContentType implements Serializable {
   //TODO make part of norconex.commons.lang ????
 
     private static final long serialVersionUID = 6416074869536512030L;
     private String contentType;
-    private static final Map<String, ContentType> registry = 
+    private static final Map<String, ContentType> REGISTRY = 
         new HashMap<String, ContentType>();
 
     public static final ContentType HTML = new ContentType("text/html");
@@ -41,7 +41,7 @@ public class ContentType implements Serializable {
     private ContentType(String contentType) {
         super();
         this.contentType = contentType;
-        registry.put(contentType, this);
+        REGISTRY.put(contentType, this);
     }
 
     /**
@@ -51,7 +51,7 @@ public class ContentType implements Serializable {
      * @return content type
      */
     public static ContentType newContentType(String contentType) {
-        ContentType type = registry.get(contentType);
+        ContentType type = REGISTRY.get(contentType);
         if (type != null) {
             return type;
         }
@@ -69,18 +69,23 @@ public class ContentType implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         ContentType other = (ContentType) obj;
         if (contentType == null) {
-            if (other.contentType != null)
+            if (other.contentType != null) {
                 return false;
-        } else if (!contentType.equals(other.contentType))
+            }
+        } else if (!contentType.equals(other.contentType)) {
             return false;
+        }
         return true;
     }
 

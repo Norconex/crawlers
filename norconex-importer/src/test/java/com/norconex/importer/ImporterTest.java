@@ -44,12 +44,13 @@ public class ImporterTest {
         config.setPostParseHandlers(new IDocumentTransformer[] {
                 new IDocumentTransformer() {        
             private static final long serialVersionUID = -4814791150728184883L;
-            Pattern pattern = Pattern.compile("[^a-zA-Z ]", Pattern.MULTILINE);
             @Override
             public void transformDocument(String reference, InputStream input,
                     OutputStream output, Properties metadata, boolean parsed)
                             throws IOException {
                 // Clean up what we know is extra noise for a given format
+                Pattern pattern = 
+                        Pattern.compile("[^a-zA-Z ]", Pattern.MULTILINE);
                 String txt = IOUtils.toString(input);
                 txt = pattern.matcher(txt).replaceAll("");
                 txt = txt.replaceAll("DowntheRabbitHole", "");
