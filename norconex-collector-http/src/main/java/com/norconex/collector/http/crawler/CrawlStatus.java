@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.db.CrawlURL;
 
 public enum CrawlStatus implements Serializable { 
     OK, 
@@ -36,17 +35,21 @@ public enum CrawlStatus implements Serializable {
     NOT_FOUND, 
     BAD_STATUS;
     
-    private final Logger LOG;
+    private static final int LOGGING_STATUS_PADDING = 10;
+    private static final int LOGGING_DEPTH_PADDING = 6;
+    
+    private final Logger log;
     CrawlStatus() {
-        LOG = LogManager.getLogger(
+        log = LogManager.getLogger(
                 this.getClass().getCanonicalName() + "." + toString());
     }
     
     void logInfo(CrawlURL crawlURL){
-        if (LOG.isInfoEnabled()) {
-            LOG.info(StringUtils.leftPad(
-                    crawlURL.getStatus().toString(), 10) + " > " 
-                  + StringUtils.leftPad("(" + crawlURL.getDepth() + ") ", 6)
+        if (log.isInfoEnabled()) {
+            log.info(StringUtils.leftPad(
+                    crawlURL.getStatus().toString(), LOGGING_STATUS_PADDING)
+                  + " > " + StringUtils.leftPad(
+                    "(" + crawlURL.getDepth() + ") ", LOGGING_DEPTH_PADDING)
                   + crawlURL.getUrl());
         }
     }

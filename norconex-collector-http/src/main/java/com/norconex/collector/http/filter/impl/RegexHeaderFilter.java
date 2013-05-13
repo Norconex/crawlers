@@ -31,6 +31,8 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.AbstractOnMatchFilter;
@@ -93,13 +95,13 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
     public String getHeader() {
         return header;
     }
-    public void setCaseSensitive(boolean caseSensitive) {
+    public final void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
     }
-    public void setHeader(String header) {
+    public final void setHeader(String header) {
         this.header = header;
     }
-    public void setRegex(String regex) {
+    public final void setRegex(String regex) {
         this.regex = regex;
         if (regex != null) {
             if (caseSensitive) {
@@ -167,38 +169,33 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
                 .append(", onMatch=").append(getOnMatch()).append("]");
         return builder.toString();
     }
+    
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (caseSensitive ? 1231 : 1237);
-        result = prime * result + ((header == null) ? 0 : header.hashCode());
-        result = prime * result + ((regex == null) ? 0 : regex.hashCode());
-        return result;
+        return new HashCodeBuilder()
+            .append(caseSensitive)
+            .append(header)
+            .append(regex)
+            .toHashCode();
     }
+
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (!super.equals(obj))
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (!(obj instanceof RegexHeaderFilter)) {
             return false;
+        }
         RegexHeaderFilter other = (RegexHeaderFilter) obj;
-        if (caseSensitive != other.caseSensitive)
-            return false;
-        if (header == null) {
-            if (other.header != null)
-                return false;
-        } else if (!header.equals(other.header))
-            return false;
-        if (regex == null) {
-            if (other.regex != null)
-                return false;
-        } else if (!regex.equals(other.regex))
-            return false;
-        return true;
+        return new EqualsBuilder()
+            .append(caseSensitive, other.caseSensitive)
+            .append(header, other.header)
+            .append(regex, other.regex)
+            .isEquals();
     }
-    
 }
 

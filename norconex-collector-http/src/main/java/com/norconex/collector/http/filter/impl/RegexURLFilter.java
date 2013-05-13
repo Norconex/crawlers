@@ -29,6 +29,8 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
@@ -92,10 +94,10 @@ public class RegexURLFilter extends AbstractOnMatchFilter implements
     public boolean isCaseSensitive() {
         return caseSensitive;
     }
-    public void setCaseSensitive(boolean caseSensitive) {
+    public final void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
     }
-    public void setRegex(String regex) {
+    public final void setRegex(String regex) {
         this.regex = regex;
         if (regex != null) {
             if (caseSensitive) {
@@ -110,7 +112,7 @@ public class RegexURLFilter extends AbstractOnMatchFilter implements
 
     @Override
     public boolean acceptURL(String url) {
-        boolean isInclude = getOnMatch() == OnMatch.INCLUDE;;  
+        boolean isInclude = getOnMatch() == OnMatch.INCLUDE;  
         if (StringUtils.isBlank(regex)) {
             return isInclude;
         }
@@ -144,6 +146,14 @@ public class RegexURLFilter extends AbstractOnMatchFilter implements
             throw new IOException("Cannot save as XML.", e);
         }
     }
+    @Override
+    public boolean acceptDocument(HttpDocument document) {
+        return acceptURL(document.getUrl());
+    }
+    @Override
+    public boolean acceptDocument(String url, HttpMetadata headers) {
+        return acceptURL(url);
+    }
     
     @Override
     public String toString() {
@@ -154,13 +164,33 @@ public class RegexURLFilter extends AbstractOnMatchFilter implements
                 .append(", onMatch=").append(getOnMatch()).append("]");
         return builder.toString();
     }
+
     @Override
-    public boolean acceptDocument(HttpDocument document) {
-        return acceptURL(document.getUrl());
+    public int hashCode() {
+        return new HashCodeBuilder()
+            .append(caseSensitive)
+            .append(pattern)
+            .append(regex)
+            .toHashCode();
     }
+    
     @Override
-    public boolean acceptDocument(String url, HttpMetadata headers) {
-        return acceptURL(url);
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof RegexURLFilter)) {
+            return false;
+        }
+        RegexURLFilter other = (RegexURLFilter) obj;
+        return new EqualsBuilder()
+            .append(caseSensitive, other.caseSensitive)
+            .append(pattern, other.pattern)
+            .append(regex, other.regex)
+            .isEquals();
     }
 }
 

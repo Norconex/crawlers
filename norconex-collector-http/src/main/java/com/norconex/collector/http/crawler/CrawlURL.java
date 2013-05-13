@@ -16,11 +16,13 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.db;
+package com.norconex.collector.http.crawler;
 
 import java.io.Serializable;
 
-import com.norconex.collector.http.crawler.CrawlStatus;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 
 public class CrawlURL implements Serializable {
 
@@ -64,49 +66,39 @@ public class CrawlURL implements Serializable {
     public void setUrl(String url) {
         this.url = url;
     }
+    
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + depth;
-        result = prime * result
-                + ((docChecksum == null) ? 0 : docChecksum.hashCode());
-        result = prime * result
-                + ((headChecksum == null) ? 0 : headChecksum.hashCode());
-        result = prime * result + ((status == null) ? 0 : status.hashCode());
-        result = prime * result + ((url == null) ? 0 : url.hashCode());
-        return result;
+        return new HashCodeBuilder()
+            .append(depth)
+            .append(docChecksum)
+            .append(headChecksum)
+            .append(status)
+            .append(url)
+            .toHashCode();
     }
+    
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (!(obj instanceof CrawlURL)) {
             return false;
+        }
         CrawlURL other = (CrawlURL) obj;
-        if (depth != other.depth)
-            return false;
-        if (docChecksum == null) {
-            if (other.docChecksum != null)
-                return false;
-        } else if (!docChecksum.equals(other.docChecksum))
-            return false;
-        if (headChecksum == null) {
-            if (other.headChecksum != null)
-                return false;
-        } else if (!headChecksum.equals(other.headChecksum))
-            return false;
-        if (status != other.status)
-            return false;
-        if (url == null) {
-            if (other.url != null)
-                return false;
-        } else if (!url.equals(other.url))
-            return false;
-        return true;
+        return new EqualsBuilder()
+            .append(depth, other.depth)
+            .append(docChecksum, other.docChecksum)
+            .append(headChecksum, other.headChecksum)
+            .append(status, other.status)
+            .append(url, other.url)
+            .isEquals();
     }
+    
     @Override
     public String toString() {
         return "CrawlerURL [depth=" + depth + ", url=" + url + ", status="

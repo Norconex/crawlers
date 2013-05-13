@@ -20,17 +20,23 @@ package com.norconex.collector.http.handler.impl;
 
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
@@ -124,23 +130,14 @@ public class DefaultDocumentFetcher
                   result = bis.read();
                 }        
                 IOUtils.closeQuietly(bis);
-                if (statusCode == 404) {
+                if (statusCode == HttpStatus.SC_NOT_FOUND) {
                     return CrawlStatus.NOT_FOUND;
                 } else {
                     LOG.debug("Unsupported HTTP Response: "
                             + response.getStatusLine());
                     return CrawlStatus.BAD_STATUS;
                 }
-//	        	throw new HttpCollectorException("Invalid HTTP status code: "
-//                        + method.getStatusLine());
 	        }
-			
-
-	        //debug:
-//	        byte[] responseBody = method.getResponseBody();
-//	        // Deal with the response.
-//	        // Use caution: ensure correct char encoding and is not binary data
-//	        System.out.println(new String(responseBody));
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.error("Cannot fetch document: " + doc.getUrl()
@@ -160,8 +157,8 @@ public class DefaultDocumentFetcher
     public int[] getValidStatusCodes() {
         return validStatusCodes;
     }
-    public void setValidStatusCodes(int[] validStatusCodes) {
-        this.validStatusCodes = validStatusCodes;
+    public final void setValidStatusCodes(int[] validStatusCodes) {
+        this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
     }
     public String getHeadersPrefix() {
         return headersPrefix;
@@ -186,8 +183,29 @@ public class DefaultDocumentFetcher
         setValidStatusCodes(intCodes);
     }
     @Override
-    public void saveToXML(Writer out) {
-        // TODO Implement me.
-        System.err.println("saveToXML not implemented");
+    public void saveToXML(Writer out) throws IOException {
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        try {
+            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            writer.writeStartElement("httpDocumentFetcher");
+            writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeStartElement("validStatusCodes");
+            if (validStatusCodes != null) {
+                writer.writeCharacters(StringUtils.join(validStatusCodes));
+            }
+            writer.writeEndElement();
+            writer.writeStartElement("headersPrefix");
+            if (headersPrefix != null) {
+                writer.writeCharacters(headersPrefix);
+            }
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.flush();
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new IOException("Cannot save as XML.", e);
+        }        
     }
 }
+

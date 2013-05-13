@@ -20,6 +20,8 @@ package com.norconex.collector.http;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
 /**
@@ -59,7 +61,7 @@ public class HttpCollectorConfig implements Cloneable, Serializable {
         return crawlerConfigs;
     }
     public void setCrawlerConfigs(HttpCrawlerConfig[] crawlerConfigs) {
-        this.crawlerConfigs = crawlerConfigs;
+        this.crawlerConfigs = ArrayUtils.clone(crawlerConfigs);
     }
 
     public String getProgressDir() {

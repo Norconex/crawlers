@@ -26,6 +26,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -45,6 +46,10 @@ public final class HttpCrawlerConfigLoader {
     private static final Logger LOG = LogManager.getLogger(
             HttpCrawlerConfigLoader.class);
     
+    private HttpCrawlerConfigLoader() {
+        super();
+    }
+
     public static HttpCrawlerConfig[] loadCrawlerConfigs(
             File configFile, File configVariables) {
         ConfigurationLoader configLoader = new ConfigurationLoader();
@@ -85,11 +90,10 @@ public final class HttpCrawlerConfigLoader {
      * (keeping defaults).
      * @param config crawler configuration to populate/overwrite
      * @param node the node representing the crawler configuration.
-     * @throws Exception problem parsing crawler configuration
+     * @throws HttpCollectorException problem parsing crawler configuration
      */
     private static void loadCrawlerConfig(
-            HttpCrawlerConfig config, XMLConfiguration node)
-            throws Exception {
+            HttpCrawlerConfig config, XMLConfiguration node) {
         //--- General Configuration --------------------------------------------
         if (node == null) {
             LOG.warn("Passing a null configuration for " 
@@ -123,13 +127,12 @@ public final class HttpCrawlerConfigLoader {
                 "deleteOrphans", config.isDeleteOrphans()));
         
         String[] startURLs = node.getStringArray("startURLs.url");
-        config.setStartURLs(ArrayUtils.isEmpty(startURLs) 
-                ? config.getStartURLs() : startURLs);
+        config.setStartURLs(defaultIfEmpty(startURLs, config.getStartURLs()));
+
         IHttpCrawlerEventListener[] crawlerListeners = 
                 loadListeners(node, "crawlerListeners.listener");
         config.setCrawlerListeners(
-                crawlerListeners.length == 0 
-                        ? config.getCrawlerListeners() : crawlerListeners);
+                defaultIfEmpty(crawlerListeners, config.getCrawlerListeners()));
         
         config.setCrawlURLDatabaseFactory(ConfigurationUtil.newInstance(
                 node, "crawlURLDatabaseFactory", 
@@ -143,7 +146,7 @@ public final class HttpCrawlerConfigLoader {
         //--- URL Filters ------------------------------------------------------
         IURLFilter[] urlFilters = loadURLFilters(node, "httpURLFilters.filter");
         config.setURLFilters(
-                urlFilters.length == 0 ? config.getURLFilters() : urlFilters);
+                defaultIfEmpty(urlFilters, config.getURLFilters()));
 
         //--- RobotsTxt provider -----------------------------------------------
         config.setRobotsTxtProvider(ConfigurationUtil.newInstance(
@@ -159,8 +162,7 @@ public final class HttpCrawlerConfigLoader {
         IHttpHeadersFilter[] headersFilters = 
                 loadHeadersFilters(node, "httpHeadersFilters.filter");
         config.setHttpHeadersFilters(
-                headersFilters.length == 0 
-                        ? config.getHttpHeadersFilters() : headersFilters);
+                defaultIfEmpty(headersFilters, config.getHttpHeadersFilters()));
 
         //--- HTTP Headers Checksummer -----------------------------------------
         config.setHttpHeadersChecksummer(ConfigurationUtil.newInstance(
@@ -180,31 +182,27 @@ public final class HttpCrawlerConfigLoader {
         IHttpDocumentFilter[] docFilters = 
                 loadDocumentFilters(node, "httpDocumentFilters.filter");
         config.setHttpDocumentfilters(
-                docFilters.length == 0 
-                        ? config.getHttpDocumentfilters() : docFilters);
+                defaultIfEmpty(docFilters, config.getHttpDocumentfilters()));
 
         //--- HTTP Pre-Processors ----------------------------------------------
         IHttpDocumentProcessor[] preProcFilters = 
                 loadProcessors(node, "preImportProcessors.processor");
-        config.setPreImportProcessors(
-                preProcFilters.length == 0 
-                        ? config.getPreImportProcessors() : preProcFilters);
+        config.setPreImportProcessors(defaultIfEmpty(
+                preProcFilters, config.getPreImportProcessors()));
 
         //--- IMPORTER ---------------------------------------------------------
         XMLConfiguration importerNode = 
                 ConfigurationUtil.getXmlAt(node, "importer");
         ImporterConfig importerConfig = 
                 ImporterConfigLoader.loadImporterConfig(importerNode);
-        config.setImporterConfig(importerConfig == null
-                ? config.getImporterConfig() : importerConfig);
-        
+        config.setImporterConfig(ObjectUtils.defaultIfNull(
+                importerConfig, config.getImporterConfig()));
         
         //--- HTTP Post-Processors ---------------------------------------------
         IHttpDocumentProcessor[] postProcFilters = 
                 loadProcessors(node, "postImportProcessors.processor");
-        config.setPostImportProcessors(
-                postProcFilters.length == 0 
-                        ? config.getPostImportProcessors() : postProcFilters);
+        config.setPostImportProcessors(defaultIfEmpty(
+                postProcFilters, config.getPostImportProcessors()));
 
         //--- HTTP Document Checksummer -----------------------------------------
         config.setHttpDocumentChecksummer(ConfigurationUtil.newInstance(
@@ -216,9 +214,16 @@ public final class HttpCrawlerConfigLoader {
                 node, "committer", config.getCommitter()));
     }
     
+    //TODO consider moving to Norconex Commons Lang
+    private static <T> T[] defaultIfEmpty(T[] array, T[] defaultArray) {
+        if (ArrayUtils.isEmpty(array)) {
+            return defaultArray;
+        }
+        return array;
+    }
+    
     private static IURLFilter[] loadURLFilters(
-            XMLConfiguration node, String xmlPath)
-            throws Exception {
+            XMLConfiguration node, String xmlPath) {
         List<IURLFilter> urlFilters = new ArrayList<IURLFilter>();
         List<HierarchicalConfiguration> filterNodes = 
                 node.configurationsAt(xmlPath);
@@ -236,8 +241,7 @@ public final class HttpCrawlerConfigLoader {
         return urlFilters.toArray(new IURLFilter[]{});
     }
     private static IHttpHeadersFilter[] loadHeadersFilters(
-            XMLConfiguration node, String xmlPath)
-            throws Exception {
+            XMLConfiguration node, String xmlPath) {
         List<IHttpHeadersFilter> filters = 
                 new ArrayList<IHttpHeadersFilter>();
         List<HierarchicalConfiguration> filterNodes = 
@@ -252,8 +256,7 @@ public final class HttpCrawlerConfigLoader {
         return filters.toArray(new IHttpHeadersFilter[]{});
     }
     private static IHttpDocumentFilter[] loadDocumentFilters(
-            XMLConfiguration node, String xmlPath)
-            throws Exception {
+            XMLConfiguration node, String xmlPath) {
         List<IHttpDocumentFilter> filters = 
                 new ArrayList<IHttpDocumentFilter>();
         List<HierarchicalConfiguration> filterNodes = 
@@ -268,8 +271,7 @@ public final class HttpCrawlerConfigLoader {
         return filters.toArray(new IHttpDocumentFilter[]{});
     }
     private static IHttpCrawlerEventListener[] loadListeners(
-            XMLConfiguration node, String xmlPath)
-            throws Exception {
+            XMLConfiguration node, String xmlPath) {
         List<IHttpCrawlerEventListener> listeners = 
                 new ArrayList<IHttpCrawlerEventListener>();
         List<HierarchicalConfiguration> listenerNodes = 
@@ -284,8 +286,7 @@ public final class HttpCrawlerConfigLoader {
         return listeners.toArray(new IHttpCrawlerEventListener[]{});
     }
     private static IHttpDocumentProcessor[] loadProcessors(
-            XMLConfiguration node, String xmlPath)
-            throws Exception {
+            XMLConfiguration node, String xmlPath) {
         List<IHttpDocumentProcessor> filters = 
                 new ArrayList<IHttpDocumentProcessor>();
         List<HierarchicalConfiguration> filterNodes = 

@@ -18,6 +18,8 @@
  */
 package com.norconex.collector.http.db;
 
+import com.norconex.collector.http.crawler.CrawlURL;
+
 
 /**
  * <p>Database implementation holding necessary information about all URL 

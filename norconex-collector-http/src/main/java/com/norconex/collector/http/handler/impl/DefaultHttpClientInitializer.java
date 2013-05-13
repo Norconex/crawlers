@@ -18,10 +18,15 @@
  */
 package com.norconex.collector.http.handler.impl;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -156,9 +161,57 @@ public class DefaultHttpClientInitializer implements
         proxyRealm = xml.getString("proxyRealm", proxyRealm);
     }
     @Override
-    public void saveToXML(Writer out) {
-        // TODO Implement me.
-        System.err.println("saveToXML not implemented");
+    public void saveToXML(Writer out) throws IOException {
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        try {
+            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            writer.writeStartElement("httpClientInitializer");
+            writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeStartElement("cookiesDisabled");
+            writer.writeCharacters(Boolean.toString(cookiesDisabled));
+            writer.writeEndElement();
+            writer.writeStartElement("userAgent");
+            writer.writeCharacters(userAgent);
+            writer.writeEndElement();
+            writer.writeStartElement("authMethod");
+            writer.writeCharacters(authMethod);
+            writer.writeEndElement();
+            writer.writeStartElement("authUsername");
+            writer.writeCharacters(authUsername);
+            writer.writeEndElement();
+            writer.writeStartElement("authPassword");
+            writer.writeCharacters(authPassword);
+            writer.writeEndElement();
+            writer.writeStartElement("authUsernameField");
+            writer.writeCharacters(authUsernameField);
+            writer.writeEndElement();
+            writer.writeStartElement("authPasswordField");
+            writer.writeCharacters(authPasswordField);
+            writer.writeEndElement();
+            writer.writeStartElement("authURL");
+            writer.writeCharacters(authURL);
+            writer.writeEndElement();
+            writer.writeStartElement("proxyHost");
+            writer.writeCharacters(proxyHost);
+            writer.writeEndElement();
+            writer.writeStartElement("proxyPort");
+            writer.writeCharacters(Integer.toString(proxyPort));
+            writer.writeEndElement();
+            writer.writeStartElement("proxyUsername");
+            writer.writeCharacters(proxyUsername);
+            writer.writeEndElement();
+            writer.writeStartElement("proxyPassword");
+            writer.writeCharacters(proxyPassword);
+            writer.writeEndElement();
+            writer.writeStartElement("proxyRealm");
+            writer.writeCharacters(proxyRealm);
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.flush();
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new IOException("Cannot save as XML.", e);
+        }        
     }
     
     

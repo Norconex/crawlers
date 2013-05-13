@@ -18,12 +18,17 @@
  */
 package com.norconex.collector.http.handler.impl;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -74,13 +79,13 @@ public class SimpleHttpHeadersFetcher
     }
     public SimpleHttpHeadersFetcher(int[] validStatusCodes) {
         super();
-        this.validStatusCodes = validStatusCodes;
+        this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
     }
 	public int[] getValidStatusCodes() {
         return validStatusCodes;
     }
     public void setValidStatusCodes(int[] validStatusCodes) {
-        this.validStatusCodes = validStatusCodes;
+        this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
     }
 	public String getHeadersPrefix() {
         return headersPrefix;
@@ -115,7 +120,6 @@ public class SimpleHttpHeadersFetcher
 	            }
 	            
 	            metadata.addString(name, header.getValue());
-//	            enhanceHTTPHeaders(metadata, header);
 	        }
 	        return metadata;
         } catch (Exception e) {
@@ -129,20 +133,6 @@ public class SimpleHttpHeadersFetcher
         }  
 	}
 	
-
-//    private void enhanceHTTPHeaders(Metadata metadata, Header header) {
-//        if ("Content-Type".equals(header.getName())) { //TODO appropriate??
-//            String contentType = header.getValue();
-//            String mimeType = contentType.replaceFirst("(.*?)(;.*)", "$1");
-//            String charset = contentType.replaceFirst("(.*?)(; )(.*)", "$3");
-//            charset = charset.replaceFirst("(charset=)(.*)", "$2");
-//            metadata.addValue(
-//                    HttpMetadata.DOC_MIMETYPE, mimeType);
-//            metadata.addValue(
-//                    HttpMetadata.DOC_CHARSET, charset);
-//        }
-//    }
-    
     @Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);
@@ -160,8 +150,23 @@ public class SimpleHttpHeadersFetcher
         setHeadersPrefix(xml.getString("headersPrefix"));
     }
     @Override
-    public void saveToXML(Writer out) {
-        // TODO Implement me.
-        System.err.println("saveToXML not implemented");
+    public void saveToXML(Writer out) throws IOException {
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        try {
+            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            writer.writeStartElement("httpHeadersFetcher");
+            writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeStartElement("validStatusCodes");
+            writer.writeCharacters(StringUtils.join(validStatusCodes, ","));
+            writer.writeEndElement();
+            writer.writeStartElement("headersPrefix");
+            writer.writeCharacters(headersPrefix);
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.flush();
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new IOException("Cannot save as XML.", e);
+        }
     }
 }

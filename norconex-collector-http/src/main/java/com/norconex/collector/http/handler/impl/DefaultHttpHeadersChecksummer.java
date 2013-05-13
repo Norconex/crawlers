@@ -18,8 +18,13 @@
  */
 package com.norconex.collector.http.handler.impl;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -40,7 +45,7 @@ import com.norconex.commons.lang.map.Properties;
  * </p>
  * <pre>
  *  &lt;httpHeadersChecksummer class="com.norconex.collector.http.handler.DefaultHttpHeadersChecksummer"&gt;
- *      &lt;header&gt;(optional alternate header field name)&lt;/header&gt;
+ *      &lt;field&gt;(optional alternate header field name)&lt;/field&gt;
  *  &lt;/httpHeadersChecksummer&gt;
  * </pre>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
@@ -82,8 +87,20 @@ public class DefaultHttpHeadersChecksummer
         setField(xml.getString("field", DEFAULT_FIELD));
     }
     @Override
-    public void saveToXML(Writer out) {
-        // TODO Implement me.
-        System.err.println("saveToXML not implemented");
+    public void saveToXML(Writer out) throws IOException {
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        try {
+            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            writer.writeStartElement("httpDocumentChecksummer");
+            writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeStartElement("field");
+            writer.writeCharacters(field);
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.flush();
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new IOException("Cannot save as XML.", e);
+        } 
     }
 }

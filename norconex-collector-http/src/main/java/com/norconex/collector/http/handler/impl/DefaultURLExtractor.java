@@ -27,6 +27,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
@@ -59,10 +63,12 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
             DefaultURLExtractor.class);
 
     public static final int DEFAULT_MAX_URL_LENGTH = 2048;
+    private static final int LOGGING_MAX_URL_LENGTH = 200;
     
     private static final Pattern URL_PATTERN = Pattern.compile(
             "(href|src)(\\s*=\\s*)([\"']{0,1})(.+?)([\"'>])",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final int URL_PATTERN_GROUP_URL = 4;
 
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     
@@ -103,10 +109,8 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
         while ((line = reader.readLine()) != null)   {
             Matcher matcher = URL_PATTERN.matcher(line);
             while (matcher.find()) {
-                String url = matcher.group(4);
+                String url = matcher.group(URL_PATTERN_GROUP_URL);
                 if (url.startsWith("mailto:")) {
-//                if (url.startsWith("mailto:") 
-//                        || url.startsWith("data:image")) {
                     continue;
                 }
                 if (url.startsWith("/")) {
@@ -120,7 +124,8 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
                     LOG.warn("URL length (" + url.length() + ") exeeding "
                            + "maximum length allowed (" + maxURLLength
                            + ") to be extracted. URL (showing first 200 "
-                           + "chars): " + StringUtils.substring(url, 0, 200));
+                           + "chars): " + StringUtils.substring(
+                                   url, 0, LOGGING_MAX_URL_LENGTH) + "...");
                 } else {
                     urls.add(url);
                 }
@@ -142,8 +147,20 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
         setMaxURLLength(xml.getInt("maxURLLength", DEFAULT_MAX_URL_LENGTH));
     }
     @Override
-    public void saveToXML(Writer out) {
-        // TODO Implement me.
-        System.err.println("saveToXML not implemented");
+    public void saveToXML(Writer out) throws IOException {
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        try {
+            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            writer.writeStartElement("urlExtractor");
+            writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeStartElement("maxURLLength");
+            writer.writeCharacters(Integer.toString(maxURLLength));
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.flush();
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new IOException("Cannot save as XML.", e);
+        }       
     }
 }

@@ -33,8 +33,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.crawler.CrawlStatus;
+import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.db.CrawlURL;
 import com.norconex.collector.http.db.CrawlURLDatabaseException;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 
@@ -42,6 +42,8 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
 
     private static final Logger LOG = 
             LogManager.getLogger(DerbyCrawlURLDatabase.class);
+    
+    private static final int NUMBER_OF_TABLES = 4;
     
     private final String dbDir;
     private final DataSource datasource;
@@ -81,27 +83,27 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     @Override
-    public synchronized void queue(String url, int depth) {
+    public final synchronized void queue(String url, int depth) {
         sqlUpdate("INSERT INTO queue (url, depth) VALUES (?,?)", url, depth);
     }
 
     @Override
-    public synchronized boolean isQueueEmpty() {
+    public final synchronized boolean isQueueEmpty() {
         return getQueueSize()  == 0;
     }
 
     @Override
-    public synchronized int getQueueSize() {
+    public final synchronized int getQueueSize() {
         return sqlQueryInteger("SELECT count(*) FROM queue");
     }
 
     @Override
-    public synchronized boolean isQueued(String url) {
+    public final synchronized boolean isQueued(String url) {
         return sqlQueryInteger("SELECT 1 FROM queue where url = ?", url) > 0;
     }
 
     @Override
-    public synchronized CrawlURL next() {
+    public final synchronized CrawlURL next() {
         CrawlURL crawlURL = sqlQueryCrawlURL(
                 "SELECT url, depth FROM queue ORDER BY depth");
         if (crawlURL != null) {
@@ -113,12 +115,12 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     @Override
-    public synchronized boolean isActive(String url) {
+    public final synchronized boolean isActive(String url) {
         return sqlQueryInteger("SELECT 1 FROM active where url = ?", url) > 0;
     }
 
     @Override
-    public synchronized int getActiveCount() {
+    public final synchronized int getActiveCount() {
         return sqlQueryInteger("SELECT count(*) FROM active");
     }
 
@@ -130,12 +132,12 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     @Override
-    public synchronized boolean isCacheEmpty() {
+    public final synchronized boolean isCacheEmpty() {
         return sqlQueryInteger("SELECT count(*) FROM cache") == 0;
     }
 
     @Override
-    public synchronized void processed(CrawlURL crawlURL) {
+    public final synchronized void processed(CrawlURL crawlURL) {
         sqlUpdate("INSERT INTO processed ("
                 + "url, depth, docchecksum, headchecksum, status) "
                 + "values (?, ?, ?, ?, ?)",
@@ -147,23 +149,23 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     @Override
-    public synchronized boolean isProcessed(String url) {
+    public final synchronized boolean isProcessed(String url) {
         return sqlQueryInteger(
                 "SELECT 1 FROM processed where url = ?", url) > 0;
     }
 
     @Override
-    public synchronized int getProcessedCount() {
+    public final synchronized int getProcessedCount() {
         return sqlQueryInteger("SELECT count(*) FROM processed");
     }
 
     @Override
-    public synchronized void queueCache() {
+    public final synchronized void queueCache() {
         copyURLDepthToQueue("cache");
     }
 
     @Override
-    public synchronized boolean isVanished(CrawlURL crawlURL) {
+    public final synchronized boolean isVanished(CrawlURL crawlURL) {
         CrawlURL cachedURL = getCached(crawlURL.getUrl());
         if (cachedURL == null) {
             return false;
@@ -265,7 +267,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         List<Object[]> tables = new ArrayListHandler().handle(
                 datasource.getConnection().getMetaData().getTables(
                         null, null, null, new String[]{"TABLE"}));
-        if (tables.size() == 4) {
+        if (tables.size() == NUMBER_OF_TABLES) {
             LOG.debug("    Re-using existing tables.");
             return;
         }

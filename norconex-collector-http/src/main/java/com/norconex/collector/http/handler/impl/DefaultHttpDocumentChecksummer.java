@@ -23,6 +23,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -66,7 +70,7 @@ public class DefaultHttpDocumentChecksummer
 		if (StringUtils.isNotBlank(field)) {
     		String value = document.getMetadata().getString(field);
     		if (StringUtils.isNotBlank(value)) {
-    			String checksum = DigestUtils.md5Hex(value);;
+    			String checksum = DigestUtils.md5Hex(value);
     			LOG.debug("Document checksum: " + checksum);
     			return checksum;
     		}
@@ -79,8 +83,8 @@ public class DefaultHttpDocumentChecksummer
 	    	is.close();
 	    	return checksum;
 		} catch (IOException e) {
-			throw new HttpCollectorException(
-					"Cannot create checksum on : " + document.getLocalFile());
+			throw new HttpCollectorException("Cannot create checksum on : " 
+			        + document.getLocalFile(), e);
 		}
     }
 
@@ -91,17 +95,27 @@ public class DefaultHttpDocumentChecksummer
 		this.field = field;
 	}
 
-
-
 	@Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         setField(xml.getString("field", null));
     }
     @Override
-    public void saveToXML(Writer out) {
-        // TODO Implement me.
-        System.err.println("saveToXML not implemented");
+    public void saveToXML(Writer out) throws IOException {
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        try {
+            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            writer.writeStartElement("httpDocumentChecksummer");
+            writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeStartElement("field");
+            writer.writeCharacters(field);
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.flush();
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new IOException("Cannot save as XML.", e);
+        }        
     }
 
 }

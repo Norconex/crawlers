@@ -34,6 +34,8 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -54,6 +56,9 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
 
     public static final long DEFAULT_DELAY = 3000;
     
+    private static final double THOUSAND_MILIS = 1000.0;
+    private static final int MIN_DOW_LENGTH = 3;
+    
     private long lastHitTimestampNanos = -1;
     private long defaultDelay = DEFAULT_DELAY;
     private List<DelaySchedule> schedules = new ArrayList<DelaySchedule>();
@@ -67,12 +72,11 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             lastHitTimestampNanos = System.nanoTime();
             return;
         }
-        
         long delayNanos = millisToNanos(defaultDelay);
         if (robotsTxt != null && !ignoreRobotsCrawlDelay 
                 && robotsTxt.getCrawlDelay() >=0) {
             delayNanos = TimeUnit.MILLISECONDS.toNanos(
-                    (long)(robotsTxt.getCrawlDelay() * 1000.0));
+                    (long)(robotsTxt.getCrawlDelay() * THOUSAND_MILIS));
         } else {
             for (DelaySchedule schedule : schedules) {
                 if (schedule.isCurrentTimeInSchedule()) {
@@ -199,15 +203,13 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
         }
         public boolean isCurrentTimeInSchedule() {
             DateTime now = DateTime.now();
-            if (dayOfWeekRange != null) {
-                if (!dayOfWeekRange.contains(now.getDayOfWeek())) {
-                    return false;
-                }
+            if (dayOfWeekRange != null 
+                    && !dayOfWeekRange.contains(now.getDayOfWeek())) {
+                return false;
             }
-            if (dayOfMonthRange != null) {
-                if (!dayOfMonthRange.contains(now.getDayOfMonth())) {
-                    return false;
-                }
+            if (dayOfMonthRange != null 
+                    && !dayOfMonthRange.contains(now.getDayOfMonth())) {
+                return false;
             }
             if (timeRange != null) {
                 Interval interval = new Interval(
@@ -266,11 +268,11 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             return new LocalTime(Integer.parseInt(str), 0);
         }
         private int getDOW(String str) {
-            if (str.length() < 3) {
+            if (str.length() < MIN_DOW_LENGTH) {
                 throw new HttpCollectorException(
                         "Invalid day of week: " + str);
             }
-            String dow = str.substring(0, 3);
+            String dow = str.substring(0, MIN_DOW_LENGTH);
             return DOW.valueOf(dow).ordinal() + 1;
         }
         private String normalize(String str) {
@@ -290,46 +292,33 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
                     + ", dayOfMonthRange=" + dayOfMonthRange + ", timeRange="
                     + timeRange + "]";
         }
+        
         @Override
         public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime
-                    * result
-                    + ((dayOfMonthRange == null) ? 0 : dayOfMonthRange
-                            .hashCode());
-            result = prime
-                    * result
-                    + ((dayOfWeekRange == null) ? 0 : dayOfWeekRange.hashCode());
-            result = prime * result
-                    + ((timeRange == null) ? 0 : timeRange.hashCode());
-            return result;
+            return new HashCodeBuilder()
+                .append(dayOfMonthRange)
+                .append(dayOfWeekRange)
+                .append(timeRange)
+                .toHashCode();
         }
+        
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if (!(obj instanceof DefaultDelayResolver.DelaySchedule)) {
                 return false;
-            DelaySchedule other = (DelaySchedule) obj;
-            if (dayOfMonthRange == null) {
-                if (other.dayOfMonthRange != null)
-                    return false;
-            } else if (!dayOfMonthRange.equals(other.dayOfMonthRange))
-                return false;
-            if (dayOfWeekRange == null) {
-                if (other.dayOfWeekRange != null)
-                    return false;
-            } else if (!dayOfWeekRange.equals(other.dayOfWeekRange))
-                return false;
-            if (timeRange == null) {
-                if (other.timeRange != null)
-                    return false;
-            } else if (!timeRange.equals(other.timeRange))
-                return false;
-            return true;
+            }
+            DefaultDelayResolver.DelaySchedule other = (DefaultDelayResolver.DelaySchedule) obj;
+            return new EqualsBuilder()
+                .append(dayOfMonthRange, other.dayOfMonthRange)
+                .append(dayOfWeekRange, other.dayOfWeekRange)
+                .append(timeRange, other.timeRange)
+                .isEquals();
         }
     }
     

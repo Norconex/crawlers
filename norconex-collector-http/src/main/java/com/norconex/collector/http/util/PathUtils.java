@@ -22,7 +22,14 @@ import java.io.File;
 
 import org.apache.commons.lang.StringUtils;
 
-public class PathUtils {
+public final class PathUtils {
+
+    private static final int PATH_SEGMENT_SIZE = 5;
+    private static final int MAX_PATH_LENGTH = 256;
+    
+    private PathUtils() {
+        super();
+    }
 
     public static String urlToPath(final String url) {
         if (url == null) {
@@ -39,7 +46,7 @@ public class PathUtils {
         path = path.replaceAll("[\\W]+", "_");
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < path.length(); i++) {
-        	if (i % 5 == 0) {
+        	if (i % PATH_SEGMENT_SIZE == 0) {
         		b.append(sep);
         	}
         	b.append(path.charAt(i));
@@ -47,8 +54,8 @@ public class PathUtils {
         path = b.toString();
         
         //TODO is truncating after 256 a risk of creating false duplicates?
-        if (path.length() > 256) {
-            path = StringUtils.right(path, 256);
+        if (path.length() > MAX_PATH_LENGTH) {
+            path = StringUtils.right(path, MAX_PATH_LENGTH);
             if (!path.startsWith(File.separator)) {
                 path = File.separator + path;
             }

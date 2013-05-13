@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -46,7 +47,8 @@ import com.norconex.collector.http.robot.RobotsTxt;
  * XML configuration usage (not required since default):
  * </p>
  * <pre>
- *  &lt;robotsTxt ignore="false" class="com.norconex.collector.http.handler.DefaultRobotsTxtProvider"/&gt;
+ *  &lt;robotsTxt ignore="false" 
+ *     class="com.norconex.collector.http.handler.DefaultRobotsTxtProvider"/&gt;
  * </pre>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
@@ -60,7 +62,7 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
             new HashMap<String, RobotsTxt>();
 
     @Override
-    synchronized public RobotsTxt getRobotsTxt(
+    public synchronized RobotsTxt getRobotsTxt(
             DefaultHttpClient httpClient, String url) {
         String baseURL = getBaseURL(url);
         RobotsTxt robotsTxt = robotsTxtCache.get(baseURL);
@@ -72,41 +74,28 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
                 CoreProtocolPNames.USER_AGENT)).toLowerCase();
         String robotsURL = baseURL + "/robots.txt";
         HttpGet method = new HttpGet(robotsURL);
-        List<IURLFilter> filters = 
-                new ArrayList<IURLFilter>();
-        float crawlDelay = RobotsTxt.UNSPECIFIED_CRAWL_DELAY;
+        List<IURLFilter> filters = new ArrayList<IURLFilter>();
+        MutableFloat crawlDelay = 
+                new MutableFloat(RobotsTxt.UNSPECIFIED_CRAWL_DELAY);
         try {
             HttpResponse response = httpClient.execute(method);
             InputStreamReader isr = 
                     new InputStreamReader(response.getEntity().getContent());
             BufferedReader br = new BufferedReader(isr);
-            boolean agentMatched = false;
+            boolean agentAlreadyMatched = false;
             String line;
             while ((line = br.readLine()) != null) {
                 String key = line.replaceFirst("(.*?)(:.*)", "$1").trim();
                 String value = line.replaceFirst("(.*?:)(.*)", "$2").trim();
                 if ("user-agent".equalsIgnoreCase(key)) {
-                    if ("*".equals(value) || userAgent.contains(
-                            value.toLowerCase())) {
-                        agentMatched = true;
-                    } else if (agentMatched) {
+                    if (matchesUserAgent(userAgent, value)) {
+                        agentAlreadyMatched = true;
+                    } else if (agentAlreadyMatched) {
                         break;
                     }
                 }
-                if (agentMatched) {
-                    if ("disallow".equalsIgnoreCase(key)) {
-                        filters.add(buildURLFilter(
-                        		baseURL, value, OnMatch.EXCLUDE));
-                    } else if ("allow".equalsIgnoreCase(key)) {
-                        filters.add(buildURLFilter(
-                        		baseURL, value, OnMatch.INCLUDE));
-                    } else if ("crawl-delay".equalsIgnoreCase(key)) {
-                        crawlDelay = NumberUtils.toFloat(value, crawlDelay);
-                    } else if ("sitemap".equalsIgnoreCase(key)) {
-                        //TODO implement me.
-                        LOG.warn("Sitemap in robots.txt encountered. "
-                               + "CURRENTLY NOT SUPPORTED.");
-                    }
+                if (agentAlreadyMatched) {
+                    parseAgentLines(baseURL, filters, crawlDelay, key, value);
                 }
             }
             isr.close();
@@ -119,12 +108,34 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
         }
         
         robotsTxt = new RobotsTxt(
-                filters.toArray(new IURLFilter[]{}), crawlDelay);
+                filters.toArray(new IURLFilter[]{}), crawlDelay.floatValue());
         robotsTxtCache.put(baseURL, robotsTxt);
         return robotsTxt;
     }
+
+    private void parseAgentLines(String baseURL, List<IURLFilter> filters,
+            MutableFloat crawlDelay, String key, String value) {
+        if ("disallow".equalsIgnoreCase(key)) {
+            filters.add(buildURLFilter(
+            		baseURL, value, OnMatch.EXCLUDE));
+        } else if ("allow".equalsIgnoreCase(key)) {
+            filters.add(buildURLFilter(
+            		baseURL, value, OnMatch.INCLUDE));
+        } else if ("crawl-delay".equalsIgnoreCase(key)) {
+            crawlDelay.setValue(NumberUtils.toFloat(
+                    value, crawlDelay.floatValue()));
+        } else if ("sitemap".equalsIgnoreCase(key)) {
+            //TODO implement me.
+            LOG.warn("Sitemap in robots.txt encountered. "
+                   + "CURRENTLY NOT SUPPORTED.");
+        }
+    }
     
-    
+    private boolean matchesUserAgent(
+            String userAgent, String value) {
+        return "*".equals(value) 
+                || userAgent.contains(value.toLowerCase());
+    }
     
     private String getBaseURL(String url) {
         String baseURL = url.replaceFirst("(.*?://.*?/)(.*)", "$1");

@@ -32,6 +32,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -153,9 +154,9 @@ public class GenericURLNormalizer
     };
     
     
-    public final List<Normalization> normalizations = 
+    private final List<Normalization> normalizations = 
             new ArrayList<Normalization>();
-    public final List<Replace> replaces = new ArrayList<Replace>();
+    private final List<Replace> replaces = new ArrayList<Replace>();
     
     public String normalizeURL(String url) {
         URLNormalizer normalizer = new URLNormalizer(url);
@@ -254,27 +255,25 @@ public class GenericURLNormalizer
                 + ((replaces == null) ? 0 : replaces.hashCode());
         return result;
     }
+    
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (!(obj instanceof GenericURLNormalizer)) {
             return false;
+        }
         GenericURLNormalizer other = (GenericURLNormalizer) obj;
-        if (normalizations == null) {
-            if (other.normalizations != null)
-                return false;
-        } else if (!normalizations.equals(other.normalizations))
-            return false;
-        if (replaces == null) {
-            if (other.replaces != null)
-                return false;
-        } else if (!replaces.equals(other.replaces))
-            return false;
-        return true;
+        return new EqualsBuilder()
+            .append(normalizations, other.normalizations)
+            .append(replaces, other.replaces)
+            .isEquals();
     }
+    
     @Override
     public String toString() {
         return "GenericURLNormalizer [normalizations=" + normalizations
@@ -309,27 +308,25 @@ public class GenericURLNormalizer
                     + ((replacement == null) ? 0 : replacement.hashCode());
             return result;
         }
+        
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if (!(obj instanceof GenericURLNormalizer.Replace)) {
                 return false;
-            Replace other = (Replace) obj;
-            if (match == null) {
-                if (other.match != null)
-                    return false;
-            } else if (!match.equals(other.match))
-                return false;
-            if (replacement == null) {
-                if (other.replacement != null)
-                    return false;
-            } else if (!replacement.equals(other.replacement))
-                return false;
-            return true;
+            }
+            GenericURLNormalizer.Replace other = (GenericURLNormalizer.Replace) obj;
+            return new EqualsBuilder()
+                .append(match, other.match)
+                .append(replacement, other.replacement)
+                .isEquals();
         }
+        
         @Override
         public String toString() {
             return "Replace [match=" + match + ", replacement=" + replacement

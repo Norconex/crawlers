@@ -19,21 +19,15 @@
 package com.norconex.collector.http.crawler;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -43,27 +37,12 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.HttpCollectorException;
-import com.norconex.collector.http.db.CrawlURL;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.filter.IHttpDocumentFilter;
-import com.norconex.collector.http.filter.IHttpHeadersFilter;
-import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.handler.IDelayResolver;
-import com.norconex.collector.http.handler.IHttpDocumentChecksummer;
-import com.norconex.collector.http.handler.IHttpDocumentProcessor;
-import com.norconex.collector.http.handler.IHttpHeadersChecksummer;
-import com.norconex.collector.http.handler.IHttpHeadersFetcher;
-import com.norconex.collector.http.handler.IURLExtractor;
-import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.util.PathUtils;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.FileUtil;
-import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.Importer;
-import com.norconex.importer.ImporterConfig;
 import com.norconex.jef.AbstractResumableJob;
 import com.norconex.jef.IJobContext;
 import com.norconex.jef.progress.IJobStatus;
@@ -74,8 +53,9 @@ public class HttpCrawler extends AbstractResumableJob {
 	
 	private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
 	
+	private static final int MINIMUM_DELAY = 10;
+	
 	private final HttpCrawlerConfig crawlerConfig;
-    private final ImporterConfig importConfig;
     private DefaultHttpClient httpClient;
     private final IHttpCrawlerEventListener[] listeners;
     private boolean stopped;
@@ -85,7 +65,6 @@ public class HttpCrawler extends AbstractResumableJob {
 	        HttpCrawlerConfig crawlerConfig) {
 		super();
 		this.crawlerConfig = crawlerConfig;
-		this.importConfig = crawlerConfig.getImporterConfig();
 		IHttpCrawlerEventListener[] ls = crawlerConfig.getCrawlerListeners();
 		if (ls == null) {
 		    this.listeners = new IHttpCrawlerEventListener[]{};
@@ -101,11 +80,11 @@ public class HttpCrawler extends AbstractResumableJob {
             private static final long serialVersionUID = 2785476254478043557L;
             @Override
             public long getProgressMinimum() {
-                return 0;
+                return IJobContext.PROGRESS_ZERO;
             }
             @Override
             public long getProgressMaximum() {
-                return 100;
+                return IJobContext.PROGRESS_100;
             }
             @Override
             public String getDescription() {
@@ -113,6 +92,8 @@ public class HttpCrawler extends AbstractResumableJob {
             }
         };
 	}
+	
+	
 	
 	@Override
 	public String getId() {
@@ -191,6 +172,9 @@ public class HttpCrawler extends AbstractResumableJob {
                 + (stopped ? "stopped." : "completed."));
     }
     
+    /*default*/ HttpCrawlerConfig getCrawlerConfig() {
+        return crawlerConfig;
+    }
     
     private void processURLs(
     		final ICrawlURLDatabase database,
@@ -210,15 +194,13 @@ public class HttpCrawler extends AbstractResumableJob {
                     LOG.debug("Crawler thread #" + threadIndex + " started.");
                     while (!isStopped()) {
                         try {
-                            if (!processNextURL(
-                                    database, progress, suite, delete)) {
+                            if (!processNextURL(database, progress, delete)) {
                                 break;
                             }
                         } catch (Exception e) {
                             LOG.fatal("An error occured that could compromise "
-                                    + "the stability of the crawler component. "
-                                    + "Stopping excution to avoid further "
-                                    + "issues...", e);
+                                + "the stability of the crawler. Stopping "
+                                + "excution to avoid further issues...", e);
                             stop(progress, suite);
                         }
                     }
@@ -255,7 +237,6 @@ public class HttpCrawler extends AbstractResumableJob {
     private boolean processNextURL(
             final ICrawlURLDatabase database,
             final JobProgress progress, 
-            final JobSuite suite,
             final boolean delete) {
         CrawlURL queuedURL = database.next();
         if (queuedURL != null) {
@@ -280,7 +261,7 @@ public class HttpCrawler extends AbstractResumableJob {
             if (database.getActiveCount() == 0 && database.isQueueEmpty()) {
                 return false;
             }
-            Sleeper.sleepMillis(10);
+            Sleeper.sleepMillis(MINIMUM_DELAY);
         }
         return true;
     }
@@ -292,9 +273,10 @@ public class HttpCrawler extends AbstractResumableJob {
         if (total == 0) {
             progress.setProgress(progress.getJobContext().getProgressMaximum());
         } else {
-            int percent = (int) Math.floor(
-                    ((double) processed / (double) total) * (double) 100);
-            progress.setProgress(percent);
+            progress.setProgress(BigDecimal.valueOf(processed)
+                    .divide(BigDecimal.valueOf(total), RoundingMode.DOWN)
+                    .multiply(BigDecimal.valueOf(IJobContext.PROGRESS_100))
+                    .intValue());
         }
         progress.setNote(
                 NumberFormat.getIntegerInstance().format(processed)
@@ -302,184 +284,41 @@ public class HttpCrawler extends AbstractResumableJob {
                 + NumberFormat.getIntegerInstance().format(total));
     }
 
+    private File createLocalFile(CrawlURL crawlURL, String extension) {
+        return new File(gelCrawlerDownloadDir().getAbsolutePath() 
+                + SystemUtils.FILE_SEPARATOR 
+                + PathUtils.urlToPath(crawlURL.getUrl())
+                + extension);
+    }
+    
+    private void deleteURL(
+            CrawlURL crawlURL, File outputFile, HttpDocument doc) {
+        LOG.debug("Deleting URL: " + crawlURL.getUrl());
+        ICommitter committer = crawlerConfig.getCommitter();
+        crawlURL.setStatus(CrawlStatus.DELETED);
+        if (committer != null) {
+            committer.queueRemove(
+                    crawlURL.getUrl(), outputFile, doc.getMetadata());
+        }
+    }
+    
     private void processNextQueuedURL(
             CrawlURL crawlURL, ICrawlURLDatabase database, boolean delete) {
         String url = crawlURL.getUrl();
-        int urlDepth = crawlURL.getDepth();
-
-        String baseFilename = gelCrawlerDownloadDir().getAbsolutePath() 
-                + SystemUtils.FILE_SEPARATOR +  PathUtils.urlToPath(url);
-        File rawFile = new File(baseFilename + ".raw"); 
-        File outputFile = new File(baseFilename + ".txt");
-        HttpDocument doc = new HttpDocument(url, rawFile);
-        
+        File outputFile = createLocalFile(crawlURL, ".txt");
+        HttpDocument doc = new HttpDocument(
+                crawlURL.getUrl(), createLocalFile(crawlURL, ".raw"));        
         try {
             if (delete) {
-                LOG.debug("Deleting URL: " + url);
-                ICommitter committer = crawlerConfig.getCommitter();
-                crawlURL.setStatus(CrawlStatus.DELETED);
-                if (committer != null) {
-                    committer.queueRemove(url, outputFile, doc.getMetadata());
-                }
+                deleteURL(crawlURL, outputFile, doc);
                 return;
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("Processing URL: " + url);
             }
             
-	        if (!isUrlDepthValid(url, urlDepth)) {
-	            crawlURL.setStatus(CrawlStatus.TOO_DEEP);
-	            return;
-	        }
-	        if (LOG.isDebugEnabled()) {
-	            LOG.debug("Processing URL: " + url);
-	        }
-
-            //--- URL Filters --------------------------------------------------
-            if (isURLRejected(url, crawlerConfig.getURLFilters(), null)) {
-                crawlURL.setStatus(CrawlStatus.REJECTED);
+            if (!new URLProcessor(this, httpClient, database, 
+                    outputFile, doc, crawlURL).processURL()) {
                 return;
-            }
-
-            //--- Robots.txt Filters -------------------------------------------
-            RobotsTxt robotsTxt = null;
-            if (!crawlerConfig.isIgnoreRobotsTxt()) {
-                robotsTxt = crawlerConfig.getRobotsTxtProvider().getRobotsTxt(
-                        httpClient, url);
-                if (isURLRejected(url, robotsTxt.getFilters(), robotsTxt)) {
-                    crawlURL.setStatus(CrawlStatus.REJECTED);
-                    return;
-                }
-            }
-
-            //--- Wait for delay to expire -------------------------------------
-            IDelayResolver delayResolver = crawlerConfig.getDelayResolver();
-            if (delayResolver != null) {
-                synchronized (delayResolver) {
-                    delayResolver.delay(robotsTxt, url);
-                }
-            }
-            
-            //--- HTTP Headers Fetcher and Filters -----------------------------
-            IHttpHeadersFetcher hdFetcher = 
-                    crawlerConfig.getHttpHeadersFetcher();
-            if (hdFetcher != null) {
-                Properties metadata = 
-                        hdFetcher.fetchHTTPHeaders(httpClient, url);
-                if (metadata == null) {
-                    crawlURL.setStatus(CrawlStatus.REJECTED);
-                    return;
-                }
-                doc.getMetadata().putAll(metadata);
-                enhanceHTTPHeaders(doc.getMetadata());
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentHeadersFetched(
-                            this, url, hdFetcher, doc.getMetadata());
-                }
-                
-                //--- HTTP Headers Filters -------------------------------------
-                if (isHeadersRejected(url, doc.getMetadata(), 
-                        crawlerConfig.getHttpHeadersFilters())) {
-                    crawlURL.setStatus(CrawlStatus.REJECTED);
-                    return;
-                }
-                
-                //--- HTTP Headers Checksum ------------------------------------
-                //TODO only if an INCREMENTAL run... else skip.
-                if (isHeadersChecksumRejected(
-                        database, crawlURL, doc.getMetadata())) {
-                    crawlURL.setStatus(CrawlStatus.UNMODIFIED);
-                    return;
-                }
-            }
-            
-            //--- Document Fetcher ---------------------------------------------            
-            crawlURL.setStatus(fetchDocument(doc));
-	        if (crawlURL.getStatus() != CrawlStatus.OK) {
-	            return;
-	        }
-
-            //--- URL Extractor ------------------------------------------------            
-	        extractUrls(doc);
-
-            //--- Store Next URLs to process -----------------------------------
-            storeURLs(doc, database, urlDepth);
-
-
-            //--- Apply Headers filters if not already -------------------------
-            if (hdFetcher == null) {
-                enhanceHTTPHeaders(doc.getMetadata());
-                //--- HTTP Headers Filters -------------------------------------
-                if (isHeadersRejected(url, doc.getMetadata(), 
-                        crawlerConfig.getHttpHeadersFilters())) {
-                    crawlURL.setStatus(CrawlStatus.REJECTED);
-                    return;
-                }
-                
-                //--- HTTP Headers Checksum ------------------------------------
-                //TODO only if an INCREMENTAL run... else skip.
-                if (isHeadersChecksumRejected(
-                        database, crawlURL, doc.getMetadata())) {
-                    crawlURL.setStatus(CrawlStatus.UNMODIFIED);
-                    return;
-                }
-            }
-            
-            //--- Document Filters ---------------------------------------------
-            if (isDocumentRejected(
-                    doc, crawlerConfig.getHttpDocumentfilters())) {
-                crawlURL.setStatus(CrawlStatus.REJECTED);
-                return;
-            }
-
-            //--- Document Pre-Processing --------------------------------------
-            if (crawlerConfig.getPreImportProcessors() != null) {
-                for (IHttpDocumentProcessor preProc :
-                        crawlerConfig.getPreImportProcessors()) {
-                    preProc.processDocument(httpClient, doc);
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentPreProcessed(this, doc, preProc);
-                    }
-                }
-            }
-            
-            //--- IMPORT Module ------------------------------------------------
-            if (!importDocument(doc, outputFile)) {
-                crawlURL.setStatus(CrawlStatus.REJECTED);
-                return;
-            }
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.documentImported(this, doc);
-            }
-            
-            //--- HTTP Document Checksum ---------------------------------------
-            //TODO only if an INCREMENTAL run... else skip.
-            if (isDocumentChecksumRejected(database, crawlURL, doc)) {
-                crawlURL.setStatus(CrawlStatus.UNMODIFIED);
-                return;
-            }
-            
-            //--- Document Post-Processing -------------------------------------
-            if (crawlerConfig.getPostImportProcessors() != null) {
-                for (IHttpDocumentProcessor postProc :
-                        crawlerConfig.getPostImportProcessors()) {
-                    postProc.processDocument(httpClient, doc);
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentPostProcessed(this, doc, postProc);
-                    }
-                }            
-            }
-            
-	        //TODO Tranform output here to format of choice? 
-	        // Rather call an open interface for that.. providing default
-	        // one, but people could skip writing to file altogether???
-
-            //--- Document Commit ----------------------------------------------
-	        ICommitter committer = crawlerConfig.getCommitter();
-            if (committer != null) {
-                committer.queueAdd(url, outputFile, doc.getMetadata());
-            }
-
-            
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.documentCrawled(this, doc);
             }
         } catch (Exception e) {
             //TODO do we really want to catch anything other than 
@@ -512,198 +351,12 @@ public class HttpCrawler extends AbstractResumableJob {
             
             //--- Delete Local File Download -----------------------------------
             if (!crawlerConfig.isKeepDownloads()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Deleting " + doc.getLocalFile());
-                }
+                LOG.debug("Deleting " + doc.getLocalFile());
                 FileUtils.deleteQuietly(doc.getLocalFile());
             }
 	    }
 	}
 
-    private void storeURLs(
-            HttpDocument doc, ICrawlURLDatabase database, int urlDepth) {
-        Collection<String> urls = doc.getMetadata().getDocumentUrls();
-        for (String urlToProcess : urls) {
-            if (database.isActive(urlToProcess)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Already being processed: " + urlToProcess);
-                }
-            } else if (database.isQueued(urlToProcess)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Already queued: " + urlToProcess);
-                }
-            } else if (database.isProcessed(urlToProcess)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Already processed: " + urlToProcess);
-                }
-            } else {
-                database.queue(urlToProcess, urlDepth + 1);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Queued for processing: " + urlToProcess);
-                }
-            }
-        }
-    }
-        
-    private boolean isURLRejected(
-            String url, IURLFilter[] filters, RobotsTxt robotsTxt) {
-        if (filters == null) {
-            return false;
-        }
-        String type = "";
-        if (robotsTxt != null) {
-            type = " (robots.txt)";
-        }
-        for (IURLFilter filter : filters) {
-            if (filter.acceptURL(url)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("ACCEPTED document URL" + type + ". URL=" + url
-                            + " Filter=" + filter);
-                }
-            } else {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    if (robotsTxt != null) {
-                        listener.documentRobotsTxtRejected(
-                                this, url, filter, robotsTxt);
-                    } else {
-                        listener.documentURLRejected(this, url, filter);
-                    }
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("REJECTED document URL" + type + ". URL=" 
-                            + url + " Filter=" + filter);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isHeadersRejected(
-            String url, HttpMetadata headers, IHttpHeadersFilter[] filters) {
-        if (filters == null) {
-            return false;
-        }
-        for (IHttpHeadersFilter filter : filters) {
-            if (filter.acceptDocument(url, headers)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("ACCEPTED document http headers. URL=" + url
-                            + " Filter=" + filter);
-                }
-            } else {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentHeadersRejected(
-                            this, url, filter, headers);
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("REJECTED document http headers.  URL=" 
-                            + url + " Filter=" + filter);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isHeadersChecksumRejected(
-            ICrawlURLDatabase database, CrawlURL crawlURL, Properties headers) {
-    	IHttpHeadersChecksummer check = crawlerConfig.getHttpHeadersChecksummer();
-        if (check == null) {
-            return false;
-        }
-        String newHeadChecksum = check.createChecksum(headers);
-        crawlURL.setHeadChecksum(newHeadChecksum);
-        String oldHeadChecksum = null;
-        CrawlURL cachedURL = database.getCached(crawlURL.getUrl());
-        if (cachedURL != null) {
-        	oldHeadChecksum = cachedURL.getHeadChecksum();
-        } else {
-            LOG.debug("ACCEPTED document headers checkum (new): URL="
-            		+ crawlURL.getUrl());
-        	return false;
-        }
-        if (StringUtils.isNotBlank(newHeadChecksum) 
-        		&& ObjectUtils.equals(newHeadChecksum, oldHeadChecksum)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("REJECTED document headers checkum (unmodified): URL="
-                		+ crawlURL.getUrl());
-            }
-            return true;
-        }
-        LOG.debug("ACCEPTED document headers checkum (modified): URL=" 
-                + crawlURL.getUrl());
-        return false;
-    }
-
-    private boolean isDocumentChecksumRejected(
-            ICrawlURLDatabase database, CrawlURL crawlURL, 
-            HttpDocument document) {
-    	IHttpDocumentChecksummer check = 
-    			crawlerConfig.getHttpDocumentChecksummer();
-        if (check == null) {
-            return false;
-        }
-        String newDocChecksum = check.createChecksum(document);
-        crawlURL.setDocChecksum(newDocChecksum);
-        String oldDocChecksum = null;
-        CrawlURL cachedURL = database.getCached(crawlURL.getUrl());
-        if (cachedURL != null) {
-        	oldDocChecksum = cachedURL.getDocChecksum();
-        } else {
-            LOG.debug("ACCEPTED document checkum (new): URL=" 
-                    + crawlURL.getUrl());
-        	return false;
-        }
-        if (StringUtils.isNotBlank(newDocChecksum) 
-        		&& ObjectUtils.equals(newDocChecksum, oldDocChecksum)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("REJECTED document checkum (unmodified): URL=" 
-                        + crawlURL.getUrl());
-            }
-            return true;
-        }
-        LOG.debug("ACCEPTED document checkum (modified): URL=" 
-                + crawlURL.getUrl());
-        return false;
-    }
-
-    
-    private boolean isDocumentRejected(
-            HttpDocument document, IHttpDocumentFilter[] filters) {
-        if (filters == null) {
-            return false;
-        }
-        for (IHttpDocumentFilter filter : filters) {
-            if (filter.acceptDocument(document)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("ACCEPTED document. URL=" + document.getUrl()
-                            + " Filter=" + filter);
-                }
-            } else {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentRejected(this, document, filter);
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("REJECTED document.  URL=" + document.getUrl()
-                            + " Filter=" + filter);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-    
-	private boolean isUrlDepthValid(String url, int urlDepth) {
-	    if (crawlerConfig.getMaxDepth() != -1 
-	            && urlDepth > crawlerConfig.getMaxDepth()) {
-	        if (LOG.isDebugEnabled()) {
-	            LOG.debug("URL too deep to process (" + urlDepth + "): " + url);
-	        }
-	        return false;
-	    }
-	    return true;
-	}
-	
 	private void initializeHTTPClient() {
         //TODO set HTTPClient user-agent from config before calling init..
 	    PoolingClientConnectionManager m = new PoolingClientConnectionManager();
@@ -716,105 +369,6 @@ public class HttpCrawler extends AbstractResumableJob {
         crawlerConfig.getHttpClientInitializer().initializeHTTPClient(
                 httpClient);
 	}
-
-    private void enhanceHTTPHeaders(Properties metadata) {
-        String contentType = metadata.getString("Content-Type");
-        if (contentType != null) {
-            String mimeType = contentType.replaceFirst("(.*?)(;.*)", "$1");
-            String charset = contentType.replaceFirst("(.*?)(; )(.*)", "$3");
-            charset = charset.replaceFirst("(charset=)(.*)", "$2");
-            metadata.addString(HttpMetadata.DOC_MIMETYPE, mimeType);
-            metadata.addString(HttpMetadata.DOC_CHARSET, charset);
-        }
-    }
-    
-    private CrawlStatus fetchDocument(HttpDocument doc) {
-        //TODO for now we assume the document is downloadable.
-		// download as file
-        CrawlStatus status = 
-                crawlerConfig.getHttpDocumentFetcher().fetchDocument(
-                        httpClient, doc);
-        if (status == CrawlStatus.OK) {
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.documentFetched(
-                        this, doc, crawlerConfig.getHttpDocumentFetcher());
-            }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("SAVED DOC: " 
-                      + doc.getLocalFile().toURI() + " [mime type: "
-                      + doc.getMetadata().getContentType() + "]");
-            }
-        }
-        return status;
-    }
-
-    /**
-     * Convert binary/formatted text to normalised text.
-     * @param doc
-     * @throws IOException
-     */
-    private boolean importDocument(
-            HttpDocument doc, File output) throws IOException {
-        Importer importer = new Importer(importConfig);
-        FileUtil.createDirsForFile(output);
-        if (importer.importDocument(
-                doc.getLocalFile(),
-                doc.getMetadata().getContentType(),
-                output,
-                doc.getMetadata(),
-                doc.getUrl())) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("ACCEPTED document import. URL=" + doc.getUrl());
-            }
-            return true;
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("REJECTED document import.  URL=" + doc.getUrl());
-        }
-        return false;
-    }
-
-   
-    /**
-     * Extract URLs before sending to importer (because the importer may
-     * strip some "valid" urls in producing content-centric material.
-     * Plus, any additional urls could be added to Metadata and they will
-     * be considered.
-     * @param doc
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    private void extractUrls(HttpDocument doc) throws IOException,
-            IOException {
-        FileReader reader = new FileReader(doc.getLocalFile());
-		IURLExtractor urlExtractor = crawlerConfig.getUrlExtractor();
-		Set<String> urls = urlExtractor.extractURLs(
-		        reader, doc.getUrl(), doc.getMetadata().getContentType());
-		reader.close();
-		
-		// URL Normalizer
-		// Normalize urls
-		if (crawlerConfig.getUrlNormalizer() != null) {
-		    Set<String> nurls = new HashSet<String>();
-		    for (String url : urls) {
-                String n = crawlerConfig.getUrlNormalizer().normalizeURL(url);
-                if (n != null) {
-                    nurls.add(n);
-                }
-            }
-		    urls = nurls;
-		}
-		
-		
-        if (urls != null) {
-            doc.getMetadata().addString(
-                    HttpMetadata.REFERNCED_URLS, urls.toArray(
-                    		ArrayUtils.EMPTY_STRING_ARRAY));
-        }
-        for (IHttpCrawlerEventListener listener : listeners) {
-            listener.documentURLsExtracted(this, doc);
-        }
-    }
 
     @Override
     public void stop(IJobStatus progress, JobSuite suite) {

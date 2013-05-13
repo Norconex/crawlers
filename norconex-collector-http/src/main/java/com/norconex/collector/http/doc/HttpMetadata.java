@@ -29,7 +29,6 @@ public class HttpMetadata extends Properties {
 	
 	private static final long serialVersionUID = 1454870639551983430L;
 
-//    public static final String HTTP_HEADER_PREFIX = "http.header.";
     public static final String COLLECTOR_PREFIX = "collector.http.";
 	
 	public static final String HTTP_CONTENT_TYPE = "Content-Type";

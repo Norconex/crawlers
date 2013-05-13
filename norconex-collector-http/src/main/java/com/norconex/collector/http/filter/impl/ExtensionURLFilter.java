@@ -29,6 +29,8 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
@@ -111,10 +113,10 @@ public class ExtensionURLFilter extends AbstractOnMatchFilter implements
     public boolean isCaseSensitive() {
         return caseSensitive;
     }
-    public void setCaseSensitive(boolean caseSensitive) {
+    public final void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
     }
-    public void setExtensions(String extensions) {
+    public final void setExtensions(String extensions) {
         this.extensions = extensions;
         if (extensions != null) {
             this.extensionParts = extensions.split(",");
@@ -167,32 +169,29 @@ public class ExtensionURLFilter extends AbstractOnMatchFilter implements
     public boolean acceptDocument(String url, HttpMetadata headers) {
         return acceptURL(url);
     }
+    
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (caseSensitive ? 1231 : 1237);
-        result = prime * result
-                + ((extensions == null) ? 0 : extensions.hashCode());
-        return result;
+        return new HashCodeBuilder()
+            .append(caseSensitive)
+            .append(extensions)
+            .toHashCode();
     }
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (!super.equals(obj))
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (!(obj instanceof ExtensionURLFilter)) {
             return false;
+        }
         ExtensionURLFilter other = (ExtensionURLFilter) obj;
-        if (caseSensitive != other.caseSensitive)
-            return false;
-        if (extensions == null) {
-            if (other.extensions != null)
-                return false;
-        } else if (!extensions.equals(other.extensions))
-            return false;
-        return true;
+        return new EqualsBuilder()
+            .append(caseSensitive, other.caseSensitive)
+            .append(extensions, other.extensions)
+            .isEquals();
     }
-
 }

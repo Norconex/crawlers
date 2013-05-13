@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.Serializable;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
 import com.norconex.collector.http.db.impl.DefaultCrawlURLDatabaseFactory;
@@ -81,8 +82,6 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     private IRobotsTxtProvider robotsTxtProvider =
             new DefaultRobotsTxtProvider();
 
-    //private IRobotsMetaBuilder robotMetaBuilder;
-
     private ICrawlURLDatabaseFactory crawlURLDatabaseFactory =
             new DefaultCrawlURLDatabaseFactory();
     
@@ -116,7 +115,7 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
         return startURLs;
     }
     public void setStartURLs(String[] startURLs) {
-        this.startURLs = startURLs;
+        this.startURLs = ArrayUtils.clone(startURLs);
     }
     public void setMaxDepth(int depth) {
         this.maxDepth = depth;
@@ -146,13 +145,13 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
         return documentfilters;
     }
     public void setHttpDocumentfilters(IHttpDocumentFilter[] documentfilters) {
-        this.documentfilters = documentfilters;
+        this.documentfilters = ArrayUtils.clone(documentfilters);
     }
     public IURLFilter[] getURLFilters() {
         return urlFilters;
     }
     public void setURLFilters(IURLFilter[] urlFilters) {
-        this.urlFilters = urlFilters;
+        this.urlFilters = ArrayUtils.clone(urlFilters);
     }
     public ImporterConfig getImporterConfig() {
         return importerConfig;
@@ -195,10 +194,6 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
     
 
-    
-//    public Object getDocumentStateDetectorStrategy() {return null;}
-           // states: new, existing_modified, existing_unmodified, orphan, unreacheable
-
     public IURLNormalizer getUrlNormalizer() {
         return urlNormalizer;
     }
@@ -222,13 +217,13 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
     public void setCrawlerListeners(
             IHttpCrawlerEventListener[] crawlerListeners) {
-        this.crawlerListeners = crawlerListeners;
+        this.crawlerListeners = ArrayUtils.clone(crawlerListeners);
     }
     public IHttpHeadersFilter[] getHttpHeadersFilters() {
         return httpHeadersFilters;
     }
     public void setHttpHeadersFilters(IHttpHeadersFilter[] httpHeadersFilters) {
-        this.httpHeadersFilters = httpHeadersFilters;
+        this.httpHeadersFilters = ArrayUtils.clone(httpHeadersFilters);
     }
 
     public IHttpDocumentProcessor[] getPreImportProcessors() {
@@ -236,14 +231,14 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
     public void setPreImportProcessors(
     		IHttpDocumentProcessor[] httpPreProcessors) {
-        this.preImportProcessors = httpPreProcessors;
+        this.preImportProcessors = ArrayUtils.clone(httpPreProcessors);
     }
     public IHttpDocumentProcessor[] getPostImportProcessors() {
         return postImportProcessors;
     }
     public void setPostImportProcessors(
     		IHttpDocumentProcessor[] httpPostProcessors) {
-        this.postImportProcessors = httpPostProcessors;
+        this.postImportProcessors = ArrayUtils.clone(httpPostProcessors);
     }
     public boolean isIgnoreRobotsTxt() {
         return ignoreRobotsTxt;
@@ -287,13 +282,12 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
 	
 	@Override
-    protected Object clone() {
+    protected Object clone() throws CloneNotSupportedException {
         try {
             return (HttpCrawlerConfig) BeanUtils.cloneBean(this);
         } catch (Exception e) {
             throw new HttpCollectorException(e);
         }
-//        return (HttpCrawlerConfig) SerializationUtils.clone(this);
     }
 	
 	

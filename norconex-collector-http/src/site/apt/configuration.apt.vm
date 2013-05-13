@@ -46,7 +46,7 @@ Configuration
   by implementing the proper Java interfaces. Refer to the  
   {{{./apidocs/index.html}HTTP Collector JavaDoc}} 
   and/or see further down what interfaces you can implement to provide custom 
-  functionality. Got to the 
+  functionality. Go to the 
   {{{./usage.html#Extend_the_HTTP_Collector} Extend the HTTP Collector}} 
   page for more details on adding your own implementations.
   

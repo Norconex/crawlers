@@ -38,6 +38,10 @@ public final class HttpCollectorConfigLoader {
     private static final Logger LOG = LogManager.getLogger(
             HttpCollectorConfigLoader.class);
     
+    private HttpCollectorConfigLoader() {
+        super();
+    }
+
     public static HttpCollectorConfig loadCollectorConfig(
             File configFile, File configVariables) {
 

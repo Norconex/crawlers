@@ -20,6 +20,8 @@ package com.norconex.collector.http.robot;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.norconex.collector.http.filter.IURLFilter;
 
 public class RobotsTxt implements Serializable {
@@ -36,7 +38,7 @@ public class RobotsTxt implements Serializable {
     }
     public RobotsTxt(IURLFilter[] filters, float crawlDelay) {
         super();
-        this.filters = filters;
+        this.filters = ArrayUtils.clone(filters);
         this.crawlDelay = crawlDelay;
     }
 

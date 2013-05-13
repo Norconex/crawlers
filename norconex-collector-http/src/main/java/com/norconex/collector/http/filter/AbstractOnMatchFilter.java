@@ -37,7 +37,7 @@ public abstract class AbstractOnMatchFilter implements IXMLConfigurable {
 		return onMatch;
 	}
 
-	public void setOnMatch(OnMatch onMatch) {
+	public final void setOnMatch(OnMatch onMatch) {
 		if (onMatch == null) {
 			throw new IllegalArgumentException(
 					"OnMatch argument cannot be null.");
@@ -53,17 +53,17 @@ public abstract class AbstractOnMatchFilter implements IXMLConfigurable {
 	 * be determined.
 	 */
 	protected OnMatch getOnMatch(XMLConfiguration xml) {
-        OnMatch onMatch = OnMatch.INCLUDE;
+        OnMatch configOnMatch = OnMatch.INCLUDE;
         String onMatchStr = xml.getString(
         		"[@onMatch]", OnMatch.INCLUDE.toString()).toUpperCase();
         try {
-        	onMatch = OnMatch.valueOf(onMatchStr);
+        	configOnMatch = OnMatch.valueOf(onMatchStr);
         } catch (IllegalArgumentException e)  {
         	throw new HttpCollectorException("Configuration error: "
                     + "Invalid \"onMatch\" attribute value: \"" + onMatchStr
-        			+ "\".  Must be one of \"include\" or \"exclude\".");
+        			+ "\".  Must be one of \"include\" or \"exclude\".", e);
         }
-        return onMatch;
+        return configOnMatch;
 	}
 
     @Override
@@ -81,15 +81,19 @@ public abstract class AbstractOnMatchFilter implements IXMLConfigurable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         AbstractOnMatchFilter other = (AbstractOnMatchFilter) obj;
-        if (onMatch != other.onMatch)
+        if (onMatch != other.onMatch) {
             return false;
+        }
         return true;
     }
 }

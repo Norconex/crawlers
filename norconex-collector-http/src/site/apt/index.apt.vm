@@ -108,8 +108,8 @@ Welcome to Norconex HTTP Collector
   * <<Good documentation>>\
     Besides examples provided on this site or in distributed package, up-to-date
     Javadocs are automatically generated with every release, and they constitute
-    most of documentation.  This prevents from having to maintain to sets of 
-    documentation and having discrepencies over time.
+    most of the documentation.  This prevents from having to maintain two sets 
+    of documentation and having discrepencies over time.
 
 []
    
@@ -262,7 +262,7 @@ Welcome to Norconex HTTP Collector
 []
    
   * <<Flexibility:>>\
-    There more than one way to do something. 
+    There are more than one way to do something. 
     Experiment and have fun!
    
   []
@@ -280,7 +280,7 @@ Welcome to Norconex HTTP Collector
   
   * Does not focus on preserving document structure.
 
-  * Does not try to please every human soul.
+  * Does not try to be everything to everyone.
   
   []
   

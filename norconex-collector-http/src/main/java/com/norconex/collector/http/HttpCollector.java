@@ -28,6 +28,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -59,6 +60,13 @@ import com.norconex.jef.suite.JobSuite;
 public class HttpCollector implements IJobSuiteFactory {
 
 	private static final Logger LOG = LogManager.getLogger(HttpCollector.class);
+	
+	private static final String ARG_ACTION = "action";
+    private static final String ARG_ACTION_START = "start";
+    private static final String ARG_ACTION_RESUME = "resume";
+    private static final String ARG_ACTION_STOP = "stop";
+    private static final String ARG_CONFIG = "config";
+    private static final String ARG_VARIABLES = "variables";
 	
     private File configurationFile;
     private File variablesFile;
@@ -108,7 +116,7 @@ public class HttpCollector implements IJobSuiteFactory {
         return crawlers;
     }
     public void setCrawlers(HttpCrawler[] crawlers) {
-        this.crawlers = crawlers;
+        this.crawlers = ArrayUtils.clone(crawlers);
     }
     
     /**
@@ -118,20 +126,20 @@ public class HttpCollector implements IJobSuiteFactory {
      */
 	public static void main(String[] args) {
 	    CommandLine cmd = parseCommandLineArguments(args);
-        String action = cmd.getOptionValue("action");
-        File configFile = new File(cmd.getOptionValue("config"));
+        String action = cmd.getOptionValue(ARG_ACTION);
+        File configFile = new File(cmd.getOptionValue(ARG_CONFIG));
         File varFile = null;
-        if (cmd.hasOption("variables")) {
-            varFile = new File(cmd.getOptionValue("variables"));
+        if (cmd.hasOption(ARG_VARIABLES)) {
+            varFile = new File(cmd.getOptionValue(ARG_VARIABLES));
         }
 	    
         try {
             HttpCollector conn = new HttpCollector(configFile, varFile);
-    	    if ("start".equalsIgnoreCase(action)) {
+    	    if (ARG_ACTION_START.equalsIgnoreCase(action)) {
     	        conn.crawl(false);
-    	    } else if ("resume".equalsIgnoreCase(action)) {
+    	    } else if (ARG_ACTION_RESUME.equalsIgnoreCase(action)) {
                 conn.crawl(true);
-    	    } else if ("stop".equalsIgnoreCase(action)) {
+    	    } else if (ARG_ACTION_STOP.equalsIgnoreCase(action)) {
     	        conn.stop();
     	    }
         } catch (Exception e) {
@@ -147,7 +155,8 @@ public class HttpCollector implements IJobSuiteFactory {
 				w.flush();
 				w.close();
 			} catch (FileNotFoundException e1) {
-				throw new RuntimeException("Cannot write error file.", e);
+				throw new HttpCollectorException(
+				        "Cannot write error file.", e1);
 			}
         }
 	}
@@ -217,27 +226,27 @@ public class HttpCollector implements IJobSuiteFactory {
 
     private static CommandLine parseCommandLineArguments(String[] args) {
         Options options = new Options();
-        options.addOption("c", "config", true, 
+        options.addOption("c", ARG_CONFIG, true, 
                 "Required: HTTP Collector configuration file.");
-        options.addOption("v", "variables", true, 
+        options.addOption("v", ARG_VARIABLES, true, 
                 "Optional: variable file.");
-        options.addOption("a", "action", true, 
+        options.addOption("a", ARG_ACTION, true, 
                 "Required: one of start|resume|stop");
         
         CommandLineParser parser = new PosixParser();
         CommandLine cmd = null;
         try {
             cmd = parser.parse( options, args);
-            if(!cmd.hasOption("config") 
-                    || !cmd.hasOption("action")
-                    || EqualsUtil.equalsNone(cmd.getOptionValue("action"),
-                            "start", "resume", "stop")) {
+            if(!cmd.hasOption(ARG_CONFIG) || !cmd.hasOption(ARG_ACTION)
+                    || EqualsUtil.equalsNone(cmd.getOptionValue(ARG_ACTION),
+                        ARG_ACTION_START, ARG_ACTION_RESUME, ARG_ACTION_STOP)) {
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp( "collector-http[.bat|.sh]", options );
                 System.exit(-1);
             }
-        } catch (ParseException e1) {
-            e1.printStackTrace();
+        } catch (ParseException e) {
+            System.err.println("Could not parse arguments.");
+            e.printStackTrace(System.err);
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp( "collector-http[.bat|.sh]", options );
             System.exit(-1);
