@@ -44,6 +44,8 @@ along with Norconex JEF. If not, see <http://www.gnu.org/licenses/>.
         <showUser>false</showUser>
         <showFollowers>false</showFollowers>
       </twitter>
+      <facebookLike />
+      <googlePlusOne />
     </fluidoSkin>
   </custom>
   
