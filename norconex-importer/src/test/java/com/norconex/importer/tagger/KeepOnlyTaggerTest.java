@@ -17,12 +17,16 @@
  */
 package com.norconex.importer.tagger;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Test;
 
 import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.tagger.impl.KeepOnlyTagger;
 
 public class KeepOnlyTaggerTest {
@@ -35,6 +39,57 @@ public class KeepOnlyTaggerTest {
         tagger.addField("field3");
         System.out.println("Writing/Reading this: " + tagger);
         ConfigurationUtil.assertWriteRead(tagger);
+    }
+
+    @Test
+    public void test_keep_all_fields() throws Exception {
+
+        Properties metadata = new Properties();
+        metadata.addString("key1", "value1");
+        metadata.addString("key2", "value2");
+        metadata.addString("key3", "value3");
+
+        // Should only keep all keys
+        KeepOnlyTagger tagger = new KeepOnlyTagger();
+        tagger.addField("key1");
+        tagger.addField("key2");
+        tagger.addField("key3");
+        tagger.tagDocument("reference", null, metadata, true);
+
+        assertEquals(3, metadata.size());
+    }
+    
+    @Test
+    public void test_keep_single_field() throws Exception {
+
+        Properties metadata = new Properties();
+        metadata.addString("key1", "value1");
+        metadata.addString("key2", "value2");
+        metadata.addString("key3", "value3");
+
+        // Should only keep key1
+        KeepOnlyTagger tagger = new KeepOnlyTagger();
+        tagger.addField("key1");
+        tagger.tagDocument("reference", null, metadata, true);
+
+        assertEquals(1, metadata.size());
+        assertTrue(metadata.containsKey("key1"));
+    }
+
+    @Test
+    public void test_delete_all_metadata() throws Exception {
+
+        Properties metadata = new Properties();
+        metadata.addString("key1", "value1");
+        metadata.addString("key2", "value2");
+        metadata.addString("key3", "value3");
+
+        // Because we are not adding any field to keep, all metadata should be
+        // deleted
+        KeepOnlyTagger tagger = new KeepOnlyTagger();
+        tagger.tagDocument("reference", null, metadata, true);
+
+        assertTrue(metadata.isEmpty());
     }
 
 }

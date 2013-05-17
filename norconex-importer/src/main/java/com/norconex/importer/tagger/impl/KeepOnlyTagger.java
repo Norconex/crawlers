@@ -23,6 +23,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -65,9 +66,18 @@ public class KeepOnlyTagger
             String reference, InputStream document,
             Properties metadata, boolean parsed)
             throws IOException {
-        for (String name : metadata.keySet()) {
-            if (!exists(name)) {
-                metadata.remove(name);
+        
+        // If fields is empty, it means we should keep nothing
+        if (fields.isEmpty()) {
+            metadata.clear();
+        } else {
+            // Remove metadata not in fields
+            Iterator<String> iter = metadata.keySet().iterator();
+            while (iter.hasNext()) {
+                String name = iter.next();
+                if (!exists(name)) {
+                    iter.remove();
+                }
             }
         }
     }
