@@ -49,6 +49,15 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         </filter>
       </httpURLFilters>
       
+      <importer>
+        <postParseHandlers>
+          <!-- If your target repository does not support arbitrary fields,
+               make sure you only keep the fields you need. -->
+          <tagger class="com.norconex.importer.tagger.impl.KeepOnlyTagger"
+                  fields="title,keywords,description"/>
+        </postParseHandlers>
+      </importer> 
+      
       <!-- Decide what to do with your files by specifying a committer. -->
       <committer class="com.norconex.committer.FileSystemCommitter">
         <directory>./minimunCrawlFiles</directory>
