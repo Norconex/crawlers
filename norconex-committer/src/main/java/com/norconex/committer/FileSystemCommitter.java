@@ -54,9 +54,6 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
 
     private static final long serialVersionUID = 567796374790003396L;
 
-    public static final String COMMITTER_PREFIX = "committer.";
-    public static final String DOC_REFERENCE = COMMITTER_PREFIX + "reference";
-
     public static final String DEFAULT_DIRECTORY = "./committer";
     
     private String directory = DEFAULT_DIRECTORY;
@@ -72,7 +69,6 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
 
 	@Override
     public void queueAdd(String reference, File document, Properties metadata) {
-	    metadata.addString(DOC_REFERENCE, reference);
         File dir = getAddDir();
         if (!dir.exists()) {
             dir.mkdirs();
@@ -93,7 +89,6 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
     @Override
     public void queueRemove(
             String reference, File document, Properties metadata) {
-        metadata.addString(DOC_REFERENCE, reference);
         File dir = getRemoveDir();
         if (!dir.exists()) {
             dir.mkdirs();
