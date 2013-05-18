@@ -58,7 +58,7 @@ import com.norconex.importer.transformer.IDocumentTransformer;
 public class Importer {
     
     public static final String IMPORTER_PREFIX = "importer.";
-    public static final String DOC_REFERENCE = IMPORTER_PREFIX + "reference";
+    public static final String DOC_REFERENCE = "document.reference";
     public static final String DOC_CONTENT_TYPE = 
     		IMPORTER_PREFIX + "contentType";
 
