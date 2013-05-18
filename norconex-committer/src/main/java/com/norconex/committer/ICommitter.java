@@ -29,6 +29,15 @@ import com.norconex.commons.lang.map.Properties;
 public interface ICommitter extends Serializable {
 
     /**
+     * The default document unique identifier (reference) is 
+     * "<code>doc.reference</code>".   This value is set by default 
+     * when using the Norconex Importer module.  Concrete 
+     * implementations should offer to overwrite this default value when
+     * appropriate.
+     */
+    static final String DEFAULT_DOCUMENT_REFERENCE = "document.reference";
+    
+    /**
      * Queues a new or modified document.   These queued documents should
      * be sent to their target destination when commit is called.
      * @param reference document reference (e.g. URL)
