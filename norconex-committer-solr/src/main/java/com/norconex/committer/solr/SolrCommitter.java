@@ -41,6 +41,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -66,10 +68,20 @@ import com.norconex.commons.lang.map.Properties;
  *  &lt;committer class="com.norconex.committer.solr.SolrCommitter"&gt;
  *      &lt;solrURL&gt;(URL to Solr)&lt;/solrURL&gt;
  *      &lt;idSourceField&gt;
- *         (Name of source field that will be mapped to the Solr "id" field.
- *          Default is the document reference the Committer stores
- *          as "committer.reference")
+ *         (Name of source field that will be mapped to the Solr "id" field
+ *         or whatever "idTargetField" specified.
+ *         Default is the document reference metadata field: 
+ *         "document.reference".
  *      &lt;/idSourceField&gt;
+ *      &lt;idTargetField&gt;
+ *         (Name of Solr target field where the store a document unique 
+ *         identifier (idSourceField).  If not specified, default is "id".) 
+ *      &lt;/idTargetField&gt;
+ *      &lt;contentSourceField&gt;
+ *         (If you wish to use a metadata field to act as the document 
+ *         "content", you can specify that field here.  Default 
+ *         does not take a metadata field but rather the document content.)
+ *      &lt;/contentSourceField&gt;
  *      &lt;contentTargetField&gt;
  *         (Solr target field name for a document content/body.
  *          Default is: content)
@@ -92,9 +104,13 @@ public class SolrCommitter extends BatchableCommitter
             LogManager.getLogger(SolrCommitter.class);
     public static final String DEFAULT_QUEUE_DIR = "./queue";
     public static final int DEFAULT_SOLR_BATCH_SIZE = 100;
+    public static final String DEFAULT_SOLR_TARGET_ID = "id";
+    public static final String DEFAULT_SOLR_TARGET_CONTENT = "content";
     
+    private String idTargetField;
     private String idSourceField;
     private String contentTargetField;
+    private String contentSourceField;
     private String solrURL;
     private int solrBatchSize = DEFAULT_SOLR_BATCH_SIZE;
     private final FileSystemCommitter queue = new FileSystemCommitter();
@@ -122,6 +138,12 @@ public class SolrCommitter extends BatchableCommitter
     public void setIdSourceField(String idSourceField) {
         this.idSourceField = idSourceField;
     }
+    public String getIdTargetField() {
+        return idTargetField;
+    }
+    public void setIdTargetField(String idTargetField) {
+        this.idTargetField = idTargetField;
+    }
     public String getSolrURL() {
         return solrURL;
     }
@@ -139,6 +161,12 @@ public class SolrCommitter extends BatchableCommitter
     }
     public void setContentTargetField(String contentTargetField) {
         this.contentTargetField = contentTargetField;
+    }
+    public String getContentSourceField() {
+        return contentSourceField;
+    }
+    public void setContentSourceField(String contentSourceField) {
+        this.contentSourceField = contentSourceField;
     }
 
     @Override
@@ -245,11 +273,15 @@ public class SolrCommitter extends BatchableCommitter
         
         SolrInputDocument doc = new SolrInputDocument();
         
-        String idField = getIdSourceField();
-        if (StringUtils.isBlank(idField)) {
-            idField = FileSystemCommitter.DOC_REFERENCE;
+        String idSourceField = getIdSourceField();
+        if (StringUtils.isBlank(idSourceField)) {
+            idSourceField = DEFAULT_DOCUMENT_REFERENCE;
         }
-        doc.addField("id", metadata.getString(idField));
+        String idTargetField = getIdTargetField();
+        if (StringUtils.isBlank(idTargetField)) {
+            idTargetField = DEFAULT_SOLR_TARGET_ID;
+        }
+        doc.addField(idTargetField, metadata.getString(idSourceField));
         
         for (String name : metadata.keySet()) {
             for (String value : metadata.get(name)) {
@@ -267,11 +299,17 @@ public class SolrCommitter extends BatchableCommitter
         }
         in.close();
         
-        String contentField = getContentTargetField();
-        if (StringUtils.isBlank(contentField)) {
-            contentField = "content";
+        String contentTargetField = getContentTargetField();
+        if (StringUtils.isBlank(contentTargetField)) {
+            contentTargetField = DEFAULT_SOLR_TARGET_CONTENT;
         }
-        doc.addField(contentField, sw.toString());
+        if (StringUtils.isBlank(contentSourceField)) {
+            doc.addField(contentTargetField, sw.toString());
+        } else {
+            doc.addField(
+                    contentTargetField, metadata.getString(contentSourceField));
+        }
+        
         out.close();
         
         docList.put(file, doc);
@@ -293,6 +331,8 @@ public class SolrCommitter extends BatchableCommitter
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         setIdSourceField(xml.getString("idSourceField", null));
+        setIdTargetField(xml.getString("idTargetField", null));
+        setContentSourceField(xml.getString("contentSourceField", null));
         setContentTargetField(xml.getString("contentTargetField", null));
         setSolrURL(xml.getString("solrURL", null));
         setQueueDir(xml.getString("queueDir", DEFAULT_QUEUE_DIR));
@@ -310,6 +350,14 @@ public class SolrCommitter extends BatchableCommitter
 
             writer.writeStartElement("idSourceField");
             writer.writeCharacters(idSourceField);
+            writer.writeEndElement();
+
+            writer.writeStartElement("idTargetField");
+            writer.writeCharacters(idTargetField);
+            writer.writeEndElement();
+
+            writer.writeStartElement("contentSourceField");
+            writer.writeCharacters(contentSourceField);
             writer.writeEndElement();
 
             writer.writeStartElement("contentTargetField");
@@ -338,5 +386,50 @@ public class SolrCommitter extends BatchableCommitter
         } catch (XMLStreamException e) {
             throw new IOException("Cannot save as XML.", e);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+            .append(contentSourceField)
+            .append(contentTargetField)
+            .append(idSourceField)
+            .append(idTargetField)
+            .append(queue)
+            .append(solrBatchSize)
+            .append(solrURL)
+            .toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof SolrCommitter)) {
+            return false;
+        }
+        SolrCommitter other = (SolrCommitter) obj;
+        return new EqualsBuilder()
+            .append(contentSourceField, other.contentSourceField)
+            .append(contentTargetField, other.contentTargetField)
+            .append(idSourceField, other.idSourceField)
+            .append(idTargetField, other.idTargetField)
+            .append(queue, other.queue)
+            .append(solrBatchSize, other.solrBatchSize)
+            .append(solrURL, other.solrURL)
+            .isEquals();
+    }
+    
+    @Override
+    public String toString() {
+        return "SolrCommitter [idTargetField=" + idTargetField
+                + ", idSourceField=" + idSourceField + ", contentTargetField="
+                + contentTargetField + ", contentSourceField="
+                + contentSourceField + ", solrURL=" + solrURL
+                + ", solrBatchSize=" + solrBatchSize + ", queue=" + queue + "]";
     }
 }
