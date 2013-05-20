@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -60,7 +59,7 @@ public class StripBeforeTransformerTest {
     
     
     @Test
-    public void testWriteRead() throws ConfigurationException, IOException {
+    public void testWriteRead() throws IOException {
         StripBeforeTransformer t = new StripBeforeTransformer();
         t.setInclusive(false);
         t.setStripBeforeRegex("So she set to work");

@@ -22,11 +22,14 @@ import java.io.InputStream;
 import java.io.Writer;
 
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.HttpHeaders;
+import org.apache.tika.metadata.TikaMetadataKeys;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.ParserDecorator;
@@ -70,12 +73,12 @@ public class AbstractTikaParser implements IDocumentParser {
 
         org.apache.tika.metadata.Metadata tikaMetadata = 
                 new org.apache.tika.metadata.Metadata();
-        tikaMetadata.set(org.apache.tika.metadata.Metadata.CONTENT_TYPE, 
+        tikaMetadata.set(HttpHeaders.CONTENT_TYPE, 
                 contentType.toString());
-        tikaMetadata.set(org.apache.tika.metadata.Metadata.RESOURCE_NAME_KEY, 
+        tikaMetadata.set(TikaMetadataKeys.RESOURCE_NAME_KEY, 
                 metadata.getString(Importer.DOC_REFERENCE));
         SAXTransformerFactory factory = (SAXTransformerFactory)
-                SAXTransformerFactory.newInstance();
+                TransformerFactory.newInstance();
 
         TransformerHandler handler;
         try {

@@ -84,9 +84,10 @@ public class StripBetweenTransformer extends AbstractStringTransformer
     private Set<Pair<String, String>> stripPairs = 
             new TreeSet<Pair<String,String>>(
                     new Comparator<Pair<String,String>>() {
+        @Override
         public int compare(Pair<String,String> o1, Pair<String,String> o2) {
             return o1.getLeft().length() - o2.getLeft().length();
-        };
+        }
     });
     private boolean inclusive;
     private boolean caseSensitive;

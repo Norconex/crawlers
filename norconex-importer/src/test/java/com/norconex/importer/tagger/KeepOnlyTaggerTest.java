@@ -22,7 +22,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Test;
 
 import com.norconex.commons.lang.config.ConfigurationUtil;
@@ -32,7 +31,7 @@ import com.norconex.importer.tagger.impl.KeepOnlyTagger;
 public class KeepOnlyTaggerTest {
 
     @Test
-    public void testWriteRead() throws ConfigurationException, IOException {
+    public void testWriteRead() throws IOException {
         KeepOnlyTagger tagger = new KeepOnlyTagger();
         tagger.addField("field1");
         tagger.addField("field2");

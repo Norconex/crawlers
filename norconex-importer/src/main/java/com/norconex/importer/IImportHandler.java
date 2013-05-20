@@ -36,5 +36,5 @@ import com.norconex.importer.transformer.IDocumentTransformer;
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
 public interface IImportHandler extends Serializable {
-
+    // Act as a marker only for now.
 }

@@ -73,6 +73,7 @@ public abstract class AbstractStringTransformer
     private static final int STRING_TOTAL_MEMORY_DIVIDER = 4;
     private static final int MAX_FROM_END_TO_CUT = 1000;
     
+    @Override
     protected final void transformTextDocument(
             String reference, Reader input,
             Writer output, Properties metadata, boolean parsed)

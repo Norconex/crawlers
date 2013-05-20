@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,7 +29,6 @@ import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.Importer;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.transformer.impl.StripBetweenTransformer;
 
 public class StripBetweenTransformerTest {
 
@@ -64,7 +62,7 @@ public class StripBetweenTransformerTest {
     
     
     @Test
-    public void testWriteRead() throws ConfigurationException, IOException {
+    public void testWriteRead() throws IOException {
         StripBetweenTransformer t = new StripBetweenTransformer();
         t.setInclusive(true);
         t.addStripEndpoints("<!-- NO INDEX", "/NOINDEX -->");

@@ -84,6 +84,7 @@ public class DefaultDocumentParserFactory
      * Gets a parser based on content type, regardless of document reference
      * (ignoring it).
      */
+    @Override
     public final IDocumentParser getParser(
             String documentReference, ContentType contentType) {
         IDocumentParser parser = namedParsers.get(contentType);

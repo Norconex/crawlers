@@ -116,6 +116,7 @@ public abstract class AbstractCharStreamTransformer
      * (attribute "contentTypeRegex").
      * @param xml xml configuration
      */
+    @Override
     protected void loadFromXML(XMLConfiguration xml) {
         setContentTypeRegex(xml.getString(
                 "contentTypeRegex", contentTypeRegex.toString()));
@@ -128,6 +129,7 @@ public abstract class AbstractCharStreamTransformer
      * @param writer XML writer
      * @throws XMLStreamException problem saving 
      */
+    @Override
     protected void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement("contentTypeRegex");
         if (contentTypeRegex != null) {

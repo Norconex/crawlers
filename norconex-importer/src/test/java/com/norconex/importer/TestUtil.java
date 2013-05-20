@@ -20,6 +20,9 @@ package com.norconex.importer;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+
+import org.apache.commons.io.IOUtils;
 
 public final class TestUtil {
 
@@ -44,8 +47,9 @@ public final class TestUtil {
     }
     public static Importer getTestConfigImporter() {
         InputStream is = TestUtil.class.getResourceAsStream("test-config.xml");
-        ImporterConfig config = ImporterConfigLoader.loadImporterConfig(
-                new InputStreamReader(is));
+        Reader r = new InputStreamReader(is);
+        ImporterConfig config = ImporterConfigLoader.loadImporterConfig(r);
+        IOUtils.closeQuietly(r);
         return new Importer(config);
     }
 }

@@ -64,6 +64,7 @@ public class ImporterTest {
 
     @After
     public void tearDown() throws Exception {
+        importer = null;
     }
     
     @Test

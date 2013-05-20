@@ -19,7 +19,6 @@ package com.norconex.importer.tagger;
 
 import java.io.IOException;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Test;
 
 import com.norconex.commons.lang.config.ConfigurationUtil;
@@ -28,7 +27,7 @@ import com.norconex.importer.tagger.impl.ForceSingleValueTagger;
 public class ForceSingleValueTaggerTest {
 
     @Test
-    public void testWriteRead() throws ConfigurationException, IOException {
+    public void testWriteRead() throws IOException {
         ForceSingleValueTagger tagger = new ForceSingleValueTagger();
         tagger.addSingleValueField("field1", "keepFirst");
         tagger.addSingleValueField("field2", "keepFirst");
