@@ -48,7 +48,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * </p>
  * <pre>
  *  &lt;filter class="com.norconex.collector.http.filter.impl.RegexURLFilter"
- *          exclude="[false|true]" 
+ *          onMatch="[include|exclude]" 
  *          caseSensitive="[false|true]" &gt;
  *      (regular expression)
  *  &lt;/filter&gt;
