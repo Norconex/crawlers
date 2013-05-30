@@ -351,6 +351,17 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         </roles>
         <timezone>-4</timezone>
     </developer>
+    <developer>
+        <id>pascaldimassimo</id>
+        <name>Pascal Dimassimo</name>
+        <email>pascal.dimassimo@norconex.com</email>
+        <organization>Norconex Inc.</organization>
+        <organizationUrl>http://www.norconex.com</organizationUrl>
+        <roles>
+          <role>developer</role>
+        </roles>
+        <timezone>-4</timezone>
+    </developer>
   </developers>
   <contributors>
   </contributors>
