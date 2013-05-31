@@ -30,6 +30,7 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <site.baseurl/>
     <currentStableVersion>coming soon</currentStableVersion>
+    <solr.version>4.1.0</solr.version>
   </properties>
   <inceptionYear>2009</inceptionYear>
 
@@ -81,7 +82,15 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
+      <scope>test</scope>
     </dependency>
+    <dependency>
+		<groupId>org.apache.solr</groupId>
+		<artifactId>solr-test-framework</artifactId>
+		<version>${solr.version}</version>
+		<scope>test</scope>
+	</dependency>
+    
     <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
@@ -110,7 +119,7 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
     	<groupId>org.apache.solr</groupId>
     	<artifactId>solr-solrj</artifactId>
-    	<version>4.1.0</version>
+    	<version>${solr.version}</version>
     </dependency>
     <dependency>
     	<groupId>com.norconex.collectors</groupId>
