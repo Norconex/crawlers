@@ -73,11 +73,11 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
         SolrDocumentList results = queryId(id);
         assertEquals(1, results.getNumFound());
         assertEquals(id,
-                results.get(0).get(SolrCommitter.DEFAULT_SOLR_TARGET_ID));
+                results.get(0).get(SolrCommitter.DEFAULT_TARGET_ID));
         // TODO we need to trim because of the extra white spaces returned by
         // Solr. Why is that?
         assertEquals(content,
-                results.get(0).get(SolrCommitter.DEFAULT_SOLR_TARGET_CONTENT)
+                results.get(0).get(SolrCommitter.DEFAULT_TARGET_CONTENT)
                         .toString().trim());
     }
 
@@ -87,9 +87,9 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
         // Add a document directly to Solr
         SolrInputDocument doc = new SolrInputDocument();
         String id = "1";
-        doc.addField(SolrCommitter.DEFAULT_SOLR_TARGET_ID, id);
+        doc.addField(SolrCommitter.DEFAULT_TARGET_ID, id);
         String content = "hello world!";
-        doc.addField(SolrCommitter.DEFAULT_SOLR_TARGET_CONTENT, content);
+        doc.addField(SolrCommitter.DEFAULT_TARGET_CONTENT, content);
         server.add(doc);
         server.commit();
 
@@ -117,7 +117,7 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
     private SolrDocumentList queryId(String id) throws SolrServerException {
         ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.set("q", String.format("%s:%s",
-                SolrCommitter.DEFAULT_SOLR_TARGET_ID, id));
+                SolrCommitter.DEFAULT_TARGET_ID, id));
         QueryResponse response = server.query(solrParams);
         SolrDocumentList results = response.getResults();
         return results;

@@ -61,8 +61,8 @@ public abstract class BaseCommitter implements ICommitter, IXMLConfigurable {
     private static final Logger LOG = LogManager.getLogger(BaseCommitter.class);
 
     public static final int DEFAULT_BATCH_SIZE = 1000;
-    public static final String DEFAULT_SOLR_TARGET_ID = "id";
-    public static final String DEFAULT_SOLR_TARGET_CONTENT = "content";
+    public static final String DEFAULT_TARGET_ID = "id";
+    public static final String DEFAULT_TARGET_CONTENT = "content";
     public static final String DEFAULT_QUEUE_DIR = "./queue";
 
     private int batchSize = DEFAULT_BATCH_SIZE;
@@ -189,7 +189,7 @@ public abstract class BaseCommitter implements ICommitter, IXMLConfigurable {
                     commitAdd(file, buildDocumentMap(file));
                 } catch (IOException e) {
                     throw new CommitterException(
-                            "Cannot create Solr Document for file: " + file, e);
+                            "Cannot create Document for file: " + file, e);
                 }
             }
         }, NON_META_FILTER);
@@ -259,14 +259,14 @@ public abstract class BaseCommitter implements ICommitter, IXMLConfigurable {
 
         String theIdTargetField = getIdTargetField();
         if (StringUtils.isBlank(theIdTargetField)) {
-            theIdTargetField = DEFAULT_SOLR_TARGET_ID;
+            theIdTargetField = DEFAULT_TARGET_ID;
         }
 
         String theContentSourceField = getContentSourceField();
 
         String theContentTargetField = getContentTargetField();
         if (StringUtils.isBlank(theContentTargetField)) {
-            theContentTargetField = DEFAULT_SOLR_TARGET_CONTENT;
+            theContentTargetField = DEFAULT_TARGET_CONTENT;
         }
 
         // --- Add source to target field in document ---

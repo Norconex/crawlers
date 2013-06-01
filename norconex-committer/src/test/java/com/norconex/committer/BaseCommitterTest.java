@@ -128,7 +128,7 @@ public class BaseCommitterTest {
         assertFalse(map.containsKey(customSourceId));
 
         // Check that the default target id was not used
-        assertFalse(map.containsKey(BaseCommitter.DEFAULT_SOLR_TARGET_ID));
+        assertFalse(map.containsKey(BaseCommitter.DEFAULT_TARGET_ID));
     }
 
     @Test
