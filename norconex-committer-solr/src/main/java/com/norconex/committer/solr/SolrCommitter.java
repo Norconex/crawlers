@@ -182,7 +182,6 @@ public class SolrCommitter extends BaseCommitter {
             deleteFromSolr();
         }
     }
-    
 
     private void persistToSolr() {//Map<File, SolrInputDocument> docList) {
         LOG.info("Sending " + docsToAdd.size() 
@@ -222,7 +221,6 @@ public class SolrCommitter extends BaseCommitter {
         }
         return doc;
     }
-
     
     private void deleteFromSolr() {
         LOG.info("Sending " + docsToRemove.size()
