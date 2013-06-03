@@ -84,12 +84,7 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-		<groupId>org.apache.solr</groupId>
-		<artifactId>solr-test-framework</artifactId>
-		<version>${solr.version}</version>
-		<scope>test</scope>
-	</dependency>
+
     
     <dependency>
         <groupId>commons-io</groupId>
@@ -140,6 +135,12 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
     	<groupId>commons-codec</groupId>
     	<artifactId>commons-codec</artifactId>
     	<version>1.7</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.solr</groupId>
+        <artifactId>solr-test-framework</artifactId>
+        <version>${solr.version}</version>
+        <scope>test</scope>
     </dependency>
   </dependencies>
   

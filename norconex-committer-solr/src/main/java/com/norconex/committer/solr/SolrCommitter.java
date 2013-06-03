@@ -18,12 +18,10 @@
  */
 package com.norconex.committer.solr;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -41,6 +39,7 @@ import org.apache.solr.common.SolrInputDocument;
 
 import com.norconex.committer.BaseCommitter;
 import com.norconex.committer.CommitterException;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Commits documents to Apache Solr.
@@ -86,29 +85,33 @@ import com.norconex.committer.CommitterException;
 public class SolrCommitter extends BaseCommitter {
 
     private static final long serialVersionUID = -842307672980791980L;
-
     private static final Logger LOG = LogManager.getLogger(SolrCommitter.class);
+
     public static final int DEFAULT_SOLR_BATCH_SIZE = 100;
+    public static final String DEFAULT_SOLR_ID_FIELD = "id";
+    public static final String DEFAULT_SOLR_CONTENT_FIELD = "content";
 
     private String solrURL;
     private int solrBatchSize = DEFAULT_SOLR_BATCH_SIZE;
 
-    final private Map<File, SolrInputDocument> docsToAdd = new HashMap<File, SolrInputDocument>();
-    final private Map<File, String> docsToRemove = new HashMap<File, String>();
+    private final List<QueuedAddedDocument> docsToAdd = 
+            new ArrayList<QueuedAddedDocument>();
+    private final List<QueuedDeletedDocument> docsToRemove = 
+            new ArrayList<QueuedDeletedDocument>();
 
-    private SolrServer server;
+    private final ISolrServerFactory solrServerFactory;
 
     public SolrCommitter() {
-        super();
+        this(null);
     }
-
-    /**
-     * For unit tests
-     * 
-     * @param testServer
-     */
-    protected SolrCommitter(SolrServer testServer) {
-        this.server = testServer;
+    public SolrCommitter(ISolrServerFactory solrServerFactory) {
+        if (solrServerFactory == null) {
+            this.solrServerFactory = new DefaultSolrServerFactory();
+        } else {
+            this.solrServerFactory = solrServerFactory;
+        }
+        setContentTargetField(DEFAULT_SOLR_CONTENT_FIELD);
+        setIdTargetField(DEFAULT_SOLR_ID_FIELD);
     }
 
     public String getSolrURL() {
@@ -128,43 +131,40 @@ public class SolrCommitter extends BaseCommitter {
     }
 
     @Override
-    protected void commitAdd(File file, Map<String, String> map) {
-        docsToAdd.put(file, buildSolrDocument(map));
+    protected void commitAddedDocument(QueuedAddedDocument document)
+            throws IOException {
+        docsToAdd.add(document);
         if (docsToAdd.size() % solrBatchSize == 0) {
-            persistToSolr(docsToAdd);
+            persistToSolr();
         }
     }
 
-    private SolrInputDocument buildSolrDocument(Map<String, String> map) {
-        SolrInputDocument doc = new SolrInputDocument();
-        Iterator<Entry<String, String>> iterator = map.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Entry<String, String> entry = iterator.next();
-            doc.addField(entry.getKey(), entry.getValue());
-        }
-        return doc;
-    }
-
-    private void initServer() {
-        if (server == null) {
-            if (StringUtils.isBlank(solrURL)) {
-                throw new CommitterException("Solr URL is undefined.");
-            }
-            server = new HttpSolrServer(solrURL);
+    @Override
+    protected void commitDeletedDocument(QueuedDeletedDocument document)
+            throws IOException {
+        docsToRemove.add(document);
+        if (docsToRemove.size() % solrBatchSize == 0) {
+            deleteFromSolr();
         }
     }
+    
 
-    private void persistToSolr(Map<File, SolrInputDocument> docList) {
-        LOG.info("Sending " + docList.size() + " documents to Solr for update.");
+    private void persistToSolr() {//Map<File, SolrInputDocument> docList) {
+        LOG.info("Sending " + docsToAdd.size() 
+                + " documents to Solr for update.");
         try {
-            initServer();
-            server.add(docList.values());
-            server.commit();
-            for (File file : docList.keySet()) {
-                file.delete();
-                new File(file.getAbsolutePath() + ".meta").delete();
+            // Commit Solr batch
+            SolrServer server = solrServerFactory.createSolrServer(this);
+            for (QueuedAddedDocument doc : docsToAdd) {
+                server.add(buildSolrDocument(doc.getMetadata()));
             }
-            docList.clear();
+            server.commit();
+
+            // Delete queued documents after commit
+            for (QueuedAddedDocument doc : docsToAdd) {
+                doc.deleteFromQueue();
+            }
+            docsToAdd.clear();
         } catch (Exception e) {
             throw new CommitterException(
                     "Cannot index document batch to Solr.", e);
@@ -172,25 +172,35 @@ public class SolrCommitter extends BaseCommitter {
         LOG.info("Done sending documents to Solr for update.");
     }
 
-    @Override
-    protected void commitDelete(File file, String id) {
-        docsToRemove.put(file, id);
-        if (docsToRemove.size() % solrBatchSize == 0) {
-            deleteFromSolr(docsToRemove);
+    private SolrInputDocument buildSolrDocument(Properties fields) {
+        SolrInputDocument doc = new SolrInputDocument();
+        for (String key : fields.keySet()) {
+            List<String> values = fields.getStrings(key);
+            for (String value : values) {
+                doc.addField(key, value);
+            }
         }
+        return doc;
     }
 
-    private void deleteFromSolr(Map<File, String> docList) {
-        LOG.info("Sending " + docList.size()
+    
+    private void deleteFromSolr() {
+        LOG.info("Sending " + docsToRemove.size()
                 + " documents to Solr for deletion.");
         try {
-            initServer();
-            server.deleteById(new ArrayList<String>(docList.values()));
-            server.commit();
-            for (File file : docList.keySet()) {
-                file.delete();
+            SolrServer server = solrServerFactory.createSolrServer(this);
+            
+            // Commit Solr batch
+            for (QueuedDeletedDocument doc : docsToRemove) {
+                server.deleteById(doc.getReference());
             }
-            docList.clear();
+            server.commit();
+
+            // Delete queued documents after commit
+            for (QueuedDeletedDocument doc : docsToRemove) {
+                doc.deleteFromQueue();
+            }
+            docsToRemove.clear();
         } catch (Exception e) {
             throw new CommitterException(
                     "Cannot delete document batch from Solr.", e);
@@ -201,10 +211,10 @@ public class SolrCommitter extends BaseCommitter {
     @Override
     protected void commitComplete() {
         if (!docsToAdd.isEmpty()) {
-            persistToSolr(docsToAdd);
+            persistToSolr();
         }
         if (!docsToRemove.isEmpty()) {
-            deleteFromSolr(docsToRemove);
+            deleteFromSolr();
         }
     }
 
@@ -250,10 +260,29 @@ public class SolrCommitter extends BaseCommitter {
 
     @Override
     public String toString() {
-        return String
-                .format("SolrCommitter [solrURL=%s, solrBatchSize=%s, docsToAdd=%s, docsToRemove=%s, server=%s, BaseCommitter=%s]",
+        return String.format("SolrCommitter [solrURL=%s, solrBatchSize=%s, "
+              + "docsToAdd=%s, docsToRemove=%s, solrServerFactory=%s, "
+              + "BaseCommitter=%s]",
                         solrURL, solrBatchSize, docsToAdd, docsToRemove,
-                        server, super.toString());
+                        solrServerFactory, super.toString());
     }
-
+    //TODO make it a top-level interface?  Make it XMLConfigurable?
+    public interface ISolrServerFactory extends Serializable {
+        SolrServer createSolrServer(SolrCommitter solrCommitter);
+    }
+    
+    class DefaultSolrServerFactory implements ISolrServerFactory {
+        private static final long serialVersionUID = 5820720860417411567L;
+        private SolrServer server;
+        @Override
+        public SolrServer createSolrServer(SolrCommitter solrCommitter) {
+            if (server == null) {
+                if (StringUtils.isBlank(solrCommitter.getSolrURL())) {
+                    throw new CommitterException("Solr URL is undefined.");
+                }
+                server = new HttpSolrServer(solrCommitter.getSolrURL());
+            }
+            return server;
+        }
+    }
 }

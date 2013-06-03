@@ -1,3 +1,20 @@
+/* Copyright 2010-2013 Norconex Inc.
+ * 
+ * This file is part of Norconex Committer.
+ * 
+ * Norconex Committer is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Norconex Committer is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Norconex Committer. If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.norconex.committer;
 
 import static org.junit.Assert.assertEquals;
@@ -5,9 +22,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -18,8 +35,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.norconex.committer.FileSystemQueueCommitter.QueuedAddedDocument;
 import com.norconex.commons.lang.map.Properties;
 
+@SuppressWarnings("nls")
 public class BaseCommitterTest {
 
     class StubCommitter extends BaseCommitter {
@@ -27,12 +46,15 @@ public class BaseCommitterTest {
         private static final long serialVersionUID = 5395010993071444611L;
 
         @Override
-        protected void commitAdd(File file, Map<String, String> map) {
-            listCommitAdd.add(map);
+        protected void commitAddedDocument(QueuedAddedDocument document) 
+                throws IOException {
+            listCommitAdd.add(document);
         }
 
         @Override
-        protected void commitDelete(File file, String id) {
+        protected void commitDeletedDocument(QueuedDeletedDocument document) 
+                throws IOException {
+            //TODO implement me
         }
 
         @Override
@@ -43,10 +65,12 @@ public class BaseCommitterTest {
         @Override
         protected void saveToXML(XMLStreamWriter writer)
                 throws XMLStreamException {
+            // no saving
         }
 
         @Override
         protected void loadFromXml(XMLConfiguration xml) {
+            // no loading
         }
     }
 
@@ -57,7 +81,8 @@ public class BaseCommitterTest {
 
     private boolean committed;
 
-    private List<Map<String, String>> listCommitAdd = new ArrayList<Map<String, String>>();
+    private List<QueuedAddedDocument> listCommitAdd = 
+            new ArrayList<QueuedAddedDocument>();
 
     private Properties metadata = new Properties();
 
@@ -73,15 +98,15 @@ public class BaseCommitterTest {
         listCommitAdd.clear();
 
         metadata.clear();
-        metadata.addString(BaseCommitter.DEFAULT_DOCUMENT_REFERENCE,
-                defaultReference);
+        metadata.addString(
+                ICommitter.DEFAULT_DOCUMENT_REFERENCE, defaultReference);
     }
 
     /**
      * Test no commit if not enough document
      */
     @Test
-    public void test_no_commit() throws Exception {
+    public void testNoCommit() throws Exception {
 
         // Default batch size is 1000, so no commit should occur
         committer.queueAdd(defaultReference, tempFolder.newFile(), metadata);
@@ -93,7 +118,7 @@ public class BaseCommitterTest {
      * Test commit if there is enough document
      */
     @Test
-    public void test_commit() throws Exception {
+    public void testCommit() throws Exception {
 
         committer.setBatchSize(1);
         committer.queueAdd(defaultReference, tempFolder.newFile(), metadata);
@@ -102,7 +127,7 @@ public class BaseCommitterTest {
     }
 
     @Test
-    public void test_set_source_and_target_id() throws Exception {
+    public void testSetSourceAndTargetId() throws Exception {
 
         // Set a different source and target id
         String customSourceId = "mysourceid";
@@ -119,20 +144,18 @@ public class BaseCommitterTest {
 
         // Get the map generated
         assertEquals(1, listCommitAdd.size());
-        Map<String, String> map = listCommitAdd.get(0);
-
+        QueuedAddedDocument doc = listCommitAdd.get(0);
+        Properties docMeta = doc.getMetadata();
+        
         // Check that customTargetId was used
-        assertEquals(defaultReference, map.get(customTargetId));
+        assertEquals(defaultReference, docMeta.getString(customTargetId));
 
         // Check that customSourceId was removed (default behavior)
-        assertFalse(map.containsKey(customSourceId));
-
-        // Check that the default target id was not used
-        assertFalse(map.containsKey(BaseCommitter.DEFAULT_SOLR_TARGET_ID));
+        assertFalse(defaultReference, docMeta.containsKey(customSourceId));
     }
 
     @Test
-    public void test_keep_source_id() throws Exception {
+    public void testKeepSourceId() throws Exception {
 
         committer.setKeepIdSourceField(true);
 
@@ -142,9 +165,10 @@ public class BaseCommitterTest {
 
         // Get the map generated
         assertEquals(1, listCommitAdd.size());
-        Map<String, String> map = listCommitAdd.get(0);
+        QueuedAddedDocument doc = listCommitAdd.get(0);
 
         // Check that the source id is still there
-        assertTrue(map.containsKey(BaseCommitter.DEFAULT_DOCUMENT_REFERENCE));
+        assertTrue(doc.getMetadata().containsKey(
+                ICommitter.DEFAULT_DOCUMENT_REFERENCE));
     }
 }

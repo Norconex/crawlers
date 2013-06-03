@@ -26,6 +26,7 @@ import com.norconex.commons.lang.map.Properties;
  * Commits documents to their final destination (e.g. search engine).
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
+@SuppressWarnings("nls")
 public interface ICommitter extends Serializable {
 
     /**

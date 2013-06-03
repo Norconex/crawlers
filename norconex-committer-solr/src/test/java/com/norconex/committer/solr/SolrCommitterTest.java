@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -17,6 +18,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.norconex.committer.ICommitter;
+import com.norconex.committer.solr.SolrCommitter.ISolrServerFactory;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.map.Properties;
 
 /**
@@ -27,6 +31,13 @@ import com.norconex.commons.lang.map.Properties;
  */
 public class SolrCommitterTest extends AbstractSolrTestCase {
 
+    static {
+        ClassLoader loader = SolrCommitterTest.class.getClassLoader();
+        loader.setPackageAssertionStatus("org.apache.solr", true);
+        loader.setPackageAssertionStatus("org.apache.lucene", true);
+    }
+    
+    
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -43,7 +54,14 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
 
         server = new EmbeddedSolrServer(h.getCoreContainer(), h.getCore()
                 .getName());
-        committer = new SolrCommitter(server);
+        
+        committer = new SolrCommitter(new ISolrServerFactory() {
+            private static final long serialVersionUID = 4648990433469043210L;
+            @Override
+            public SolrServer createSolrServer(SolrCommitter solrCommitter) {
+                return server;
+            }
+        });
 
         File queue = tempFolder.newFolder("queue");
         committer.setQueueDir(queue.toString());
@@ -55,14 +73,14 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
     }
 
     @Test
-    public void test_commit_add() throws Exception {
+    public void testCommitAdd() throws Exception {
 
         String content = "hello world!";
         File file = createFile(content);
 
         String id = "1";
         Properties metadata = new Properties();
-        metadata.addString(SolrCommitter.DEFAULT_DOCUMENT_REFERENCE, id);
+        metadata.addString(ICommitter.DEFAULT_DOCUMENT_REFERENCE, id);
 
         // Add new doc to Solr
         committer.queueAdd(id, file, metadata);
@@ -73,30 +91,29 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
         SolrDocumentList results = queryId(id);
         assertEquals(1, results.getNumFound());
         assertEquals(id,
-                results.get(0).get(SolrCommitter.DEFAULT_SOLR_TARGET_ID));
+                results.get(0).get(SolrCommitter.DEFAULT_SOLR_ID_FIELD));
         // TODO we need to trim because of the extra white spaces returned by
         // Solr. Why is that?
-        assertEquals(content,
-                results.get(0).get(SolrCommitter.DEFAULT_SOLR_TARGET_CONTENT)
-                        .toString().trim());
+        assertEquals(content, results.get(0).get(
+                SolrCommitter.DEFAULT_SOLR_CONTENT_FIELD).toString().trim());
     }
 
     @Test
-    public void test_commit_delete() throws Exception {
+    public void testCommitDelete() throws Exception {
 
         // Add a document directly to Solr
         SolrInputDocument doc = new SolrInputDocument();
         String id = "1";
-        doc.addField(SolrCommitter.DEFAULT_SOLR_TARGET_ID, id);
+        doc.addField(SolrCommitter.DEFAULT_SOLR_ID_FIELD, id);
         String content = "hello world!";
-        doc.addField(SolrCommitter.DEFAULT_SOLR_TARGET_CONTENT, content);
+        doc.addField(SolrCommitter.DEFAULT_SOLR_CONTENT_FIELD, content);
         server.add(doc);
         server.commit();
 
         // Queue it to be deleted
         File file = createFile(content);
         Properties metadata = new Properties();
-        metadata.addString(SolrCommitter.DEFAULT_DOCUMENT_REFERENCE, id);
+        metadata.addString(ICommitter.DEFAULT_DOCUMENT_REFERENCE, id);
         committer.queueRemove(id, file, metadata);
 
         committer.commit();
@@ -117,9 +134,26 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
     private SolrDocumentList queryId(String id) throws SolrServerException {
         ModifiableSolrParams solrParams = new ModifiableSolrParams();
         solrParams.set("q", String.format("%s:%s",
-                SolrCommitter.DEFAULT_SOLR_TARGET_ID, id));
+                SolrCommitter.DEFAULT_SOLR_ID_FIELD, id));
         QueryResponse response = server.query(solrParams);
         SolrDocumentList results = response.getResults();
         return results;
+    }
+    
+    @Test
+    public void testWriteRead() throws IOException {
+        SolrCommitter outCommitter = new SolrCommitter();
+        outCommitter.setQueueDir("C:\\FakeTestDirectory\\");
+        outCommitter.setContentSourceField("contentSourceField");
+        outCommitter.setContentTargetField("contentTargetField");
+        outCommitter.setIdSourceField("idTargetField");
+        outCommitter.setIdTargetField("idTargetField");
+        outCommitter.setKeepContentSourceField(true);
+        outCommitter.setKeepIdSourceField(false);
+        outCommitter.setBatchSize(100);
+        outCommitter.setSolrBatchSize(50);
+        outCommitter.setSolrURL("http://solrurl.com/test");
+        System.out.println("Writing/Reading this: " + outCommitter);
+        ConfigurationUtil.assertWriteRead(outCommitter);
     }
 }

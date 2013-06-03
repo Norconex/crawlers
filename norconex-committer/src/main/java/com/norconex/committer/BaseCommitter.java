@@ -17,18 +17,11 @@
  */
 package com.norconex.committer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.InputStream;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -36,295 +29,137 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.io.FileUtil;
-import com.norconex.commons.lang.io.IFileVisitor;
 import com.norconex.commons.lang.map.Properties;
 
 /**
- * Base implementation offering to batch the committing of documents.
+ * <p>A base class batching documents and offering mappings of source id and 
+ * content fields to target id and content fields.  
+ * Batched documents are queued on the file system.</p>
+ * 
+ * <h4>ID Mapping:</h4>
+ * 
+ * <p>Both the <code>idSourceField</code> and <code>idTargetField</code> must 
+ * be set for ID mapping to take place. The default <b>source id</b> field is 
+ * the metadata normally set by the Norconex Importer module called 
+ * <code>document.reference</code>.  The default (or constant) <b>target id</b> 
+ * field is for subclasses to define.  When an ID mapping is defined, the 
+ * source id field will be deleted unless the <code>keepIdSourceField</code>
+ * attribute is set to <code>true</code>.</p> 
+ * 
+ * <h4>Content Mapping:</h4>
+ * 
+ * <p>Only the <code>contentTargetField</code> needs to be set for content
+ * mapping to take place.   The default <b>source content</b> is
+ * the actual document content.  Defining a <code>contentSourceField</code>
+ * will use the matching metadata property instead.
+ * The default (or constant) <b>target content</b> field is for subclasses
+ * to define.  When a content mapping is defined, the 
+ * content id field will be deleted (if provided) unless the 
+ * <code>keepContentSourceField</code> attribute is set to 
+ * <code>true</code>.</p> 
  * 
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author <a href="mailto:pascal.dimassimo@norconex.com">Pascal Dimassimo</a>
  */
-public abstract class BaseCommitter implements ICommitter, IXMLConfigurable {
+@SuppressWarnings("nls")
+public abstract class BaseCommitter
+        extends FileSystemQueueCommitter implements IXMLConfigurable {
 
-    private static final long serialVersionUID = 880638478926236689L;
-    private static final Logger LOG = LogManager.getLogger(BaseCommitter.class);
+    private static final long serialVersionUID = 5437833425204155264L;
 
-    public static final int DEFAULT_BATCH_SIZE = 1000;
-    public static final String DEFAULT_SOLR_TARGET_ID = "id";
-    public static final String DEFAULT_SOLR_TARGET_CONTENT = "content";
-    public static final String DEFAULT_QUEUE_DIR = "./queue";
-
-    private int batchSize = DEFAULT_BATCH_SIZE;
     private long docCount;
 
-    protected final FileSystemCommitter queue = new FileSystemCommitter();
-
     protected String idTargetField;
-    protected String idSourceField;
+    protected String idSourceField = DEFAULT_DOCUMENT_REFERENCE;
     protected boolean keepIdSourceField;
     protected String contentTargetField;
     protected String contentSourceField;
     protected boolean keepContentSourceField;
 
-    private static final FileFilter NON_META_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            return !pathname.getName().endsWith(".meta");
-        }
-    };
-
     public BaseCommitter() {
         super();
     }
-
     public BaseCommitter(int batchSize) {
-        super();
-        this.batchSize = batchSize;
-    }
-
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
-    }
-
-    public String getQueueDir() {
-        return queue.getDirectory();
-    }
-
-    public void setQueueDir(String queueDir) {
-        this.queue.setDirectory(queueDir);
+        super(batchSize);
     }
 
     public String getIdSourceField() {
         return idSourceField;
     }
-
     public void setIdSourceField(String idSourceField) {
         this.idSourceField = idSourceField;
     }
-
     public String getIdTargetField() {
         return idTargetField;
     }
-
     public void setIdTargetField(String idTargetField) {
         this.idTargetField = idTargetField;
     }
-
     public String getContentTargetField() {
         return contentTargetField;
     }
-
     public void setContentTargetField(String contentTargetField) {
         this.contentTargetField = contentTargetField;
     }
-
     public String getContentSourceField() {
         return contentSourceField;
     }
-
     public void setContentSourceField(String contentSourceField) {
         this.contentSourceField = contentSourceField;
     }
-
     public boolean isKeepIdSourceField() {
         return keepIdSourceField;
     }
-
     public void setKeepIdSourceField(boolean keepIdSourceField) {
         this.keepIdSourceField = keepIdSourceField;
     }
-
     public boolean isKeepContentSourceField() {
         return keepContentSourceField;
     }
-
     public void setKeepContentSourceField(boolean keepContentSourceField) {
         this.keepContentSourceField = keepContentSourceField;
     }
 
-    public final void queueAdd(String reference, File document,
-            Properties metadata) {
-        queue.queueAdd(reference, document, metadata);
-        commitIfReady();
-    }
-
-    public final void queueRemove(String ref, File document, Properties metadata) {
-        queue.queueRemove(ref, document, metadata);
-        commitIfReady();
-    }
-
-    private void commitIfReady() {
-        docCount++;
-        if (docCount % batchSize == 0) {
-            if (LOG.isInfoEnabled()) {
-                LOG.info("Batch size reached (" + batchSize + "). Committing");
-            }
-            commit();
-        }
-    }
-
     @Override
-    public void commit() {
+    protected void preCommitAddedDocument(QueuedAddedDocument document)
+            throws IOException {
+        Properties metadata = document.getMetadata();
 
-        // --- Additions ---
-        FileUtil.visitAllFiles(queue.getAddDir(), new IFileVisitor() {
-            @Override
-            public void visit(File file) {
-                try {
-                    commitAdd(file, buildDocumentMap(file));
-                } catch (IOException e) {
-                    throw new CommitterException(
-                            "Cannot create Solr Document for file: " + file, e);
+        //--- source ID -> target ID ---
+        if (StringUtils.isNotBlank(idSourceField)
+                && StringUtils.isNotBlank(idTargetField)) {
+            metadata.setString(idTargetField, 
+                    metadata.getString(idSourceField));
+            if (!keepIdSourceField 
+                    && !ObjectUtils.equals(idSourceField, idTargetField)) {
+                metadata.remove(idSourceField);
+            }
+        }
+        
+        //--- source content -> target content ---
+        if (StringUtils.isNotBlank(contentTargetField)) {
+            if (StringUtils.isNotBlank(contentSourceField)) {
+                List<String >content = metadata.getStrings(contentSourceField);
+                metadata.setString(contentTargetField, 
+                        content.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+                if (!keepContentSourceField && !ObjectUtils.equals(
+                        contentSourceField, contentTargetField)) {
+                    metadata.remove(contentSourceField);
                 }
-            }
-        }, NON_META_FILTER);
-
-        // --- Deletions ---
-        FileUtil.visitAllFiles(queue.getRemoveDir(), new IFileVisitor() {
-            @Override
-            public void visit(File file) {
-                try {
-                    commitDelete(file, org.apache.commons.io.FileUtils
-                            .readFileToString(file));
-                } catch (IOException e) {
-                    throw new CommitterException(
-                            "Cannot read reference from : " + file, e);
-                }
-            }
-        });
-
-        commitComplete();
-    }
-
-    /**
-     * Allow subclasses to commit files to be added.
-     * 
-     * The subclass has the responsibility of deleting the file once the content
-     * is stored. The subclass may decide to batch those documents before
-     * storing them.
-     * 
-     * @param file
-     *            queued file
-     * @param map
-     *            map of data to store
-     */
-    protected abstract void commitAdd(File file, Map<String, String> map);
-
-    /**
-     * Allow subclasses to commit files to be deleted.
-     * 
-     * The subclass has the responsibility of deleting the file once the content
-     * is stored. The subclass may decide to batch those deletions.
-     * 
-     * @param file
-     *            queued file
-     * @param id
-     *            id of the content to be deleted
-     */
-    protected abstract void commitDelete(File file, String id);
-
-    /**
-     * Allow subclasses to operate upon the end of the commit operation.
-     * 
-     * For example, if the subclass decided to batch documents to commit, it may
-     * decide to store all remaining documents on that event.
-     * 
-     */
-    protected abstract void commitComplete();
-
-    private Map<String, String> buildDocumentMap(File file) throws IOException {
-        Properties metadata = loadMetadata(file);
-        Map<String, String> map = new HashMap<String, String>();
-
-        // --- Figure out field names ---
-        String theIdSourceField = getIdSourceField();
-        if (StringUtils.isBlank(idSourceField)) {
-            theIdSourceField = DEFAULT_DOCUMENT_REFERENCE;
-        }
-
-        String theIdTargetField = getIdTargetField();
-        if (StringUtils.isBlank(theIdTargetField)) {
-            theIdTargetField = DEFAULT_SOLR_TARGET_ID;
-        }
-
-        String theContentSourceField = getContentSourceField();
-
-        String theContentTargetField = getContentTargetField();
-        if (StringUtils.isBlank(theContentTargetField)) {
-            theContentTargetField = DEFAULT_SOLR_TARGET_CONTENT;
-        }
-
-        // --- Add source to target field in document ---
-        map.put(theIdTargetField, metadata.getString(theIdSourceField));
-        String targetContent;
-        if (StringUtils.isBlank(contentSourceField)) {
-            targetContent = loadContentAsString(file);
-        } else {
-            targetContent = metadata.getString(theContentSourceField);
-        }
-        map.put(theContentTargetField, targetContent);
-
-        // --- Remove non-kept source fields from metadata ---
-        if (!keepIdSourceField && !theIdSourceField.equals(theIdTargetField)) {
-            metadata.remove(theIdSourceField);
-        }
-        if (!keepContentSourceField
-                && !ObjectUtils.equals(theContentSourceField,
-                        theContentTargetField)
-                && StringUtils.isNotBlank(theContentSourceField)) {
-            metadata.remove(theContentSourceField);
-        }
-
-        // --- Add metadata entries to document ---
-        for (String name : metadata.keySet()) {
-            for (String value : metadata.get(name)) {
-                map.put(name, value);
+            } else {
+                InputStream is = document.getContentStream();
+                metadata.setString(contentTargetField, IOUtils.toString(is));
+                IOUtils.closeQuietly(is);
             }
         }
-
-        return map;
-    }
-
-    private Properties loadMetadata(File file) throws IOException {
-        Properties metadata = new Properties();
-        File metaFile = new File(file.getAbsolutePath() + ".meta");
-        if (metaFile.exists()) {
-            FileInputStream is = new FileInputStream(metaFile);
-            metadata.load(is);
-            IOUtils.closeQuietly(is);
-        }
-        return metadata;
-    }
-
-    private String loadContentAsString(File file) throws IOException {
-        FileReader reader = new FileReader(file);
-        BufferedReader in = new BufferedReader(reader);
-        String line = null;
-        StringWriter sw = new StringWriter();
-        PrintWriter out = new PrintWriter(sw);
-        while ((line = in.readLine()) != null) {
-            out.println(StringEscapeUtils.escapeXml(line.replaceAll("<.*?>",
-                    " ")));
-        }
-        in.close();
-        String content = sw.toString();
-        out.close();
-        return content;
     }
 
     @Override
@@ -335,29 +170,34 @@ public abstract class BaseCommitter implements ICommitter, IXMLConfigurable {
             writer.writeStartElement("committer");
             writer.writeAttribute("class", getClass().getCanonicalName());
 
-            writer.writeStartElement("idSourceField");
-            writer.writeAttribute("keep", Boolean.toString(keepIdSourceField));
-            writer.writeCharacters(idSourceField);
-            writer.writeEndElement();
-
-            writer.writeStartElement("idTargetField");
-            writer.writeCharacters(idTargetField);
-            writer.writeEndElement();
-
-            writer.writeStartElement("contentSourceField");
-            writer.writeAttribute("keep",
-                    Boolean.toString(keepContentSourceField));
-            writer.writeCharacters(contentSourceField);
-            writer.writeEndElement();
-
-            writer.writeStartElement("contentTargetField");
-            writer.writeCharacters(contentTargetField);
-            writer.writeEndElement();
-
-            writer.writeStartElement("queueDir");
-            writer.writeCharacters(getQueueDir());
-            writer.writeEndElement();
-
+            if (idSourceField != null) {
+                writer.writeStartElement("idSourceField");
+                writer.writeAttribute("keep", Boolean.toString(keepIdSourceField));
+                writer.writeCharacters(idSourceField);
+                writer.writeEndElement();
+            }
+            if (idTargetField != null) {
+                writer.writeStartElement("idTargetField");
+                writer.writeCharacters(idTargetField);
+                writer.writeEndElement();
+            }
+            if (contentSourceField != null) {
+                writer.writeStartElement("contentSourceField");
+                writer.writeAttribute("keep",
+                        Boolean.toString(keepContentSourceField));
+                writer.writeCharacters(contentSourceField);
+                writer.writeEndElement();
+            }
+            if (contentTargetField != null) {
+                writer.writeStartElement("contentTargetField");
+                writer.writeCharacters(contentTargetField);
+                writer.writeEndElement();
+            }
+            if (getQueueDir() != null) {
+                writer.writeStartElement("queueDir");
+                writer.writeCharacters(getQueueDir());
+                writer.writeEndElement();
+            }
             writer.writeStartElement("batchSize");
             writer.writeCharacters(ObjectUtils.toString(getBatchSize()));
             writer.writeEndElement();
@@ -383,15 +223,19 @@ public abstract class BaseCommitter implements ICommitter, IXMLConfigurable {
     @Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);
-        setIdSourceField(xml.getString("idSourceField", null));
-        setKeepIdSourceField(xml.getBoolean("idSourceField[@keep]", false));
-        setIdTargetField(xml.getString("idTargetField", null));
-        setContentSourceField(xml.getString("contentSourceField", null));
-        setKeepContentSourceField(xml.getBoolean("contentSourceField[@keep]",
-                false));
-        setContentTargetField(xml.getString("contentTargetField", null));
+        setIdSourceField(xml.getString("idSourceField", idSourceField));
+        setKeepIdSourceField(xml.getBoolean("idSourceField[@keep]", 
+                keepIdSourceField));
+        setIdTargetField(xml.getString("idTargetField", idTargetField));
+        setContentSourceField(
+                xml.getString("contentSourceField", contentSourceField));
+        setKeepContentSourceField(xml.getBoolean("contentSourceField[@keep]", 
+                keepContentSourceField));
+        setContentTargetField(
+                xml.getString("contentTargetField", contentTargetField));
         setQueueDir(xml.getString("queueDir", DEFAULT_QUEUE_DIR));
-        setBatchSize(xml.getInt("batchSize", BaseCommitter.DEFAULT_BATCH_SIZE));
+        setBatchSize(xml.getInt("batchSize", 
+                BatchableCommitter.DEFAULT_BATCH_SIZE));
 
         loadFromXml(xml);
     }
@@ -408,7 +252,8 @@ public abstract class BaseCommitter implements ICommitter, IXMLConfigurable {
         return new HashCodeBuilder().append(contentSourceField)
                 .append(keepContentSourceField).append(contentTargetField)
                 .append(idSourceField).append(keepIdSourceField)
-                .append(idTargetField).append(queue).toHashCode();
+                .append(idTargetField).append(getQueueDir())
+                .append(getBatchSize()).toHashCode();
     }
 
     @Override
@@ -430,14 +275,17 @@ public abstract class BaseCommitter implements ICommitter, IXMLConfigurable {
                 .append(idSourceField, other.idSourceField)
                 .append(keepIdSourceField, other.keepIdSourceField)
                 .append(idTargetField, other.idTargetField)
-                .append(queue, other.queue).isEquals();
+                .append(getBatchSize(), other.getBatchSize())
+                .append(getQueueDir(), other.getQueueDir()).isEquals();
     }
 
     @Override
     public String toString() {
-        return String
-                .format("BaseCommitter [batchSize=%s, docCount=%s, queue=%s, idTargetField=%s, idSourceField=%s, keepIdSourceField=%s, contentTargetField=%s, contentSourceField=%s, keepContentSourceField=%s]",
-                        batchSize, docCount, queue, idTargetField,
+        return String.format("BaseCommitter [batchSize=%s, docCount=%s, "
+                + "queue=%s, idTargetField=%s, idSourceField=%s, "
+                + "keepIdSourceField=%s, contentTargetField=%s, "
+                + "contentSourceField=%s, keepContentSourceField=%s]",
+                        getBatchSize(), docCount, getQueueDir(), idTargetField,
                         idSourceField, keepIdSourceField, contentTargetField,
                         contentSourceField, keepContentSourceField);
     }

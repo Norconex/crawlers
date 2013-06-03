@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex Committer. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.committer;
+package com.norconex.committer.impl;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,6 +31,8 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 
+import com.norconex.committer.CommitterException;
+import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.io.FileUtil;
@@ -50,6 +52,7 @@ import com.norconex.commons.lang.map.Properties;
  * </pre>
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
+@SuppressWarnings("nls")
 public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
 
     private static final long serialVersionUID = 567796374790003396L;
@@ -184,6 +187,10 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
             return false;
         }
         return true;
+    }
+    @Override
+    public String toString() {
+        return "FileSystemCommitter [directory=" + directory + "]";
     }
 }
 
