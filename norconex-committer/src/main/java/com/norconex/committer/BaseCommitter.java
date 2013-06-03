@@ -172,7 +172,8 @@ public abstract class BaseCommitter
 
             if (idSourceField != null) {
                 writer.writeStartElement("idSourceField");
-                writer.writeAttribute("keep", Boolean.toString(keepIdSourceField));
+                writer.writeAttribute(
+                        "keep", Boolean.toString(keepIdSourceField));
                 writer.writeCharacters(idSourceField);
                 writer.writeEndElement();
             }

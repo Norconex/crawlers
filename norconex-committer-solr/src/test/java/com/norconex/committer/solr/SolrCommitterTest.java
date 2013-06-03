@@ -31,6 +31,8 @@ import com.norconex.commons.lang.map.Properties;
  */
 public class SolrCommitterTest extends AbstractSolrTestCase {
 
+    //TODO test update/delete URL params
+    
     static {
         ClassLoader loader = SolrCommitterTest.class.getClassLoader();
         loader.setPackageAssertionStatus("org.apache.solr", true);
@@ -153,6 +155,11 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
         outCommitter.setBatchSize(100);
         outCommitter.setSolrBatchSize(50);
         outCommitter.setSolrURL("http://solrurl.com/test");
+        outCommitter.setUpdateUrlParam("uparam1", "uvalue1");
+        outCommitter.setUpdateUrlParam("uparam2", "uvalue2");
+        outCommitter.setDeleteUrlParam("dparam1", "dvalue1");
+        outCommitter.setDeleteUrlParam("dparam2", "dvalue2");
+        outCommitter.setSolrBatchSize(50);
         System.out.println("Writing/Reading this: " + outCommitter);
         ConfigurationUtil.assertWriteRead(outCommitter);
     }

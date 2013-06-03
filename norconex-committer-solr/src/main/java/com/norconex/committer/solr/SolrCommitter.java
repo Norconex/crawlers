@@ -21,11 +21,15 @@ package com.norconex.committer.solr;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +39,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.norconex.committer.BaseCommitter;
@@ -50,6 +55,14 @@ import com.norconex.commons.lang.map.Properties;
  * <pre>
  *  &lt;committer class="com.norconex.committer.solr.SolrCommitter"&gt;
  *      &lt;solrURL&gt;(URL to Solr)&lt;/solrURL&gt;
+ *      &lt;solrUpdateURLParams&gt;
+ *         &lt;param name="(parameter name)"&gt;(parameter value)&lt;/param&gt;
+ *         &lt;-- multiple param tags allowed --&gt;
+ *      &lt;/solrUpdateURLParams&gt;
+ *      &lt;solrDeleteURLParams&gt;
+ *         &lt;param name="(parameter name)"&gt;(parameter value)&lt;/param&gt;
+ *         &lt;-- multiple param tags allowed --&gt;
+ *      &lt;/solrDeleteURLParams&gt;
  *      &lt;idSourceField keep="[false|true]"&gt;
  *         (Name of source field that will be mapped to the Solr "id" field
  *         or whatever "idTargetField" specified.
@@ -82,6 +95,7 @@ import com.norconex.commons.lang.map.Properties;
  * 
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
+//TODO test if same files can be picked up more than once when multi-threading
 public class SolrCommitter extends BaseCommitter {
 
     private static final long serialVersionUID = -842307672980791980L;
@@ -99,6 +113,11 @@ public class SolrCommitter extends BaseCommitter {
     private final List<QueuedDeletedDocument> docsToRemove = 
             new ArrayList<QueuedDeletedDocument>();
 
+    private final Map<String, String> updateUrlParams = 
+            new HashMap<String, String>();
+    private final Map<String, String> deleteUrlParams = 
+            new HashMap<String, String>();
+    
     private final ISolrServerFactory solrServerFactory;
 
     public SolrCommitter() {
@@ -117,19 +136,35 @@ public class SolrCommitter extends BaseCommitter {
     public String getSolrURL() {
         return solrURL;
     }
-
     public void setSolrURL(String solrURL) {
         this.solrURL = solrURL;
     }
-
     public int getSolrBatchSize() {
         return solrBatchSize;
     }
-
     public void setSolrBatchSize(int solrBatchSize) {
         this.solrBatchSize = solrBatchSize;
     }
 
+    public void setUpdateUrlParam(String name, String value) {
+        updateUrlParams.put(name, value);
+    }
+    public void setDeleteUrlParam(String name, String value) {
+        deleteUrlParams.put(name, value);
+    }
+    public String getUpdateUrlParam(String name) {
+        return updateUrlParams.get(name);
+    }
+    public String getDeleteUrlParam(String name) {
+        return deleteUrlParams.get(name);
+    }
+    public Set<String> getUpdateUrlParamNames() {
+        return updateUrlParams.keySet();
+    }
+    public Set<String> getDeleteUrlParamNames() {
+        return deleteUrlParams.keySet();
+    }
+    
     @Override
     protected void commitAddedDocument(QueuedAddedDocument document)
             throws IOException {
@@ -155,9 +190,14 @@ public class SolrCommitter extends BaseCommitter {
         try {
             // Commit Solr batch
             SolrServer server = solrServerFactory.createSolrServer(this);
-            for (QueuedAddedDocument doc : docsToAdd) {
-                server.add(buildSolrDocument(doc.getMetadata()));
+            UpdateRequest request = new UpdateRequest();
+            for (String name : updateUrlParams.keySet()) {
+                request.setParam(name, updateUrlParams.get(name));
             }
+            for (QueuedAddedDocument doc : docsToAdd) {
+                request.add(buildSolrDocument(doc.getMetadata()));
+            }
+            request.process(server);
             server.commit();
 
             // Delete queued documents after commit
@@ -189,11 +229,15 @@ public class SolrCommitter extends BaseCommitter {
                 + " documents to Solr for deletion.");
         try {
             SolrServer server = solrServerFactory.createSolrServer(this);
-            
             // Commit Solr batch
-            for (QueuedDeletedDocument doc : docsToRemove) {
-                server.deleteById(doc.getReference());
+            UpdateRequest request = new UpdateRequest();
+            for (String name : deleteUrlParams.keySet()) {
+                request.setParam(name, deleteUrlParams.get(name));
             }
+            for (QueuedDeletedDocument doc : docsToRemove) {
+                request.deleteById(doc.getReference());
+            }
+            request.process(server);
             server.commit();
 
             // Delete queued documents after commit
@@ -224,6 +268,24 @@ public class SolrCommitter extends BaseCommitter {
         writer.writeCharacters(solrURL);
         writer.writeEndElement();
 
+        writer.writeStartElement("solrUpdateURLParams");
+        for (String name : updateUrlParams.keySet()) {
+            writer.writeStartElement("param");
+            writer.writeAttribute("name", name);
+            writer.writeCharacters(updateUrlParams.get(name));
+            writer.writeEndElement();
+        }
+        writer.writeEndElement();
+        
+        writer.writeStartElement("solrDeleteURLParams");
+        for (String name : deleteUrlParams.keySet()) {
+            writer.writeStartElement("param");
+            writer.writeAttribute("name", name);
+            writer.writeCharacters(deleteUrlParams.get(name));
+            writer.writeEndElement();
+        }
+        writer.writeEndElement();
+        
         writer.writeStartElement("solrBatchSize");
         writer.writeCharacters(ObjectUtils.toString(getSolrBatchSize()));
         writer.writeEndElement();
@@ -233,12 +295,31 @@ public class SolrCommitter extends BaseCommitter {
     protected void loadFromXml(XMLConfiguration xml) {
         setSolrURL(xml.getString("solrURL", null));
         setSolrBatchSize(xml.getInt("solrBatchSize", DEFAULT_SOLR_BATCH_SIZE));
+
+        List<HierarchicalConfiguration> uparams = 
+                xml.configurationsAt("solrUpdateURLParams.param");
+        for (HierarchicalConfiguration param : uparams) {
+            setUpdateUrlParam(param.getString("[@name]"), param.getString(""));
+        }
+        List<HierarchicalConfiguration> dparams = 
+                xml.configurationsAt("solrDeleteURLParams.param");
+        for (HierarchicalConfiguration param : dparams) {
+            setDeleteUrlParam(param.getString("[@name]"), param.getString(""));
+        }
     }
 
+    
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().appendSuper(super.hashCode())
-                .append(solrBatchSize).append(solrURL).toHashCode();
+        return new HashCodeBuilder()
+            .appendSuper(super.hashCode())
+            .append(deleteUrlParams)
+            .append(docsToAdd)
+            .append(docsToRemove)
+            .append(solrServerFactory)
+            .append(solrURL)
+            .append(updateUrlParams)
+            .toHashCode();
     }
 
     @Override
@@ -253,19 +334,28 @@ public class SolrCommitter extends BaseCommitter {
             return false;
         }
         SolrCommitter other = (SolrCommitter) obj;
-        return new EqualsBuilder().appendSuper(super.equals(obj))
-                .append(solrBatchSize, other.solrBatchSize)
-                .append(solrURL, other.solrURL).isEquals();
+        return new EqualsBuilder()
+            .appendSuper(super.equals(obj))
+            .append(deleteUrlParams, other.deleteUrlParams)
+            .append(docsToAdd, other.docsToAdd)
+            .append(docsToRemove, other.docsToRemove)
+            .append(solrBatchSize, other.solrBatchSize)
+            .append(solrServerFactory, other.solrServerFactory)
+            .append(solrURL, other.solrURL)
+            .append(updateUrlParams, other.updateUrlParams)
+            .isEquals();
     }
-
+    
     @Override
     public String toString() {
-        return String.format("SolrCommitter [solrURL=%s, solrBatchSize=%s, "
-              + "docsToAdd=%s, docsToRemove=%s, solrServerFactory=%s, "
-              + "BaseCommitter=%s]",
-                        solrURL, solrBatchSize, docsToAdd, docsToRemove,
-                        solrServerFactory, super.toString());
+        return "SolrCommitter [solrURL=" + solrURL + ", solrBatchSize="
+                + solrBatchSize + ", docsToAdd=" + docsToAdd
+                + ", docsToRemove=" + docsToRemove + ", updateUrlParams="
+                + updateUrlParams + ", deleteUrlParams=" + deleteUrlParams
+                + ", solrServerFactory=" + solrServerFactory
+                + ", " + super.toString() + "]";
     }
+
     //TODO make it a top-level interface?  Make it XMLConfigurable?
     public interface ISolrServerFactory extends Serializable {
         SolrServer createSolrServer(SolrCommitter solrCommitter);
@@ -283,6 +373,39 @@ public class SolrCommitter extends BaseCommitter {
                 server = new HttpSolrServer(solrCommitter.getSolrURL());
             }
             return server;
+        }
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result
+                    + ((server == null) ? 0 : server.hashCode());
+            return result;
+        }
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            DefaultSolrServerFactory other = (DefaultSolrServerFactory) obj;
+            if (server == null) {
+                if (other.server != null) {
+                    return false;
+                }
+            } else if (!server.equals(other.server)) {
+                return false;
+            }
+            return true;
+        }
+        @Override
+        public String toString() {
+            return "DefaultSolrServerFactory [server=" + server + "]";
         }
     }
 }
