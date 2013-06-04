@@ -44,6 +44,8 @@ import org.apache.tika.io.TikaInputStream;
 import com.norconex.commons.lang.io.FileUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.filter.IDocumentFilter;
+import com.norconex.importer.filter.IOnMatchFilter;
+import com.norconex.importer.filter.OnMatch;
 import com.norconex.importer.parser.DocumentParserException;
 import com.norconex.importer.parser.IDocumentParser;
 import com.norconex.importer.parser.IDocumentParserFactory;
@@ -251,6 +253,8 @@ public class Importer {
             return true;
         }
         
+        boolean hasIncludes = false;
+        boolean atLeastOneIncludeMatch = false;
         for (IImportHandler h : handlers) {
             if (h instanceof IDocumentTagger) {
                 tagDocument(docReference, (IDocumentTagger) h, 
@@ -259,14 +263,29 @@ public class Importer {
                 transformDocument(docReference, (IDocumentTransformer) h, 
                         rawImportedFile, inFile, metadata, parsed);
             } else if (h instanceof IDocumentFilter) {
-                if (!acceptDocument((IDocumentFilter) h, inFile.getValue(), 
-                        metadata, parsed)){
+                boolean accepted = acceptDocument((IDocumentFilter) h, 
+                        inFile.getValue(), metadata, parsed);
+                boolean isInclude = h instanceof IOnMatchFilter
+                       && OnMatch.INCLUDE == ((IOnMatchFilter) h).getOnMatch();
+                // Deal with includes
+                if (isInclude) {
+                    hasIncludes = true;
+                    if (accepted) {
+                        atLeastOneIncludeMatch = true;
+                    }
+                    continue;
+                }
+                // Deal with exclude and non-OnMatch filters
+                if (!accepted){
                     return false;
                 }
             } else {
                 LOG.error("Unsupported Import Handler: " + h);
             }
-        }        
+        }
+        if (hasIncludes && !atLeastOneIncludeMatch) {
+            return false;
+        }
         return true;
     }
     

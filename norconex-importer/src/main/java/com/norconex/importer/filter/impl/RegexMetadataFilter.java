@@ -34,6 +34,8 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -159,21 +161,18 @@ public class RegexMetadataFilter extends AbstractOnMatchFilter
         }
     }
     
-    
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("RegexMetadataFilter [property=")
-                .append(property)
-                .append(", regex=").append(regex)
-                .append(", caseSensitive=").append(caseSensitive)
-                .append(", onMatch=").append(getOnMatch()).append("]");
-        return builder.toString();
+        return new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE)
+            .appendSuper(super.toString())
+            .append("regex", regex)
+            .append("caseSensitive", caseSensitive)
+            .toString();
     }
-
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
+            .appendSuper(super.hashCode())
             .append(caseSensitive)
             .append(property)
             .append(regex)
@@ -193,6 +192,7 @@ public class RegexMetadataFilter extends AbstractOnMatchFilter
         }
         RegexMetadataFilter other = (RegexMetadataFilter) obj;
         return new EqualsBuilder()
+            .appendSuper(super.equals(obj))
             .append(caseSensitive, other.caseSensitive)
             .append(property, other.property)
             .append(regex, other.regex)

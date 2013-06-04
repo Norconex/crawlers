@@ -22,7 +22,6 @@ package com.norconex.importer.filter;
  * Constants indicating the action to perform upon matching a condition.
  * Typically used with filtering conditions.
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
- *
  */
 public enum OnMatch {
     INCLUDE, EXCLUDE
