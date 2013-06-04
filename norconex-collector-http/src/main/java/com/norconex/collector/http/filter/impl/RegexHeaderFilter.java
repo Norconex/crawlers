@@ -33,13 +33,15 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.filter.AbstractOnMatchFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
-import com.norconex.collector.http.filter.OnMatch;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.importer.filter.AbstractOnMatchFilter;
+import com.norconex.importer.filter.OnMatch;
 /**
  * Accepts or rejects one or more HTTP header values using regular expression.
  * <p>
@@ -135,7 +137,7 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         setHeader(xml.getString("[@header]"));
         setRegex(xml.getString(""));
-        setOnMatch(getOnMatch(xml));
+        super.loadFromXML(xml);
         setCaseSensitive(xml.getBoolean("[@caseSensitive]", false));
     }
     @Override
@@ -145,8 +147,7 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
             XMLStreamWriter writer = factory.createXMLStreamWriter(out);
             writer.writeStartElement("filter");
             writer.writeAttribute("class", getClass().getCanonicalName());
-            writer.writeAttribute("onMatch",
-                    getOnMatch().toString().toLowerCase());
+            super.saveToXML(writer);
             writer.writeAttribute("caseSensitive", 
                     Boolean.toString(caseSensitive));
             writer.writeCharacters(regex == null ? "" : regex);
@@ -158,27 +159,17 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
         }
     }
     
-    
+
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("RegexMetadataFilter [header=")
-                .append(header)
-                .append(", regex=").append(regex)
-                .append(", caseSensitive=").append(caseSensitive)
-                .append(", onMatch=").append(getOnMatch()).append("]");
-        return builder.toString();
+        return new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE)
+            .appendSuper(super.toString())
+            .append("caseSensitive", caseSensitive)
+            .append("header", header)
+            .append("regex", regex)
+            .toString();
     }
     
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder()
-            .append(caseSensitive)
-            .append(header)
-            .append(regex)
-            .toHashCode();
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -192,10 +183,21 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
         }
         RegexHeaderFilter other = (RegexHeaderFilter) obj;
         return new EqualsBuilder()
+            .appendSuper(super.equals(obj))
             .append(caseSensitive, other.caseSensitive)
             .append(header, other.header)
             .append(regex, other.regex)
             .isEquals();
+    }
+    
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+            .appendSuper(super.hashCode())
+            .append(caseSensitive)
+            .append(header)
+            .append(regex)
+            .toHashCode();
     }
 }
 

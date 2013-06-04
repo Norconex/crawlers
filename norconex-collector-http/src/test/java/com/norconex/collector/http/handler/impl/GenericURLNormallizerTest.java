@@ -20,7 +20,6 @@ package com.norconex.collector.http.handler.impl;
 
 import java.io.IOException;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Test;
 
 import com.norconex.collector.http.handler.impl.GenericURLNormalizer.Normalization;
@@ -29,7 +28,7 @@ import com.norconex.commons.lang.config.ConfigurationUtil;
 public class GenericURLNormallizerTest {
 
     @Test
-    public void testWriteRead() throws ConfigurationException, IOException {
+    public void testWriteRead() throws IOException {
         GenericURLNormalizer n = new GenericURLNormalizer();
         n.setNormalizations(
                 Normalization.lowerCaseSchemeHost,

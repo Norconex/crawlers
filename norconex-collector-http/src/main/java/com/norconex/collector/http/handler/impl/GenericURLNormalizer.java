@@ -151,13 +151,14 @@ public class GenericURLNormalizer
         removeEmptyParameters, 
         removeTrailingQuestionMark, 
         removeSessionIds 
-    };
+    }
     
     
     private final List<Normalization> normalizations = 
             new ArrayList<Normalization>();
     private final List<Replace> replaces = new ArrayList<Replace>();
     
+    @Override
     public String normalizeURL(String url) {
         URLNormalizer normalizer = new URLNormalizer(url);
         for (Normalization n : normalizations) {

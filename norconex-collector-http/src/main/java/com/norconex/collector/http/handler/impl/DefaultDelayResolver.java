@@ -192,7 +192,7 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
         private final Range<Integer> dayOfMonthRange;
         private final ImmutablePair<LocalTime, LocalTime> timeRange;
         private final long delay;
-        private enum DOW {mon,tue,wed,thu,fri,sat,sun};
+        private enum DOW {mon,tue,wed,thu,fri,sat,sun}
 
         public DelaySchedule(String dow, String dom, String time, long delay) {
             super();

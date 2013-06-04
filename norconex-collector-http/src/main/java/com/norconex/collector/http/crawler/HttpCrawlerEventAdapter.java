@@ -36,24 +36,66 @@ import com.norconex.commons.lang.map.Properties;
  */
 public class HttpCrawlerEventAdapter implements IHttpCrawlerEventListener{
     
-    public void crawlerStarted(HttpCrawler crawler) {}
+    @Override
+    public void crawlerStarted(HttpCrawler crawler) {
+        //do nothing
+    }
+    @Override
     public void documentRobotsTxtRejected(HttpCrawler crawler,
-            String url, IURLFilter filter, RobotsTxt robotsTxt) {}
-    public void documentURLRejected(HttpCrawler crawler,String url, IURLFilter filter) {}
+            String url, IURLFilter filter, RobotsTxt robotsTxt) {
+        //do nothing
+    }
+    @Override
+    public void documentURLRejected(
+            HttpCrawler crawler,String url, IURLFilter filter) {
+        //do nothing
+    }
+    @Override
     public void documentHeadersFetched(HttpCrawler crawler,
-            String url, IHttpHeadersFetcher headersFetcher, Properties headers) {}
+            String url, IHttpHeadersFetcher headersFetcher, 
+            Properties headers) {
+        //do nothing
+    }
+    @Override
     public void documentHeadersRejected(HttpCrawler crawler,
-            String url, IHttpHeadersFilter filter, Properties headers) {}
+            String url, IHttpHeadersFilter filter, Properties headers) {
+        //do nothing
+    }
+    @Override
     public void documentFetched(HttpCrawler crawler,
-            HttpDocument document, IHttpDocumentFetcher fetcher) {}
-    public void documentURLsExtracted(HttpCrawler crawler, HttpDocument document) {}
+            HttpDocument document, IHttpDocumentFetcher fetcher) {
+        //do nothing
+    }
+    @Override
+    public void documentURLsExtracted(
+            HttpCrawler crawler, HttpDocument document) {
+        //do nothing
+    }
+    @Override
     public void documentRejected(HttpCrawler crawler,
-            HttpDocument document, IHttpDocumentFilter filter) {}
-    public void documentPreProcessed(HttpCrawler crawler,
-            HttpDocument document, IHttpDocumentProcessor preProcessor) {}
-    public void documentImported(HttpCrawler crawler,HttpDocument document) {}
-    public void documentPostProcessed(HttpCrawler crawler,
-            HttpDocument document, IHttpDocumentProcessor postProcessor) {}
-    public void crawlerFinished(HttpCrawler crawler) {}
-    public void documentCrawled(HttpCrawler crawler, HttpDocument document) {}
+            HttpDocument document, IHttpDocumentFilter filter) {
+        //do nothing
+    }
+    @Override
+    public void documentPreProcessed(HttpCrawler crawler, HttpDocument document,
+            IHttpDocumentProcessor preProcessor) {
+        //do nothing
+    }
+    @Override
+    public void documentImported(HttpCrawler crawler,HttpDocument document) {
+        //do nothing
+    }
+    @Override
+    public void documentPostProcessed(HttpCrawler crawler, 
+            HttpDocument document, IHttpDocumentProcessor postProcessor) {
+        //do nothing
+    }
+    @Override
+    public void crawlerFinished(HttpCrawler crawler) {
+        //do nothing
+    }
+    @Override
+    public void documentCrawled(HttpCrawler crawler, HttpDocument document) {
+        //do nothing
+    }
 }
