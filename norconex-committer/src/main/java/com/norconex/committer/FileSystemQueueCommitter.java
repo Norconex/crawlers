@@ -214,6 +214,8 @@ public abstract class FileSystemQueueCommitter extends BatchableCommitter {
         }
         public void deleteFromQueue() {
             //TODO use FileUtil.deleteFile(file) ??
+            File metaFile = new File(file.getAbsolutePath() + ".meta");
+            metaFile.delete();
             file.delete();
         }
     }
