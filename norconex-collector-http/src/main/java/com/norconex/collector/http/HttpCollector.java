@@ -43,16 +43,16 @@ import com.norconex.jef.progress.JobProgressPropertiesFileSerializer;
 import com.norconex.jef.suite.FileStopRequestHandler;
 import com.norconex.jef.suite.IJobSuiteFactory;
 import com.norconex.jef.suite.JobSuite;
-
+ 
 /**
  * Main application class. In order to use it properly, you must first configure
  * it, either by providing a populated instance of {@link HttpCollectorConfig},
  * or by XML configuration, loaded using {@link HttpCollectorConfigLoader}.
  * Instances of this class can hold several crawler, running at once.
- * This is convenient when there are configuration setting to be shared amonsht
+ * This is convenient when there are configuration setting to be shared amongst
  * crawlers.  When you have many crawler jobs defined that have nothing
  * in common, it may be best to configure and run them separately, to facilitate
- * troubleshooting.  There is no fair rule for this, experienting with your
+ * troubleshooting.  There is no fair rule for this, experimenting with your
  * target sites will help you.
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
