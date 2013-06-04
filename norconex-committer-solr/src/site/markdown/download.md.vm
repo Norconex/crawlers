@@ -32,7 +32,7 @@ Older releases:
 
 Snapshot releases:
 
-  * [1.0.0-20130502.032627-4](http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-committer-solr/1.0.0-SNAPSHOT/norconex-committer-solr-1.0.0-20130502.032627-4.zip)
+  * [1.0.0-20130604.150850-5.zip](http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-committer-solr/1.0.0-SNAPSHOT/norconex-committer-solr-1.0.0-20130604.150850-5.zip)
   
 **Note:** Snapshot releases are only listed until first stable release.
 After that, they will be available through the Norconex Snapshot maven
