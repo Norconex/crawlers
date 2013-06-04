@@ -43,7 +43,7 @@ import com.norconex.jef.progress.JobProgressPropertiesFileSerializer;
 import com.norconex.jef.suite.FileStopRequestHandler;
 import com.norconex.jef.suite.IJobSuiteFactory;
 import com.norconex.jef.suite.JobSuite;
-
+ 
 /**
  * Main application class. In order to use it properly, you must first configure
  * it, either by providing a populated instance of {@link HttpCollectorConfig},
