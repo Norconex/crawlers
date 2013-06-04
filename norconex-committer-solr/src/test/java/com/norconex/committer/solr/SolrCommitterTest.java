@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
@@ -47,6 +48,8 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
 
     private SolrCommitter committer;
 
+    private File queue;
+
     @Before
     public void setup() throws Exception {
 
@@ -65,7 +68,7 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
             }
         });
 
-        File queue = tempFolder.newFolder("queue");
+        queue = tempFolder.newFolder("queue");
         committer.setQueueDir(queue.toString());
     }
 
@@ -162,5 +165,35 @@ public class SolrCommitterTest extends AbstractSolrTestCase {
         outCommitter.setSolrBatchSize(50);
         System.out.println("Writing/Reading this: " + outCommitter);
         ConfigurationUtil.assertWriteRead(outCommitter);
+    }
+    
+    @Test
+    public void testRemoveQueuedFilesAfterAdd() throws Exception {
+
+        String id = "1";
+        Properties metadata = new Properties();
+        metadata.addString(ICommitter.DEFAULT_DOCUMENT_REFERENCE, id);
+
+        // Add new doc to Solr
+        committer.queueAdd(id, tempFolder.newFile(), metadata);
+        committer.commit();
+
+        // After commit, make sure queue is emptied of all files
+        assertTrue(FileUtils.listFiles(queue, null, true).isEmpty());
+    }
+
+    @Test
+    public void testRemoveQueuedFilesAfterDelete() throws Exception {
+
+        String id = "1";
+        Properties metadata = new Properties();
+        metadata.addString(ICommitter.DEFAULT_DOCUMENT_REFERENCE, id);
+
+        // Add new doc to Solr
+        committer.queueRemove(id, tempFolder.newFile(), metadata);
+        committer.commit();
+
+        // After commit, make sure queue is emptied of all files
+        assertTrue(FileUtils.listFiles(queue, null, true).isEmpty());
     }
 }
