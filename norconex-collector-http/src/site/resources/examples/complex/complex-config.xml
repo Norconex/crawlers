@@ -24,8 +24,8 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   #set($extension = "${basepkg}.filter.impl.ExtensionURLFilter")
   #set($urlRegex = "${basepkg}.filter.impl.RegexURLFilter")
   
-  <progressDir>$workdir\progress</progressDir>
-  <logsDir>$workdir\logs</logsDir>
+  <progressDir>${workdir}/progress</progressDir>
+  <logsDir>${workdir}/logs</logsDir>
 
   <crawlerDefaults>
 
@@ -51,7 +51,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       </startURLs>
       #parse("shared/importer-config.xml")
       <committer class="com.norconex.committer.impl.FileSystemCommitter">
-        <directory>$workdir\AliceCrawledFiles</directory>
+        <directory>${workdir}/AliceCrawledFiles</directory>
       </committer>
     </crawler>
 
@@ -61,7 +61,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       </startURLs>
       #parse("shared/importer-config.xml")
       <committer class="com.norconex.committer.impl.FileSystemCommitter">
-        <directory>$workdir\OzCrawledFiles</directory>
+        <directory>${workdir}/OzCrawledFiles</directory>
       </committer>
 
     </crawler>
