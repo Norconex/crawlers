@@ -83,7 +83,7 @@ public class RegexMetadataFilter extends AbstractOnMatchFilter
         this.caseSensitive = caseSensitive;
         this.property = header;
         setOnMatch(onMatch);
-        this.regex = regex;
+        setRegex(regex);
     }
     
     public String getRegex() {
@@ -175,7 +175,6 @@ public class RegexMetadataFilter extends AbstractOnMatchFilter
     public int hashCode() {
         return new HashCodeBuilder()
             .append(caseSensitive)
-            .append(pattern)
             .append(property)
             .append(regex)
             .toHashCode();
@@ -195,7 +194,6 @@ public class RegexMetadataFilter extends AbstractOnMatchFilter
         RegexMetadataFilter other = (RegexMetadataFilter) obj;
         return new EqualsBuilder()
             .append(caseSensitive, other.caseSensitive)
-            .append(pattern, other.pattern)
             .append(property, other.property)
             .append(regex, other.regex)
             .isEquals();

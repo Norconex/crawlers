@@ -133,4 +133,9 @@ public abstract class AbstractRestrictiveTransformer
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "AbstractRestrictiveTransformer [filter=" + filter + "]";
+    }
 }

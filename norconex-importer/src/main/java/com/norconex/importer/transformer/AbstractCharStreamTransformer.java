@@ -30,6 +30,10 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -138,39 +142,39 @@ public abstract class AbstractCharStreamTransformer
         writer.writeEndElement();
         super.saveToXML(writer);
     }
+
     @Override
     public String toString() {
-        return "AbstractTextTransformer [contentTypeRegex=" + contentTypeRegex
-                + "]";
+        return new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE)
+            .appendSuper(super.toString())
+            .append("contentTypeRegex", contentTypeRegex)
+            .toString();
     }
+    
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime
-                * result
-                + ((contentTypeRegex == null) ? 0 : contentTypeRegex.hashCode());
-        return result;
+        return new HashCodeBuilder()
+            .appendSuper(super.hashCode())
+            .append(getContentTypeRegex())
+            .toHashCode();
     }
+    
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
-        if (!super.equals(obj)) {
+        if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof AbstractCharStreamTransformer)) {
             return false;
         }
-        AbstractCharStreamTransformer other = (AbstractCharStreamTransformer) obj;
-        if (contentTypeRegex == null) {
-            if (other.contentTypeRegex != null) {
-                return false;
-            }
-        } else if (!contentTypeRegex.equals(other.contentTypeRegex)) {
-            return false;
-        }
-        return true;
-    }
+        AbstractCharStreamTransformer other = 
+                (AbstractCharStreamTransformer) obj;
+        return new EqualsBuilder()
+            .appendSuper(super.equals(obj))
+            .append(getContentTypeRegex(), other.getContentTypeRegex())
+            .isEquals();
+    } 
 }
