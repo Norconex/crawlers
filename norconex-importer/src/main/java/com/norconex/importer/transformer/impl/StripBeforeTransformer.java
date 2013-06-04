@@ -28,7 +28,10 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -158,49 +161,45 @@ public class StripBeforeTransformer extends AbstractStringTransformer
         }
     }
 
+    
     @Override
     public String toString() {
-        return "StripAfterTransformer [inclusive=" + inclusive
-                + ", caseSensitive=" + caseSensitive + ", stripBeforeRegex=" 
-                + stripBeforeRegex + "]";
+        return new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE)
+            .appendSuper(super.toString())
+            .append("inclusive", inclusive)
+            .append("caseSensitive", caseSensitive)
+            .append("stripBeforeRegex", stripBeforeRegex)
+            .toString();
     }
-
-
+    
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
+            .appendSuper(super.hashCode())
             .append(caseSensitive)
             .append(inclusive)
             .append(stripBeforeRegex)
             .toHashCode();
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
-        if (!super.equals(obj)) {
+        if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof StripBeforeTransformer)) {
             return false;
         }
         StripBeforeTransformer other = (StripBeforeTransformer) obj;
-        if (caseSensitive != other.caseSensitive) {
-            return false;
-        }
-        if (inclusive != other.inclusive) {
-            return false;
-        }
-        if (stripBeforeRegex == null) {
-            if (other.stripBeforeRegex != null) {
-                return false;
-            }
-        } else if (!stripBeforeRegex.equals(other.stripBeforeRegex)) {
-            return false;
-        }
-        return true;
+        return new EqualsBuilder()
+            .appendSuper(super.equals(obj))
+            .append(caseSensitive, other.caseSensitive)
+            .append(inclusive, other.inclusive)
+            .append(stripBeforeRegex, other.stripBeforeRegex)
+            .isEquals();
     }
 
 }

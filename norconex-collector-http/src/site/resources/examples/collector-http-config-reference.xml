@@ -269,7 +269,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
            options.  Please refer to committer for complete documentation.
            Below is an example using the FileSystemCommitter.
            -->
-      <committer class="com.norconex.committer.FileSystemCommitter">
+      <committer class="com.norconex.committer.impl.FileSystemCommitter">
         <directory>$workdir\crawledFiles</directory>
       </committer>
 

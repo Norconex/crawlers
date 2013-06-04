@@ -122,22 +122,20 @@ public class DefaultDocumentFetcher
                 IOUtils.closeQuietly(is);
                 IOUtils.closeQuietly(os);
                 return CrawlStatus.OK;
-            } else {
-                // read response anyway to be safer, but ignore content
-                BufferedInputStream bis = new BufferedInputStream(is);
-                int result = bis.read();
-                while(result != -1) {
-                  result = bis.read();
-                }        
-                IOUtils.closeQuietly(bis);
-                if (statusCode == HttpStatus.SC_NOT_FOUND) {
-                    return CrawlStatus.NOT_FOUND;
-                } else {
-                    LOG.debug("Unsupported HTTP Response: "
-                            + response.getStatusLine());
-                    return CrawlStatus.BAD_STATUS;
-                }
-	        }
+            }
+            // read response anyway to be safer, but ignore content
+            BufferedInputStream bis = new BufferedInputStream(is);
+            int result = bis.read();
+            while(result != -1) {
+              result = bis.read();
+            }        
+            IOUtils.closeQuietly(bis);
+            if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                return CrawlStatus.NOT_FOUND;
+            }
+            LOG.debug("Unsupported HTTP Response: "
+                    + response.getStatusLine());
+            return CrawlStatus.BAD_STATUS;
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.error("Cannot fetch document: " + doc.getUrl()

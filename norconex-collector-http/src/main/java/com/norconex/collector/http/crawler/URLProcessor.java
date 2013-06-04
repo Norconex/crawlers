@@ -53,6 +53,8 @@ import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.io.FileUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.Importer;
+import com.norconex.importer.filter.IOnMatchFilter;
+import com.norconex.importer.filter.OnMatch;
 
 /**
  * Holds the URL processing logic in various processing "step" for better
@@ -158,7 +160,7 @@ public class URLProcessor {
     private class URLFiltersStep implements IURLProcessingStep {
         @Override
         public boolean processURL() {
-            if (isURLRejected(url, config.getURLFilters(), null)) {
+            if (isURLRejected(config.getURLFilters(), null)) {
                 crawlURL.setStatus(CrawlStatus.REJECTED);
                 return false;
             }
@@ -173,7 +175,7 @@ public class URLProcessor {
             if (!config.isIgnoreRobotsTxt()) {
                 robotsTxt = config.getRobotsTxtProvider().getRobotsTxt(
                                 httpClient, url);
-                if (isURLRejected(url, robotsTxt.getFilters(), robotsTxt)) {
+                if (isURLRejected(robotsTxt.getFilters(), robotsTxt)) {
                     crawlURL.setStatus(CrawlStatus.REJECTED);
                     return false;
                 }
@@ -386,8 +388,25 @@ public class URLProcessor {
             if (filters == null) {
                 return true;
             }
+            
+            boolean hasIncludes = false;
+            boolean atLeastOneIncludeMatch = false;
             for (IHttpDocumentFilter filter : filters) {
-                if (filter.acceptDocument(doc)) {
+                boolean accepted = filter.acceptDocument(doc);
+                boolean isInclude = filter instanceof IOnMatchFilter
+                       && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
+
+                // Deal with includes
+                if (isInclude) {
+                    hasIncludes = true;
+                    if (accepted) {
+                        atLeastOneIncludeMatch = true;
+                    }
+                    continue;
+                }
+                
+                // Deal with exclude and non-OnMatch filters
+                if (accepted) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug(String.format(
                                 "ACCEPTED document. URL=%s Filter=%s",
@@ -405,6 +424,19 @@ public class URLProcessor {
                     crawlURL.setStatus(CrawlStatus.REJECTED);
                     return false;
                 }
+            }
+            if (hasIncludes && !atLeastOneIncludeMatch) {
+                for (IHttpCrawlerEventListener listener : listeners) {
+                    listener.documentRejected(crawler, doc, null);
+                }
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format(
+                            "REJECTED document. URL=%s "
+                          + "Filter=(no include filters matched)",
+                            doc.getUrl(), null));
+                }
+                crawlURL.setStatus(CrawlStatus.REJECTED);
+                return false;
             }
             return true;
         }
@@ -532,38 +564,62 @@ public class URLProcessor {
     }  
 
     //=== Utility methods ======================================================
-    private boolean isURLRejected(
-            String url, IURLFilter[] filters, RobotsTxt robotsTxt) {
+    private boolean isURLRejected(IURLFilter[] filters, RobotsTxt robots) {
         if (filters == null) {
             return false;
         }
         String type = "";
-        if (robotsTxt != null) {
+        if (robots != null) {
             type = " (robots.txt)";
         }
+        boolean hasIncludes = false;
+        boolean atLeastOneIncludeMatch = false;
         for (IURLFilter filter : filters) {
-            if (filter.acceptURL(url)) {
+            boolean accepted = filter.acceptURL(url);
+            boolean isInclude = filter instanceof IOnMatchFilter
+                   && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
+            
+            // Deal with includes
+            if (isInclude) {
+                hasIncludes = true;
+                if (accepted) {
+                    atLeastOneIncludeMatch = true;
+                }
+                continue;
+            }
+
+            // Deal with exclude and non-OnMatch filters
+            if (accepted) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("ACCEPTED document URL" + type + ". URL=" + url
                             + " Filter=" + filter);
                 }
             } else {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    if (robotsTxt != null) {
-                        listener.documentRobotsTxtRejected(
-                                crawler, url, filter, robotsTxt);
-                    } else {
-                        listener.documentURLRejected(crawler, url, filter);
-                    }
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("REJECTED document URL" + type + ". URL=" 
-                            + url + " Filter=" + filter);
-                }
+                fireDocumentRejected(filter, robots, type);
                 return true;
             }
         }
+        if (hasIncludes && !atLeastOneIncludeMatch) {
+            fireDocumentRejected(null, null, " (no include filters matched)");
+            return true;
+        }
         return false;
+    }
+    
+    private void fireDocumentRejected(
+            IURLFilter filter, RobotsTxt robots, String type) {
+        for (IHttpCrawlerEventListener listener : listeners) {
+            if (robots != null) {
+                listener.documentRobotsTxtRejected(
+                        crawler, url, filter, robots);
+            } else {
+                listener.documentURLRejected(crawler, url, filter);
+            }
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("REJECTED document URL" + type + ". URL=" 
+                    + url + " Filter=[no include filters matched]");
+        }
     }
     
     private void enhanceHTTPHeaders(Properties metadata) {
@@ -583,8 +639,20 @@ public class URLProcessor {
             return false;
         }
         HttpMetadata headers = doc.getMetadata();
+        boolean hasIncludes = false;
+        boolean atLeastOneIncludeMatch = false;
         for (IHttpHeadersFilter filter : filters) {
-            if (filter.acceptDocument(url, headers)) {
+            boolean accepted = filter.acceptDocument(url, headers);
+            boolean isInclude = filter instanceof IOnMatchFilter
+                   && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
+            if (isInclude) {
+                hasIncludes = true;
+                if (accepted) {
+                    atLeastOneIncludeMatch = true;
+                }
+                continue;
+            }
+            if (accepted) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format(
                             "ACCEPTED document http headers. URL=%s Filter=%s",
@@ -603,7 +671,18 @@ public class URLProcessor {
                 return true;
             }
         }
-        return false;
+        if (hasIncludes && !atLeastOneIncludeMatch) {
+            for (IHttpCrawlerEventListener listener : listeners) {
+                listener.documentHeadersRejected(
+                        crawler, url, null, headers);
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("REJECTED document http headers. "
+                        + "URL=%s Filter=(no include filters matched)", url));
+            }            
+            return true;
+        }
+        return false;        
     }
     
     private boolean isHeadersChecksumRejected() {

@@ -25,24 +25,27 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 
-import com.norconex.importer.ImporterException;
+import com.norconex.commons.lang.config.ConfigurationException;
+
 
 /**
  * Convenience base class for implementing filters offering the include/exclude
  * "onmatch" option.  Default behavior on match is to include.
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
-public abstract class AbstractOnMatchFilter implements Serializable {
+public abstract class AbstractOnMatchFilter
+        implements IOnMatchFilter, Serializable {
 
 	private static final long serialVersionUID = 1331075301806204015L;
 
 	private OnMatch onMatch = OnMatch.INCLUDE;
 
-	public OnMatch getOnMatch() {
+	@Override
+    public OnMatch getOnMatch() {
 		return onMatch;
 	}
 
-	public void setOnMatch(OnMatch onMatch) {
+	public final void setOnMatch(OnMatch onMatch) {
 		if (onMatch == null) {
 			throw new IllegalArgumentException(
 					"OnMatch argument cannot be null.");
@@ -54,7 +57,7 @@ public abstract class AbstractOnMatchFilter implements Serializable {
     /**
      * Convenience method for subclasses to load the "onMatch"
      * attribute from an XML file when {@link XMLConfiguration} is used.
-     * @param xml xml configuration
+     * @param xml XML configuration
      */
     protected final void loadFromXML(XMLConfiguration xml) {
         OnMatch configOnMatch = OnMatch.INCLUDE;
@@ -63,7 +66,7 @@ public abstract class AbstractOnMatchFilter implements Serializable {
         try {
             configOnMatch = OnMatch.valueOf(onMatchStr);
         } catch (IllegalArgumentException e)  {
-            throw new ImporterException("Configuration error: "
+            throw new ConfigurationException("Configuration error: "
                     + "Invalid \"onMatch\" attribute value: \"" + onMatchStr
                     + "\".  Must be one of \"include\" or \"exclude\".", e);
         }
@@ -71,9 +74,9 @@ public abstract class AbstractOnMatchFilter implements Serializable {
     }
     
     /**
-     * Convenience method for subclasses to save extra content types
-     * (attribute "extraTextContentTypes").
-     * @param writer XML writer
+     * Convenience method for subclasses to save the "onMatch" attribute
+     * to an XML file when {@link XMLConfiguration} is used.
+     * @param writer XML stream writer
      * @throws XMLStreamException problem saving extra content types
      */
     protected void saveToXML(XMLStreamWriter writer) throws XMLStreamException {

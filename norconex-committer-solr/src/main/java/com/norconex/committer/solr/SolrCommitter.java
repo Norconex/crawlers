@@ -18,45 +18,32 @@
  */
 package com.norconex.committer.solr;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.common.SolrInputDocument;
 
-import com.norconex.committer.BatchableCommitter;
+import com.norconex.committer.BaseCommitter;
 import com.norconex.committer.CommitterException;
-import com.norconex.committer.FileSystemCommitter;
-import com.norconex.commons.lang.config.ConfigurationLoader;
-import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.io.FileUtil;
-import com.norconex.commons.lang.io.IFileVisitor;
 import com.norconex.commons.lang.map.Properties;
 
 /**
@@ -64,9 +51,18 @@ import com.norconex.commons.lang.map.Properties;
  * <p>
  * XML configuration usage:
  * </p>
+ * 
  * <pre>
  *  &lt;committer class="com.norconex.committer.solr.SolrCommitter"&gt;
  *      &lt;solrURL&gt;(URL to Solr)&lt;/solrURL&gt;
+ *      &lt;solrUpdateURLParams&gt;
+ *         &lt;param name="(parameter name)"&gt;(parameter value)&lt;/param&gt;
+ *         &lt;-- multiple param tags allowed --&gt;
+ *      &lt;/solrUpdateURLParams&gt;
+ *      &lt;solrDeleteURLParams&gt;
+ *         &lt;param name="(parameter name)"&gt;(parameter value)&lt;/param&gt;
+ *         &lt;-- multiple param tags allowed --&gt;
+ *      &lt;/solrDeleteURLParams&gt;
  *      &lt;idSourceField keep="[false|true]"&gt;
  *         (Name of source field that will be mapped to the Solr "id" field
  *         or whatever "idTargetField" specified.
@@ -96,59 +92,47 @@ import com.norconex.commons.lang.map.Properties;
  *      &lt;/solrBatchSize&gt;
  *  &lt;/committer&gt;
  * </pre>
+ * 
  * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
  */
-public class SolrCommitter extends BatchableCommitter 
-        implements IXMLConfigurable {
+//TODO test if same files can be picked up more than once when multi-threading
+public class SolrCommitter extends BaseCommitter {
 
     private static final long serialVersionUID = -842307672980791980L;
+    private static final Logger LOG = LogManager.getLogger(SolrCommitter.class);
 
-    private static final Logger LOG = 
-            LogManager.getLogger(SolrCommitter.class);
-    public static final String DEFAULT_QUEUE_DIR = "./queue";
     public static final int DEFAULT_SOLR_BATCH_SIZE = 100;
-    public static final String DEFAULT_SOLR_TARGET_ID = "id";
-    public static final String DEFAULT_SOLR_TARGET_CONTENT = "content";
-    
-    private String idTargetField;
-    private String idSourceField;
-    private boolean keepIdSourceField;
-    private String contentTargetField;
-    private String contentSourceField;
-    private boolean keepContentSourceField;
+    public static final String DEFAULT_SOLR_ID_FIELD = "id";
+    public static final String DEFAULT_SOLR_CONTENT_FIELD = "content";
+
     private String solrURL;
     private int solrBatchSize = DEFAULT_SOLR_BATCH_SIZE;
-    private final FileSystemCommitter queue = new FileSystemCommitter();
+
+    private final List<QueuedAddedDocument> docsToAdd = 
+            new ArrayList<QueuedAddedDocument>();
+    private final List<QueuedDeletedDocument> docsToRemove = 
+            new ArrayList<QueuedDeletedDocument>();
+
+    private final Map<String, String> updateUrlParams = 
+            new HashMap<String, String>();
+    private final Map<String, String> deleteUrlParams = 
+            new HashMap<String, String>();
     
-    private static final FileFilter NON_META_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            return !pathname.getName().endsWith(".meta");
-        }
-    };
-    
+    private final ISolrServerFactory solrServerFactory;
+
     public SolrCommitter() {
-        super();
+        this(null);
+    }
+    public SolrCommitter(ISolrServerFactory solrServerFactory) {
+        if (solrServerFactory == null) {
+            this.solrServerFactory = new DefaultSolrServerFactory();
+        } else {
+            this.solrServerFactory = solrServerFactory;
+        }
+        setContentTargetField(DEFAULT_SOLR_CONTENT_FIELD);
+        setIdTargetField(DEFAULT_SOLR_ID_FIELD);
     }
 
-    public String getQueueDir() {
-        return queue.getDirectory();
-    }
-    public void setQueueDir(String queueDir) {
-        this.queue.setDirectory(queueDir);
-    }
-    public String getIdSourceField() {
-        return idSourceField;
-    }
-    public void setIdSourceField(String idSourceField) {
-        this.idSourceField = idSourceField;
-    }
-    public String getIdTargetField() {
-        return idTargetField;
-    }
-    public void setIdTargetField(String idTargetField) {
-        this.idTargetField = idTargetField;
-    }
     public String getSolrURL() {
         return solrURL;
     }
@@ -161,297 +145,178 @@ public class SolrCommitter extends BatchableCommitter
     public void setSolrBatchSize(int solrBatchSize) {
         this.solrBatchSize = solrBatchSize;
     }
-    public String getContentTargetField() {
-        return contentTargetField;
+
+    public void setUpdateUrlParam(String name, String value) {
+        updateUrlParams.put(name, value);
     }
-    public void setContentTargetField(String contentTargetField) {
-        this.contentTargetField = contentTargetField;
+    public void setDeleteUrlParam(String name, String value) {
+        deleteUrlParams.put(name, value);
     }
-    public String getContentSourceField() {
-        return contentSourceField;
+    public String getUpdateUrlParam(String name) {
+        return updateUrlParams.get(name);
     }
-    public void setContentSourceField(String contentSourceField) {
-        this.contentSourceField = contentSourceField;
+    public String getDeleteUrlParam(String name) {
+        return deleteUrlParams.get(name);
     }
-    public boolean isKeepIdSourceField() {
-        return keepIdSourceField;
+    public Set<String> getUpdateUrlParamNames() {
+        return updateUrlParams.keySet();
     }
-    public void setKeepIdSourceField(boolean keepIdSourceField) {
-        this.keepIdSourceField = keepIdSourceField;
+    public Set<String> getDeleteUrlParamNames() {
+        return deleteUrlParams.keySet();
     }
-    public boolean isKeepContentSourceField() {
-        return keepContentSourceField;
-    }
-    public void setKeepContentSourceField(boolean keepContentSourceField) {
-        this.keepContentSourceField = keepContentSourceField;
+    
+    @Override
+    protected void commitAddedDocument(QueuedAddedDocument document)
+            throws IOException {
+        docsToAdd.add(document);
+        if (docsToAdd.size() % solrBatchSize == 0) {
+            persistToSolr();
+        }
     }
 
     @Override
-    public void commit() {
-        if (StringUtils.isBlank(solrURL)) {
-            throw new CommitterException("Solr URL is undefined.");
-        }
-        final SolrServer server = new HttpSolrServer(solrURL);
-        final MutableInt count = new MutableInt(0);
-        
-        //--- Additions ---
-        final Map<File, SolrInputDocument> docsToAdd = 
-                new HashMap<File, SolrInputDocument>();
-        FileUtil.visitAllFiles(queue.getAddDir(), new IFileVisitor() {
-            @Override
-            public void visit(File file) {
-                try {
-                    addDocument(docsToAdd, file);
-                } catch (IOException e) {
-                    throw new CommitterException(
-                            "Cannot create Solr Document for file: "
-                                    + file, e);
-                }
-                count.increment();
-                if (count.intValue() % solrBatchSize == 0) {
-                    persistToSolr(server, docsToAdd);
-                }
-            }
-        }, NON_META_FILTER);
-        if (!docsToAdd.isEmpty()) {
-            persistToSolr(server, docsToAdd);
-        }
-        
-        //--- Deletions ---
-        count.setValue(0);
-        final Map<File, String> docsToRemove = 
-                new HashMap<File, String>();
-        FileUtil.visitAllFiles(queue.getRemoveDir(), new IFileVisitor() {
-            @Override
-            public void visit(File file) {
-                try {
-                    docsToRemove.put(file, org.apache.commons.io.FileUtils
-                                    .readFileToString(file));
-                } catch (IOException e) {
-                    throw new CommitterException(
-                            "Cannot read reference from : " + file, e);
-                }
-                count.increment();
-                if (count.intValue() % solrBatchSize == 0) {
-                    deleteFromSolr(server, docsToRemove);
-                }
-            }
-        });
-        if (!docsToRemove.isEmpty()) {
-            deleteFromSolr(server, docsToRemove);
+    protected void commitDeletedDocument(QueuedDeletedDocument document)
+            throws IOException {
+        docsToRemove.add(document);
+        if (docsToRemove.size() % solrBatchSize == 0) {
+            deleteFromSolr();
         }
     }
 
-    private void persistToSolr(
-            SolrServer server, Map<File, SolrInputDocument> docList) {
-        LOG.info("Sending " + docList.size() 
+    private void persistToSolr() {//Map<File, SolrInputDocument> docList) {
+        LOG.info("Sending " + docsToAdd.size() 
                 + " documents to Solr for update.");
         try {
-            server.add(docList.values());
-            server.commit();
-            for (File file : docList.keySet()) {
-                file.delete();
-                new File(file.getAbsolutePath() + ".meta").delete();
+            // Commit Solr batch
+            SolrServer server = solrServerFactory.createSolrServer(this);
+            UpdateRequest request = new UpdateRequest();
+            for (String name : updateUrlParams.keySet()) {
+                request.setParam(name, updateUrlParams.get(name));
             }
-            docList.clear();
+            for (QueuedAddedDocument doc : docsToAdd) {
+                request.add(buildSolrDocument(doc.getMetadata()));
+            }
+            request.process(server);
+            server.commit();
+
+            // Delete queued documents after commit
+            for (QueuedAddedDocument doc : docsToAdd) {
+                doc.deleteFromQueue();
+            }
+            docsToAdd.clear();
         } catch (Exception e) {
             throw new CommitterException(
                     "Cannot index document batch to Solr.", e);
         }
         LOG.info("Done sending documents to Solr for update.");
     }
-    private void deleteFromSolr(
-            SolrServer server, Map<File, String> docList) {
-        LOG.info("Sending " + docList.size() 
+
+    private SolrInputDocument buildSolrDocument(Properties fields) {
+        SolrInputDocument doc = new SolrInputDocument();
+        for (String key : fields.keySet()) {
+            List<String> values = fields.getStrings(key);
+            for (String value : values) {
+                doc.addField(key, value);
+            }
+        }
+        return doc;
+    }
+    
+    private void deleteFromSolr() {
+        LOG.info("Sending " + docsToRemove.size()
                 + " documents to Solr for deletion.");
         try {
-            server.deleteById(new ArrayList<String>(docList.values()));
-            server.commit();
-            for (File file : docList.keySet()) {
-                file.delete();
+            SolrServer server = solrServerFactory.createSolrServer(this);
+            // Commit Solr batch
+            UpdateRequest request = new UpdateRequest();
+            for (String name : deleteUrlParams.keySet()) {
+                request.setParam(name, deleteUrlParams.get(name));
             }
-            docList.clear();
+            for (QueuedDeletedDocument doc : docsToRemove) {
+                request.deleteById(doc.getReference());
+            }
+            request.process(server);
+            server.commit();
+
+            // Delete queued documents after commit
+            for (QueuedDeletedDocument doc : docsToRemove) {
+                doc.deleteFromQueue();
+            }
+            docsToRemove.clear();
         } catch (Exception e) {
             throw new CommitterException(
                     "Cannot delete document batch from Solr.", e);
         }
         LOG.info("Done sending documents to Solr for deletion.");
     }
-    
-    private void addDocument(Map<File, SolrInputDocument> docList, File file) 
-            throws IOException {
-        Properties metadata = loadMetadata(file);
-        SolrInputDocument doc = new SolrInputDocument();
 
-        //--- Figure out field names ---
-        String theIdSourceField = getIdSourceField();
-        if (StringUtils.isBlank(idSourceField)) {
-            theIdSourceField = DEFAULT_DOCUMENT_REFERENCE;
+    @Override
+    protected void commitComplete() {
+        if (!docsToAdd.isEmpty()) {
+            persistToSolr();
         }
-
-        String theIdTargetField = getIdTargetField();
-        if (StringUtils.isBlank(theIdTargetField)) {
-            theIdTargetField = DEFAULT_SOLR_TARGET_ID;
+        if (!docsToRemove.isEmpty()) {
+            deleteFromSolr();
         }
-
-        String theContentSourceField = getContentSourceField();
-        
-        String theContentTargetField = getContentTargetField();
-        if (StringUtils.isBlank(theContentTargetField)) {
-            theContentTargetField = DEFAULT_SOLR_TARGET_CONTENT;
-        }
-
-        //--- Add source to target field in document ---
-        doc.addField(theIdTargetField, metadata.getString(theIdSourceField));
-        String targetContent;
-        if (StringUtils.isBlank(contentSourceField)) {
-            targetContent = loadContentAsString(file);
-        } else {
-            targetContent = metadata.getString(theContentSourceField);
-        }
-        doc.addField(theContentTargetField, targetContent);
-
-        
-        //--- Remove non-kept source fields from metadata ---
-        if (!keepIdSourceField
-                && !theIdSourceField.equals(theIdTargetField)) {
-            metadata.remove(theIdSourceField);
-        }
-        if (!keepContentSourceField && !ObjectUtils.equals(
-                theContentSourceField, theContentTargetField)
-                && StringUtils.isNotBlank(theContentSourceField)) {
-            metadata.remove(theContentSourceField);
-        }
-
-        //--- Add metadata entries to document ---
-        for (String name : metadata.keySet()) {
-            for (String value : metadata.get(name)) {
-                doc.addField(name, value);
-            }
-        }
-        
-        docList.put(file, doc);
     }
 
     @Override
-    protected void queueBatchableAdd(
-            String reference, File document, Properties metadata) {
-        queue.queueAdd(reference, document, metadata);
+    protected void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+        writer.writeStartElement("solrURL");
+        writer.writeCharacters(solrURL);
+        writer.writeEndElement();
+
+        writer.writeStartElement("solrUpdateURLParams");
+        for (String name : updateUrlParams.keySet()) {
+            writer.writeStartElement("param");
+            writer.writeAttribute("name", name);
+            writer.writeCharacters(updateUrlParams.get(name));
+            writer.writeEndElement();
+        }
+        writer.writeEndElement();
+        
+        writer.writeStartElement("solrDeleteURLParams");
+        for (String name : deleteUrlParams.keySet()) {
+            writer.writeStartElement("param");
+            writer.writeAttribute("name", name);
+            writer.writeCharacters(deleteUrlParams.get(name));
+            writer.writeEndElement();
+        }
+        writer.writeEndElement();
+        
+        writer.writeStartElement("solrBatchSize");
+        writer.writeCharacters(ObjectUtils.toString(getSolrBatchSize()));
+        writer.writeEndElement();
     }
 
     @Override
-    protected void queueBatchableRemove(
-            String ref, File document, Properties metadata) {
-        queue.queueRemove(ref, document, metadata);
-    }
-
-    private Properties loadMetadata(File file) throws IOException {
-        Properties metadata = new Properties();
-        File metaFile = new File(file.getAbsolutePath() + ".meta");
-        if (metaFile.exists()) {
-            FileInputStream is = new FileInputStream(metaFile);
-            metadata.load(is);
-            IOUtils.closeQuietly(is);
-        }
-        return metadata;
-    }
-
-    private String loadContentAsString(File file) throws IOException {
-        FileReader reader = new FileReader(file);
-        BufferedReader in = new BufferedReader(reader);
-        String line = null;
-        StringWriter sw = new StringWriter();
-        PrintWriter out = new PrintWriter(sw);
-        while ((line = in.readLine()) != null) {
-            out.println(StringEscapeUtils.escapeXml(
-                    line.replaceAll("<.*?>", " ")));
-        }
-        in.close();
-        String content = sw.toString();
-        out.close();
-        return content;
-    }
-    
-    
-    @Override
-    public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
-        setIdSourceField(xml.getString("idSourceField", null));
-        setKeepIdSourceField(xml.getBoolean("idSourceField[@keep]", false));
-        setIdTargetField(xml.getString("idTargetField", null));
-        setContentSourceField(xml.getString("contentSourceField", null));
-        setKeepContentSourceField(xml.getBoolean(
-                "contentSourceField[@keep]", false));
-        setContentTargetField(xml.getString("contentTargetField", null));
+    protected void loadFromXml(XMLConfiguration xml) {
         setSolrURL(xml.getString("solrURL", null));
-        setQueueDir(xml.getString("queueDir", DEFAULT_QUEUE_DIR));
-        setBatchSize(xml.getInt(
-                "batchSize", BatchableCommitter.DEFAULT_BATCH_SIZE));
         setSolrBatchSize(xml.getInt("solrBatchSize", DEFAULT_SOLR_BATCH_SIZE));
-    }
-    @Override
-    public void saveToXML(Writer out) throws IOException {
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
-        try {
-            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
-            writer.writeStartElement("committer");
-            writer.writeAttribute("class", getClass().getCanonicalName());
 
-            writer.writeStartElement("idSourceField");
-            writer.writeAttribute("keep", Boolean.toString(keepIdSourceField));
-            writer.writeCharacters(idSourceField);
-            writer.writeEndElement();
-
-            writer.writeStartElement("idTargetField");
-            writer.writeCharacters(idTargetField);
-            writer.writeEndElement();
-
-            writer.writeStartElement("contentSourceField");
-            writer.writeAttribute("keep", 
-                    Boolean.toString(keepContentSourceField));
-            writer.writeCharacters(contentSourceField);
-            writer.writeEndElement();
-
-            writer.writeStartElement("contentTargetField");
-            writer.writeCharacters(contentTargetField);
-            writer.writeEndElement();
-
-            writer.writeStartElement("solrURL");
-            writer.writeCharacters(solrURL);
-            writer.writeEndElement();
-
-            writer.writeStartElement("queueDir");
-            writer.writeCharacters(getQueueDir());
-            writer.writeEndElement();
-
-            writer.writeStartElement("batchSize");
-            writer.writeCharacters(ObjectUtils.toString(getBatchSize()));
-            writer.writeEndElement();
-
-            writer.writeStartElement("solrBatchSize");
-            writer.writeCharacters(ObjectUtils.toString(getSolrBatchSize()));
-            writer.writeEndElement();
-            
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
+        List<HierarchicalConfiguration> uparams = 
+                xml.configurationsAt("solrUpdateURLParams.param");
+        for (HierarchicalConfiguration param : uparams) {
+            setUpdateUrlParam(param.getString("[@name]"), param.getString(""));
+        }
+        List<HierarchicalConfiguration> dparams = 
+                xml.configurationsAt("solrDeleteURLParams.param");
+        for (HierarchicalConfiguration param : dparams) {
+            setDeleteUrlParam(param.getString("[@name]"), param.getString(""));
         }
     }
 
+    
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-            .append(contentSourceField)
-            .append(keepContentSourceField)
-            .append(contentTargetField)
-            .append(idSourceField)
-            .append(keepIdSourceField)
-            .append(idTargetField)
-            .append(queue)
-            .append(solrBatchSize)
+            .appendSuper(super.hashCode())
+            .append(deleteUrlParams)
+            .append(docsToAdd)
+            .append(docsToRemove)
+            .append(solrServerFactory)
             .append(solrURL)
+            .append(updateUrlParams)
             .toHashCode();
     }
 
@@ -468,26 +333,77 @@ public class SolrCommitter extends BatchableCommitter
         }
         SolrCommitter other = (SolrCommitter) obj;
         return new EqualsBuilder()
-            .append(contentSourceField, other.contentSourceField)
-            .append(keepContentSourceField, other.keepContentSourceField)
-            .append(contentTargetField, other.contentTargetField)
-            .append(idSourceField, other.idSourceField)
-            .append(keepIdSourceField, other.keepIdSourceField)
-            .append(idTargetField, other.idTargetField)
-            .append(queue, other.queue)
+            .appendSuper(super.equals(obj))
+            .append(deleteUrlParams, other.deleteUrlParams)
+            .append(docsToAdd, other.docsToAdd)
+            .append(docsToRemove, other.docsToRemove)
             .append(solrBatchSize, other.solrBatchSize)
+            .append(solrServerFactory, other.solrServerFactory)
             .append(solrURL, other.solrURL)
+            .append(updateUrlParams, other.updateUrlParams)
             .isEquals();
     }
     
     @Override
     public String toString() {
-        return "SolrCommitter [idTargetField=" + idTargetField
-                + ", idSourceField=" + idSourceField + ", contentTargetField="
-                + contentTargetField + ", contentSourceField="
-                + contentSourceField + ", solrURL=" + solrURL
-                + ", keepIdSourceField=" + keepIdSourceField
-                + ", keepContentSourceField=" + keepContentSourceField
-                + ", solrBatchSize=" + solrBatchSize + ", queue=" + queue + "]";
+        return "SolrCommitter [solrURL=" + solrURL + ", solrBatchSize="
+                + solrBatchSize + ", docsToAdd=" + docsToAdd
+                + ", docsToRemove=" + docsToRemove + ", updateUrlParams="
+                + updateUrlParams + ", deleteUrlParams=" + deleteUrlParams
+                + ", solrServerFactory=" + solrServerFactory
+                + ", " + super.toString() + "]";
+    }
+
+    //TODO make it a top-level interface?  Make it XMLConfigurable?
+    public interface ISolrServerFactory extends Serializable {
+        SolrServer createSolrServer(SolrCommitter solrCommitter);
+    }
+    
+    class DefaultSolrServerFactory implements ISolrServerFactory {
+        private static final long serialVersionUID = 5820720860417411567L;
+        private SolrServer server;
+        @Override
+        public SolrServer createSolrServer(SolrCommitter solrCommitter) {
+            if (server == null) {
+                if (StringUtils.isBlank(solrCommitter.getSolrURL())) {
+                    throw new CommitterException("Solr URL is undefined.");
+                }
+                server = new HttpSolrServer(solrCommitter.getSolrURL());
+            }
+            return server;
+        }
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result
+                    + ((server == null) ? 0 : server.hashCode());
+            return result;
+        }
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            DefaultSolrServerFactory other = (DefaultSolrServerFactory) obj;
+            if (server == null) {
+                if (other.server != null) {
+                    return false;
+                }
+            } else if (!server.equals(other.server)) {
+                return false;
+            }
+            return true;
+        }
+        @Override
+        public String toString() {
+            return "DefaultSolrServerFactory [server=" + server + "]";
+        }
     }
 }

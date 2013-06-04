@@ -36,10 +36,10 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.filter.OnMatch;
 import com.norconex.collector.http.filter.impl.RegexURLFilter;
 import com.norconex.collector.http.handler.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.RobotsTxt;
+import com.norconex.importer.filter.OnMatch;
 
 /**
  * Default implementation of {@link IRobotsTxtProvider}.  

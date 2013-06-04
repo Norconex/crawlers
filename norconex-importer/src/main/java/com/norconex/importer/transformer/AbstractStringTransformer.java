@@ -22,6 +22,10 @@ import java.io.Reader;
 import java.io.Writer;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -179,9 +183,34 @@ public abstract class AbstractStringTransformer
 
 
     @Override
-    public String toString() {
-        return "AbstractStringTransformer [getContentTypeRegex()="
-                + getContentTypeRegex() + "]";
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof AbstractStringTransformer)) {
+            return false;
+        }
+        return new EqualsBuilder()
+            .appendSuper(super.equals(obj))
+            .isEquals();
     }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+            .appendSuper(super.hashCode())
+            .toHashCode();
+    }
+    
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE)
+            .appendSuper(super.toString())
+            .toString();
+    }
+    
 
 }

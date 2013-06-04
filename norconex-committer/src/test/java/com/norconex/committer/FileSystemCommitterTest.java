@@ -19,14 +19,15 @@ package com.norconex.committer;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.norconex.committer.impl.FileSystemCommitter;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 
 
+@SuppressWarnings("nls")
 public class FileSystemCommitterTest {
 
     private File tempFile;
@@ -42,8 +43,7 @@ public class FileSystemCommitterTest {
     }
 
     @Test
-    public void testWriteRead() throws IOException, ConfigurationException {
-
+    public void testWriteRead() throws IOException {
         FileSystemCommitter outCommitter = new FileSystemCommitter();
         outCommitter.setDirectory("C:\\FakeTestDirectory\\");
         System.out.println("Writing/Reading this: " + outCommitter);
