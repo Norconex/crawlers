@@ -26,8 +26,7 @@ Download
 
   Latest stable release
    
-  * None yet.
-~~  {{{}${currentStableVersion}}} 
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-importer/${currentStableVersion}/norconex-importer-${currentStableVersion}.zip} ${currentStableVersion}}}
 
   []
 
@@ -35,17 +34,7 @@ Download
   
   * None yet.
 
-  []    
-
-  Snapshot releases:
-
-  * {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-importer/1.0.0-SNAPSHOT/norconex-importer-1.0.0-20130604.152023-4.zip} 1.0.0-20130604.152023-4.zip}}
-
   []
-
-  <<Note:>> Snapshot releases are only listed until first stable release.
-  After that, they will be available through the Norconex Snapshot maven
-  repository (see below).
   
 * Source
   
