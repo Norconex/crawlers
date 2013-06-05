@@ -50,10 +50,10 @@ import com.norconex.importer.filter.OnMatch;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;filter class="com.norconex.importer.filter.RegexMetadataFilter"
+ *  &lt;filter class="com.norconex.importer.filter.impl.RegexMetadataFilter"
  *          onMatch="[include|exclude]" 
- *          caseSensitive="[false|true]" &gt;
- *          property="(name of metadata name to match)"
+ *          caseSensitive="[false|true]"
+ *          property="(name of metadata name to match)" &gt;
  *      (regular expression of value to match)
  *  &lt;/filter&gt;
  * </pre>
