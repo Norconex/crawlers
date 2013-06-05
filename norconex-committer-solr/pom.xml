@@ -22,14 +22,14 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-committer-solr</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>Norconex Committer Solr</name>
   
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <site.baseurl/>
-    <currentStableVersion>coming soon</currentStableVersion>
+    <currentStableVersion>1.0.0</currentStableVersion>
     <solr.version>4.1.0</solr.version>
   </properties>
   <inceptionYear>2009</inceptionYear>
@@ -109,7 +109,7 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
     	<groupId>com.norconex.commons</groupId>
     	<artifactId>norconex-commons-lang</artifactId>
-    	<version>1.0.0-SNAPSHOT</version>
+    	<version>1.0.0</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.solr</groupId>
@@ -119,7 +119,7 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
     	<groupId>com.norconex.collectors</groupId>
     	<artifactId>norconex-committer</artifactId>
-    	<version>1.0.0-SNAPSHOT</version>
+    	<version>1.0.0</version>
     </dependency>
     <dependency>
         <groupId>org.slf4j</groupId>

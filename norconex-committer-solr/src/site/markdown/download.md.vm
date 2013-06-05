@@ -22,22 +22,12 @@
 
 Latest stable release
    
-  * None yet.
-
-   <!--${currentStableVersion} --> 
+  * [${currentStableVersion}](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-committer-solr/${currentStableVersion}/norconex-committer-solr-${currentStableVersion}.zip)
 
 Older releases:
   
   * None yet.
 
-Snapshot releases:
-
-  * [1.0.0-20130604.150850-5.zip](http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-committer-solr/1.0.0-SNAPSHOT/norconex-committer-solr-1.0.0-20130604.150850-5.zip)
-  
-**Note:** Snapshot releases are only listed until first stable release.
-After that, they will be available through the Norconex Snapshot maven
-repository (see below).
-  
 ###Source
   
 Source code can be obtained on GitHub: <https://github.com/Norconex/collectors/tree/master/norconex-committer-solr>.

@@ -52,7 +52,17 @@ the Solr Committer:
 
     <committer class="com.norconex.committer.solr.SolrCommitter">
       <solrURL>...</solrURL>
-      <idSourceField>...</idSourceField>
+      <solrUpdateURLParams>
+         <param name="(name)">(value)</param>
+         ...
+      </solrUpdateURLParams>
+      <solrDeleteURLParams>
+         <param name="(name)">(value)</param>
+         ...
+      </solrDeleteURLParams>
+      <idSourceField keep="[false|true]">...</idSourceField>
+      <idTargetField>...</idTargetField>
+      <contentSourceField keep="[false|true]>...</contentSourceField>
       <contentTargetField>...</contentTargetField>
       <queueDir>...</queueDir>
       <batchSize>...</batchSize>
@@ -64,7 +74,11 @@ Tag descriptions:
 | Tag                | Description   |
 | ------------------ | ------------- |
 | `solrURL` | URL to Solr (where to send documents for indexing). |
-| `idSourceField` | Name of source field that will be mapped to the Solr "id" field. Default is the document reference the Committer stores as "committer.reference". |
+| `solrUpdateURLParams` | Optional Solr update URL arguments. |
+| `solrDeleteURLParams` | Optional Solr delete URL arguments. |
+| `idSourceField` | Name of source field that will be mapped to the Solr target id field. Default is the document reference the Committer stores as "committer.reference". |
+| `idTargetField` | Name of target id field. Default is "id". |
+| `contentSourceField` | Solr source field name for a document content/body. Default is not a field, but rather the document body content. |
 | `contentTargetField` | Solr target field name for a document content/body. Default is: content. |
 | `queueDir` | Optional path where to queue files before sending them to Solr. |
 | `batchSize` | Number of documents or deletes to queue before sending to Solr. |

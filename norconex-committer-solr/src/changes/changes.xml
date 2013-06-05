@@ -6,7 +6,7 @@
     <author email="info@norconex.com">Norconex Inc.</author>
   </properties>
   <body>
-    <release version="1.0.0-SNAPSHOT" date="2013-04-22" description="Open Source release">
+    <release version="1.0.0" date="2013-06-04" description="Open Source release">
       <action dev="essiembp" type="add">
         Starting with this release, Norconex Solr Committer is open-source under GPL.
       </action>
