@@ -24,7 +24,7 @@ collector-http.sh -a start -c examples/minimum/minimum-config.xml
 
 Complex test:
 
-collector-http.sht -a start -c examples/complex/complex-config.xml
+collector-http.sh -a start -c examples/complex/complex-config.xml
 
 
 Look into current folder for new files being created containing
