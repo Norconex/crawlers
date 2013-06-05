@@ -4,8 +4,6 @@
 - Interface for Document Store??? Filesystem default, but could be 
   others like MongoDB?
 
-- Add junit tests
-
 - Add option to skip certain http response code (like 500).  Those docs 
   that should not be added nor deleted because they are in a temporary bad 
   state.  Is it really useful?

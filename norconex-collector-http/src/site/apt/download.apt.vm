@@ -30,8 +30,7 @@ Download
 
   Latest stable release
    
-  * None yet.
-~~  {{{}${currentStableVersion}}} 
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/${currentStableVersion}/norconex-collector-http-${currentStableVersion}.zip} ${currentStableVersion}.zip}}
 
   []
 
@@ -40,16 +39,6 @@ Download
 ~~  * None yet.
 
 ~~  []    
-
-  Snapshot releases:
-
-  * {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-collector-http/1.0.0-SNAPSHOT/norconex-collector-http-1.0.0-20130605.012841-7.zip} 1.0.0-20130605.012841-7.zip}}
-
-  []
-
-  <<Note:>> Snapshot releases are only listed until first stable release.
-  After that, they will be available through the Norconex Snapshot maven
-  repository (see below).
 
 ** Committer Implementations
 

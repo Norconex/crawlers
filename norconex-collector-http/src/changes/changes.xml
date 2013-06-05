@@ -6,12 +6,7 @@
     <author email="info@norconex.com">Norconex Inc.</author>
   </properties>
   <body>
-    <release version="1.0.0-SNAPSHOT" date="2013-05-05" description="Open Source release">
-      <action dev="essiembp" type="add">
-        It is now possible to control loglevel for each url crawl status.
-      </action>
-    </release>
-    <release version="1.0.0-SNAPSHOT" date="2013-04-22" description="Open Source release">
+    <release version="1.0.0" date="2013-06-05" description="Open Source release">
       <action dev="essiembp" type="add">
         Starting with this release, Norconex HTTP Collector is open-source under GPL.
       </action>
