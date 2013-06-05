@@ -24,7 +24,7 @@ Download
 
   <<WAIT!>> Don't forget you need a
   {{{download.html#Committer_Implementations}committer implementation}} for your target 
-  data source (see below).
+  data repository (see below).
   
 * Binaries
 
@@ -42,7 +42,7 @@ Download
 
 ** Committer Implementations
 
-  Without a committer matching your data source, all you will be able to
+  Without a committer matching your target data repository, all you will be able to
   do with the HTTP Collector is saving the crawled content on the 
   file system using the {{{http://www.norconex.com/product/committer/apidocs/com/norconex/committer/impl/FileSystemCommitter.html}FileSystemCommitter}}.
   With your download of HTTP Collector, also download a 
