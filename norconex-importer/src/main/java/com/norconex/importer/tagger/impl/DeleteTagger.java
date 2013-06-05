@@ -30,6 +30,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.ConfigurationException;
@@ -64,7 +65,9 @@ public class DeleteTagger
             String reference, InputStream document, 
             Properties metadata, boolean parsed)
             throws IOException {
-        for (String name : metadata.keySet()) {
+        String[] names = metadata.keySet().toArray(
+                ArrayUtils.EMPTY_STRING_ARRAY);
+        for (String name : names) {
             if (exists(name)) {
                 metadata.remove(name);
             }
