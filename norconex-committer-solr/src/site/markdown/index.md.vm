@@ -62,7 +62,7 @@ the Solr Committer:
       </solrDeleteURLParams>
       <idSourceField keep="[false|true]">...</idSourceField>
       <idTargetField>...</idTargetField>
-      <contentSourceField keep="[false|true]>...</contentSourceField>
+      <contentSourceField keep="[false|true]">...</contentSourceField>
       <contentTargetField>...</contentTargetField>
       <queueDir>...</queueDir>
       <batchSize>...</batchSize>
