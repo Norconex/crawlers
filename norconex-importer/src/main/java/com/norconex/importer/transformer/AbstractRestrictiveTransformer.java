@@ -43,7 +43,7 @@ import com.norconex.importer.filter.impl.RegexMetadataFilter;
  * a metadata value (matched via regex).
  * Subclasses can safely be used as either pre-parse or post-parse handlers.
  * </p>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public abstract class AbstractRestrictiveTransformer 
         implements IDocumentTransformer {

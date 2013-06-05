@@ -64,7 +64,7 @@ import com.norconex.importer.transformer.AbstractStringTransformer;
  *      &lt;stripBeforeRegex&gt(regex)&lt;/stripBeforeRegex&gt
  *  &lt;/transformer&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class StripBeforeTransformer extends AbstractStringTransformer
         implements IXMLConfigurable {

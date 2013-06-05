@@ -26,7 +26,7 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
 /**
  * HTTP Collector configuration.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class HttpCollectorConfig implements Cloneable, Serializable {
 

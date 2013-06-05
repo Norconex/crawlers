@@ -46,7 +46,7 @@ import com.norconex.importer.parser.impl.PDFParser;
  * <pre>
  *  &lt;documentParserFactory class="com.norconex.importer.parser.DefaultDocumentParserFactory" format="text|xml" /&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 @SuppressWarnings("nls")
 public class DefaultDocumentParserFactory 

@@ -27,7 +27,7 @@ import com.norconex.commons.lang.map.Properties;
 /**
 * Base implementation offering to batch the committing of documents
 * (additions and deletions alike).
-* @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+* @author Pascal Essiembre
 */
 public abstract class BatchableCommitter implements ICommitter {
 

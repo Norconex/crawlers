@@ -86,7 +86,7 @@ import com.norconex.commons.lang.map.Properties;
  *  &lt;/committer&gt;
  * </pre>
  * 
- * @author <a href="mailto:pascal.dimassimo@norconex.com">Pascal Dimassimo</a>
+ * @author Pascal Dimassimo
  * 
  */
 public class ElasticsearchCommitter extends BaseCommitter implements

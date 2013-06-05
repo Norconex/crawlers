@@ -24,7 +24,7 @@ import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
 
 /**
  * Default database factory creating a {@link DerbyCrawlURLDatabase} instance.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class DefaultCrawlURLDatabaseFactory 
         implements ICrawlURLDatabaseFactory {

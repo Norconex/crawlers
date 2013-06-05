@@ -32,7 +32,7 @@ import com.norconex.commons.lang.map.Properties;
  * Adapter for {@link IHttpCrawlerEventListener}.  None of the method
  * implementations do nothing. Subclasing of this class
  * is favoured over direct implementation of {@link IHttpCrawlerEventListener}.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class HttpCrawlerEventAdapter implements IHttpCrawlerEventListener{
     

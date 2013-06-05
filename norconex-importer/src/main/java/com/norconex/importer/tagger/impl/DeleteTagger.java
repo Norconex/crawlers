@@ -51,7 +51,7 @@ import com.norconex.importer.tagger.IDocumentTagger;
  *  &lt;tagger class="com.norconex.importer.tagger.impl.DeleteTagger"
  *      fields="[coma-separated list of fields to delete]"/&gt
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 @SuppressWarnings("nls")
 public class DeleteTagger 

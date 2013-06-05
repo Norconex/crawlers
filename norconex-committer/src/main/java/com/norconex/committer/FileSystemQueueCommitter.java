@@ -38,7 +38,7 @@ import com.norconex.commons.lang.map.Properties;
 /**
  * Base batching implementation queuing documents on filesystem.
  * 
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 @SuppressWarnings("nls")
 public abstract class FileSystemQueueCommitter extends BatchableCommitter {

@@ -19,7 +19,7 @@ package com.norconex.committer;
 
 /**
  * Triggered when something went wrong with committing.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class CommitterException extends RuntimeException {
 

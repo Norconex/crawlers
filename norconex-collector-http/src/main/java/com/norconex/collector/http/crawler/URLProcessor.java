@@ -60,7 +60,7 @@ import com.norconex.importer.filter.OnMatch;
  * Holds the URL processing logic in various processing "step" for better
  * readability and maintainability.  Instances are only valid for 
  * the scope of processing a URL.  
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class URLProcessor {
 

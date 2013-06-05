@@ -56,7 +56,7 @@ import com.norconex.importer.filter.OnMatch;
  *      (comma-separated list of extensions)
  *  &lt;/filter&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 @SuppressWarnings("nls")
 public class ExtensionURLFilter extends AbstractOnMatchFilter implements 

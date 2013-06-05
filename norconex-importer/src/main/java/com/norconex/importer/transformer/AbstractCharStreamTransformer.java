@@ -73,7 +73,7 @@ import com.norconex.importer.Importer;
  *      (regular expression of value to match)
  *  &lt;/restrictTo&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public abstract class AbstractCharStreamTransformer 
             extends AbstractRestrictiveTransformer {

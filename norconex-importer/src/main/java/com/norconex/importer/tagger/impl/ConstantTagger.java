@@ -55,7 +55,7 @@ import com.norconex.importer.tagger.IDocumentTagger;
  *      &lt;-- multiple constant tags allowed --&gt;
  *  &lt;/tagger&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 @SuppressWarnings("nls")
 public class ConstantTagger 

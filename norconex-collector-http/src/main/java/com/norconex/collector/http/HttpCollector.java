@@ -54,7 +54,7 @@ import com.norconex.jef.suite.JobSuite;
  * in common, it may be best to configure and run them separately, to facilitate
  * troubleshooting.  There is no fair rule for this, experimenting with your
  * target sites will help you.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 @SuppressWarnings("nls")
 public class HttpCollector implements IJobSuiteFactory {

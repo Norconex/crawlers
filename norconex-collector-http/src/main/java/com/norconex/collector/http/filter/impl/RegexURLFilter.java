@@ -55,7 +55,7 @@ import com.norconex.importer.filter.OnMatch;
  *      (regular expression)
  *  &lt;/filter&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 @SuppressWarnings("nls")
 public class RegexURLFilter extends AbstractOnMatchFilter implements 

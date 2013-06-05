@@ -26,7 +26,7 @@ import com.norconex.importer.IImportHandler;
 /**
  * Tags a document with extra metadata information, or manipulate existing
  * metadata information.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface IDocumentTagger extends IImportHandler {
 

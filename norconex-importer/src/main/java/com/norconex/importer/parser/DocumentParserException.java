@@ -20,7 +20,7 @@ package com.norconex.importer.parser;
 /**
  * Exception thrown upon encountering a non-recoverable issue parsing a
  * document.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class DocumentParserException extends Exception {
 

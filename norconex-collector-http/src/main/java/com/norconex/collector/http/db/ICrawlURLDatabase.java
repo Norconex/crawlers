@@ -35,7 +35,7 @@ import com.norconex.collector.http.crawler.CrawlURL;
  *       the next run.</li>
  * </ul>
  *    
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface ICrawlURLDatabase {
 

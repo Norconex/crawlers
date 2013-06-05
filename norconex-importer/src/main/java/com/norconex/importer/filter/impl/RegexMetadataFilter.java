@@ -57,7 +57,7 @@ import com.norconex.importer.filter.OnMatch;
  *      (regular expression of value to match)
  *  &lt;/filter&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class RegexMetadataFilter extends AbstractOnMatchFilter
         implements IDocumentFilter, IXMLConfigurable {

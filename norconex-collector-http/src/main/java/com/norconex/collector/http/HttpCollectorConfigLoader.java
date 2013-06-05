@@ -31,7 +31,7 @@ import com.norconex.commons.lang.config.ConfigurationLoader;
 /**
  * HTTP Collector configuration loader.  Configuration options are defined
  * as part of general product documentation.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public final class HttpCollectorConfigLoader {
 

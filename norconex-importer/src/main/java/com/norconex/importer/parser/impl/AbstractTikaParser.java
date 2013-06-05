@@ -45,7 +45,7 @@ import com.norconex.importer.parser.IDocumentParser;
 
 /**
  * Base class wrapping Apache Tika parser for use by the importer.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class AbstractTikaParser implements IDocumentParser {
 

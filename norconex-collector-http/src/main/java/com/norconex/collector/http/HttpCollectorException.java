@@ -21,7 +21,7 @@ package com.norconex.collector.http;
 /**
  * Runtime exception for most unrecoverable issues thrown by HTTP Collector
  * classes.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class HttpCollectorException extends RuntimeException {
 

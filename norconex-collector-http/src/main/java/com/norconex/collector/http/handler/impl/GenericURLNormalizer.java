@@ -123,7 +123,7 @@ import com.norconex.commons.lang.url.URLNormalizer;
  *      &lt;/replace&gt;
  *    &lt;/replacements&gt;
  *  &lt;/urlNormalizer&gt;
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class GenericURLNormalizer 
         implements IURLNormalizer, IXMLConfigurable {

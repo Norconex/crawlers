@@ -66,8 +66,8 @@ import com.norconex.commons.lang.map.Properties;
  * <code>keepContentSourceField</code> attribute is set to 
  * <code>true</code>.</p> 
  * 
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
- * @author <a href="mailto:pascal.dimassimo@norconex.com">Pascal Dimassimo</a>
+ * @author Pascal Essiembre
+ * @author Pascal Dimassimo
  */
 @SuppressWarnings("nls")
 public abstract class BaseCommitter

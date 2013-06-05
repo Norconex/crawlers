@@ -31,7 +31,7 @@ import java.io.Serializable;
  * </p>
  * <p> Implementors also implementing IXMLConfigurable must name their XML tag
  * <code>filter</code> to ensure it gets loaded properly.</p>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface IURLFilter extends Serializable {
 

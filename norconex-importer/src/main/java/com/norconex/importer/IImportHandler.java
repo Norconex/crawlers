@@ -33,7 +33,7 @@ import com.norconex.importer.transformer.IDocumentTransformer;
  *   <li>{@link IDocumentTagger}: modifies a document metadata.</li>
  *   <li>{@link IDocumentTransformer}: modifies a document content.</li>
  * </ul>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface IImportHandler extends Serializable {
     // Act as a marker only for now.

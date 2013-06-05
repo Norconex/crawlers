@@ -36,7 +36,7 @@ import com.norconex.commons.lang.map.Properties;
  * <p>Keep in mind that if defined as part of crawler defaults, 
  * a single instance of this listener will be shared amongst crawlers
  * (unless overwritten).</p>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface IHttpCrawlerEventListener {
     

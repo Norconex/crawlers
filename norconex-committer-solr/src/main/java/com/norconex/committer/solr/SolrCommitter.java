@@ -93,7 +93,7 @@ import com.norconex.commons.lang.map.Properties;
  *  &lt;/committer&gt;
  * </pre>
  * 
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 //TODO test if same files can be picked up more than once when multi-threading
 public class SolrCommitter extends BaseCommitter {

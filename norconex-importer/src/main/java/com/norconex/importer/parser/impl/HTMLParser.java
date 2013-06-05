@@ -21,7 +21,7 @@ import org.apache.tika.parser.html.HtmlParser;
 
 /**
  * HTML parser based on Apache Tika {@link HtmlParser}.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class HTMLParser extends AbstractTikaParser {
 

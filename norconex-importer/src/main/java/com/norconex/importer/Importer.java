@@ -54,7 +54,7 @@ import com.norconex.importer.transformer.IDocumentTransformer;
 
 /**
  * Principal class responsible for importing documents.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  *
  */
 public class Importer {

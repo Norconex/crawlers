@@ -24,7 +24,7 @@ import org.elasticsearch.client.Client;
  * 
  * Factory for Elasticsearch {@link Client}.
  * 
- * @author <a href="mailto:pascal.dimassimo@norconex.com">Pascal Dimassimo</a>
+ * @author Pascal Dimassimo
  * 
  */
 public interface IClientFactory {

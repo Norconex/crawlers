@@ -50,7 +50,7 @@ import com.norconex.importer.filter.OnMatch;
  *  &lt;robotsTxt ignore="false" 
  *     class="com.norconex.collector.http.handler.DefaultRobotsTxtProvider"/&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
 

@@ -27,7 +27,7 @@ import com.norconex.importer.IImportHandler;
 /**
  * Transformers allow to manipulate and convert extracted text and
  * save the modified text back.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface IDocumentTransformer extends IImportHandler {
 

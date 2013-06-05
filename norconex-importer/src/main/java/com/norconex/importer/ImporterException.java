@@ -20,7 +20,7 @@ package com.norconex.importer;
 /**
  * Runtime exception thrown by many of the importer classes upon encountering
  * issues.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class ImporterException extends RuntimeException {
 

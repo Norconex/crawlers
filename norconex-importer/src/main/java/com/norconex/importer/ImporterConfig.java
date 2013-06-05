@@ -24,7 +24,7 @@ import com.norconex.importer.parser.IDocumentParserFactory;
 
 /**
  * Importer configuration.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class ImporterConfig implements Serializable {
 

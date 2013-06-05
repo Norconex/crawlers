@@ -58,7 +58,7 @@ import com.norconex.commons.lang.map.Properties;
  *      (regular expression of value to match)
  *  &lt;/restrictTo&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public abstract class AbstractStringTransformer 
             extends AbstractCharStreamTransformer {

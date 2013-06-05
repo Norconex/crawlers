@@ -23,7 +23,7 @@ import java.util.Map;
 
 /**
  * Represent a document content type (also called MIME-Type or Media Type).
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public final class ContentType implements Serializable {
   //TODO make part of norconex.commons.lang ????

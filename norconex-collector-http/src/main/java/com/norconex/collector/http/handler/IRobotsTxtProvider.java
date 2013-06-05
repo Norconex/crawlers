@@ -31,7 +31,7 @@ import com.norconex.collector.http.robot.RobotsTxt;
 
 /**
  * Given a URL, extract any "robots.txt" rules.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface IRobotsTxtProvider extends Serializable {
 

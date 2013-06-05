@@ -74,7 +74,7 @@ import com.norconex.importer.transformer.AbstractStringTransformer;
  *      &lt;-- multiple strignBetween tags allowed --&gt;
  *  &lt;/transformer&gt;
  * </pre>
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public class StripBetweenTransformer extends AbstractStringTransformer
         implements IXMLConfigurable {

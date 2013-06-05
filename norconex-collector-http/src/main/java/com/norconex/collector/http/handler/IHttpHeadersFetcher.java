@@ -26,7 +26,7 @@ import com.norconex.commons.lang.map.Properties;
 
 /**
  * Fetches the HTTP Header, typically via a HEAD request.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface IHttpHeadersFetcher extends Serializable {
 

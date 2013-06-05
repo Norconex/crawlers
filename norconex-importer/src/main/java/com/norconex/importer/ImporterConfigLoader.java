@@ -34,7 +34,7 @@ import com.norconex.commons.lang.config.ConfigurationUtil;
 /**
  * Importer configuration loader.  Configuration options are defined
  * as part of general product documentation.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 @SuppressWarnings("nls")
 public final class ImporterConfigLoader {

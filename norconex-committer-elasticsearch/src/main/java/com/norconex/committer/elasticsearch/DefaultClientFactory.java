@@ -31,7 +31,7 @@ import org.elasticsearch.node.NodeBuilder;
  * 
  * @see http://www.elasticsearch.org/guide/reference/java-api/client/
  * 
- * @author <a href="mailto:pascal.dimassimo@norconex.com">Pascal Dimassimo</a>
+ * @author Pascal Dimassimo
  * 
  */
 public class DefaultClientFactory implements IClientFactory {

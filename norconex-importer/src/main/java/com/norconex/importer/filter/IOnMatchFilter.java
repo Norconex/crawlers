@@ -9,7 +9,7 @@ import java.io.Serializable;
  * to be "included".  Only one filter of type "exclude" needs to be 
  * matched or the document (or other object) to be excluded.
  * Filters of type "exclude" have precedence over includes.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface IOnMatchFilter extends Serializable {
 

@@ -31,7 +31,7 @@ import com.norconex.commons.lang.config.ConfigurationException;
 /**
  * Convenience base class for implementing filters offering the include/exclude
  * "onmatch" option.  Default behavior on match is to include.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public abstract class AbstractOnMatchFilter
         implements IOnMatchFilter, Serializable {

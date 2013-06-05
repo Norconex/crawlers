@@ -36,7 +36,7 @@ import com.norconex.collector.http.filter.IURLFilter;
  * (may create a trace in the logs and gives you more options).
  * Implementors also implementing IXMLConfigurable must name their XML tag
  * <code>urlNormalizer</code> to ensure it gets loaded properly.
- * @author <a href="mailto:pascal.essiembre@norconex.com">Pascal Essiembre</a>
+ * @author Pascal Essiembre
  */
 public interface IURLNormalizer extends Serializable {
 
