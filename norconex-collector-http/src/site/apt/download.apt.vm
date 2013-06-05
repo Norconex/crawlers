@@ -43,7 +43,7 @@ Download
 
   Snapshot releases:
 
-  * {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-collector-http/1.0.0-SNAPSHOT/norconex-collector-http-1.0.0-20130604.160250-6.zip} 1.0.0-20130604.160250-6.zip}}
+  * {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-collector-http/1.0.0-SNAPSHOT/norconex-collector-http-1.0.0-20130605.012841-7.zip} 1.0.0-20130605.012841-7.zip}}
 
   []
 
@@ -55,7 +55,7 @@ Download
 
   Without a committer matching your data source, all you will be able to
   do with the HTTP Collector is saving the crawled content on the 
-  file system using the {{{http://www.norconex.com/product/committer/apidocs/com/norconex/committer/FileSystemCommitter.html}FileSystemCommitter}}.
+  file system using the {{{http://www.norconex.com/product/committer/apidocs/com/norconex/committer/impl/FileSystemCommitter.html}FileSystemCommitter}}.
   With your download of HTTP Collector, also download a 
   {{{http://www.norconex.com/product/committer}Committer}} 
   implementation that matches your data source (or 
