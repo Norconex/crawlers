@@ -1,42 +1,33 @@
-<!---
- Copyright 2010-2013 Norconex Inc.
+<!--
+ Copyright 2013 Norconex Inc.
  
- This file is part of Norconex Elasticsearch.
+ This file is part of Norconex Elasticsearch Committer.
  
- Norconex Elasticsearch is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
+ Norconex Elasticsearch Committer is free software: you can redistribute it 
+ and/or modify it under the terms of the GNU General Public License as 
+ published by the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
  
- Norconex Elasticsearch is distributed in the hope that it will be useful, 
- but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ Norconex Elasticsearch Committer is distributed in the hope that it 
+ will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with Norconex Elasticsearch. If not, see <http://www.gnu.org/licenses/>.
+ along with Norconex Elasticsearch Committer. If not, 
+ see <http://www.gnu.org/licenses/>.
 -->
 <head><title>Download</title><meta name="Author" content="Norconex Inc." /></head> 
 
 #Download
 
 Latest stable release
-   
-  * None yet.
 
-   <!--${currentStableVersion} --> 
+  * [${currentStableVersion}](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-committer-elasticsearch/${currentStableVersion}/norconex-committer-elasticsearch-${currentStableVersion}.zip)
 
 Older releases:
   
   * None yet.
-
-Snapshot releases:
-
-  * NONE YET
-  
-**Note:** Snapshot releases are only listed until first stable release.
-After that, they will be available through the Norconex Snapshot maven
-repository (see below).
   
 ###Source
   

@@ -1,5 +1,5 @@
-<!---
- Copyright 2010-2013 Norconex Inc.
+<!--
+ Copyright 2013 Norconex Inc.
  
  This file is part of Norconex Elasticsearch Committer.
  
@@ -8,14 +8,14 @@
  published by the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
  
- Norconex Elasticsearch Committer is distributed in the hope that it will be 
- useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ Norconex Elasticsearch Committer is distributed in the hope that it 
+ will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with Norconex Elasticsearch Committer. If not, see 
- <http://www.gnu.org/licenses/>.
+ along with Norconex Elasticsearch Committer. If not, 
+ see <http://www.gnu.org/licenses/>.
 -->
 <head><title>Home</title><meta name="Author" content="Norconex Inc." /></head> 
 
@@ -26,7 +26,7 @@ The **Elasticsearch Committer** library provides an implementation of
 [Norconex Committer](http://www.norconex.com/product/committer) targeting
 [Elasticsearch](http://www.elasticsearch.org/).
 
-The current stable version of Norconex Elasticsearch Committer is
+The current <!--stable--> version of Norconex Elasticsearch Committer is
 ${currentStableVersion} ([download](./download.html)). 
 
 Latest [API documentation](./apidocs/index.html).
