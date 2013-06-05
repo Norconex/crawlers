@@ -42,6 +42,8 @@ Download
   The followingi is a list of Committer implementations you can freely use.
   
   * {{{http://www.norconex.com/product/committer-solr/index.html}Solr Committer}} 
+
+  * {{{http://www.norconex.com/product/committer-elasticsearch/index.html}Elasticsearch Committer}} 
   
   * More to come...
   

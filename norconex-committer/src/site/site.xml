@@ -65,7 +65,8 @@ along with Norconex Committer. If not, see <http://www.gnu.org/licenses/>.
     </menu>
 
     <menu name="Committer Implementations">
-      <item name="Solr"  href="http://www.norconex.com/product/committer-solr"/>
+      <item name="Solr"          href="http://www.norconex.com/product/committer-solr"/>
+      <item name="Elasticsearch" href="http://www.norconex.com/product/committer-elasticsearch"/>
     </menu>
 
 
