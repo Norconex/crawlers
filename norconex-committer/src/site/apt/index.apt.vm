@@ -38,7 +38,7 @@ Welcome to Norconex Committer
   To be useful, concrete implementations for the 
   {{{./apidocs/com/norconex/committer/ICommitter.html}ICommitter}} interface 
   must be provided.  One is provided with the core committer library, mostly
-  for troubleshooting purposes: {{{./apidocs/com/norconex/committer/FileSystemCommitter.html}FileSystemCommitter}}
+  for troubleshooting purposes: {{{./apidocs/com/norconex/committer/impl/FileSystemCommitter.html}FileSystemCommitter}}
   
   Based on your target data source, Norconex may already 
   provide existing implementations for your data sources or can create one.  

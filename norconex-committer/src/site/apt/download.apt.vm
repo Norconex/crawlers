@@ -26,26 +26,15 @@ Download
 
   Latest stable release
    
-  * None yet.
-~~  {{{}${currentStableVersion}}} 
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-committer/${currentStableVersion}/norconex-committer-${currentStableVersion}.zip} ${currentStableVersion}}}
 
   []
 
-~~  Older releases:
+  Older releases:
   
-~~  * None yet.
+  * None yet.
 
-~~  []    
-
-  Snapshot releases:
-
-  * {{{http://norconex.s3.amazonaws.com/repo/snapshot/com/norconex/collectors/norconex-committer/1.0.0-SNAPSHOT/norconex-committer-1.0.0-20130604.150525-4.zip} 1.0.0-20130604.150525-4.zip}}
-
-  []
-
-  <<Note:>> Snapshot releases are only listed until first stable release.
-  After that, they will be available through the Norconex Snapshot maven
-  repository (see below).
+  []    
 
 * Committer Implementations
 
