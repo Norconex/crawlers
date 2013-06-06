@@ -76,10 +76,10 @@ Tag descriptions:
 | `solrURL` | URL to Solr (where to send documents for indexing). |
 | `solrUpdateURLParams` | Optional Solr update URL arguments. |
 | `solrDeleteURLParams` | Optional Solr delete URL arguments. |
-| `idSourceField` | Name of source field that will be mapped to the Solr target id field. Default is the document reference the Committer stores as "committer.reference". |
-| `idTargetField` | Name of target id field. Default is "id". |
-| `contentSourceField` | Solr source field name for a document content/body. Default is not a field, but rather the document body content. |
+| `idSourceField` | Name of source field that will be mapped to the Solr target id field. Default is the document reference the Committer stores as *committer.reference*. Once re-mapped, the metadata source field is deleted, unless *keep* is set to true.|
+| `idTargetField` | Name of target id field. Default is *id*. |
+| `contentSourceField` | Solr source field name for a document content/body. Default is not a field, but rather the document body content. Once re-mapped, the metadata source field is deleted, unless *keep* is set to true.|
 | `contentTargetField` | Solr target field name for a document content/body. Default is: content. |
-| `queueDir` | Optional path where to queue files before sending them to Solr. |
-| `batchSize` | Number of documents or deletes to queue before sending to Solr. |
-| `solrBatchSize` | Maximum number of documents to send Solr at once. |
+| `queueDir` | Optional path where to queue files before sending them to Solr. Default is: ./committer-queue|
+| `batchSize` | Number of documents or deletes to queue before sending to Solr. Default is: 1000.|
+| `solrBatchSize` | Maximum number of documents to send Solr at once. Default is: 100.|
