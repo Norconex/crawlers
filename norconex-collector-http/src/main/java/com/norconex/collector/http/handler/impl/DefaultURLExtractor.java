@@ -32,7 +32,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -113,7 +113,9 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
                 if (url.startsWith("mailto:")) {
                     continue;
                 }
-                if (url.startsWith("/")) {
+                if (url.startsWith("//")) {
+                    url = protocol + StringUtils.substringAfter(url, "//");
+                } else if (url.startsWith("/")) {
                     url = absoluteBase + url;
                 } else if (!url.contains("://")) {
                     url = relativeBase + url;
