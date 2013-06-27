@@ -169,7 +169,18 @@ public class GenericURLNormalizer
                 LOG.error("Could not apply normalization \"" + n + "\".", e);
             }
         }
-        return normalizer.toString();
+        String normedURL = normalizer.toString();
+        for (Replace replace : replaces) {
+            if (replace == null || StringUtils.isBlank(replace.getMatch())) {
+                continue;
+            }
+            String replacement = replace.getReplacement();
+            if (StringUtils.isBlank(replacement)) {
+                replacement = StringUtils.EMPTY;
+            }
+            normedURL = normedURL.replaceAll(replace.getMatch(), replacement);
+        }
+        return normedURL;
     }
     
     public Normalization[] getNormalizations() {
