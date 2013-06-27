@@ -6,6 +6,14 @@
     <author email="info@norconex.com">Norconex Inc.</author>
   </properties>
   <body>
+    <release version="1.0.1" date="2013-06-26" description="Bug fix release.">
+      <action dev="essiembp" type="fix" issue="15">
+        Relative URLs starting with two slashes (//) are now extracted properly.
+      </action>
+      <action dev="essiembp" type="fix" issue="15">
+        Replacements now working for GenericURLNormalizer.
+      </action>
+    </release>
     <release version="1.0.0" date="2013-06-05" description="Open Source release">
       <action dev="essiembp" type="add">
         Starting with this release, Norconex HTTP Collector is open-source under GPL.

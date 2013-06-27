@@ -25,11 +25,11 @@ Welcome to Norconex HTTP Collector
   Norconex HTTP Collector is a web spider, or crawler that aims to make
   Enterprise Search integrators and developers's life easier.
 
-  The current stable version of 
-  {{{http://www.norconex.com/product/collector-http}Norconex HTTP Collector}} is
-  ${currentStableVersion} ({{{./download.html}download}}). 
+  The current stable version is
+  <<${currentStableVersion}>> ({{{./download.html}download}}, 
+  {{{./apidocs/index.html}API documentation}},  
+  {{{./changes-report.html}release notes}}).
 
-  Latest {{{./apidocs/index.html}API documentation}}.
 
 * Another crawler... really?
  
