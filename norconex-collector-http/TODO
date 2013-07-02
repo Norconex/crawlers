@@ -1,8 +1,34 @@
+The following are either things to be done, or ideas to consider:
 
 - Implement AUTH_METHOD_BASIC and AUTH_METHOD_DIGEST
 
-- Interface for Document Store??? Filesystem default, but could be 
+- Provide support for in-page robot instructions
+
+- Provide sitemap.xml support
+
+- Test that IPV6 is supported
+
+- Follow HTML meta refresh redirects.
+
+- Detect and follow RSS feeds (related to having multiple url extractors by
+  content types).
+
+- Offer option to have crawling rate adjust itself if a site is slow
+  (in case it is the crawler hammering it).  Probably a change or new delay
+  implementation... this means total download time (both for HEAD and GET) 
+  should be added as document properties (not a bad idea to do regardless).
+
+- Maybe provide additional URL Crawl store implementation.  Derby is default, 
+  but should provide a non-embedded solution out-of-the-box, such as Mongo, or 
+  Generic SQL-DB (hibernate?).
+
+- To consider: Interface for Document Store for downloading documents.
+  File system is used to down default, but could be 
   others like MongoDB?
+
+- Consider having support for different URLExractors for different content 
+  types.  Maybe also offer to default one ability to define custom patterns
+  for how to identify URLs.
 
 - Add option to skip certain http response code (like 500).  Those docs 
   that should not be added nor deleted because they are in a temporary bad 

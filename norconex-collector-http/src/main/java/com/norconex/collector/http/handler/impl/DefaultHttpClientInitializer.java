@@ -39,6 +39,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.CoreProtocolPNames;
@@ -102,6 +104,10 @@ public class DefaultHttpClientInitializer implements
 	
     @Override
 	public void initializeHTTPClient(DefaultHttpClient httpClient) {
+
+        // Add support for FTP websites (FTP served by HTTP server).
+        Scheme ftp = new Scheme("ftp", 80, new PlainSocketFactory());
+        httpClient.getConnectionManager().getSchemeRegistry().register(ftp);
         
         //TODO make charset configurable instead since UTF-8 is not right
         // charset for URL specifications.  It is used here to overcome
