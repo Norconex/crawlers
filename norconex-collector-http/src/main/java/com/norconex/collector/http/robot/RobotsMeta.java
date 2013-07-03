@@ -19,5 +19,45 @@
 package com.norconex.collector.http.robot;
 
 public class RobotsMeta {
-    //TODO implement me?
+    private final boolean nofollow;
+    private final boolean noindex;
+    public RobotsMeta(boolean nofollow, boolean noindex) {
+        super();
+        this.nofollow = nofollow;
+        this.noindex = noindex;
+    }
+    public boolean isNofollow() {
+        return nofollow;
+    }
+    public boolean isNoindex() {
+        return noindex;
+    }
+    @Override
+    public String toString() {
+        return "RobotsMeta [nofollow=" + nofollow + ", noindex=" + noindex
+                + "]";
+    }
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (nofollow ? 1231 : 1237);
+        result = prime * result + (noindex ? 1231 : 1237);
+        return result;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        RobotsMeta other = (RobotsMeta) obj;
+        if (nofollow != other.nofollow)
+            return false;
+        if (noindex != other.noindex)
+            return false;
+        return true;
+    }
 }

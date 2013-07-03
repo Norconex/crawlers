@@ -24,6 +24,7 @@ import java.io.Serializable;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
 import com.norconex.collector.http.db.impl.DefaultCrawlURLDatabaseFactory;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
@@ -36,18 +37,19 @@ import com.norconex.collector.http.handler.IHttpDocumentFetcher;
 import com.norconex.collector.http.handler.IHttpDocumentProcessor;
 import com.norconex.collector.http.handler.IHttpHeadersChecksummer;
 import com.norconex.collector.http.handler.IHttpHeadersFetcher;
+import com.norconex.collector.http.handler.IRobotsMetaProvider;
 import com.norconex.collector.http.handler.IRobotsTxtProvider;
 import com.norconex.collector.http.handler.IURLExtractor;
 import com.norconex.collector.http.handler.IURLNormalizer;
-import com.norconex.committer.ICommitter;
-import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.handler.impl.DefaultDelayResolver;
 import com.norconex.collector.http.handler.impl.DefaultDocumentFetcher;
 import com.norconex.collector.http.handler.impl.DefaultHttpClientInitializer;
 import com.norconex.collector.http.handler.impl.DefaultHttpDocumentChecksummer;
 import com.norconex.collector.http.handler.impl.DefaultHttpHeadersChecksummer;
+import com.norconex.collector.http.handler.impl.DefaultRobotsMetaProvider;
 import com.norconex.collector.http.handler.impl.DefaultRobotsTxtProvider;
 import com.norconex.collector.http.handler.impl.DefaultURLExtractor;
+import com.norconex.committer.ICommitter;
 import com.norconex.importer.ImporterConfig;
 
 
@@ -62,6 +64,7 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     private int maxURLs = -1;
     
     private boolean ignoreRobotsTxt;
+    private boolean ignoreRobotsMeta;
     private boolean keepDownloads;
     private boolean deleteOrphans;
 
@@ -81,6 +84,8 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
 
     private IRobotsTxtProvider robotsTxtProvider =
             new DefaultRobotsTxtProvider();
+    private IRobotsMetaProvider robotsMetaProvider =
+            new DefaultRobotsMetaProvider();
 
     private ICrawlURLDatabaseFactory crawlURLDatabaseFactory =
             new DefaultCrawlURLDatabaseFactory();
@@ -159,7 +164,6 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     public void setImporterConfig(ImporterConfig importerConfig) {
         this.importerConfig = importerConfig;
     }
-    
     public IHttpClientInitializer getHttpClientInitializer() {
         return httpClientInitializer;
     }
@@ -192,8 +196,6 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     public void setRobotsTxtProvider(IRobotsTxtProvider robotsTxtProvider) {
         this.robotsTxtProvider = robotsTxtProvider;
     }
-    
-
     public IURLNormalizer getUrlNormalizer() {
         return urlNormalizer;
     }
@@ -280,8 +282,19 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
             ICrawlURLDatabaseFactory crawlURLDatabaseFactory) {
         this.crawlURLDatabaseFactory = crawlURLDatabaseFactory;
     }
-	
-	@Override
+	public boolean isIgnoreRobotsMeta() {
+        return ignoreRobotsMeta;
+    }
+    public void setIgnoreRobotsMeta(boolean ignoreRobotsMeta) {
+        this.ignoreRobotsMeta = ignoreRobotsMeta;
+    }
+    public IRobotsMetaProvider getRobotsMetaProvider() {
+        return robotsMetaProvider;
+    }
+    public void setRobotsMetaProvider(IRobotsMetaProvider robotsMetaProvider) {
+        this.robotsMetaProvider = robotsMetaProvider;
+    }
+    @Override
     protected Object clone() throws CloneNotSupportedException {
         try {
             return BeanUtils.cloneBean(this);
@@ -289,6 +302,4 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
             throw new HttpCollectorException(e);
         }
     }
-	
-	
 }

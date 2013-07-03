@@ -174,6 +174,12 @@ public final class HttpCrawlerConfigLoader {
                 node, "httpDocumentFetcher",
                 config.getHttpDocumentFetcher()));
         
+        //--- RobotsMeta provider ----------------------------------------------
+        config.setRobotsMetaProvider(ConfigurationUtil.newInstance(
+                node, "robotsMeta", config.getRobotsMetaProvider()));
+        config.setIgnoreRobotsMeta(node.getBoolean(
+                "robotsMeta[@ignore]", config.isIgnoreRobotsMeta()));
+        
         //--- URL Extractor ----------------------------------------------------
         config.setUrlExtractor(ConfigurationUtil.newInstance(
                 node, "urlExtractor", config.getUrlExtractor()));

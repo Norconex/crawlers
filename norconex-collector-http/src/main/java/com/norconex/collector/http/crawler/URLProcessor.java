@@ -48,6 +48,7 @@ import com.norconex.collector.http.handler.IHttpDocumentProcessor;
 import com.norconex.collector.http.handler.IHttpHeadersChecksummer;
 import com.norconex.collector.http.handler.IHttpHeadersFetcher;
 import com.norconex.collector.http.handler.IURLExtractor;
+import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.io.FileUtil;
@@ -78,6 +79,7 @@ public class URLProcessor {
     private final ICrawlURLDatabase database;
     private final File outputFile;
     private RobotsTxt robotsTxt;
+    private RobotsMeta robotsMeta;
     
     // Order is important.  E.g. Robots must be after URL Filters and before 
     // Delay resolver
@@ -90,8 +92,10 @@ public class URLProcessor {
         new HttpHeadersFiltersHEADStep(),
         new HttpHeadersChecksumHEADStep(),
         new DocumentFetcherStep(),
+        new RobotsMetaCreateStep(),
         new URLExtractorStep(),
         new StoreNextURLsStep(),
+        new RobotsMetaNoIndexStep(),
         new HttpHeadersFilterGETStep(),
         new HttpHeadersChecksumGETStep(),
         new DocumentFiltersStep(),
@@ -272,6 +276,45 @@ public class URLProcessor {
         }
     }
     
+    //--- Robots Meta Creation -------------------------------------------------
+    private class RobotsMetaCreateStep implements IURLProcessingStep {
+        @Override
+        public boolean processURL() {
+            if (!config.isIgnoreRobotsMeta()) {
+                try {
+                    FileReader reader = new FileReader(doc.getLocalFile());
+                    robotsMeta = config.getRobotsMetaProvider().getRobotsMeta(
+                            reader, url,  doc.getMetadata().getContentType(),
+                            doc.getMetadata());
+                    reader.close();
+                } catch (IOException e) {
+                    throw new HttpCollectorException(
+                            "Cannot create RobotsMeta for URL: " + url, e);
+                }
+            }
+            return true;
+        }
+    }
+
+    //--- Robots Meta NoIndex Check --------------------------------------------
+    private class RobotsMetaNoIndexStep implements IURLProcessingStep {
+        @Override
+        public boolean processURL() {
+            boolean canIndex = config.isIgnoreRobotsMeta() || robotsMeta == null
+                    || !robotsMeta.isNoindex();
+            if (!canIndex) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Document skipped due to Robots meta noindex "
+                          + "rule: " + url);
+                }
+                crawlURL.setStatus(CrawlStatus.REJECTED);
+                return false;
+            }
+            return canIndex;
+        }
+    }
+
+    
     //--- URL Extractor --------------------------------------------------------
     /*
      * Extract URLs before sending to importer (because the importer may
@@ -282,6 +325,14 @@ public class URLProcessor {
     private class URLExtractorStep implements IURLProcessingStep {
         @Override
         public boolean processURL() {
+            if (robotsMeta != null && robotsMeta.isNofollow()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("No URLs extracted due to Robots nofollow rule "
+                            + "for URL: " + url);
+                }
+                return true;
+            }
+            
             Set<String> urls = null;
             try {
                 FileReader reader = new FileReader(doc.getLocalFile());
@@ -323,6 +374,10 @@ public class URLProcessor {
     private class StoreNextURLsStep implements IURLProcessingStep {
         @Override
         public boolean processURL() {
+            if (robotsMeta != null && robotsMeta.isNofollow()) {
+                return true;
+            }
+            
             Collection<String> urls = doc.getMetadata().getDocumentUrls();
             for (String urlToProcess : urls) {
                 if (database.isActive(urlToProcess)) {

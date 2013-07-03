@@ -18,18 +18,30 @@
  */
 package com.norconex.collector.http.handler;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.io.Serializable;
 
-import org.apache.http.impl.client.DefaultHttpClient;
-
-import com.norconex.collector.http.robot.RobotsTxt;
+import com.norconex.collector.http.robot.RobotsMeta;
+import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.ContentType;
 
 /**
- * Given a URL, extract any "robots.txt" rules.
+ * Responsible for extracting robot information from a page.
  * @author Pascal Essiembre
  */
-public interface IRobotsTxtProvider extends Serializable {
+public interface IRobotsMetaProvider extends Serializable {
 
-    RobotsTxt getRobotsTxt(DefaultHttpClient httpClient, String url);
-    
+    /**
+     * Extracts Robots meta information for a page, if any.
+     * @param document the document
+     * @param documentUrl document url
+     * @param contentType the document content type
+     * @param httpHeaders the document HTTP Headers
+     * @return robots meta instance
+     * @throws IOException problem reading the document
+     */
+    RobotsMeta getRobotsMeta(
+            Reader document, String documentUrl, ContentType contentType,
+            Properties httpHeaders) throws IOException;
 }

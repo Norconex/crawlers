@@ -2,11 +2,13 @@ The following are either things to be done, or ideas to consider:
 
 - Implement AUTH_METHOD_BASIC and AUTH_METHOD_DIGEST
 
-- Provide support for in-page robot instructions
+- Integrate with distributed computing frameworks such as hadhoop.
 
 - Provide sitemap.xml support
 
 - Test that IPV6 is supported
+
+- Load test with million pages.
 
 - Detect and follow RSS feeds (related to having multiple url extractors by
   content types).
@@ -45,5 +47,7 @@ The following are either things to be done, or ideas to consider:
       </suiteLifeCycleListener>
   </jef>
 
-- FAQ:
+- Create a FAQ:
   - How to follow redirects but not index page with a redirect?
+  - How to ignore robot rules (both robots.txt and robots meta)?
+  - How do I authenticate?

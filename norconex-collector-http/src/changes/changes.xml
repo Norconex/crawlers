@@ -8,6 +8,10 @@
   <body>
     <release version="1.?.?" date="2013-??-??" description="Feature release.">
       <action dev="essiembp" type="add">
+        Now supports in-page robot instructions.  Via "ROBOTS" meta tag first,
+        or "X-Robots-Tag" tag if present in HTTP header.
+      </action>
+      <action dev="essiembp" type="add">
         "ftp" protocol now supported.
       </action>
       <action dev="essiembp" type="add">
