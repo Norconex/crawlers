@@ -159,9 +159,17 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
          a sample use of the default with credentials.
          -->
     <httpClientInitializer class="${httpClientInit}">
+      <!-- These apply to any authentication mecanism -->
       <authUsername>myusername</authUsername>
       <authPassword>mypassword</authPassword>
+      <!-- These apply to FORM authentication -->
+      <authUsernameField>field_username</authUsernameField>
+      <authPasswordField>field_password</authPasswordField>
       <authURL>https://www.example.com/login.php</authURL>
+      <!-- These apply to both BASIC and DIGEST authentication -->
+      <authHostname>www.example.com</authHostname>
+      <authPort>80</authPort>
+      <authRealm>PRIVATE</authRealm>
     </httpClientInitializer>
     
     <!-- === Step 2 (Loop): Process a URL/Document ========================= -->

@@ -67,6 +67,9 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *      &lt;authUsernameField&gt;...&lt;/authUsernameField&gt;
  *      &lt;authPasswordField&gt;...&lt;/authPasswordField&gt;
  *      &lt;authURL&gt;...&lt;/authURL&gt;
+ *      &lt;authHostname&gt;...&lt;/authHostname&gt;
+ *      &lt;authPort&gt;...&lt;/authPort&gt;
+ *      &lt;authRealm&gt;...&lt;/authRealm&gt;
  *      &lt;proxyHost&gt;...&lt;/proxyHost&gt;
  *      &lt;proxyPort&gt;...&lt;/proxyPort&gt;
  *      &lt;proxyUsername&gt;...&lt;/proxyUsername&gt;
@@ -80,6 +83,7 @@ public class DefaultHttpClientInitializer implements
 		IHttpClientInitializer, IXMLConfigurable {
 
 	private static final long serialVersionUID = 8489434479618081974L;
+    @SuppressWarnings("unused")
     private static final Logger LOG = LogManager.getLogger(
             DefaultHttpClientInitializer.class);
 
@@ -94,6 +98,9 @@ public class DefaultHttpClientInitializer implements
 	private String authUsername;
     private String authPasswordField;
     private String authPassword;
+    private String authHostname;
+    private int authPort = -1;
+    private String authRealm;
     private boolean cookiesDisabled;
     private String userAgent;
     private String proxyHost;
@@ -137,9 +144,9 @@ public class DefaultHttpClientInitializer implements
         if (AUTH_METHOD_FORM.equalsIgnoreCase(authMethod)) {
             authenticateUsingForm(httpClient);
         } else if (AUTH_METHOD_BASIC.equalsIgnoreCase(authMethod)) {
-            LOG.error("BASIC authentication method not yet supported.");
+            setupBasicDigestAuth(httpClient);
         } else if (AUTH_METHOD_DIGEST.equalsIgnoreCase(authMethod)) {
-            LOG.error("DIGEST authentication method not yet supported.");
+            setupBasicDigestAuth(httpClient);
         }
         if (userAgent != null) {
             httpClient.getParams().setParameter(
@@ -159,6 +166,9 @@ public class DefaultHttpClientInitializer implements
                 xml.getString("authPasswordField", authPasswordField);
         authPassword = xml.getString("authPassword", authPassword);
         authURL = xml.getString("authURL", authURL);
+        authHostname = xml.getString("authHostname", authHostname);
+        authPort = xml.getInt("authPort", authPort);
+        authRealm = xml.getString("authRealm", authRealm);
         userAgent = xml.getString("userAgent", userAgent);
         proxyHost = xml.getString("proxyHost", proxyHost);
         proxyPort = xml.getInt("proxyPort", proxyPort);
@@ -197,6 +207,15 @@ public class DefaultHttpClientInitializer implements
             writer.writeStartElement("authURL");
             writer.writeCharacters(authURL);
             writer.writeEndElement();
+            writer.writeStartElement("authHostname");
+            writer.writeCharacters(authHostname);
+            writer.writeEndElement();
+            writer.writeStartElement("authPort");
+            writer.writeCharacters(Integer.toString(authPort));
+            writer.writeEndElement();
+            writer.writeStartElement("authRealm");
+            writer.writeCharacters(authRealm);
+            writer.writeEndElement();
             writer.writeStartElement("proxyHost");
             writer.writeCharacters(proxyHost);
             writer.writeEndElement();
@@ -225,6 +244,13 @@ public class DefaultHttpClientInitializer implements
         return authMethod;
     }
 
+    /**
+     * Sets the authentication method.
+     * 
+     * Valid values are "form", "basic" and "digest" (case insensitive).
+     * 
+     * @param authMethod authentication method
+     */
     public void setAuthMethod(String authMethod) {
         this.authMethod = authMethod;
     }
@@ -233,6 +259,13 @@ public class DefaultHttpClientInitializer implements
         return authUsernameField;
     }
 
+    /**
+     * Sets the name of the HTML field where the username is set.
+     * 
+     * This is used only for "form" authentication.
+     * 
+     * @param authUsernameField name of the HTML field
+     */
     public void setAuthUsernameField(String authUsernameField) {
         this.authUsernameField = authUsernameField;
     }
@@ -241,6 +274,13 @@ public class DefaultHttpClientInitializer implements
         return authUsername;
     }
 
+    /**
+     * Sets the username.
+     * 
+     * Used for all authentication methods.
+     * 
+     * @param authUsername username
+     */
     public void setAuthUsername(String authUsername) {
         this.authUsername = authUsername;
     }
@@ -249,6 +289,13 @@ public class DefaultHttpClientInitializer implements
         return authPasswordField;
     }
 
+    /**
+     * Sets the name of the HTML field where the password is set.
+     * 
+     * This is used only for "form" authentication.
+     * 
+     * @param authPasswordField name of the HTML field
+     */
     public void setAuthPasswordField(String authPasswordField) {
         this.authPasswordField = authPasswordField;
     }
@@ -257,6 +304,13 @@ public class DefaultHttpClientInitializer implements
         return authPassword;
     }
 
+    /**
+     * Sets the password.
+     * 
+     * Used for all authentication methods.
+     * 
+     * @param authPassword password
+     */
     public void setAuthPassword(String authPassword) {
         this.authPassword = authPassword;
     }
@@ -273,10 +327,73 @@ public class DefaultHttpClientInitializer implements
         return authURL;
     }
 
+    /**
+     * Sets the URL for "form" authentication.
+     * 
+     * The username and password will be POSTed to this URL.
+     * 
+     * This is used only for "form" authentication.
+     * 
+     * @param authURL "form" authentication URL
+     */
     public void setAuthURL(String authURL) {
         this.authURL = authURL;
     }
     
+    public String getAuthHostname() {
+        return authHostname;
+    }
+
+    /**
+     * Sets the hostname for the current authentication scope.
+     * 
+     * Setting this to null (default value) indicates "any hostname" for the 
+     * scope.
+     * 
+     * Used for BASIC and DIGEST authentication.
+     * 
+     * @param authHostname hostname for the scope
+     */
+    public void setAuthHostname(String authHostname) {
+        this.authHostname = authHostname;
+    }
+
+    public int getAuthPort() {
+        return authPort;
+    }
+
+    /**
+     * Sets the port for the current authentication scope.
+     * 
+     * Setting this to a negative number (default value) indicates "any port" 
+     * for the scope.
+     * 
+     * Used for BASIC and DIGEST authentication.
+     * 
+     * @param authPort port for the scope
+     */
+    public void setAuthPort(int authPort) {
+        this.authPort = authPort;
+    }
+
+    public String getAuthRealm() {
+        return authRealm;
+    }
+
+    /**
+     * Sets the realm name for the current authentication scope.
+     * 
+     * Setting this to null (the default value) indicates "any realm" 
+     * for the scope.
+     * 
+     * Used for BASIC and DIGEST authentication.
+     * 
+     * @param authRealm reaml name for the scope
+     */
+    public void setAuthRealm(String authRealm) {
+        this.authRealm = authRealm;
+    }
+
     public String getUserAgent() {
         return userAgent;
     }
@@ -338,4 +455,15 @@ public class DefaultHttpClientInitializer implements
         post.releaseConnection();
     }
     
+    protected void setupBasicDigestAuth(DefaultHttpClient httpClient) {
+
+        UsernamePasswordCredentials creds = 
+                new UsernamePasswordCredentials(
+                        getAuthUsername(), getAuthPassword());
+        AuthScope authscope = new AuthScope(
+                getAuthHostname(), getAuthPort(), getAuthRealm(), 
+                getAuthMethod());
+        
+        httpClient.getCredentialsProvider().setCredentials(authscope, creds);   
+    }
 }

@@ -21,15 +21,23 @@ package com.norconex.collector.http.handler.impl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.handler.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.RobotsMeta;
+import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.ContentType;
 
@@ -56,7 +64,8 @@ import com.norconex.importer.ContentType;
  * </pre>
  * @author Pascal Essiembre
  */
-public class DefaultRobotsMetaProvider implements IRobotsMetaProvider {
+public class DefaultRobotsMetaProvider 
+        implements IRobotsMetaProvider, IXMLConfigurable {
 
     private static final long serialVersionUID = 5762255033770481717L;
 
@@ -121,6 +130,13 @@ public class DefaultRobotsMetaProvider implements IRobotsMetaProvider {
         return robotsMeta;
     }
     
+    public String getHeadersPrefix() {
+        return headersPrefix;
+    }
+    public void setHeadersPrefix(String headersPrefix) {
+        this.headersPrefix = headersPrefix;
+    }
+
     private RobotsMeta buildMeta(String content) {
         if (StringUtils.isBlank(content)) {
             return null;
@@ -157,5 +173,31 @@ public class DefaultRobotsMetaProvider implements IRobotsMetaProvider {
             return content;
         }
         return null;
+    }
+
+    @Override
+    public void loadFromXML(Reader in) throws IOException {
+        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        setHeadersPrefix(xml.getString("headersPrefix"));
+    }
+
+    @Override
+    public void saveToXML(Writer out) throws IOException {
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        try {
+            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            writer.writeStartElement("robotsMeta");
+            writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeStartElement("headersPrefix");
+            if (headersPrefix != null) {
+                writer.writeCharacters(headersPrefix);
+            }
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.flush();
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new IOException("Cannot save as XML.", e);
+        }
     }
 }
