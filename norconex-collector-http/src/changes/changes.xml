@@ -6,6 +6,15 @@
     <author email="info@norconex.com">Norconex Inc.</author>
   </properties>
   <body>
+    <release version="1.?.?" date="2013-??-??" description="Feature release.">
+      <action dev="essiembp" type="add">
+        "ftp" protocol now supported.
+      </action>
+      <action dev="essiembp" type="add">
+        DefaultURLExtractor now recognizes URLs starting with "URL="
+        (e.g. meta http-equiv="refresh")
+      </action>
+    </release>
     <release version="1.0.1" date="2013-06-26" description="Bug fix release.">
       <action dev="essiembp" type="fix" issue="15">
         Relative URLs starting with two slashes (//) are now extracted properly.

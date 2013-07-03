@@ -8,8 +8,6 @@ The following are either things to be done, or ideas to consider:
 
 - Test that IPV6 is supported
 
-- Follow HTML meta refresh redirects.
-
 - Detect and follow RSS feeds (related to having multiple url extractors by
   content types).
 
@@ -47,3 +45,5 @@ The following are either things to be done, or ideas to consider:
       </suiteLifeCycleListener>
   </jef>
 
+- FAQ:
+  - How to follow redirects but not index page with a redirect?
