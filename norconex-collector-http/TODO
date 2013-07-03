@@ -1,7 +1,5 @@
 The following are either things to be done, or ideas to consider:
 
-- Implement AUTH_METHOD_BASIC and AUTH_METHOD_DIGEST
-
 - Integrate with distributed computing frameworks such as hadhoop.
 
 - Provide sitemap.xml support
