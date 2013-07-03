@@ -83,6 +83,7 @@ public class DefaultHttpClientInitializer implements
 		IHttpClientInitializer, IXMLConfigurable {
 
 	private static final long serialVersionUID = 8489434479618081974L;
+    @SuppressWarnings("unused")
     private static final Logger LOG = LogManager.getLogger(
             DefaultHttpClientInitializer.class);
 
@@ -243,6 +244,13 @@ public class DefaultHttpClientInitializer implements
         return authMethod;
     }
 
+    /**
+     * Sets the authentication method.
+     * 
+     * Valid values are "form", "basic" and "digest" (case insensitive).
+     * 
+     * @param authMethod authentication method
+     */
     public void setAuthMethod(String authMethod) {
         this.authMethod = authMethod;
     }
@@ -251,6 +259,13 @@ public class DefaultHttpClientInitializer implements
         return authUsernameField;
     }
 
+    /**
+     * Sets the name of the HTML field where the username is set.
+     * 
+     * This is used only for "form" authentication.
+     * 
+     * @param authUsernameField name of the HTML field
+     */
     public void setAuthUsernameField(String authUsernameField) {
         this.authUsernameField = authUsernameField;
     }
@@ -259,6 +274,13 @@ public class DefaultHttpClientInitializer implements
         return authUsername;
     }
 
+    /**
+     * Sets the username.
+     * 
+     * Used for all authentication methods.
+     * 
+     * @param authUsername username
+     */
     public void setAuthUsername(String authUsername) {
         this.authUsername = authUsername;
     }
@@ -267,6 +289,13 @@ public class DefaultHttpClientInitializer implements
         return authPasswordField;
     }
 
+    /**
+     * Sets the name of the HTML field where the password is set.
+     * 
+     * This is used only for "form" authentication.
+     * 
+     * @param authPasswordField name of the HTML field
+     */
     public void setAuthPasswordField(String authPasswordField) {
         this.authPasswordField = authPasswordField;
     }
@@ -275,6 +304,13 @@ public class DefaultHttpClientInitializer implements
         return authPassword;
     }
 
+    /**
+     * Sets the password.
+     * 
+     * Used for all authentication methods.
+     * 
+     * @param authPassword password
+     */
     public void setAuthPassword(String authPassword) {
         this.authPassword = authPassword;
     }
@@ -291,6 +327,15 @@ public class DefaultHttpClientInitializer implements
         return authURL;
     }
 
+    /**
+     * Sets the URL for "form" authentication.
+     * 
+     * The username and password will be POSTed to this URL.
+     * 
+     * This is used only for "form" authentication.
+     * 
+     * @param authURL "form" authentication URL
+     */
     public void setAuthURL(String authURL) {
         this.authURL = authURL;
     }
@@ -299,6 +344,16 @@ public class DefaultHttpClientInitializer implements
         return authHostname;
     }
 
+    /**
+     * Sets the hostname for the current authentication scope.
+     * 
+     * Setting this to null (default value) indicates "any hostname" for the 
+     * scope.
+     * 
+     * Used for BASIC and DIGEST authentication.
+     * 
+     * @param authHostname hostname for the scope
+     */
     public void setAuthHostname(String authHostname) {
         this.authHostname = authHostname;
     }
@@ -307,6 +362,16 @@ public class DefaultHttpClientInitializer implements
         return authPort;
     }
 
+    /**
+     * Sets the port for the current authentication scope.
+     * 
+     * Setting this to a negative number (default value) indicates "any port" 
+     * for the scope.
+     * 
+     * Used for BASIC and DIGEST authentication.
+     * 
+     * @param authPort port for the scope
+     */
     public void setAuthPort(int authPort) {
         this.authPort = authPort;
     }
@@ -315,6 +380,16 @@ public class DefaultHttpClientInitializer implements
         return authRealm;
     }
 
+    /**
+     * Sets the realm name for the current authentication scope.
+     * 
+     * Setting this to null (the default value) indicates "any realm" 
+     * for the scope.
+     * 
+     * Used for BASIC and DIGEST authentication.
+     * 
+     * @param authRealm reaml name for the scope
+     */
     public void setAuthRealm(String authRealm) {
         this.authRealm = authRealm;
     }
