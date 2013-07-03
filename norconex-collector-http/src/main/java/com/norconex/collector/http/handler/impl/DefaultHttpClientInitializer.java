@@ -67,6 +67,9 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *      &lt;authUsernameField&gt;...&lt;/authUsernameField&gt;
  *      &lt;authPasswordField&gt;...&lt;/authPasswordField&gt;
  *      &lt;authURL&gt;...&lt;/authURL&gt;
+ *      &lt;authHostname&gt;...&lt;/authHostname&gt;
+ *      &lt;authPort&gt;...&lt;/authPort&gt;
+ *      &lt;authRealm&gt;...&lt;/authRealm&gt;
  *      &lt;proxyHost&gt;...&lt;/proxyHost&gt;
  *      &lt;proxyPort&gt;...&lt;/proxyPort&gt;
  *      &lt;proxyUsername&gt;...&lt;/proxyUsername&gt;
@@ -94,6 +97,9 @@ public class DefaultHttpClientInitializer implements
 	private String authUsername;
     private String authPasswordField;
     private String authPassword;
+    private String authHostname;
+    private int authPort = -1;
+    private String authRealm;
     private boolean cookiesDisabled;
     private String userAgent;
     private String proxyHost;
@@ -137,9 +143,9 @@ public class DefaultHttpClientInitializer implements
         if (AUTH_METHOD_FORM.equalsIgnoreCase(authMethod)) {
             authenticateUsingForm(httpClient);
         } else if (AUTH_METHOD_BASIC.equalsIgnoreCase(authMethod)) {
-            LOG.error("BASIC authentication method not yet supported.");
+            setupBasicDigestAuth(httpClient);
         } else if (AUTH_METHOD_DIGEST.equalsIgnoreCase(authMethod)) {
-            LOG.error("DIGEST authentication method not yet supported.");
+            setupBasicDigestAuth(httpClient);
         }
         if (userAgent != null) {
             httpClient.getParams().setParameter(
@@ -159,6 +165,9 @@ public class DefaultHttpClientInitializer implements
                 xml.getString("authPasswordField", authPasswordField);
         authPassword = xml.getString("authPassword", authPassword);
         authURL = xml.getString("authURL", authURL);
+        authHostname = xml.getString("authHostname", authHostname);
+        authPort = xml.getInt("authPort", authPort);
+        authRealm = xml.getString("authRealm", authRealm);
         userAgent = xml.getString("userAgent", userAgent);
         proxyHost = xml.getString("proxyHost", proxyHost);
         proxyPort = xml.getInt("proxyPort", proxyPort);
@@ -196,6 +205,15 @@ public class DefaultHttpClientInitializer implements
             writer.writeEndElement();
             writer.writeStartElement("authURL");
             writer.writeCharacters(authURL);
+            writer.writeEndElement();
+            writer.writeStartElement("authHostname");
+            writer.writeCharacters(authHostname);
+            writer.writeEndElement();
+            writer.writeStartElement("authPort");
+            writer.writeCharacters(Integer.toString(authPort));
+            writer.writeEndElement();
+            writer.writeStartElement("authRealm");
+            writer.writeCharacters(authRealm);
             writer.writeEndElement();
             writer.writeStartElement("proxyHost");
             writer.writeCharacters(proxyHost);
@@ -277,6 +295,30 @@ public class DefaultHttpClientInitializer implements
         this.authURL = authURL;
     }
     
+    public String getAuthHostname() {
+        return authHostname;
+    }
+
+    public void setAuthHostname(String authHostname) {
+        this.authHostname = authHostname;
+    }
+
+    public int getAuthPort() {
+        return authPort;
+    }
+
+    public void setAuthPort(int authPort) {
+        this.authPort = authPort;
+    }
+
+    public String getAuthRealm() {
+        return authRealm;
+    }
+
+    public void setAuthRealm(String authRealm) {
+        this.authRealm = authRealm;
+    }
+
     public String getUserAgent() {
         return userAgent;
     }
@@ -338,4 +380,15 @@ public class DefaultHttpClientInitializer implements
         post.releaseConnection();
     }
     
+    protected void setupBasicDigestAuth(DefaultHttpClient httpClient) {
+
+        UsernamePasswordCredentials creds = 
+                new UsernamePasswordCredentials(
+                        getAuthUsername(), getAuthPassword());
+        AuthScope authscope = new AuthScope(
+                getAuthHostname(), getAuthPort(), getAuthRealm(), 
+                getAuthMethod());
+        
+        httpClient.getCredentialsProvider().setCredentials(authscope, creds);   
+    }
 }
