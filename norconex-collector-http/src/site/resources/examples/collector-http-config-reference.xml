@@ -40,6 +40,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   #set($extension = "${basepkg}.filter.impl.ExtensionURLFilter")
   #set($urlRegex = "${basepkg}.filter.impl.RegexURLFilter")
   #set($robotsTxt = "${basepkg}.handler.impl.DefaultRobotsTxtProvider")
+  #set($robotsMeta = "${basepkg}.handler.impl.DefaultRobotsMetaProvider")
   #set($headersRegex = "${basepkg}.filter.impl.RegexHeaderFilter")
   #set($docFetcher = "${basepkg}.handler.impl.DefaultDocumentFetcher")
   #set($urlExtractor = "${basepkg}.handler.impl.DefaultURLExtractor")
@@ -159,7 +160,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
          a sample use of the default with credentials.
          -->
     <httpClientInitializer class="${httpClientInit}">
-      <!-- These apply to any authentication mecanism -->
+      <!-- These apply to any authentication mechanism -->
       <authUsername>myusername</authUsername>
       <authPassword>mypassword</authPassword>
       <!-- These apply to FORM authentication -->
@@ -179,7 +180,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
            -->
       <httpURLFilters>
         <filter class="$extension" onMatch="exclude" >
-            jpg,gif,png,ico,css,js</filter>
+          jpg,gif,png,ico,css,js</filter>
         <filter class="$urlRegex">https://www.example.com/.*</filter>
       </httpURLFilters>
 
@@ -219,6 +220,13 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
            following.
            -->
       <httpDocumentFetcher class="$docFetcher" validStatusCodes="200" />
+
+      <!-- Establish whether to follow a page URLs or to index a given page
+           based on in-page meta tag robot information. Classes must
+           implement *.handler.IRobotsMetaProvider.  Default implementation
+           is the following.
+           -->
+      <robotsMeta ignore="false" class="$robotsMeta" />
 
       <!-- Extract URLs from a document.  Classes must implement
            *.handler.IURLExtractor. Default implementation is the following.

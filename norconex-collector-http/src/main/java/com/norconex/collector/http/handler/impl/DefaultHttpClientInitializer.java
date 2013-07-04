@@ -61,20 +61,27 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *  &lt;httpClientInitializer class="com.norconex.collector.http.handler.impl.DefaultHttpClientInitializer"&gt;
  *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
  *      &lt;userAgent&gt;...&lt;/userAgent&gt;
- *      &lt;authMethod&gt;[form|basic|digest]&lt;/authMethod&gt;
- *      &lt;authUsername&gt;...&lt;/authUsername&gt;
- *      &lt;authPassword&gt;...&lt;/authPassword&gt;
- *      &lt;authUsernameField&gt;...&lt;/authUsernameField&gt;
- *      &lt;authPasswordField&gt;...&lt;/authPasswordField&gt;
- *      &lt;authURL&gt;...&lt;/authURL&gt;
- *      &lt;authHostname&gt;...&lt;/authHostname&gt;
- *      &lt;authPort&gt;...&lt;/authPort&gt;
- *      &lt;authRealm&gt;...&lt;/authRealm&gt;
  *      &lt;proxyHost&gt;...&lt;/proxyHost&gt;
  *      &lt;proxyPort&gt;...&lt;/proxyPort&gt;
  *      &lt;proxyUsername&gt;...&lt;/proxyUsername&gt;
  *      &lt;proxyPassword&gt;...&lt;/proxyPassword&gt;
  *      &lt;proxyRealm&gt;...&lt;/proxyRealm&gt;
+ *      
+ *      &lt;authMethod&gt;[form|basic|digest]&lt;/authMethod&gt;
+ *      
+ *      &lt;!-- These apply to any authentication mechanism --&gt;
+ *      &lt;authUsername&gt;...&lt;/authUsername&gt;
+ *      &lt;authPassword&gt;...&lt;/authPassword&gt;
+ *      
+ *      &lt;!-- These apply to FORM authentication --&gt;
+ *      &lt;authUsernameField&gt;...&lt;/authUsernameField&gt;
+ *      &lt;authPasswordField&gt;...&lt;/authPasswordField&gt;
+ *      &lt;authURL&gt;...&lt;/authURL&gt;
+ *      
+ *      &lt;!-- These apply to both BASIC and DIGEST authentication --&gt;
+ *      &lt;authHostname&gt;...&lt;/authHostname&gt;
+ *      &lt;authPort&gt;...&lt;/authPort&gt;
+ *      &lt;authRealm&gt;...&lt;/authRealm&gt;
  *  &lt;/httpClientInitializer&gt;
  * </pre>
  * @author Pascal Essiembre
