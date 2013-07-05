@@ -168,6 +168,14 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   </dependencies>
   
   <build>
+    <resources>
+        <resource>
+            <directory>${project.build.testSourceDirectory}</directory>
+            <includes>
+                <include>**/*.html</include>
+			</includes>
+        </resource>
+    </resources>
     <extensions>
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
