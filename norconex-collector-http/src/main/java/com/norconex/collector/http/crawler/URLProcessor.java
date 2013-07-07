@@ -18,108 +18,73 @@
  */
 package com.norconex.collector.http.crawler;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.filter.IHttpDocumentFilter;
-import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.handler.IDelayResolver;
-import com.norconex.collector.http.handler.IHttpDocumentChecksummer;
-import com.norconex.collector.http.handler.IHttpDocumentProcessor;
-import com.norconex.collector.http.handler.IHttpHeadersChecksummer;
-import com.norconex.collector.http.handler.IHttpHeadersFetcher;
-import com.norconex.collector.http.handler.IURLExtractor;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.RobotsTxt;
-import com.norconex.committer.ICommitter;
-import com.norconex.commons.lang.io.FileUtil;
-import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.Importer;
+import com.norconex.collector.http.sitemap.ISitemapsResolver;
+import com.norconex.collector.http.sitemap.SitemapURLStore;
 import com.norconex.importer.filter.IOnMatchFilter;
 import com.norconex.importer.filter.OnMatch;
 
 /**
- * Holds the URL processing logic in various processing "step" for better
- * readability and maintainability.  Instances are only valid for 
- * the scope of processing a URL.  
+ * Performs a URL handling logic before actual processing of the document
+ * it represents takes place.  That is, before any 
+ * document or document header download is
+ * Instances are only valid for the scope of a single URL.  
  * @author Pascal Essiembre
  */
-public class URLProcessor {
+public final class URLProcessor {
 
-    private static final Logger LOG = LogManager.getLogger(URLProcessor.class);
+    private static final Logger LOG = 
+            LogManager.getLogger(URLProcessor.class);
     
+    private static List<String> SITEMAP_RESOLVED = new ArrayList<String>();
+
     private final HttpCrawler crawler;
     private final HttpCrawlerConfig config;
     private final List<IHttpCrawlerEventListener> listeners = 
             new ArrayList<IHttpCrawlerEventListener>();
     private final CrawlURL crawlURL;
-    private final String url;
     private final DefaultHttpClient httpClient;
-    private final HttpDocument doc;
-    private final IHttpHeadersFetcher hdFetcher;
     private final ICrawlURLDatabase database;
-    private final File outputFile;
     private RobotsTxt robotsTxt;
     private RobotsMeta robotsMeta;
     
     // Order is important.  E.g. Robots must be after URL Filters and before 
     // Delay resolver
-    private final IURLProcessingStep[] steps = new IURLProcessingStep[] {
+    private final IURLProcessingStep[] defaultSteps = new IURLProcessingStep[] {
         new DepthValidationStep(),
         new URLFiltersStep(),
         new RobotsTxtFiltersStep(),
-        new DelayResolverStep(),
-        new HttpHeadersFetcherHEADStep(),
-        new HttpHeadersFiltersHEADStep(),
-        new HttpHeadersChecksumHEADStep(),
-        new DocumentFetcherStep(),
-        new RobotsMetaCreateStep(),
-        new URLExtractorStep(),
-        new StoreNextURLsStep(),
-        new RobotsMetaNoIndexStep(),
-        new HttpHeadersFilterGETStep(),
-        new HttpHeadersChecksumGETStep(),
-        new DocumentFiltersStep(),
-        new DocumentPreProcessingStep(),
-        new ImportModuleStep(),
-        new HTTPDocumentChecksumStep(),
-        new DocumentPostProcessingStep(),
-        new DocumentCommitStep()
+        new URLNormalizerStep(),
+        new SitemapStep(),
+        new StoreNextURLStep(),
+    };
+    private final IURLProcessingStep[] sitemapSteps = new IURLProcessingStep[] {
+        new DepthValidationStep(),
+        new URLFiltersStep(),
+        new RobotsTxtFiltersStep(),
+        new URLNormalizerStep(),
+        new StoreNextURLStep(),
     };
 
     public URLProcessor(
             HttpCrawler crawler, DefaultHttpClient httpClient, 
-            ICrawlURLDatabase database, File outputFile,
-            HttpDocument doc, CrawlURL crawlURL) {
+            ICrawlURLDatabase database, CrawlURL crawlURL) {
         this.crawler = crawler;
         this.httpClient = httpClient;
         this.database = database;
-        this.doc = doc;
         this.crawlURL = crawlURL;
-        this.url = crawlURL.getUrl();
         this.config = crawler.getCrawlerConfig();
-        this.hdFetcher = config.getHttpHeadersFetcher();
-        this.outputFile = outputFile; 
-        
         IHttpCrawlerEventListener[] ls = config.getCrawlerListeners();
         if (ls != null) {
             this.listeners.addAll(Arrays.asList(ls));
@@ -127,13 +92,7 @@ public class URLProcessor {
     }
 
     public boolean processURL() {
-        for (int i = 0; i < steps.length; i++) {
-            IURLProcessingStep step = steps[i];
-            if (!step.processURL()) {
-                return false;
-            }
-        }
-        return true;
+        return processURL(defaultSteps);
     }
 
     public interface IURLProcessingStep {
@@ -151,7 +110,7 @@ public class URLProcessor {
                     && crawlURL.getDepth() > config.getMaxDepth()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("URL too deep to process (" 
-                            + crawlURL.getDepth() + "): " + url);
+                            + crawlURL.getDepth() + "): " + crawlURL.getUrl());
                 }
                 crawlURL.setStatus(CrawlStatus.TOO_DEEP);
                 return false;
@@ -178,7 +137,7 @@ public class URLProcessor {
         public boolean processURL() {
             if (!config.isIgnoreRobotsTxt()) {
                 robotsTxt = config.getRobotsTxtProvider().getRobotsTxt(
-                                httpClient, url);
+                                httpClient, crawlURL.getUrl());
                 if (isURLRejected(robotsTxt.getFilters(), robotsTxt)) {
                     crawlURL.setStatus(CrawlStatus.REJECTED);
                     return false;
@@ -187,436 +146,96 @@ public class URLProcessor {
             return true;
         }
     }
-    
-    //--- Wait for delay to expire ---------------------------------------------
-    private class DelayResolverStep implements IURLProcessingStep {
+
+    //--- Sitemap URL Extraction -----------------------------------------------
+    private class SitemapStep implements IURLProcessingStep {
+        final String urlRoot = 
+                crawlURL.getUrl().replaceFirst("(.*?://.*?/)(.*)", "$1");
         @Override
-        public boolean processURL() {
-            IDelayResolver delayResolver = config.getDelayResolver();
-            if (delayResolver != null) {
-                synchronized (delayResolver) {
-                    delayResolver.delay(robotsTxt, url);
+        public synchronized boolean processURL() {
+            if (config.isIgnoreSitemap()) {
+                return true;
+            }
+            boolean resolved = SITEMAP_RESOLVED.contains(urlRoot);
+            if (!resolved) {
+                resolved = database.isSitemapResolved(urlRoot);
+            }
+            if (!resolved) {
+                ISitemapsResolver sitemapResolver = config.getSitemapResolver();
+                String[] robotsTxtLocations = null;
+                if (robotsTxt != null) {
+                    robotsTxtLocations = robotsTxt.getSitemapLocations();
                 }
+                SitemapURLStore urlStore = new SitemapURLStore() {
+                    private static final long serialVersionUID = 
+                            7618470895330355434L;
+                    @Override
+                    public void add(BaseURL crawlURL) {
+                        URLProcessor.this.processURL(sitemapSteps);
+                    }
+                };
+                sitemapResolver.resolveSitemaps(httpClient, urlRoot, 
+                        robotsTxtLocations, urlStore);
+                database.sitemapResolved(urlRoot);
+                SITEMAP_RESOLVED.add(urlRoot);
             }
             return true;
         }
     }
     
-    //--- HTTP Headers Fetcher -------------------------------------------------
-    private class HttpHeadersFetcherHEADStep implements IURLProcessingStep {
+
+    
+    //--- URL Normalizer -------------------------------------------------------
+    /*
+     * Normalize the URL.
+     */
+    private class URLNormalizerStep implements IURLProcessingStep {
         @Override
         public boolean processURL() {
-            if (hdFetcher != null) {
-                Properties metadata = 
-                        hdFetcher.fetchHTTPHeaders(httpClient, url);
-                if (metadata == null) {
+            if (config.getUrlNormalizer() != null) {
+                String url = config.getUrlNormalizer().normalizeURL(
+                        crawlURL.getUrl());
+                if (url == null) {
                     crawlURL.setStatus(CrawlStatus.REJECTED);
                     return false;
                 }
-                doc.getMetadata().putAll(metadata);
-                enhanceHTTPHeaders(doc.getMetadata());
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentHeadersFetched(
-                            crawler, url, hdFetcher, doc.getMetadata());
-                }
+                crawlURL.setUrl(url);
             }
-            return true;
-        }
-    }
-    
-    //--- HTTP Headers Filters -------------------------------------------------
-    private class HttpHeadersFiltersHEADStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            if (hdFetcher != null && isHeadersRejected()) {
-                crawlURL.setStatus(CrawlStatus.REJECTED);
-                return false;
-            }
-            return true;
-        }
-    }
-
-    //--- HTTP Headers Checksum ------------------------------------------------
-    private class HttpHeadersChecksumHEADStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            //TODO only if an INCREMENTAL run... else skip.
-            if (hdFetcher != null && isHeadersChecksumRejected()) {
-                crawlURL.setStatus(CrawlStatus.UNMODIFIED);
-                return false;
-            }
-            return true;
-        }
-    }
-    
-    //--- Document Fetcher -----------------------------------------------------            
-    private class DocumentFetcherStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            //TODO for now we assume the document is downloadable.
-            // download as file
-            CrawlStatus status = config.getHttpDocumentFetcher().fetchDocument(
-                    httpClient, doc);
-            if (status == CrawlStatus.OK) {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentFetched(
-                            crawler, doc, config.getHttpDocumentFetcher());
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("SAVED DOC: " 
-                          + doc.getLocalFile().toURI() + " [mime type: "
-                          + doc.getMetadata().getContentType() + "]");
-                }
-            }
-            crawlURL.setStatus(status);
-            if (crawlURL.getStatus() != CrawlStatus.OK) {
-                return false;
-            }
-            return true;
-        }
-    }
-    
-    //--- Robots Meta Creation -------------------------------------------------
-    private class RobotsMetaCreateStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            if (!config.isIgnoreRobotsMeta()) {
-                try {
-                    FileReader reader = new FileReader(doc.getLocalFile());
-                    robotsMeta = config.getRobotsMetaProvider().getRobotsMeta(
-                            reader, url,  doc.getMetadata().getContentType(),
-                            doc.getMetadata());
-                    reader.close();
-                } catch (IOException e) {
-                    throw new HttpCollectorException(
-                            "Cannot create RobotsMeta for URL: " + url, e);
-                }
-            }
-            return true;
-        }
-    }
-
-    //--- Robots Meta NoIndex Check --------------------------------------------
-    private class RobotsMetaNoIndexStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            boolean canIndex = config.isIgnoreRobotsMeta() || robotsMeta == null
-                    || !robotsMeta.isNoindex();
-            if (!canIndex) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Document skipped due to Robots meta noindex "
-                          + "rule: " + url);
-                }
-                crawlURL.setStatus(CrawlStatus.REJECTED);
-                return false;
-            }
-            return canIndex;
-        }
-    }
-
-    
-    //--- URL Extractor --------------------------------------------------------
-    /*
-     * Extract URLs before sending to importer (because the importer may
-     * strip some "valid" urls in producing content-centric material.
-     * Plus, any additional urls could be added to Metadata and they will
-     * be considered.
-     */
-    private class URLExtractorStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            if (robotsMeta != null && robotsMeta.isNofollow()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("No URLs extracted due to Robots nofollow rule "
-                            + "for URL: " + url);
-                }
-                return true;
-            }
-            
-            Set<String> urls = null;
-            try {
-                FileReader reader = new FileReader(doc.getLocalFile());
-                IURLExtractor urlExtractor = config.getUrlExtractor();
-                urls = urlExtractor.extractURLs(reader, doc.getUrl(), 
-                        doc.getMetadata().getContentType());
-                reader.close();
-            } catch (IOException e) {
-                throw new HttpCollectorException(
-                        "Cannot extract URLs from: " + url, e);
-            }
-            
-            // Normalize urls
-            if (config.getUrlNormalizer() != null) {
-                Set<String> nurls = new HashSet<String>();
-                for (String extractedURL : urls) {
-                    String n = config.getUrlNormalizer().normalizeURL(
-                            extractedURL);
-                    if (n != null) {
-                        nurls.add(n);
-                    }
-                }
-                urls = nurls;
-            }
-            
-            if (urls != null) {
-                doc.getMetadata().addString(HttpMetadata.REFERNCED_URLS, 
-                        urls.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
-            }
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.documentURLsExtracted(crawler, doc);
-            }
-
             return true;
         }
     }
 
     //--- Store Next URLs to process -------------------------------------------
-    private class StoreNextURLsStep implements IURLProcessingStep {
+    private class StoreNextURLStep implements IURLProcessingStep {
         @Override
         public boolean processURL() {
             if (robotsMeta != null && robotsMeta.isNofollow()) {
                 return true;
             }
-            
-            Collection<String> urls = doc.getMetadata().getDocumentUrls();
-            for (String urlToProcess : urls) {
-                if (database.isActive(urlToProcess)) {
+            String url = crawlURL.getUrl();
+                if (database.isActive(url)) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Already being processed: " + urlToProcess);
+                        LOG.debug("Already being processed: " + url);
                     }
-                } else if (database.isQueued(urlToProcess)) {
+                } else if (database.isQueued(url)) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Already queued: " + urlToProcess);
+                        LOG.debug("Already queued: " + url);
                     }
-                } else if (database.isProcessed(urlToProcess)) {
+                } else if (database.isProcessed(url)) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Already processed: " + urlToProcess);
+                        LOG.debug("Already processed: " + url);
                     }
                 } else {
-                    database.queue(urlToProcess, crawlURL.getDepth() + 1);
+                    database.queue(new CrawlURL(url, crawlURL.getDepth()));
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Queued for processing: " + urlToProcess);
+                        LOG.debug("Queued for processing: " + url);
                     }
                 }
-            }
             return true;
         }
     }
     
     
-    //--- Headers filters if not done already ----------------------------------
-    private class HttpHeadersFilterGETStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            if (hdFetcher == null) {
-                enhanceHTTPHeaders(doc.getMetadata());
-                if (isHeadersRejected()) {
-                    crawlURL.setStatus(CrawlStatus.REJECTED);
-                    return false;
-                }
-            }
-            return true;
-        }
-    }    
-    
-    
-    //--- HTTP Headers Checksum if not done already ----------------------------
-    private class HttpHeadersChecksumGETStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            //TODO only if an INCREMENTAL run... else skip.
-            if (hdFetcher == null && isHeadersChecksumRejected()) {
-                crawlURL.setStatus(CrawlStatus.UNMODIFIED);
-                return false;
-            }
-            return true;
-        }
-    }    
-    
-
-    
-    //--- Document Filters -----------------------------------------------------
-    private class DocumentFiltersStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            IHttpDocumentFilter[] filters = config.getHttpDocumentfilters();
-            if (filters == null) {
-                return true;
-            }
-            
-            boolean hasIncludes = false;
-            boolean atLeastOneIncludeMatch = false;
-            for (IHttpDocumentFilter filter : filters) {
-                boolean accepted = filter.acceptDocument(doc);
-                boolean isInclude = filter instanceof IOnMatchFilter
-                       && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
-
-                // Deal with includes
-                if (isInclude) {
-                    hasIncludes = true;
-                    if (accepted) {
-                        atLeastOneIncludeMatch = true;
-                    }
-                    continue;
-                }
-                
-                // Deal with exclude and non-OnMatch filters
-                if (accepted) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format(
-                                "ACCEPTED document. URL=%s Filter=%s",
-                                doc.getUrl(), filter));
-                    }
-                } else {
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentRejected(crawler, doc, filter);
-                    }
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format(
-                                "REJECTED document. URL=%s Filter=%s",
-                                doc.getUrl(), filter));
-                    }
-                    crawlURL.setStatus(CrawlStatus.REJECTED);
-                    return false;
-                }
-            }
-            if (hasIncludes && !atLeastOneIncludeMatch) {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentRejected(crawler, doc, null);
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format(
-                            "REJECTED document. URL=%s "
-                          + "Filter=(no include filters matched)",
-                            doc.getUrl(), null));
-                }
-                crawlURL.setStatus(CrawlStatus.REJECTED);
-                return false;
-            }
-            return true;
-        }
-    }    
-
-    //--- Document Pre-Processing ----------------------------------------------
-    private class DocumentPreProcessingStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            if (config.getPreImportProcessors() != null) {
-                for (IHttpDocumentProcessor preProc :
-                        config.getPreImportProcessors()) {
-                    preProc.processDocument(httpClient, doc);
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentPreProcessed(crawler, doc, preProc);
-                    }
-                }
-            }
-            return true;
-        }
-    }    
-
-    //--- IMPORT Module --------------------------------------------------------
-    private class ImportModuleStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            Importer importer = new Importer(config.getImporterConfig());
-            try {
-                FileUtil.createDirsForFile(outputFile);
-                if (importer.importDocument(
-                        doc.getLocalFile(),
-                        doc.getMetadata().getContentType(),
-                        outputFile,
-                        doc.getMetadata(),
-                        doc.getUrl())) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("ACCEPTED document import. URL="
-                                + doc.getUrl());
-                    }
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentImported(crawler, doc);
-                    }
-                    return true;
-                }
-            } catch (IOException e) {
-                throw new HttpCollectorException(
-                        "Cannot import URL: " + url, e);
-            }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("REJECTED document import.  URL=" + doc.getUrl());
-            }
-            crawlURL.setStatus(CrawlStatus.REJECTED);
-            return false;
-        }
-    }    
-
-    
-    //--- HTTP Document Checksum -----------------------------------------------
-    private class HTTPDocumentChecksumStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            //TODO only if an INCREMENTAL run... else skip.
-            IHttpDocumentChecksummer check = 
-                    config.getHttpDocumentChecksummer();
-            if (check == null) {
-                return true;
-            }
-            String newDocChecksum = check.createChecksum(doc);
-            crawlURL.setDocChecksum(newDocChecksum);
-            String oldDocChecksum = null;
-            CrawlURL cachedURL = database.getCached(crawlURL.getUrl());
-            if (cachedURL != null) {
-                oldDocChecksum = cachedURL.getDocChecksum();
-            } else {
-                LOG.debug("ACCEPTED document checkum (new): URL=" 
-                        + crawlURL.getUrl());
-                return true;
-            }
-            if (StringUtils.isNotBlank(newDocChecksum) 
-                    && ObjectUtils.equals(newDocChecksum, oldDocChecksum)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("REJECTED document checkum (unmodified): URL=" 
-                            + crawlURL.getUrl());
-                }
-                crawlURL.setStatus(CrawlStatus.UNMODIFIED);
-                return false;
-            }
-            LOG.debug("ACCEPTED document checkum (modified): URL=" 
-                    + crawlURL.getUrl());
-            return true;
-        }
-    }   
-    
-    
-    //--- Document Post-Processing ---------------------------------------------
-    private class DocumentPostProcessingStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            if (config.getPostImportProcessors() != null) {
-                for (IHttpDocumentProcessor postProc :
-                        config.getPostImportProcessors()) {
-                    postProc.processDocument(httpClient, doc);
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentPostProcessed(crawler, doc, postProc);
-                    }
-                }            
-            }
-            return true;
-        }
-    }  
-    
-    //--- Document Commit ------------------------------------------------------
-    private class DocumentCommitStep implements IURLProcessingStep {
-        @Override
-        public boolean processURL() {
-            ICommitter committer = config.getCommitter();
-            if (committer != null) {
-                committer.queueAdd(url, outputFile, doc.getMetadata());
-            }
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.documentCrawled(crawler, doc);
-            }
-            return true;
-        }
-    }  
 
     //=== Utility methods ======================================================
     private boolean isURLRejected(IURLFilter[] filters, RobotsTxt robots) {
@@ -630,7 +249,7 @@ public class URLProcessor {
         boolean hasIncludes = false;
         boolean atLeastOneIncludeMatch = false;
         for (IURLFilter filter : filters) {
-            boolean accepted = filter.acceptURL(url);
+            boolean accepted = filter.acceptURL(crawlURL.getUrl());
             boolean isInclude = filter instanceof IOnMatchFilter
                    && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
             
@@ -646,7 +265,8 @@ public class URLProcessor {
             // Deal with exclude and non-OnMatch filters
             if (accepted) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("ACCEPTED document URL" + type + ". URL=" + url
+                    LOG.debug("ACCEPTED document URL" + type 
+                            + ". URL=" + crawlURL.getUrl()
                             + " Filter=" + filter);
                 }
             } else {
@@ -666,110 +286,47 @@ public class URLProcessor {
         for (IHttpCrawlerEventListener listener : listeners) {
             if (robots != null) {
                 listener.documentRobotsTxtRejected(
-                        crawler, url, filter, robots);
+                        crawler, crawlURL.getUrl(), filter, robots);
             } else {
-                listener.documentURLRejected(crawler, url, filter);
+                listener.documentURLRejected(
+                        crawler, crawlURL.getUrl(), filter);
             }
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("REJECTED document URL" + type + ". URL=" 
-                    + url + " Filter=[no include filters matched]");
+                  + crawlURL.getUrl() + " Filter=[no include filters matched]");
         }
     }
     
-    private void enhanceHTTPHeaders(Properties metadata) {
-        String contentType = metadata.getString("Content-Type");
-        if (contentType != null) {
-            String mimeType = contentType.replaceFirst("(.*?)(;.*)", "$1");
-            String charset = contentType.replaceFirst("(.*?)(; )(.*)", "$3");
-            charset = charset.replaceFirst("(charset=)(.*)", "$2");
-            metadata.addString(HttpMetadata.DOC_MIMETYPE, mimeType);
-            metadata.addString(HttpMetadata.DOC_CHARSET, charset);
-        }
-    }
-    
-    private boolean isHeadersRejected() {
-        IHttpHeadersFilter[] filters = config.getHttpHeadersFilters();
-        if (filters == null) {
-            return false;
-        }
-        HttpMetadata headers = doc.getMetadata();
-        boolean hasIncludes = false;
-        boolean atLeastOneIncludeMatch = false;
-        for (IHttpHeadersFilter filter : filters) {
-            boolean accepted = filter.acceptDocument(url, headers);
-            boolean isInclude = filter instanceof IOnMatchFilter
-                   && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
-            if (isInclude) {
-                hasIncludes = true;
-                if (accepted) {
-                    atLeastOneIncludeMatch = true;
+    private boolean processURL(IURLProcessingStep... steps) {
+        try {
+            for (int i = 0; i < steps.length; i++) {
+                IURLProcessingStep step = steps[i];
+                if (!step.processURL()) {
+                    return false;
                 }
-                continue;
             }
-            if (accepted) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format(
-                            "ACCEPTED document http headers. URL=%s Filter=%s",
-                            url, filter));
-                }
+            return true;
+        } catch (Exception e) {
+            //TODO do we really want to catch anything other than 
+            // HTTPFetchException?  In case we want special treatment to the 
+            // class?
+            crawlURL.setStatus(CrawlStatus.ERROR);
+            if (LOG.isDebugEnabled()) {
+                LOG.error("Could not pre-process URL: " + crawlURL.getUrl()
+                        + " (" + e.getMessage() + ")", e);
             } else {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentHeadersRejected(
-                            crawler, url, filter, headers);
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format(
-                            "REJECTED document http headers. URL=%s Filter=%s",
-                            url, filter));
-                }
-                return true;
+                LOG.error("Could not pre-process URL: " + crawlURL.getUrl()
+                        + " (" + e.getMessage() + ")");
             }
-        }
-        if (hasIncludes && !atLeastOneIncludeMatch) {
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.documentHeadersRejected(
-                        crawler, url, null, headers);
-            }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("REJECTED document http headers. "
-                        + "URL=%s Filter=(no include filters matched)", url));
-            }            
-            return true;
-        }
-        return false;        
-    }
-    
-    private boolean isHeadersChecksumRejected() {
-        IHttpHeadersChecksummer check = config.getHttpHeadersChecksummer();
-        if (check == null) {
             return false;
-        }
-        HttpMetadata headers = doc.getMetadata();
-        String newHeadChecksum = check.createChecksum(headers);
-        crawlURL.setHeadChecksum(newHeadChecksum);
-        String oldHeadChecksum = null;
-        CrawlURL cachedURL = database.getCached(crawlURL.getUrl());
-        if (cachedURL != null) {
-            oldHeadChecksum = cachedURL.getHeadChecksum();
-        } else {
-            LOG.debug("ACCEPTED document headers checkum (new): URL="
-                    + crawlURL.getUrl());
-            return false;
-        }
-        if (StringUtils.isNotBlank(newHeadChecksum) 
-                && ObjectUtils.equals(newHeadChecksum, oldHeadChecksum)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("REJECTED document headers checkum (unmodified): URL="
-                        + crawlURL.getUrl());
+        } finally {
+            //--- Mark URL as Processed ----------------------------------------
+            if (crawlURL.getStatus() != CrawlStatus.OK) {
+                database.processed(crawlURL);
+                crawlURL.getStatus().logInfo(crawlURL);
             }
-            return true;
         }
-        LOG.debug("ACCEPTED document headers checkum (modified): URL=" 
-                + crawlURL.getUrl());
-        return false;
     }
-    
-    
 }
 

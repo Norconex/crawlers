@@ -74,6 +74,7 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
                 CoreProtocolPNames.USER_AGENT)).toLowerCase();
         String robotsURL = baseURL + "/robots.txt";
         HttpGet method = new HttpGet(robotsURL);
+        List<String> sitemapLocations = new ArrayList<String>();
         List<IURLFilter> filters = new ArrayList<IURLFilter>();
         MutableFloat crawlDelay = 
                 new MutableFloat(RobotsTxt.UNSPECIFIED_CRAWL_DELAY);
@@ -83,19 +84,26 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
                     new InputStreamReader(response.getEntity().getContent());
             BufferedReader br = new BufferedReader(isr);
             boolean agentAlreadyMatched = false;
+            boolean doneWithAgent = false;
             String line;
             while ((line = br.readLine()) != null) {
                 String key = line.replaceFirst("(.*?)(:.*)", "$1").trim();
                 String value = line.replaceFirst("(.*?:)(.*)", "$2").trim();
-                if ("user-agent".equalsIgnoreCase(key)) {
-                    if (matchesUserAgent(userAgent, value)) {
-                        agentAlreadyMatched = true;
-                    } else if (agentAlreadyMatched) {
-                        break;
-                    }
+                if ("sitemap".equalsIgnoreCase(key)) {
+                    sitemapLocations.add(value);
                 }
-                if (agentAlreadyMatched) {
-                    parseAgentLines(baseURL, filters, crawlDelay, key, value);
+                if (!doneWithAgent) {
+                    if ("user-agent".equalsIgnoreCase(key)) {
+                        if (matchesUserAgent(userAgent, value)) {
+                            agentAlreadyMatched = true;
+                        } else if (agentAlreadyMatched) {
+                            doneWithAgent = true;
+                        }
+                    }
+                    if (agentAlreadyMatched) {
+                        parseAgentLines(
+                                baseURL, filters, crawlDelay, key, value);
+                    }
                 }
             }
             isr.close();

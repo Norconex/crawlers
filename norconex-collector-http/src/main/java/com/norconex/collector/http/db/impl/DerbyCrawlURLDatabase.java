@@ -18,6 +18,7 @@
  */
 package com.norconex.collector.http.db.impl;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -29,9 +30,12 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.ArrayListHandler;
 import org.apache.commons.dbutils.handlers.ScalarHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 
+import com.norconex.collector.http.crawler.BaseURL;
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
@@ -75,6 +79,8 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
             sqlUpdate("DELETE FROM active");
             LOG.debug("Cleaning processed database...");
             sqlUpdate("DELETE FROM processed");
+            LOG.debug("Cleaning sitemap database...");
+            sqlUpdate("DELETE FROM sitemap");
         } else {
             LOG.debug("Resuming: putting active URLs back in the queue...");
             copyURLDepthToQueue("active");
@@ -83,8 +89,13 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     @Override
-    public final synchronized void queue(String url, int depth) {
-        sqlUpdate("INSERT INTO queue (url, depth) VALUES (?,?)", url, depth);
+    public final synchronized void queue(BaseURL unUrl) {
+        sqlUpdate("INSERT INTO queue "
+                + "  (url, depth, smLastMod, smChangeFreq, smPriority) "
+                + "VALUES (?,?,?,?,?) ", 
+                unUrl.getUrl(), unUrl.getDepth(), 
+                getMillis(unUrl.getSitemapLastMod()), 
+                unUrl.getSitemapChangeFreq(), unUrl.getSitemapPriority());
     }
 
     @Override
@@ -104,11 +115,15 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
 
     @Override
     public final synchronized CrawlURL next() {
-        CrawlURL crawlURL = sqlQueryCrawlURL(
-                "SELECT url, depth FROM queue ORDER BY depth");
+        CrawlURL crawlURL = sqlQueryCrawlURL("queue", null, "depth");
         if (crawlURL != null) {
-            sqlUpdate("INSERT INTO active (url, depth) values (?, ?)",
-                    crawlURL.getUrl(), crawlURL.getDepth());
+            sqlUpdate("INSERT INTO active "
+                    + "(url, depth, smLastMod, smChangeFreq, smPriority) "
+                    + " values (?,?,?,?,?)",
+                    crawlURL.getUrl(), crawlURL.getDepth(),  
+                    getMillis(crawlURL.getSitemapLastMod()),
+                    crawlURL.getSitemapChangeFreq(),
+                    crawlURL.getSitemapPriority());
             sqlUpdate("DELETE FROM queue WHERE url = ?", crawlURL.getUrl());
         }
         return crawlURL;
@@ -126,9 +141,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
 
     @Override
     public synchronized CrawlURL getCached(String url) {
-        return sqlQueryCrawlURL(
-                "SELECT url, depth, docchecksum, headchecksum, status "
-              + "FROM cache WHERE url = ?", url);
+        return sqlQueryCrawlURL("cache", "url = ?", null, url);
     }
 
     @Override
@@ -181,24 +194,26 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
             @Override
             public Void handle(ResultSet rs) throws SQLException {
                 while(rs.next()) {
-                    queue(rs.getString("url"), rs.getInt("depth"));
+                    CrawlURL crawlURL = toCrawlURL(rs);
+                    if (crawlURL != null) {
+                        queue(crawlURL);
+                    }
                 }
                 return null;
             }
         };
         try {
             new QueryRunner(datasource).query(
-                    "SELECT url, depth FROM " + sourceTable, h);
+                    "SELECT url, depth, smLastMod, smChangeFreq, smPriority "
+                  + "FROM " + sourceTable, h);
         } catch (SQLException e) {
             throw new CrawlURLDatabaseException(
                     "Problem running database query.", e);            
         }
     }
     
-    private CrawlURL sqlQueryCrawlURL(String sql, Object... params) {
-      if (LOG.isDebugEnabled()) {
-          LOG.debug("SQL: " + sql);
-      }
+    private CrawlURL sqlQueryCrawlURL(
+            String table, String where, String order, Object... params) {
       try {
           ResultSetHandler<CrawlURL> h = new ResultSetHandler<CrawlURL>() {
               @Override
@@ -207,24 +222,76 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
                       return null;
                   }
                   int colCount = rs.getMetaData().getColumnCount();
-                  CrawlURL crawlURL = new CrawlURL();
-                  crawlURL.setUrl(rs.getString("url"));
-                  crawlURL.setDepth(rs.getInt("depth"));
+                  CrawlURL crawlURL = new CrawlURL(
+                          rs.getString("url"), rs.getInt("depth"));
                   if (colCount > 2) {
                       crawlURL.setDocChecksum(rs.getString("docchecksum"));
                       crawlURL.setHeadChecksum(rs.getString("headchecksum"));
                       crawlURL.setStatus(
                               CrawlStatus.valueOf(rs.getString("status")));
+                      crawlURL.setSitemapChangeFreq(
+                              rs.getString("smChangeFreq"));
+                      BigDecimal bigP = rs.getBigDecimal("smPriority");
+                      if (bigP != null) {
+                          crawlURL.setSitemapPriority(bigP.floatValue());
+                      }
+                      BigDecimal bigLM = rs.getBigDecimal("smLastMod");
+                      if (bigLM != null) {
+                          crawlURL.setSitemapLastMod(
+                                  new DateTime(bigLM.longValue()));
+                      }
                   }
                   return crawlURL;
               }
           };
+          String sql = "SELECT url, depth, smLastMod, smChangeFreq, "
+                     + "smPriority, docchecksum, headchecksum, status "
+                     + "FROM " + table;
+          if (StringUtils.isNotBlank(where)) {
+              sql += " WHERE " + where;
+          }
+          if (StringUtils.isNotBlank(order)) {
+              sql += " ORDER BY " + order;
+          }
+          if (LOG.isDebugEnabled()) {
+              LOG.debug("SQL: " + sql);
+          }
           return new QueryRunner(datasource).query(sql, h, params);
       } catch (SQLException e) {
           throw new CrawlURLDatabaseException(
                   "Problem running database query.", e);            
       }
-  }
+    }
+    
+    private CrawlURL toCrawlURL(ResultSet rs) throws SQLException {
+        if (!rs.next()) {
+            return null;
+        }
+        int colCount = rs.getMetaData().getColumnCount();
+        CrawlURL crawlURL = new CrawlURL(
+                rs.getString("url"), rs.getInt("depth"));
+        if (colCount > 2) {
+            crawlURL.setSitemapChangeFreq(
+                    rs.getString("smChangeFreq"));
+            BigDecimal bigP = rs.getBigDecimal("smPriority");
+            if (bigP != null) {
+                crawlURL.setSitemapPriority(bigP.floatValue());
+            }
+            BigDecimal bigLM = rs.getBigDecimal("smLastMod");
+            if (bigLM != null) {
+                crawlURL.setSitemapLastMod(
+                        new DateTime(bigLM.longValue()));
+            }
+            if (colCount > 5) {
+                crawlURL.setDocChecksum(rs.getString("docchecksum"));
+                crawlURL.setHeadChecksum(rs.getString("headchecksum"));
+                crawlURL.setStatus(
+                        CrawlStatus.valueOf(rs.getString("status")));
+            }
+        }
+        return crawlURL;
+    }
+    
     
     private int sqlQueryInteger(String sql, Object... params) {
         if (LOG.isDebugEnabled()) {
@@ -254,6 +321,12 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         }
     }
     
+    private Long getMillis(DateTime date) {
+        if (date == null) {
+            return null;
+        }
+        return date.getMillis();
+    }
 
     private DataSource createDataSource() {
         BasicDataSource ds = new BasicDataSource();
@@ -273,15 +346,26 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         }
         LOG.debug("    Creating new crawl tables...");
         sqlUpdate("CREATE TABLE queue ("
-                + "url VARCHAR(32672) NOT NULL, depth INTEGER NOT NULL, "
+                + "url VARCHAR(32672) NOT NULL, "
+                + "depth INTEGER NOT NULL, "
+                + "smLastMod LONG, "
+                + "smChangeFreq VARCHAR(7), "
+                + "smPriority FLOAT, "
                 + "PRIMARY KEY (url))");
         sqlUpdate("CREATE INDEX orderindex ON queue(depth)");
         sqlUpdate("CREATE TABLE active ("
-                + "url VARCHAR(32672) NOT NULL, depth INTEGER NOT NULL, "
+                + "url VARCHAR(32672) NOT NULL, "
+                + "depth INTEGER NOT NULL, "
+                + "smLastMod LONG, "
+                + "smChangeFreq VARCHAR(7), "
+                + "smPriority FLOAT, "
                 + "PRIMARY KEY (url))");
         sqlUpdate("CREATE TABLE processed ("
                 + "url VARCHAR(32672) NOT NULL, "
                 + "depth INTEGER NOT NULL, "
+                + "smLastMod LONG, "
+                + "smChangeFreq VARCHAR(7), "
+                + "smPriority FLOAT, "
                 + "docChecksum VARCHAR(32672), "
                 + "headChecksum VARCHAR(32672), "
                 + "status VARCHAR(10), "
@@ -289,9 +373,26 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         sqlUpdate("CREATE TABLE cache ("
                 + "url VARCHAR(32672) NOT NULL, "
                 + "depth INTEGER NOT NULL, "
+                + "smLastMod LONG, "
+                + "smChangeFreq VARCHAR(7), "
+                + "smPriority FLOAT, "
                 + "docChecksum VARCHAR(32672), "
                 + "headChecksum VARCHAR(32672), "
                 + "status VARCHAR(10), "
                 + "PRIMARY KEY (url))");
+        sqlUpdate("CREATE TABLE sitemap ("
+                + "urlroot VARCHAR(32672) NOT NULL "
+                + "PRIMARY KEY (urlroot))");
+    }
+
+    @Override
+    public synchronized void sitemapResolved(String urlRoot) {
+        sqlUpdate("INSERT INTO sitemap (urlroot) VALUES (?) ", urlRoot);
+    }
+
+    @Override
+    public synchronized boolean isSitemapResolved(String urlRoot) {
+        return sqlQueryInteger(
+                "SELECT 1 FROM sitemap where urlroot = ?", urlRoot) > 0;
     }
 }

@@ -18,29 +18,21 @@
  */
 package com.norconex.collector.http.crawler;
 
-import java.io.Serializable;
-
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 
-public class CrawlURL implements Serializable {
+public class CrawlURL extends BaseURL {
 
     private static final long serialVersionUID = -2219206220476107409L;
-    private int depth;
-    private String url;
     private CrawlStatus status;
     private String headChecksum;
     private String docChecksum;
     
-    public CrawlURL() {
-        super();
-    }
-    public int getDepth() {
-        return depth;
-    }
-    public String getUrl() {
-        return url;
+
+    public CrawlURL(String url, int depth) {
+        super(url, depth);
     }
     public CrawlStatus getStatus() {
         return status;
@@ -60,21 +52,14 @@ public class CrawlURL implements Serializable {
     public void setDocChecksum(String docChecksum) {
         this.docChecksum = docChecksum;
     }
-    public void setDepth(int depth) {
-        this.depth = depth;
-    }
-    public void setUrl(String url) {
-        this.url = url;
-    }
     
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-            .append(depth)
+            .appendSuper(super.hashCode())
             .append(docChecksum)
             .append(headChecksum)
             .append(status)
-            .append(url)
             .toHashCode();
     }
     
@@ -91,18 +76,16 @@ public class CrawlURL implements Serializable {
         }
         CrawlURL other = (CrawlURL) obj;
         return new EqualsBuilder()
-            .append(depth, other.depth)
+            .appendSuper(super.equals(obj))
             .append(docChecksum, other.docChecksum)
             .append(headChecksum, other.headChecksum)
             .append(status, other.status)
-            .append(url, other.url)
             .isEquals();
     }
-    
     @Override
     public String toString() {
-        return "CrawlerURL [depth=" + depth + ", url=" + url + ", status="
-                + status + ", headChecksum=" + headChecksum + ", docChecksum="
-                + docChecksum + "]";
+        return new ToStringBuilder(this).appendSuper(super.toString())
+                .append("status", status).append("headChecksum", headChecksum)
+                .append("docChecksum", docChecksum).toString();
     }
 }

@@ -109,8 +109,14 @@ public class HttpCrawler extends AbstractResumableJob {
         ICrawlURLDatabase database = 
               crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
                       crawlerConfig, true);
+        initializeHTTPClient();
         okURLsCount = NumberUtils.toInt(progress.getMetadata());
         execute(database, progress, suite);
+        try {
+            execute(database, progress, suite);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
     }
 
     @Override
@@ -118,10 +124,12 @@ public class HttpCrawler extends AbstractResumableJob {
         ICrawlURLDatabase database = 
               crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
                       crawlerConfig, false);
+        initializeHTTPClient();
         String[] startURLs = crawlerConfig.getStartURLs();
         for (int i = 0; i < startURLs.length; i++) {
             String startURL = startURLs[i];
-            database.queue(startURL, 0);
+            new URLProcessor(
+                    this, httpClient, database, new CrawlURL(startURL, 0));
         }
         for (IHttpCrawlerEventListener listener : listeners) {
             listener.crawlerStarted(this);
@@ -139,9 +147,8 @@ public class HttpCrawler extends AbstractResumableJob {
         //TODO print initialization information
         LOG.info("RobotsTxt support " + 
                 (crawlerConfig.isIgnoreRobotsTxt() ? "disabled." : "enabled"));
-        
-        initializeHTTPClient();
-        
+        LOG.info("RobotsMeta support " + 
+                (crawlerConfig.isIgnoreRobotsMeta() ? "disabled." : "enabled"));
 
         //TODO consider offering threading here?
         processURLs(database, progress, suite, false);
@@ -316,7 +323,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 LOG.debug("Processing URL: " + url);
             }
             
-            if (!new URLProcessor(this, httpClient, database, 
+            if (!new DocumentProcessor(this, httpClient, database, 
                     outputFile, doc, crawlURL).processURL()) {
                 return;
             }

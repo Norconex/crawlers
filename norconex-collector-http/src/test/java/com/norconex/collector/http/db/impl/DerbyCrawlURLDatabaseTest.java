@@ -30,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.norconex.collector.http.crawler.BaseURL;
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
@@ -48,7 +49,7 @@ public class DerbyCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 		// instantiate again the DerbyCrawlURLDatabase with resume set to false.
 		// TODO implement a protected method in DerbyCrawlURLDatabase to be used
 		// by tests to simplify this.
-		db.queue(url, 0);
+		db.queue(new BaseURL(url, 0));
 		CrawlURL next = db.next();
 		next.setStatus(CrawlStatus.OK);
 		db.processed(next);
@@ -87,7 +88,7 @@ public class DerbyCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 
 		// Simulate a successful fetch
 		String url = "http://www.norconex.com/";
-		db.queue(url, 0);
+		db.queue(new BaseURL(url, 0));
 		CrawlURL next = db.next();
 		next.setStatus(CrawlStatus.OK);
 		db.processed(next);
@@ -117,7 +118,7 @@ public class DerbyCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 
 		// Queue a url
 		String url = "http://www.norconex.com/";
-		db.queue(url, 0);
+		db.queue(new BaseURL(url, 0));
 
 		// Instantiate a new Derby DB with the "resume" option set to true. The
 		// url should still be queued.
@@ -139,7 +140,7 @@ public class DerbyCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 
 		// Activate an url
 		String url = "http://www.norconex.com/";
-		db.queue(url, 0);
+		db.queue(new BaseURL(url, 0));
 		db.next();
 
 		// Instantiate a new Derby DB with the "resume" option set to true. The
@@ -162,7 +163,7 @@ public class DerbyCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 
 		// Process an url
 		String url = "http://www.norconex.com/";
-		db.queue(url, 0);
+		db.queue(new BaseURL(url, 0));
 		CrawlURL next = db.next();
 		next.setStatus(CrawlStatus.OK);
 		db.processed(next);

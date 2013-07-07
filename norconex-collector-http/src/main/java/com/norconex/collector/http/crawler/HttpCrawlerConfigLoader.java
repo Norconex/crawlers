@@ -154,6 +154,12 @@ public final class HttpCrawlerConfigLoader {
         config.setIgnoreRobotsTxt(node.getBoolean(
                 "robotsTxt[@ignore]", config.isIgnoreRobotsTxt()));
         
+        //--- Sitemap Resolver -------------------------------------------------
+        config.setSitemapResolver(ConfigurationUtil.newInstance(
+                node, "sitemap", config.getSitemapResolver()));
+        config.setIgnoreRobotsTxt(node.getBoolean(
+                "robotsTxt[@ignore]", config.isIgnoreRobotsTxt()));
+        
         //--- HTTP Headers Fetcher ---------------------------------------------
         config.setHttpHeadersFetcher(ConfigurationUtil.newInstance(
                 node, "httpHeadersFetcher", config.getHttpHeadersFetcher()));
