@@ -149,13 +149,12 @@ public final class URLProcessor {
 
     //--- Sitemap URL Extraction -----------------------------------------------
     private class SitemapStep implements IURLProcessingStep {
-        final String urlRoot = 
-                crawlURL.getUrl().replaceFirst("(.*?://.*?/)(.*)", "$1");
         @Override
         public synchronized boolean processURL() {
             if (config.isIgnoreSitemap()) {
                 return true;
             }
+            String urlRoot = crawlURL.getUrlRoot();
             boolean resolved = SITEMAP_RESOLVED.contains(urlRoot);
             if (!resolved) {
                 resolved = database.isSitemapResolved(urlRoot);
@@ -306,6 +305,7 @@ public final class URLProcessor {
                     return false;
                 }
             }
+            crawlURL.setStatus(CrawlStatus.OK);
             return true;
         } catch (Exception e) {
             //TODO do we really want to catch anything other than 
@@ -323,8 +323,12 @@ public final class URLProcessor {
         } finally {
             //--- Mark URL as Processed ----------------------------------------
             if (crawlURL.getStatus() != CrawlStatus.OK) {
+                CrawlStatus status = crawlURL.getStatus();
+                if (status == null) {
+                    status = CrawlStatus.BAD_STATUS;
+                }
                 database.processed(crawlURL);
-                crawlURL.getStatus().logInfo(crawlURL);
+                status.logInfo(crawlURL);
             }
         }
     }

@@ -30,14 +30,15 @@ public class BaseURL implements Serializable {
 
     private int depth;
     private String url;
+    private String urlRoot;
     private DateTime sitemapLastMod;
     private String sitemapChangeFreq;
     private Float sitemapPriority;
     
     public BaseURL(String url, int depth) {
         super();
-        this.url = url;
-        this.depth = depth;
+        setUrl(url);
+        setDepth(depth);
     }
     public int getDepth() {
         return depth;
@@ -63,12 +64,21 @@ public class BaseURL implements Serializable {
     public void setSitemapPriority(Float sitemapPriority) {
         this.sitemapPriority = sitemapPriority;
     }
-    public void setDepth(int depth) {
+    public final void setDepth(int depth) {
         this.depth = depth;
     }
-    public void setUrl(String url) {
+    public final void setUrl(String url) {
         this.url = url;
+        if (url != null) {
+            this.urlRoot = url.replaceFirst("(.*?://.*?)(/.*)", "$1");
+        } else {
+            this.urlRoot = null;
+        }
     }
+    public String getUrlRoot() {
+        return urlRoot;
+    }
+    
     @Override
     public int hashCode() {
         return new HashCodeBuilder()

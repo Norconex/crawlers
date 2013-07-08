@@ -111,7 +111,6 @@ public class HttpCrawler extends AbstractResumableJob {
                       crawlerConfig, true);
         initializeHTTPClient();
         okURLsCount = NumberUtils.toInt(progress.getMetadata());
-        execute(database, progress, suite);
         try {
             execute(database, progress, suite);
         } finally {
@@ -128,8 +127,8 @@ public class HttpCrawler extends AbstractResumableJob {
         String[] startURLs = crawlerConfig.getStartURLs();
         for (int i = 0; i < startURLs.length; i++) {
             String startURL = startURLs[i];
-            new URLProcessor(
-                    this, httpClient, database, new CrawlURL(startURL, 0));
+            new URLProcessor(this, httpClient, database, 
+                    new CrawlURL(startURL, 0)).processURL();
         }
         for (IHttpCrawlerEventListener listener : listeners) {
             listener.crawlerStarted(this);

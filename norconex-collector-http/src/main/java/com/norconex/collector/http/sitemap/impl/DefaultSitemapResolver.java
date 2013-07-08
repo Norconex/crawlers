@@ -19,14 +19,30 @@
 package com.norconex.collector.http.sitemap.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.sitemap.ISitemapsResolver;
 import com.norconex.collector.http.sitemap.SitemapURLStore;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -56,7 +72,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * </p>
  * <pre>
  *  &lt;sitemap ignore="false" lenient="false"
- *     class="com.norconex.collector.http.handler.DefaultSitemapProvider"&gt;
+ *     class="com.norconex.collector.http.sitemap.impl.DefaultSitemapResolver"&gt;
  *     &lt;location&gt;(optional location of sitemap.xml)&lt;/location&gt;
  *     (... repeat location tag as needed ...)
  *  &lt;/sitemap&gt;
@@ -76,80 +92,25 @@ public class DefaultSitemapResolver
     @Override
     public void resolveSitemaps(DefaultHttpClient httpClient, String urlRoot,
             String[] robotsTxtLocations, SitemapURLStore sitemapURLStore) {
-        // TODO implement me
-        
+
+        final Set<String> resolvedLocations = new HashSet<String>();
+
+        Set<String> uniqueLocations = 
+                combineLocations(robotsTxtLocations, urlRoot);
+        for (String location : uniqueLocations) {
+            resolveLocation(location, httpClient, sitemapURLStore, 
+                    resolvedLocations);
+        }
     }
 
     public String[] getSitemapLocations() {
         return sitemapLocations;
     }
-    public void setSitemapLocations(String[] sitemapLocations) {
+    public void setSitemapLocations(String... sitemapLocations) {
         this.sitemapLocations = sitemapLocations;
     }
     
-//    @Override
-//    public SitemapURLStore getSitemap(DefaultHttpClient httpClient, String url,
-//            String[] robotsTxtLocations) {
-//        String baseURL = getBaseURL(url);
-//        SitemapURLStore sitemap = sitemapCache.get(baseURL);
-//        if (sitemap != null) {
-//            return sitemap;
-//        }
-//        
-//        
-//        
-//        
-//        
-//        String userAgent = ((String) httpClient.getParams().getParameter(
-//                CoreProtocolPNames.USER_AGENT)).toLowerCase();
-//        String robotsURL = baseURL + "/robots.txt";
-//        HttpGet method = new HttpGet(robotsURL);
-//        List<String> sitemapLocations = new ArrayList<String>();
-//        List<IURLFilter> filters = new ArrayList<IURLFilter>();
-//        MutableFloat crawlDelay = 
-//                new MutableFloat(RobotsTxt.UNSPECIFIED_CRAWL_DELAY);
-//        try {
-//            HttpResponse response = httpClient.execute(method);
-//            InputStreamReader isr = 
-//                    new InputStreamReader(response.getEntity().getContent());
-//            BufferedReader br = new BufferedReader(isr);
-//            boolean agentAlreadyMatched = false;
-//            boolean doneWithAgent = false;
-//            String line;
-//            while ((line = br.readLine()) != null) {
-//                String key = line.replaceFirst("(.*?)(:.*)", "$1").trim();
-//                String value = line.replaceFirst("(.*?:)(.*)", "$2").trim();
-//                if ("sitemap".equalsIgnoreCase(key)) {
-//                    sitemapLocations.add(value);
-//                }
-//                if (!doneWithAgent) {
-//                    if ("user-agent".equalsIgnoreCase(key)) {
-//                        if (matchesUserAgent(userAgent, value)) {
-//                            agentAlreadyMatched = true;
-//                        } else if (agentAlreadyMatched) {
-//                            doneWithAgent = true;
-//                        }
-//                    }
-//                    if (agentAlreadyMatched) {
-//                        parseAgentLines(
-//                                baseURL, filters, crawlDelay, key, value);
-//                    }
-//                }
-//            }
-//            isr.close();
-//        } catch (Exception e) {
-//            if (LOG.isDebugEnabled()) {
-//                LOG.info("Not able to obtain robots.txt at: " + robotsURL, e);
-//            } else {
-//                LOG.info("Not able to obtain robots.txt at: " + robotsURL);
-//            }
-//        }
-//        
-//        sitemap = new SitemapURLStore(
-//                filters.toArray(new IURLFilter[]{}));
-//        sitemapCache.put(baseURL, sitemap);
-//        return sitemap;
-//    }
+
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
@@ -162,5 +123,139 @@ public class DefaultSitemapResolver
         // TODO Auto-generated method stub
         
     }
+
+    private void resolveLocation(String location, DefaultHttpClient httpClient,
+            SitemapURLStore sitemapURLStore, Set<String> resolvedLocations) {
+
+        if (resolvedLocations.contains(location)) {
+            return;
+        }
+        
+        HttpGet method = null;
+        try {
+            method = new HttpGet(location);
+            
+            // Execute the method.
+            HttpResponse response = httpClient.execute(method);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
+                LOG.info("Resolving sitemap: " + location);
+                InputStream is = response.getEntity().getContent();
+                parseLocation(is, httpClient, sitemapURLStore, 
+                        resolvedLocations);
+                IOUtils.closeQuietly(is);
+            } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                LOG.debug("No sitemap found : " + location);
+            } else {
+                LOG.error("Could not obtain sitemap: " + location
+                        + ".  Expected status code " + HttpStatus.SC_OK
+                        + ", but got " + statusCode);
+            }
+        } catch (Exception e) {
+            LOG.error("Cannot fetch sitemap: " + location
+                    + " (" + e.getMessage() + ")");
+            throw new HttpCollectorException(e);
+        } finally {
+            if (method != null) {
+                method.releaseConnection();
+            }
+        }  
+        
+        
+    }
+    
+    private void parseLocation(InputStream is, DefaultHttpClient httpClient,
+            SitemapURLStore sitemapURLStore, Set<String> resolvedLocations)
+                    throws XMLStreamException {
+
+        XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+        XMLEventReader eventReader = inputFactory.createXMLEventReader(is);
+        while (eventReader.hasNext()) {
+            XMLEvent event = eventReader.nextEvent();
+
+            if (event.isStartElement()) {
+                StartElement startElement = event.asStartElement();
+                if (isTag("sitemapindex", startElement)) {
+                    parseSitemapIndex(eventReader, httpClient, sitemapURLStore,
+                            resolvedLocations);
+                } else if (isTag("urlset", startElement)) {
+                    parseSitemap(eventReader, httpClient, sitemapURLStore,
+                            resolvedLocations);
+                } else {
+                    LOG.error("Unsupported sitemap XML tag: "
+                            + startElement.getName().getLocalPart());
+                }
+            }
+//            // If we reach the end of an item element we add it to the list
+//            if (event.isEndElement()) {
+//                EndElement endElement = event.asEndElement();
+//                System.out.println("End Tag:" + endElement.getName());
+//                if (isTag("sitemapindex", endElement)) {
+//                    System.out.println("   In </sitemapindex>");
+//                }
+//            }
+        }
+    }
+
+    private void parseSitemapIndex(
+            XMLEventReader eventReader, DefaultHttpClient httpClient,
+            SitemapURLStore sitemapURLStore, Set<String> resolvedLocations)
+                    throws XMLStreamException {
+        
+//        eventReader.
+        
+        System.out.println("   In <sitemapindex>");
+    }
+    
+    private void parseSitemap(
+            XMLEventReader eventReader, DefaultHttpClient httpClient,
+            SitemapURLStore sitemapURLStore, Set<String> resolvedLocations)
+                    throws XMLStreamException {
+        System.out.println("   In <urlset>");
+    }
+            /*
+            <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+            <sitemap>
+
+               <loc>http://www.example.com/sitemap1.xml.gz</loc>
+
+               <lastmod>2004-10-01T18:23:17+00:00</lastmod>
+
+            </sitemap>
+
+            <sitemap>
+
+               <loc>http://www.example.com/sitemap2.xml.gz</loc>
+
+               <lastmod>2005-01-01</lastmod>
+
+            </sitemap>
+
+         </sitemapindex>
+
+             */
+            
+    private boolean isTag(String tagName, StartElement element) {
+        return tagName.equalsIgnoreCase(element.getName().getLocalPart());
+    }
+    private boolean isTag(String tagName, EndElement element) {
+        return tagName.equalsIgnoreCase(element.getName().getLocalPart());
+    }
+        
+    private Set<String> combineLocations(
+            String[] robotsTxtLocations, String urlRoot) {
+        Set<String> uniqueLocations = new HashSet<String>();
+        uniqueLocations.add(urlRoot + "/sitemap_index.xml");
+        uniqueLocations.add(urlRoot + "/sitemap.xml");
+        if (ArrayUtils.isNotEmpty(robotsTxtLocations)) {
+            uniqueLocations.addAll(Arrays.asList(robotsTxtLocations));
+        }
+        if (ArrayUtils.isNotEmpty(sitemapLocations)) {
+            uniqueLocations.addAll(Arrays.asList(sitemapLocations));
+        }
+        return uniqueLocations;
+    }
+    
 
 }

@@ -47,7 +47,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     private static final Logger LOG = 
             LogManager.getLogger(DerbyCrawlURLDatabase.class);
     
-    private static final int NUMBER_OF_TABLES = 4;
+    private static final int NUMBER_OF_TABLES = 5;
     
     private final String dbDir;
     private final DataSource datasource;
@@ -115,7 +115,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
 
     @Override
     public final synchronized CrawlURL next() {
-        CrawlURL crawlURL = sqlQueryCrawlURL("queue", null, "depth");
+        CrawlURL crawlURL = sqlQueryCrawlURL(false, "queue", null, "depth");
         if (crawlURL != null) {
             sqlUpdate("INSERT INTO active "
                     + "(url, depth, smLastMod, smChangeFreq, smPriority) "
@@ -141,7 +141,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
 
     @Override
     public synchronized CrawlURL getCached(String url) {
-        return sqlQueryCrawlURL("cache", "url = ?", null, url);
+        return sqlQueryCrawlURL(true, "cache", "url = ?", null, url);
     }
 
     @Override
@@ -212,8 +212,8 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         }
     }
     
-    private CrawlURL sqlQueryCrawlURL(
-            String table, String where, String order, Object... params) {
+    private CrawlURL sqlQueryCrawlURL(boolean selectAll, String table, 
+            String where, String order, Object... params) {
       try {
           ResultSetHandler<CrawlURL> h = new ResultSetHandler<CrawlURL>() {
               @Override
@@ -224,29 +224,32 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
                   int colCount = rs.getMetaData().getColumnCount();
                   CrawlURL crawlURL = new CrawlURL(
                           rs.getString("url"), rs.getInt("depth"));
-                  if (colCount > 2) {
+                  crawlURL.setSitemapChangeFreq(
+                          rs.getString("smChangeFreq"));
+                  BigDecimal bigP = rs.getBigDecimal("smPriority");
+                  if (bigP != null) {
+                      crawlURL.setSitemapPriority(bigP.floatValue());
+                  }
+                  BigDecimal bigLM = rs.getBigDecimal("smLastMod");
+                  if (bigLM != null) {
+                      crawlURL.setSitemapLastMod(
+                              new DateTime(bigLM.longValue()));
+                  }
+                  if (colCount > 5) {
                       crawlURL.setDocChecksum(rs.getString("docchecksum"));
                       crawlURL.setHeadChecksum(rs.getString("headchecksum"));
                       crawlURL.setStatus(
                               CrawlStatus.valueOf(rs.getString("status")));
-                      crawlURL.setSitemapChangeFreq(
-                              rs.getString("smChangeFreq"));
-                      BigDecimal bigP = rs.getBigDecimal("smPriority");
-                      if (bigP != null) {
-                          crawlURL.setSitemapPriority(bigP.floatValue());
-                      }
-                      BigDecimal bigLM = rs.getBigDecimal("smLastMod");
-                      if (bigLM != null) {
-                          crawlURL.setSitemapLastMod(
-                                  new DateTime(bigLM.longValue()));
-                      }
                   }
                   return crawlURL;
               }
           };
           String sql = "SELECT url, depth, smLastMod, smChangeFreq, "
-                     + "smPriority, docchecksum, headchecksum, status "
-                     + "FROM " + table;
+                     + "smPriority ";
+          if (selectAll) {
+              sql += ", docchecksum, headchecksum, status ";
+          }
+          sql += "FROM " + table;
           if (StringUtils.isNotBlank(where)) {
               sql += " WHERE " + where;
           }
@@ -348,7 +351,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         sqlUpdate("CREATE TABLE queue ("
                 + "url VARCHAR(32672) NOT NULL, "
                 + "depth INTEGER NOT NULL, "
-                + "smLastMod LONG, "
+                + "smLastMod BIGINT, "
                 + "smChangeFreq VARCHAR(7), "
                 + "smPriority FLOAT, "
                 + "PRIMARY KEY (url))");
@@ -356,14 +359,14 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         sqlUpdate("CREATE TABLE active ("
                 + "url VARCHAR(32672) NOT NULL, "
                 + "depth INTEGER NOT NULL, "
-                + "smLastMod LONG, "
+                + "smLastMod BIGINT, "
                 + "smChangeFreq VARCHAR(7), "
                 + "smPriority FLOAT, "
                 + "PRIMARY KEY (url))");
         sqlUpdate("CREATE TABLE processed ("
                 + "url VARCHAR(32672) NOT NULL, "
                 + "depth INTEGER NOT NULL, "
-                + "smLastMod LONG, "
+                + "smLastMod BIGINT, "
                 + "smChangeFreq VARCHAR(7), "
                 + "smPriority FLOAT, "
                 + "docChecksum VARCHAR(32672), "
@@ -373,7 +376,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         sqlUpdate("CREATE TABLE cache ("
                 + "url VARCHAR(32672) NOT NULL, "
                 + "depth INTEGER NOT NULL, "
-                + "smLastMod LONG, "
+                + "smLastMod BIGINT, "
                 + "smChangeFreq VARCHAR(7), "
                 + "smPriority FLOAT, "
                 + "docChecksum VARCHAR(32672), "
@@ -381,7 +384,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
                 + "status VARCHAR(10), "
                 + "PRIMARY KEY (url))");
         sqlUpdate("CREATE TABLE sitemap ("
-                + "urlroot VARCHAR(32672) NOT NULL "
+                + "urlroot VARCHAR(32672) NOT NULL, "
                 + "PRIMARY KEY (urlroot))");
     }
 
