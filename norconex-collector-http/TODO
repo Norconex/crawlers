@@ -1,5 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
+- Add Lucene-based CrawlDB implementation, offering disk or memory.
+
+- Benchmark CrawlDB implementations and change default one if appropriate.
+
 - Add optional flag to support gzip transfer (DecompressingHttpClient).
 
 - Add support for gzipped sitemap.xml files.
@@ -18,6 +22,8 @@ The following are either things to be done, or ideas to consider:
 - Integrate with distributed computing frameworks such as hadhoop.
 
 - Test that sitemap resumes well if failing in-between.
+
+- Only load/parse sitemap locations matching root url
 
 - Document sitemap.
 
