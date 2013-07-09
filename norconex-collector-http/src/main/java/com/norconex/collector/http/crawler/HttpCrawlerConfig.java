@@ -49,6 +49,8 @@ import com.norconex.collector.http.handler.impl.DefaultHttpHeadersChecksummer;
 import com.norconex.collector.http.handler.impl.DefaultRobotsMetaProvider;
 import com.norconex.collector.http.handler.impl.DefaultRobotsTxtProvider;
 import com.norconex.collector.http.handler.impl.DefaultURLExtractor;
+import com.norconex.collector.http.sitemap.ISitemapsResolver;
+import com.norconex.collector.http.sitemap.impl.DefaultSitemapResolver;
 import com.norconex.committer.ICommitter;
 import com.norconex.importer.ImporterConfig;
 
@@ -65,6 +67,7 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     
     private boolean ignoreRobotsTxt;
     private boolean ignoreRobotsMeta;
+    private boolean ignoreSitemap;
     private boolean keepDownloads;
     private boolean deleteOrphans;
 
@@ -86,6 +89,8 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
             new DefaultRobotsTxtProvider();
     private IRobotsMetaProvider robotsMetaProvider =
             new DefaultRobotsMetaProvider();
+    private ISitemapsResolver sitemapResolver =
+            new DefaultSitemapResolver();
 
     private ICrawlURLDatabaseFactory crawlURLDatabaseFactory =
             new DefaultCrawlURLDatabaseFactory();
@@ -293,6 +298,18 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
     public void setRobotsMetaProvider(IRobotsMetaProvider robotsMetaProvider) {
         this.robotsMetaProvider = robotsMetaProvider;
+    }
+    public boolean isIgnoreSitemap() {
+        return ignoreSitemap;
+    }
+    public void setIgnoreSitemap(boolean ignoreSitemap) {
+        this.ignoreSitemap = ignoreSitemap;
+    }
+    public ISitemapsResolver getSitemapResolver() {
+        return sitemapResolver;
+    }
+    public void setSitemapResolver(ISitemapsResolver sitemapResolver) {
+        this.sitemapResolver = sitemapResolver;
     }
     @Override
     protected Object clone() throws CloneNotSupportedException {

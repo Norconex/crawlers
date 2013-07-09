@@ -32,20 +32,31 @@ public class RobotsTxt implements Serializable {
     
     private final IURLFilter[] filters;
     private final float crawlDelay ;
+    private final String[] sitemapLocations;
     
     public RobotsTxt(IURLFilter[] filters) {
         this(filters, UNSPECIFIED_CRAWL_DELAY);
     }
     public RobotsTxt(IURLFilter[] filters, float crawlDelay) {
+        this(filters, null, crawlDelay);
+    }
+    public RobotsTxt(IURLFilter[] filters, String[] sitemapLocations) {
+        this(filters, sitemapLocations, UNSPECIFIED_CRAWL_DELAY);
+    }
+    public RobotsTxt(
+            IURLFilter[] filters, String[] sitemapLocations, float crawlDelay) {
         super();
         this.filters = ArrayUtils.clone(filters);
+        this.sitemapLocations = sitemapLocations;
         this.crawlDelay = crawlDelay;
     }
 
     public IURLFilter[] getFilters() {
         return filters;
     }
-    
+    public String[] getSitemapLocations() {
+        return sitemapLocations;
+    }
     public float getCrawlDelay() {
         return crawlDelay;
     }

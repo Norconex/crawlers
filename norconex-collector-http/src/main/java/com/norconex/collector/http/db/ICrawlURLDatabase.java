@@ -19,6 +19,7 @@
 package com.norconex.collector.http.db;
 
 import com.norconex.collector.http.crawler.CrawlURL;
+import com.norconex.collector.http.crawler.BaseURL;
 
 
 /**
@@ -40,11 +41,11 @@ import com.norconex.collector.http.crawler.CrawlURL;
 public interface ICrawlURLDatabase {
 
     /**
-     * Queues a URL for future processing.
+     * <p>
+     * Queues a URL for future processing. 
      * @param url the URL to eventually be processed
-     * @param depth how many clicks away from starting URL(s)
      */
-    void queue(String url, int depth);
+    void queue(BaseURL url);
 
     /**
      * Whether there are any URLs to process in the queue.
@@ -64,7 +65,7 @@ public interface ICrawlURLDatabase {
      * @return <code>true</code> if the URL is in the queue
      */
     boolean isQueued(String url);
-
+    
     /**
      * Returns the next URL to be processed and marks it as being "active"
      * (i.e. currently being processed).
@@ -135,4 +136,19 @@ public interface ICrawlURLDatabase {
      * @param crawlURL the URL
      */
     boolean isVanished(CrawlURL crawlURL);
+    
+    /**
+     * Mark a URL "root" (e.g. http://www.example.com) as having its sitemap
+     * resolved.
+     * @param urlRoot url root
+     */
+    void sitemapResolved(String urlRoot);
+    
+    /**
+     * Whether the given URL "root" (e.g. http://www.example.com) has its
+     * sitemap resolved.
+     * @param urlRoot
+     * @return <code>true</code> if already resolved
+     */
+    boolean isSitemapResolved(String urlRoot);
 }

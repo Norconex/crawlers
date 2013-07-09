@@ -170,7 +170,7 @@ Welcome to Norconex HTTP Collector
 
 []
     
-  * <<Robots.txt support>>\
+  * <<Robots.txt and in-page Robots meta tag support>>\
     Can easily be turned off for your own sites.
 
 []
@@ -213,7 +213,7 @@ Welcome to Norconex HTTP Collector
 []
     
   * <<Supports various website authentication schemes>>\
-    Supports standard/popular implementations out-of-the-box.
+    Supports FORM, BASIC, and DIGEST implementations out-of-the-box.
     If you use custom authentication mechanism, you can plug your own 
     authentication logic.
 

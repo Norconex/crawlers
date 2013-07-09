@@ -87,6 +87,7 @@ Configuration
     </httpHeadersFilters>        
     <httpHeadersChecksummer class="..." />
     <httpDocumentFetcher class="..." />
+    <robotsMeta ignore="..." class="..."/>
     <urlExtractor class="..." />
     <httpDocumentFilters>
       <filter class="..." />
@@ -175,6 +176,8 @@ Configuration
 | <<<httpHeadersChecksummer>>> | Create document checksum from HTTP Headers. | {{{$api/handler/impl/DefaultHttpHeadersChecksummer.html}DefaultHttpHeadersChecksummer}} | {{{$api/handler/IHttpHeadersChecksummer.html}IHttpHeadersChecksummer}} |
 *----------+--------------+----------------+----------------+
 | <<<httpDocumentFetcher>>> | Fetch a document from URL. | {{{$api/handler/impl/DefaultDocumentFetcher.html}DefaultDocumentFetcher}} | {{{$api/handler/IHttpDocumentFetcher.html}IHttpDocumentFetcher}} |
+*----------+--------------+----------------+----------------+
+| <<<robotsMeta>>> | Handle in-page robots instructions. | {{{$api/handler/impl/DefaultRobotsMetaProvider.html}DefaultRobotsMetaProvider}} | {{{$api/handler/IRobotsMetaProvider.html}IRobotsMetaProvider}} |
 *----------+--------------+----------------+----------------+
 | <<<urlExtractor>>> | Extract URLs from a document. | {{{$api/handler/impl/DefaultURLExtractor.html}DefaultURLExtractor}} | {{{$api/handler/IURLExtractor.html}IURLExtractor}} |
 *----------+--------------+----------------+----------------+
