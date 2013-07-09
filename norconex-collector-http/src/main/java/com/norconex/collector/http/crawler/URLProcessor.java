@@ -53,11 +53,12 @@ public final class URLProcessor {
     private final HttpCrawlerConfig config;
     private final List<IHttpCrawlerEventListener> listeners = 
             new ArrayList<IHttpCrawlerEventListener>();
-    private final CrawlURL crawlURL;
+    private final BaseURL baseURL;
     private final DefaultHttpClient httpClient;
     private final ICrawlURLDatabase database;
     private RobotsTxt robotsTxt;
     private RobotsMeta robotsMeta;
+    private CrawlStatus status;
     
     // Order is important.  E.g. Robots must be after URL Filters and before 
     // Delay resolver
@@ -79,12 +80,12 @@ public final class URLProcessor {
 
     public URLProcessor(
             HttpCrawler crawler, DefaultHttpClient httpClient, 
-            ICrawlURLDatabase database, CrawlURL crawlURL) {
+            ICrawlURLDatabase database, BaseURL baseURL) {
         this.crawler = crawler;
         this.httpClient = httpClient;
         this.database = database;
-        this.crawlURL = crawlURL;
         this.config = crawler.getCrawlerConfig();
+        this.baseURL = baseURL;
         IHttpCrawlerEventListener[] ls = config.getCrawlerListeners();
         if (ls != null) {
             this.listeners.addAll(Arrays.asList(ls));
@@ -93,6 +94,9 @@ public final class URLProcessor {
 
     public boolean processURL() {
         return processURL(defaultSteps);
+    }
+    private boolean processSitemapURL() {
+        return processURL(sitemapSteps);
     }
 
     public interface IURLProcessingStep {
@@ -107,12 +111,12 @@ public final class URLProcessor {
         @Override
         public boolean processURL() {
             if (config.getMaxDepth() != -1 
-                    && crawlURL.getDepth() > config.getMaxDepth()) {
+                    && baseURL.getDepth() > config.getMaxDepth()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("URL too deep to process (" 
-                            + crawlURL.getDepth() + "): " + crawlURL.getUrl());
+                            + baseURL.getDepth() + "): " + baseURL.getUrl());
                 }
-                crawlURL.setStatus(CrawlStatus.TOO_DEEP);
+                status = CrawlStatus.TOO_DEEP;
                 return false;
             }
             return true;
@@ -124,7 +128,7 @@ public final class URLProcessor {
         @Override
         public boolean processURL() {
             if (isURLRejected(config.getURLFilters(), null)) {
-                crawlURL.setStatus(CrawlStatus.REJECTED);
+                status = CrawlStatus.REJECTED;
                 return false;
             }
             return true;
@@ -137,9 +141,9 @@ public final class URLProcessor {
         public boolean processURL() {
             if (!config.isIgnoreRobotsTxt()) {
                 robotsTxt = config.getRobotsTxtProvider().getRobotsTxt(
-                                httpClient, crawlURL.getUrl());
+                                httpClient, baseURL.getUrl());
                 if (isURLRejected(robotsTxt.getFilters(), robotsTxt)) {
-                    crawlURL.setStatus(CrawlStatus.REJECTED);
+                    status = CrawlStatus.REJECTED;
                     return false;
                 }
             }
@@ -154,7 +158,7 @@ public final class URLProcessor {
             if (config.isIgnoreSitemap()) {
                 return true;
             }
-            String urlRoot = crawlURL.getUrlRoot();
+            String urlRoot = baseURL.getUrlRoot();
             boolean resolved = SITEMAP_RESOLVED.contains(urlRoot);
             if (!resolved) {
                 resolved = database.isSitemapResolved(urlRoot);
@@ -169,8 +173,9 @@ public final class URLProcessor {
                     private static final long serialVersionUID = 
                             7618470895330355434L;
                     @Override
-                    public void add(BaseURL crawlURL) {
-                        URLProcessor.this.processURL(sitemapSteps);
+                    public void add(BaseURL baseURL) {
+                        new URLProcessor(crawler, httpClient, database, baseURL)
+                                .processSitemapURL();
                     }
                 };
                 sitemapResolver.resolveSitemaps(httpClient, urlRoot, 
@@ -193,12 +198,12 @@ public final class URLProcessor {
         public boolean processURL() {
             if (config.getUrlNormalizer() != null) {
                 String url = config.getUrlNormalizer().normalizeURL(
-                        crawlURL.getUrl());
+                        baseURL.getUrl());
                 if (url == null) {
-                    crawlURL.setStatus(CrawlStatus.REJECTED);
+                    status = CrawlStatus.REJECTED;
                     return false;
                 }
-                crawlURL.setUrl(url);
+                baseURL.setUrl(url);
             }
             return true;
         }
@@ -211,25 +216,25 @@ public final class URLProcessor {
             if (robotsMeta != null && robotsMeta.isNofollow()) {
                 return true;
             }
-            String url = crawlURL.getUrl();
-                if (database.isActive(url)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Already being processed: " + url);
-                    }
-                } else if (database.isQueued(url)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Already queued: " + url);
-                    }
-                } else if (database.isProcessed(url)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Already processed: " + url);
-                    }
-                } else {
-                    database.queue(new CrawlURL(url, crawlURL.getDepth()));
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Queued for processing: " + url);
-                    }
+            String url = baseURL.getUrl();
+            if (database.isActive(url)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Already being processed: " + url);
                 }
+            } else if (database.isQueued(url)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Already queued: " + url);
+                }
+            } else if (database.isProcessed(url)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Already processed: " + url);
+                }
+            } else {
+                database.queue(new BaseURL(url, baseURL.getDepth()));
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Queued for processing: " + url);
+                }
+            }
             return true;
         }
     }
@@ -248,7 +253,7 @@ public final class URLProcessor {
         boolean hasIncludes = false;
         boolean atLeastOneIncludeMatch = false;
         for (IURLFilter filter : filters) {
-            boolean accepted = filter.acceptURL(crawlURL.getUrl());
+            boolean accepted = filter.acceptURL(baseURL.getUrl());
             boolean isInclude = filter instanceof IOnMatchFilter
                    && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
             
@@ -265,7 +270,7 @@ public final class URLProcessor {
             if (accepted) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("ACCEPTED document URL" + type 
-                            + ". URL=" + crawlURL.getUrl()
+                            + ". URL=" + baseURL.getUrl()
                             + " Filter=" + filter);
                 }
             } else {
@@ -285,15 +290,15 @@ public final class URLProcessor {
         for (IHttpCrawlerEventListener listener : listeners) {
             if (robots != null) {
                 listener.documentRobotsTxtRejected(
-                        crawler, crawlURL.getUrl(), filter, robots);
+                        crawler, baseURL.getUrl(), filter, robots);
             } else {
                 listener.documentURLRejected(
-                        crawler, crawlURL.getUrl(), filter);
+                        crawler, baseURL.getUrl(), filter);
             }
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("REJECTED document URL" + type + ". URL=" 
-                  + crawlURL.getUrl() + " Filter=[no include filters matched]");
+                  + baseURL.getUrl() + " Filter=[no include filters matched]");
         }
     }
     
@@ -305,28 +310,33 @@ public final class URLProcessor {
                     return false;
                 }
             }
-            crawlURL.setStatus(CrawlStatus.OK);
+            status = CrawlStatus.OK;
             return true;
         } catch (Exception e) {
             //TODO do we really want to catch anything other than 
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
-            crawlURL.setStatus(CrawlStatus.ERROR);
+            status = CrawlStatus.ERROR;
             if (LOG.isDebugEnabled()) {
-                LOG.error("Could not pre-process URL: " + crawlURL.getUrl()
+                LOG.error("Could not pre-process URL: " + baseURL.getUrl()
                         + " (" + e.getMessage() + ")", e);
             } else {
-                LOG.error("Could not pre-process URL: " + crawlURL.getUrl()
+                LOG.error("Could not pre-process URL: " + baseURL.getUrl()
                         + " (" + e.getMessage() + ")");
             }
             return false;
         } finally {
             //--- Mark URL as Processed ----------------------------------------
-            if (crawlURL.getStatus() != CrawlStatus.OK) {
-                CrawlStatus status = crawlURL.getStatus();
+            if (status != CrawlStatus.OK) {
                 if (status == null) {
                     status = CrawlStatus.BAD_STATUS;
                 }
+                CrawlURL crawlURL = new CrawlURL(
+                        baseURL.getUrl(), baseURL.getDepth());
+                crawlURL.setSitemapChangeFreq(baseURL.getSitemapChangeFreq());
+                crawlURL.setSitemapLastMod(baseURL.getSitemapLastMod());
+                crawlURL.setSitemapPriority(baseURL.getSitemapPriority());
+                crawlURL.setStatus(status);
                 database.processed(crawlURL);
                 status.logInfo(crawlURL);
             }

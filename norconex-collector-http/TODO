@@ -1,6 +1,10 @@
 The following are either things to be done, or ideas to consider:
 
+- Add optional flag to support gzip transfer (DecompressingHttpClient).
+
 - Add support for gzipped sitemap.xml files.
+
+- Rotate/break log files when too big.
 
 - If a URL filter rule was changed and a document is now rejected (never 
   processed), it will not be deleted (since it did not get a 404/NOT_FOUND.

@@ -25,13 +25,12 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
 
-import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.EndElement;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
+import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -41,8 +40,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 
 import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.http.crawler.BaseURL;
 import com.norconex.collector.http.sitemap.ISitemapsResolver;
 import com.norconex.collector.http.sitemap.SitemapURLStore;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -141,9 +142,14 @@ public class DefaultSitemapResolver
             if (statusCode == HttpStatus.SC_OK) {
                 LOG.info("Resolving sitemap: " + location);
                 InputStream is = response.getEntity().getContent();
+                if ("application/x-gzip".equals(
+                        response.getFirstHeader("Content-Type").getValue())) {
+                    is = new GZIPInputStream(is);
+                }
                 parseLocation(is, httpClient, sitemapURLStore, 
                         resolvedLocations);
                 IOUtils.closeQuietly(is);
+                LOG.info("         Resolved: " + location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 LOG.debug("No sitemap found : " + location);
             } else {
@@ -156,12 +162,11 @@ public class DefaultSitemapResolver
                     + " (" + e.getMessage() + ")");
             throw new HttpCollectorException(e);
         } finally {
+            resolvedLocations.add(location);
             if (method != null) {
                 method.releaseConnection();
             }
         }  
-        
-        
     }
     
     private void parseLocation(InputStream is, DefaultHttpClient httpClient,
@@ -169,78 +174,79 @@ public class DefaultSitemapResolver
                     throws XMLStreamException {
 
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-        XMLEventReader eventReader = inputFactory.createXMLEventReader(is);
-        while (eventReader.hasNext()) {
-            XMLEvent event = eventReader.nextEvent();
-
-            if (event.isStartElement()) {
-                StartElement startElement = event.asStartElement();
-                if (isTag("sitemapindex", startElement)) {
-                    parseSitemapIndex(eventReader, httpClient, sitemapURLStore,
-                            resolvedLocations);
-                } else if (isTag("urlset", startElement)) {
-                    parseSitemap(eventReader, httpClient, sitemapURLStore,
-                            resolvedLocations);
-                } else {
-                    LOG.error("Unsupported sitemap XML tag: "
-                            + startElement.getName().getLocalPart());
+        inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
+        XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(is);
+        BaseURL baseURL = null;
+        boolean sitemapIndex = false;
+        boolean loc = false;
+        boolean lastmod = false;
+        boolean changefreq = false;
+        boolean priority = false;
+        
+        int event = xmlReader.getEventType();
+        while(true){
+            switch(event) {
+            case XMLStreamConstants.START_ELEMENT:
+                String tag = xmlReader.getLocalName();
+                if("sitemap".equalsIgnoreCase(tag)) {
+                    sitemapIndex = true;
+                } else if("url".equalsIgnoreCase(tag)){
+                    baseURL = new BaseURL("", 0);
+                } else if("loc".equalsIgnoreCase(tag)){
+                    loc = true;
+                } else if("lastmod".equalsIgnoreCase(tag)){
+                    lastmod = true;
+                } else if("changefreq".equalsIgnoreCase(tag)){
+                    changefreq = true;
+                } else if("priority".equalsIgnoreCase(tag)){
+                    priority = true;
                 }
+                break;
+            case XMLStreamConstants.CHARACTERS:
+                String value = xmlReader.getText();
+                if (sitemapIndex && loc) {
+                    resolveLocation(value, httpClient, 
+                            sitemapURLStore, resolvedLocations);
+                    loc = false;
+                } else if (baseURL != null) {
+                    if (loc) {
+                        baseURL.setUrl(value);
+                        loc = false;
+                    } else if (lastmod) {
+                        try {
+                            baseURL.setSitemapLastMod(DateTime.parse(value));
+                        } catch (Exception e) {
+                            LOG.info("Invalid sitemap date: " + value);
+                        }
+                        lastmod = false;
+                    } else if (changefreq) {
+                        baseURL.setSitemapChangeFreq(value);
+                        changefreq = false;
+                    } else if (priority) {
+                        try {
+                            baseURL.setSitemapPriority(Float.parseFloat(value));
+                        } catch (NumberFormatException e) {
+                            LOG.info("Invalid sitemap priority: " + value);
+                        }
+                        priority = false;
+                    }
+                } 
+                break;
+            case XMLStreamConstants.END_ELEMENT:
+                tag = xmlReader.getLocalName();
+                if ("sitemap".equalsIgnoreCase(tag)) {
+                    sitemapIndex = false;
+                } else if("url".equalsIgnoreCase(tag)){
+                    sitemapURLStore.add(baseURL);
+                    baseURL = null;
+                }
+                break;
             }
-//            // If we reach the end of an item element we add it to the list
-//            if (event.isEndElement()) {
-//                EndElement endElement = event.asEndElement();
-//                System.out.println("End Tag:" + endElement.getName());
-//                if (isTag("sitemapindex", endElement)) {
-//                    System.out.println("   In </sitemapindex>");
-//                }
-//            }
+            if (!xmlReader.hasNext()) {
+                break;
+            }
+            event = xmlReader.next();
         }
-    }
-
-    private void parseSitemapIndex(
-            XMLEventReader eventReader, DefaultHttpClient httpClient,
-            SitemapURLStore sitemapURLStore, Set<String> resolvedLocations)
-                    throws XMLStreamException {
-        
-//        eventReader.
-        
-        System.out.println("   In <sitemapindex>");
-    }
-    
-    private void parseSitemap(
-            XMLEventReader eventReader, DefaultHttpClient httpClient,
-            SitemapURLStore sitemapURLStore, Set<String> resolvedLocations)
-                    throws XMLStreamException {
-        System.out.println("   In <urlset>");
-    }
-            /*
-            <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-            <sitemap>
-
-               <loc>http://www.example.com/sitemap1.xml.gz</loc>
-
-               <lastmod>2004-10-01T18:23:17+00:00</lastmod>
-
-            </sitemap>
-
-            <sitemap>
-
-               <loc>http://www.example.com/sitemap2.xml.gz</loc>
-
-               <lastmod>2005-01-01</lastmod>
-
-            </sitemap>
-
-         </sitemapindex>
-
-             */
-            
-    private boolean isTag(String tagName, StartElement element) {
-        return tagName.equalsIgnoreCase(element.getName().getLocalPart());
-    }
-    private boolean isTag(String tagName, EndElement element) {
-        return tagName.equalsIgnoreCase(element.getName().getLocalPart());
     }
         
     private Set<String> combineLocations(
@@ -257,5 +263,4 @@ public class DefaultSitemapResolver
         return uniqueLocations;
     }
     
-
 }
