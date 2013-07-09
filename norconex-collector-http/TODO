@@ -17,8 +17,9 @@ The following are either things to be done, or ideas to consider:
 
 - Integrate with distributed computing frameworks such as hadhoop.
 
-- Provide sitemap.xml support -- Make sure resuming does not reprocess sitemaps
-  and ideally, see if resuming cannot happen on sitemap parsing too.
+- Test that sitemap resumes well if failing in-between.
+
+- Document sitemap.
 
 - Test that IPV6 is supported
 
