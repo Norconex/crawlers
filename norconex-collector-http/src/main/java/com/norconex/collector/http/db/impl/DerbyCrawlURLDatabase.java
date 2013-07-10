@@ -84,6 +84,8 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         } else {
             LOG.debug("Resuming: putting active URLs back in the queue...");
             copyURLDepthToQueue("active");
+            LOG.debug("Cleaning active database...");
+            sqlUpdate("DELETE FROM active");
         }
         LOG.info("Done initializing databases.");
     }
@@ -267,7 +269,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
     
     private CrawlURL toCrawlURL(ResultSet rs) throws SQLException {
-        if (!rs.next()) {
+        if (rs == null) {
             return null;
         }
         int colCount = rs.getMetaData().getColumnCount();
