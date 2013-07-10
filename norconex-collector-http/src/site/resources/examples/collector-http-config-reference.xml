@@ -44,6 +44,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   #set($headersRegex = "${basepkg}.filter.impl.RegexHeaderFilter")
   #set($docFetcher = "${basepkg}.handler.impl.DefaultDocumentFetcher")
   #set($urlExtractor = "${basepkg}.handler.impl.DefaultURLExtractor")
+  #set($sitemap = "${basepkg}.sitemap.impl.DefaultSitemapResolver")
   
   <!-- Location where internal progress files are stored. -->
   <progressDir>$workdir\progress</progressDir>
@@ -189,6 +190,13 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
            is the following.
            -->
       <robotsTxt ignore="false" class="$robotsTxt"/>
+      
+      <!-- Loads sitemap.xml URLs and adds adds them to URLs to process.
+           Default implementation is the following.
+           -->
+      <sitemap ignore="false" lenient="false" class="$sitemap">
+         <location>http://www.example.com/blogs/sitemap.xml</location>
+      </sitemap>
       
       <!-- Fetch Document HTTP Headers.  Classes must implement
            *.handler.IHttpHeadersFetcher.  The following is a simple
