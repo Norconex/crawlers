@@ -143,6 +143,9 @@ public class HttpCrawler extends AbstractResumableJob {
     private void execute(
             ICrawlURLDatabase database, JobProgress progress, JobSuite suite) {
 
+        StopWatch watch = new StopWatch();
+        watch.start();
+        
         //TODO print initialization information
         LOG.info("RobotsTxt support " + 
                 (crawlerConfig.isIgnoreRobotsTxt() ? "disabled." : "enabled"));
@@ -165,6 +168,10 @@ public class HttpCrawler extends AbstractResumableJob {
                     + ": committing documents.");
             committer.commit();
         }
+        
+        watch.stop();
+        LOG.info(database.getProcessedCount() + " URLs processed "
+                + "in " + watch.toString() + " for \"" + getId() + "\".");
         
         LOG.debug("Removing empty directories");
         FileUtil.deleteEmptyDirs(gelCrawlerDownloadDir());

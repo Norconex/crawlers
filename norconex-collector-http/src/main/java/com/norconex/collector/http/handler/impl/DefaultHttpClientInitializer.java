@@ -43,6 +43,7 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -119,6 +120,10 @@ public class DefaultHttpClientInitializer implements
     @Override
 	public void initializeHTTPClient(DefaultHttpClient httpClient) {
 
+        // Time out after 30 seconds.  Make configurable.
+        httpClient.getParams().setParameter(
+                CoreConnectionPNames.CONNECTION_TIMEOUT, 30000);
+        
         // Add support for FTP websites (FTP served by HTTP server).
         Scheme ftp = new Scheme("ftp", 80, new PlainSocketFactory());
         httpClient.getConnectionManager().getSchemeRegistry().register(ftp);

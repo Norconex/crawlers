@@ -1,5 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
+- Make configurable via HTML many HTTPClient init options, such 
+  as CoreConnectionPNames.CONNECTION_TIMEOUT and/or provide ways to configure
+  abitrary values, referencing Apache docs.
+
 - Add Lucene-based CrawlDB implementation, offering disk or memory.
 
 - Benchmark CrawlDB implementations and change default one if appropriate.

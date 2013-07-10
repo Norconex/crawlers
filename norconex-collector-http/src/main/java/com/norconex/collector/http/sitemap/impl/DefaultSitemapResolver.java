@@ -36,6 +36,10 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -46,16 +50,11 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
-import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.crawler.BaseURL;
 import com.norconex.collector.http.sitemap.ISitemapsResolver;
 import com.norconex.collector.http.sitemap.SitemapURLStore;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 
 /**
  * <p>
@@ -194,7 +193,6 @@ public class DefaultSitemapResolver
         } catch (Exception e) {
             LOG.error("Cannot fetch sitemap: " + location
                     + " (" + e.getMessage() + ")");
-            throw new HttpCollectorException(e);
         } finally {
             resolvedLocations.add(location);
             if (method != null) {
