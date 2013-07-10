@@ -1,9 +1,5 @@
 The following are either things to be done, or ideas to consider:
 
-- Test that sitemap resumes well if failing in-between.
-
-- Document sitemap.
-
 - Add Lucene-based CrawlDB implementation, offering disk or memory.
 
 - Benchmark CrawlDB implementations and change default one if appropriate.

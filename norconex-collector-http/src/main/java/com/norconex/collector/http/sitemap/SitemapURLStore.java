@@ -32,6 +32,7 @@ import com.norconex.collector.http.crawler.BaseURL;
  * <a href="http://www.sitemaps.org/protocol.html">
  * http://www.sitemaps.org/protocol.html</a></p>
  * @author Pascal Essiembre
+ * @see ISitemapsResolver
  */
 public abstract class SitemapURLStore implements Serializable {
 

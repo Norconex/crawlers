@@ -319,8 +319,13 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         try {
             new QueryRunner(datasource).update(sql, params);
         } catch (SQLException e) {
-            throw new CrawlURLDatabaseException(
-                    "Problem updating database.", e);            
+            if (e.getErrorCode() == 30000) {
+                LOG.debug("Already exists in table. SQL Error:" 
+                        + e.getMessage());
+            } else {
+                throw new CrawlURLDatabaseException(
+                        "Problem updating database.", e);            
+            }
         }
     }
     

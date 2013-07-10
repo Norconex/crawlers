@@ -80,6 +80,10 @@ Configuration
       ...
     </httpURLFilters>
     <robotsTxt ignore="..." class="..."/>
+    <sitemap ignore="..." lenient="..." class="...">
+      <location>...</location>
+     ...
+    </sitemap>
     <httpHeadersFetcher class="..." />
     <httpHeadersFilters>
       <filter class="..." />
@@ -168,6 +172,8 @@ Configuration
 | <<<httpURLFilters>>> | Filter based on URLs. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}} | {{{$api/filter/IURLFilter.html}IURLFilter}} |
 *----------+--------------+----------------+----------------+
 | <<<robotsTxt>>> | Handle robots.txt files. | {{{$api/handler/impl/DefaultRobotsTxtProvider.html}DefaultRobotsTxtProvider}} | {{{$api/handler/IRobotsTxtProvider.html}IRobotsTxtProvider}} |
+*----------+--------------+----------------+----------------+
+| <<<sitemap>>> | Handle Sitemap files. | {{{$api/sitemap/impl/DefaultSitemapResolver.html}DefaultSitemapResolver}} | {{{$api/sitemap/ISitemapsResolver.html}ISitemapsResolver}} |
 *----------+--------------+----------------+----------------+
 | <<<httpHeadersFetcher>>> | Handle robots.txt files. | {{{$api/handler/impl/SimpleHttpHeadersFetcher.html}SimpleHttpHeadersFetcher}} | {{{$api/handler/IHttpHeadersFetcher.html}IHttpHeadersFetcher}} |
 *----------+--------------+----------------+----------------+
