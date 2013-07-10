@@ -28,12 +28,16 @@ import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
@@ -46,7 +50,12 @@ import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.crawler.BaseURL;
 import com.norconex.collector.http.sitemap.ISitemapsResolver;
 import com.norconex.collector.http.sitemap.SitemapURLStore;
+import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 /**
  * <p>
@@ -62,11 +71,10 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *        not ignored)</li>
  * </ul>
  * <p>
- * By default basic limitations imposed from the sitemap specifications are
- * respected.  Setting lenient to <code>true</code> changes that.  For 
- * example, sitemap.xml files defined in a sub-directory applies only
- * to URLs found in that sub-directory or its children.  Being lenient 
- * no longer honors that restriction.
+ * The Sitemap specifications dictates that a sitemap.xml file defined
+ * in a sub-directory applies only to URLs found in that sub-directory and 
+ * its children.   This behavior is respected by default.  Setting lenient 
+ * to <code>true</code> no longer honors this restriction.
  * </p>
  * <p>
  * XML configuration usage (not required since default):
@@ -89,6 +97,9 @@ public class DefaultSitemapResolver
             DefaultSitemapResolver.class);
     
     private String[] sitemapLocations;
+    private boolean lenient;
+
+    
 
     @Override
     public void resolveSitemaps(DefaultHttpClient httpClient, String urlRoot,
@@ -99,8 +110,8 @@ public class DefaultSitemapResolver
         Set<String> uniqueLocations = 
                 combineLocations(robotsTxtLocations, urlRoot);
         for (String location : uniqueLocations) {
-            resolveLocation(location, httpClient, sitemapURLStore, 
-                    resolvedLocations);
+            resolveLocation(
+                    location, httpClient, sitemapURLStore, resolvedLocations);
         }
     }
 
@@ -110,19 +121,42 @@ public class DefaultSitemapResolver
     public void setSitemapLocations(String... sitemapLocations) {
         this.sitemapLocations = sitemapLocations;
     }
-    
-
+    public boolean isLenient() {
+        return lenient;
+    }
+    public void setLenient(boolean lenient) {
+        this.lenient = lenient;
+    }
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
-        // TODO Auto-generated method stub
-        
+        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        setLenient(xml.getBoolean("[@lenient]", false));
+        setSitemapLocations(xml.getList(
+                "location").toArray(ArrayUtils.EMPTY_STRING_ARRAY));
     }
 
     @Override
     public void saveToXML(Writer out) throws IOException {
-        // TODO Auto-generated method stub
-        
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        try {
+            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            writer.writeStartElement("sitemap");
+            writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeAttribute("lenient", Boolean.toString(lenient));
+            if (sitemapLocations != null) {
+                for (String location : sitemapLocations) {
+                    writer.writeStartElement("location");
+                    writer.writeCharacters(location);
+                    writer.writeEndElement();
+                }
+            }
+            writer.writeEndElement();
+            writer.flush();
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new IOException("Cannot save as XML.", e);
+        }
     }
 
     private void resolveLocation(String location, DefaultHttpClient httpClient,
@@ -147,7 +181,7 @@ public class DefaultSitemapResolver
                     is = new GZIPInputStream(is);
                 }
                 parseLocation(is, httpClient, sitemapURLStore, 
-                        resolvedLocations);
+                        resolvedLocations, location);
                 IOUtils.closeQuietly(is);
                 LOG.info("         Resolved: " + location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
@@ -170,8 +204,8 @@ public class DefaultSitemapResolver
     }
     
     private void parseLocation(InputStream is, DefaultHttpClient httpClient,
-            SitemapURLStore sitemapURLStore, Set<String> resolvedLocations)
-                    throws XMLStreamException {
+            SitemapURLStore sitemapURLStore, Set<String> resolvedLocations,
+            String location) throws XMLStreamException {
 
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
@@ -183,6 +217,7 @@ public class DefaultSitemapResolver
         boolean changefreq = false;
         boolean priority = false;
         
+        String locationDir = StringUtils.substringBeforeLast(location, "/");
         int event = xmlReader.getEventType();
         while(true){
             switch(event) {
@@ -236,8 +271,15 @@ public class DefaultSitemapResolver
                 tag = xmlReader.getLocalName();
                 if ("sitemap".equalsIgnoreCase(tag)) {
                     sitemapIndex = false;
-                } else if("url".equalsIgnoreCase(tag)){
-                    sitemapURLStore.add(baseURL);
+                } else if("url".equalsIgnoreCase(tag)
+                        && baseURL.getUrl() != null){
+                    if (lenient || baseURL.getUrl().startsWith(locationDir)) { 
+                        sitemapURLStore.add(baseURL);
+                    } else if (LOG.isDebugEnabled()) {
+                        LOG.debug("Sitemap URL invalid for location directory."
+                                + " URL:" + baseURL.getUrl()
+                                + " Location directory: " + locationDir);
+                    }
                     baseURL = null;
                 }
                 break;
@@ -248,7 +290,7 @@ public class DefaultSitemapResolver
             event = xmlReader.next();
         }
     }
-        
+
     private Set<String> combineLocations(
             String[] robotsTxtLocations, String urlRoot) {
         Set<String> uniqueLocations = new HashSet<String>();
@@ -262,5 +304,29 @@ public class DefaultSitemapResolver
         }
         return uniqueLocations;
     }
+    
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof DefaultSitemapResolver))
+            return false;
+        DefaultSitemapResolver castOther = (DefaultSitemapResolver) other;
+        return new EqualsBuilder()
+                .append(sitemapLocations, castOther.sitemapLocations)
+                .append(lenient, castOther.lenient).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(sitemapLocations).append(lenient)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("sitemapLocations", sitemapLocations)
+                .append("lenient", lenient).toString();
+    }
+
     
 }

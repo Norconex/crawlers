@@ -1,5 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
+- Test that sitemap resumes well if failing in-between.
+
+- Document sitemap.
+
 - Add Lucene-based CrawlDB implementation, offering disk or memory.
 
 - Benchmark CrawlDB implementations and change default one if appropriate.
@@ -16,12 +20,6 @@ The following are either things to be done, or ideas to consider:
 - Add more events to URL processing listener (one for each "step"?). 
 
 - Integrate with distributed computing frameworks such as hadhoop.
-
-- Test that sitemap resumes well if failing in-between.
-
-- Only load/parse sitemap locations matching root url
-
-- Document sitemap.
 
 - Test that IPV6 is supported
 
