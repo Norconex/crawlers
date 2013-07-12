@@ -18,15 +18,13 @@
  */
 package com.norconex.collector.http.handler.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import com.norconex.importer.ContentType;
@@ -36,33 +34,32 @@ import com.norconex.importer.ContentType;
  */
 public class DefaultURLExtractorTest {
 
-    private static final String BASEURL = "http://www.example.com/";
-    
     @Test
     public void testURLExtraction() throws IOException {
+        
+        String baseURL = "http://www.example.com/";
+        String baseDir = baseURL + "test/";
+        String docURL = baseDir + "DefaultURLExtractorTest.html";
+        String[] expectedURLs = {
+                baseURL + "meta-redirect.html",
+                baseURL + "startWithDoubleslash.html",
+                docURL + "?startWith=questionmark",
+                docURL, // <-- "#startWithHashMark" (hash is stripped)
+                baseURL + "startWithSlash.html",
+                baseDir + "relativeToLastSegment.html",
+                "http://www.sample.com/blah.html"
+        };
+        
         Reader docReader = new InputStreamReader(getClass().getResourceAsStream(
                 "DefaultURLExtractorTest.html"));
-        DefaultURLExtractor x = new DefaultURLExtractor();
-        String docURL = BASEURL + "DefaultURLExtractorTest.html";
+        DefaultURLExtractor extractor = new DefaultURLExtractor();
 
-        Set<String> urls = x.extractURLs(docReader, docURL, ContentType.HTML);
+        Set<String> urls = extractor.extractURLs(
+                docReader, docURL, ContentType.HTML);
 
-        testURL(urls, "test-001/doubleslash.html");
-        testURL(urls, "test-002/meta-redirect.html");
-        
-    }
-
-    private void testURL(Set<String> allUrls, String expectedURL) {
-        String fullExpectedURL = BASEURL + expectedURL;
-        String testString = StringUtils.substringBefore(expectedURL, "/");
-        for (String url : allUrls) {
-            if (url.contains(testString)) {
-                System.out.println("Extracted URL: " + url);
-                assertEquals(fullExpectedURL, url);
-                return;
-            }
+        for (String expectedURL : expectedURLs) {
+            assertTrue("Could not find extracted URL: " + expectedURL, 
+                    urls.contains(expectedURL));
         }
-        fail("This URL could not be extracted: " + expectedURL);
     }
-
 }

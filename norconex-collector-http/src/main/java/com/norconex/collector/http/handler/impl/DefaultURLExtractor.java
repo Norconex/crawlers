@@ -76,23 +76,29 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
     public Set<String> extractURLs(
             Reader document, String documentUrl, ContentType contentType)
             throws IOException {
+        
         // Do not extract if non-HTML
         if (!contentType.equals(ContentType.HTML)) {
             return null;
         }
         
-        // Extract URLs from HTML
-        
+        // URL Protocol/scheme, up to double slash (included)
         String protocol = documentUrl.replaceFirst("(.*?://)(.*)", "$1");
+
+        // URL Path (anything after double slash)
         String path = documentUrl.replaceFirst("(.*?://)(.*)", "$2");
         
-        // Relative Base: truncate to last / before a ? or #
+        // URL Relative Base: truncate to last / before a ? or #
         String relativeBase = path.replaceFirst(
                 "(.*?)([\\?\\#])(.*)", "$1");
-        relativeBase = protocol +  path.replaceFirst("(.*/)(.*)", "$1");
+        relativeBase = protocol +  relativeBase.replaceFirst("(.*/)(.*)", "$1");
 
-        // Absolute Base: truncate to first / (if present) after protocol
+        // URL Absolute Base: truncate to first / (if present) after protocol
         String absoluteBase = protocol + path.replaceFirst("(.*?)(/.*)", "$1");
+        
+        // URL Document Base: truncate from first ? or # 
+        String documentBase = 
+                protocol + path.replaceFirst("(.*?)([\\?\\#])(.*)", "$1");
         
         //TODO HOW TO HANDLE <BASE>????? Is it handled by Tika???
 
@@ -114,10 +120,16 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
                     continue;
                 }
                 if (url.startsWith("//")) {
+                    // this is URL relative to protocol
                     url = protocol + StringUtils.substringAfter(url, "//");
                 } else if (url.startsWith("/")) {
+                    // this is a URL relative to domain name
                     url = absoluteBase + url;
+                } else if (url.startsWith("?") || url.startsWith("#")) {
+                    // this is a relative url and should have the full page base
+                    url = documentBase + url;
                 } else if (!url.contains("://")) {
+                    // This is a URL relative to the last URL segment
                     url = relativeBase + url;
                 }
                 //TODO have configurable whether to strip anchors.
