@@ -18,7 +18,7 @@
  */
 package com.norconex.collector.http.handler.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -36,17 +36,30 @@ public class DefaultURLExtractorTest {
 
     @Test
     public void testURLExtraction() throws IOException {
+        
+        String baseURL = "http://www.example.com/";
+        String baseDir = baseURL + "test/";
+        String docURL = baseDir + "DefaultURLExtractorTest.html";
+        String[] expectedURLs = {
+                baseURL + "meta-redirect.html",
+                baseURL + "startWithDoubleslash.html",
+                docURL + "?startWith=questionmark",
+                docURL, // <-- "#startWithHashMark" (hash is stripped)
+                baseURL + "startWithSlash.html",
+                baseDir + "relativeToLastSegment.html",
+                "http://www.sample.com/blah.html"
+        };
+        
         Reader docReader = new InputStreamReader(getClass().getResourceAsStream(
                 "DefaultURLExtractorTest.html"));
-        DefaultURLExtractor x = new DefaultURLExtractor();
+        DefaultURLExtractor extractor = new DefaultURLExtractor();
 
-        String docURL = "http://www.example.com/DefaultURLExtractorTest.html";
-        Set<String> urls = x.extractURLs(docReader, docURL, ContentType.HTML);
-        for (String url : urls) {
-            // Double leading slashes
-            if (url.contains("/test-001/")) {
-                assertEquals("http://www.example.com/test-001/test.html", url);
-            }
+        Set<String> urls = extractor.extractURLs(
+                docReader, docURL, ContentType.HTML);
+
+        for (String expectedURL : expectedURLs) {
+            assertTrue("Could not find extracted URL: " + expectedURL, 
+                    urls.contains(expectedURL));
         }
     }
 }

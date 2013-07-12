@@ -19,10 +19,19 @@
  */
  -->
 <html>
+<head>
+  <meta http-equiv="refresh" content="10;URL='/meta-redirect.html'" />
+</head>
 <body>
 This is a sample document used to test URL extraction.
 
-<a href="//www.example.com/test-001/test.html">Double Leading Slash Test</a>
+<a href="//www.example.com/startWithDoubleslash.html">Double Leading Slash</a>
+<a href="?startWith=questionmark">Starting with question mark</a>
+<a href="#startWithHashMark">Starting with hash mark</a>
+<a href="/startWithSlash.html">Starting with a leading slash</a>
+<a href="relativeToLastSegment.html">Relative to last URL segment</a>
+<a href="http://www.sample.com/blah.html">Absolute URL</a>
+
 
 </body>
 </html>
