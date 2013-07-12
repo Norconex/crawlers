@@ -66,3 +66,4 @@ The following are either things to be done, or ideas to consider:
   - How to follow redirects but not index page with a redirect?
   - How to ignore robot rules (both robots.txt and robots meta)?
   - How do I authenticate?
+  - How to change log levels (e.g. CrawlStatus)?
