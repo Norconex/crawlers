@@ -19,7 +19,6 @@
 package com.norconex.collector.http.db;
 
 import com.norconex.collector.http.crawler.CrawlURL;
-import com.norconex.collector.http.crawler.BaseURL;
 
 
 /**
@@ -45,7 +44,7 @@ public interface ICrawlURLDatabase {
      * Queues a URL for future processing. 
      * @param url the URL to eventually be processed
      */
-    void queue(BaseURL url);
+    void queue(CrawlURL url);
 
     /**
      * Whether there are any URLs to process in the queue.

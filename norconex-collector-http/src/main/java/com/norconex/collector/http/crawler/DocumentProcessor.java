@@ -295,7 +295,7 @@ public final class DocumentProcessor {
             Set<String> uniqueURLs = new HashSet<String>();
             if (urls != null) {
                 for (String url : urls) {
-                    BaseURL newURL = 
+                    CrawlURL newURL = 
                             new CrawlURL(url, crawlURL.getDepth() + 1);
                     if (new URLProcessor(crawler, httpClient, 
                             database, newURL).processURL()) {

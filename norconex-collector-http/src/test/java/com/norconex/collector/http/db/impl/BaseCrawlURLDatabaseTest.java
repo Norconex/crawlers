@@ -26,7 +26,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.norconex.collector.http.crawler.BaseURL;
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
@@ -53,7 +52,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 	public void test_queue() throws Exception {
 
 		String url = "http://www.norconex.com/";
-		db.queue(new BaseURL(url, 0));
+		db.queue(new CrawlURL(url, 0));
 
 		// Make sure the url is queued
 		assertFalse(db.isQueueEmpty());
@@ -65,7 +64,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 	public void test_next() throws Exception {
 
 		String url = "http://www.norconex.com/";
-		db.queue(new BaseURL(url, 0));
+		db.queue(new CrawlURL(url, 0));
 
 		// Make sure the next url is the one we just queue
 		CrawlURL next = db.next();
@@ -81,7 +80,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 	public void test_process() throws Exception {
 
 		String url = "http://www.norconex.com/";
-		db.queue(new BaseURL(url, 0));
+		db.queue(new CrawlURL(url, 0));
 		CrawlURL next = db.next();
 
 		// Simulate a successful fetch
@@ -117,7 +116,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 		cacheUrl(url);
 
 		// Process it
-		db.queue(new BaseURL(url, 0));
+		db.queue(new CrawlURL(url, 0));
 		CrawlURL next = db.next();
 		next.setStatus(CrawlStatus.OK);
 		db.processed(next);
@@ -148,7 +147,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 		cacheUrl(url);
 
 		// Set it with an invalid state
-		db.queue(new BaseURL(url, 0));
+		db.queue(new CrawlURL(url, 0));
 		CrawlURL next = db.next();
 		next.setStatus(CrawlStatus.NOT_FOUND);
 

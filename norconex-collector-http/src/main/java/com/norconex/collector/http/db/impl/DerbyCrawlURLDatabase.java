@@ -33,9 +33,7 @@ import org.apache.commons.dbutils.handlers.ScalarHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
 
-import com.norconex.collector.http.crawler.BaseURL;
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
@@ -91,12 +89,12 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     @Override
-    public final synchronized void queue(BaseURL unUrl) {
+    public final synchronized void queue(CrawlURL unUrl) {
         sqlUpdate("INSERT INTO queue "
                 + "  (url, depth, smLastMod, smChangeFreq, smPriority) "
                 + "VALUES (?,?,?,?,?) ", 
                 unUrl.getUrl(), unUrl.getDepth(), 
-                getMillis(unUrl.getSitemapLastMod()), 
+                unUrl.getSitemapLastMod(), 
                 unUrl.getSitemapChangeFreq(), unUrl.getSitemapPriority());
     }
 
@@ -123,7 +121,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
                     + "(url, depth, smLastMod, smChangeFreq, smPriority) "
                     + " values (?,?,?,?,?)",
                     crawlURL.getUrl(), crawlURL.getDepth(),  
-                    getMillis(crawlURL.getSitemapLastMod()),
+                    crawlURL.getSitemapLastMod(),
                     crawlURL.getSitemapChangeFreq(),
                     crawlURL.getSitemapPriority());
             sqlUpdate("DELETE FROM queue WHERE url = ?", crawlURL.getUrl());
@@ -234,8 +232,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
                   }
                   BigDecimal bigLM = rs.getBigDecimal("smLastMod");
                   if (bigLM != null) {
-                      crawlURL.setSitemapLastMod(
-                              new DateTime(bigLM.longValue()));
+                      crawlURL.setSitemapLastMod(bigLM.longValue());
                   }
                   if (colCount > 5) {
                       crawlURL.setDocChecksum(rs.getString("docchecksum"));
@@ -284,8 +281,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
             }
             BigDecimal bigLM = rs.getBigDecimal("smLastMod");
             if (bigLM != null) {
-                crawlURL.setSitemapLastMod(
-                        new DateTime(bigLM.longValue()));
+                crawlURL.setSitemapLastMod(bigLM.longValue());
             }
             if (colCount > 5) {
                 crawlURL.setDocChecksum(rs.getString("docchecksum"));
@@ -329,13 +325,6 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
                         "Problem updating database.", e);            
             }
         }
-    }
-    
-    private Long getMillis(DateTime date) {
-        if (date == null) {
-            return null;
-        }
-        return date.getMillis();
     }
 
     private DataSource createDataSource() {

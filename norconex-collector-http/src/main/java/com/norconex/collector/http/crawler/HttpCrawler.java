@@ -338,13 +338,13 @@ public class HttpCrawler extends AbstractResumableJob {
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
             crawlURL.setStatus(CrawlStatus.ERROR);
-            if (LOG.isDebugEnabled()) {
+//            if (LOG.isDebugEnabled()) {
                 LOG.error("Could not process document: " + url
                         + " (" + e.getMessage() + ")", e);
-            } else {
-                LOG.error("Could not process document: " + url
-                        + " (" + e.getMessage() + ")");
-            }
+//            } else {
+//                LOG.error("Could not process document: " + url
+//                        + " (" + e.getMessage() + ")");
+//            }
 	    } finally {
             //--- Flag URL for deletion ----------------------------------------
 	        ICommitter committer = crawlerConfig.getCommitter();

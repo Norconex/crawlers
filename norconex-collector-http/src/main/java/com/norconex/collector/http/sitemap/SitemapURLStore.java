@@ -20,9 +20,7 @@ package com.norconex.collector.http.sitemap;
 
 import java.io.Serializable;
 
-import org.joda.time.DateTime;
-
-import com.norconex.collector.http.crawler.BaseURL;
+import com.norconex.collector.http.crawler.CrawlURL;
 
 /**
  * <p>Represents a queue of sitemap URLs.  Adding a URL to this queue will
@@ -53,7 +51,7 @@ public abstract class SitemapURLStore implements Serializable {
         super();
     }
 
-    public void add(String url, DateTime lastmod, 
+    public void add(String url, Long lastmod, 
             ChangeFrequency changefreq, Float priority) {
         Float setPriority = priority;
         if (setPriority == null) {
@@ -63,12 +61,12 @@ public abstract class SitemapURLStore implements Serializable {
         if (changefreq != null) {
             setChangeFreq = changefreq.toString().toLowerCase();
         }
-        BaseURL baseURL = new BaseURL(url, 0);
+        CrawlURL baseURL = new CrawlURL(url, 0);
         baseURL.setSitemapChangeFreq(setChangeFreq);
         baseURL.setSitemapLastMod(lastmod);
         baseURL.setSitemapPriority(setPriority);
         add(baseURL);
     }
     
-    public abstract void add(BaseURL baseURL);
+    public abstract void add(CrawlURL baseURL);
 }

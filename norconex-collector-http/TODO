@@ -1,10 +1,15 @@
 The following are either things to be done, or ideas to consider:
 
+
+- Open up Delay Resolver options with default implementation.  Make the delay
+  configurable to be per host, per thread, per crawler, etc.  Also consider
+  leaving it to the implementation to synchronize or not, as opposed to 
+  always synchronize delays (which forces synchronization per collector, not
+  crawler, which is an issue). 
+
 - Make configurable via HTML many HTTPClient init options, such 
   as CoreConnectionPNames.CONNECTION_TIMEOUT and/or provide ways to configure
   abitrary values, referencing Apache docs.
-
-- Add Lucene-based CrawlDB implementation, offering disk or memory.
 
 - Benchmark CrawlDB implementations and change default one if appropriate.
 

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -53,7 +54,7 @@ public final class URLProcessor {
     private final HttpCrawlerConfig config;
     private final List<IHttpCrawlerEventListener> listeners = 
             new ArrayList<IHttpCrawlerEventListener>();
-    private final BaseURL baseURL;
+    private final CrawlURL crawlURL;
     private final DefaultHttpClient httpClient;
     private final ICrawlURLDatabase database;
     private RobotsTxt robotsTxt;
@@ -80,12 +81,12 @@ public final class URLProcessor {
 
     public URLProcessor(
             HttpCrawler crawler, DefaultHttpClient httpClient, 
-            ICrawlURLDatabase database, BaseURL baseURL) {
+            ICrawlURLDatabase database, CrawlURL baseURL) {
         this.crawler = crawler;
         this.httpClient = httpClient;
         this.database = database;
         this.config = crawler.getCrawlerConfig();
-        this.baseURL = baseURL;
+        this.crawlURL = baseURL;
         IHttpCrawlerEventListener[] ls = config.getCrawlerListeners();
         if (ls != null) {
             this.listeners.addAll(Arrays.asList(ls));
@@ -111,10 +112,10 @@ public final class URLProcessor {
         @Override
         public boolean processURL() {
             if (config.getMaxDepth() != -1 
-                    && baseURL.getDepth() > config.getMaxDepth()) {
+                    && crawlURL.getDepth() > config.getMaxDepth()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("URL too deep to process (" 
-                            + baseURL.getDepth() + "): " + baseURL.getUrl());
+                            + crawlURL.getDepth() + "): " + crawlURL.getUrl());
                 }
                 status = CrawlStatus.TOO_DEEP;
                 return false;
@@ -141,7 +142,7 @@ public final class URLProcessor {
         public boolean processURL() {
             if (!config.isIgnoreRobotsTxt()) {
                 robotsTxt = config.getRobotsTxtProvider().getRobotsTxt(
-                                httpClient, baseURL.getUrl());
+                                httpClient, crawlURL.getUrl());
                 if (isURLRejected(robotsTxt.getFilters(), robotsTxt)) {
                     status = CrawlStatus.REJECTED;
                     return false;
@@ -158,7 +159,7 @@ public final class URLProcessor {
             if (config.isIgnoreSitemap()) {
                 return true;
             }
-            String urlRoot = baseURL.getUrlRoot();
+            String urlRoot = crawlURL.getUrlRoot();
             boolean resolved = SITEMAP_RESOLVED.contains(urlRoot);
             if (!resolved) {
                 resolved = database.isSitemapResolved(urlRoot);
@@ -173,7 +174,7 @@ public final class URLProcessor {
                     private static final long serialVersionUID = 
                             7618470895330355434L;
                     @Override
-                    public void add(BaseURL baseURL) {
+                    public void add(CrawlURL baseURL) {
                         new URLProcessor(crawler, httpClient, database, baseURL)
                                 .processSitemapURL();
                     }
@@ -198,12 +199,12 @@ public final class URLProcessor {
         public boolean processURL() {
             if (config.getUrlNormalizer() != null) {
                 String url = config.getUrlNormalizer().normalizeURL(
-                        baseURL.getUrl());
+                        crawlURL.getUrl());
                 if (url == null) {
                     status = CrawlStatus.REJECTED;
                     return false;
                 }
-                baseURL.setUrl(url);
+                crawlURL.setUrl(url);
             }
             return true;
         }
@@ -216,7 +217,10 @@ public final class URLProcessor {
             if (robotsMeta != null && robotsMeta.isNofollow()) {
                 return true;
             }
-            String url = baseURL.getUrl();
+            String url = crawlURL.getUrl();
+            if (StringUtils.isBlank(url)) {
+                return true;
+            }
             if (database.isActive(url)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Already being processed: " + url);
@@ -230,7 +234,7 @@ public final class URLProcessor {
                     LOG.debug("Already processed: " + url);
                 }
             } else {
-                database.queue(new BaseURL(url, baseURL.getDepth()));
+                database.queue(new CrawlURL(url, crawlURL.getDepth()));
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Queued for processing: " + url);
                 }
@@ -253,7 +257,7 @@ public final class URLProcessor {
         boolean hasIncludes = false;
         boolean atLeastOneIncludeMatch = false;
         for (IURLFilter filter : filters) {
-            boolean accepted = filter.acceptURL(baseURL.getUrl());
+            boolean accepted = filter.acceptURL(crawlURL.getUrl());
             boolean isInclude = filter instanceof IOnMatchFilter
                    && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
             
@@ -270,7 +274,7 @@ public final class URLProcessor {
             if (accepted) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("ACCEPTED document URL" + type 
-                            + ". URL=" + baseURL.getUrl()
+                            + ". URL=" + crawlURL.getUrl()
                             + " Filter=" + filter);
                 }
             } else {
@@ -290,15 +294,15 @@ public final class URLProcessor {
         for (IHttpCrawlerEventListener listener : listeners) {
             if (robots != null) {
                 listener.documentRobotsTxtRejected(
-                        crawler, baseURL.getUrl(), filter, robots);
+                        crawler, crawlURL.getUrl(), filter, robots);
             } else {
                 listener.documentURLRejected(
-                        crawler, baseURL.getUrl(), filter);
+                        crawler, crawlURL.getUrl(), filter);
             }
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("REJECTED document URL" + type + ". URL=" 
-                  + baseURL.getUrl() + " Filter=[no include filters matched]");
+                  + crawlURL.getUrl() + " Filter=[no include filters matched]");
         }
     }
     
@@ -317,13 +321,11 @@ public final class URLProcessor {
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
             status = CrawlStatus.ERROR;
-            if (LOG.isDebugEnabled()) {
-                LOG.error("Could not pre-process URL: " + baseURL.getUrl()
-                        + " (" + e.getMessage() + ")", e);
-            } else {
-                LOG.error("Could not pre-process URL: " + baseURL.getUrl()
-                        + " (" + e.getMessage() + ")");
-            }
+//            if (LOG.isDebugEnabled()) {
+                LOG.error("Could not pre-process URL: " + crawlURL.getUrl(), e);
+//            } else {
+//                LOG.error("Could not pre-process URL: " + crawlURL.getUrl());
+//            }
             return false;
         } finally {
             //--- Mark URL as Processed ----------------------------------------
@@ -331,11 +333,6 @@ public final class URLProcessor {
                 if (status == null) {
                     status = CrawlStatus.BAD_STATUS;
                 }
-                CrawlURL crawlURL = new CrawlURL(
-                        baseURL.getUrl(), baseURL.getDepth());
-                crawlURL.setSitemapChangeFreq(baseURL.getSitemapChangeFreq());
-                crawlURL.setSitemapLastMod(baseURL.getSitemapLastMod());
-                crawlURL.setSitemapPriority(baseURL.getSitemapPriority());
                 crawlURL.setStatus(status);
                 database.processed(crawlURL);
                 status.logInfo(crawlURL);

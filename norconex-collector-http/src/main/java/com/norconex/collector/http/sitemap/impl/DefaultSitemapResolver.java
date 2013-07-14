@@ -50,7 +50,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
-import com.norconex.collector.http.crawler.BaseURL;
+import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.sitemap.ISitemapsResolver;
 import com.norconex.collector.http.sitemap.SitemapURLStore;
 import com.norconex.commons.lang.config.ConfigurationLoader;
@@ -208,7 +208,7 @@ public class DefaultSitemapResolver
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
         XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(is);
-        BaseURL baseURL = null;
+        CrawlURL baseURL = null;
         boolean sitemapIndex = false;
         boolean loc = false;
         boolean lastmod = false;
@@ -224,7 +224,7 @@ public class DefaultSitemapResolver
                 if("sitemap".equalsIgnoreCase(tag)) {
                     sitemapIndex = true;
                 } else if("url".equalsIgnoreCase(tag)){
-                    baseURL = new BaseURL("", 0);
+                    baseURL = new CrawlURL("", 0);
                 } else if("loc".equalsIgnoreCase(tag)){
                     loc = true;
                 } else if("lastmod".equalsIgnoreCase(tag)){
@@ -247,7 +247,8 @@ public class DefaultSitemapResolver
                         loc = false;
                     } else if (lastmod) {
                         try {
-                            baseURL.setSitemapLastMod(DateTime.parse(value));
+                            baseURL.setSitemapLastMod(
+                                    DateTime.parse(value).getMillis());
                         } catch (Exception e) {
                             LOG.info("Invalid sitemap date: " + value);
                         }
