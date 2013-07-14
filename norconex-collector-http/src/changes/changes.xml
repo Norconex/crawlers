@@ -9,6 +9,9 @@
 
     <release version="1.1.0" date="2013-??-??" description="Feature release.">
       <action dev="essiembp" type="add">
+        Added a MapDB Crawl URL Database implementation, for better performance.
+      </action>
+      <action dev="essiembp" type="add">
         Now support sitemap.xml and sitemap index (plain or gzip).
       </action>
       <action dev="pascaldimassimo" type="add">
