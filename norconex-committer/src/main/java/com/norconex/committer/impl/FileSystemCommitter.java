@@ -18,6 +18,7 @@
 package com.norconex.committer.impl;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Reader;
@@ -132,7 +133,18 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
             }
             addFile = new File(dir.getAbsolutePath() + b.toString());
         } while (addFile.exists());
-        org.apache.commons.io.FileUtils.touch(addFile);
+        int attempts = 0;
+        Exception ex = null;
+        while (attempts++ < 10) {
+            try {
+                org.apache.commons.io.FileUtils.touch(addFile);
+            } catch (FileNotFoundException e) {
+                ex = e;
+            }
+        }
+        if (ex != null) {
+            throw new CommitterException("Could not create commit file.", ex);
+        }
         return addFile;
     }
 
