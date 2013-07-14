@@ -138,6 +138,7 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
         while (attempts++ < 10) {
             try {
                 org.apache.commons.io.FileUtils.touch(addFile);
+                break;
             } catch (FileNotFoundException e) {
                 ex = e;
             }
