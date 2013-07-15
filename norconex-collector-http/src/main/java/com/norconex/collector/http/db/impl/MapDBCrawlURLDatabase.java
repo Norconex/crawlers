@@ -14,13 +14,14 @@ import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
+import com.norconex.commons.lang.Sleeper;
 
 public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
 
     private static final Logger LOG = 
             LogManager.getLogger(MapDBCrawlURLDatabase.class);
 
-    private static final int COMMIT_SIZE = 100;
+    private static final int COMMIT_SIZE = 1000; //TODO make configurable
     
     private final DB db;
     private Queue<CrawlURL> queue;
@@ -76,6 +77,9 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
 //        .writeAheadLogDisable()
                 .cacheSoftRefEnable()
 //TODO configurable:    .compressionEnable()
+                
+                
+                
                 .randomAccessFileEnableIfNeeded()
 //TODO configurable:    .freeSpaceReclaimQ(5)
 //TODO configurable:    .syncOnCommitDisable()
@@ -90,13 +94,9 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             active = db.createHashMap("active").keepCounter(true).make();
             cache = db.createHashMap("cache").keepCounter(true).make();
             processed = db.createHashMap("processed").keepCounter(true).make();
-//            processed = db.new HTreeMapMaker("processed").keepCounter(true).make();
         } else {
             active = db.getHashMap("active");
             cache = db.getHashMap("cache");
-            
-//            processed = db.new HTreeMapMaker("processed").keepCounter(true).make();
-            
             processed = db.getHashMap("processed");
         }
         sitemap = db.getHashSet("sitemap");
@@ -162,14 +162,13 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
         }
         commitCounter++;
         if (commitCounter % COMMIT_SIZE == 0) {
-            LOG.info("Committing URL database to disk...");
+            LOG.debug("Committing URL database to disk...");
             db.commit();
-            LOG.info("DONE Committing URL database.");
         }
         if (commitCounter % (COMMIT_SIZE * 10) == 0) {
-            LOG.info("Compacting URL database...");
+            LOG.debug("Compacting URL database...");
+            db.commit();
             db.compact();
-            LOG.info("DONE Compacting URL database.");
         }
     }
 
@@ -214,12 +213,14 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     
     @Override
     public void close() {
-        LOG.info("Moving processed URL into cache...");
+        LOG.info("Moving processed URLs into cache...");
         db.rename("cache", "temp");
         db.rename("processed", "cache");
         db.rename("temp", "processed");
         LOG.info("Closing crawl database...");
+        Sleeper.sleepSeconds(1); // Let DB writers finish.
         db.commit();
+        Sleeper.sleepSeconds(1); // Let commit finish.
         db.close();
     }
 }
