@@ -144,10 +144,11 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
         while (attempts++ < 10) {
             try {
                 FileUtils.touch(addFile);
+                ex = null;
                 break;
             } catch (FileNotFoundException e) {
                 ex = e;
-                LOG.warn("Could not create commit file, retrying...");
+                LOG.debug("Could not create commit file, retrying...");
                 Sleeper.sleepNanos(100);
             }
         }
