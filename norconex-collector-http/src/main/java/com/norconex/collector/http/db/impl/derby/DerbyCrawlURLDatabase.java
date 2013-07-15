@@ -394,4 +394,8 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         return sqlQueryInteger(
                 "SELECT 1 FROM sitemap where urlroot = ?", urlRoot) > 0;
     }
+    @Override
+    public void close() {
+        //do nothing
+    }
 }

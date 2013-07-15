@@ -150,4 +150,11 @@ public interface ICrawlURLDatabase {
      * @return <code>true</code> if already resolved
      */
     boolean isSitemapResolved(String urlRoot);
+
+    /**
+     * Closes a database connection. This method gets called a the end
+     * of a crawling job to give a change to close the underlying connection
+     * properly, if applicable.
+     */
+    void close();
 }

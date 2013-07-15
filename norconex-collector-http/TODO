@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- Make sure maxURL counter saved in progress is in sync with each time we commit
+  to avoid having a counter higher than actual URLs processed in case of 
+  failure.
 
 - Open up Delay Resolver options with default implementation.  Make the delay
   configurable to be per host, per thread, per crawler, etc.  Also consider

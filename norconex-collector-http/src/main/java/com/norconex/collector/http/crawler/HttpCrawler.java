@@ -174,9 +174,11 @@ public class HttpCrawler extends AbstractResumableJob {
         watch.stop();
         LOG.info(database.getProcessedCount() + " URLs processed "
                 + "in " + watch.toString() + " for \"" + getId() + "\".");
-        
+
         LOG.debug("Removing empty directories");
         FileUtil.deleteEmptyDirs(gelCrawlerDownloadDir());
+
+        database.close();
         
         if (!stopped) {
             for (IHttpCrawlerEventListener listener : listeners) {
@@ -342,14 +344,14 @@ public class HttpCrawler extends AbstractResumableJob {
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
             crawlURL.setStatus(CrawlStatus.ERROR);
-            if (LOG.isDebugEnabled()) {
+//            if (LOG.isDebugEnabled()) {
                 LOG.error("Could not process document: " + url
                         + " (" + e.getMessage() + ")", e);
-            } else {
-                LOG.error("Could not process document: " + url
-                        + " (" + e.getMessage() + ").  Set log level to DEBUG "
-                        + "to generate a Java stacktrace with the error.");
-            }
+//            } else {
+//                LOG.error("Could not process document: " + url
+//                        + " (" + e.getMessage() + ").  Set log level to DEBUG "
+//                        + "to generate a Java stacktrace with the error.");
+//            }
 	    } finally {
             //--- Flag URL for deletion ----------------------------------------
 	        ICommitter committer = crawlerConfig.getCommitter();

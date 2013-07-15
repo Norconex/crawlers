@@ -23,7 +23,7 @@ import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
 
 /**
- * Default database factory creating a {@link DerbyCrawlURLDatabase} instance.
+ * Database factory creating a {@link DerbyCrawlURLDatabase} instance.
  * @author Pascal Essiembre
  */
 public class DerbyCrawlURLDatabaseFactory 

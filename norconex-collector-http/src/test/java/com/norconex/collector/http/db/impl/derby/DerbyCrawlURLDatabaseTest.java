@@ -16,7 +16,7 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.db.impl;
+package com.norconex.collector.http.db.impl.derby;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -33,6 +33,7 @@ import org.junit.rules.TemporaryFolder;
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.db.impl.BaseCrawlURLDatabaseTest;
 import com.norconex.collector.http.db.impl.derby.DerbyCrawlURLDatabase;
 
 public class DerbyCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
@@ -43,7 +44,7 @@ public class DerbyCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 	private HttpCrawlerConfig config;
 
 	@Override
-	void cacheUrl(String url) {
+	protected void cacheUrl(String url) {
 
 		// To cache an url, it needs to be processed first, then we need to
 		// instantiate again the DerbyCrawlURLDatabase with resume set to false.

@@ -20,7 +20,7 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     private static final Logger LOG = 
             LogManager.getLogger(MapDBCrawlURLDatabase.class);
 
-    private static final int COMMIT_SIZE = 10000;
+    private static final int COMMIT_SIZE = 100;
     
     private final DB db;
     private Queue<CrawlURL> queue;
@@ -39,47 +39,66 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
         LOG.info("Initializing crawl database...");
         String dbDir = config.getWorkDir().getPath() + "/crawldb/";
         new File(dbDir).mkdirs();
+        File dbFile = new File(dbDir + "mapdb");
+        boolean create = !dbFile.exists() || !dbFile.isFile();
+        
         // Configure and open database
-        this.db = DBMaker.newFileDB(new File(dbDir + "mapdb"))
-                        .closeOnJvmShutdown()
-                        .cacheSoftRefEnable()
-//TODO configurable:    .compressionEnable()
-                        .randomAccessFileEnableIfNeeded()
-//TODO configurable:    .freeSpaceReclaimQ(5)
-//TODO configurable:    .syncOnCommitDisable()
-//TODO configurable:    .writeAheadLogDisable()
-                        .make();
+        this.db = createDB(dbFile);
     
-        initDB();
-        if (!resume) {
-            LOG.debug("Caching processed URL from last run (if any)...");
-            db.rename("cache", "temp");
-            db.rename("processed", "cache");
-            db.rename("temp", "processed");
-            LOG.debug("Cleaning queue database...");
-            queue.clear();
-            LOG.debug("Cleaning active database...");
-            active.clear();
-            LOG.debug("Cleaning sitemap database...");
-            sitemap.clear();
-        } else {
+        initDB(create);
+        if (resume) {
             LOG.debug("Resuming: putting active URLs back in the queue...");
             for (CrawlURL crawlUrl : active.values()) {
                 queue.add(crawlUrl);
             }
             LOG.debug("Cleaning active database...");
             active.clear();
+        } else if (!create) {
+            LOG.debug("Cleaning queue database...");
+            queue.clear();
+            LOG.debug("Cleaning active database...");
+            active.clear();
+            LOG.debug("Cleaning sitemap database...");
+            sitemap.clear();
+            db.commit();
+            db.compact();
+        } else {
+            LOG.debug("New databases created.");
         }
-        db.commit();
-        db.compact();
         LOG.info("Done initializing databases.");
     }
     
-    private void initDB() {
-        queue = new MappedQueue(db, "queue");
-        active = db.getHashMap("active");
-        cache = db.getHashMap("cache");
-        processed = db.getHashMap("processed");
+    private DB createDB(File dbFile) {
+        return DBMaker.newFileDB(dbFile)
+                .closeOnJvmShutdown()
+//        .cacheDisable()
+//        .asyncWriteDisable()
+//        .writeAheadLogDisable()
+                .cacheSoftRefEnable()
+//TODO configurable:    .compressionEnable()
+                .randomAccessFileEnableIfNeeded()
+//TODO configurable:    .freeSpaceReclaimQ(5)
+//TODO configurable:    .syncOnCommitDisable()
+//TODO configurable:    .writeAheadLogDisable()
+                .make();
+    }
+    
+    
+    private void initDB(boolean create) {
+        queue = new MappedQueue(db, "queue", create);
+        if (create) {
+            active = db.createHashMap("active").keepCounter(true).make();
+            cache = db.createHashMap("cache").keepCounter(true).make();
+            processed = db.createHashMap("processed").keepCounter(true).make();
+//            processed = db.new HTreeMapMaker("processed").keepCounter(true).make();
+        } else {
+            active = db.getHashMap("active");
+            cache = db.getHashMap("cache");
+            
+//            processed = db.new HTreeMapMaker("processed").keepCounter(true).make();
+            
+            processed = db.getHashMap("processed");
+        }
         sitemap = db.getHashSet("sitemap");
     }
     
@@ -192,67 +211,15 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     public boolean isSitemapResolved(String urlRoot) {
         return sitemap.contains(urlRoot);
     }
-
-//    class ValueSerializer implements Serializer<CrawlURL>, Serializable {
-//        private static final long serialVersionUID = -2112698832835179517L;
-//        @Override
-//        public void serialize(
-//                DataOutput out, CrawlURL value) throws IOException {
-//            out.writeUTF(value.getUrl());
-//            out.writeInt(value.getDepth());
-//            writeUTF(out, value.getStatus().toString());
-//            writeUTF(out, value.getDocChecksum());
-//            writeUTF(out, value.getHeadChecksum());
-//            writeUTF(out, value.getSitemapChangeFreq());
-//            writeLong(out, value.getSitemapLastMod());
-//            writeFloat(out, value.getSitemapPriority());
-//        }
-//
-//        @Override
-//        public CrawlURL deserialize(
-//                DataInput in, int available) throws IOException {
-//            CrawlURL url = new CrawlURL(in.readUTF(), in.readInt());
-//            String status = readUTF(in);
-//            if (status != null) {
-//                url.setStatus(CrawlStatus.valueOf(status));
-//            }
-//            url.setDocChecksum(readUTF(in));
-//            url.setHeadChecksum(readUTF(in));
-//            url.setSitemapChangeFreq(readUTF(in));
-//            long lastMod = in.readLong();
-//            if (lastMod > -1) {
-//                url.setSitemapLastMod(lastMod);
-//            }
-//            float priority = in.readFloat();
-//            if (priority > -1) {
-//                url.setSitemapPriority(priority);
-//            }
-//            return url;
-//        }
-//        private String readUTF(DataInput in) throws IOException {
-//            String value = in.readUTF();
-//            if (value.equals("")) {
-//                value = null;
-//            }
-//            return value;
-//        }
-//        private void writeUTF(DataOutput out, String value) throws IOException {
-//            out.writeUTF(StringUtils.defaultString(value, ""));
-//        }
-//        private void writeLong(DataOutput out, Long value) throws IOException {
-//            if (value == null) {
-//                out.writeLong(-1);
-//            } else {
-//                out.writeLong(value);
-//            }
-//        }
-//        private void writeFloat(
-//                DataOutput out, Float value) throws IOException {
-//            if (value == null) {
-//                out.writeFloat(-1);
-//            } else {
-//                out.writeFloat(value);
-//            }
-//        }
-//    }
+    
+    @Override
+    public void close() {
+        LOG.info("Moving processed URL into cache...");
+        db.rename("cache", "temp");
+        db.rename("processed", "cache");
+        db.rename("temp", "processed");
+        LOG.info("Closing crawl database...");
+        db.commit();
+        db.close();
+    }
 }

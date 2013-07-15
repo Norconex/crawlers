@@ -46,7 +46,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 	 * 
 	 * @param url
 	 */
-	abstract void cacheUrl(String url);
+	protected abstract void cacheUrl(String url);
 
 	@Test
 	public void test_queue() throws Exception {

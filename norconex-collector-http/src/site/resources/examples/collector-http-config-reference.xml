@@ -45,6 +45,8 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   #set($docFetcher = "${basepkg}.handler.impl.DefaultDocumentFetcher")
   #set($urlExtractor = "${basepkg}.handler.impl.DefaultURLExtractor")
   #set($sitemap = "${basepkg}.sitemap.impl.DefaultSitemapResolver")
+  #set($headersChecksummer = "${basepkg}.handler.impl.DefaultHttpHeadersChecksummer")
+  #set($docChecksummer = "${basepkg}.handler.impl.DefaultHttpDocumentChecksummer")
   
   <!-- Location where internal progress files are stored. -->
   <progressDir>$workdir\progress</progressDir>

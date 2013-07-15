@@ -14,10 +14,15 @@ public class MappedQueue implements Queue<CrawlURL> {
     private final Queue<String> queue;
     private final Map<String, CrawlURL> map;
 
-    public MappedQueue(DB db, String name) {
+    public MappedQueue(DB db, String name, boolean create) {
         super();
-        queue = db.getQueue(name + "-q");
-        map = db.getHashMap(name + "-m");
+        if (create) {
+            queue = db.createQueue(name + "-q", null);
+            map = db.createHashMap(name + "-m").keepCounter(true).make();
+        } else {
+            queue = db.getQueue(name + "-q");
+            map = db.getHashMap(name + "-m");
+        }
     }
     @Override
     public int size() {
