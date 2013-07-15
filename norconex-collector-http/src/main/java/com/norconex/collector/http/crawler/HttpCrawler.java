@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -39,6 +40,7 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.util.PathUtils;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.Sleeper;
@@ -320,7 +322,9 @@ public class HttpCrawler extends AbstractResumableJob {
         String url = crawlURL.getUrl();
         File outputFile = createLocalFile(crawlURL, ".txt");
         HttpDocument doc = new HttpDocument(
-                crawlURL.getUrl(), createLocalFile(crawlURL, ".raw"));        
+                crawlURL.getUrl(), createLocalFile(crawlURL, ".raw"));
+        setURLMetadata(doc.getMetadata(), crawlURL);
+        
         try {
             if (delete) {
                 deleteURL(crawlURL, outputFile, doc);
@@ -338,13 +342,14 @@ public class HttpCrawler extends AbstractResumableJob {
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
             crawlURL.setStatus(CrawlStatus.ERROR);
-//            if (LOG.isDebugEnabled()) {
+            if (LOG.isDebugEnabled()) {
                 LOG.error("Could not process document: " + url
                         + " (" + e.getMessage() + ")", e);
-//            } else {
-//                LOG.error("Could not process document: " + url
-//                        + " (" + e.getMessage() + ")");
-//            }
+            } else {
+                LOG.error("Could not process document: " + url
+                        + " (" + e.getMessage() + ").  Set log level to DEBUG "
+                        + "to generate a Java stacktrace with the error.");
+            }
 	    } finally {
             //--- Flag URL for deletion ----------------------------------------
 	        ICommitter committer = crawlerConfig.getCommitter();
@@ -399,5 +404,20 @@ public class HttpCrawler extends AbstractResumableJob {
     private boolean isMaxURLs() {
         return crawlerConfig.getMaxURLs() > -1 
                 && okURLsCount >= crawlerConfig.getMaxURLs();
+    }
+    private void setURLMetadata(HttpMetadata metadata, CrawlURL url) {
+        metadata.addInt(HttpMetadata.DOC_DEPTH, url.getDepth());
+        if (StringUtils.isNotBlank(url.getSitemapChangeFreq())) {
+            metadata.addString(HttpMetadata.DOC_SM_CHANGE_FREQ, 
+                    url.getSitemapChangeFreq());
+        }
+        if (url.getSitemapLastMod() != null) {
+            metadata.addLong(HttpMetadata.DOC_SM_LASTMOD, 
+                    url.getSitemapLastMod());
+        }        
+        if (url.getSitemapPriority() != null) {
+            metadata.addFloat(HttpMetadata.DOC_SM_PRORITY, 
+                    url.getSitemapPriority());
+        }        
     }
 }

@@ -16,27 +16,25 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.db.impl.mapdb;
+package com.norconex.collector.http.db.impl.derby;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
 
 /**
- * Database factory creating a {@link MapDBCrawlURLDatabase} instance.
+ * Default database factory creating a {@link DerbyCrawlURLDatabase} instance.
  * @author Pascal Essiembre
  */
-public class MapDBCrawlURLDatabaseFactory 
+public class DerbyCrawlURLDatabaseFactory 
         implements ICrawlURLDatabaseFactory {
 
-    private static final long serialVersionUID = 370632354864351545L;
+    private static final long serialVersionUID = 6088230386061613319L;
 
-    public static final int DEFAULT_CACHE_SIZE = 1000;
-    
     @Override
     public ICrawlURLDatabase createCrawlURLDatabase(
             HttpCrawlerConfig config, boolean resume) {
-        return new MapDBCrawlURLDatabase(config, DEFAULT_CACHE_SIZE, resume);
+        return new DerbyCrawlURLDatabase(config, resume);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.norconex.collector.http.db.impl.mapdb;
+package com.norconex.collector.http.db.impl;
 
 import java.io.File;
 import java.util.Map;
@@ -33,7 +33,6 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     
     public MapDBCrawlURLDatabase(
             HttpCrawlerConfig config,
-            int cacheSize,
             boolean resume) {
         super();
 
@@ -44,8 +43,6 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
         this.db = DBMaker.newFileDB(new File(dbDir + "mapdb"))
                         .closeOnJvmShutdown()
                         .cacheSoftRefEnable()
-                        //.cacheLRUEnable()
-                        //.cacheSize(cacheSize / 5)
 //TODO configurable:    .compressionEnable()
                         .randomAccessFileEnableIfNeeded()
 //TODO configurable:    .freeSpaceReclaimQ(5)

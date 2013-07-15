@@ -34,12 +34,19 @@ public class HttpMetadata extends Properties {
 	public static final String HTTP_CONTENT_TYPE = "Content-Type";
     public static final String HTTP_CONTENT_LENGTH = "Content-Length";
     
-    public static final String DOC_URL = COLLECTOR_PREFIX + "URL";
-    public static final String DOC_MIMETYPE = COLLECTOR_PREFIX + "MIMETYPE";
-    public static final String DOC_CHARSET = COLLECTOR_PREFIX + "CHARSET";
-    
+    public static final String DOC_URL = COLLECTOR_PREFIX + "url";
+    public static final String DOC_MIMETYPE = COLLECTOR_PREFIX + "mimetype";
+    public static final String DOC_CHARSET = COLLECTOR_PREFIX + "charset";
+    public static final String DOC_DEPTH = COLLECTOR_PREFIX + "dept";
+    public static final String DOC_SM_LASTMOD = 
+            COLLECTOR_PREFIX + "sitemap-lastmod";
+    public static final String DOC_SM_CHANGE_FREQ = 
+            COLLECTOR_PREFIX + "sitemap-changefreq";
+    public static final String DOC_SM_PRORITY = 
+            COLLECTOR_PREFIX + "sitemap-priority";
+
     public static final String REFERNCED_URLS = 
-            COLLECTOR_PREFIX + "referencedURLs";
+            COLLECTOR_PREFIX + "referenced-urls";
 
 	
 	public HttpMetadata(String documentURL) {

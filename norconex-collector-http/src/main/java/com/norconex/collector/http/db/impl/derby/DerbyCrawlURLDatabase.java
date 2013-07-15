@@ -16,7 +16,7 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.db.impl;
+package com.norconex.collector.http.db.impl.derby;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;

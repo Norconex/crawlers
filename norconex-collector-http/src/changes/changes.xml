@@ -9,10 +9,13 @@
 
     <release version="1.1.0" date="2013-??-??" description="Feature release.">
       <action dev="essiembp" type="add">
-        Added a MapDB Crawl URL Database implementation, for better performance.
+        DefaultCrawlURLDatabase now uses a MapDB-based implementation for 
+        faster performance.  The derby implementation has been kept for those
+        with a preference for it.
       </action>
       <action dev="essiembp" type="add">
         Now support sitemap.xml and sitemap index (plain or gzip).
+        URLs from sitemaps will have the sitemap information as metadata.
       </action>
       <action dev="pascaldimassimo" type="add">
         BASIC and DIGEST authentication now supported.
@@ -23,6 +26,11 @@
       </action>
       <action dev="essiembp" type="add">
         "ftp" protocol now supported.
+      </action>
+      <action dev="essiembp" type="update">
+        Reduced the number of calls to the crawl database to improve 
+        performance (URL filtering but be sucessfully passedd for a document
+        to get queued for processing).
       </action>
     </release>
 

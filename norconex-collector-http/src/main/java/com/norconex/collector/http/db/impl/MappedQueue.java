@@ -1,4 +1,4 @@
-package com.norconex.collector.http.db.impl.mapdb;
+package com.norconex.collector.http.db.impl;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -27,9 +27,6 @@ public class MappedQueue implements Queue<CrawlURL> {
     public boolean isEmpty() {
         return map.isEmpty();
     }
-//    public CrawlURL get(String url) {
-//        return map.get(url);
-//    }
     @Override
     public void clear() {
         queue.clear();

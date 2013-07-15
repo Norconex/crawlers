@@ -33,6 +33,7 @@ import org.junit.rules.TemporaryFolder;
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.db.impl.derby.DerbyCrawlURLDatabase;
 
 public class DerbyCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 

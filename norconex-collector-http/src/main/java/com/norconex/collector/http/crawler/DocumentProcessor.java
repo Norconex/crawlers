@@ -62,7 +62,8 @@ import com.norconex.importer.filter.OnMatch;
  */
 public final class DocumentProcessor {
 
-    private static final Logger LOG = LogManager.getLogger(DocumentProcessor.class);
+    private static final Logger LOG = 
+            LogManager.getLogger(DocumentProcessor.class);
     
     private final HttpCrawler crawler;
     private final HttpCrawlerConfig config;
