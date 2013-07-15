@@ -11,8 +11,6 @@ The following are either things to be done, or ideas to consider:
   as CoreConnectionPNames.CONNECTION_TIMEOUT and/or provide ways to configure
   abitrary values, referencing Apache docs.
 
-- Benchmark CrawlDB implementations and change default one if appropriate.
-
 - Add optional flag to support gzip transfer (DecompressingHttpClient).
 
 - Rotate/break log files when too big.
@@ -43,8 +41,7 @@ The following are either things to be done, or ideas to consider:
   Generic SQL-DB (hibernate?).
 
 - To consider: Interface for Document Store for downloading documents.
-  File system is used to down default, but could be 
-  others like MongoDB?
+  File system is used now, but could be others like MongoDB?
 
 - Consider having support for different URLExractors for different content 
   types.  Maybe also offer to default one ability to define custom patterns
