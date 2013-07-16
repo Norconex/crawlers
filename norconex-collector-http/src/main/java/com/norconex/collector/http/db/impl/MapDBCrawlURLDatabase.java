@@ -14,7 +14,6 @@ import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
-import com.norconex.commons.lang.Sleeper;
 
 public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
 
@@ -167,7 +166,6 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
         }
         if (commitCounter % (COMMIT_SIZE * 10) == 0) {
             LOG.debug("Compacting URL database...");
-            db.commit();
             db.compact();
         }
     }
@@ -218,9 +216,7 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
         db.rename("processed", "cache");
         db.rename("temp", "processed");
         LOG.info("Closing crawl database...");
-        Sleeper.sleepSeconds(1); // Let DB writers finish.
         db.commit();
-        Sleeper.sleepSeconds(1); // Let commit finish.
         db.close();
     }
 }
