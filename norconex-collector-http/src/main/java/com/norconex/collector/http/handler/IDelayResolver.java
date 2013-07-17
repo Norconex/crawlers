@@ -18,15 +18,11 @@
  */
 package com.norconex.collector.http.handler;
 
-import java.io.Serializable;
-
-import com.norconex.collector.http.robot.RobotsTxt;
 
 /**
- * Resolves and creates "delays" between each document crawled.
- * @author Pascal Essiembre
+ * @deprecated use {@link com.norconex.collector.http.delay.IDelayResolver}
  */
-public interface IDelayResolver extends Serializable  {
-
-    void delay(RobotsTxt robotsTxt, String url);
+@Deprecated
+public interface IDelayResolver 
+        extends com.norconex.collector.http.delay.IDelayResolver {
 }
