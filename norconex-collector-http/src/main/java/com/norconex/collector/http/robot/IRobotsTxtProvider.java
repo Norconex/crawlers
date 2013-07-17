@@ -16,14 +16,20 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.handler;
+package com.norconex.collector.http.robot;
 
-import com.norconex.collector.http.robot.IRobotsMetaProvider;
+import java.io.Serializable;
+
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import com.norconex.collector.http.robot.RobotsTxt;
 
 /**
- * @deprecated use {@link com.norconex.collector.http.robot.IRobotsTxtProvider}
+ * Given a URL, extract any "robots.txt" rules.
+ * @author Pascal Essiembre
  */
-@Deprecated
-public interface IRobotsTxtProvider 
-        extends IRobotsMetaProvider {
+public interface IRobotsTxtProvider extends Serializable {
+
+    RobotsTxt getRobotsTxt(DefaultHttpClient httpClient, String url);
+    
 }

@@ -18,30 +18,11 @@
  */
 package com.norconex.collector.http.handler;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-
-import com.norconex.collector.http.robot.RobotsMeta;
-import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.ContentType;
 
 /**
- * Responsible for extracting robot information from a page.
- * @author Pascal Essiembre
+ * @deprecated use {@link com.norconex.collector.http.robot.IRobotsMetaProvider}
  */
-public interface IRobotsMetaProvider extends Serializable {
-
-    /**
-     * Extracts Robots meta information for a page, if any.
-     * @param document the document
-     * @param documentUrl document url
-     * @param contentType the document content type
-     * @param httpHeaders the document HTTP Headers
-     * @return robots meta instance
-     * @throws IOException problem reading the document
-     */
-    RobotsMeta getRobotsMeta(
-            Reader document, String documentUrl, ContentType contentType,
-            Properties httpHeaders) throws IOException;
+@Deprecated
+public interface IRobotsMetaProvider 
+    extends com.norconex.collector.http.robot.IRobotsMetaProvider {
 }
