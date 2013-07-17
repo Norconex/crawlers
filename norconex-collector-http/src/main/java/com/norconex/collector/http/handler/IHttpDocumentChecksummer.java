@@ -18,12 +18,13 @@
  */
 package com.norconex.collector.http.handler;
 
-import java.io.Serializable;
 
-import com.norconex.collector.http.doc.HttpDocument;
+/**
+ * @deprecated use 
+ *      {@link com.norconex.collector.http.checksum.IHttpDocumentChecksummer}
+ */
+@Deprecated
+public interface IHttpDocumentChecksummer 
+        extends com.norconex.collector.http.checksum.IHttpDocumentChecksummer {
 
-public interface IHttpDocumentChecksummer extends Serializable {
-
-	String createChecksum(HttpDocument document);
-	
 }

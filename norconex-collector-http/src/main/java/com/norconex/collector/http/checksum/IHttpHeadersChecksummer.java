@@ -16,13 +16,14 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.handler;
+package com.norconex.collector.http.checksum;
 
+import java.io.Serializable;
 
-/**
- * @deprecated use 
- *      {@link com.norconex.collector.http.checksum.IHttpHeadersChecksummer}
- */
-public interface IHttpHeadersChecksummer 
-        extends com.norconex.collector.http.checksum.IHttpHeadersChecksummer {
+import com.norconex.commons.lang.map.Properties;
+
+public interface IHttpHeadersChecksummer extends Serializable {
+
+	String createChecksum(Properties metadata);
+	
 }

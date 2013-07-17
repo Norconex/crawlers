@@ -35,6 +35,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
+import com.norconex.collector.http.checksum.IHttpHeadersChecksummer;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.doc.HttpDocument;
@@ -42,9 +44,7 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
-import com.norconex.collector.http.handler.IHttpDocumentChecksummer;
 import com.norconex.collector.http.handler.IHttpDocumentProcessor;
-import com.norconex.collector.http.handler.IHttpHeadersChecksummer;
 import com.norconex.collector.http.handler.IURLExtractor;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.RobotsTxt;
