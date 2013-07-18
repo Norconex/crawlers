@@ -309,6 +309,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           <stylesheetfile>${basedir}/src/main/resources/javadoc.css</stylesheetfile>
           <show>protected</show>
           <detectLinks>true</detectLinks>
+          <nodeprecated>true</nodeprecated>
         </configuration>
         <reportSets>
           <reportSet>
