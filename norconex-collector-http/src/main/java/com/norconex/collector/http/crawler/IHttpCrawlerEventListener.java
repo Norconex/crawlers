@@ -19,12 +19,12 @@
 package com.norconex.collector.http.crawler;
 
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.handler.IHttpDocumentProcessor;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.commons.lang.map.Properties;
 

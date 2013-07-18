@@ -31,10 +31,10 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.handler.IHttpDocumentProcessor;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.importer.ImporterConfig;
