@@ -49,9 +49,24 @@ import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 
-// Take robot delay first (if not null and enabled)
-// Then schedule delay (will pick the first one matching - if any)
-// Then default delay
+/**
+ * <p>
+ * Default implementation for creating voluntary delays between URL downloads.
+ * There are a few ways the actual delay value can be defined (in order):
+ * </p>
+ * <ol>
+ *   <li>Takes the delay specify by a robots.txt file.  
+ *       Only applicable if robots.txt files and its robots crawl delays
+ *       are not ignored.</li>
+ *   <li>Takes an explicitly scheduled delays, if any (picks the first
+ *       one matching).</li>
+ *   <li>Used the specified default delay or 3 seconds, if none is 
+ *       specified.</li>
+ * </ol>
+ * 
+ * @author Pascal Essiembre
+ *
+ */
 public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
 
     public static final long DEFAULT_DELAY = 3000;
@@ -67,7 +82,7 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
     private static final long serialVersionUID = -7742290966880042419L;
 
     @Override
-    public void delay(RobotsTxt robotsTxt, String url) {
+    public synchronized void delay(RobotsTxt robotsTxt, String url) {
         if (lastHitTimestampNanos == -1) {
             lastHitTimestampNanos = System.nanoTime();
             return;

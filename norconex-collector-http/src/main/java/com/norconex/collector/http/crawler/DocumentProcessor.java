@@ -139,9 +139,7 @@ import com.norconex.importer.filter.OnMatch;
         public boolean processURL() {
             IDelayResolver delayResolver = config.getDelayResolver();
             if (delayResolver != null) {
-                synchronized (delayResolver) {
-                    delayResolver.delay(robotsTxt, crawlURL.getUrl());
-                }
+                delayResolver.delay(robotsTxt, crawlURL.getUrl());
             }
             return true;
         }

@@ -4,11 +4,12 @@ The following are either things to be done, or ideas to consider:
   to avoid having a counter higher than actual URLs processed in case of 
   failure (minor).
 
+- Document DefaultDelayResolver XML configuration options in Javadoc.
+
 - Open up Delay Resolver options with default implementation.  Make the delay
-  configurable to be per host, per thread, per crawler, etc.  Also consider
-  leaving it to the implementation to synchronize or not, as opposed to 
-  always synchronize delays (which forces synchronization per collector, not
-  crawler, which is an issue). 
+  configurable to be per host, per thread, per crawler, etc.  Also fix
+  the Default one forcing synchronization per collector, not
+  crawler, which is an issue. 
 
 - Make configurable via HTML many HTTPClient init options, such 
   as CoreConnectionPNames.CONNECTION_TIMEOUT and/or provide ways to configure

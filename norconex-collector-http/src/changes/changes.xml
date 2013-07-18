@@ -28,8 +28,18 @@
         "ftp" protocol now supported.
       </action>
       <action dev="essiembp" type="update">
+        Deprecation of *.handler.* package.  Classes have been moved to 
+        more intuitive packages.
+      </action>
+      <action dev="essiembp" type="update">
+        IDelayResolver are no longer systematically synchronized 
+        (i.e. accessible only one thread a a time). This is a decision left
+        up to each implementation.  DefaultDelayResolver is now
+        synchronized.
+      </action>
+      <action dev="essiembp" type="update">
         Reduced the number of calls to the crawl database to improve 
-        performance (URL filtering but be sucessfully passedd for a document
+        performance (URL filtering but be successfully passed for a document
         to get queued for processing).
       </action>
     </release>
