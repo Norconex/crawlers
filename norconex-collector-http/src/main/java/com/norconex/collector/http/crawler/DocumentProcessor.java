@@ -60,7 +60,7 @@ import com.norconex.importer.filter.OnMatch;
  * Instances are only valid for the scope of a single URL.  
  * @author Pascal Essiembre
  */
-public final class DocumentProcessor {
+/*default*/ final class DocumentProcessor {
 
     private static final Logger LOG = 
             LogManager.getLogger(DocumentProcessor.class);
@@ -98,7 +98,7 @@ public final class DocumentProcessor {
         new DocumentCommitStep()
     };
 
-    public DocumentProcessor(
+    /*default*/ DocumentProcessor(
             HttpCrawler crawler, DefaultHttpClient httpClient, 
             ICrawlURLDatabase database, File outputFile,
             HttpDocument doc, CrawlURL crawlURL) {

@@ -43,7 +43,7 @@ import com.norconex.importer.filter.OnMatch;
  * Instances are only valid for the scope of a single URL.  
  * @author Pascal Essiembre
  */
-public final class URLProcessor {
+/*default*/ final class URLProcessor {
 
     private static final Logger LOG = 
             LogManager.getLogger(URLProcessor.class);
@@ -79,7 +79,7 @@ public final class URLProcessor {
         new StoreNextURLStep(),
     };
 
-    public URLProcessor(
+    /*default*/ URLProcessor(
             HttpCrawler crawler, DefaultHttpClient httpClient, 
             ICrawlURLDatabase database, CrawlURL baseURL) {
         this.crawler = crawler;
