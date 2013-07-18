@@ -16,7 +16,7 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.handler.impl;
+package com.norconex.collector.http.url.impl;
 
 import static org.junit.Assert.assertTrue;
 

@@ -1,4 +1,4 @@
-package com.norconex.collector.http.handler.impl;
+package com.norconex.collector.http.url.impl;
 
 import static org.junit.Assert.assertTrue;
 
@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.robot.RobotsMeta;
+import com.norconex.collector.http.robot.impl.DefaultRobotsMetaProvider;
 
 public class DefaultRobotsMetaProviderTest {
 

@@ -42,15 +42,15 @@ import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.collector.http.handler.IHttpDocumentProcessor;
-import com.norconex.collector.http.handler.IURLExtractor;
-import com.norconex.collector.http.handler.IURLNormalizer;
-import com.norconex.collector.http.handler.impl.DefaultURLExtractor;
 import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.impl.DefaultRobotsMetaProvider;
 import com.norconex.collector.http.robot.impl.DefaultRobotsTxtProvider;
 import com.norconex.collector.http.sitemap.ISitemapsResolver;
 import com.norconex.collector.http.sitemap.impl.DefaultSitemapResolver;
+import com.norconex.collector.http.url.IURLExtractor;
+import com.norconex.collector.http.url.IURLNormalizer;
+import com.norconex.collector.http.url.impl.DefaultURLExtractor;
 import com.norconex.committer.ICommitter;
 import com.norconex.importer.ImporterConfig;
 
