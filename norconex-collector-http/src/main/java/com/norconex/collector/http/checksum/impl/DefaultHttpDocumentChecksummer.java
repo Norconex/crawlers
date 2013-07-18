@@ -48,7 +48,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * XML configuration usage (not required since default):
  * </p>
  * <pre>
- *  &lt;httpDocumentChecksummer class="com.norconex.collector.http.handler.DefaultHttpDocumentChecksummer"&gt;
+ *  &lt;httpDocumentChecksummer class="com.norconex.collector.http.checksum.DefaultHttpDocumentChecksummer"&gt;
  *      &lt;field&gt;(optional field name)&lt;/field&gt;
  *  &lt;/httpDocumentChecksummer &gt;
  * </pre>

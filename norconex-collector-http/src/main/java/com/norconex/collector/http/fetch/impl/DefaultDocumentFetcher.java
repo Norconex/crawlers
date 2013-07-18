@@ -56,7 +56,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * </p>
  * <pre>
  *  &lt;httpDocumentFetcher  
- *      class="com.norconex.collector.http.handler.impl.DefaultDocumentFetcher"&gt;
+ *      class="com.norconex.collector.http.fetch.impl.DefaultDocumentFetcher"&gt;
  *      &lt;validStatusCodes&gt;200&lt;/validStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
  *  &lt;/httpDocumentFetcher&gt;

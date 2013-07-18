@@ -48,7 +48,7 @@ import com.norconex.importer.filter.OnMatch;
  * </p>
  * <pre>
  *  &lt;robotsTxt ignore="false" 
- *     class="com.norconex.collector.http.handler.DefaultRobotsTxtProvider"/&gt;
+ *     class="com.norconex.collector.http.robot.DefaultRobotsTxtProvider"/&gt;
  * </pre>
  * @author Pascal Essiembre
  */

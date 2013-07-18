@@ -59,7 +59,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;httpClientInitializer class="com.norconex.collector.http.handler.impl.DefaultHttpClientInitializer"&gt;
+ *  &lt;httpClientInitializer class="com.norconex.collector.http.client.impl.DefaultHttpClientInitializer"&gt;
  *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
  *      &lt;userAgent&gt;...&lt;/userAgent&gt;
  *      &lt;proxyHost&gt;...&lt;/proxyHost&gt;

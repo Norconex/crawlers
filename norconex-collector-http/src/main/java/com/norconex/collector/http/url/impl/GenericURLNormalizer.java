@@ -95,7 +95,7 @@ import com.norconex.commons.lang.url.URLNormalizer;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;urlNormalizer class="com.norconex.collector.http.handler.impl.GenericURLNormalizer"&gt;
+ *  &lt;urlNormalizer class="com.norconex.collector.http.url.impl.GenericURLNormalizer"&gt;
  *    &lt;normalizations&gt;
  *      (normalization code names, coma separated) 
  *    &lt;/normalizations&gt;
@@ -110,7 +110,7 @@ import com.norconex.commons.lang.url.URLNormalizer;
  * </pre>
  * <p>Example:</p>
  * <pre>
- *  &lt;urlNormalizer class="com.norconex.collector.http.handler.impl.GenericURLNormalizer"&gt;
+ *  &lt;urlNormalizer class="com.norconex.collector.http.url.impl.GenericURLNormalizer"&gt;
  *    &lt;normalizations&gt;
  *      lowerCaseSchemeHost, upperCaseEscapeSequence, removeDefaultPort, 
  *      removeDotSegments, removeDirectoryIndex, removeFragment, addWWW 

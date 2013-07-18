@@ -58,7 +58,7 @@ import com.norconex.importer.ContentType;
  * </p>
  * <pre>
  *  &lt;robotsMeta ignore="false" 
- *     class="com.norconex.collector.http.handler.DefaultRobotsMetaProvider"&gt;
+ *     class="com.norconex.collector.http.robot.DefaultRobotsMetaProvider"&gt;
  *     &lt;headersPrefix&gt;(string prefixing headers)&lt;/headersPrefix&gt;
  *  &lt;/robotsMeta&gt;
  * </pre>

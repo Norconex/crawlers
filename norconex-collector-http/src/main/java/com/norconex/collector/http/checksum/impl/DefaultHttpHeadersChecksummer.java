@@ -44,7 +44,7 @@ import com.norconex.commons.lang.map.Properties;
  * XML configuration usage (not required since default):
  * </p>
  * <pre>
- *  &lt;httpHeadersChecksummer class="com.norconex.collector.http.handler.DefaultHttpHeadersChecksummer"&gt;
+ *  &lt;httpHeadersChecksummer class="com.norconex.collector.http.checksum.DefaultHttpHeadersChecksummer"&gt;
  *      &lt;field&gt;(optional alternate header field name)&lt;/field&gt;
  *  &lt;/httpHeadersChecksummer&gt;
  * </pre>

@@ -47,7 +47,7 @@ import com.norconex.importer.ContentType;
  * XML configuration usage (not required since default):
  * </p>
  * <pre>
- *  &lt;urlExtractor class="com.norconex.collector.http.handler.DefaultURLExtractor"&gt;
+ *  &lt;urlExtractor class="com.norconex.collector.http.url.impl.DefaultURLExtractor"&gt;
  *      &lt;maxURLLength&gt;
  *          (Optional maximum URL length.  Longer URLs won't be extracted.
  *           Default is 2048.)
