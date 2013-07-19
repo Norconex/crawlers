@@ -61,7 +61,6 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             LOG.debug("Cleaning sitemap database...");
             sitemap.clear();
             db.commit();
-            db.compact();
         } else {
             LOG.debug("New databases created.");
         }
@@ -164,10 +163,11 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             LOG.debug("Committing URL database to disk...");
             db.commit();
         }
-        if (commitCounter % (COMMIT_SIZE * 10) == 0) {
-            LOG.debug("Compacting URL database...");
-            db.compact();
-        }
+        //TODO Compact database once MapDB fixes its issue #160
+        //XXX if (commitCounter % (COMMIT_SIZE * 10) == 0) {
+        //XXX     LOG.debug("Compacting URL database...");
+        //XXX     db.compact();
+        //XXX }
     }
 
     @Override
