@@ -23,7 +23,8 @@ import java.io.Serializable;
 import com.norconex.collector.http.robot.RobotsTxt;
 
 /**
- * Resolves and creates "delays" between each document crawled.  This interface
+ * Resolves and creates intentional "delays" to increase document download
+ * time intervals. This interface
  * does not dictate how delays are resolved.  It is left to implementors to
  * put in place their own strategy (e.g. pause all threads, delay 
  * multiple crawls on the same website domain only, etc).

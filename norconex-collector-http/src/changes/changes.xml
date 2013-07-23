@@ -27,6 +27,11 @@
       <action dev="essiembp" type="add">
         "ftp" protocol now supported.
       </action>
+      <action dev="essiembp" type="add">
+        It is now possible to specify the scope of each delay between URL
+        download with DefaultDelayResolver (per crawler, site, or thread).
+        "crawler" is default.
+      </action>
       <action dev="essiembp" type="update">
         Deprecation of *.handler.* package.  Classes have been moved to 
         more intuitive packages.

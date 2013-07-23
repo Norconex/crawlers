@@ -21,10 +21,9 @@ package com.norconex.collector.http.crawler;
 import java.io.File;
 import java.io.Serializable;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SerializationUtils;
 
-import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
 import com.norconex.collector.http.checksum.IHttpHeadersChecksummer;
 import com.norconex.collector.http.checksum.impl.DefaultHttpDocumentChecksummer;
@@ -313,10 +312,11 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
     @Override
     protected Object clone() throws CloneNotSupportedException {
-        try {
-            return BeanUtils.cloneBean(this);
-        } catch (Exception e) {
-            throw new HttpCollectorException(e);
-        }
+        return SerializationUtils.clone(this);
+//        try {
+//            return BeanUtils.cloneBean(this);
+//        } catch (Exception e) {
+//            throw new HttpCollectorException(e);
+//        }
     }
 }

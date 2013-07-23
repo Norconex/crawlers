@@ -132,11 +132,8 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
         } else if ("crawl-delay".equalsIgnoreCase(key)) {
             crawlDelay.setValue(NumberUtils.toFloat(
                     value, crawlDelay.floatValue()));
-        } else if ("sitemap".equalsIgnoreCase(key)) {
-            //TODO implement me.
-            LOG.warn("Sitemap in robots.txt encountered. "
-                   + "CURRENTLY NOT SUPPORTED.");
         }
+        //note that sitemap directives are handled by ISitemapsResolver
     }
     
     private boolean matchesUserAgent(

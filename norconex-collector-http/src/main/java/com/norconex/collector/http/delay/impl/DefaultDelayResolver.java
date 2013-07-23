@@ -24,6 +24,8 @@ import java.io.Serializable;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -36,7 +38,12 @@ import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.mutable.MutableLong;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalTime;
@@ -63,50 +70,174 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *   <li>Used the specified default delay or 3 seconds, if none is 
  *       specified.</li>
  * </ol>
+ * <p>
+ * In a delay schedule, the days of weeks are spelled out: Monday, Tuesday, etc
+ * (English only for now).  Time ranges are using the 24h format.
+ * </p>
+ * <p>
+ * One of these following scope dictates how the delay is applied, listed
+ * in order from the best behaved to the least.
+ * </p>
+ * <ul>
+ *   <li><b>crawler</b>: the delay is applied between each URL download
+ *       within a crawler instance, regardless how many threads are defined
+ *       within that crawler, or whether URLs are from the 
+ *       same site or not.  This is the default scope.</li>
+ *   <li><b>site</b>: the delay is applied between each URL download
+ *       from the same site within a crawler instance, regardless how many
+ *       threads are defined. A site is defined by a URL protocol and its
+ *       domain (e.g. http://example.com).</li>
+ *   <li><b>thread</b>: the delay is applied between each URL download from
+ *       any given thread.  That the more threads you have the less of an 
+ *       impact the delay will have.</li>
+ * </ul>
+ * <p>
+ * XML configuration usage:
+ * </p>
+ * <pre>
+ *  &lt;delay class="com.norconex.collector.http.delay.impl.DefaultDelayResolver"
+ *          default="(milliseconds)" 
+ *          ignoreRobotsCrawlDelay="[false|true]"
+ *          scope="[crawler|site|thread] &gt;
+ *      &lt;schedule dayOfWeek="from (week day) to (week day)"
+ *          dayOfMonth="from [1-31] to [1-31]"
+ *          time="from (hh:mm) to (hh:mm)" /&gt;
+ *      (... repeat schedule tag as needed ...)
+ *  &lt;/delay&gt;
+ * </pre>
  * 
  * @author Pascal Essiembre
- *
  */
 public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
 
+    private static final long serialVersionUID = -7742290966880042419L;
+
+    private static final Logger LOG = 
+            LogManager.getLogger(DefaultDelayResolver.class);
+    
+    public static final String SCOPE_CRAWLER = "crawler";
+    public static final String SCOPE_SITE = "site";
+    public static final String SCOPE_THREAD = "thread";
+    
+    /** Default delay is 3 seconds. */
     public static final long DEFAULT_DELAY = 3000;
     
     private static final double THOUSAND_MILIS = 1000.0;
     private static final int MIN_DOW_LENGTH = 3;
     
-    private long lastHitTimestampNanos = -1;
+    // Per Crawler
+    private MutableLong crawlerLastHitNanos;
+    // Per Site
+    private Map<String, Long> siteLastHitNanos;
+    // Per Thread
+    private ThreadLocal<Long> threadLastHitNanos;
+    
+    
     private long defaultDelay = DEFAULT_DELAY;
     private List<DelaySchedule> schedules = new ArrayList<DelaySchedule>();
     private boolean ignoreRobotsCrawlDelay = false;
+    private String scope = SCOPE_CRAWLER;
     
-    private static final long serialVersionUID = -7742290966880042419L;
-
     @Override
-    public synchronized void delay(RobotsTxt robotsTxt, String url) {
-        if (lastHitTimestampNanos == -1) {
-            lastHitTimestampNanos = System.nanoTime();
+    public void delay(RobotsTxt robotsTxt, String url) {
+        if (SCOPE_CRAWLER.equalsIgnoreCase(scope)) {
+            resolveCrawlerDelay(robotsTxt);
+        } else if (SCOPE_SITE.equalsIgnoreCase(scope)) {
+            resolveSiteDelay(robotsTxt, url);
+        } else if (SCOPE_THREAD.equalsIgnoreCase(scope)) {
+            resolveThreadDelay(robotsTxt);
+        } else {
+            LOG.warn("Unspecified or unsupported delay scope: "
+                    + scope + ".  Using crawler scope.");
+            resolveCrawlerDelay(robotsTxt);
+        }
+    }
+
+    //TODO consider making those methods re-usable classes instead?
+    private void resolveCrawlerDelay(RobotsTxt robotsTxt) {
+        if (crawlerLastHitNanos == null) {
+            crawlerLastHitNanos = new MutableLong(System.nanoTime());
             return;
         }
-        long delayNanos = millisToNanos(defaultDelay);
-        if (robotsTxt != null && !ignoreRobotsCrawlDelay 
-                && robotsTxt.getCrawlDelay() >=0) {
-            delayNanos = TimeUnit.MILLISECONDS.toNanos(
-                    (long)(robotsTxt.getCrawlDelay() * THOUSAND_MILIS));
-        } else {
-            for (DelaySchedule schedule : schedules) {
-                if (schedule.isCurrentTimeInSchedule()) {
-                    delayNanos = millisToNanos(schedule.getDelay());
-                    break;
-                }
+        boolean waitForNextCycle = false;
+        long lastHitNanos;
+        synchronized (crawlerLastHitNanos) {
+            if (crawlerLastHitNanos.longValue() == -1) {
+                waitForNextCycle = true;
             }
+            lastHitNanos = crawlerLastHitNanos.longValue();
+            crawlerLastHitNanos.setValue(-1);
+        }
+        if (waitForNextCycle) {
+            Sleeper.sleepNanos(getTargetedDelayNanos(robotsTxt));
+            resolveCrawlerDelay(robotsTxt);
+            return;
+        }
+        delay(robotsTxt, lastHitNanos);
+        crawlerLastHitNanos.setValue(System.nanoTime());
+    }
+
+    private void resolveSiteDelay(RobotsTxt robotsTxt, String url) {
+        String site = url.replaceFirst("(.*?//.*?)(/.*)|$]", "$1");
+        if (siteLastHitNanos == null) {
+            siteLastHitNanos = new ConcurrentHashMap<String, Long>();
+            siteLastHitNanos.put(site, System.nanoTime());
+            return;
+        }
+        Long curSiteLastHitNano = siteLastHitNanos.get(site);
+        if (curSiteLastHitNano == null) {
+            siteLastHitNanos.put(site, System.nanoTime());
+            return;
         }
         
-        long elapsedNanoTime = System.nanoTime() - lastHitTimestampNanos;
-        if (elapsedNanoTime < delayNanos) {
-            Sleeper.sleepNanos(delayNanos - elapsedNanoTime);
+        boolean waitForNextCycle = false;
+        long lastHitNanos;
+        synchronized (siteLastHitNanos) {
+            curSiteLastHitNano = siteLastHitNanos.get(site);
+            if (curSiteLastHitNano == -1) {
+                waitForNextCycle = true;
+            }
+            lastHitNanos = curSiteLastHitNano;
+            siteLastHitNanos.put(site, -1l);
         }
-        lastHitTimestampNanos = System.nanoTime();
-        Sleeper.sleepNanos(1);
+        if (waitForNextCycle) {
+            Sleeper.sleepNanos(getTargetedDelayNanos(robotsTxt));
+            resolveSiteDelay(robotsTxt, url);
+            return;
+        }
+        delay(robotsTxt, lastHitNanos);
+        siteLastHitNanos.put(site, System.nanoTime());
+    }
+
+    private void resolveThreadDelay(RobotsTxt robotsTxt) {
+        if (threadLastHitNanos == null) {
+            threadLastHitNanos = new ThreadLocal<Long>();
+            threadLastHitNanos.set(System.nanoTime());
+        }
+        long lastHitNanos = threadLastHitNanos.get();
+        delay(robotsTxt, lastHitNanos);
+        threadLastHitNanos.set(System.nanoTime());
+    }
+
+    private void delay(RobotsTxt robotsTxt, long lastHitNanos) {
+        // Targeted delay in nanoseconds
+        long targetDelayNanos = getTargetedDelayNanos(robotsTxt);
+
+        // How much time since last hit?
+        long elapsedNanoTime = System.nanoTime() - lastHitNanos;
+
+        // Sleep until targeted delay if not already passed.
+        if (elapsedNanoTime < targetDelayNanos) {
+            long timeToSleep = targetDelayNanos - elapsedNanoTime;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Thread " + Thread.currentThread().getName()
+                        +  " sleeping for " 
+                        + ((double) timeToSleep / 1000d 
+                                / 1000d / 1000) + " seconds.");
+            }
+            Sleeper.sleepNanos(timeToSleep);
+        }
+        Sleeper.sleepNanos(1); // Ensure time has changed
     }
 
     /**
@@ -135,7 +266,43 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
     public void setIgnoreRobotsCrawlDelay(boolean ignoreRobotsCrawlDelay) {
         this.ignoreRobotsCrawlDelay = ignoreRobotsCrawlDelay;
     }
+    public String getScope() {
+        return scope;
+    }
+    /**
+     * Sets the delay scope. 
+     * @param scope one of "crawler", "site", or "thread". 
+     */
+    public void setScope(String scope) {
+        this.scope = scope;
+    }    
 
+    private long getTargetedDelayNanos(RobotsTxt robotsTxt) {
+        long delayNanos = millisToNanos(defaultDelay);
+        if (isUsingRobotsTxtCrawlDelay(robotsTxt)) {
+            delayNanos = TimeUnit.MILLISECONDS.toNanos(
+                    (long)(robotsTxt.getCrawlDelay() * THOUSAND_MILIS));
+        } else {
+            for (DelaySchedule schedule : schedules) {
+                if (schedule.isCurrentTimeInSchedule()) {
+                    delayNanos = millisToNanos(schedule.getDelay());
+                    break;
+                }
+            }
+        }
+        return delayNanos;
+    }
+    
+    private boolean isUsingRobotsTxtCrawlDelay(RobotsTxt robotsTxt) {
+        return robotsTxt != null && !ignoreRobotsCrawlDelay 
+                && robotsTxt.getCrawlDelay() >= 0;
+    }
+    
+    private long millisToNanos(long millis) {
+        return TimeUnit.MILLISECONDS.toNanos(millis);
+    }
+
+    
     @Override
     public void loadFromXML(Reader in) throws IOException {
         try {
@@ -143,6 +310,7 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             defaultDelay = xml.getLong("[@default]", defaultDelay);
             ignoreRobotsCrawlDelay = xml.getBoolean(
                     "[@ignoreRobotsCrawlDelay]", ignoreRobotsCrawlDelay);
+            scope = xml.getString("[@scope]", SCOPE_CRAWLER);
             List<HierarchicalConfiguration> nodes =
                     xml.configurationsAt("schedule");
             for (HierarchicalConfiguration node : nodes) {
@@ -166,6 +334,7 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             writer.writeStartElement("delay");
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttribute("default", Long.toString(defaultDelay));
+            writer.writeAttribute("scope", scope);
             writer.writeAttribute("ignoreRobotsCrawlDelay", 
                     Boolean.toString(ignoreRobotsCrawlDelay));
             
@@ -196,11 +365,40 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             throw new IOException("Cannot save as XML.", e);
         }        
     }
-    
-    private long millisToNanos(long millis) {
-        return TimeUnit.MILLISECONDS.toNanos(millis);
+
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof DefaultDelayResolver))
+            return false;
+        DefaultDelayResolver castOther = (DefaultDelayResolver) other;
+        return new EqualsBuilder()
+                .append(crawlerLastHitNanos, castOther.crawlerLastHitNanos)
+                .append(siteLastHitNanos, castOther.siteLastHitNanos)
+                .append(threadLastHitNanos, castOther.threadLastHitNanos)
+                .append(defaultDelay, castOther.defaultDelay)
+                .append(schedules, castOther.schedules)
+                .append(ignoreRobotsCrawlDelay,
+                        castOther.ignoreRobotsCrawlDelay)
+                .append(scope, castOther.scope).isEquals();
     }
 
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(crawlerLastHitNanos)
+                .append(siteLastHitNanos).append(threadLastHitNanos)
+                .append(defaultDelay).append(schedules)
+                .append(ignoreRobotsCrawlDelay).append(scope).toHashCode();
+    }
+    
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SIMPLE_STYLE)
+                .append("defaultDelay", defaultDelay)
+                .append("schedules", schedules)
+                .append("ignoreRobotsCrawlDelay", ignoreRobotsCrawlDelay)
+                .append("scope", scope).toString();
+    }
+    
     public static class DelaySchedule implements Serializable {
         private static final long serialVersionUID = 5602602696446583844L;
         private final Range<Integer> dayOfWeekRange;
@@ -328,7 +526,8 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             if (!(obj instanceof DefaultDelayResolver.DelaySchedule)) {
                 return false;
             }
-            DefaultDelayResolver.DelaySchedule other = (DefaultDelayResolver.DelaySchedule) obj;
+            DefaultDelayResolver.DelaySchedule other = 
+                    (DefaultDelayResolver.DelaySchedule) obj;
             return new EqualsBuilder()
                 .append(dayOfMonthRange, other.dayOfMonthRange)
                 .append(dayOfWeekRange, other.dayOfWeekRange)
@@ -336,5 +535,7 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
                 .isEquals();
         }
     }
-    
+
+
+
 }
