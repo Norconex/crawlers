@@ -4,8 +4,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
-import com.norconex.collector.http.crawler.CrawlStatus;
-import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
 public class MapDBCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
@@ -15,22 +13,23 @@ public class MapDBCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
+    @Override
+    protected void processedToCache() {
+        // Recreating a MapDB will transfer all the processed urls to the cache.
+        createImpl(false);
+    }
+
+    @Override
+    protected void createImpl(boolean resume) {
+        db.close();
+        db = new MapDBCrawlURLDatabase(config, resume);
+    }
+
     @Before
     public void setup() {
         config = new HttpCrawlerConfig();
         // the tempFolder is re-created at each test
         config.setWorkDir(tempFolder.getRoot());
-        db = new MapDBCrawlURLDatabase(config, false);
-    }
-
-    @Override
-    protected void cacheUrl(String url) {
-        // To cache an url, it needs to be processed first, then we need to
-        // instantiate again the MapDBCrawlURLDatabase with resume set to false.
-        CrawlURL crawlURL = new CrawlURL(url, 0);
-        crawlURL.setStatus(CrawlStatus.OK);
-        db.processed(crawlURL);
-        db.close();
         db = new MapDBCrawlURLDatabase(config, false);
     }
 }

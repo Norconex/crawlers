@@ -60,6 +60,11 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             active.clear();
             LOG.debug("Cleaning sitemap database...");
             sitemap.clear();
+            LOG.debug("Cleaning cache database...");
+            cache.clear();
+            LOG.debug("Transferring process database to cache...");
+            cache.putAll(processed);
+            processed.clear();
             db.commit();
         } else {
             LOG.debug("New databases created.");
@@ -211,10 +216,6 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     
     @Override
     public void close() {
-        LOG.info("Moving processed URLs into cache...");
-        db.rename("cache", "temp");
-        db.rename("processed", "cache");
-        db.rename("temp", "processed");
         LOG.info("Closing crawl database...");
         db.commit();
         db.close();
