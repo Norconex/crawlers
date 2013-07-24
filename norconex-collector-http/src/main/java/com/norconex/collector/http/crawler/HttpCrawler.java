@@ -367,6 +367,10 @@ public class HttpCrawler extends AbstractResumableJob {
                 okURLsCount++;
             }
             database.processed(crawlURL);
+            if (crawlURL.getStatus() == null) {
+                LOG.warn("URL status is unknown: " + crawlURL.getUrl());
+                crawlURL.setStatus(CrawlStatus.BAD_STATUS);
+            }
             crawlURL.getStatus().logInfo(crawlURL);
             
             //--- Delete Local File Download -----------------------------------
