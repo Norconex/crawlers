@@ -169,7 +169,11 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             crawlerLastHitNanos.setValue(-1);
         }
         if (waitForNextCycle) {
-            Sleeper.sleepNanos(getTargetedDelayNanos(robotsTxt));
+            long targetDelayNanos = getTargetedDelayNanos(robotsTxt);
+            if (targetDelayNanos <= 0) {
+                return;
+            }
+            Sleeper.sleepNanos(targetDelayNanos);
             resolveCrawlerDelay(robotsTxt);
             return;
         }
@@ -201,7 +205,11 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             siteLastHitNanos.put(site, -1l);
         }
         if (waitForNextCycle) {
-            Sleeper.sleepNanos(getTargetedDelayNanos(robotsTxt));
+            long targetDelayNanos = getTargetedDelayNanos(robotsTxt);
+            if (targetDelayNanos <= 0) {
+                return;
+            }
+            Sleeper.sleepNanos(targetDelayNanos);
             resolveSiteDelay(robotsTxt, url);
             return;
         }
@@ -222,7 +230,10 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
     private void delay(RobotsTxt robotsTxt, long lastHitNanos) {
         // Targeted delay in nanoseconds
         long targetDelayNanos = getTargetedDelayNanos(robotsTxt);
-
+        if (targetDelayNanos <= 0) {
+            return;
+        }
+        
         // How much time since last hit?
         long elapsedNanoTime = System.nanoTime() - lastHitNanos;
 
