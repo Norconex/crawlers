@@ -31,7 +31,7 @@ public interface ICommitter extends Serializable {
 
     /**
      * The default document unique identifier (reference) is 
-     * "<code>doc.reference</code>".   This value is set by default 
+     * "<code>document.reference</code>".   This value is set by default 
      * when using the Norconex Importer module.  Concrete 
      * implementations should offer to overwrite this default value when
      * appropriate.
