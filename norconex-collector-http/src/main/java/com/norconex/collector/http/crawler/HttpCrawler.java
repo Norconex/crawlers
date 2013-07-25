@@ -235,8 +235,8 @@ public class HttpCrawler extends AbstractResumableJob {
         
         //--- Delete Download Dir ----------------------------------------------
         if (!crawlerConfig.isKeepDownloads()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Deleting downloads directory: "
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Deleting downloads directory: "
                         + gelBaseDownloadDir());
             }
             try {
