@@ -2,6 +2,10 @@ The following are either things to be done, or ideas to consider:
 
 - Make CrawlURL immutable.
 
+- Consider renaming CrawlURLModel to CrawlURL and making CrawlURL an inner
+  class called CrawlURLData.  All setters and getters would be made available,
+  but only the data stored (immutable) to underlying URL database.
+
 - Package source jars with Maven repository deployments.
 
 - Perform MapDB table renaming at the end and set a property on the job via JEF.
