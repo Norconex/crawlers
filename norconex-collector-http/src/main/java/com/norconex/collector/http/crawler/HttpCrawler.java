@@ -155,6 +155,20 @@ public class HttpCrawler extends AbstractResumableJob {
                     database, progress, suite, crawlerConfig.isDeleteOrphans());
         }
 
+        //--- Delete Download Dir ----------------------------------------------
+        if (!crawlerConfig.isKeepDownloads()) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Deleting downloads directory: "
+                        + gelBaseDownloadDir());
+            }
+            try {
+                FileUtil.deleteFile(gelBaseDownloadDir());
+            } catch (IOException e) {
+                LOG.error("Could not delete the downloads directory: "
+                        + gelBaseDownloadDir(), e);
+            }
+        }
+        
         ICommitter committer = crawlerConfig.getCommitter();
         if (committer != null) {
             LOG.info("Crawler \"" + getId() + "\" " 
@@ -221,20 +235,6 @@ public class HttpCrawler extends AbstractResumableJob {
             pool.shutdown();
         } catch (InterruptedException e) {
              throw new HttpCollectorException(e);
-        }
-        
-        //--- Delete Download Dir ----------------------------------------------
-        if (!crawlerConfig.isKeepDownloads()) {
-            if (LOG.isInfoEnabled()) {
-                LOG.info("Deleting downloads directory: "
-                        + gelBaseDownloadDir());
-            }
-            try {
-                FileUtil.deleteFile(gelBaseDownloadDir());
-            } catch (IOException e) {
-                LOG.error("Could not delete the downloads directory: "
-                        + gelBaseDownloadDir(), e);
-            }
         }
     }
     
