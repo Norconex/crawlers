@@ -111,6 +111,18 @@ public class CrawlURL implements Serializable {
     public void setDocChecksum(String docChecksum) {
         this.docChecksum = docChecksum;
     }
+    
+    public CrawlURL safeClone() {
+        CrawlURL c = new CrawlURL(url, depth);
+        c.setDocChecksum(docChecksum);
+        c.setHeadChecksum(headChecksum);
+        c.setSitemapChangeFreq(sitemapChangeFreq);
+        c.setSitemapLastMod(sitemapLastMod);
+        c.setSitemapPriority(sitemapPriority);
+        c.setStatus(status);
+        return c;
+    }
+    
     @Override
     public boolean equals(final Object other) {
         if (!(other instanceof CrawlURL)) {

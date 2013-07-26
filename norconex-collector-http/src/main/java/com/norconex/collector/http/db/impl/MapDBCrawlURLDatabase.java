@@ -101,8 +101,9 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
 //TODO configurable:    .compressionEnable()
                 
                 
-                
                 .randomAccessFileEnableIfNeeded()
+
+                
 //TODO configurable:    .freeSpaceReclaimQ(5)
 //TODO configurable:    .syncOnCommitDisable()
 //TODO configurable:    .writeAheadLogDisable()
@@ -125,8 +126,10 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     }
     
     @Override
-    public void queue(CrawlURL url) {
-        queue.add(url);
+    public void queue(CrawlURL crawlURL) {
+        // Short of being immutable, make a defensive copy of crawl URL.
+        CrawlURL crawlUrlCopy = crawlURL.safeClone();
+        queue.add(crawlUrlCopy);
     }
 
     @Override
@@ -175,12 +178,14 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
 
     @Override
     public synchronized void processed(CrawlURL crawlURL) {
-        processed.put(crawlURL.getUrl(), crawlURL);
+        // Short of being immutable, make a defensive copy of crawl URL.
+        CrawlURL crawlUrlCopy = crawlURL.safeClone();
+        processed.put(crawlUrlCopy.getUrl(), crawlUrlCopy);
         if (!active.isEmpty()) {
-            active.remove(crawlURL.getUrl());
+            active.remove(crawlUrlCopy.getUrl());
         }
         if (!cache.isEmpty()) {
-            cache.remove(crawlURL.getUrl());
+            cache.remove(crawlUrlCopy.getUrl());
         }
         commitCounter++;
         if (commitCounter % COMMIT_SIZE == 0) {

@@ -151,7 +151,8 @@ public class HttpCrawler extends AbstractResumableJob {
         // Process what remains in cache
         if (!isMaxURLs()) {
             database.queueCache();
-            processURLs(database, progress, suite, crawlerConfig.isDeleteOrphans());
+            processURLs(
+                    database, progress, suite, crawlerConfig.isDeleteOrphans());
         }
 
         ICommitter committer = crawlerConfig.getCommitter();

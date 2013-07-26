@@ -316,7 +316,7 @@ import com.norconex.importer.filter.OnMatch;
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
             status = CrawlStatus.ERROR;
-            LOG.error("Could not pre-process URL: " + crawlURL.getUrl(), e);
+            LOG.error("Could not process URL: " + crawlURL.getUrl(), e);
             return false;
         } finally {
             //--- Mark URL as Processed ----------------------------------------
