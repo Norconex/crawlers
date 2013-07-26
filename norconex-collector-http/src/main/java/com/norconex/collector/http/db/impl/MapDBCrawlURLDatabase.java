@@ -20,7 +20,8 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     private static final Logger LOG = 
             LogManager.getLogger(MapDBCrawlURLDatabase.class);
 
-    private static final int COMMIT_SIZE = 1000; //TODO make configurable
+    //TODO make configurable
+    private static final int COMMIT_SIZE = 1000;
     
     private final DB db;
     private Queue<CrawlURL> queue;
@@ -62,7 +63,7 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             sitemap.clear();
             LOG.debug("Cleaning cache database...");
             cache.clear();
-            LOG.debug("Transferring process database to cache...");
+            LOG.info("Caching processed URL from last run (if applicable)...");
             cache.putAll(processed);
             processed.clear();
             db.commit();
@@ -168,11 +169,9 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             LOG.debug("Committing URL database to disk...");
             db.commit();
         }
-        //TODO Compact database once MapDB fixes its issue #160
-        //XXX if (commitCounter % (COMMIT_SIZE * 10) == 0) {
-        //XXX     LOG.debug("Compacting URL database...");
-        //XXX     db.compact();
-        //XXX }
+        //TODO Compact database and LOG the event once MapDB fixed issue #160
+        //TODO call db.compact(); when commit counter modulus commit size
+        //     10 is encountered.
     }
 
     @Override

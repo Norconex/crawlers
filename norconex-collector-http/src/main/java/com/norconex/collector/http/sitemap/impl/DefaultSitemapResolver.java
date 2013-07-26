@@ -208,12 +208,7 @@ public class DefaultSitemapResolver
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
         XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(is);
-        CrawlURL baseURL = null;
-        boolean sitemapIndex = false;
-        boolean loc = false;
-        boolean lastmod = false;
-        boolean changefreq = false;
-        boolean priority = false;
+        ParseState parseState = new ParseState();
         
         String locationDir = StringUtils.substringBeforeLast(location, "/");
         int event = xmlReader.getEventType();
@@ -221,72 +216,90 @@ public class DefaultSitemapResolver
             switch(event) {
             case XMLStreamConstants.START_ELEMENT:
                 String tag = xmlReader.getLocalName();
-                if("sitemap".equalsIgnoreCase(tag)) {
-                    sitemapIndex = true;
-                } else if("url".equalsIgnoreCase(tag)){
-                    baseURL = new CrawlURL("", 0);
-                } else if("loc".equalsIgnoreCase(tag)){
-                    loc = true;
-                } else if("lastmod".equalsIgnoreCase(tag)){
-                    lastmod = true;
-                } else if("changefreq".equalsIgnoreCase(tag)){
-                    changefreq = true;
-                } else if("priority".equalsIgnoreCase(tag)){
-                    priority = true;
-                }
+                parseStartElement(parseState, tag);
                 break;
             case XMLStreamConstants.CHARACTERS:
                 String value = xmlReader.getText();
-                if (sitemapIndex && loc) {
+                if (parseState.sitemapIndex && parseState.loc) {
                     resolveLocation(value, httpClient, 
                             sitemapURLStore, resolvedLocations);
-                    loc = false;
-                } else if (baseURL != null) {
-                    if (loc) {
-                        baseURL.setUrl(value);
-                        loc = false;
-                    } else if (lastmod) {
-                        try {
-                            baseURL.setSitemapLastMod(
-                                    DateTime.parse(value).getMillis());
-                        } catch (Exception e) {
-                            LOG.info("Invalid sitemap date: " + value);
-                        }
-                        lastmod = false;
-                    } else if (changefreq) {
-                        baseURL.setSitemapChangeFreq(value);
-                        changefreq = false;
-                    } else if (priority) {
-                        try {
-                            baseURL.setSitemapPriority(Float.parseFloat(value));
-                        } catch (NumberFormatException e) {
-                            LOG.info("Invalid sitemap priority: " + value);
-                        }
-                        priority = false;
-                    }
+                    parseState.loc = false;
+                } else if (parseState.baseURL != null) {
+                    parseCharacters(parseState, value);
                 } 
                 break;
             case XMLStreamConstants.END_ELEMENT:
                 tag = xmlReader.getLocalName();
-                if ("sitemap".equalsIgnoreCase(tag)) {
-                    sitemapIndex = false;
-                } else if("url".equalsIgnoreCase(tag)
-                        && baseURL.getUrl() != null){
-                    if (lenient || baseURL.getUrl().startsWith(locationDir)) { 
-                        sitemapURLStore.add(baseURL);
-                    } else if (LOG.isDebugEnabled()) {
-                        LOG.debug("Sitemap URL invalid for location directory."
-                                + " URL:" + baseURL.getUrl()
-                                + " Location directory: " + locationDir);
-                    }
-                    baseURL = null;
-                }
+                parseEndElement(sitemapURLStore, parseState, locationDir, tag);
                 break;
             }
             if (!xmlReader.hasNext()) {
                 break;
             }
             event = xmlReader.next();
+        }
+    }
+
+    private void parseEndElement(SitemapURLStore sitemapURLStore,
+            ParseState parseState, String locationDir, String tag) {
+        if ("sitemap".equalsIgnoreCase(tag)) {
+            parseState.sitemapIndex = false;
+        } else if("url".equalsIgnoreCase(tag)
+                && parseState.baseURL.getUrl() != null){
+            if (isRelaxed(parseState, locationDir)) { 
+                sitemapURLStore.add(parseState.baseURL);
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("Sitemap URL invalid for location directory."
+                        + " URL:" + parseState.baseURL.getUrl()
+                        + " Location directory: " + locationDir);
+            }
+            parseState.baseURL = null;
+        }
+    }
+
+    private boolean isRelaxed(ParseState parseState, String locationDir) {
+        return lenient || parseState.baseURL.getUrl().startsWith(locationDir);
+    }
+    
+    private void parseCharacters(ParseState parseState, String value) {
+        if (parseState.loc) {
+            parseState.baseURL.setUrl(value);
+            parseState.loc = false;
+        } else if (parseState.lastmod) {
+            try {
+                parseState.baseURL.setSitemapLastMod(
+                        DateTime.parse(value).getMillis());
+            } catch (Exception e) {
+                LOG.info("Invalid sitemap date: " + value);
+            }
+            parseState.lastmod = false;
+        } else if (parseState.changefreq) {
+            parseState.baseURL.setSitemapChangeFreq(value);
+            parseState.changefreq = false;
+        } else if (parseState.priority) {
+            try {
+                parseState.baseURL.setSitemapPriority(
+                        Float.parseFloat(value));
+            } catch (NumberFormatException e) {
+                LOG.info("Invalid sitemap priority: " + value);
+            }
+            parseState.priority = false;
+        }
+    }
+
+    private void parseStartElement(ParseState parseState, String tag) {
+        if("sitemap".equalsIgnoreCase(tag)) {
+            parseState.sitemapIndex = true;
+        } else if("url".equalsIgnoreCase(tag)){
+            parseState.baseURL = new CrawlURL("", 0);
+        } else if("loc".equalsIgnoreCase(tag)){
+            parseState.loc = true;
+        } else if("lastmod".equalsIgnoreCase(tag)){
+            parseState.lastmod = true;
+        } else if("changefreq".equalsIgnoreCase(tag)){
+            parseState.changefreq = true;
+        } else if("priority".equalsIgnoreCase(tag)){
+            parseState.priority = true;
         }
     }
 
@@ -306,8 +319,9 @@ public class DefaultSitemapResolver
     
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof DefaultSitemapResolver))
+        if (!(other instanceof DefaultSitemapResolver)) {
             return false;
+        }
         DefaultSitemapResolver castOther = (DefaultSitemapResolver) other;
         return new EqualsBuilder()
                 .append(sitemapLocations, castOther.sitemapLocations)
@@ -327,5 +341,12 @@ public class DefaultSitemapResolver
                 .append("lenient", lenient).toString();
     }
 
-    
+    private class ParseState {
+        private CrawlURL baseURL = null;
+        private boolean sitemapIndex = false;
+        private boolean loc = false;
+        private boolean lastmod = false;
+        private boolean changefreq = false;
+        private boolean priority = false;
+    }
 }

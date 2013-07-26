@@ -21,10 +21,7 @@ package com.norconex.collector.http.crawler;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -67,8 +64,6 @@ import com.norconex.importer.filter.OnMatch;
     
     private final HttpCrawler crawler;
     private final HttpCrawlerConfig config;
-    private final List<IHttpCrawlerEventListener> listeners = 
-            new ArrayList<IHttpCrawlerEventListener>();
     private final CrawlURL crawlURL;
     private final DefaultHttpClient httpClient;
     private final HttpDocument doc;
@@ -110,11 +105,6 @@ import com.norconex.importer.filter.OnMatch;
         this.config = crawler.getCrawlerConfig();
         this.hdFetcher = config.getHttpHeadersFetcher();
         this.outputFile = outputFile; 
-        
-        IHttpCrawlerEventListener[] ls = config.getCrawlerListeners();
-        if (ls != null) {
-            this.listeners.addAll(Arrays.asList(ls));
-        }
     }
 
     public boolean processURL() {
@@ -158,11 +148,9 @@ import com.norconex.importer.filter.OnMatch;
                 }
                 doc.getMetadata().putAll(metadata);
                 enhanceHTTPHeaders(doc.getMetadata());
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentHeadersFetched(
-                            crawler, crawlURL.getUrl(), 
-                            hdFetcher, doc.getMetadata());
-                }
+                HttpCrawlerEventFirer.fireDocumentHeadersFetched(
+                        crawler, crawlURL.getUrl(), 
+                        hdFetcher, doc.getMetadata());
             }
             return true;
         }
@@ -202,15 +190,8 @@ import com.norconex.importer.filter.OnMatch;
             CrawlStatus status = config.getHttpDocumentFetcher().fetchDocument(
                     httpClient, doc);
             if (status == CrawlStatus.OK) {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentFetched(
-                            crawler, doc, config.getHttpDocumentFetcher());
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("SAVED DOC: " 
-                          + doc.getLocalFile().toURI() + " [mime type: "
-                          + doc.getMetadata().getContentType() + "]");
-                }
+                HttpCrawlerEventFirer.fireDocumentFetched(
+                        crawler, doc, config.getHttpDocumentFetcher());
             }
             crawlURL.setStatus(status);
             if (crawlURL.getStatus() != CrawlStatus.OK) {
@@ -249,10 +230,8 @@ import com.norconex.importer.filter.OnMatch;
             boolean canIndex = config.isIgnoreRobotsMeta() || robotsMeta == null
                     || !robotsMeta.isNoindex();
             if (!canIndex) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Document skipped due to Robots meta noindex "
-                          + "rule: " + crawlURL.getUrl());
-                }
+                HttpCrawlerEventFirer.fireDocumentRobotsMetaRejected(
+                        crawler, crawlURL.getUrl(), robotsMeta);
                 crawlURL.setStatus(CrawlStatus.REJECTED);
                 return false;
             }
@@ -306,10 +285,7 @@ import com.norconex.importer.filter.OnMatch;
                 doc.getMetadata().addString(HttpMetadata.REFERNCED_URLS, 
                         uniqueURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
             }
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.documentURLsExtracted(crawler, doc);
-            }
-
+            HttpCrawlerEventFirer.fireDocumentURLsExtracted(crawler, doc);
             return true;
         }
     }
@@ -358,11 +334,9 @@ import com.norconex.importer.filter.OnMatch;
             boolean atLeastOneIncludeMatch = false;
             for (IHttpDocumentFilter filter : filters) {
                 boolean accepted = filter.acceptDocument(doc);
-                boolean isInclude = filter instanceof IOnMatchFilter
-                       && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
 
                 // Deal with includes
-                if (isInclude) {
+                if (isIncludeFilter(filter)) {
                     hasIncludes = true;
                     if (accepted) {
                         atLeastOneIncludeMatch = true;
@@ -378,28 +352,14 @@ import com.norconex.importer.filter.OnMatch;
                                 doc.getUrl(), filter));
                     }
                 } else {
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentRejected(crawler, doc, filter);
-                    }
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format(
-                                "REJECTED document. URL=%s Filter=%s",
-                                doc.getUrl(), filter));
-                    }
+                    HttpCrawlerEventFirer.fireDocumentRejected(
+                            crawler, doc, filter);
                     crawlURL.setStatus(CrawlStatus.REJECTED);
                     return false;
                 }
             }
             if (hasIncludes && !atLeastOneIncludeMatch) {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentRejected(crawler, doc, null);
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format(
-                            "REJECTED document. URL=%s "
-                          + "Filter=(no include filters matched)",
-                            doc.getUrl(), null));
-                }
+                HttpCrawlerEventFirer.fireDocumentRejected(crawler, doc, null);
                 crawlURL.setStatus(CrawlStatus.REJECTED);
                 return false;
             }
@@ -415,9 +375,8 @@ import com.norconex.importer.filter.OnMatch;
                 for (IHttpDocumentProcessor preProc :
                         config.getPreImportProcessors()) {
                     preProc.processDocument(httpClient, doc);
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentPreProcessed(crawler, doc, preProc);
-                    }
+                    HttpCrawlerEventFirer.fireDocumentPreProcessed(
+                            crawler, doc, preProc);
                 }
             }
             return true;
@@ -441,18 +400,14 @@ import com.norconex.importer.filter.OnMatch;
                         LOG.debug("ACCEPTED document import. URL="
                                 + doc.getUrl());
                     }
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentImported(crawler, doc);
-                    }
+                    HttpCrawlerEventFirer.fireDocumentImported(crawler, doc);
                     return true;
                 }
             } catch (IOException e) {
                 throw new HttpCollectorException(
                         "Cannot import URL: " + crawlURL.getUrl(), e);
             }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("REJECTED document import.  URL=" + doc.getUrl());
-            }
+            HttpCrawlerEventFirer.fireDocumentImportRejected(crawler, doc);
             crawlURL.setStatus(CrawlStatus.REJECTED);
             return false;
         }
@@ -504,9 +459,8 @@ import com.norconex.importer.filter.OnMatch;
                 for (IHttpDocumentProcessor postProc :
                         config.getPostImportProcessors()) {
                     postProc.processDocument(httpClient, doc);
-                    for (IHttpCrawlerEventListener listener : listeners) {
-                        listener.documentPostProcessed(crawler, doc, postProc);
-                    }
+                    HttpCrawlerEventFirer.fireDocumentPostProcessed(
+                            crawler, doc, postProc);
                 }            
             }
             return true;
@@ -522,9 +476,7 @@ import com.norconex.importer.filter.OnMatch;
                 committer.queueAdd(
                         crawlURL.getUrl(), outputFile, doc.getMetadata());
             }
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.documentCrawled(crawler, doc);
-            }
+            HttpCrawlerEventFirer.fireDocumentCrawled(crawler, doc);
             return true;
         }
     }  
@@ -567,28 +519,14 @@ import com.norconex.importer.filter.OnMatch;
                             crawlURL.getUrl(), filter));
                 }
             } else {
-                for (IHttpCrawlerEventListener listener : listeners) {
-                    listener.documentHeadersRejected(
-                            crawler, crawlURL.getUrl(), filter, headers);
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format(
-                            "REJECTED document http headers. URL=%s Filter=%s",
-                            crawlURL.getUrl(), filter));
-                }
+                HttpCrawlerEventFirer.fireDocumentHeadersRejected(
+                        crawler, crawlURL.getUrl(), filter, headers);
                 return true;
             }
         }
         if (hasIncludes && !atLeastOneIncludeMatch) {
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.documentHeadersRejected(
-                        crawler, crawlURL.getUrl(), null, headers);
-            }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("REJECTED document http headers. "
-                        + "URL=%s Filter=(no include filters matched)", 
-                                crawlURL.getUrl()));
-            }            
+            HttpCrawlerEventFirer.fireDocumentHeadersRejected(
+                    crawler, crawlURL.getUrl(), null, headers);
             return true;
         }
         return false;        
@@ -624,6 +562,10 @@ import com.norconex.importer.filter.OnMatch;
         return false;
     }
     
+    private boolean isIncludeFilter(IHttpDocumentFilter filter) {
+        return filter instanceof IOnMatchFilter
+                && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
+    }
     
 }
 

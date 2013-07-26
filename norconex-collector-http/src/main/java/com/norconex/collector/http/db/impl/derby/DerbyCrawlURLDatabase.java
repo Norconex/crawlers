@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ResourceBundle;
 
 import javax.sql.DataSource;
 
@@ -46,6 +47,11 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
             LogManager.getLogger(DerbyCrawlURLDatabase.class);
     
     private static final int NUMBER_OF_TABLES = 5;
+    private static final int COLCOUNT_SITEMAP = 2;
+    private static final int COLCOUNT_ALL = 5;
+    private static final int SQL_ERROR_ALREADY_EXISTS = 30000;
+    private final ResourceBundle sqls = ResourceBundle.getBundle(
+            DerbyCrawlURLDatabase.class.getName() + "SQLs");
     
     private final String dbDir;
     private final DataSource datasource;
@@ -67,7 +73,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
                     "Problem creating crawl database.", e);
         }
         if (!resume) {
-            LOG.debug("Caching processed URL from last run (if any)...");
+            LOG.info("Caching processed URL from last run (if applicable)...");
             sqlUpdate("RENAME TABLE cache TO temp");
             sqlUpdate("RENAME TABLE processed TO cache");
             sqlUpdate("RENAME TABLE temp TO processed");
@@ -218,29 +224,10 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
           ResultSetHandler<CrawlURL> h = new ResultSetHandler<CrawlURL>() {
               @Override
               public CrawlURL handle(ResultSet rs) throws SQLException {
-                  if (!rs.next()) {
-                      return null;
+                  if (rs.next()) {
+                      return toCrawlURL(rs);
                   }
-                  int colCount = rs.getMetaData().getColumnCount();
-                  CrawlURL crawlURL = new CrawlURL(
-                          rs.getString("url"), rs.getInt("depth"));
-                  crawlURL.setSitemapChangeFreq(
-                          rs.getString("smChangeFreq"));
-                  BigDecimal bigP = rs.getBigDecimal("smPriority");
-                  if (bigP != null) {
-                      crawlURL.setSitemapPriority(bigP.floatValue());
-                  }
-                  BigDecimal bigLM = rs.getBigDecimal("smLastMod");
-                  if (bigLM != null) {
-                      crawlURL.setSitemapLastMod(bigLM.longValue());
-                  }
-                  if (colCount > 5) {
-                      crawlURL.setDocChecksum(rs.getString("docchecksum"));
-                      crawlURL.setHeadChecksum(rs.getString("headchecksum"));
-                      crawlURL.setStatus(
-                              CrawlStatus.valueOf(rs.getString("status")));
-                  }
-                  return crawlURL;
+                  return null;
               }
           };
           String sql = "SELECT url, depth, smLastMod, smChangeFreq, "
@@ -272,7 +259,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         int colCount = rs.getMetaData().getColumnCount();
         CrawlURL crawlURL = new CrawlURL(
                 rs.getString("url"), rs.getInt("depth"));
-        if (colCount > 2) {
+        if (colCount > COLCOUNT_SITEMAP) {
             crawlURL.setSitemapChangeFreq(
                     rs.getString("smChangeFreq"));
             BigDecimal bigP = rs.getBigDecimal("smPriority");
@@ -283,7 +270,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
             if (bigLM != null) {
                 crawlURL.setSitemapLastMod(bigLM.longValue());
             }
-            if (colCount > 5) {
+            if (colCount > COLCOUNT_ALL) {
                 crawlURL.setDocChecksum(rs.getString("docchecksum"));
                 crawlURL.setHeadChecksum(rs.getString("headchecksum"));
                 crawlURL.setStatus(
@@ -317,7 +304,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         try {
             new QueryRunner(datasource).update(sql, params);
         } catch (SQLException e) {
-            if (e.getErrorCode() == 30000) {
+            if (e.getErrorCode() == SQL_ERROR_ALREADY_EXISTS) {
                 LOG.debug("Already exists in table. SQL Error:" 
                         + e.getMessage());
             } else {
@@ -336,7 +323,8 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     }
 
     private void ensureTablesExist() throws SQLException {
-        List<Object[]> tables = new ArrayListHandler().handle(
+        ArrayListHandler arrayListHandler = new ArrayListHandler();
+        List<Object[]> tables = arrayListHandler.handle(
                 datasource.getConnection().getMetaData().getTables(
                         null, null, null, new String[]{"TABLE"}));
         if (tables.size() == NUMBER_OF_TABLES) {
@@ -344,44 +332,12 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
             return;
         }
         LOG.debug("    Creating new crawl tables...");
-        sqlUpdate("CREATE TABLE queue ("
-                + "url VARCHAR(32672) NOT NULL, "
-                + "depth INTEGER NOT NULL, "
-                + "smLastMod BIGINT, "
-                + "smChangeFreq VARCHAR(7), "
-                + "smPriority FLOAT, "
-                + "PRIMARY KEY (url))");
-        sqlUpdate("CREATE INDEX orderindex ON queue(depth)");
-        sqlUpdate("CREATE TABLE active ("
-                + "url VARCHAR(32672) NOT NULL, "
-                + "depth INTEGER NOT NULL, "
-                + "smLastMod BIGINT, "
-                + "smChangeFreq VARCHAR(7), "
-                + "smPriority FLOAT, "
-                + "PRIMARY KEY (url))");
-        sqlUpdate("CREATE TABLE processed ("
-                + "url VARCHAR(32672) NOT NULL, "
-                + "depth INTEGER NOT NULL, "
-                + "smLastMod BIGINT, "
-                + "smChangeFreq VARCHAR(7), "
-                + "smPriority FLOAT, "
-                + "docChecksum VARCHAR(32672), "
-                + "headChecksum VARCHAR(32672), "
-                + "status VARCHAR(10), "
-                + "PRIMARY KEY (url))");
-        sqlUpdate("CREATE TABLE cache ("
-                + "url VARCHAR(32672) NOT NULL, "
-                + "depth INTEGER NOT NULL, "
-                + "smLastMod BIGINT, "
-                + "smChangeFreq VARCHAR(7), "
-                + "smPriority FLOAT, "
-                + "docChecksum VARCHAR(32672), "
-                + "headChecksum VARCHAR(32672), "
-                + "status VARCHAR(10), "
-                + "PRIMARY KEY (url))");
-        sqlUpdate("CREATE TABLE sitemap ("
-                + "urlroot VARCHAR(32672) NOT NULL, "
-                + "PRIMARY KEY (urlroot))");
+        sqlUpdate(sqls.getString("create.queue"));
+        sqlUpdate(sqls.getString("create.queue.index"));
+        sqlUpdate(sqls.getString("create.active"));
+        sqlUpdate(sqls.getString("create.processed"));
+        sqlUpdate(sqls.getString("create.cache"));
+        sqlUpdate(sqls.getString("create.sitemap"));
     }
 
     @Override

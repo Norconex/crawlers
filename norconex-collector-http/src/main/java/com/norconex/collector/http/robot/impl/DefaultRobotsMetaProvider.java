@@ -90,7 +90,7 @@ public class DefaultRobotsMetaProvider
         RobotsMeta robotsMeta = null;
         
         //--- Find in page ---
-        if (contentType != null && contentType.equals(ContentType.HTML)) {
+        if (isMetaSupportingContentType(contentType)) {
             BufferedReader reader = new BufferedReader(document);
             String line;
             while ((line = reader.readLine()) != null)   {
@@ -111,16 +111,7 @@ public class DefaultRobotsMetaProvider
         
         //--- Find in HTTP header ---
         if (robotsMeta == null) {
-            String name = "X-Robots-Tag";
-            if (StringUtils.isNotBlank(headersPrefix)) {
-                name = headersPrefix + name;
-            }
-            String content = httpHeaders.getString(name);
-            robotsMeta = buildMeta(content);
-            if (LOG.isDebugEnabled() && robotsMeta != null) {
-                LOG.debug("Meta robots \"" + content 
-                        + "\" found in HTTP header for: " + documentUrl);
-            }
+            robotsMeta = findInHeaders(httpHeaders, documentUrl);
         }
 
         if (LOG.isDebugEnabled() && robotsMeta == null) {
@@ -137,6 +128,25 @@ public class DefaultRobotsMetaProvider
         this.headersPrefix = headersPrefix;
     }
 
+    private boolean isMetaSupportingContentType(ContentType contentType) {
+        return contentType != null && contentType.equals(ContentType.HTML);
+    }
+    
+    private RobotsMeta findInHeaders(
+            Properties httpHeaders, String documentUrl) {
+        String name = "X-Robots-Tag";
+        if (StringUtils.isNotBlank(headersPrefix)) {
+            name = headersPrefix + name;
+        }
+        String content = httpHeaders.getString(name);
+        RobotsMeta robotsMeta = buildMeta(content);
+        if (LOG.isDebugEnabled() && robotsMeta != null) {
+            LOG.debug("Meta robots \"" + content 
+                    + "\" found in HTTP header for: " + documentUrl);
+        }
+        return robotsMeta;
+    }
+    
     private RobotsMeta buildMeta(String content) {
         if (StringUtils.isBlank(content)) {
             return null;
@@ -169,8 +179,7 @@ public class DefaultRobotsMetaProvider
     private String getRobotRules(String line) {
         Matcher matcher = CONTENT_PATTERN.matcher(line);
         if (matcher.find()) {
-            String content = matcher.group(2);
-            return content;
+            return matcher.group(2);
         }
         return null;
     }

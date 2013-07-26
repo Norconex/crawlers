@@ -25,6 +25,7 @@ import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
+import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.commons.lang.map.Properties;
 
@@ -33,6 +34,7 @@ import com.norconex.commons.lang.map.Properties;
  * implementations do nothing. Subclasing of this class
  * is favoured over direct implementation of {@link IHttpCrawlerEventListener}.
  * @author Pascal Essiembre
+ * @see HttpCrawlerEventFirer
  */
 public class HttpCrawlerEventAdapter implements IHttpCrawlerEventListener{
     
@@ -43,6 +45,11 @@ public class HttpCrawlerEventAdapter implements IHttpCrawlerEventListener{
     @Override
     public void documentRobotsTxtRejected(HttpCrawler crawler,
             String url, IURLFilter filter, RobotsTxt robotsTxt) {
+        //do nothing
+    }
+    @Override
+    public void documentRobotsMetaRejected(
+            HttpCrawler crawler, String url, RobotsMeta robotsMeta) {
         //do nothing
     }
     @Override
@@ -84,6 +91,11 @@ public class HttpCrawlerEventAdapter implements IHttpCrawlerEventListener{
     @Override
     public void documentImported(HttpCrawler crawler,HttpDocument document) {
         //do nothing
+    }
+    @Override
+    public void documentImportRejected(HttpCrawler crawler,
+            HttpDocument document) {
+        // do nothing
     }
     @Override
     public void documentPostProcessed(HttpCrawler crawler, 

@@ -82,30 +82,14 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
             return null;
         }
         
-        // URL Protocol/scheme, up to double slash (included)
-        String protocol = documentUrl.replaceFirst("(.*?://)(.*)", "$1");
-
-        // URL Path (anything after double slash)
-        String path = documentUrl.replaceFirst("(.*?://)(.*)", "$2");
-        
-        // URL Relative Base: truncate to last / before a ? or #
-        String relativeBase = path.replaceFirst(
-                "(.*?)([\\?\\#])(.*)", "$1");
-        relativeBase = protocol +  relativeBase.replaceFirst("(.*/)(.*)", "$1");
-
-        // URL Absolute Base: truncate to first / (if present) after protocol
-        String absoluteBase = protocol + path.replaceFirst("(.*?)(/.*)", "$1");
-        
-        // URL Document Base: truncate from first ? or # 
-        String documentBase = 
-                protocol + path.replaceFirst("(.*?)([\\?\\#])(.*)", "$1");
+        UrlParts urlParts = new UrlParts(documentUrl);
         
         //TODO HOW TO HANDLE <BASE>????? Is it handled by Tika???
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("DOCUMENT URL ----> " + documentUrl);
-            LOG.debug("  BASE RELATIVE -> " + relativeBase);
-            LOG.debug("  BASE ABSOLUTE -> " + absoluteBase);
+            LOG.debug("  BASE RELATIVE -> " + urlParts.relativeBase);
+            LOG.debug("  BASE ABSOLUTE -> " + urlParts.absoluteBase);
         }
 
         Set<String> urls = new HashSet<String>();
@@ -119,21 +103,7 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
                 if (url.startsWith("mailto:")) {
                     continue;
                 }
-                if (url.startsWith("//")) {
-                    // this is URL relative to protocol
-                    url = protocol + StringUtils.substringAfter(url, "//");
-                } else if (url.startsWith("/")) {
-                    // this is a URL relative to domain name
-                    url = absoluteBase + url;
-                } else if (url.startsWith("?") || url.startsWith("#")) {
-                    // this is a relative url and should have the full page base
-                    url = documentBase + url;
-                } else if (!url.contains("://")) {
-                    // This is a URL relative to the last URL segment
-                    url = relativeBase + url;
-                }
-                //TODO have configurable whether to strip anchors.
-                url = StringUtils.substringBefore(url, "#");
+                url = extractURL(urlParts, url);
                 if (url.length() > maxURLLength) {
                     LOG.warn("URL length (" + url.length() + ") exeeding "
                            + "maximum length allowed (" + maxURLLength
@@ -147,6 +117,27 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
         }
         return urls;
      }
+
+    private String extractURL(final UrlParts urlParts, final String rawURL) {
+        String url = rawURL;
+        if (url.startsWith("//")) {
+            // this is URL relative to protocol
+            url = urlParts.protocol 
+                    + StringUtils.substringAfter(url, "//");
+        } else if (url.startsWith("/")) {
+            // this is a URL relative to domain name
+            url = urlParts.absoluteBase + url;
+        } else if (url.startsWith("?") || url.startsWith("#")) {
+            // this is a relative url and should have the full page base
+            url = urlParts.documentBase + url;
+        } else if (!url.contains("://")) {
+            // This is a URL relative to the last URL segment
+            url = urlParts.relativeBase + url;
+        }
+        //TODO have configurable whether to strip anchors.
+        url = StringUtils.substringBefore(url, "#");
+        return url;
+    }
 
     public int getMaxURLLength() {
         return maxURLLength;
@@ -176,5 +167,33 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
         } catch (XMLStreamException e) {
             throw new IOException("Cannot save as XML.", e);
         }       
+    }
+    
+    private class UrlParts {
+        private final String protocol;
+        private final String path;
+        private final String relativeBase;
+        private final String absoluteBase;
+        private final String documentBase;
+        public UrlParts(String documentUrl) {
+            super();
+            // URL Protocol/scheme, up to double slash (included)
+            protocol = documentUrl.replaceFirst("(.*?://)(.*)", "$1");
+
+            // URL Path (anything after double slash)
+            path = documentUrl.replaceFirst("(.*?://)(.*)", "$2");
+            
+            // URL Relative Base: truncate to last / before a ? or #
+            String relBase = path.replaceFirst(
+                    "(.*?)([\\?\\#])(.*)", "$1");
+            relativeBase = protocol +  relBase.replaceFirst("(.*/)(.*)", "$1");
+
+            // URL Absolute Base: truncate to first / if present, after protocol
+            absoluteBase = protocol + path.replaceFirst("(.*?)(/.*)", "$1");
+            
+            // URL Document Base: truncate from first ? or # 
+            documentBase = 
+                    protocol + path.replaceFirst("(.*?)([\\?\\#])(.*)", "$1");
+        }
     }
 }

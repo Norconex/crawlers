@@ -313,10 +313,5 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     @Override
     protected Object clone() throws CloneNotSupportedException {
         return SerializationUtils.clone(this);
-//        try {
-//            return BeanUtils.cloneBean(this);
-//        } catch (Exception e) {
-//            throw new HttpCollectorException(e);
-//        }
     }
 }

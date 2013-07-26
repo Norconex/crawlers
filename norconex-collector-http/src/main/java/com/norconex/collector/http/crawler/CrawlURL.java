@@ -113,8 +113,9 @@ public class CrawlURL implements Serializable {
     }
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof CrawlURL))
+        if (!(other instanceof CrawlURL)) {
             return false;
+        }
         CrawlURL castOther = (CrawlURL) other;
         return new EqualsBuilder().append(depth, castOther.depth)
                 .append(url, castOther.url).append(urlRoot, castOther.urlRoot)

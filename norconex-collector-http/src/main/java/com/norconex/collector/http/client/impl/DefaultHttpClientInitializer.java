@@ -99,7 +99,10 @@ public class DefaultHttpClientInitializer implements
 	public static final String AUTH_METHOD_FORM = "form";
     public static final String AUTH_METHOD_BASIC = "basic";
     public static final String AUTH_METHOD_DIGEST = "digest";
-	
+
+    private static final int CONNECTION_TIMEOUT = 3000;
+    private static final int FTP_PORT = 80;
+    
 	private String authMethod;
     private String authURL;
     private String authUsernameField;
@@ -120,12 +123,13 @@ public class DefaultHttpClientInitializer implements
     @Override
 	public void initializeHTTPClient(DefaultHttpClient httpClient) {
 
-        // Time out after 30 seconds.  Make configurable.
+        // Time out after 30 seconds.
+        //TODO Make configurable.
         httpClient.getParams().setParameter(
-                CoreConnectionPNames.CONNECTION_TIMEOUT, 30000);
+                CoreConnectionPNames.CONNECTION_TIMEOUT, CONNECTION_TIMEOUT);
         
         // Add support for FTP websites (FTP served by HTTP server).
-        Scheme ftp = new Scheme("ftp", 80, new PlainSocketFactory());
+        Scheme ftp = new Scheme("ftp", FTP_PORT, new PlainSocketFactory());
         httpClient.getConnectionManager().getSchemeRegistry().register(ftp);
         
         //TODO make charset configurable instead since UTF-8 is not right
@@ -195,54 +199,25 @@ public class DefaultHttpClientInitializer implements
             XMLStreamWriter writer = factory.createXMLStreamWriter(out);
             writer.writeStartElement("httpClientInitializer");
             writer.writeAttribute("class", getClass().getCanonicalName());
-            writer.writeStartElement("cookiesDisabled");
-            writer.writeCharacters(Boolean.toString(cookiesDisabled));
-            writer.writeEndElement();
-            writer.writeStartElement("userAgent");
-            writer.writeCharacters(userAgent);
-            writer.writeEndElement();
-            writer.writeStartElement("authMethod");
-            writer.writeCharacters(authMethod);
-            writer.writeEndElement();
-            writer.writeStartElement("authUsername");
-            writer.writeCharacters(authUsername);
-            writer.writeEndElement();
-            writer.writeStartElement("authPassword");
-            writer.writeCharacters(authPassword);
-            writer.writeEndElement();
-            writer.writeStartElement("authUsernameField");
-            writer.writeCharacters(authUsernameField);
-            writer.writeEndElement();
-            writer.writeStartElement("authPasswordField");
-            writer.writeCharacters(authPasswordField);
-            writer.writeEndElement();
-            writer.writeStartElement("authURL");
-            writer.writeCharacters(authURL);
-            writer.writeEndElement();
-            writer.writeStartElement("authHostname");
-            writer.writeCharacters(authHostname);
-            writer.writeEndElement();
-            writer.writeStartElement("authPort");
-            writer.writeCharacters(Integer.toString(authPort));
-            writer.writeEndElement();
-            writer.writeStartElement("authRealm");
-            writer.writeCharacters(authRealm);
-            writer.writeEndElement();
-            writer.writeStartElement("proxyHost");
-            writer.writeCharacters(proxyHost);
-            writer.writeEndElement();
-            writer.writeStartElement("proxyPort");
-            writer.writeCharacters(Integer.toString(proxyPort));
-            writer.writeEndElement();
-            writer.writeStartElement("proxyUsername");
-            writer.writeCharacters(proxyUsername);
-            writer.writeEndElement();
-            writer.writeStartElement("proxyPassword");
-            writer.writeCharacters(proxyPassword);
-            writer.writeEndElement();
-            writer.writeStartElement("proxyRealm");
-            writer.writeCharacters(proxyRealm);
-            writer.writeEndElement();
+
+            writeSimpleElement(writer, "cookiesDisabled", 
+                    Boolean.toString(cookiesDisabled));
+            writeSimpleElement(writer, "userAgent", userAgent);
+            writeSimpleElement(writer, "authMethod", authMethod);
+            writeSimpleElement(writer, "authUsername", authUsername);
+            writeSimpleElement(writer, "authPassword", authPassword);
+            writeSimpleElement(writer, "authUsernameField", authUsernameField);
+            writeSimpleElement(writer, "authPasswordField", authPasswordField);
+            writeSimpleElement(writer, "authURL", authURL);
+            writeSimpleElement(writer, "authHostname", authHostname);
+            writeSimpleElement(writer, "authPort", Integer.toString(authPort));
+            writeSimpleElement(writer, "authRealm", authRealm);
+            writeSimpleElement(writer, "proxyHost", proxyHost);
+            writeSimpleElement(
+                    writer, "proxyPort", Integer.toString(proxyPort));
+            writeSimpleElement(writer, "proxyUsername", proxyUsername);
+            writeSimpleElement(writer, "proxyPassword", proxyPassword);
+            writeSimpleElement(writer, "proxyRealm", proxyRealm);
             writer.writeEndElement();
             writer.flush();
             writer.close();
@@ -251,6 +226,13 @@ public class DefaultHttpClientInitializer implements
         }        
     }
     
+    private void writeSimpleElement(
+            XMLStreamWriter writer, String name, String value)
+                    throws XMLStreamException {
+        writer.writeStartElement(name);
+        writer.writeCharacters(value);
+        writer.writeEndElement();
+    }
     
     public String getAuthMethod() {
         return authMethod;

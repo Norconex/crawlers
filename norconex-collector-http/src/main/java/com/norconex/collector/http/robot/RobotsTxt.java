@@ -47,7 +47,7 @@ public class RobotsTxt implements Serializable {
             IURLFilter[] filters, String[] sitemapLocations, float crawlDelay) {
         super();
         this.filters = ArrayUtils.clone(filters);
-        this.sitemapLocations = sitemapLocations;
+        this.sitemapLocations = ArrayUtils.clone(sitemapLocations);
         this.crawlDelay = crawlDelay;
     }
 

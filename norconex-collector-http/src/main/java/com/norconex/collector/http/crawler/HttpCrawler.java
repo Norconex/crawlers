@@ -59,7 +59,6 @@ public class HttpCrawler extends AbstractResumableJob {
 	
 	private final HttpCrawlerConfig crawlerConfig;
     private DefaultHttpClient httpClient;
-    private final IHttpCrawlerEventListener[] listeners;
     private boolean stopped;
     private int okURLsCount;
     
@@ -67,12 +66,6 @@ public class HttpCrawler extends AbstractResumableJob {
 	        HttpCrawlerConfig crawlerConfig) {
 		super();
 		this.crawlerConfig = crawlerConfig;
-		IHttpCrawlerEventListener[] ls = crawlerConfig.getCrawlerListeners();
-		if (ls == null) {
-		    this.listeners = new IHttpCrawlerEventListener[]{};
-		} else {
-	        this.listeners = crawlerConfig.getCrawlerListeners();
-		}
         crawlerConfig.getWorkDir().mkdirs();
 	}
 	
@@ -132,9 +125,7 @@ public class HttpCrawler extends AbstractResumableJob {
             new URLProcessor(this, httpClient, database, 
                     new CrawlURL(startURL, 0)).processURL();
         }
-        for (IHttpCrawlerEventListener listener : listeners) {
-            listener.crawlerStarted(this);
-        }
+        HttpCrawlerEventFirer.fireCrawlerStarted(this);
         try {
             execute(database, progress, suite);
         } finally {
@@ -181,9 +172,7 @@ public class HttpCrawler extends AbstractResumableJob {
         database.close();
         
         if (!stopped) {
-            for (IHttpCrawlerEventListener listener : listeners) {
-                listener.crawlerFinished(this);
-            }
+            HttpCrawlerEventFirer.fireCrawlerFinished(this);
         }
         LOG.info("Crawler \"" + getId() + "\" " 
                 + (stopped ? "stopped." : "completed."));
@@ -344,14 +333,8 @@ public class HttpCrawler extends AbstractResumableJob {
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
             crawlURL.setStatus(CrawlStatus.ERROR);
-//            if (LOG.isDebugEnabled()) {
-                LOG.error("Could not process document: " + url
-                        + " (" + e.getMessage() + ")", e);
-//            } else {
-//                LOG.error("Could not process document: " + url
-//                        + " (" + e.getMessage() + ").  Set log level to DEBUG "
-//                        + "to generate a Java stacktrace with the error.");
-//            }
+            LOG.error("Could not process document: " + url
+                    + " (" + e.getMessage() + ")", e);
 	    } finally {
             //--- Flag URL for deletion ----------------------------------------
 	        ICommitter committer = crawlerConfig.getCommitter();

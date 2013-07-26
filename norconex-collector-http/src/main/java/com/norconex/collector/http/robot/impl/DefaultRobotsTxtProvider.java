@@ -108,11 +108,7 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
             }
             isr.close();
         } catch (Exception e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.info("Not able to obtain robots.txt at: " + robotsURL, e);
-            } else {
-                LOG.info("Not able to obtain robots.txt at: " + robotsURL);
-            }
+            LOG.warn("Not able to obtain robots.txt at: " + robotsURL, e);
         }
         
         robotsTxt = new RobotsTxt(

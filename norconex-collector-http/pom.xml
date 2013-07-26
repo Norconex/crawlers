@@ -362,7 +362,9 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <url>https://github.com/Norconex/collectors/issues</url>
   </issueManagement>
   <scm>
-    <url>https://github.com/Norconex/collectors/tree/master/norconex-collector-http</url>
+    <url>https://github.com/Norconex/collectors</url>
+    <connection>scm:git:git@github.com:Norconex/collectors.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/collectors.git</developerConnection>
   </scm>
 
   <developers>
@@ -386,6 +388,17 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <organizationUrl>http://www.norconex.com</organizationUrl>
         <roles>
           <role>developer</role>
+        </roles>
+        <timezone>-4</timezone>
+    </developer>
+    <developer>
+        <id>kalhomoud</id>
+        <name>Khalid AlHomoud</name>
+        <email>khalid.alhomoud@norconex.com</email>
+        <organization>Norconex Inc.</organization>
+        <organizationUrl>http://www.norconex.com</organizationUrl>
+        <roles>
+          <role>tester</role>
         </roles>
         <timezone>-4</timezone>
     </developer>

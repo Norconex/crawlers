@@ -25,6 +25,7 @@ import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
+import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.commons.lang.map.Properties;
 
@@ -37,6 +38,7 @@ import com.norconex.commons.lang.map.Properties;
  * a single instance of this listener will be shared amongst crawlers
  * (unless overwritten).</p>
  * @author Pascal Essiembre
+ * @see HttpCrawlerEventFirer
  */
 public interface IHttpCrawlerEventListener {
     
@@ -47,6 +49,8 @@ public interface IHttpCrawlerEventListener {
     void crawlerStarted(HttpCrawler crawler);
     void documentRobotsTxtRejected(HttpCrawler crawler,
             String url, IURLFilter filter, RobotsTxt robotsTxt);
+    void documentRobotsMetaRejected(HttpCrawler crawler,
+            String url, RobotsMeta robotsMeta);
     void documentURLRejected(
             HttpCrawler crawler, String url, IURLFilter filter);
     void documentHeadersFetched(HttpCrawler crawler,
@@ -60,7 +64,8 @@ public interface IHttpCrawlerEventListener {
             HttpDocument document, IHttpDocumentFilter filter);
     void documentPreProcessed(HttpCrawler crawler,
             HttpDocument document, IHttpDocumentProcessor preProcessor);
-    void documentImported(HttpCrawler crawler,HttpDocument document);
+    void documentImported(HttpCrawler crawler, HttpDocument document);
+    void documentImportRejected(HttpCrawler crawler, HttpDocument document);
     void documentPostProcessed(HttpCrawler crawler,
             HttpDocument document, IHttpDocumentProcessor postProcessor);
     void documentCrawled(HttpCrawler crawler, HttpDocument document);

@@ -242,13 +242,14 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             long timeToSleep = targetDelayNanos - elapsedNanoTime;
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Thread " + Thread.currentThread().getName()
-                        +  " sleeping for " 
-                        + ((double) timeToSleep / 1000d 
-                                / 1000d / 1000) + " seconds.");
+                        + " sleeping for " 
+                        + TimeUnit.NANOSECONDS.toSeconds(timeToSleep)
+                        + " seconds.");
             }
             Sleeper.sleepNanos(timeToSleep);
         }
-        Sleeper.sleepNanos(1); // Ensure time has changed
+        // Ensure time has changed
+        Sleeper.sleepNanos(1);
     }
 
     /**
@@ -379,8 +380,9 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof DefaultDelayResolver))
+        if (!(other instanceof DefaultDelayResolver)) {
             return false;
+        }
         DefaultDelayResolver castOther = (DefaultDelayResolver) other;
         return new EqualsBuilder()
                 .append(crawlerLastHitNanos, castOther.crawlerLastHitNanos)

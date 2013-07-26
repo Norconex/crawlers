@@ -1,5 +1,20 @@
 The following are either things to be done, or ideas to consider:
 
+- Make CrawlURL immutable.
+
+- Package source jars with Maven repository deployments.
+
+- Perform MapDB table renaming at the end and set a property on the job via JEF.
+  On startup, look for that property if not resuming, and "recover" via
+  the putAll method if the rename did not occur.
+
+- Consider BlockingQueue for fast memory access of queued URL, with the 
+  queue fed from DB by another thread.  Could be beneficial for Derby 
+  implementation.
+
+- Add documentRejectedChecksum and documentRejectedHeadersChecksum to 
+  IHttpCrawlerEventListener and fire them.
+
 - Make sure maxURL counter saved in progress is in sync with each time we commit
   to avoid having a counter higher than actual URLs processed in case of 
   failure (minor).

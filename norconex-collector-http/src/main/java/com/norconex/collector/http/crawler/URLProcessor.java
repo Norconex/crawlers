@@ -48,7 +48,8 @@ import com.norconex.importer.filter.OnMatch;
     private static final Logger LOG = 
             LogManager.getLogger(URLProcessor.class);
     
-    private static List<String> SITEMAP_RESOLVED = new ArrayList<String>();
+    private static final List<String> SITEMAP_RESOLVED = 
+            new ArrayList<String>();
 
     private final HttpCrawler crawler;
     private final HttpCrawlerConfig config;
@@ -222,28 +223,24 @@ import com.norconex.importer.filter.OnMatch;
                 return true;
             }
             if (database.isActive(url)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Already being processed: " + url);
-                }
+                debug("Already being processed: %s", url);
             } else if (database.isQueued(url)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Already queued: " + url);
-                }
+                debug("Already queued: %s", url);
             } else if (database.isProcessed(url)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Already processed: " + url);
-                }
+                debug("Already processed: %s", url);
             } else {
                 database.queue(new CrawlURL(url, crawlURL.getDepth()));
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Queued for processing: " + url);
-                }
+                debug("Queued for processing: %s", url);
             }
             return true;
         }
     }
     
-    
+    private static void debug(String message, Object... values) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format(message, values));
+        }
+    }    
 
     //=== Utility methods ======================================================
     private boolean isURLRejected(IURLFilter[] filters, RobotsTxt robots) {
@@ -258,11 +255,9 @@ import com.norconex.importer.filter.OnMatch;
         boolean atLeastOneIncludeMatch = false;
         for (IURLFilter filter : filters) {
             boolean accepted = filter.acceptURL(crawlURL.getUrl());
-            boolean isInclude = filter instanceof IOnMatchFilter
-                   && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
             
             // Deal with includes
-            if (isInclude) {
+            if (isIncludeFilter(filter)) {
                 hasIncludes = true;
                 if (accepted) {
                     atLeastOneIncludeMatch = true;
@@ -321,11 +316,7 @@ import com.norconex.importer.filter.OnMatch;
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
             status = CrawlStatus.ERROR;
-//            if (LOG.isDebugEnabled()) {
-                LOG.error("Could not pre-process URL: " + crawlURL.getUrl(), e);
-//            } else {
-//                LOG.error("Could not pre-process URL: " + crawlURL.getUrl());
-//            }
+            LOG.error("Could not pre-process URL: " + crawlURL.getUrl(), e);
             return false;
         } finally {
             //--- Mark URL as Processed ----------------------------------------
@@ -338,6 +329,11 @@ import com.norconex.importer.filter.OnMatch;
                 status.logInfo(crawlURL);
             }
         }
+    }
+
+    private boolean isIncludeFilter(IURLFilter filter) {
+        return filter instanceof IOnMatchFilter
+                && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
     }
 }
 
