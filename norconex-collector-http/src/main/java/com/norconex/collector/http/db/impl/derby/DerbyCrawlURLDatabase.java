@@ -19,6 +19,7 @@
 package com.norconex.collector.http.db.impl.derby;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -65,26 +66,35 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         System.setProperty("derby.system.home", 
                 config.getWorkDir().getPath() + "/crawldb/log");
         
+        // Default is 1000
+        //System.setProperty("derby.storage.pageCacheSize", "10000");
+        // Default is 32768
+        //System.setProperty("derby.storage.pageSize", "32768");
+        
+        
         this.datasource = createDataSource();
+        boolean incrementalRun;
         try {
-            ensureTablesExist();
+            incrementalRun = ensureTablesExist();
         } catch (SQLException e) {
             throw new CrawlURLDatabaseException(
                     "Problem creating crawl database.", e);
         }
         if (!resume) {
-            LOG.info("Caching processed URL from last run (if applicable)...");
-            sqlUpdate("RENAME TABLE cache TO temp");
-            sqlUpdate("RENAME TABLE processed TO cache");
-            sqlUpdate("RENAME TABLE temp TO processed");
-            LOG.debug("Cleaning queue database...");
-            sqlUpdate("DELETE FROM queue");
-            LOG.debug("Cleaning active database...");
-            sqlUpdate("DELETE FROM active");
-            LOG.debug("Cleaning processed database...");
-            sqlUpdate("DELETE FROM processed");
-            LOG.debug("Cleaning sitemap database...");
-            sqlUpdate("DELETE FROM sitemap");
+            if (incrementalRun) {
+                LOG.info("Caching processed URL from last run (if any)...");
+                LOG.debug("Rename processed table to cache...");
+                sqlUpdate("DROP TABLE cache");
+                sqlUpdate("RENAME TABLE processed TO cache");
+                LOG.debug("Cleaning queue table...");
+                sqlUpdate("DELETE FROM queue");
+                LOG.debug("Cleaning active table...");
+                sqlUpdate("DELETE FROM active");
+                LOG.debug("Re-creating processed table...");
+                sqlUpdate(sqls.getString("create.processed"));
+                LOG.debug("Cleaning sitemap table...");
+                sqlUpdate("DELETE FROM sitemap");
+            }
         } else {
             LOG.debug("Resuming: putting active URLs back in the queue...");
             copyURLDepthToQueue("active");
@@ -322,14 +332,16 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         return ds;
     }
 
-    private void ensureTablesExist() throws SQLException {
+    private boolean ensureTablesExist() throws SQLException {
         ArrayListHandler arrayListHandler = new ArrayListHandler();
+        Connection conn = datasource.getConnection();
         List<Object[]> tables = arrayListHandler.handle(
-                datasource.getConnection().getMetaData().getTables(
+                conn.getMetaData().getTables(
                         null, null, null, new String[]{"TABLE"}));
+        conn.close();
         if (tables.size() == NUMBER_OF_TABLES) {
             LOG.debug("    Re-using existing tables.");
-            return;
+            return true;
         }
         LOG.debug("    Creating new crawl tables...");
         sqlUpdate(sqls.getString("create.queue"));
@@ -338,6 +350,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         sqlUpdate(sqls.getString("create.processed"));
         sqlUpdate(sqls.getString("create.cache"));
         sqlUpdate(sqls.getString("create.sitemap"));
+        return false;
     }
 
     @Override
