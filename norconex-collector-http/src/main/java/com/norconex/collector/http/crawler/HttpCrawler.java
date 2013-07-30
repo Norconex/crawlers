@@ -213,19 +213,26 @@ public class HttpCrawler extends AbstractResumableJob {
                 @Override
                 public void run() {
                     LOG.debug("Crawler thread #" + threadIndex + " started.");
-                    while (!isStopped()) {
-                        try {
-                            if (!processNextURL(database, progress, delete)) {
-                                break;
+                    try {
+                        while (!isStopped()) {
+                            try {
+                                if (!processNextURL(
+                                        database, progress, delete)) {
+                                    break;
+                                }
+                            } catch (Exception e) {
+                                LOG.fatal(
+                                      "An error occured that could compromise "
+                                    + "the stability of the crawler. Stopping "
+                                    + "excution to avoid further issues...", e);
+                                stop(progress, suite);
                             }
-                        } catch (Exception e) {
-                            LOG.fatal("An error occured that could compromise "
-                                + "the stability of the crawler. Stopping "
-                                + "excution to avoid further issues...", e);
-                            stop(progress, suite);
                         }
+                    } catch (Throwable t) {
+                        LOG.error("Problem in thread execution.", t);
+                    } finally {
+                        latch.countDown();
                     }
-                    latch.countDown();
                 }
             });
         }
