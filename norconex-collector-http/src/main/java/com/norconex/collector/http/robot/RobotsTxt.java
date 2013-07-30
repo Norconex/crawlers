@@ -31,7 +31,7 @@ public class RobotsTxt implements Serializable {
     public static final float UNSPECIFIED_CRAWL_DELAY = -1;
     
     private final IURLFilter[] filters;
-    private final float crawlDelay ;
+    private final float crawlDelay;
     private final String[] sitemapLocations;
     
     public RobotsTxt(IURLFilter[] filters) {

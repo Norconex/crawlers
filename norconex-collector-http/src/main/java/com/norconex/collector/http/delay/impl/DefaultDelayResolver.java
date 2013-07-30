@@ -23,9 +23,9 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -40,7 +40,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.commons.lang3.mutable.MutableLong;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -51,7 +50,6 @@ import org.joda.time.LocalTime;
 import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.robot.RobotsTxt;
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -122,135 +120,38 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
     /** Default delay is 3 seconds. */
     public static final long DEFAULT_DELAY = 3000;
     
-    private static final double THOUSAND_MILIS = 1000.0;
     private static final int MIN_DOW_LENGTH = 3;
     
-    // Per Crawler
-    private MutableLong crawlerLastHitNanos;
-    // Per Site
-    private Map<String, Long> siteLastHitNanos;
-    // Per Thread
-    private ThreadLocal<Long> threadLastHitNanos;
-    
-    
+    private final Map<String, AbstractDelay> delays = 
+            new HashMap<String, AbstractDelay>();
     private long defaultDelay = DEFAULT_DELAY;
     private List<DelaySchedule> schedules = new ArrayList<DelaySchedule>();
     private boolean ignoreRobotsCrawlDelay = false;
     private String scope = SCOPE_CRAWLER;
-    
+
+    public DefaultDelayResolver() {
+        super();
+        delays.put(SCOPE_CRAWLER, new CrawlerDelay());
+        delays.put(SCOPE_SITE, new SiteDelay());
+        delays.put(SCOPE_THREAD, new ThreadDelay());
+    }
+
+
     @Override
     public void delay(RobotsTxt robotsTxt, String url) {
-        if (SCOPE_CRAWLER.equalsIgnoreCase(scope)) {
-            resolveCrawlerDelay(robotsTxt);
-        } else if (SCOPE_SITE.equalsIgnoreCase(scope)) {
-            resolveSiteDelay(robotsTxt, url);
-        } else if (SCOPE_THREAD.equalsIgnoreCase(scope)) {
-            resolveThreadDelay(robotsTxt);
-        } else {
+        long expectedDelayNanos = getExpectedDelayNanos(robotsTxt);
+        if (expectedDelayNanos <= 0) {
+            return;
+        }
+        AbstractDelay delay = delays.get(scope);
+        if (delay == null) {
             LOG.warn("Unspecified or unsupported delay scope: "
                     + scope + ".  Using crawler scope.");
-            resolveCrawlerDelay(robotsTxt);
+            delay = delays.get(SCOPE_CRAWLER);
         }
+        delay.delay(expectedDelayNanos, url);
     }
 
-    //TODO consider making those methods re-usable classes instead?
-    private void resolveCrawlerDelay(RobotsTxt robotsTxt) {
-        if (crawlerLastHitNanos == null) {
-            crawlerLastHitNanos = new MutableLong(System.nanoTime());
-            return;
-        }
-        boolean waitForNextCycle = false;
-        long lastHitNanos;
-        synchronized (crawlerLastHitNanos) {
-            if (crawlerLastHitNanos.longValue() == -1) {
-                waitForNextCycle = true;
-            }
-            lastHitNanos = crawlerLastHitNanos.longValue();
-            crawlerLastHitNanos.setValue(-1);
-        }
-        if (waitForNextCycle) {
-            long targetDelayNanos = getTargetedDelayNanos(robotsTxt);
-            if (targetDelayNanos <= 0) {
-                return;
-            }
-            Sleeper.sleepNanos(targetDelayNanos);
-            resolveCrawlerDelay(robotsTxt);
-            return;
-        }
-        delay(robotsTxt, lastHitNanos);
-        crawlerLastHitNanos.setValue(System.nanoTime());
-    }
-
-    private void resolveSiteDelay(RobotsTxt robotsTxt, String url) {
-        String site = url.replaceFirst("(.*?//.*?)(/.*)|$]", "$1");
-        if (siteLastHitNanos == null) {
-            siteLastHitNanos = new ConcurrentHashMap<String, Long>();
-            siteLastHitNanos.put(site, System.nanoTime());
-            return;
-        }
-        Long curSiteLastHitNano = siteLastHitNanos.get(site);
-        if (curSiteLastHitNano == null) {
-            siteLastHitNanos.put(site, System.nanoTime());
-            return;
-        }
-        
-        boolean waitForNextCycle = false;
-        long lastHitNanos;
-        synchronized (siteLastHitNanos) {
-            curSiteLastHitNano = siteLastHitNanos.get(site);
-            if (curSiteLastHitNano == -1) {
-                waitForNextCycle = true;
-            }
-            lastHitNanos = curSiteLastHitNano;
-            siteLastHitNanos.put(site, -1l);
-        }
-        if (waitForNextCycle) {
-            long targetDelayNanos = getTargetedDelayNanos(robotsTxt);
-            if (targetDelayNanos <= 0) {
-                return;
-            }
-            Sleeper.sleepNanos(targetDelayNanos);
-            resolveSiteDelay(robotsTxt, url);
-            return;
-        }
-        delay(robotsTxt, lastHitNanos);
-        siteLastHitNanos.put(site, System.nanoTime());
-    }
-
-    private void resolveThreadDelay(RobotsTxt robotsTxt) {
-        if (threadLastHitNanos == null) {
-            threadLastHitNanos = new ThreadLocal<Long>();
-            threadLastHitNanos.set(System.nanoTime());
-        }
-        long lastHitNanos = threadLastHitNanos.get();
-        delay(robotsTxt, lastHitNanos);
-        threadLastHitNanos.set(System.nanoTime());
-    }
-
-    private void delay(RobotsTxt robotsTxt, long lastHitNanos) {
-        // Targeted delay in nanoseconds
-        long targetDelayNanos = getTargetedDelayNanos(robotsTxt);
-        if (targetDelayNanos <= 0) {
-            return;
-        }
-        
-        // How much time since last hit?
-        long elapsedNanoTime = System.nanoTime() - lastHitNanos;
-
-        // Sleep until targeted delay if not already passed.
-        if (elapsedNanoTime < targetDelayNanos) {
-            long timeToSleep = targetDelayNanos - elapsedNanoTime;
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Thread " + Thread.currentThread().getName()
-                        + " sleeping for " 
-                        + TimeUnit.NANOSECONDS.toSeconds(timeToSleep)
-                        + " seconds.");
-            }
-            Sleeper.sleepNanos(timeToSleep);
-        }
-        // Ensure time has changed
-        Sleeper.sleepNanos(1);
-    }
 
     /**
      * Gets the default delay in milliseconds.
@@ -289,11 +190,11 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
         this.scope = scope;
     }    
 
-    private long getTargetedDelayNanos(RobotsTxt robotsTxt) {
+    private long getExpectedDelayNanos(RobotsTxt robotsTxt) {
         long delayNanos = millisToNanos(defaultDelay);
         if (isUsingRobotsTxtCrawlDelay(robotsTxt)) {
-            delayNanos = TimeUnit.MILLISECONDS.toNanos(
-                    (long)(robotsTxt.getCrawlDelay() * THOUSAND_MILIS));
+            delayNanos = TimeUnit.SECONDS.toNanos(
+                    (long)(robotsTxt.getCrawlDelay()));
         } else {
             for (DelaySchedule schedule : schedules) {
                 if (schedule.isCurrentTimeInSchedule()) {
@@ -385,9 +286,6 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
         }
         DefaultDelayResolver castOther = (DefaultDelayResolver) other;
         return new EqualsBuilder()
-                .append(crawlerLastHitNanos, castOther.crawlerLastHitNanos)
-                .append(siteLastHitNanos, castOther.siteLastHitNanos)
-                .append(threadLastHitNanos, castOther.threadLastHitNanos)
                 .append(defaultDelay, castOther.defaultDelay)
                 .append(schedules, castOther.schedules)
                 .append(ignoreRobotsCrawlDelay,
@@ -397,8 +295,7 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(crawlerLastHitNanos)
-                .append(siteLastHitNanos).append(threadLastHitNanos)
+        return new HashCodeBuilder()
                 .append(defaultDelay).append(schedules)
                 .append(ignoreRobotsCrawlDelay).append(scope).toHashCode();
     }
