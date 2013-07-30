@@ -80,10 +80,11 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             LOG.debug("Cleaning sitemap database...");
             sitemap.clear();
             LOG.debug("Cleaning cache database...");
-            cache.clear();
-            LOG.info("Caching processed URL from last run (if applicable)...");
-            cache.putAll(processed);
-            processed.clear();
+            db.delete("cache");
+            LOG.debug("Caching processed URL from last run (if applicable)...");
+            db.rename("processed", "cache");
+            cache = processed;
+            processed = db.createHashMap("processed").keepCounter(true).make();
             db.commit();
         } else {
             LOG.debug("New databases created.");
