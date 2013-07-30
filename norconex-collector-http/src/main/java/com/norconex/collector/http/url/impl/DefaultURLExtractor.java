@@ -66,9 +66,10 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
     private static final int LOGGING_MAX_URL_LENGTH = 200;
     
     private static final Pattern URL_PATTERN = Pattern.compile(
-            "(url|href|src)(\\s*=\\s*)([\"']{0,1})(.+?)([\"'>])",
+            "\\W(url|data-url|href|src)(\\s*=\\s*)([\"']{0,1})(.+?)([\"'>])",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final int URL_PATTERN_GROUP_URL = 4;
+    private static final int URL_PATTERN_GROUP_ATTR_NAME = 1;
 
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     
@@ -99,9 +100,18 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
         while ((line = reader.readLine()) != null)   {
             Matcher matcher = URL_PATTERN.matcher(line);
             while (matcher.find()) {
+                String attrName = matcher.group(URL_PATTERN_GROUP_ATTR_NAME);
                 String url = matcher.group(URL_PATTERN_GROUP_URL);
-                if (url.startsWith("mailto:")) {
+                if (StringUtils.startsWithIgnoreCase(url, "mailto:")) {
                     continue;
+                }
+                if (StringUtils.startsWithIgnoreCase(url, "javascript:")) {
+                    continue;
+                }
+                if (attrName.equalsIgnoreCase("url")) {
+                    if (!line.matches("<(meta|META).*(content|CONTENT)")) {
+                        continue;
+                    }
                 }
                 url = extractURL(urlParts, url);
                 if (url.length() > maxURLLength) {
@@ -131,8 +141,12 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
             // this is a relative url and should have the full page base
             url = urlParts.documentBase + url;
         } else if (!url.contains("://")) {
-            // This is a URL relative to the last URL segment
-            url = urlParts.relativeBase + url;
+            if (urlParts.relativeBase.endsWith("/")) {
+                // This is a URL relative to the last URL segment
+                url = urlParts.relativeBase + url;
+            } else {
+                url = urlParts.relativeBase + "/" + url;
+            }
         }
         //TODO have configurable whether to strip anchors.
         url = StringUtils.substringBefore(url, "#");
