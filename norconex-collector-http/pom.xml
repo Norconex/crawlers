@@ -166,7 +166,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     	<version>1.7.5</version>
     </dependency>
     <dependency>
-        <groupId>org.mapdb</groupId>
+        <groupId>com.norconex.collectors</groupId>
         <artifactId>mapdb</artifactId>
         <version>0.9.4-SNAPSHOT</version>
     </dependency>
