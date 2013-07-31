@@ -68,6 +68,11 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
     private static final Pattern URL_PATTERN = Pattern.compile(
             "\\W(url|data-url|href|src)(\\s*=\\s*)([\"']{0,1})(.+?)([\"'>])",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    
+    private static final Pattern META_REFRESH_PATTERN = Pattern.compile(
+            "<\\s*meta\\s.*?http-equiv\\s*=\\s*[\"']refresh[\"']",
+            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    
     private static final int URL_PATTERN_GROUP_URL = 4;
     private static final int URL_PATTERN_GROUP_ATTR_NAME = 1;
 
@@ -109,7 +114,7 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
                     continue;
                 }
                 if (attrName.equalsIgnoreCase("url")) {
-                    if (!line.matches("<(meta|META).*(content|CONTENT)")) {
+                    if (!META_REFRESH_PATTERN.matcher(line).find()) {
                         continue;
                     }
                 }
