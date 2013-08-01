@@ -468,8 +468,7 @@ public class HttpCrawler extends AbstractResumableJob {
             try {
                 while (!isStopped()) {
                     try {
-                        if (!processNextURL(
-                                database, progress, delete)) {
+                        if (!processNextURL(database, progress, delete)) {
                             break;
                         }
                     } catch (Exception e) {

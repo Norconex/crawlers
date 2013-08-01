@@ -51,8 +51,9 @@ public class SiteDelay extends AbstractDelay {
         private boolean sleeping;
         @Override
         public boolean equals(final Object other) {
-            if (!(other instanceof SleepState))
+            if (!(other instanceof SleepState)) {
                 return false;
+            }
             SleepState castOther = (SleepState) other;
             return new EqualsBuilder()
                     .append(lastHitEpochNanos, castOther.lastHitEpochNanos)
