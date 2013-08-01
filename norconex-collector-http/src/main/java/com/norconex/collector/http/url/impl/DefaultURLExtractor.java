@@ -113,10 +113,9 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
                 if (StringUtils.startsWithIgnoreCase(url, "javascript:")) {
                     continue;
                 }
-                if (attrName.equalsIgnoreCase("url")) {
-                    if (!META_REFRESH_PATTERN.matcher(line).find()) {
-                        continue;
-                    }
+                if (attrName.equalsIgnoreCase("url")
+                        && !META_REFRESH_PATTERN.matcher(line).find()) {
+                    continue;
                 }
                 url = extractURL(urlParts, url);
                 if (url.length() > maxURLLength) {

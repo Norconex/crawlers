@@ -16,8 +16,11 @@ public abstract class AbstractDelay implements Serializable {
     private static final long serialVersionUID = 3203916955634153382L;
     private static final Logger LOG = LogManager.getLogger(AbstractDelay.class);
 
-    public abstract void delay(long expectedDelayNanos, String url);
+    protected static final int TINY_SLEEP_MS = 10;
+    private static final float THOUSAND_NANOS = 1000f;
     
+    public abstract void delay(long expectedDelayNanos, String url);
+
     protected void delay(long expectedDelayNanos, long lastHitNanos) {
         // Targeted delay in nanoseconds
         if (expectedDelayNanos <= 0) {
@@ -33,7 +36,7 @@ public abstract class AbstractDelay implements Serializable {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Thread " + Thread.currentThread().getName()
                         + " sleeping for "
-                        + ((float) timeToSleepNanos * 1000f)
+                        + ((float) timeToSleepNanos * THOUSAND_NANOS)
                         + " seconds.");
             }
             Sleeper.sleepNanos(timeToSleepNanos);
@@ -41,5 +44,4 @@ public abstract class AbstractDelay implements Serializable {
         // Ensure time has changed
         Sleeper.sleepNanos(1);
     }
-
 }

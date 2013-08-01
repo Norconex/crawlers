@@ -3,6 +3,8 @@ package com.norconex.collector.http.delay.impl;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.Sleeper;
@@ -30,7 +32,8 @@ public class SiteDelay extends AbstractDelay {
                     return;
                 }
                 while (sleepState.sleeping) {
-                    Sleeper.sleepNanos(Math.min(10, expectedDelayNanos));
+                    Sleeper.sleepNanos(Math.min(
+                            TINY_SLEEP_MS, expectedDelayNanos));
                 }
                 sleepState.sleeping = true;
             }
@@ -47,28 +50,18 @@ public class SiteDelay extends AbstractDelay {
         private long lastHitEpochNanos = System.nanoTime();
         private boolean sleeping;
         @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result
-                    + (int) (lastHitEpochNanos ^ (lastHitEpochNanos >>> 32));
-            result = prime * result + (sleeping ? 1231 : 1237);
-            return result;
+        public boolean equals(final Object other) {
+            if (!(other instanceof SleepState))
+                return false;
+            SleepState castOther = (SleepState) other;
+            return new EqualsBuilder()
+                    .append(lastHitEpochNanos, castOther.lastHitEpochNanos)
+                    .append(sleeping, castOther.sleeping).isEquals();
         }
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            SleepState other = (SleepState) obj;
-            if (lastHitEpochNanos != other.lastHitEpochNanos)
-                return false;
-            if (sleeping != other.sleeping)
-                return false;
-            return true;
+        public int hashCode() {
+            return new HashCodeBuilder().append(lastHitEpochNanos)
+                    .append(sleeping).toHashCode();
         }
     }
 }

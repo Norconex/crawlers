@@ -76,12 +76,6 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
         System.setProperty("derby.system.home", 
                 config.getWorkDir().getPath() + "/crawldb/log");
         
-        // Default is 1000
-        //System.setProperty("derby.storage.pageCacheSize", "10000");
-        // Default is 32768
-        //System.setProperty("derby.storage.pageSize", "32768");
-        
-        
         this.datasource = createDataSource();
         boolean incrementalRun;
         try {
@@ -90,6 +84,7 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
             throw new CrawlURLDatabaseException(
                     "Problem creating crawl database.", e);
         }
+        String deleteFromSQL = "DELETE FROM %s";
         if (!resume) {
             if (incrementalRun) {
                 LOG.info("Caching processed URL from last run (if any)...");
@@ -98,21 +93,22 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
                 sqlUpdate("RENAME TABLE " + TABLE_PROCESSED_VALID 
                         + " TO " + TABLE_CACHE);
                 LOG.debug("Cleaning queue table...");
-                sqlUpdate("DELETE FROM " + TABLE_QUEUE);
+                sqlUpdate(String.format(deleteFromSQL, TABLE_QUEUE));
                 LOG.debug("Cleaning invalid URLS table...");
-                sqlUpdate("DELETE FROM " + TABLE_PROCESSED_INVALID);
+                sqlUpdate(String.format(
+                        deleteFromSQL, TABLE_PROCESSED_INVALID));
                 LOG.debug("Cleaning active table...");
-                sqlUpdate("DELETE FROM " + TABLE_ACTIVE);
+                sqlUpdate(String.format(deleteFromSQL, TABLE_ACTIVE));
                 LOG.debug("Re-creating processed table...");
                 sqlUpdate(sqls.getString("create." + TABLE_PROCESSED_VALID));
                 LOG.debug("Cleaning sitemap table...");
-                sqlUpdate("DELETE FROM " + TABLE_SITEMAP);
+                sqlUpdate(String.format(deleteFromSQL, TABLE_SITEMAP));
             }
         } else {
             LOG.debug("Resuming: putting active URLs back in the queue...");
             copyURLDepthToQueue(TABLE_ACTIVE);
             LOG.debug("Cleaning active database...");
-            sqlUpdate("DELETE FROM " + TABLE_ACTIVE);
+            sqlUpdate(String.format(deleteFromSQL, TABLE_ACTIVE));
         }
         LOG.info("Done initializing databases.");
     }

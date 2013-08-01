@@ -54,7 +54,7 @@ import com.norconex.jef.suite.JobSuite;
 
 public class HttpCrawler extends AbstractResumableJob {
 	
-	private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
+    private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
 	
 	private static final int MINIMUM_DELAY = 10;
 	
@@ -110,6 +110,7 @@ public class HttpCrawler extends AbstractResumableJob {
         try {
             execute(database, progress, suite);
         } finally {
+            database.close();
             httpClient.getConnectionManager().shutdown();
         }
     }
@@ -130,6 +131,7 @@ public class HttpCrawler extends AbstractResumableJob {
         try {
             execute(database, progress, suite);
         } finally {
+            database.close();
             httpClient.getConnectionManager().shutdown();
         }
     }
@@ -152,34 +154,11 @@ public class HttpCrawler extends AbstractResumableJob {
         LOG.info("Crawling URLs...");
         processURLs(database, progress, suite, false);
 
-        //--- Process orphans (cache remains from previous run) ----------------
-        if (crawlerConfig.isDeleteOrphans()) {
-            LOG.info("Deleting orphan URLs (if any)...");
-            deleteCacheOrphans(database, progress, suite);
-        } else {
-            if (!isMaxURLs()) {
-                LOG.info("Re-processing orphan URLs (if any)...");
-                reprocessCacheOrphans(database, progress, suite);
-            }
-            // In case any item remains after we are done re-processing:
-            LOG.info("Deleting remaining orphan URLs (if any)...");
-            deleteCacheOrphans(database, progress, suite);
+        if (!isStopped()) {
+            handleOrphans(database, progress, suite);
         }
         
-
-        //--- Delete Download Dir ----------------------------------------------
-        if (!crawlerConfig.isKeepDownloads()) {
-            if (LOG.isInfoEnabled()) {
-                LOG.info("Deleting downloads directory: "
-                        + gelBaseDownloadDir());
-            }
-            try {
-                FileUtil.deleteFile(gelBaseDownloadDir());
-            } catch (IOException e) {
-                LOG.error("Could not delete the downloads directory: "
-                        + gelBaseDownloadDir(), e);
-            }
-        }
+        deleteDownloadDirectory();
         
         ICommitter committer = crawlerConfig.getCommitter();
         if (committer != null) {
@@ -196,13 +175,42 @@ public class HttpCrawler extends AbstractResumableJob {
         LOG.debug("Removing empty directories");
         FileUtil.deleteEmptyDirs(gelCrawlerDownloadDir());
 
-        database.close();
-        
         if (!stopped) {
             HttpCrawlerEventFirer.fireCrawlerFinished(this);
         }
         LOG.info("Crawler \"" + getId() + "\" " 
                 + (stopped ? "stopped." : "completed."));
+    }
+
+    private void deleteDownloadDirectory() {
+        if (!crawlerConfig.isKeepDownloads()) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Deleting downloads directory: "
+                        + gelBaseDownloadDir());
+            }
+            try {
+                FileUtil.deleteFile(gelBaseDownloadDir());
+            } catch (IOException e) {
+                LOG.error("Could not delete the downloads directory: "
+                        + gelBaseDownloadDir(), e);
+            }
+        }
+    }
+
+    private void handleOrphans(ICrawlURLDatabase database,
+            JobProgress progress, JobSuite suite) {
+        if (crawlerConfig.isDeleteOrphans()) {
+            LOG.info("Deleting orphan URLs (if any)...");
+            deleteCacheOrphans(database, progress, suite);
+        } else {
+            if (!isMaxURLs()) {
+                LOG.info("Re-processing orphan URLs (if any)...");
+                reprocessCacheOrphans(database, progress, suite);
+            }
+            // In case any item remains after we are done re-processing:
+            LOG.info("Deleting remaining orphan URLs (if any)...");
+            deleteCacheOrphans(database, progress, suite);
+        }
     }
     
     private void reprocessCacheOrphans(
@@ -212,7 +220,6 @@ public class HttpCrawler extends AbstractResumableJob {
         if (it != null) {
             while (it.hasNext()) {
                 CrawlURL crawlURL = it.next();
-System.out.println("CRAWL URL:" + crawlURL);                
                 new URLProcessor(
                         this, httpClient, database, crawlURL).processURL();
                 count++;
@@ -250,34 +257,12 @@ System.out.println("CRAWL URL:" + crawlURL);
         final CountDownLatch latch = new CountDownLatch(numThreads);
         ExecutorService pool = Executors.newFixedThreadPool(numThreads);
 
+        
         for (int i = 0; i < numThreads; i++) {
             final int threadIndex = i + 1;
-            pool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    LOG.debug("Crawler thread #" + threadIndex + " started.");
-                    try {
-                        while (!isStopped()) {
-                            try {
-                                if (!processNextURL(
-                                        database, progress, delete)) {
-                                    break;
-                                }
-                            } catch (Exception e) {
-                                LOG.fatal(
-                                      "An error occured that could compromise "
-                                    + "the stability of the crawler. Stopping "
-                                    + "excution to avoid further issues...", e);
-                                stop(progress, suite);
-                            }
-                        }
-                    } catch (Throwable t) {
-                        LOG.error("Problem in thread execution.", t);
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-            });
+            LOG.debug("Crawler thread #" + threadIndex + " started.");
+            pool.execute(new ProcessURLsRunnable(
+                    suite, progress, database, delete, latch));
         }
 
         try {
@@ -460,4 +445,47 @@ System.out.println("CRAWL URL:" + crawlURL);
                     url.getSitemapPriority());
         }        
     }
+    
+    private final class ProcessURLsRunnable implements Runnable {
+        private final JobSuite suite;
+        private final JobProgress progress;
+        private final ICrawlURLDatabase database;
+        private final boolean delete;
+        private final CountDownLatch latch;
+
+        private ProcessURLsRunnable(JobSuite suite, JobProgress progress,
+                ICrawlURLDatabase database, boolean delete,
+                CountDownLatch latch) {
+            this.suite = suite;
+            this.progress = progress;
+            this.database = database;
+            this.delete = delete;
+            this.latch = latch;
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (!isStopped()) {
+                    try {
+                        if (!processNextURL(
+                                database, progress, delete)) {
+                            break;
+                        }
+                    } catch (Exception e) {
+                        LOG.fatal(
+                              "An error occured that could compromise "
+                            + "the stability of the crawler. Stopping "
+                            + "excution to avoid further issues...", e);
+                        stop(progress, suite);
+                    }
+                }
+            } catch (Exception e) {
+                LOG.error("Problem in thread execution.", e);
+            } finally {
+                latch.countDown();
+            }
+        }
+    }
+
 }
