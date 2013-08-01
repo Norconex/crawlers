@@ -37,6 +37,9 @@
         download with DefaultDelayResolver (per crawler, site, or thread).
         "crawler" is default.
       </action>
+      <action dev="essiembp" type="add">
+        Javadoc Jar and Source Jar are now also deployed to Maven repository.
+      </action>
       <action dev="essiembp" type="update">
         Deprecation of *.handler.* package.  Classes have been moved to 
         more intuitive packages.
@@ -51,6 +54,13 @@
         Reduced the number of calls to the crawl database to improve 
         performance (URL filtering but be successfully passed for a document
         to get queued for processing).
+      </action>
+      <action dev="essiembp" type="fix" issue="16">
+        When reprocessed, orphan URLs are processed/filtered in case there has 
+        been a configuration change.  For instance, if if the maxDepth was 
+        reduced, former URLs that were once good may now be invalid due to 
+        their depth being too big.  Only "valid" URLs are now considered
+        for detecting orphans (OK or UNMODIFIED statuses).
       </action>
     </release>
 

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -144,16 +145,27 @@ public class HttpCrawler extends AbstractResumableJob {
                 (crawlerConfig.isIgnoreRobotsTxt() ? "disabled." : "enabled"));
         LOG.info("RobotsMeta support " + 
                 (crawlerConfig.isIgnoreRobotsMeta() ? "disabled." : "enabled"));
+        LOG.info("Sitemap support " + 
+                (crawlerConfig.isIgnoreSitemap() ? "disabled." : "enabled"));
 
-        //TODO consider offering threading here?
+        //--- Process start/queued URLS ----------------------------------------
+        LOG.info("Crawling URLs...");
         processURLs(database, progress, suite, false);
 
-        // Process what remains in cache
-        if (!isMaxURLs()) {
-            database.queueCache();
-            processURLs(
-                    database, progress, suite, crawlerConfig.isDeleteOrphans());
+        //--- Process orphans (cache remains from previous run) ----------------
+        if (crawlerConfig.isDeleteOrphans()) {
+            LOG.info("Deleting orphan URLs (if any)...");
+            deleteCacheOrphans(database, progress, suite);
+        } else {
+            if (!isMaxURLs()) {
+                LOG.info("Re-processing orphan URLs (if any)...");
+                reprocessCacheOrphans(database, progress, suite);
+            }
+            // In case any item remains after we are done re-processing:
+            LOG.info("Deleting remaining orphan URLs (if any)...");
+            deleteCacheOrphans(database, progress, suite);
         }
+        
 
         //--- Delete Download Dir ----------------------------------------------
         if (!crawlerConfig.isKeepDownloads()) {
@@ -191,6 +203,37 @@ public class HttpCrawler extends AbstractResumableJob {
         }
         LOG.info("Crawler \"" + getId() + "\" " 
                 + (stopped ? "stopped." : "completed."));
+    }
+    
+    private void reprocessCacheOrphans(
+            ICrawlURLDatabase database, JobProgress progress, JobSuite suite) {
+        long count = 0;
+        Iterator<CrawlURL> it = database.getCacheIterator();
+        if (it != null) {
+            while (it.hasNext()) {
+                CrawlURL crawlURL = it.next();
+System.out.println("CRAWL URL:" + crawlURL);                
+                new URLProcessor(
+                        this, httpClient, database, crawlURL).processURL();
+                count++;
+            }
+            processURLs(database, progress, suite, false);
+        }
+        LOG.info("Reprocessed " + count + " orphan URLs...");
+    }
+    
+    private void deleteCacheOrphans(
+            ICrawlURLDatabase database, JobProgress progress, JobSuite suite) {
+        long count = 0;
+        Iterator<CrawlURL> it = database.getCacheIterator();
+        if (it != null) {
+            while (it.hasNext()) {
+                database.queue(it.next());
+                count++;
+            }
+            processURLs(database, progress, suite, true);
+        }
+        LOG.info("Deleted " + count + " orphan URLs...");
     }
     
     /*default*/ HttpCrawlerConfig getCrawlerConfig() {
@@ -252,7 +295,7 @@ public class HttpCrawler extends AbstractResumableJob {
             final ICrawlURLDatabase database,
             final JobProgress progress, 
             final boolean delete) {
-        CrawlURL queuedURL = database.next();
+        CrawlURL queuedURL = database.nextQueued();
         if (queuedURL != null) {
             if (isMaxURLs()) {
                 LOG.info("Maximum URLs reached: " + crawlerConfig.getMaxURLs());

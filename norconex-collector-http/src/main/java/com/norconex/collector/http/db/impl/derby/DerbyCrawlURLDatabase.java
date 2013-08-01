@@ -20,14 +20,18 @@ package com.norconex.collector.http.db.impl.derby;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.ArrayListHandler;
@@ -47,7 +51,14 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
     private static final Logger LOG = 
             LogManager.getLogger(DerbyCrawlURLDatabase.class);
     
-    private static final int NUMBER_OF_TABLES = 5;
+    private static final String TABLE_QUEUE = "queue";
+    private static final String TABLE_ACTIVE = "active";
+    private static final String TABLE_CACHE = "cache";
+    private static final String TABLE_PROCESSED_VALID = "valid";
+    private static final String TABLE_PROCESSED_INVALID = "invalid";
+    private static final String TABLE_SITEMAP = "sitemap";
+    
+    private static final int NUMBER_OF_TABLES = 6;
     private static final int COLCOUNT_SITEMAP = 2;
     private static final int COLCOUNT_ALL = 5;
     private static final int SQL_ERROR_ALREADY_EXISTS = 30000;
@@ -84,29 +95,32 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
             if (incrementalRun) {
                 LOG.info("Caching processed URL from last run (if any)...");
                 LOG.debug("Rename processed table to cache...");
-                sqlUpdate("DROP TABLE cache");
-                sqlUpdate("RENAME TABLE processed TO cache");
+                sqlUpdate("DROP TABLE " + TABLE_CACHE);
+                sqlUpdate("RENAME TABLE " + TABLE_PROCESSED_VALID 
+                        + " TO " + TABLE_CACHE);
                 LOG.debug("Cleaning queue table...");
-                sqlUpdate("DELETE FROM queue");
+                sqlUpdate("DELETE FROM " + TABLE_QUEUE);
+                LOG.debug("Cleaning invalid URLS table...");
+                sqlUpdate("DELETE FROM " + TABLE_PROCESSED_INVALID);
                 LOG.debug("Cleaning active table...");
-                sqlUpdate("DELETE FROM active");
+                sqlUpdate("DELETE FROM " + TABLE_ACTIVE);
                 LOG.debug("Re-creating processed table...");
-                sqlUpdate(sqls.getString("create.processed"));
+                sqlUpdate(sqls.getString("create." + TABLE_PROCESSED_VALID));
                 LOG.debug("Cleaning sitemap table...");
-                sqlUpdate("DELETE FROM sitemap");
+                sqlUpdate("DELETE FROM " + TABLE_SITEMAP);
             }
         } else {
             LOG.debug("Resuming: putting active URLs back in the queue...");
-            copyURLDepthToQueue("active");
+            copyURLDepthToQueue(TABLE_ACTIVE);
             LOG.debug("Cleaning active database...");
-            sqlUpdate("DELETE FROM active");
+            sqlUpdate("DELETE FROM " + TABLE_ACTIVE);
         }
         LOG.info("Done initializing databases.");
     }
 
     @Override
     public final synchronized void queue(CrawlURL unUrl) {
-        sqlUpdate("INSERT INTO queue "
+        sqlUpdate("INSERT INTO " + TABLE_QUEUE
                 + "  (url, depth, smLastMod, smChangeFreq, smPriority) "
                 + "VALUES (?,?,?,?,?) ", 
                 unUrl.getUrl(), unUrl.getDepth(), 
@@ -121,78 +135,144 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
 
     @Override
     public final synchronized int getQueueSize() {
-        return sqlQueryInteger("SELECT count(*) FROM queue");
+        return sqlQueryInteger("SELECT count(*) FROM " + TABLE_QUEUE);
     }
 
     @Override
     public final synchronized boolean isQueued(String url) {
-        return sqlQueryInteger("SELECT 1 FROM queue where url = ?", url) > 0;
+        return sqlQueryInteger("SELECT 1 FROM " + TABLE_QUEUE 
+                + " where url = ?", url) > 0;
     }
 
     @Override
-    public final synchronized CrawlURL next() {
-        CrawlURL crawlURL = sqlQueryCrawlURL(false, "queue", null, "depth");
+    public final synchronized CrawlURL nextQueued() {
+        CrawlURL crawlURL = sqlQueryCrawlURL(false, TABLE_QUEUE, null, "depth");
         if (crawlURL != null) {
-            sqlUpdate("INSERT INTO active "
-                    + "(url, depth, smLastMod, smChangeFreq, smPriority) "
+            sqlUpdate("INSERT INTO " + TABLE_ACTIVE
+                    + " (url, depth, smLastMod, smChangeFreq, smPriority) "
                     + " values (?,?,?,?,?)",
                     crawlURL.getUrl(), crawlURL.getDepth(),  
                     crawlURL.getSitemapLastMod(),
                     crawlURL.getSitemapChangeFreq(),
                     crawlURL.getSitemapPriority());
-            sqlUpdate("DELETE FROM queue WHERE url = ?", crawlURL.getUrl());
+            sqlUpdate("DELETE FROM " + TABLE_QUEUE
+                    + " WHERE url = ?", crawlURL.getUrl());
         }
         return crawlURL;
     }
 
     @Override
     public final synchronized boolean isActive(String url) {
-        return sqlQueryInteger("SELECT 1 FROM active where url = ?", url) > 0;
+        return sqlQueryInteger("SELECT 1 FROM " + TABLE_ACTIVE 
+                + " where url = ?", url) > 0;
     }
 
     @Override
     public final synchronized int getActiveCount() {
-        return sqlQueryInteger("SELECT count(*) FROM active");
+        return sqlQueryInteger("SELECT count(*) FROM " + TABLE_ACTIVE);
     }
 
     @Override
     public synchronized CrawlURL getCached(String url) {
-        return sqlQueryCrawlURL(true, "cache", "url = ?", null, url);
+        return sqlQueryCrawlURL(true, TABLE_CACHE, "url = ?", null, url);
     }
 
     @Override
     public final synchronized boolean isCacheEmpty() {
-        return sqlQueryInteger("SELECT count(*) FROM cache") == 0;
+        return sqlQueryInteger("SELECT count(*) FROM " + TABLE_CACHE) == 0;
     }
 
     @Override
     public final synchronized void processed(CrawlURL crawlURL) {
-        sqlUpdate("INSERT INTO processed ("
+        String table;
+        if (isValidStatus(crawlURL)) {
+            table = TABLE_PROCESSED_VALID;
+        } else {
+            table = TABLE_PROCESSED_INVALID;
+        }
+        sqlUpdate("INSERT INTO " + table + " ("
                 + "url, depth, docchecksum, headchecksum, status) "
                 + "values (?, ?, ?, ?, ?)",
                 crawlURL.getUrl(), crawlURL.getDepth(),
                 crawlURL.getDocChecksum(), crawlURL.getHeadChecksum(),
                 crawlURL.getStatus().toString());
-        sqlUpdate("DELETE FROM active WHERE url = ?", crawlURL.getUrl());
-        sqlUpdate("DELETE FROM cache WHERE url = ?", crawlURL.getUrl());
+        sqlUpdate("DELETE FROM " + TABLE_ACTIVE 
+                + " WHERE url = ?", crawlURL.getUrl());
+        sqlUpdate("DELETE FROM " + TABLE_CACHE 
+                + " WHERE url = ?", crawlURL.getUrl());
     }
 
     @Override
     public final synchronized boolean isProcessed(String url) {
-        return sqlQueryInteger(
-                "SELECT 1 FROM processed where url = ?", url) > 0;
+        return sqlQueryInteger("SELECT 1 FROM " + TABLE_PROCESSED_VALID 
+                + " where url = ?", url) > 0
+                || sqlQueryInteger("SELECT 1 FROM " + TABLE_PROCESSED_INVALID 
+                        + " where url = ?", url) > 0;
     }
 
     @Override
     public final synchronized int getProcessedCount() {
-        return sqlQueryInteger("SELECT count(*) FROM processed");
+        return sqlQueryInteger("SELECT count(*) FROM " + TABLE_PROCESSED_VALID)
+                + sqlQueryInteger(
+                        "SELECT count(*) FROM " + TABLE_PROCESSED_INVALID);
     }
 
     @Override
-    public final synchronized void queueCache() {
-        copyURLDepthToQueue("cache");
+    public Iterator<CrawlURL> getCacheIterator() {
+        try {
+            final Connection conn = datasource.getConnection(); 
+            final Statement stmt = conn.createStatement(
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY);
+            final ResultSet rs = stmt.executeQuery(
+                    "SELECT url, depth, smLastMod, smChangeFreq, smPriority "
+                    + "FROM " + TABLE_CACHE);
+            if (rs == null || !rs.first()) {
+                return null;
+            }
+            rs.beforeFirst();
+            return new Iterator<CrawlURL>() {
+                @Override
+                public boolean hasNext() {
+                    try {
+                        if (conn.isClosed()) {
+                            return false;
+                        }
+                        if (!rs.isLast()) {
+                            return true;
+                        } else {
+                            DbUtils.closeQuietly(conn, stmt, rs);
+                            return false;
+                        }
+                    } catch (SQLException e) {
+                        LOG.error("Database problem.", e);
+                        return false;
+                    }
+                }
+                @Override
+                public CrawlURL next() {
+                    try {
+                        if (rs.next()) {
+                            return toCrawlURL(rs);
+                        }
+                    } catch (SQLException e) {
+                        LOG.error("Database problem.", e);
+                    }
+                    return null;
+                }
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        } catch (SQLException e) {
+            throw new CrawlURLDatabaseException(
+                    "Problem running database query.", e);            
+        }        // TODO Auto-generated method stub
+        
     }
-
+    
+    
     @Override
     public final synchronized boolean isVanished(CrawlURL crawlURL) {
         CrawlURL cachedURL = getCached(crawlURL.getUrl());
@@ -344,27 +424,35 @@ public class DerbyCrawlURLDatabase  implements ICrawlURLDatabase {
             return true;
         }
         LOG.debug("    Creating new crawl tables...");
-        sqlUpdate(sqls.getString("create.queue"));
-        sqlUpdate(sqls.getString("create.queue.index"));
-        sqlUpdate(sqls.getString("create.active"));
-        sqlUpdate(sqls.getString("create.processed"));
-        sqlUpdate(sqls.getString("create.cache"));
-        sqlUpdate(sqls.getString("create.sitemap"));
+        sqlUpdate(sqls.getString("create." + TABLE_QUEUE));
+        sqlUpdate(sqls.getString("create." + TABLE_QUEUE + ".index"));
+        sqlUpdate(sqls.getString("create." + TABLE_ACTIVE));
+        sqlUpdate(sqls.getString("create." + TABLE_PROCESSED_VALID));
+        sqlUpdate(sqls.getString("create." + TABLE_PROCESSED_INVALID));
+        sqlUpdate(sqls.getString("create." + TABLE_CACHE));
+        sqlUpdate(sqls.getString("create." + TABLE_SITEMAP));
         return false;
     }
 
     @Override
     public synchronized void sitemapResolved(String urlRoot) {
-        sqlUpdate("INSERT INTO sitemap (urlroot) VALUES (?) ", urlRoot);
+        sqlUpdate("INSERT INTO " + TABLE_SITEMAP 
+                + " (urlroot) VALUES (?) ", urlRoot);
     }
 
     @Override
     public synchronized boolean isSitemapResolved(String urlRoot) {
         return sqlQueryInteger(
-                "SELECT 1 FROM sitemap where urlroot = ?", urlRoot) > 0;
+                "SELECT 1 FROM " + TABLE_SITEMAP
+                + " where urlroot = ?", urlRoot) > 0;
     }
     @Override
     public void close() {
         //do nothing
+    }
+
+    private boolean isValidStatus(CrawlURL crawlURL) {
+        return crawlURL.getStatus() == CrawlStatus.OK
+                || crawlURL.getStatus() == CrawlStatus.UNMODIFIED;
     }
 }

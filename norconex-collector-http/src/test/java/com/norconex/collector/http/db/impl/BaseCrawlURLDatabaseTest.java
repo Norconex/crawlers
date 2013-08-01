@@ -24,6 +24,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Iterator;
+
 import org.junit.Test;
 
 import com.norconex.collector.http.crawler.CrawlStatus;
@@ -82,7 +84,7 @@ public abstract class BaseCrawlURLDatabaseTest {
         db.queue(new CrawlURL(url, 0));
 
         // Make sure the next url is the one we just queue
-        CrawlURL next = db.next();
+        CrawlURL next = db.nextQueued();
         assertEquals(url, next.getUrl());
 
         // Make sure the url was removed from queue and marked as active
@@ -96,7 +98,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         String url = "http://www.norconex.com/";
         db.queue(new CrawlURL(url, 0));
-        CrawlURL next = db.next();
+        CrawlURL next = db.nextQueued();
 
         // Simulate a successful fetch
         next.setStatus(CrawlStatus.OK);
@@ -132,7 +134,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         // Process it
         db.queue(new CrawlURL(url, 0));
-        CrawlURL next = db.next();
+        CrawlURL next = db.nextQueued();
         next.setStatus(CrawlStatus.OK);
         db.processed(next);
 
@@ -142,16 +144,17 @@ public abstract class BaseCrawlURLDatabaseTest {
     }
 
     @Test
-    public void test_queueCache() throws Exception {
+    public void test_cacheIterator() throws Exception {
 
         // Cache an url
         String url = "http://www.norconex.com/";
         cacheUrl(url);
 
-        db.queueCache();
-
-        // Make sure the url is queued
-        assertTrue(db.isQueued(url));
+        Iterator<CrawlURL> it = db.getCacheIterator();
+        assertTrue(it.hasNext());
+        it.next();
+        CrawlURL crawlURL = (CrawlURL) it.next();
+        assertEquals(url, crawlURL.getUrl()); 
     }
 
     @Test
@@ -163,7 +166,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         // Set it with an invalid state
         db.queue(new CrawlURL(url, 0));
-        CrawlURL next = db.next();
+        CrawlURL next = db.nextQueued();
         next.setStatus(CrawlStatus.NOT_FOUND);
 
         // Make sure it's considered vanished
@@ -235,7 +238,7 @@ public abstract class BaseCrawlURLDatabaseTest {
         // Simulate a successful fetch
         String url = "http://www.norconex.com/";
         db.queue(new CrawlURL(url, 0));
-        CrawlURL next = db.next();
+        CrawlURL next = db.nextQueued();
         next.setStatus(CrawlStatus.OK);
         db.processed(next);
 
@@ -287,7 +290,7 @@ public abstract class BaseCrawlURLDatabaseTest {
         // Activate an url
         String url = "http://www.norconex.com/";
         db.queue(new CrawlURL(url, 0));
-        db.next();
+        db.nextQueued();
 
         // Instantiate a new impl with the "resume" option set to true. The
         // url should be put back to queue.
@@ -305,7 +308,7 @@ public abstract class BaseCrawlURLDatabaseTest {
         // Process an url
         String url = "http://www.norconex.com/";
         db.queue(new CrawlURL(url, 0));
-        CrawlURL next = db.next();
+        CrawlURL next = db.nextQueued();
         next.setStatus(CrawlStatus.OK);
         db.processed(next);
 

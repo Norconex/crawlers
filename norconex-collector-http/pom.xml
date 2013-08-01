@@ -151,19 +151,19 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <version>2.2</version>
     </dependency>
     <dependency>
-    	<groupId>org.apache.httpcomponents</groupId>
-    	<artifactId>httpclient</artifactId>
-    	<version>4.2.4</version>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.2.4</version>
     </dependency>
     <dependency>
-    	<groupId>org.slf4j</groupId>
-    	<artifactId>slf4j-api</artifactId>
-    	<version>1.7.5</version>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.5</version>
     </dependency>
     <dependency>
-    	<groupId>org.slf4j</groupId>
-    	<artifactId>slf4j-log4j12</artifactId>
-    	<version>1.7.5</version>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.7.5</version>
     </dependency>
     <dependency>
         <groupId>com.norconex.collectors</groupId>
@@ -178,7 +178,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
             <directory>${project.build.testSourceDirectory}</directory>
             <includes>
                 <include>**/*.html</include>
-			</includes>
+            </includes>
         </resource>
     </resources>
     <extensions>
@@ -260,8 +260,27 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
               <goal>javadoc</goal>
             </goals>
           </execution>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
       <plugin>
        <groupId>org.apache.maven.plugins</groupId>
        <artifactId>maven-jar-plugin</artifactId>

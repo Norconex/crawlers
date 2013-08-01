@@ -1,21 +1,19 @@
 The following are either things to be done, or ideas to consider:
 
-- Package source jars with Maven repository deployments.
+- Try to stop faster when a stop is detected (e.g. do not process orphans, etc).
 
-- Perform MapDB table renaming at the end and set a property on the job via JEF.
-  On startup, look for that property if not resuming, and "recover" via
-  the putAll method if the rename did not occur.
+- DONE, need testing: Package source jars with Maven repository deployments.
 
 - Consider BlockingQueue for fast memory access of queued URL, with the 
   queue fed from DB by another thread.  Could be beneficial for Derby 
-  implementation.
+  implementation if MapDB does not stabilize more.
 
-- Add documentRejectedChecksum and documentRejectedHeadersChecksum to 
-  IHttpCrawlerEventListener and fire them.
+- Maybe: Add documentRejectedChecksum and documentRejectedHeadersChecksum to 
+  IHttpCrawlerEventListener and fire them?
 
 - Make sure maxURL counter saved in progress is in sync with each time we commit
   to avoid having a counter higher than actual URLs processed in case of 
-  failure (minor).
+  failure (minor impact).
 
 - Make configurable via HTML many HTTPClient init options, such 
   as CoreConnectionPNames.CONNECTION_TIMEOUT and/or provide ways to configure
@@ -26,17 +24,17 @@ The following are either things to be done, or ideas to consider:
 - Rotate/break log files when too big.
 
 - If a URL filter rule was changed and a document is now rejected (never 
-  processed), it will not be deleted (since it did not get a 404/NOT_FOUND.
-  Maybe check if rejeceted URL in URLProcessor are in cache and send deletion 
+  processed), it will not be deleted (since it did not get a 404/NOT_FOUND).
+  Maybe check if rejected URL in URLProcessor are in cache and send deletion 
   if so.
-
-- Add more events to URL processing listener (one for each "step"?). 
 
 - Integrate with distributed computing frameworks such as hadhoop.
 
 - Test that IPV6 is supported
 
-- Load test with million pages.
+- Consider having support for different URLExractors for different content 
+  types.  Maybe also offer to default one ability to define custom patterns
+  for how to identify URLs.
 
 - Detect and follow RSS feeds (related to having multiple url extractors by
   content types).
@@ -51,10 +49,6 @@ The following are either things to be done, or ideas to consider:
 
 - To consider: Interface for Document Store for downloading documents.
   File system is used now, but could be others like MongoDB?
-
-- Consider having support for different URLExractors for different content 
-  types.  Maybe also offer to default one ability to define custom patterns
-  for how to identify URLs.
 
 - Add option to skip certain http response code (like 500).  Those docs 
   that should not be added nor deleted because they are in a temporary bad 
@@ -72,9 +66,3 @@ The following are either things to be done, or ideas to consider:
          <listener class=""></listener>
       </suiteLifeCycleListener>
   </jef>
-
-- Create a FAQ:
-  - How to follow redirects but not index page with a redirect?
-  - How to ignore robot rules (both robots.txt and robots meta)?
-  - How do I authenticate?
-  - How to change log levels (e.g. CrawlStatus)?

@@ -19,6 +19,7 @@
 package com.norconex.collector.http.db.impl;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -40,12 +41,21 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
 
     //TODO make configurable
     private static final int COMMIT_SIZE = 1000;
+
+    private static final String STORE_QUEUE = "queue";
+    private static final String STORE_ACTIVE = "active";
+    private static final String STORE_CACHE = "cache";
+    private static final String STORE_PROCESSED_VALID = "valid";
+    private static final String STORE_PROCESSED_INVALID = "invalid";
+    private static final String STORE_SITEMAP = "sitemap";
+    
     
     private final DB db;
     private Queue<CrawlURL> queue;
     private Map<String, CrawlURL> active;
     private Map<String, CrawlURL> cache;
-    private Map<String, CrawlURL> processed;
+    private Map<String, CrawlURL> processedValid;
+    private Map<String, CrawlURL> processedInvalid;
     private Set<String> sitemap;
     
     private long commitCounter;
@@ -77,14 +87,17 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             queue.clear();
             LOG.debug("Cleaning active database...");
             active.clear();
+            LOG.debug("Cleaning invalid URLs database...");
+            processedInvalid.clear();
             LOG.debug("Cleaning sitemap database...");
             sitemap.clear();
             LOG.debug("Cleaning cache database...");
-            db.delete("cache");
-            LOG.debug("Caching processed URL from last run (if applicable)...");
-            db.rename("processed", "cache");
-            cache = processed;
-            processed = db.createHashMap("processed").keepCounter(true).make();
+            db.delete(STORE_CACHE);
+            LOG.debug("Caching valid URLs from last run (if applicable)...");
+            db.rename(STORE_PROCESSED_VALID, STORE_CACHE);
+            cache = processedValid;
+            processedValid = db.createHashMap(
+                    STORE_PROCESSED_VALID).keepCounter(true).make();
             db.commit();
         } else {
             LOG.debug("New databases created.");
@@ -95,35 +108,30 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     private DB createDB(File dbFile) {
         return DBMaker.newFileDB(dbFile)
                 .closeOnJvmShutdown()
-//        .cacheDisable()
-//        .asyncWriteDisable()
-//        .writeAheadLogDisable()
                 .cacheSoftRefEnable()
 //TODO configurable:    .compressionEnable()
-                
-                
                 .randomAccessFileEnableIfNeeded()
-
-                
 //TODO configurable:    .freeSpaceReclaimQ(5)
-//TODO configurable:    .syncOnCommitDisable()
-//TODO configurable:    .writeAheadLogDisable()
                 .make();
     }
     
     
     private void initDB(boolean create) {
-        queue = new MappedQueue(db, "queue", create);
+        queue = new MappedQueue(db, STORE_QUEUE, create);
         if (create) {
-            active = db.createHashMap("active").keepCounter(true).make();
-            cache = db.createHashMap("cache").keepCounter(true).make();
-            processed = db.createHashMap("processed").keepCounter(true).make();
+            active = db.createHashMap(STORE_ACTIVE).keepCounter(true).make();
+            cache = db.createHashMap(STORE_CACHE).keepCounter(true).make();
+            processedValid = db.createHashMap(
+                    STORE_PROCESSED_VALID).keepCounter(true).make();
+            processedInvalid = db.createHashMap(
+                    STORE_PROCESSED_INVALID).keepCounter(true).make();
         } else {
-            active = db.getHashMap("active");
-            cache = db.getHashMap("cache");
-            processed = db.getHashMap("processed");
+            active = db.getHashMap(STORE_ACTIVE);
+            cache = db.getHashMap(STORE_CACHE);
+            processedValid = db.getHashMap(STORE_PROCESSED_VALID);
+            processedInvalid = db.getHashMap(STORE_PROCESSED_INVALID);
         }
-        sitemap = db.getHashSet("sitemap");
+        sitemap = db.getHashSet(STORE_SITEMAP);
     }
     
     @Override
@@ -149,7 +157,7 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     }
 
     @Override
-    public synchronized CrawlURL next() {
+    public synchronized CrawlURL nextQueued() {
         CrawlURL crawlURL = queue.poll();
         if (crawlURL != null) {
             active.put(crawlURL.getUrl(), crawlURL);
@@ -181,7 +189,11 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     public synchronized void processed(CrawlURL crawlURL) {
         // Short of being immutable, make a defensive copy of crawl URL.
         CrawlURL crawlUrlCopy = crawlURL.safeClone();
-        processed.put(crawlUrlCopy.getUrl(), crawlUrlCopy);
+        if (isValidStatus(crawlUrlCopy)) {
+            processedValid.put(crawlUrlCopy.getUrl(), crawlUrlCopy);
+        } else {
+            processedInvalid.put(crawlUrlCopy.getUrl(), crawlUrlCopy);
+        }
         if (!active.isEmpty()) {
             active.remove(crawlUrlCopy.getUrl());
         }
@@ -200,21 +212,19 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
 
     @Override
     public boolean isProcessed(String url) {
-        return processed.containsKey(url);
+        return processedValid.containsKey(url)
+                || processedInvalid.containsKey(url);
     }
 
     @Override
     public int getProcessedCount() {
-        return processed.size();
+        return processedValid.size() + processedInvalid.size();
     }
 
-    @Override
-    public void queueCache() {
-        for (CrawlURL crawlUrl : cache.values()) {
-            queue.add(crawlUrl);
-        }
-    }
-
+    public Iterator<CrawlURL> getCacheIterator() {
+        return cache.values().iterator();
+    };
+    
     @Override
     public boolean isVanished(CrawlURL crawlURL) {
         CrawlURL cachedURL = getCached(crawlURL.getUrl());
@@ -242,5 +252,10 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
         LOG.info("Closing crawl database...");
         db.commit();
         db.close();
+    }
+    
+    private boolean isValidStatus(CrawlURL crawlURL) {
+        return crawlURL.getStatus() == CrawlStatus.OK
+                || crawlURL.getStatus() == CrawlStatus.UNMODIFIED;
     }
 }

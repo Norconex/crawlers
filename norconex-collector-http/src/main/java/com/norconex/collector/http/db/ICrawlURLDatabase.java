@@ -18,6 +18,8 @@
  */
 package com.norconex.collector.http.db;
 
+import java.util.Iterator;
+
 import com.norconex.collector.http.crawler.CrawlURL;
 
 
@@ -66,11 +68,12 @@ public interface ICrawlURLDatabase {
     boolean isQueued(String url);
     
     /**
-     * Returns the next URL to be processed and marks it as being "active"
-     * (i.e. currently being processed).
+     * Returns the next URL to be processed from the queue and marks it as 
+     * being "active" (i.e. currently being processed).  The returned URL
+     * is effectively removed from the queue.
      * @return next URL
      */
-    CrawlURL next();
+    CrawlURL nextQueued();
     
     /**
      * Whether the given URL is currently being processed (i.e. active).
@@ -120,13 +123,33 @@ public interface ICrawlURLDatabase {
      */
     int getProcessedCount();
 
+    
+//    /**
+//     * Queues URLs cached from a previous run so they can be processed again.
+//     * This method is normally called when a job is done crawling,
+//     * and entries remain in the cache.  Those are re-processed in case
+//     * they changed or are no longer valid. 
+//     * Because the configuration may have changed since the URLs were first 
+//     * cached, we are given the opportunity to filter them out in case they
+//     * should not be processed anymore (not put in the queue).
+//     */
+//    void queueCache();
+
     /**
-     * Queues URLs cached from a previous run so they can be processed again.
-     * This method is normally called when a job is done crawling,
-     * and entries remain in the cache.  Those are re-processed in case
-     * they changed or are no longer valid. 
+     * Gets the cache iterator.
+     * @return cache iterator
      */
-    void queueCache();
+    Iterator<CrawlURL> getCacheIterator();
+    
+//    /**
+//     * Returns the next URL from the URL cache.  Returned URLs are in no
+//     * particular order and are effectively removed from the cache.  
+//     * This method is normally called when a job is done crawling,
+//     * and entries remain in the cache.  Those are re-processed in case
+//     * they changed or are no longer valid. 
+//     * @return next URL
+//     */
+//    CrawlURL nextCached();
     
     /**
      * Whether a url has been deleted.  To find this out, the URL has to be 
