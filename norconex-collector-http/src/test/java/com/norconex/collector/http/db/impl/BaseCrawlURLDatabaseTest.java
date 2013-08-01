@@ -152,7 +152,6 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         Iterator<CrawlURL> it = db.getCacheIterator();
         assertTrue(it.hasNext());
-        it.next();
         CrawlURL crawlURL = (CrawlURL) it.next();
         assertEquals(url, crawlURL.getUrl()); 
     }
