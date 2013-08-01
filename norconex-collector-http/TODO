@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- Packaging: Deploy the source and javadoc jars for dependent libs as well
+  (importer, commmitter, etc) and add link to their site in javadoc.
+
 - Try to stop faster when a stop is detected (e.g. do not process orphans, etc).
 
 - DONE, need testing: Package source jars with Maven repository deployments.

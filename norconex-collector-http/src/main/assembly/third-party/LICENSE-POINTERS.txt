@@ -1,5 +1,13 @@
-Third party license pointers
-============================
+Norconex licenses:
+==================
+
+Unless explicitly stated, all Norconex libraries delivered with this 
+product are licensed under the GPL v.3.0.  A copy of the GPL license should
+have been shipped with this product.
+
+
+Third party license pointers:
+=============================
 
 apache-mime4j-core      - see LICENSE(Apache2.0).txt
 apache-mime4j-dom       - see LICENSE(Apache2.0).txt

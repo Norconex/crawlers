@@ -248,6 +248,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <version>2.9</version>
         <configuration>
           <stylesheetfile>${basedir}/src/main/resources/javadoc.css</stylesheetfile>
+          <overview>${basedir}/src/main/resources/javadoc-overview.html</overview>
           <show>protected</show>
           <detectLinks>true</detectLinks>
           <nodeprecated>true</nodeprecated>
@@ -338,6 +339,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <version>2.9</version>
         <configuration>
           <stylesheetfile>${basedir}/src/main/resources/javadoc.css</stylesheetfile>
+          <overview>${basedir}/src/main/resources/javadoc-overview.html</overview>
           <show>protected</show>
           <detectLinks>true</detectLinks>
           <nodeprecated>true</nodeprecated>
