@@ -8,7 +8,6 @@
   <body>
 
     <release version="1.1.0" date="2013-??-??" description="Feature release.">
-
       <action dev="essiembp" type="add">
         Crawler now fires additional events. Added "documentRobotsMetaRejected"
         and "documentImportRejected" methods to IHttpCrawlerEventListener.
@@ -47,13 +46,15 @@
       <action dev="essiembp" type="update">
         IDelayResolver are no longer systematically synchronized 
         (i.e. accessible only one thread a a time). This is a decision left
-        up to each implementation.  DefaultDelayResolver is now
-        synchronized.
+        up to each implementation.  
       </action>
       <action dev="essiembp" type="update">
         Reduced the number of calls to the crawl database to improve 
         performance (URL filtering but be successfully passed for a document
         to get queued for processing).
+      </action>
+      <action dev="essiembp" type="update">
+        Upgraded to Norconex Importer from 1.0.0 to 1.0.1.
       </action>
       <action dev="essiembp" type="fix" issue="16">
         When reprocessed, orphan URLs are processed/filtered in case there has 

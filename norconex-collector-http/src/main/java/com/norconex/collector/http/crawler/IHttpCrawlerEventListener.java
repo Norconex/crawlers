@@ -45,7 +45,10 @@ public interface IHttpCrawlerEventListener {
 	//TODO add two new methods for headers and document checksum 
 	//(i.e. modified vs not-modified.   Or rely on rejected flag?
 	//TODO add documentDeleted
-	
+	//TODO add urlProcessed with CrawlStatus to help with reporting
+    //TODO refactor even handling by having 1 method only accepting an 
+    //event interface (or superclass).  More scalable that way.
+    
     void crawlerStarted(HttpCrawler crawler);
     void documentRobotsTxtRejected(HttpCrawler crawler,
             String url, IURLFilter filter, RobotsTxt robotsTxt);

@@ -158,8 +158,6 @@ public class HttpCrawler extends AbstractResumableJob {
             handleOrphans(database, progress, suite);
         }
         
-        deleteDownloadDirectory();
-        
         ICommitter committer = crawlerConfig.getCommitter();
         if (committer != null) {
             LOG.info("Crawler \"" + getId() + "\" " 
@@ -167,6 +165,8 @@ public class HttpCrawler extends AbstractResumableJob {
                     + ": committing documents.");
             committer.commit();
         }
+
+        deleteDownloadDirectory();
         
         watch.stop();
         LOG.info(database.getProcessedCount() + " URLs processed "
