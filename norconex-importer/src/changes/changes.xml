@@ -6,10 +6,23 @@
     <author email="info@norconex.com">Norconex Inc.</author>
   </properties>
   <body>
+
+    <release version="1.0.1" date="2013-??-??" description="Maintenance release">
+      <action dev="essiembp" type="update">
+        Upgraded Apache Tika from 1.3 to 1.4.
+      </action>
+      <action dev="essiembp" type="update">
+        Removed dependency on aspectjrt due to GPL licencing incompatibility.
+        If you need .iso parsing, you can manually download and add to the
+        classpath.
+      </action>
+    </release>
+
     <release version="1.0.0" date="2013-06-04" description="Open Source release">
       <action dev="essiembp" type="add">
         Starting with this release, Norconex Importer is open-source under GPL.
       </action>
     </release>
+
   </body>
 </document>
