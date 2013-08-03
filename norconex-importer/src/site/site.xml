@@ -81,10 +81,8 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
 
   </body>
 
-  <!-- 
-  <googleAdSenseClient></googleAdSenseClient>
-  <googleAdSenseSlot></googleAdSenseSlot>
-   -->
+  <googleAdSenseClient>ca-pub-4572498016361754</googleAdSenseClient>
+  <googleAdSenseSlot>8193066023</googleAdSenseSlot>
   <googleAnalyticsAccountId>UA-23162620-1</googleAnalyticsAccountId>
 
   <poweredBy>
