@@ -20,6 +20,8 @@
             Norconex Inc.
             ------
 
+%{snippet|file=src/main/resources/adsense.txt|verbatim=false}
+
 Download
 
 * Binaries

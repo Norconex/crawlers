@@ -20,6 +20,8 @@
             Norconex Inc.
             ------
 
+%{snippet|file=src/main/resources/adsense.txt|verbatim=false}
+
 Configuration
 
   While Norconex Importer works out-of-the-box with its default settings, 
