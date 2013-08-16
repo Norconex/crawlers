@@ -1,5 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
+- Redo crawler event model so only 1 method needs to be implemented
+  and an event object is passed, allowing any custom event implementation
+  to be added, each event having a unique id.
+
 - Packaging: Deploy the source and javadoc jars for dependent libs as well
   (importer, commmitter, etc) and add link to their site in javadoc.
 

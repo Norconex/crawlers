@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.mapdb.DB;
@@ -51,6 +52,7 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     
     
     private final DB db;
+    private final MutableInt threadCount;
     private Queue<CrawlURL> queue;
     private Map<String, CrawlURL> active;
     private Map<String, CrawlURL> cache;
@@ -62,9 +64,11 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     
     public MapDBCrawlURLDatabase(
             HttpCrawlerConfig config,
-            boolean resume) {
+            boolean resume,
+            MutableInt threadCount) {
         super();
 
+        this.threadCount = threadCount;
         LOG.info("Initializing crawl database...");
         String dbDir = config.getWorkDir().getPath() + "/crawldb/";
         new File(dbDir).mkdirs();
@@ -248,14 +252,26 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     }
     
     @Override
-    public void close() {
-        LOG.info("Closing crawl database...");
-        db.commit();
-        db.close();
+    public synchronized void close() {
+        threadCount.decrement();
+        if (threadCount.intValue() == 0 && !db.isClosed()) {
+            LOG.info("Closing crawl database...");
+            db.commit();
+            db.close();
+        }
     }
     
     private boolean isValidStatus(CrawlURL crawlURL) {
         return crawlURL.getStatus() == CrawlStatus.OK
                 || crawlURL.getStatus() == CrawlStatus.UNMODIFIED;
+    }
+    
+    @Override
+    protected void finalize() throws Throwable {
+        if (!db.isClosed()) {
+            LOG.info("Closing crawl database...");
+            db.commit();
+            db.close();
+        }
     }
 }

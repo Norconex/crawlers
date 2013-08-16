@@ -54,7 +54,20 @@
         to get queued for processing).
       </action>
       <action dev="essiembp" type="update">
-        Upgraded to Norconex Importer from 1.0.0 to 1.0.1.
+        Upgraded to Norconex Importer from 1.0.0 to 1.0.2.
+      </action>
+      <action dev="essiembp" type="update">
+        Connection timeout now 30 seconds in DefaultHttpClientInitializer.
+      </action>
+      <action dev="essiembp" type="update">
+        When deleting downloaded files, the text file from the importer
+        output is now also deleted as URLs are being processed, 
+        greatly reducing the number of files on disk during the crawling
+        process.
+      </action>
+      <action dev="essiembp" type="update">
+        The application now prints the full path of an error file when
+        an error occurs on startup (error-*.log).
       </action>
       <action dev="essiembp" type="fix" issue="16">
         When reprocessed, orphan URLs are processed/filtered in case there has 
@@ -62,6 +75,10 @@
         reduced, former URLs that were once good may now be invalid due to 
         their depth being too big.  Only "valid" URLs are now considered
         for detecting orphans (OK or UNMODIFIED statuses).
+      </action>
+      <action dev="essiembp" type="fix">
+        Fixed java.io.NotSerializableException when cloning HttpCrawlerConfig
+        (when &lt;crawlerDefaults&gt; is used).
       </action>
     </release>
 

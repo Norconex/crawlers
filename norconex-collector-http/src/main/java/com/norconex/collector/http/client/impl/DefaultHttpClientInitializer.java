@@ -100,7 +100,7 @@ public class DefaultHttpClientInitializer implements
     public static final String AUTH_METHOD_BASIC = "basic";
     public static final String AUTH_METHOD_DIGEST = "digest";
 
-    private static final int CONNECTION_TIMEOUT = 3000;
+    private static final int CONNECTION_TIMEOUT = 30000;
     private static final int FTP_PORT = 80;
     
 	private String authMethod;

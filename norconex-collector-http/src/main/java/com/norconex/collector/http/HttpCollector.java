@@ -148,7 +148,7 @@ public class HttpCollector implements IJobSuiteFactory {
         	System.err.println("\n\nAn ERROR occured:\n\n"
                   + e.getLocalizedMessage());
         	System.err.println("\n\nDetails of the error has been stored at: "
-        			+ errorFile + "\n\n");
+        			+ errorFile.getAbsolutePath() + "\n\n");
         	try {
         		PrintWriter w = new PrintWriter(errorFile);
 				e.printStackTrace(w);

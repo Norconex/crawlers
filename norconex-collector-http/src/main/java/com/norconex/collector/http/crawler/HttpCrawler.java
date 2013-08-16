@@ -359,7 +359,6 @@ public class HttpCrawler extends AbstractResumableJob {
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("Processing URL: " + url);
             }
-            
             if (!new DocumentProcessor(this, httpClient, database, 
                     outputFile, doc, crawlURL).processURL()) {
                 return;
@@ -396,6 +395,7 @@ public class HttpCrawler extends AbstractResumableJob {
             if (!crawlerConfig.isKeepDownloads()) {
                 LOG.debug("Deleting " + doc.getLocalFile());
                 FileUtils.deleteQuietly(doc.getLocalFile());
+                FileUtils.deleteQuietly(outputFile);
             }
 	    }
 	}
