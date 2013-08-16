@@ -15,11 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.importer.transformer;
+package com.norconex.importer.tagger;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Writer;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -35,13 +34,13 @@ import com.norconex.importer.util.BufferUtil;
 import com.norconex.importer.util.MemoryUtil;
 
 /**
- * <p>Base class to facilitate creating transformers on text content, loading
+ * <p>Base class to facilitate creating taggers based on text content, loading
  * text into {@link StringBuilder} for memory processing, also giving more 
  * options (like fancy regex).  This class check for free memory every 10KB of 
  * text read.  If enough memory, it keeps going for another 10KB or until
  * all the content is read, or the buffer size reaches half the available 
  * memory.  In either case, it passes the buffered content so far for 
- * transformation (all of it for small enough content, or in several
+ * tagging (all of it for small enough content, or in several
  * chunks for large content).
  * </p>
  * <p>
@@ -62,76 +61,78 @@ import com.norconex.importer.util.MemoryUtil;
  * </pre>
  * @author Pascal Essiembre
  */
-public abstract class AbstractStringTransformer 
-            extends AbstractCharStreamTransformer {
+public abstract class AbstractStringTagger 
+            extends AbstractCharStreamTagger {
 
+    //TODO try to share more with AbstractStringTransformer
     //TODO maybe: Add to importer config something about max buffer memory.
     // That way, we can ensure to apply the memory check technique on content of 
     // the same size (threads should be taken into account), 
     // as opposed to have one big file take all the memory so other big files
     // are forced to do smaller chunks at a time.
     
-    private static final long serialVersionUID = -2401917724782923656L;
+    private static final long serialVersionUID = 3690322812995015872L;
     private static final Logger LOG = 
-            LogManager.getLogger(AbstractStringTransformer.class);
+            LogManager.getLogger(AbstractStringTagger.class);
 
     private static final int READ_CHUNK_SIZE = 10 * (int) FileUtils.ONE_KB;
     private static final int STRING_TOTAL_MEMORY_DIVIDER = 4;
     
     @Override
-    protected final void transformTextDocument(
+    protected final void tagTextDocument(
             String reference, Reader input,
-            Writer output, Properties metadata, boolean parsed)
+            Properties metadata, boolean parsed)
             throws IOException {
         
         // Initial size is half free memory, considering chars take 2 bytes
         StringBuilder b = new StringBuilder(
-               (int)(MemoryUtil.getFreeMemory() / STRING_TOTAL_MEMORY_DIVIDER));
+                (int)(MemoryUtil.getFreeMemory() / STRING_TOTAL_MEMORY_DIVIDER));
         int i;
         while ((i = input.read()) != -1) {
             char ch = (char) i;
             b.append(ch);
             if (b.length() * 2 % READ_CHUNK_SIZE == 0
                     && isTakingTooMuchMemory(b)) {
-                transformStringDocument(reference, b, metadata, parsed, true);
-                BufferUtil.flushBuffer(b, output, true);
+                tagStringDocument(reference, b, metadata, parsed, true);
+                BufferUtil.flushBuffer(b, null, true);
             }
         }
         if (b.length() > 0) {
-            transformStringDocument(reference, b, metadata, parsed, false);
-            BufferUtil.flushBuffer(b, output, false);
+            tagStringDocument(reference, b, metadata, parsed, false);
+            BufferUtil.flushBuffer(b, null, false);
         }
         b.setLength(0);
         b = null;
     }
     
-    protected abstract void transformStringDocument(
+    
+    protected abstract void tagStringDocument(
            String reference, StringBuilder content, Properties metadata,
            boolean parsed, boolean partialContent);
-   
+    
     // We ensure buffer size never goes beyond half available memory.
     private boolean isTakingTooMuchMemory(StringBuilder b) {
         int maxMem = (int) MemoryUtil.getFreeMemory() / 2;
         int bufMem = b.length() * 2;
         boolean busted = bufMem > maxMem;
         if (busted) {
-            LOG.warn("Text document processed via transformer is quite big for "
+            LOG.warn("Text document read via tagger is quite big for "
                 + "remaining JVM memory.  It was split in text chunks and "
-                + "a transformation will be applied on each chunk.  This "
-                + "may sometimes result in unexpected transformation. "
+                + "tagging will be applied on each chunk.  This "
+                + "may sometimes result in unexpected tagging. "
                 + "To eliminate this risk, increase the JVM maximum heap "
                 + "space to more than double the processed content size "
                 + "by using the -xmx flag to your startup script "
                 + "(e.g. -xmx1024m for 1 Gigabyte).  In addition, "
                 + "reducing the number of threads may help (if applicable). "
                 + "As an alternative, you can also implement a new solution " 
-                + "using AbstractCharSteamTransformer instead, which relies "
+                + "using AbstractCharSteamTagger instead, which relies "
                 + "on streams (taking very little fixed-size memory when "
                 + "done right).");
         }
         return busted;
     }
-   
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -140,7 +141,7 @@ public abstract class AbstractStringTransformer
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof AbstractStringTransformer)) {
+        if (!(obj instanceof AbstractStringTagger)) {
             return false;
         }
         return new EqualsBuilder()

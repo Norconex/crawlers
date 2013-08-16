@@ -31,7 +31,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -164,7 +163,7 @@ public class StripBeforeTransformer extends AbstractStringTransformer
     
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE)
+        return new ToStringBuilder(this)
             .appendSuper(super.toString())
             .append("inclusive", inclusive)
             .append("caseSensitive", caseSensitive)

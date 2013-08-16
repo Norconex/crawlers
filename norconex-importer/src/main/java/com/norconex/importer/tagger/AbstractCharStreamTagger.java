@@ -15,15 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.importer.transformer;
+package com.norconex.importer.tagger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.Writer;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
@@ -34,12 +31,12 @@ import com.norconex.importer.AbstractTextRestrictiveHandler;
 import com.norconex.importer.Importer;
 
 /**
- * <p>Base class for transformers dealing with text documents only.  Subclasses
- * can safely be used as either pre-parse or post-parse handlers.
+ * <p>Base class for taggers dealing with the body of text documents only.  
+ * Subclasses can safely be used as either pre-parse or post-parse handlers.
  * </p>
  * <p>
  * For pre-parsing, non-text documents will simply be ignored and no
- * transformation will occur.  To find out if a document is a text-one, the
+ * tagging will occur.  To find out if a document is a text-one, the
  * metadata {@link Importer#DOC_CONTENT_TYPE} value is used. By default
  * any content type starting with "text/" is considered text.  This default
  * behavior can be changed with the {@link #setContentTypeRegex(String)} method.
@@ -49,7 +46,7 @@ import com.norconex.importer.Importer;
  * For post-parsing, all documents are assumed to be text.
  * </p>
  * <p>
- * Sub-classes can restrict to which document to apply this transformation
+ * Sub-classes can restrict to which document to apply this tagger
  * based on document metadata (see {@link AbstractRestrictiveHandler}).
  * </p>
  * <p>
@@ -67,29 +64,26 @@ import com.norconex.importer.Importer;
  * </pre>
  * @author Pascal Essiembre
  */
-public abstract class AbstractCharStreamTransformer 
+public abstract class AbstractCharStreamTagger 
             extends AbstractTextRestrictiveHandler
-            implements IDocumentTransformer {
+            implements IDocumentTagger {
 
-    private static final long serialVersionUID = -7465364282740091371L;
-    
+    private static final long serialVersionUID = 7733519110785336458L;
+
     @Override
-    public final void transformDocument(String reference, InputStream input,
-            OutputStream output, Properties metadata, boolean parsed)
-            throws IOException {
+    public void tagDocument(String reference, InputStream document,
+            Properties metadata, boolean parsed) throws IOException {
         
         if (!documentAccepted(reference, metadata, parsed)) {
             return;
         }
-        InputStreamReader is = new InputStreamReader(input);
-        OutputStreamWriter os = new OutputStreamWriter(output);
-        transformTextDocument(reference, is, os, metadata, parsed);
-        os.flush();
+        InputStreamReader is = new InputStreamReader(document);
+        tagTextDocument(reference, is, metadata, parsed);
     }
 
-    protected abstract void transformTextDocument(
+    protected abstract void tagTextDocument(
             String reference, Reader input,
-            Writer output, Properties metadata, boolean parsed)
+            Properties metadata, boolean parsed)
             throws IOException;
     
     @Override
@@ -100,7 +94,7 @@ public abstract class AbstractCharStreamTransformer
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof AbstractCharStreamTransformer)) {
+        if (!(obj instanceof AbstractCharStreamTagger)) {
             return false;
         }
         return new EqualsBuilder()

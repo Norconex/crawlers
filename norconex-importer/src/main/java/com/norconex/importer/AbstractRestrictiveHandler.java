@@ -15,46 +15,55 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.importer.transformer;
+package com.norconex.importer;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Serializable;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
+import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.AbstractRestrictiveHandler;
 import com.norconex.importer.filter.impl.RegexMetadataFilter;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
- * <p>This class is deprecated.  Use {@link AbstractRestrictiveHandler} instead.
+ * <p>Base class for handlers applying only to certain type of documents
+ * by providing a way to restrict applicable documents based on 
+ * a metadata value (matched via regex).
  * </p>
- * @deprecated use {@link AbstractRestrictiveHandler}
+ * <p>Subclasses implementing {@link IXMLConfigurable} should allow this inner 
+ * configuration:</p>
+ * <pre>
+ *  &lt;restrictTo
+ *          caseSensitive="[false|true]" &gt;
+ *          property="(name of header/metadata name to match)"
+ *      (regular expression of value to match)
+ *  &lt;/restrictTo&gt;
+ * </pre>
+ * <p>
+ * Subclasses must test if a document is accepted using the 
+ * {@link #documentAccepted(Properties, boolean)} method.
+ * </p>
+ * <p>
+ * Subclasses can safely be used as either pre-parse or post-parse handlers.
+ * </p>
  * @author Pascal Essiembre
  */
-@Deprecated
-public abstract class AbstractRestrictiveTransformer 
-        implements IDocumentTransformer {
+public abstract class AbstractRestrictiveHandler implements Serializable {
 
-    private static final long serialVersionUID = 5543141083700027872L;
-
+    private static final long serialVersionUID = 2115842279928499496L;
+    private static final Logger LOG = 
+            LogManager.getLogger(AbstractRestrictiveHandler.class);
+    
     private final RegexMetadataFilter filter = new RegexMetadataFilter();
 
-    @Override
-    public final void transformDocument(String reference, InputStream input,
-            OutputStream output, Properties metadata, boolean parsed)
-            throws IOException {
-        
-        if (!filter.acceptDocument(null, metadata, parsed)) {
-            return;
-        }
-        transformRestrictedDocument(reference, input, output, metadata, parsed);
-    }
-    
     public void setRestriction(
             String metaProperty, String regex, boolean caseSensitive) {
         filter.setProperty(metaProperty);
@@ -62,13 +71,20 @@ public abstract class AbstractRestrictiveTransformer
         filter.setCaseSensitive(caseSensitive);
     }
 
-    protected abstract void transformRestrictedDocument(
-            String reference, InputStream input,
-            OutputStream output, Properties metadata, boolean parsed)
-            throws IOException;
+    protected boolean documentAccepted(
+            String reference, Properties metadata, boolean parsed)
+            throws IOException {
+        if (filter.acceptDocument(null, metadata, parsed)) {
+            return true;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Document filtered out by import handler: " + reference);
+        }
+        return false;
+    }
 
     /**
-     * Convenience method for subclasses to load prometadataperty restrictions).
+     * Convenience method for subclasses to load metadata property restrictions.
      * @param xml xml configuration
      */
     protected void loadFromXML(XMLConfiguration xml) {
@@ -115,7 +131,7 @@ public abstract class AbstractRestrictiveTransformer
         if (getClass() != obj.getClass()) {
             return false;
         }
-        AbstractRestrictiveTransformer other = (AbstractRestrictiveTransformer) obj;
+        AbstractRestrictiveHandler other = (AbstractRestrictiveHandler) obj;
         if (filter == null) {
             if (other.filter != null) {
                 return false;
@@ -128,6 +144,7 @@ public abstract class AbstractRestrictiveTransformer
 
     @Override
     public String toString() {
-        return "AbstractRestrictiveTransformer [filter=" + filter + "]";
+        return new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE)
+                    .append("filter", filter).toString();
     }
 }
