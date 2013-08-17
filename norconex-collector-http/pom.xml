@@ -168,8 +168,15 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
         <groupId>com.norconex.collectors</groupId>
         <artifactId>mapdb</artifactId>
-        <version>0.9.4-SNAPSHOT</version>
+        <version>0.9.5-SNAPSHOT</version>
     </dependency>
+<!--
+    <dependency>
+    	<groupId>org.mapdb</groupId>
+    	<artifactId>mapdb</artifactId>
+    	<version>0.9.5-SNAPSHOT</version>
+    </dependency>
+-->
   </dependencies>
   
   <build>
@@ -420,7 +427,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <organization>Norconex Inc.</organization>
         <organizationUrl>http://www.norconex.com</organizationUrl>
         <roles>
-          <role>tester</role>
+          <role>developer</role>
         </roles>
         <timezone>-4</timezone>
     </developer>
