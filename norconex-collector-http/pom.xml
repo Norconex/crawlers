@@ -108,7 +108,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
         <groupId>commons-beanutils</groupId>
@@ -168,7 +168,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
         <groupId>com.norconex.collectors</groupId>
         <artifactId>mapdb</artifactId>
-        <version>0.9.5-SNAPSHOT</version>
+        <version>0.9.4-SNAPSHOT</version>
     </dependency>
 <!--
     <dependency>

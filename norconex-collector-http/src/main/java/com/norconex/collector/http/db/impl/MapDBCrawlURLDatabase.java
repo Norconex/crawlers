@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.mapdb.DB;
@@ -51,8 +50,8 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     private static final String STORE_SITEMAP = "sitemap";
     
     
+    private final HttpCrawlerConfig config;
     private final DB db;
-    private final MutableInt threadCount;
     private Queue<CrawlURL> queue;
     private Map<String, CrawlURL> active;
     private Map<String, CrawlURL> cache;
@@ -64,13 +63,14 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     
     public MapDBCrawlURLDatabase(
             HttpCrawlerConfig config,
-            boolean resume,
-            MutableInt threadCount) {
+            boolean resume) {
         super();
 
-        this.threadCount = threadCount;
-        LOG.info("Initializing crawl database...");
-        String dbDir = config.getWorkDir().getPath() + "/crawldb/";
+        LOG.info(config.getId() + ": Initializing crawl database...");
+        this.config = config;
+        String dbDir = config.getWorkDir().getPath()
+                + "/crawldb/" + config.getId() + "/";
+        
         new File(dbDir).mkdirs();
         File dbFile = new File(dbDir + "mapdb");
         boolean create = !dbFile.exists() || !dbFile.isFile();
@@ -80,33 +80,35 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     
         initDB(create);
         if (resume) {
-            LOG.debug("Resuming: putting active URLs back in the queue...");
+            LOG.debug(config.getId()
+                    + " Resuming: putting active URLs back in the queue...");
             for (CrawlURL crawlUrl : active.values()) {
                 queue.add(crawlUrl);
             }
-            LOG.debug("Cleaning active database...");
+            LOG.debug(config.getId() + ": Cleaning active database...");
             active.clear();
         } else if (!create) {
-            LOG.debug("Cleaning queue database...");
+            LOG.debug(config.getId() + ": Cleaning queue database...");
             queue.clear();
-            LOG.debug("Cleaning active database...");
+            LOG.debug(config.getId() + ": Cleaning active database...");
             active.clear();
-            LOG.debug("Cleaning invalid URLs database...");
+            LOG.debug(config.getId() + ": Cleaning invalid URLs database...");
             processedInvalid.clear();
-            LOG.debug("Cleaning sitemap database...");
+            LOG.debug(config.getId() + ": Cleaning sitemap database...");
             sitemap.clear();
-            LOG.debug("Cleaning cache database...");
+            LOG.debug(config.getId() + ": Cleaning cache database...");
             db.delete(STORE_CACHE);
-            LOG.debug("Caching valid URLs from last run (if applicable)...");
+            LOG.debug(config.getId() 
+                    + ": Caching valid URLs from last run (if applicable)...");
             db.rename(STORE_PROCESSED_VALID, STORE_CACHE);
             cache = processedValid;
             processedValid = db.createHashMap(
                     STORE_PROCESSED_VALID).keepCounter(true).make();
             db.commit();
         } else {
-            LOG.debug("New databases created.");
+            LOG.debug(config.getId() + ": New databases created.");
         }
-        LOG.info("Done initializing databases.");
+        LOG.info(config.getId() + ": Done initializing databases.");
     }
     
     private DB createDB(File dbFile) {
@@ -206,7 +208,7 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
         }
         commitCounter++;
         if (commitCounter % COMMIT_SIZE == 0) {
-            LOG.debug("Committing URL database to disk...");
+            LOG.debug(config.getId() + ": Committing URL database to disk...");
             db.commit();
         }
         //TODO Compact database and LOG the event once MapDB fixed issue #160
@@ -253,9 +255,10 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     
     @Override
     public synchronized void close() {
-        threadCount.decrement();
-        if (threadCount.intValue() == 0 && !db.isClosed()) {
-            LOG.info("Closing crawl database...");
+//        threadCount.decrement();
+//        if (threadCount.intValue() == 0 && !db.isClosed()) {
+        if (!db.isClosed()) {
+            LOG.info(config.getId() + ": Closing crawl database...");
             db.commit();
             db.close();
         }
@@ -269,7 +272,7 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     @Override
     protected void finalize() throws Throwable {
         if (!db.isClosed()) {
-            LOG.info("Closing crawl database...");
+            LOG.info(config.getId() + ": Closing crawl database...");
             db.commit();
             db.close();
         }

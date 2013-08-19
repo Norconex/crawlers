@@ -57,6 +57,9 @@
         Upgraded to Norconex Importer from 1.0.0 to 1.0.2.
       </action>
       <action dev="essiembp" type="update">
+        Upgraded to Norconex Commons Lang from 1.0.0 to 1.0.1.
+      </action>
+      <action dev="essiembp" type="update">
         Connection timeout now 30 seconds in DefaultHttpClientInitializer.
       </action>
       <action dev="essiembp" type="update">

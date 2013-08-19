@@ -143,15 +143,15 @@ public class HttpCrawler extends AbstractResumableJob {
         watch.start();
         
         //TODO print initialization information
-        LOG.info("RobotsTxt support " + 
+        LOG.info(getId() +  ": RobotsTxt support " + 
                 (crawlerConfig.isIgnoreRobotsTxt() ? "disabled." : "enabled"));
-        LOG.info("RobotsMeta support " + 
+        LOG.info(getId() +  ": RobotsMeta support " + 
                 (crawlerConfig.isIgnoreRobotsMeta() ? "disabled." : "enabled"));
-        LOG.info("Sitemap support " + 
+        LOG.info(getId() +  ": Sitemap support " + 
                 (crawlerConfig.isIgnoreSitemap() ? "disabled." : "enabled"));
 
         //--- Process start/queued URLS ----------------------------------------
-        LOG.info("Crawling URLs...");
+        LOG.info(getId() + ": Crawling URLs...");
         processURLs(database, progress, suite, false);
 
         if (!isStopped()) {
@@ -160,7 +160,7 @@ public class HttpCrawler extends AbstractResumableJob {
         
         ICommitter committer = crawlerConfig.getCommitter();
         if (committer != null) {
-            LOG.info("Crawler \"" + getId() + "\" " 
+            LOG.info(getId() + ": Crawler \"" + getId() + "\" " 
                     + (stopped ? "stopping" : "finishing")
                     + ": committing documents.");
             committer.commit();
@@ -169,30 +169,32 @@ public class HttpCrawler extends AbstractResumableJob {
         deleteDownloadDirectory();
         
         watch.stop();
-        LOG.info(database.getProcessedCount() + " URLs processed "
+        LOG.info(getId() + ": "
+                + database.getProcessedCount() + " URLs processed "
                 + "in " + watch.toString() + " for \"" + getId() + "\".");
 
-        LOG.debug("Removing empty directories");
+        LOG.debug(getId() + ": Removing empty directories");
         FileUtil.deleteEmptyDirs(gelCrawlerDownloadDir());
 
         if (!stopped) {
             HttpCrawlerEventFirer.fireCrawlerFinished(this);
         }
-        LOG.info("Crawler \"" + getId() + "\" " 
+        LOG.info(getId() + ": Crawler \"" + getId() + "\" " 
                 + (stopped ? "stopped." : "completed."));
     }
 
     private void deleteDownloadDirectory() {
         if (!crawlerConfig.isKeepDownloads()) {
             if (LOG.isInfoEnabled()) {
-                LOG.info("Deleting downloads directory: "
-                        + gelBaseDownloadDir());
+                LOG.info("Deleting crawler downloads directory: "
+                        + gelCrawlerDownloadDir());
             }
             try {
-                FileUtil.deleteFile(gelBaseDownloadDir());
+                FileUtil.deleteFile(gelCrawlerDownloadDir());
             } catch (IOException e) {
-                LOG.error("Could not delete the downloads directory: "
-                        + gelBaseDownloadDir(), e);
+                LOG.error(getId() 
+                        + ": Could not delete the crawler downloads directory: "
+                        + gelCrawlerDownloadDir(), e);
             }
         }
     }
@@ -200,15 +202,15 @@ public class HttpCrawler extends AbstractResumableJob {
     private void handleOrphans(ICrawlURLDatabase database,
             JobProgress progress, JobSuite suite) {
         if (crawlerConfig.isDeleteOrphans()) {
-            LOG.info("Deleting orphan URLs (if any)...");
+            LOG.info(getId() + ": Deleting orphan URLs (if any)...");
             deleteCacheOrphans(database, progress, suite);
         } else {
             if (!isMaxURLs()) {
-                LOG.info("Re-processing orphan URLs (if any)...");
+                LOG.info(getId() + ": Re-processing orphan URLs (if any)...");
                 reprocessCacheOrphans(database, progress, suite);
             }
             // In case any item remains after we are done re-processing:
-            LOG.info("Deleting remaining orphan URLs (if any)...");
+            LOG.info(getId() + ": Deleting remaining orphan URLs (if any)...");
             deleteCacheOrphans(database, progress, suite);
         }
     }
@@ -226,7 +228,7 @@ public class HttpCrawler extends AbstractResumableJob {
             }
             processURLs(database, progress, suite, false);
         }
-        LOG.info("Reprocessed " + count + " orphan URLs...");
+        LOG.info(getId() + ": Reprocessed " + count + " orphan URLs...");
     }
     
     private void deleteCacheOrphans(
@@ -240,7 +242,7 @@ public class HttpCrawler extends AbstractResumableJob {
             }
             processURLs(database, progress, suite, true);
         }
-        LOG.info("Deleted " + count + " orphan URLs...");
+        LOG.info(getId() + ": Deleted " + count + " orphan URLs...");
     }
     
     /*default*/ HttpCrawlerConfig getCrawlerConfig() {
@@ -260,7 +262,8 @@ public class HttpCrawler extends AbstractResumableJob {
         
         for (int i = 0; i < numThreads; i++) {
             final int threadIndex = i + 1;
-            LOG.debug("Crawler thread #" + threadIndex + " started.");
+            LOG.debug(getId() 
+                    + ": Crawler thread #" + threadIndex + " started.");
             pool.execute(new ProcessURLsRunnable(
                     suite, progress, database, delete, latch));
         }
@@ -283,7 +286,8 @@ public class HttpCrawler extends AbstractResumableJob {
         CrawlURL queuedURL = database.nextQueued();
         if (queuedURL != null) {
             if (isMaxURLs()) {
-                LOG.info("Maximum URLs reached: " + crawlerConfig.getMaxURLs());
+                LOG.info(getId() + ": Maximum URLs reached: " 
+                        + crawlerConfig.getMaxURLs());
                 return false;
             }
             StopWatch watch = new StopWatch();
@@ -296,7 +300,7 @@ public class HttpCrawler extends AbstractResumableJob {
             setProgress(progress, database);
             watch.stop();
             if (LOG.isDebugEnabled()) {
-                LOG.debug(watch.toString() 
+                LOG.debug(getId() + ": " + watch.toString() 
                         + " to process: " + queuedURL.getUrl());
             }
         } else {
@@ -335,7 +339,7 @@ public class HttpCrawler extends AbstractResumableJob {
     
     private void deleteURL(
             CrawlURL crawlURL, File outputFile, HttpDocument doc) {
-        LOG.debug("Deleting URL: " + crawlURL.getUrl());
+        LOG.debug(getId() + ": Deleting URL: " + crawlURL.getUrl());
         ICommitter committer = crawlerConfig.getCommitter();
         crawlURL.setStatus(CrawlStatus.DELETED);
         if (committer != null) {
@@ -357,7 +361,7 @@ public class HttpCrawler extends AbstractResumableJob {
                 deleteURL(crawlURL, outputFile, doc);
                 return;
             } else if (LOG.isDebugEnabled()) {
-                LOG.debug("Processing URL: " + url);
+                LOG.debug(getId() + ": Processing URL: " + url);
             }
             if (!new DocumentProcessor(this, httpClient, database, 
                     outputFile, doc, crawlURL).processURL()) {
@@ -368,7 +372,7 @@ public class HttpCrawler extends AbstractResumableJob {
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
             crawlURL.setStatus(CrawlStatus.ERROR);
-            LOG.error("Could not process document: " + url
+            LOG.error(getId() + ": Could not process document: " + url
                     + " (" + e.getMessage() + ")", e);
 	    } finally {
             //--- Flag URL for deletion ----------------------------------------
@@ -472,15 +476,15 @@ public class HttpCrawler extends AbstractResumableJob {
                             break;
                         }
                     } catch (Exception e) {
-                        LOG.fatal(
-                              "An error occured that could compromise "
+                        LOG.fatal(getId() + ": "
+                            + "An error occured that could compromise "
                             + "the stability of the crawler. Stopping "
                             + "excution to avoid further issues...", e);
                         stop(progress, suite);
                     }
                 }
             } catch (Exception e) {
-                LOG.error("Problem in thread execution.", e);
+                LOG.error(getId() + ": Problem in thread execution.", e);
             } finally {
                 latch.countDown();
             }

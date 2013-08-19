@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.db.impl;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
@@ -33,16 +31,9 @@ public class DefaultCrawlURLDatabaseFactory
 
     private static final long serialVersionUID = 370632354864351545L;
 
-    private ICrawlURLDatabase db;
-    private final MutableInt threadCount = new MutableInt();
-    
     @Override
     public synchronized ICrawlURLDatabase createCrawlURLDatabase(
             HttpCrawlerConfig config, boolean resume) {
-        if (db == null) {
-            db = new MapDBCrawlURLDatabase(config, resume, threadCount);
-        }
-        threadCount.increment();
-        return db;
+        return new MapDBCrawlURLDatabase(config, resume);
     }
 }
