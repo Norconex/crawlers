@@ -1,6 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
 - Add Norconex Commons Lang 1.0.1 everywhere before release 1.1.
+- Use toSafeFileName and fromSafeFileName from classe FileUtil class to 
+  ensure directories can be created without issues.
 
 - Redo crawler event model so only 1 method needs to be implemented
   and an event object is passed, allowing any custom event implementation
