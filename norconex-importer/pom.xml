@@ -22,13 +22,13 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-importer</artifactId>
-  <version>1.0.2-SNAPSHOT</version>
+  <version>1.1.0</version>
   <name>Norconex Importer</name>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <site.baseurl/>
-    <currentStableVersion>1.0.1</currentStableVersion>
+    <currentStableVersion>1.1.0</currentStableVersion>
   </properties>
   <inceptionYear>2009</inceptionYear>
 
@@ -99,7 +99,7 @@ along with Norconex Importer. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
     	<groupId>com.norconex.commons</groupId>
     	<artifactId>norconex-commons-lang</artifactId>
-    	<version>1.0.1-SNAPSHOT</version>
+    	<version>1.1.0</version>
     </dependency>
     <dependency>
     	<groupId>commons-configuration</groupId>

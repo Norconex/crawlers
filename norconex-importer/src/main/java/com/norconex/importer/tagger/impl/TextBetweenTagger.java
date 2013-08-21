@@ -120,11 +120,10 @@ public class TextBetweenTagger
                 }
             }
             for (int i = matches.size() -1; i >= 0; i--) {
-                String value;
                 Pair<Integer, Integer> matchPair = matches.get(i);
-                value = content.substring(
+                String value = content.substring(
                         matchPair.getLeft(), matchPair.getRight());
-                if (value.toString() != null) {
+                if (value != null) {
                     metadata.addString(between.name, value);
                 }
             }

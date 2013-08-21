@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
@@ -85,20 +86,17 @@ public abstract class AbstractCharStreamTagger
             String reference, Reader input,
             Properties metadata, boolean parsed)
             throws IOException;
-    
+
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
+    public boolean equals(final Object other) {
+        if (!(other instanceof AbstractCharStreamTagger)) {
             return false;
         }
-        if (!(obj instanceof AbstractCharStreamTagger)) {
-            return false;
-        }
-        return new EqualsBuilder()
-            .appendSuper(super.equals(obj))
-            .isEquals();
+        return new EqualsBuilder().appendSuper(super.equals(other)).isEquals();
+    }
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().appendSuper(super.hashCode()).toHashCode();
     } 
+
 }

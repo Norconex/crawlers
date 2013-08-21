@@ -24,14 +24,14 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.filter.impl.RegexMetadataFilter;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * <p>Base class for handlers applying only to certain type of documents

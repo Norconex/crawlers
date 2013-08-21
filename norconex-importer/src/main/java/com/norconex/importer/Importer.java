@@ -253,8 +253,7 @@ public class Importer {
             return true;
         }
         
-        boolean hasIncludes = false;
-        boolean atLeastOneIncludeMatch = false;
+        IncludeMatchResolver includeResolver = new IncludeMatchResolver();
         for (IImportHandler h : handlers) {
             if (h instanceof IDocumentTagger) {
                 tagDocument(docReference, (IDocumentTagger) h, 
@@ -265,13 +264,10 @@ public class Importer {
             } else if (h instanceof IDocumentFilter) {
                 boolean accepted = acceptDocument((IDocumentFilter) h, 
                         inFile.getValue(), metadata, parsed);
-                boolean isInclude = h instanceof IOnMatchFilter
-                       && OnMatch.INCLUDE == ((IOnMatchFilter) h).getOnMatch();
-                // Deal with includes
-                if (isInclude) {
-                    hasIncludes = true;
+                if (isMatchIncludeFilter((IOnMatchFilter) h)) {
+                    includeResolver.hasIncludes = true;
                     if (accepted) {
-                        atLeastOneIncludeMatch = true;
+                        includeResolver.atLeastOneIncludeMatch = true;
                     }
                     continue;
                 }
@@ -283,10 +279,24 @@ public class Importer {
                 LOG.error("Unsupported Import Handler: " + h);
             }
         }
-        if (hasIncludes && !atLeastOneIncludeMatch) {
-            return false;
+        return includeResolver.passes();
+    }
+    
+    private class IncludeMatchResolver {
+        private boolean hasIncludes = false;
+        private boolean atLeastOneIncludeMatch = false;
+        public boolean passes() {
+            if (hasIncludes && !atLeastOneIncludeMatch) {
+                return false;
+            }
+            return true;
         }
-        return true;
+    }
+    
+    
+    private boolean isMatchIncludeFilter(IOnMatchFilter filter) {
+        return filter instanceof IOnMatchFilter
+                && OnMatch.INCLUDE == filter.getOnMatch();
     }
     
     private static CommandLine parseCommandLineArguments(String[] args) {

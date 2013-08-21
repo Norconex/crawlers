@@ -41,7 +41,7 @@ Download
 * Source
   
   Source code can be obtained on GitHub: 
-  {{https://github.com/Norconex/collectors/tree/master/norconex-importer}}.
+  {{https://github.com/Norconex/collectors}}.
   
   Maven users can add the following to their pom.xml:
   
