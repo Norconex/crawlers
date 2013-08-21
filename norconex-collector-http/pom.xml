@@ -187,6 +187,12 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
                 <include>**/*.html</include>
             </includes>
         </resource>
+        <resource>
+            <directory>${project.build.sourceDirectory}</directory>
+            <includes>
+                <include>**/*.properties</include>
+            </includes>
+        </resource>
     </resources>
     <extensions>
       <extension>

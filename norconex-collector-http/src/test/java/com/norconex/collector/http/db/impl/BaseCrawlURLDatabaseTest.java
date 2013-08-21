@@ -255,6 +255,35 @@ public abstract class BaseCrawlURLDatabaseTest {
         createImpl(false);
         assertTrue(db.isCacheEmpty());
     }
+    
+    /**
+     * When instantiating a new impl with the resume option set to false, the
+     * previous cache is deleted and the previous processed becomes the cache.
+     * BUT the invalid processed urls should get deleted.
+     */
+    @Test
+    public void test_not_resume_invalid() throws Exception {
+
+        // At this point, the cache should be empty (because the tempFolder was
+        // empty)
+        assertTrue(db.isCacheEmpty());
+
+        // Simulate a unsuccessful fetch
+        String url = "http://www.norconex.com/";
+        db.queue(new CrawlURL(url, 0));
+        CrawlURL next = db.nextQueued();
+        next.setStatus(CrawlStatus.NOT_FOUND);
+        db.processed(next);
+
+        // Instantiate a new impl with the "resume" option set to false. Since
+        // the url is invalid, it should not be cached.
+        createImpl(false);
+
+        // Make sure the url was NOT cached
+        CrawlURL cached = db.getCached(url);
+        assertNull(cached);
+        assertTrue(db.isCacheEmpty());
+    }
 
     /**
      * When instantiating a new impl with the resume option set to true, all
