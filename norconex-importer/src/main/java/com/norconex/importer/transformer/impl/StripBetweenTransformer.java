@@ -43,6 +43,7 @@ import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.transformer.AbstractStringTransformer;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * <p>Strips any content found between a matching start and end strings.  The
@@ -203,14 +204,6 @@ public class StripBetweenTransformer extends AbstractStringTransformer
     }
 
     @Override
-    public String toString() {
-        return "StripBetweenTransformer [stripPairs=" + stripPairs
-                + ", inclusive=" + inclusive + ", caseSensitive="
-                + caseSensitive + "]";
-    }
-
-
-    @Override
     public int hashCode() {
         return new HashCodeBuilder()
             .append(caseSensitive)
@@ -245,6 +238,14 @@ public class StripBetweenTransformer extends AbstractStringTransformer
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).appendSuper(super.toString())
+                .append("stripPairs", stripPairs)
+                .append("inclusive", inclusive)
+                .append("caseSensitive", caseSensitive).toString();
     }
 
 }

@@ -170,7 +170,6 @@ public abstract class FileSystemQueueCommitter extends BatchableCommitter {
      * actually committing it.  Default implementation does nothing.
      * @param document document to be added
      */
-    @SuppressWarnings("unused")
     protected void preCommitAddedDocument(QueuedAddedDocument document) 
             throws IOException {
         // Do nothing by default
@@ -180,7 +179,6 @@ public abstract class FileSystemQueueCommitter extends BatchableCommitter {
      * actually committing it.  Default implementation does nothing.
      * @param document document to be deleted
      */
-    @SuppressWarnings("unused")
     protected void preCommitDeletedDocument(QueuedDeletedDocument document)
         throws IOException {
         // Do nothing by default

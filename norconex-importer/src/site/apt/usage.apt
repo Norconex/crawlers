@@ -20,6 +20,8 @@
             Norconex Inc.
             ------
 
+%{snippet|file=src/main/resources/adsense.txt|verbatim=false}
+
 Usage
 
   Use the java importer as a command-line application or java library.

@@ -23,18 +23,17 @@ import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
 
 /**
- * Default database factory creating a {@link DerbyCrawlURLDatabase} instance.
+ * Database factory creating a {@link MapDBCrawlURLDatabase} instance.
  * @author Pascal Essiembre
  */
 public class DefaultCrawlURLDatabaseFactory 
         implements ICrawlURLDatabaseFactory {
 
-    private static final long serialVersionUID = 6088230386061613319L;
+    private static final long serialVersionUID = 370632354864351545L;
 
     @Override
-    public ICrawlURLDatabase createCrawlURLDatabase(
+    public synchronized ICrawlURLDatabase createCrawlURLDatabase(
             HttpCrawlerConfig config, boolean resume) {
-        return new DerbyCrawlURLDatabase(config, resume);
+        return new MapDBCrawlURLDatabase(config, resume);
     }
-
 }

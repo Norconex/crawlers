@@ -16,7 +16,7 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.handler.impl;
+package com.norconex.collector.http.url.impl;
 
 import static org.junit.Assert.assertEquals;
 
@@ -25,7 +25,7 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Test;
 
-import com.norconex.collector.http.handler.impl.GenericURLNormalizer.Normalization;
+import com.norconex.collector.http.url.impl.GenericURLNormalizer.Normalization;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 
 public class GenericURLNormallizerTest {

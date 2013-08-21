@@ -18,12 +18,11 @@
  */
 package com.norconex.collector.http.handler;
 
-import java.io.Serializable;
 
-import com.norconex.commons.lang.map.Properties;
-
-public interface IHttpHeadersChecksummer extends Serializable {
-
-	String createChecksum(Properties metadata);
-	
+/**
+ * @deprecated use 
+ *      {@link com.norconex.collector.http.checksum.IHttpHeadersChecksummer}
+ */
+public interface IHttpHeadersChecksummer 
+        extends com.norconex.collector.http.checksum.IHttpHeadersChecksummer {
 }

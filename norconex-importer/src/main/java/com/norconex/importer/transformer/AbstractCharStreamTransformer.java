@@ -24,22 +24,15 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.regex.Pattern;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.AbstractRestrictiveHandler;
+import com.norconex.importer.AbstractTextRestrictiveHandler;
 import com.norconex.importer.Importer;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * <p>Base class for transformers dealing with text documents only.  Subclasses
@@ -58,7 +51,7 @@ import com.norconex.importer.Importer;
  * </p>
  * <p>
  * Sub-classes can restrict to which document to apply this transformation
- * based on document metadata (see {@link AbstractRestrictiveTransformer}).
+ * based on document metadata (see {@link AbstractRestrictiveHandler}).
  * </p>
  * <p>
  * <p>Subclasses implementing {@link IXMLConfigurable} should allow this inner 
@@ -76,105 +69,40 @@ import com.norconex.importer.Importer;
  * @author Pascal Essiembre
  */
 public abstract class AbstractCharStreamTransformer 
-            extends AbstractRestrictiveTransformer {
+            extends AbstractTextRestrictiveHandler
+            implements IDocumentTransformer {
 
     private static final long serialVersionUID = -7465364282740091371L;
-    private static final Logger LOG = 
-            LogManager.getLogger(AbstractCharStreamTransformer.class);
-    
-    private Pattern contentTypeRegex = Pattern.compile("^text/.*$");
-    
-    
-    public String getContentTypeRegex() {
-        return contentTypeRegex.toString();
-    }
-    public void setContentTypeRegex(String contentTypeRegex) {
-        this.contentTypeRegex = Pattern.compile(contentTypeRegex);
-    }
     
     @Override
-    protected final void transformRestrictedDocument(
-            String reference, InputStream input,
+    public final void transformDocument(String reference, InputStream input,
             OutputStream output, Properties metadata, boolean parsed)
             throws IOException {
-        String type = metadata.getString(Importer.DOC_CONTENT_TYPE);
-        if (parsed || contentTypeRegex == null 
-                || contentTypeRegex.matcher(type).matches()) {
-            InputStreamReader is = new InputStreamReader(input);
-            OutputStreamWriter os = new OutputStreamWriter(output);
-            transformTextDocument(reference, is, os, metadata, parsed);
-            os.flush();
-        } else if (LOG.isDebugEnabled()) {
-            LOG.debug("Content-type \"" + type + "\" does not represent a "
-                    + "text file for: " + reference);
+        
+        if (!documentAccepted(reference, metadata, parsed)) {
+            return;
         }
+        InputStreamReader is = new InputStreamReader(input);
+        OutputStreamWriter os = new OutputStreamWriter(output);
+        transformTextDocument(reference, is, os, metadata, parsed);
+        os.flush();
     }
 
     protected abstract void transformTextDocument(
             String reference, Reader input,
             Writer output, Properties metadata, boolean parsed)
             throws IOException;
-    
-    /**
-     * Convenience method for subclasses to load content type regex.
-     * (attribute "contentTypeRegex").
-     * @param xml xml configuration
-     */
+
     @Override
-    protected void loadFromXML(XMLConfiguration xml) {
-        setContentTypeRegex(xml.getString(
-                "contentTypeRegex", contentTypeRegex.toString()));
-        super.loadFromXML(xml);
-    }
-    
-    
-    /**
-     * Convenience method for subclasses to save content type regex.
-     * @param writer XML writer
-     * @throws XMLStreamException problem saving 
-     */
-    @Override
-    protected void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-        writer.writeStartElement("contentTypeRegex");
-        if (contentTypeRegex != null) {
-            writer.writeCharacters(getContentTypeRegex());
+    public boolean equals(final Object other) {
+        if (!(other instanceof AbstractCharStreamTransformer)) {
+            return false;
         }
-        writer.writeEndElement();
-        super.saveToXML(writer);
+        return new EqualsBuilder().appendSuper(super.equals(other)).isEquals();
     }
 
     @Override
-    public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE)
-            .appendSuper(super.toString())
-            .append("contentTypeRegex", contentTypeRegex)
-            .toString();
-    }
-    
-    @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-            .appendSuper(super.hashCode())
-            .append(getContentTypeRegex())
-            .toHashCode();
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof AbstractCharStreamTransformer)) {
-            return false;
-        }
-        AbstractCharStreamTransformer other = 
-                (AbstractCharStreamTransformer) obj;
-        return new EqualsBuilder()
-            .appendSuper(super.equals(obj))
-            .append(getContentTypeRegex(), other.getContentTypeRegex())
-            .isEquals();
+        return new HashCodeBuilder().appendSuper(super.hashCode()).toHashCode();
     } 
 }

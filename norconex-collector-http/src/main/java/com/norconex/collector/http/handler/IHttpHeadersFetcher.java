@@ -18,25 +18,10 @@
  */
 package com.norconex.collector.http.handler;
 
-import java.io.Serializable;
-
-import org.apache.http.impl.client.DefaultHttpClient;
-
-import com.norconex.commons.lang.map.Properties;
-
 /**
- * Fetches the HTTP Header, typically via a HEAD request.
- * @author Pascal Essiembre
+ * @deprecated use {@link com.norconex.collector.http.fetch.IHttpHeadersFetcher}
  */
-public interface IHttpHeadersFetcher extends Serializable {
-
-    /**
-     * Returning <code>null</code> means the headers could not be fetched
-     * and the associated document will be skipped (treated as rejected).
-     * @param httpClient the HTTP Client
-     * @param url the url from which to fetch the headers
-     * @return  HTTP headers as metadata
-     */
-    Properties fetchHTTPHeaders(DefaultHttpClient httpClient, String url);
-	
+@Deprecated
+public interface IHttpHeadersFetcher 
+        extends com.norconex.collector.http.fetch.IHttpHeadersFetcher {
 }

@@ -31,10 +31,10 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.handler.IHttpDocumentProcessor;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.importer.ImporterConfig;
@@ -154,6 +154,12 @@ public final class HttpCrawlerConfigLoader {
         config.setIgnoreRobotsTxt(node.getBoolean(
                 "robotsTxt[@ignore]", config.isIgnoreRobotsTxt()));
         
+        //--- Sitemap Resolver -------------------------------------------------
+        config.setSitemapResolver(ConfigurationUtil.newInstance(
+                node, "sitemap", config.getSitemapResolver()));
+        config.setIgnoreSitemap(node.getBoolean(
+                "sitemap[@ignore]", config.isIgnoreSitemap()));
+        
         //--- HTTP Headers Fetcher ---------------------------------------------
         config.setHttpHeadersFetcher(ConfigurationUtil.newInstance(
                 node, "httpHeadersFetcher", config.getHttpHeadersFetcher()));
@@ -173,6 +179,12 @@ public final class HttpCrawlerConfigLoader {
         config.setHttpDocumentFetcher(ConfigurationUtil.newInstance(
                 node, "httpDocumentFetcher",
                 config.getHttpDocumentFetcher()));
+        
+        //--- RobotsMeta provider ----------------------------------------------
+        config.setRobotsMetaProvider(ConfigurationUtil.newInstance(
+                node, "robotsMeta", config.getRobotsMetaProvider()));
+        config.setIgnoreRobotsMeta(node.getBoolean(
+                "robotsMeta[@ignore]", config.isIgnoreRobotsMeta()));
         
         //--- URL Extractor ----------------------------------------------------
         config.setUrlExtractor(ConfigurationUtil.newInstance(

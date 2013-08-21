@@ -18,28 +18,12 @@
  */
 package com.norconex.collector.http.handler;
 
-import java.io.Serializable;
-
-import org.apache.http.impl.client.DefaultHttpClient;
-
-import com.norconex.collector.http.crawler.CrawlStatus;
-import com.norconex.collector.http.doc.HttpDocument;
 
 /**
- * Fetches the HTTP document and its metadata (HTTP Headers).  The 
- * document metadata is populated with the HTTP Headers and the document body
- * is saved to the document local file.
- * @author Pascal Essiembre
+ * @deprecated use 
+ *     {@link com.norconex.collector.http.fetch.IHttpDocumentFetcher}
  */
-public interface IHttpDocumentFetcher extends Serializable {
-
-	/**
-	 * Fetches HTTP document and saves it to a local file
-	 * @param httpClient the HTTP client
-	 * @param doc HttpDocument the document to fetch and save
-	 * @return URL status
-	 */
-	CrawlStatus fetchDocument(
-			DefaultHttpClient httpClient, HttpDocument doc);
-	
+@Deprecated
+public interface IHttpDocumentFetcher 
+        extends com.norconex.collector.http.fetch.IHttpDocumentFetcher {
 }

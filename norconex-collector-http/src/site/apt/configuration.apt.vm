@@ -22,6 +22,8 @@
 
 Configuration
 
+  <b>Note:</b> The following documentation covers version 1.1 or higher.
+
 * Quick start
 
   To get started quickly, download the latest version of Norconex HTTP Collector
@@ -80,6 +82,10 @@ Configuration
       ...
     </httpURLFilters>
     <robotsTxt ignore="..." class="..."/>
+    <sitemap ignore="..." lenient="..." class="...">
+      <location>...</location>
+     ...
+    </sitemap>
     <httpHeadersFetcher class="..." />
     <httpHeadersFilters>
       <filter class="..." />
@@ -87,6 +93,7 @@ Configuration
     </httpHeadersFilters>        
     <httpHeadersChecksummer class="..." />
     <httpDocumentFetcher class="..." />
+    <robotsMeta ignore="..." class="..."/>
     <urlExtractor class="..." />
     <httpDocumentFilters>
       <filter class="..." />
@@ -142,9 +149,9 @@ Configuration
 *----------+--------------+----------------+----------------+
 | <<<startURLs>>> | <url> to start crawling from.  Try to use in combination with filters | N/A | N/A |
 *----------+--------------+----------------+----------------+
-| <<<urlNormalizer>>> | Normalizes incoming URLs. | {{{$api/handler/impl/GenericURLNormalizer.html}GenericURLNormalizer}} | {{{$api/handler/IURLNormalizer.html}IURLNormalizer}} |
+| <<<urlNormalizer>>> | Normalizes incoming URLs. | {{{$api/url/impl/GenericURLNormalizer.html}GenericURLNormalizer}} | {{{$api/url/IURLNormalizer.html}IURLNormalizer}} |
 *----------+--------------+----------------+----------------+
-| <<<delay>>> | Handles interval between each page download. | {{{$api/handler/impl/DefaultDelayResolver.html}DefaultDelayResolver}} | {{{$api/handler/IDelayResolver.html}IDelayResolver}} |
+| <<<delay>>> | Handles interval between each page download. | {{{$api/delay/impl/DefaultDelayResolver.html}DefaultDelayResolver}} | {{{$api/delay/IDelayResolver.html}IDelayResolver}} |
 *----------+--------------+----------------+----------------+
 | <<<numThreads>>> | Number of execution threads for a crawler.  Default is 2. | N/A | N/A |
 *----------+--------------+----------------+----------------+
@@ -162,31 +169,35 @@ Configuration
 *----------+--------------+----------------+----------------+
 | <<<crawlURLDatabaseFactory>>> | URL Database. | {{{$api/db/impl/DefaultCrawlURLDatabaseFactory.html}DefaultCrawlURLDatabaseFactory}} | {{{$api/db/ICrawlURLDatabaseFactory.html}ICrawlURLDatabaseFactory}} |
 *----------+--------------+----------------+----------------+
-| <<<httpClientInitializer>>> | Normalize incoming URLs. | {{{$api/handler/impl/DefaultHttpClientInitializer.html}DefaultHttpClientInitializer}} | {{{$api/handler/IHttpClientInitializer.html}IHttpClientInitializer}} |
+| <<<httpClientInitializer>>> | Normalize incoming URLs. | {{{$api/client/impl/DefaultHttpClientInitializer.html}DefaultHttpClientInitializer}} | {{{$api/client/IHttpClientInitializer.html}IHttpClientInitializer}} |
 *----------+--------------+----------------+----------------+
 | <<<httpURLFilters>>> | Filter based on URLs. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}} | {{{$api/filter/IURLFilter.html}IURLFilter}} |
 *----------+--------------+----------------+----------------+
-| <<<robotsTxt>>> | Handle robots.txt files. | {{{$api/handler/impl/DefaultRobotsTxtProvider.html}DefaultRobotsTxtProvider}} | {{{$api/handler/IRobotsTxtProvider.html}IRobotsTxtProvider}} |
+| <<<robotsTxt>>> | Handle robots.txt files. | {{{$api/robot/impl/DefaultRobotsTxtProvider.html}DefaultRobotsTxtProvider}} | {{{$api/robot/IRobotsTxtProvider.html}IRobotsTxtProvider}} |
 *----------+--------------+----------------+----------------+
-| <<<httpHeadersFetcher>>> | Handle robots.txt files. | {{{$api/handler/impl/SimpleHttpHeadersFetcher.html}SimpleHttpHeadersFetcher}} | {{{$api/handler/IHttpHeadersFetcher.html}IHttpHeadersFetcher}} |
+| <<<sitemap>>> | Handle Sitemap files. | {{{$api/sitemap/impl/DefaultSitemapResolver.html}DefaultSitemapResolver}} | {{{$api/sitemap/ISitemapsResolver.html}ISitemapsResolver}} |
+*----------+--------------+----------------+----------------+
+| <<<httpHeadersFetcher>>> | Handle robots.txt files. | {{{$api/fetch/impl/SimpleHttpHeadersFetcher.html}SimpleHttpHeadersFetcher}} | {{{$api/fetch/IHttpHeadersFetcher.html}IHttpHeadersFetcher}} |
 *----------+--------------+----------------+----------------+
 | <<<httpHeadersFilters>>> | Filter based on HTTP Headers. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}}, {{{$api/filter/impl/RegexHeaderFilter.html}RegexHeaderFilter }} | {{{$api/filter/IHttpHeadersFilter.html}IHttpHeadersFilter}} |
 *----------+--------------+----------------+----------------+
-| <<<httpHeadersChecksummer>>> | Create document checksum from HTTP Headers. | {{{$api/handler/impl/DefaultHttpHeadersChecksummer.html}DefaultHttpHeadersChecksummer}} | {{{$api/handler/IHttpHeadersChecksummer.html}IHttpHeadersChecksummer}} |
+| <<<httpHeadersChecksummer>>> | Create document checksum from HTTP Headers. | {{{$api/checksum/impl/DefaultHttpHeadersChecksummer.html}DefaultHttpHeadersChecksummer}} | {{{$api/checksum/IHttpHeadersChecksummer.html}IHttpHeadersChecksummer}} |
 *----------+--------------+----------------+----------------+
-| <<<httpDocumentFetcher>>> | Fetch a document from URL. | {{{$api/handler/impl/DefaultDocumentFetcher.html}DefaultDocumentFetcher}} | {{{$api/handler/IHttpDocumentFetcher.html}IHttpDocumentFetcher}} |
+| <<<httpDocumentFetcher>>> | Fetch a document from URL. | {{{$api/fetch/impl/DefaultDocumentFetcher.html}DefaultDocumentFetcher}} | {{{$api/fetch/IHttpDocumentFetcher.html}IHttpDocumentFetcher}} |
 *----------+--------------+----------------+----------------+
-| <<<urlExtractor>>> | Extract URLs from a document. | {{{$api/handler/impl/DefaultURLExtractor.html}DefaultURLExtractor}} | {{{$api/handler/IURLExtractor.html}IURLExtractor}} |
+| <<<robotsMeta>>> | Handle in-page robots instructions. | {{{$api/robot/impl/DefaultRobotsMetaProvider.html}DefaultRobotsMetaProvider}} | {{{$api/robot/IRobotsMetaProvider.html}IRobotsMetaProvider}} |
+*----------+--------------+----------------+----------------+
+| <<<urlExtractor>>> | Extract URLs from a document. | {{{$api/url/impl/DefaultURLExtractor.html}DefaultURLExtractor}} | {{{$api/url/IURLExtractor.html}IURLExtractor}} |
 *----------+--------------+----------------+----------------+
 | <<<httpDocumentFilters>>> | Filter documents. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}} | {{{$api/filter/IHttpDocumentFilter.html}IHttpDocumentFilter}} |
 *----------+--------------+----------------+----------------+
-| <<<preImportProcessors>>> | Process a document before import. |  | {{{$api/handler/IHttpDocumentProcessor.html}IHttpDocumentProcessor}} |
+| <<<preImportProcessors>>> | Process a document before import. |  | {{{$api/doc/IHttpDocumentProcessor.html}IHttpDocumentProcessor}} |
 *----------+--------------+----------------+----------------+
 | <<<importer>>> | Performs document import.  Many options available, refer to {{{http://www.norconex.com/product/importer}Import module}}. |  |  |
 *----------+--------------+----------------+----------------+
-| <<<httpDocumentChecksummer>>> | Create a checksum from document. | {{{$api/handler/impl/DefaultHttpDocumentChecksummer.html}DefaultHttpDocumentChecksummer}} | {{{$api/handler/IHttpDocumentChecksummer.html}IHttpDocumentChecksummer}} |
+| <<<httpDocumentChecksummer>>> | Create a checksum from document. | {{{$api/checksum/impl/DefaultHttpDocumentChecksummer.html}DefaultHttpDocumentChecksummer}} | {{{$api/checksum/IHttpDocumentChecksummer.html}IHttpDocumentChecksummer}} |
 *----------+--------------+----------------+----------------+
-| <<<postImportProcessors>>> | Process a document after import. |  | {{{$api/handler/IHttpDocumentProcessor.html}IHttpDocumentProcessor}} |
+| <<<postImportProcessors>>> | Process a document after import. |  | {{{$api/doc/IHttpDocumentProcessor.html}IHttpDocumentProcessor}} |
 *----------+--------------+----------------+----------------+
 | <<<committer>>> | Where to commit a document when processed.  Different implementations available, refer to {{{http://www.norconex.com/product/committer}Committer module}}. |  |  |
 *----------+--------------+----------------+----------------+

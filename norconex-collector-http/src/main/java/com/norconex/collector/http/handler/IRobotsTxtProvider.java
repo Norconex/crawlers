@@ -18,24 +18,12 @@
  */
 package com.norconex.collector.http.handler;
 
-import java.io.Serializable;
-
-import org.apache.http.impl.client.DefaultHttpClient;
-
-import com.norconex.collector.http.robot.RobotsTxt;
-
-
-//TODO have a generic RobotsTXT class instead that has all rules + directives
-//so it can be considered across the board (passed in many methods)?
-
+import com.norconex.collector.http.robot.IRobotsMetaProvider;
 
 /**
- * Given a URL, extract any "robots.txt" rules.
- * @author Pascal Essiembre
+ * @deprecated use {@link com.norconex.collector.http.robot.IRobotsTxtProvider}
  */
-public interface IRobotsTxtProvider extends Serializable {
-
-   
-    RobotsTxt getRobotsTxt(DefaultHttpClient httpClient, String url);
-    
+@Deprecated
+public interface IRobotsTxtProvider 
+        extends IRobotsMetaProvider {
 }

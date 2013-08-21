@@ -22,25 +22,76 @@ import java.io.Serializable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 
 public class CrawlURL implements Serializable {
 
     private static final long serialVersionUID = -2219206220476107409L;
+
     private int depth;
     private String url;
+    private String urlRoot;
+    private Long sitemapLastMod;
+    private String sitemapChangeFreq;
+    private Float sitemapPriority;
+    
     private CrawlStatus status;
     private String headChecksum;
     private String docChecksum;
     
-    public CrawlURL() {
+
+    public CrawlURL(String url, int depth) {
         super();
+        setUrl(url);
+        setDepth(depth);
     }
     public int getDepth() {
         return depth;
     }
     public String getUrl() {
         return url;
+    }
+    /**
+     * Gets the sitemap last modified date in milliseconds (EPOCH date).
+     * @return date as long
+     */
+    public Long getSitemapLastMod() {
+        return sitemapLastMod;
+    }
+    /**
+     * Sets the sitemap last modified date in milliseconds (EPOCH date).
+     * @param sitemapLastMod date as long
+     */
+    public void setSitemapLastMod(Long sitemapLastMod) {
+        this.sitemapLastMod = sitemapLastMod;
+    }
+    public String getSitemapChangeFreq() {
+        return sitemapChangeFreq;
+    }
+    public void setSitemapChangeFreq(String sitemapChangeFreq) {
+        this.sitemapChangeFreq = sitemapChangeFreq;
+    }
+    public Float getSitemapPriority() {
+        return sitemapPriority;
+    }
+    public void setSitemapPriority(Float sitemapPriority) {
+        this.sitemapPriority = sitemapPriority;
+    }
+    public final void setDepth(int depth) {
+        this.depth = depth;
+    }
+    public final void setUrl(String url) {
+        this.url = url;
+        if (url != null) {
+            this.urlRoot = url.replaceFirst("(.*?://.*?)(/.*)", "$1");
+        } else {
+            this.urlRoot = null;
+        }
+    }
+    public String getUrlRoot() {
+        return urlRoot;
     }
     public CrawlStatus getStatus() {
         return status;
@@ -60,49 +111,51 @@ public class CrawlURL implements Serializable {
     public void setDocChecksum(String docChecksum) {
         this.docChecksum = docChecksum;
     }
-    public void setDepth(int depth) {
-        this.depth = depth;
-    }
-    public void setUrl(String url) {
-        this.url = url;
+    
+    public CrawlURL safeClone() {
+        CrawlURL c = new CrawlURL(url, depth);
+        c.setDocChecksum(docChecksum);
+        c.setHeadChecksum(headChecksum);
+        c.setSitemapChangeFreq(sitemapChangeFreq);
+        c.setSitemapLastMod(sitemapLastMod);
+        c.setSitemapPriority(sitemapPriority);
+        c.setStatus(status);
+        return c;
     }
     
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof CrawlURL)) {
+            return false;
+        }
+        CrawlURL castOther = (CrawlURL) other;
+        return new EqualsBuilder().append(depth, castOther.depth)
+                .append(url, castOther.url).append(urlRoot, castOther.urlRoot)
+                .append(sitemapLastMod, castOther.sitemapLastMod)
+                .append(sitemapChangeFreq, castOther.sitemapChangeFreq)
+                .append(sitemapPriority, castOther.sitemapPriority)
+                .append(status, castOther.status)
+                .append(headChecksum, castOther.headChecksum)
+                .append(docChecksum, castOther.docChecksum).isEquals();
+    }
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-            .append(depth)
-            .append(docChecksum)
-            .append(headChecksum)
-            .append(status)
-            .append(url)
-            .toHashCode();
+        return new HashCodeBuilder().append(depth).append(url).append(urlRoot)
+                .append(sitemapLastMod).append(sitemapChangeFreq)
+                .append(sitemapPriority).append(status).append(headChecksum)
+                .append(docChecksum).toHashCode();
     }
-    
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof CrawlURL)) {
-            return false;
-        }
-        CrawlURL other = (CrawlURL) obj;
-        return new EqualsBuilder()
-            .append(depth, other.depth)
-            .append(docChecksum, other.docChecksum)
-            .append(headChecksum, other.headChecksum)
-            .append(status, other.status)
-            .append(url, other.url)
-            .isEquals();
-    }
-    
     @Override
     public String toString() {
-        return "CrawlerURL [depth=" + depth + ", url=" + url + ", status="
-                + status + ", headChecksum=" + headChecksum + ", docChecksum="
-                + docChecksum + "]";
+        return new ToStringBuilder(this, ToStringStyle.SIMPLE_STYLE)
+                .append("depth", depth).append("url", url)
+                .append("urlRoot", urlRoot)
+                .append("sitemapLastMod", sitemapLastMod)
+                .append("sitemapChangeFreq", sitemapChangeFreq)
+                .append("sitemapPriority", sitemapPriority)
+                .append("status", status).append("headChecksum", headChecksum)
+                .append("docChecksum", docChecksum).toString();
     }
+    
+    
 }

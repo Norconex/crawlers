@@ -18,6 +18,7 @@
 package com.norconex.committer.impl;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Reader;
@@ -28,11 +29,15 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.committer.CommitterException;
 import com.norconex.committer.ICommitter;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.io.FileUtil;
@@ -56,7 +61,9 @@ import com.norconex.commons.lang.map.Properties;
 public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
 
     private static final long serialVersionUID = 567796374790003396L;
-
+    private static final Logger LOG = 
+            LogManager.getLogger(FileSystemCommitter.class);
+    
     public static final String DEFAULT_DIRECTORY = "./committer";
     
     private String directory = DEFAULT_DIRECTORY;
@@ -132,7 +139,22 @@ public class FileSystemCommitter implements ICommitter, IXMLConfigurable {
             }
             addFile = new File(dir.getAbsolutePath() + b.toString());
         } while (addFile.exists());
-        org.apache.commons.io.FileUtils.touch(addFile);
+        int attempts = 0;
+        Exception ex = null;
+        while (attempts++ < 10) {
+            try {
+                FileUtils.touch(addFile);
+                ex = null;
+                break;
+            } catch (FileNotFoundException e) {
+                ex = e;
+                LOG.debug("Could not create commit file, retrying...");
+                Sleeper.sleepNanos(100);
+            }
+        }
+        if (ex != null) {
+            throw new CommitterException("Could not create commit file.", ex);
+        }
         return addFile;
     }
 

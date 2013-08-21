@@ -31,15 +31,17 @@ import org.apache.log4j.Logger;
 
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.util.BufferUtil;
+import com.norconex.importer.util.MemoryUtil;
 
 /**
- * <p>Base class to facilitate creating transformers on text content, load text 
- * into {@link StringBuilder} for memory processing, also giving more options 
- * (like fancy regex).  This class check for free memory every 10KB of text
- * read.  If enough memory, it keeps going for another 10KB or until
+ * <p>Base class to facilitate creating transformers on text content, loading
+ * text into {@link StringBuilder} for memory processing, also giving more 
+ * options (like fancy regex).  This class check for free memory every 10KB of 
+ * text read.  If enough memory, it keeps going for another 10KB or until
  * all the content is read, or the buffer size reaches half the available 
- * memory.  In either case, it pass the buffer content so far for 
- * transformation (all of it for small enough content, and in several
+ * memory.  In either case, it passes the buffered content so far for 
+ * transformation (all of it for small enough content, or in several
  * chunks for large content).
  * </p>
  * <p>
@@ -75,7 +77,6 @@ public abstract class AbstractStringTransformer
 
     private static final int READ_CHUNK_SIZE = 10 * (int) FileUtils.ONE_KB;
     private static final int STRING_TOTAL_MEMORY_DIVIDER = 4;
-    private static final int MAX_FROM_END_TO_CUT = 1000;
     
     @Override
     protected final void transformTextDocument(
@@ -85,75 +86,32 @@ public abstract class AbstractStringTransformer
         
         // Initial size is half free memory, considering chars take 2 bytes
         StringBuilder b = new StringBuilder(
-                (int)(getFreeMemory() / STRING_TOTAL_MEMORY_DIVIDER));
+               (int)(MemoryUtil.getFreeMemory() / STRING_TOTAL_MEMORY_DIVIDER));
         int i;
         while ((i = input.read()) != -1) {
             char ch = (char) i;
             b.append(ch);
             if (b.length() * 2 % READ_CHUNK_SIZE == 0
                     && isTakingTooMuchMemory(b)) {
-                transformStringDocument(
-                        reference, b, metadata, parsed, true);
-                flushBuffer(b, output, true);
+                transformStringDocument(reference, b, metadata, parsed, true);
+                BufferUtil.flushBuffer(b, output, true);
             }
         }
         if (b.length() > 0) {
             transformStringDocument(reference, b, metadata, parsed, false);
-            flushBuffer(b, output, false);
+            BufferUtil.flushBuffer(b, output, false);
         }
         b.setLength(0);
         b = null;
     }
     
-    
     protected abstract void transformStringDocument(
            String reference, StringBuilder content, Properties metadata,
            boolean parsed, boolean partialContent);
    
-   
-    // Writes the buffer to output stream. If content was cut-out due to memory,
-    // try to cut the text wisely nead the end.
-    private void flushBuffer(StringBuilder content, Writer out, boolean full)
-            throws IOException {
-        String remainingText = null;
-        if (full) {
-            int index = -1;
-            int fromIndex = 0;
-            if (content.length() > MAX_FROM_END_TO_CUT) {
-                fromIndex = content.length() - MAX_FROM_END_TO_CUT;
-            }
-            index = content.lastIndexOf("\n", fromIndex);
-            if (index == -1) {
-                index = content.lastIndexOf("\r", fromIndex);
-            }
-            if (index == -1) {
-                index = content.lastIndexOf(". ", fromIndex);
-            }
-            if (index == -1) {
-                index = content.lastIndexOf(" ", fromIndex);
-            }
-            if (index > -1) {
-                remainingText = content.substring(index);
-                content.delete(index, content.length());
-            }
-        }
-        while (content.length() != 0) {
-            int writeChunkSize = 
-                    Math.min(content.length(), MAX_FROM_END_TO_CUT);
-            char[] chars = new char[writeChunkSize];
-            content.getChars(0, writeChunkSize, chars, 0);           
-            out.write(chars);
-            content.delete(0, writeChunkSize);
-            chars = null;
-        }
-        if (remainingText != null) {
-            content.append(remainingText);
-        }
-    }
-    
     // We ensure buffer size never goes beyond half available memory.
     private boolean isTakingTooMuchMemory(StringBuilder b) {
-        int maxMem = (int) getFreeMemory() / 2;
+        int maxMem = (int) MemoryUtil.getFreeMemory() / 2;
         int bufMem = b.length() * 2;
         boolean busted = bufMem > maxMem;
         if (busted) {
@@ -167,21 +125,13 @@ public abstract class AbstractStringTransformer
                 + "(e.g. -xmx1024m for 1 Gigabyte).  In addition, "
                 + "reducing the number of threads may help (if applicable). "
                 + "As an alternative, you can also implement a new solution " 
-                + "using AbstractCharSteamTransformaer instead, which relies "
+                + "using AbstractCharSteamTransformer instead, which relies "
                 + "on streams (taking very little fixed-size memory when "
                 + "done right).");
         }
         return busted;
     }
    
-    private long getFreeMemory() {
-        System.gc();
-        Runtime runtime = Runtime.getRuntime();
-        return runtime.freeMemory() 
-                + (runtime.maxMemory() - runtime.totalMemory());
-    }
-
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

@@ -103,7 +103,7 @@ public class RegexMetadataFilter extends AbstractOnMatchFilter
     public void setProperty(String property) {
         this.property = property;
     }
-    public void setRegex(String regex) {
+    public final void setRegex(String regex) {
         this.regex = regex;
         if (regex != null) {
             if (caseSensitive) {

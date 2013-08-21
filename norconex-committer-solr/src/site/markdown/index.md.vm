@@ -16,6 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with Norconex Solr Committer. If not, see <http://www.gnu.org/licenses/>.
 -->
+#set( $H3 = '###' )
 <head><title>Home</title><meta name="Author" content="Norconex Inc." /></head> 
 
 Welcome to Norconex Solr Committer
@@ -23,7 +24,8 @@ Welcome to Norconex Solr Committer
 
 The **Solr Committer** library provides an implementation of 
 [Norconex Committer](http://www.norconex.com/product/committer) targeting
-[Apache Solr](http://lucene.apache.org/solr/).
+[Apache Solr](http://lucene.apache.org/solr/).  This committer should work
+with any search product using Solr at its core (such as LucidWorks Search).
 
 The current stable version of Norconex Solr Committer is
 ${currentStableVersion} ([download](./download.html)). 
@@ -48,7 +50,7 @@ Configuration
 -------------
 
 When used with a Norconex Collector, you can use the following XML to configure
-the Solr Committer:
+the Solr Committer (LucidWorks specific instructions further down):
 
     <committer class="com.norconex.committer.solr.SolrCommitter">
       <solrURL>...</solrURL>
@@ -83,3 +85,21 @@ Tag descriptions:
 | `queueDir` | Optional path where to queue files before sending them to Solr. Default is: ./committer-queue|
 | `batchSize` | Number of documents or deletes to queue before sending to Solr. Default is: 1000.|
 | `solrBatchSize` | Maximum number of documents to send Solr at once. Default is: 100.|
+
+$H3 LucidWorks Additional Configuration
+
+To make this committer work with LucidWorks, you have to define constant
+values expected by LucidWorks.  When using a Norconex Collector or Importer,
+you can define them as an importer parse handler like this:
+
+    <tagger class="com.norconex.importer.tagger.impl.ConstantTagger">
+      <constant name="data_source">927df3075b544785892c6b4c51625714</constant>
+      <constant name="data_source_type">Web</constant>
+      <constant name="data_source_name">Wikipedia</constant>
+    </tagger>
+
+In the committer settings, you also need to add the following configuration:
+
+    <solrUpdateURLParams>
+      <param name="fm.ds">927df3075b544785892c6b4c51625714</param>
+    </solrUpdateURLParams>    

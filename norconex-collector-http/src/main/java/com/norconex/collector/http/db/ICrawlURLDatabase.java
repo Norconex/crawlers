@@ -18,6 +18,8 @@
  */
 package com.norconex.collector.http.db;
 
+import java.util.Iterator;
+
 import com.norconex.collector.http.crawler.CrawlURL;
 
 
@@ -40,11 +42,11 @@ import com.norconex.collector.http.crawler.CrawlURL;
 public interface ICrawlURLDatabase {
 
     /**
-     * Queues a URL for future processing.
+     * <p>
+     * Queues a URL for future processing. 
      * @param url the URL to eventually be processed
-     * @param depth how many clicks away from starting URL(s)
      */
-    void queue(String url, int depth);
+    void queue(CrawlURL url);
 
     /**
      * Whether there are any URLs to process in the queue.
@@ -64,13 +66,14 @@ public interface ICrawlURLDatabase {
      * @return <code>true</code> if the URL is in the queue
      */
     boolean isQueued(String url);
-
+    
     /**
-     * Returns the next URL to be processed and marks it as being "active"
-     * (i.e. currently being processed).
+     * Returns the next URL to be processed from the queue and marks it as 
+     * being "active" (i.e. currently being processed).  The returned URL
+     * is effectively removed from the queue.
      * @return next URL
      */
-    CrawlURL next();
+    CrawlURL nextQueued();
     
     /**
      * Whether the given URL is currently being processed (i.e. active).
@@ -121,12 +124,10 @@ public interface ICrawlURLDatabase {
     int getProcessedCount();
 
     /**
-     * Queues URLs cached from a previous run so they can be processed again.
-     * This method is normally called when a job is done crawling,
-     * and entries remain in the cache.  Those are re-processed in case
-     * they changed or are no longer valid. 
+     * Gets the cache iterator.
+     * @return cache iterator
      */
-    void queueCache();
+    Iterator<CrawlURL> getCacheIterator();
     
     /**
      * Whether a url has been deleted.  To find this out, the URL has to be 
@@ -135,4 +136,26 @@ public interface ICrawlURLDatabase {
      * @param crawlURL the URL
      */
     boolean isVanished(CrawlURL crawlURL);
+    
+    /**
+     * Mark a URL "root" (e.g. http://www.example.com) as having its sitemap
+     * resolved.
+     * @param urlRoot url root
+     */
+    void sitemapResolved(String urlRoot);
+    
+    /**
+     * Whether the given URL "root" (e.g. http://www.example.com) has its
+     * sitemap resolved.
+     * @param urlRoot
+     * @return <code>true</code> if already resolved
+     */
+    boolean isSitemapResolved(String urlRoot);
+
+    /**
+     * Closes a database connection. This method gets called a the end
+     * of a crawling job to give a change to close the underlying connection
+     * properly, if applicable.
+     */
+    void close();
 }

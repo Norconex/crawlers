@@ -20,7 +20,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 <httpcollector id="Complex Crawl">
 
   #set($basepkg = "com.norconex.collector.http")
-  #set($normalizer = "${basepkg}.handler.impl.GenericURLNormalizer")
+  #set($normalizer = "${basepkg}.url.impl.GenericURLNormalizer")
   #set($extension = "${basepkg}.filter.impl.ExtensionURLFilter")
   #set($urlRegex = "${basepkg}.filter.impl.RegexURLFilter")
   

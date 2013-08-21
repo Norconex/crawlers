@@ -23,21 +23,21 @@
 Download
 
   <<WAIT!>> Don't forget you need a
-  {{{download.html#Committer_Implementations}committer implementation}} for your target 
+  {{{Committer_Implementations}committer implementation}} for your target 
   data repository (see below).
   
 * Binaries
 
-  Latest stable release
+  Latest releases
+
+~~  * {{{TODO} 1.1.0-RC1.zip}} (Release Candidate 1)
    
-  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.2/norconex-collector-http-1.0.2.zip} 1.0.2.zip}}
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.1/norconex-collector-http-1.0.1.zip} 1.0.1.zip}} (Stable)
 
   []
 
   Older releases:
   
-  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.1/norconex-collector-http-1.0.1.zip} 1.0.1.zip}}
-
   * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.0/norconex-collector-http-1.0.0.zip} 1.0.0.zip}}
 
 ~~  []    
@@ -54,7 +54,7 @@ Download
   
   <<Available implementations:>>
   
-  * {{{http://www.norconex.com/product/committer-solr/index.html}Solr Committer}} 
+  * {{{http://www.norconex.com/product/committer-solr/index.html}Solr/Lucidworks Committer}} 
   
   * {{{http://www.norconex.com/product/committer-elasticsearch/index.html}Elasticsearch Committer}} 
   

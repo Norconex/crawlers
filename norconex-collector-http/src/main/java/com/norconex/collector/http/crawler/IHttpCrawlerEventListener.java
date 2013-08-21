@@ -19,12 +19,13 @@
 package com.norconex.collector.http.crawler;
 
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.IHttpDocumentProcessor;
+import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
+import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.handler.IHttpDocumentFetcher;
-import com.norconex.collector.http.handler.IHttpDocumentProcessor;
-import com.norconex.collector.http.handler.IHttpHeadersFetcher;
+import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.commons.lang.map.Properties;
 
@@ -37,16 +38,22 @@ import com.norconex.commons.lang.map.Properties;
  * a single instance of this listener will be shared amongst crawlers
  * (unless overwritten).</p>
  * @author Pascal Essiembre
+ * @see HttpCrawlerEventFirer
  */
 public interface IHttpCrawlerEventListener {
     
 	//TODO add two new methods for headers and document checksum 
 	//(i.e. modified vs not-modified.   Or rely on rejected flag?
 	//TODO add documentDeleted
-	
+	//TODO add urlProcessed with CrawlStatus to help with reporting
+    //TODO refactor even handling by having 1 method only accepting an 
+    //event interface (or superclass).  More scalable that way.
+    
     void crawlerStarted(HttpCrawler crawler);
     void documentRobotsTxtRejected(HttpCrawler crawler,
             String url, IURLFilter filter, RobotsTxt robotsTxt);
+    void documentRobotsMetaRejected(HttpCrawler crawler,
+            String url, RobotsMeta robotsMeta);
     void documentURLRejected(
             HttpCrawler crawler, String url, IURLFilter filter);
     void documentHeadersFetched(HttpCrawler crawler,
@@ -60,7 +67,8 @@ public interface IHttpCrawlerEventListener {
             HttpDocument document, IHttpDocumentFilter filter);
     void documentPreProcessed(HttpCrawler crawler,
             HttpDocument document, IHttpDocumentProcessor preProcessor);
-    void documentImported(HttpCrawler crawler,HttpDocument document);
+    void documentImported(HttpCrawler crawler, HttpDocument document);
+    void documentImportRejected(HttpCrawler crawler, HttpDocument document);
     void documentPostProcessed(HttpCrawler crawler,
             HttpDocument document, IHttpDocumentProcessor postProcessor);
     void documentCrawled(HttpCrawler crawler, HttpDocument document);

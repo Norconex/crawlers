@@ -22,14 +22,45 @@
 
 Welcome to Norconex HTTP Collector
 
-  Norconex HTTP Collector is a web spider, or crawler that aims to make
+  Norconex HTTP Collector is a web crawler that aims to make
   Enterprise Search integrators and developers's life easier.
 
-  The current stable version is
-  <<${currentStableVersion}>> ({{{./download.html}download}}, 
-  {{{./apidocs/index.html}API documentation}},  
-  {{{./changes-report.html}release notes}}).
+  The current stable version is <<${currentStableVersion}>>.
 
+  Quick Links:
+  
+  * {{{./download.html}Download}} 
+  
+  * {{{./apidocs/index.html}API documentation}}  
+
+  * {{{./changes-report.html}Release notes}}
+
+  []
+
+* Version 1.1 Release Candidate 1 now available
+
+  Upcoming 1.1 version will bring you new features we hope you will like.  
+  You can {{{./download.html}download}} a "release candidate" version right 
+  away.  Amongst new features or enhancements you will find:
+  
+  * Faster and more constant crawling performance at high volume
+    (tested with crawling over 2 million URLs without noticeable performance 
+    degradation).
+
+  * Support for sitemap.xml and sitemap index (plain or gzip).
+  
+  * Support for BASIC and DIGEST authentication.
+  
+  * Support for in-page robot instructions.
+  
+  * Support for <<<ftp://>>> URLs.
+  
+  * More.  See {{{./changes-report.html}Release notes}} for a more complete list.
+  
+  []
+  
+  <<This site documentation and examples have been updated to reflect the 
+  1.1 version.>>
 
 * Another crawler... really?
  
@@ -170,8 +201,13 @@ Welcome to Norconex HTTP Collector
 
 []
     
-  * <<Robots.txt support>>\
+  * <<Robots.txt and in-page Robots meta tag support>>\
     Can easily be turned off for your own sites.
+
+[]
+
+  * <<sitemap.xml support>>\
+    Includes sitemap index, text or gzip.
 
 []
     
@@ -213,7 +249,7 @@ Welcome to Norconex HTTP Collector
 []
     
   * <<Supports various website authentication schemes>>\
-    Supports standard/popular implementations out-of-the-box.
+    Supports FORM, BASIC, and DIGEST implementations out-of-the-box.
     If you use custom authentication mechanism, you can plug your own 
     authentication logic.
 
@@ -260,11 +296,17 @@ Welcome to Norconex HTTP Collector
     Offers URL normalization to treat URL variations as one.
 
 []
+
+  * <<Tested with millions of URLs>>\
+    A single crawler instance has been tested with a few million URLs without
+    issues.
+
+[]
    
   * <<Flexibility:>>\
     There are more than one way to do something. 
     Experiment and have fun!
-   
+
   []
 
 * Does it meet every web crawling needs?

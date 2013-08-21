@@ -1,8 +1,63 @@
+The following are either things to be done, or ideas to consider:
 
-- Implement AUTH_METHOD_BASIC and AUTH_METHOD_DIGEST
+- Add Norconex Commons Lang 1.0.1 everywhere before release 1.1.
+- Use toSafeFileName and fromSafeFileName from classe FileUtil class to 
+  ensure directories can be created without issues.
 
-- Interface for Document Store??? Filesystem default, but could be 
-  others like MongoDB?
+- Redo crawler event model so only 1 method needs to be implemented
+  and an event object is passed, allowing any custom event implementation
+  to be added, each event having a unique id.
+
+- Packaging: Deploy the source and javadoc jars for dependent libs as well
+  (importer, commmitter, etc) and add link to their site in javadoc.
+
+- DONE, need testing: Package source jars with Maven repository deployments.
+
+- Consider BlockingQueue for fast memory access of queued URL, with the 
+  queue fed from DB by another thread.  Could be beneficial for Derby 
+  implementation if MapDB does not stabilize more.
+
+- Maybe: Add documentRejectedChecksum and documentRejectedHeadersChecksum to 
+  IHttpCrawlerEventListener and fire them?
+
+- Make sure maxURL counter saved in progress is in sync with each time we commit
+  to avoid having a counter higher than actual URLs processed in case of 
+  failure (minor impact).
+
+- Make configurable via HTML many HTTPClient init options, such 
+  as CoreConnectionPNames.CONNECTION_TIMEOUT and/or provide ways to configure
+  abitrary values, referencing Apache docs.
+
+- Add optional flag to support gzip transfer (DecompressingHttpClient).
+
+- Rotate/break log files when too big.
+
+- If a URL filter rule was changed and a document is now rejected (never 
+  processed), it will not be deleted (since it did not get a 404/NOT_FOUND).
+  Maybe check if rejected URL in URLProcessor are in cache and send deletion 
+  if so.
+
+- Integrate with distributed computing frameworks such as hadhoop.
+
+- Test that IPV6 is supported
+
+- Consider having support for different URLExractors for different content 
+  types.  Maybe also offer to default one ability to define custom patterns
+  for how to identify URLs.
+
+- Detect and follow RSS feeds (related to having multiple url extractors by
+  content types).
+
+- Offer option to have crawling rate adjust itself if a site is slow
+  (in case it is the crawler hammering it).  Probably a change or new delay
+  implementation... this means total download time (both for HEAD and GET) 
+  should be added as document properties (not a bad idea to do regardless).
+
+- Provide a non-embedded crawl URL store solution, such as Mongo, or 
+  Generic SQL-DB (hibernate?).
+
+- To consider: Interface for Document Store for downloading documents.
+  File system is used now, but could be others like MongoDB?
 
 - Add option to skip certain http response code (like 500).  Those docs 
   that should not be added nor deleted because they are in a temporary bad 
@@ -20,4 +75,3 @@
          <listener class=""></listener>
       </suiteLifeCycleListener>
   </jef>
-

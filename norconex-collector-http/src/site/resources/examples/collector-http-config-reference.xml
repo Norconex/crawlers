@@ -39,10 +39,14 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   #set($basepkg = "com.norconex.collector.http")
   #set($extension = "${basepkg}.filter.impl.ExtensionURLFilter")
   #set($urlRegex = "${basepkg}.filter.impl.RegexURLFilter")
-  #set($robotsTxt = "${basepkg}.handler.impl.DefaultRobotsTxtProvider")
+  #set($robotsTxt = "${basepkg}.robot.impl.DefaultRobotsTxtProvider")
+  #set($robotsMeta = "${basepkg}.robot.impl.DefaultRobotsMetaProvider")
   #set($headersRegex = "${basepkg}.filter.impl.RegexHeaderFilter")
-  #set($docFetcher = "${basepkg}.handler.impl.DefaultDocumentFetcher")
-  #set($urlExtractor = "${basepkg}.handler.impl.DefaultURLExtractor")
+  #set($docFetcher = "${basepkg}.fetch.impl.DefaultDocumentFetcher")
+  #set($urlExtractor = "${basepkg}.url.impl.DefaultURLExtractor")
+  #set($sitemap = "${basepkg}.sitemap.impl.DefaultSitemapResolver")
+  #set($headersChecksummer = "${basepkg}.checksum.impl.DefaultHttpHeadersChecksummer")
+  #set($docChecksummer = "${basepkg}.checksum.impl.DefaultHttpDocumentChecksummer")
   
   <!-- Location where internal progress files are stored. -->
   <progressDir>$workdir\progress</progressDir>
@@ -67,9 +71,9 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     </startURLs>
 
     <!-- Optional URL normalization feature. The class must implement
-         *.handler.IURLNormalizer, like the following class does.
+         *.url.IURLNormalizer, like the following class does.
       -->
-    <urlNormalizer class="$basepkg.handler.impl.GenericURLNormalizer">
+    <urlNormalizer class="$basepkg.url.impl.GenericURLNormalizer">
       <normalizations>
         lowerCaseSchemeHost, upperCaseEscapeSequence 
         decodeUnreservedCharacters, removeDefaultPort 
@@ -84,11 +88,11 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
     <!-- Optional delay resolver defining how polite or aggressive you want
          your crawling to be.  The class must implement 
-         *.handler.IDelayResolver.
+         *.delay.IDelayResolver.
          The following is the default implementation:
       -->
     <delay default="1000" ignoreRobotsCrawlDelay="true"
-           class="$basepkg.handler.impl.DefaultDelayResolver">
+           class="$basepkg.delay.impl.DefaultDelayResolver">
           <schedule dayOfWeek="from Monday to Friday" 
                     time="from 8:00 to 6:30">10000</schedule>
     </delay>
@@ -154,14 +158,22 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <!-- === Step 1: Initialize HTTP Client ================================ -->
 
     <!-- Initialize the HTTP client use to make connections.  Classes
-         must implement *.handler.IHttpClientInitializer.
+         must implement *.client.IHttpClientInitializer.
          Default implementation offers many options. The following shows
          a sample use of the default with credentials.
          -->
     <httpClientInitializer class="${httpClientInit}">
+      <!-- These apply to any authentication mechanism -->
       <authUsername>myusername</authUsername>
       <authPassword>mypassword</authPassword>
+      <!-- These apply to FORM authentication -->
+      <authUsernameField>field_username</authUsernameField>
+      <authPasswordField>field_password</authPasswordField>
       <authURL>https://www.example.com/login.php</authURL>
+      <!-- These apply to both BASIC and DIGEST authentication -->
+      <authHostname>www.example.com</authHostname>
+      <authPort>80</authPort>
+      <authRealm>PRIVATE</authRealm>
     </httpClientInitializer>
     
     <!-- === Step 2 (Loop): Process a URL/Document ========================= -->
@@ -171,26 +183,33 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
            -->
       <httpURLFilters>
         <filter class="$extension" onMatch="exclude" >
-            jpg,gif,png,ico,css,js</filter>
+          jpg,gif,png,ico,css,js</filter>
         <filter class="$urlRegex">https://www.example.com/.*</filter>
       </httpURLFilters>
 
       <!-- Filter BEFORE download with RobotsTxt rules. Classes must
-           implement *.handler.IRobotsTxtProvider.  Default implementation
+           implement *.robot.IRobotsTxtProvider.  Default implementation
            is the following.
            -->
       <robotsTxt ignore="false" class="$robotsTxt"/>
       
+      <!-- Loads sitemap.xml URLs and adds adds them to URLs to process.
+           Default implementation is the following.
+           -->
+      <sitemap ignore="false" lenient="false" class="$sitemap">
+         <location>http://www.example.com/blogs/sitemap.xml</location>
+      </sitemap>
+      
       <!-- Fetch Document HTTP Headers.  Classes must implement
-           *.handler.IHttpHeadersFetcher.  The following is a simple
+           *.fetch.IHttpHeadersFetcher.  The following is a simple
             implementation.
            -->
       <httpHeadersFetcher 
-          class="$basepkg.handler.impl.SimpleHttpHeadersFetcher"
+          class="$basepkg.fetch.impl.SimpleHttpHeadersFetcher"
           validStatusCodes="200" />
 
       <!-- Optionally filter AFTER download of HTTP headers.  Classes must 
-           implement *.handler.IHttpHeadersFetcher.  
+           implement *.fetch.IHttpHeadersFetcher.  
            -->
       <httpHeadersFilters>
         <filter class="$headersRegex" 
@@ -201,19 +220,26 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         
       <!-- Generates a checksum value from document headers to find out if 
            a document has changed. Class must implement
-           *.handler.IHttpHeadersChecksummer.  Default implementation 
+           *.checksum.IHttpHeadersChecksummer.  Default implementation 
            is the following. 
            -->
       <httpHeadersChecksummer class="$headersChecksummer" />
 
       <!-- Fetches document.  Class must implement 
-           *.handler.IHttpDocumentFetcher.  Default implementation is the 
+           *.fetch.IHttpDocumentFetcher.  Default implementation is the 
            following.
            -->
       <httpDocumentFetcher class="$docFetcher" validStatusCodes="200" />
 
+      <!-- Establish whether to follow a page URLs or to index a given page
+           based on in-page meta tag robot information. Classes must
+           implement *.robot.IRobotsMetaProvider.  Default implementation
+           is the following.
+           -->
+      <robotsMeta ignore="false" class="$robotsMeta" />
+
       <!-- Extract URLs from a document.  Classes must implement
-           *.handler.IURLExtractor. Default implementation is the following.
+           *.url.IURLExtractor. Default implementation is the following.
            -->
       <urlExtractor class="$urlExtractor" />
 
@@ -224,7 +250,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       </httpDocumentFilters>
 
       <!-- Optionally process a document BEFORE importing it. Classes must
-           implement *.handler.IHttpDocumentProcessor.
+           implement *.doc.IHttpDocumentProcessor.
            -->
       <preImportProcessors>
          <processor class="YourClass"></processor>
@@ -251,13 +277,13 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
       <!-- Create a checksum out of a document to figure out if a document
            has changed, AFTER it has been imported.
-           Class must implement *.handler.IHttpDocumentChecksummer.
+           Class must implement *.checksum.IHttpDocumentChecksummer.
            Default implementation is the following.
            -->
       <httpDocumentChecksummer class="$docChecksummer" />
 
       <!-- Optionally process a document AFTER importing it. Classes must
-           implement *.handler.IHttpDocumentProcessor.
+           implement *.doc.IHttpDocumentProcessor.
            -->
       <postImportProcessors>
          <processor class="YourClass"></processor>

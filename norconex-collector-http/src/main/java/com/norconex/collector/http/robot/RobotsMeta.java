@@ -18,6 +18,40 @@
  */
 package com.norconex.collector.http.robot;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+
 public class RobotsMeta {
-    //TODO implement me?
+    private final boolean nofollow;
+    private final boolean noindex;
+    public RobotsMeta(boolean nofollow, boolean noindex) {
+        super();
+        this.nofollow = nofollow;
+        this.noindex = noindex;
+    }
+    public boolean isNofollow() {
+        return nofollow;
+    }
+    public boolean isNoindex() {
+        return noindex;
+    }
+    @Override
+    public String toString() {
+        return "RobotsMeta [nofollow=" + nofollow + ", noindex=" + noindex
+                + "]";
+    }
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof RobotsMeta)) {
+            return false;
+        }
+        RobotsMeta castOther = (RobotsMeta) other;
+        return new EqualsBuilder().append(nofollow, castOther.nofollow)
+                .append(noindex, castOther.noindex).isEquals();
+    }
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(nofollow).append(noindex)
+                    .toHashCode();
+    }
 }

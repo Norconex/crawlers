@@ -36,6 +36,7 @@ import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.transformer.AbstractStringTransformer;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * <p>Strips any content found after first match found for given pattern.</p>
@@ -158,16 +159,12 @@ public class StripAfterTransformer extends AbstractStringTransformer
         }
     }
 
-    @Override
-    public String toString() {
-        return "StripAfterTransformer [inclusive=" + inclusive
-                + ", caseSensitive=" + caseSensitive + ", stripAfterRegex="
-                + stripAfterRegex + "]";
-    }
+    
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
+            .appendSuper(super.hashCode())
             .append(caseSensitive)
             .append(inclusive)
             .append(stripAfterRegex)
@@ -200,5 +197,14 @@ public class StripAfterTransformer extends AbstractStringTransformer
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .appendSuper(super.toString())
+                .append("inclusive", inclusive)
+                .append("caseSensitive", caseSensitive)
+                .append("stripAfterRegex", stripAfterRegex).toString();
     }
 }

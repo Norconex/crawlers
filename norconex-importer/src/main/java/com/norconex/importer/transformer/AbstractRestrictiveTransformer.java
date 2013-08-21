@@ -26,25 +26,17 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.AbstractRestrictiveHandler;
 import com.norconex.importer.filter.impl.RegexMetadataFilter;
 
 /**
- * <p>Base class for transformers applying only to certain type of documents
- * <p>Subclasses implementing {@link IXMLConfigurable} should allow this inner 
- * configuration:</p>
- *  &lt;restrictTo
- *          caseSensitive="[false|true]" &gt;
- *          property="(name of header/metadata name to match)"
- *      (regular expression of value to match)
- *  &lt;/restrictTo&gt;
- * by providing a way to restrict applicable documents based on 
- * a metadata value (matched via regex).
- * Subclasses can safely be used as either pre-parse or post-parse handlers.
+ * <p>This class is deprecated.  Use {@link AbstractRestrictiveHandler} instead.
  * </p>
+ * @deprecated use {@link AbstractRestrictiveHandler}
  * @author Pascal Essiembre
  */
+@Deprecated
 public abstract class AbstractRestrictiveTransformer 
         implements IDocumentTransformer {
 
