@@ -7,8 +7,14 @@
   </properties>
   <body>
 
-    <release version="1.0.1" date="2013-??-??" description="Maintenance release">
+    <release version="1.0.1" date="2013-08-21" description="Maintenance release">
+      <action dev="essiembp" type="add">
+        Source and test jars are now bundled with release.
+      </action>
       <action dev="essiembp" type="update">
+        Upgraded Norconex Commons Lang library to version 1.1.0.
+      </action>
+      <action dev="essiembp" type="fix">
         Fixed a few javadoc errors.
       </action>
     </release>
