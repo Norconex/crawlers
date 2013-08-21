@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="1.1.0" date="2013-08-19" description="Minor release">
+    <release version="1.1.0" date="2013-08-20" description="Minor release">
       <action dev="essiembp" type="add">
         New tagger "TextBetweenTagger" to extract strings from a document
         and store them into document meta data fields.
@@ -24,7 +24,7 @@
         AbstractRestrictiveTransformer now deprecated.
       </action>
       <action dev="essiembp" type="update">
-        Upgraded norconex-commons-lang to 1.0.1
+        Upgraded norconex-commons-lang to 1.1.0.
       </action>
     </release>
 

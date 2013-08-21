@@ -32,6 +32,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.AbstractRestrictiveHandler;
 import com.norconex.importer.AbstractTextRestrictiveHandler;
 import com.norconex.importer.Importer;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * <p>Base class for transformers dealing with text documents only.  Subclasses
@@ -91,20 +92,17 @@ public abstract class AbstractCharStreamTransformer
             String reference, Reader input,
             Writer output, Properties metadata, boolean parsed)
             throws IOException;
-    
+
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
+    public boolean equals(final Object other) {
+        if (!(other instanceof AbstractCharStreamTransformer)) {
             return false;
         }
-        if (!(obj instanceof AbstractCharStreamTransformer)) {
-            return false;
-        }
-        return new EqualsBuilder()
-            .appendSuper(super.equals(obj))
-            .isEquals();
+        return new EqualsBuilder().appendSuper(super.equals(other)).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().appendSuper(super.hashCode()).toHashCode();
     } 
 }
