@@ -1,3 +1,21 @@
+/* Copyright 2010-2013 Norconex Inc.
+ * 
+ * This file is part of Norconex HTTP Collector.
+ * 
+ * Norconex HTTP Collector is free software: you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Norconex HTTP Collector is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Norconex HTTP Collector. If not, 
+ * see <http://www.gnu.org/licenses/>.
+ */
 package com.norconex.collectors.urldatabase.mongo;
 
 import java.net.UnknownHostException;
@@ -15,9 +33,42 @@ import com.mongodb.MongoClient;
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.db.CrawlURLDatabaseException;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 
+/**
+ * Mongo implementation of {@link ICrawlURLDatabase}
+ * 
+ * All the urls are stored in a collection named 'url'. They go from the
+ * "QUEUED", "ACTIVE" and "PROCESSED" states.
+ * 
+ * The cached urls are stored in a separated collection named "cached".
+ * 
+ * The sitemaps information are stored in a "sitemaps" collection.
+ * 
+ * @author Pascal Dimassimo
+ */
 public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
+
+    private static final String FIELD_VALID = "valid";
+
+    private static final String FIELD_DOC_CHECKSUM = "doc_checksum";
+
+    private static final String FIELD_HEAD_CHECKSUM = "head_checksum";
+
+    private static final String FIELD_CRAWL_STATUS = "crawl_status";
+
+    private static final String FIELD_DEPTH = "depth";
+
+    private static final String FIELD_STATE = "state";
+
+    private static final String FIELD_URL = "url";
+
+    private static final String COLLECTION_CACHED = "cached";
+
+    private static final String COLLECTION_SITEMAPS = "sitemaps";
+
+    private static final String COLLECTION_URLS = "urls";
 
     private static final int BATCH_UPDATE_SIZE = 1000;
 
@@ -46,9 +97,9 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
             DB database) {
 
         this.database = database;
-        this.collUrls = database.getCollection("urls");
-        this.collSitemaps = database.getCollection("sitemaps");
-        this.collCached = database.getCollection("cached");
+        this.collUrls = database.getCollection(COLLECTION_URLS);
+        this.collSitemaps = database.getCollection(COLLECTION_SITEMAPS);
+        this.collCached = database.getCollection(COLLECTION_CACHED);
 
         if (resume) {
             changeUrlsState(State.ACTIVE, State.QUEUED);
@@ -61,11 +112,11 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
             deleteAllDocuments(collUrls);
         }
 
-        ensureIndex(collUrls, true, "url");
-        ensureIndex(collUrls, false, "state");
-        ensureIndex(collUrls, false, "depth", "state");
-        ensureIndex(collSitemaps, true, "url");
-        ensureIndex(collCached, true, "url");
+        ensureIndex(collUrls, true, FIELD_URL);
+        ensureIndex(collUrls, false, FIELD_STATE);
+        ensureIndex(collUrls, false, FIELD_DEPTH, FIELD_STATE);
+        ensureIndex(collSitemaps, true, FIELD_URL);
+        ensureIndex(collCached, true, FIELD_URL);
     }
 
     private void ensureIndex(DBCollection coll, boolean unique,
@@ -82,8 +133,7 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
             MongoClient client = new MongoClient(host, port);
             return client.getDB(dbName);
         } catch (UnknownHostException e) {
-            // TODO use specific exception
-            throw new RuntimeException(e);
+            throw new CrawlURLDatabaseException(e);
         }
     }
 
@@ -93,13 +143,14 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
 
     public void queue(CrawlURL crawlUrl) {
         BasicDBObject document = new BasicDBObject();
-        document.append("url", crawlUrl.getUrl());
-        document.append("depth", crawlUrl.getDepth());
-        document.append("state", State.QUEUED.name());
+        document.append(FIELD_URL, crawlUrl.getUrl());
+        document.append(FIELD_DEPTH, crawlUrl.getDepth());
+        document.append(FIELD_STATE, State.QUEUED.name());
 
         // If the document does not exist yet, it will be inserted. If exists,
         // it will be replaced.
-        BasicDBObject whereQuery = new BasicDBObject("url", crawlUrl.getUrl());
+        BasicDBObject whereQuery = new BasicDBObject(FIELD_URL,
+                crawlUrl.getUrl());
         collUrls.update(whereQuery, document, true, false);
     }
 
@@ -117,12 +168,12 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
 
     public CrawlURL nextQueued() {
 
-        BasicDBObject whereQuery = new BasicDBObject("state",
+        BasicDBObject whereQuery = new BasicDBObject(FIELD_STATE,
                 State.QUEUED.name());
-        BasicDBObject sort = new BasicDBObject("depth", 1);
+        BasicDBObject sort = new BasicDBObject(FIELD_DEPTH, 1);
 
         BasicDBObject newDocument = new BasicDBObject("$set",
-                new BasicDBObject("state", State.ACTIVE.name()));
+                new BasicDBObject(FIELD_STATE, State.ACTIVE.name()));
 
         DBObject next = collUrls.findAndModify(whereQuery, sort, newDocument);
         return convertToCrawlURL(next);
@@ -137,7 +188,7 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
     }
 
     public CrawlURL getCached(String cacheURL) {
-        BasicDBObject whereQuery = new BasicDBObject("url", cacheURL);
+        BasicDBObject whereQuery = new BasicDBObject(FIELD_URL, cacheURL);
         DBObject result = collCached.findOne(whereQuery);
         return convertToCrawlURL(result);
     }
@@ -147,17 +198,17 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
             return null;
         }
 
-        String url = (String) result.get("url");
-        Integer depth = (Integer) result.get("depth");
+        String url = (String) result.get(FIELD_URL);
+        Integer depth = (Integer) result.get(FIELD_DEPTH);
         CrawlURL crawlURL = new CrawlURL(url, depth);
 
-        String crawlStatus = (String) result.get("crawl_status");
+        String crawlStatus = (String) result.get(FIELD_CRAWL_STATUS);
         if (crawlStatus != null) {
             crawlURL.setStatus(CrawlStatus.valueOf(crawlStatus));
         }
 
-        crawlURL.setHeadChecksum((String) result.get("head_checksum"));
-        crawlURL.setDocChecksum((String) result.get("doc_checksum"));
+        crawlURL.setHeadChecksum((String) result.get(FIELD_HEAD_CHECKSUM));
+        crawlURL.setDocChecksum((String) result.get(FIELD_DOC_CHECKSUM));
 
         return crawlURL;
     }
@@ -169,17 +220,18 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
     public void processed(CrawlURL crawlURL) {
 
         BasicDBObject document = new BasicDBObject();
-        document.put("url", crawlURL.getUrl());
-        document.put("depth", crawlURL.getDepth());
-        document.put("state", State.PROCESSED.name());
-        document.put("crawl_status", crawlURL.getStatus().toString());
-        document.put("head_checksum", crawlURL.getHeadChecksum());
-        document.put("doc_checksum", crawlURL.getDocChecksum());
-        document.put("valid", isValidStatus(crawlURL));
+        document.put(FIELD_URL, crawlURL.getUrl());
+        document.put(FIELD_DEPTH, crawlURL.getDepth());
+        document.put(FIELD_STATE, State.PROCESSED.name());
+        document.put(FIELD_CRAWL_STATUS, crawlURL.getStatus().toString());
+        document.put(FIELD_HEAD_CHECKSUM, crawlURL.getHeadChecksum());
+        document.put(FIELD_DOC_CHECKSUM, crawlURL.getDocChecksum());
+        document.put(FIELD_VALID, isValidStatus(crawlURL));
 
         // If the document does not exist yet, it will be inserted. If exists,
         // it will be updated.
-        BasicDBObject whereQuery = new BasicDBObject("url", crawlURL.getUrl());
+        BasicDBObject whereQuery = new BasicDBObject(FIELD_URL,
+                crawlURL.getUrl());
         collUrls.update(whereQuery, new BasicDBObject("$set", document), true,
                 false);
 
@@ -203,9 +255,9 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
         while (cursor.hasNext()) {
             DBObject next = cursor.next();
             BasicDBObject whereQuery = new BasicDBObject();
-            whereQuery.put("url", next.get("url"));
+            whereQuery.put(FIELD_URL, next.get(FIELD_URL));
 
-            next.put("state", State.QUEUED.name());
+            next.put(FIELD_STATE, State.QUEUED.name());
             collUrls.update(whereQuery, next, true, false);
         }
     }
@@ -233,9 +285,9 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
     }
 
     protected void changeUrlsState(State state, State newState) {
-        BasicDBObject whereQuery = new BasicDBObject("state", state.name());
+        BasicDBObject whereQuery = new BasicDBObject(FIELD_STATE, state.name());
         BasicDBObject newDocument = new BasicDBObject("$set",
-                new BasicDBObject("state", newState.name()));
+                new BasicDBObject(FIELD_STATE, newState.name()));
         // Batch update
         collUrls.update(whereQuery, newDocument, false, true);
     }
@@ -243,34 +295,34 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
     protected void deleteUrls(String... states) {
         BasicDBObject document = new BasicDBObject();
         List<String> list = Arrays.asList(states);
-        document.put("state", new BasicDBObject("$in", list));
+        document.put(FIELD_STATE, new BasicDBObject("$in", list));
         collUrls.remove(document);
     }
 
     protected int getUrlsCount(State state) {
-        BasicDBObject whereQuery = new BasicDBObject("state", state.name());
+        BasicDBObject whereQuery = new BasicDBObject(FIELD_STATE, state.name());
         return (int) collUrls.count(whereQuery);
     }
 
     protected boolean isState(String url, State state) {
-        BasicDBObject whereQuery = new BasicDBObject("url", url);
+        BasicDBObject whereQuery = new BasicDBObject(FIELD_URL, url);
         DBObject result = collUrls.findOne(whereQuery);
-        if (result == null || result.get("state") == null) {
+        if (result == null || result.get(FIELD_STATE) == null) {
             return false;
         }
-        State currentState = State.valueOf((String) result.get("state"));
+        State currentState = State.valueOf((String) result.get(FIELD_STATE));
         return state == currentState;
     }
 
     @Override
     public void sitemapResolved(String urlRoot) {
-        BasicDBObject document = new BasicDBObject("url", urlRoot);
+        BasicDBObject document = new BasicDBObject(FIELD_URL, urlRoot);
         collSitemaps.insert(document);
     }
 
     @Override
     public boolean isSitemapResolved(String urlRoot) {
-        BasicDBObject whereQuery = new BasicDBObject("url", urlRoot);
+        BasicDBObject whereQuery = new BasicDBObject(FIELD_URL, urlRoot);
         return collSitemaps.findOne(whereQuery) != null;
     }
 
@@ -280,9 +332,9 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
     }
 
     private void processedToCached() {
-        BasicDBObject whereQuery = new BasicDBObject("state",
+        BasicDBObject whereQuery = new BasicDBObject(FIELD_STATE,
                 State.PROCESSED.name());
-        whereQuery.put("valid", true);
+        whereQuery.put(FIELD_VALID, true);
         DBCursor cursor = collUrls.find(whereQuery);
 
         // Add them to cache in batch
