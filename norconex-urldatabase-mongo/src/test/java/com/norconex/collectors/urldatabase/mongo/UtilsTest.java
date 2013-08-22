@@ -52,13 +52,17 @@ public class UtilsTest {
     @Test
     public void test_getDbNameOrGenerate_invalid_name() throws Exception {
         HttpCrawlerConfig config = new HttpCrawlerConfig();
+        // Tests some of the invalid characters
+        checkInvalidName("invalid.name", config);
+        checkInvalidName("invalid$name", config);
+        checkInvalidName("invalid/name", config);
+        checkInvalidName("invalid:name", config);
+        checkInvalidName("invalid name", config);
+    }
+
+    private void checkInvalidName(String name, HttpCrawlerConfig config) {
         try {
-            // Tests some of the invalid characters
-            Utils.getDbNameOrGenerate("invalid.name", config);
-            Utils.getDbNameOrGenerate("invalid$name", config);
-            Utils.getDbNameOrGenerate("invalid/name", config);
-            Utils.getDbNameOrGenerate("invalid:name", config);
-            Utils.getDbNameOrGenerate("invalid name", config);
+            Utils.getDbNameOrGenerate(name, config);
             fail("Should throw an IllegalArgumentException because the name is invalid");
         } catch (IllegalArgumentException e) {
             // Expected
