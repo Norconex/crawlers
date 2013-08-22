@@ -20,6 +20,8 @@
             Norconex Inc.
             ------
 
+%{snippet|file=src/main/resources/adsense.txt|verbatim=false}
+
 Support Options
 
   Community support is available on 

@@ -20,6 +20,8 @@
             Norconex Inc.
             ------
 
+%{snippet|file=src/main/resources/adsense.txt|verbatim=false}
+
 Welcome to Norconex HTTP Collector
 
   Norconex HTTP Collector is a web crawler that aims to make
@@ -27,7 +29,7 @@ Welcome to Norconex HTTP Collector
 
   The current stable version is <<${currentStableVersion}>>.
 
-  Quick Links:
+  <<Quick Links:>>
   
   * {{{./download.html}Download}} 
   
@@ -37,10 +39,10 @@ Welcome to Norconex HTTP Collector
 
   []
 
-* Version 1.1 Release Candidate 1 now available
+* Version 1.1 now available
 
-  Upcoming 1.1 version will bring you new features we hope you will like.  
-  You can {{{./download.html}download}} a "release candidate" version right 
+  Version 1.1 brings you new features we hope you will like.  
+  You can {{{./download.html}download}} this version right 
   away.  Amongst new features or enhancements you will find:
   
   * Faster and more constant crawling performance at high volume
@@ -55,7 +57,7 @@ Welcome to Norconex HTTP Collector
   
   * Support for <<<ftp://>>> URLs.
   
-  * More.  See {{{./changes-report.html}Release notes}} for a more complete list.
+  * See {{{./changes-report.html}Release notes}} for a complete list of changes.
   
   []
   
@@ -73,9 +75,9 @@ Welcome to Norconex HTTP Collector
   as Enterprise Search integrators.  While they all have
   their strength and weaknesses, we always wished we could get our hands 
   on one that combines all the things we like, while minimizing many of the
-  reccurent pain points we kept experiencing.  After years of waiting for it
+  recurrent pain points we kept experiencing.  After years of waiting for it
   we took matters into our own hands and the results is here.   While at first
-  its main goal was to faciltate our own job as integrators, we now hope it 
+  its main goal was to facilitate our own job, we now hope it 
   can benefit you too. Please be vocal about things you would like to see 
   included in future releases.
 
@@ -298,8 +300,8 @@ Welcome to Norconex HTTP Collector
 []
 
   * <<Tested with millions of URLs>>\
-    A single crawler instance has been tested with a few million URLs without
-    issues.
+    Single or multiple crawler instances have been tested with millions 
+    of web pages and documents without issues.
 
 []
    
@@ -318,7 +320,8 @@ Welcome to Norconex HTTP Collector
   for, even though it may be one day (provided by Norconex or community).
   For example:
   
-  * Does not focus on BigData.
+  * Does not focus on BigData (but has been tested with millions -- see feature
+    list above).
   
   * Does not focus on preserving document structure.
 
