@@ -21,6 +21,7 @@ package com.norconex.committer.solr;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,9 +110,10 @@ public class SolrCommitter extends BaseCommitter {
     private int solrBatchSize = DEFAULT_SOLR_BATCH_SIZE;
 
     private final List<QueuedAddedDocument> docsToAdd = 
-            new ArrayList<QueuedAddedDocument>();
+            Collections.synchronizedList(new ArrayList<QueuedAddedDocument>());
     private final List<QueuedDeletedDocument> docsToRemove = 
-            new ArrayList<QueuedDeletedDocument>();
+            Collections.synchronizedList(
+                    new ArrayList<QueuedDeletedDocument>());
 
     private final Map<String, String> updateUrlParams = 
             new HashMap<String, String>();
@@ -169,8 +171,15 @@ public class SolrCommitter extends BaseCommitter {
     protected void commitAddedDocument(QueuedAddedDocument document)
             throws IOException {
         docsToAdd.add(document);
-        if (docsToAdd.size() % solrBatchSize == 0) {
-            persistToSolr();
+        
+        List<QueuedAddedDocument> batch = null;
+        synchronized (docsToAdd) {
+            if (docsToAdd.size() % solrBatchSize == 0) {
+                batch = getBatchToAdd();
+            }
+        }
+        if (batch != null) {
+            persistToSolr(batch);
         }
     }
 
@@ -178,13 +187,35 @@ public class SolrCommitter extends BaseCommitter {
     protected void commitDeletedDocument(QueuedDeletedDocument document)
             throws IOException {
         docsToRemove.add(document);
-        if (docsToRemove.size() % solrBatchSize == 0) {
-            deleteFromSolr();
+        
+        List<QueuedDeletedDocument> batch = null;
+        synchronized (docsToRemove) {
+            if (docsToRemove.size() % solrBatchSize == 0) {
+                batch = getBatchToRemove();
+            }
+        }
+        if (batch != null) {
+            deleteFromSolr(batch);
         }
     }
 
-    private void persistToSolr() {//Map<File, SolrInputDocument> docList) {
-        LOG.info("Sending " + docsToAdd.size() 
+    private List<QueuedAddedDocument> getBatchToAdd() {
+        List<QueuedAddedDocument> batch = 
+                new ArrayList<QueuedAddedDocument>(docsToAdd);
+        docsToAdd.clear();
+        return batch;
+    }
+
+    private List<QueuedDeletedDocument> getBatchToRemove() {
+        List<QueuedDeletedDocument> batch = 
+                new ArrayList<QueuedDeletedDocument>(docsToRemove);
+        docsToRemove.clear();
+        return batch;
+    }
+
+    
+    private void persistToSolr(List<QueuedAddedDocument> batch) {
+        LOG.info("Sending " + batch.size() 
                 + " documents to Solr for update.");
         try {
             // Commit Solr batch
@@ -193,17 +224,17 @@ public class SolrCommitter extends BaseCommitter {
             for (String name : updateUrlParams.keySet()) {
                 request.setParam(name, updateUrlParams.get(name));
             }
-            for (QueuedAddedDocument doc : docsToAdd) {
+            for (QueuedAddedDocument doc : batch) {
                 request.add(buildSolrDocument(doc.getMetadata()));
             }
             request.process(server);
             server.commit();
 
             // Delete queued documents after commit
-            for (QueuedAddedDocument doc : docsToAdd) {
+            for (QueuedAddedDocument doc : batch) {
                 doc.deleteFromQueue();
             }
-            docsToAdd.clear();
+            batch.clear();
         } catch (Exception e) {
             throw new CommitterException(
                     "Cannot index document batch to Solr.", e);
@@ -222,8 +253,8 @@ public class SolrCommitter extends BaseCommitter {
         return doc;
     }
     
-    private void deleteFromSolr() {
-        LOG.info("Sending " + docsToRemove.size()
+    private void deleteFromSolr(List<QueuedDeletedDocument> batch) {
+        LOG.info("Sending " + batch.size()
                 + " documents to Solr for deletion.");
         try {
             SolrServer server = solrServerFactory.createSolrServer(this);
@@ -232,17 +263,17 @@ public class SolrCommitter extends BaseCommitter {
             for (String name : deleteUrlParams.keySet()) {
                 request.setParam(name, deleteUrlParams.get(name));
             }
-            for (QueuedDeletedDocument doc : docsToRemove) {
+            for (QueuedDeletedDocument doc : batch) {
                 request.deleteById(doc.getReference());
             }
             request.process(server);
             server.commit();
 
             // Delete queued documents after commit
-            for (QueuedDeletedDocument doc : docsToRemove) {
+            for (QueuedDeletedDocument doc : batch) {
                 doc.deleteFromQueue();
             }
-            docsToRemove.clear();
+            batch.clear();
         } catch (Exception e) {
             throw new CommitterException(
                     "Cannot delete document batch from Solr.", e);
@@ -253,10 +284,14 @@ public class SolrCommitter extends BaseCommitter {
     @Override
     protected void commitComplete() {
         if (!docsToAdd.isEmpty()) {
-            persistToSolr();
+            synchronized (docsToAdd) {
+                persistToSolr(getBatchToAdd());
+            }
         }
         if (!docsToRemove.isEmpty()) {
-            deleteFromSolr();
+            synchronized (docsToRemove) {
+                deleteFromSolr(getBatchToRemove());
+            }
         }
     }
 

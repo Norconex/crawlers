@@ -19,6 +19,8 @@
 #set( $H3 = '###' )
 <head><title>Home</title><meta name="Author" content="Norconex Inc." /></head> 
 
+#parse("adsense.html")
+
 Welcome to Norconex Solr Committer
 ==================================
 
@@ -27,10 +29,21 @@ The **Solr Committer** library provides an implementation of
 [Apache Solr](http://lucene.apache.org/solr/).  This committer should work
 with any search product using Solr at its core (such as LucidWorks Search).
 
-The current stable version of Norconex Solr Committer is
-${currentStableVersion} ([download](./download.html)). 
+The current stable version is **${currentStableVersion}**
 
-Latest [API documentation](./apidocs/index.html).
+**Quick Links:**
+  
+  * [Download](./download.html)
+  
+  * [API documentation](./apidocs/index.html)
+    
+  * [Release notes](./changes-report.html)
+
+Version 1.0.1 Released
+----------------------
+
+Release 1.0.1 fixes a **OutOfMemory** exception when using multiple threads.
+**You are strongly encouraged to [upgrade](./download.html).**
 
 Installation
 ------------
@@ -45,6 +58,9 @@ follow these simple steps:
 
   * Copy the content of the `<committer_unzipped_folder>/lib` folder
     to `<collector_install_folder>/lib`.
+    
+  * If you notice different versions of the same library in the lib folder
+    It is usually best advised to keep the most recent copy only.
     
 Configuration
 -------------

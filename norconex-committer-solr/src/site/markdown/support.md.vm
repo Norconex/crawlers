@@ -18,6 +18,8 @@
 -->
 <head><title>Support</title><meta name="Author" content="Norconex Inc." /></head> 
 
+#parse("adsense.html")
+
 Support Options
 ===============
 
