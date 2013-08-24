@@ -22,6 +22,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.apache.commons.configuration.XMLConfiguration;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
@@ -55,6 +59,28 @@ public class MongoCrawlURLDatabaseFactory implements ICrawlURLDatabaseFactory,
 
     @Override
     public void saveToXML(Writer out) throws IOException {
-        // TODO ???
+        XMLOutputFactory factory = XMLOutputFactory.newInstance();
+        try {
+            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+
+            writer.writeStartElement("port");
+            writer.writeCharacters(String.valueOf(port));
+            writer.writeEndElement();
+
+            writer.writeStartElement("host");
+            writer.writeCharacters(host);
+            writer.writeEndElement();
+
+            if (dbName != null && dbName.length() > 0) {
+                writer.writeStartElement("dbname");
+                writer.writeCharacters(dbName);
+                writer.writeEndElement();
+            }
+
+            writer.flush();
+            writer.close();
+        } catch (XMLStreamException e) {
+            throw new IOException("Cannot save as XML.", e);
+        }
     }
 }
