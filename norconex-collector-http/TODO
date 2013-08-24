@@ -1,5 +1,10 @@
 The following are either things to be done, or ideas to consider:
 
+- Have configurable the level of verbosity desired when logging exceptions.
+  The options could be:
+     - type: none|all|first|last
+     - stacktrace: false|true
+
 - Use toSafeFileName and fromSafeFileName from classe FileUtil class to 
   ensure directories can be created without issues.
 
@@ -14,7 +19,7 @@ The following are either things to be done, or ideas to consider:
   implementation if MapDB does not stabilize more.
 
 - Maybe: Add documentRejectedChecksum and documentRejectedHeadersChecksum to 
-  IHttpCrawlerEventListener and fire them?
+  IHttpCrawlerEventListener and fire them?  <-- Not if we redo event model.
 
 - Make sure maxURL counter saved in progress is in sync with each time we commit
   to avoid having a counter higher than actual URLs processed in case of 
