@@ -18,6 +18,8 @@
 -->
 <head><title>Download</title><meta name="Author" content="Norconex Inc." /></head> 
 
+#parse("adsense.html")
+
 Download
 =========
 
@@ -27,7 +29,7 @@ Latest stable release
 
 Older releases:
   
-  * None yet.
+  * [1.0.0](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-committer-solr/1.0.0/norconex-committer-solr-1.0.0.zip)
 
 Source
 ------

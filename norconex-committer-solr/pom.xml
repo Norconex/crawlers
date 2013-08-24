@@ -22,14 +22,14 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-committer-solr</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <name>Norconex Committer Solr</name>
   
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <site.baseurl/>
-    <currentStableVersion>1.0.0</currentStableVersion>
+    <currentStableVersion>1.0.1</currentStableVersion>
     <solr.version>4.1.0</solr.version>
   </properties>
   <inceptionYear>2009</inceptionYear>
@@ -84,8 +84,6 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
-
-    
     <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
@@ -144,8 +142,16 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
     </dependency>
   </dependencies>
   
-  <description>Solr implementation of Norconex Committer.</description>
+  <description>Solr implementation of Norconex Committer.  Should also work with any Solr-based products, such as LucidWorks.</description>
   <build>
+    <resources>
+        <resource>
+            <directory>${project.build.testSourceDirectory}</directory>
+            <includes>
+                <include>**/*.html</include>
+            </includes>
+        </resource>
+    </resources>
     <extensions>
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
@@ -163,17 +169,17 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.2</version>
+                <version>3.3</version>
                 <dependencies>
                   <dependency>
                     <groupId>org.apache.maven.doxia</groupId>
                     <artifactId>doxia-site-renderer</artifactId>
-                    <version>1.3</version>
+                    <version>1.4</version>
                   </dependency>
                   <dependency>
                     <groupId>org.apache.maven.doxia</groupId>
                     <artifactId>doxia-module-markdown</artifactId>
-                    <version>1.3</version>
+                    <version>1.4</version>
                   </dependency>
                 </dependencies>                
             </plugin>
@@ -213,6 +219,7 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
         <version>2.9</version>
         <configuration>
           <stylesheetfile>${basedir}/src/main/resources/javadoc.css</stylesheetfile>
+          <overview>${basedir}/src/main/resources/javadoc-overview.html</overview>
           <show>protected</show>
           <detectLinks>true</detectLinks>
         </configuration>
@@ -224,8 +231,39 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
               <goal>javadoc</goal>
             </goals>
           </execution>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+       <groupId>org.apache.maven.plugins</groupId>
+       <artifactId>maven-jar-plugin</artifactId>
+       <version>2.2</version>
+       <executions>
+         <execution>
+           <goals>
+             <goal>test-jar</goal>
+           </goals>
+         </execution>
+       </executions>
+     </plugin>
     </plugins>  
   </build>
 
@@ -274,6 +312,7 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
         <version>2.9</version>
         <configuration>
           <stylesheetfile>${basedir}/src/main/resources/javadoc.css</stylesheetfile>
+          <overview>${basedir}/src/main/resources/javadoc-overview.html</overview>
           <show>protected</show>
           <detectLinks>true</detectLinks>
         </configuration>
@@ -304,13 +343,15 @@ along with Norconex Committer Solr. If not, see <http://www.gnu.org/licenses/>.
     </plugins>
   </reporting>  
 
-  <url>http://norconex.com/product/committer-solr/apidocs</url>
+  <url>http://norconex.com/product/committer-solr/</url>
   <organization>
     <name>Norconex Inc.</name>
     <url>http://www.norconex.com</url>
   </organization>
   <scm>
-    <url>https://github.com/Norconex/collectors/tree/master/norconex-committer-solr</url>
+    <url>https://github.com/Norconex/collectors</url>
+    <connection>scm:git:git@github.com:Norconex/collectors.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/collectors.git</developerConnection>
   </scm>
   <issueManagement>
     <url>https://github.com/Norconex/collectors/issues</url>

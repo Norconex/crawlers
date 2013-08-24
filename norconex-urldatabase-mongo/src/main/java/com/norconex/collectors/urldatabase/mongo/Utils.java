@@ -1,3 +1,21 @@
+/* Copyright 2010-2013 Norconex Inc.
+ * 
+ * This file is part of Norconex HTTP Collector.
+ * 
+ * Norconex HTTP Collector is free software: you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Norconex HTTP Collector is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Norconex HTTP Collector. If not, 
+ * see <http://www.gnu.org/licenses/>.
+ */
 package com.norconex.collectors.urldatabase.mongo;
 
 import org.apache.commons.lang3.StringUtils;
@@ -6,7 +24,7 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
 public class Utils {
 
-    public static final String MONGO_INVALID_DNBAME_CHARACTERS = "/\\.\"*<>:|?$";
+    public static final String MONGO_INVALID_DBNAME_CHARACTERS = "/\\.\"*<>:|?$";
 
     /**
      * Return or generate a DB name
@@ -27,7 +45,7 @@ public class Utils {
         if (dbName != null && dbName.length() > 0) {
             // Validate it
             if (StringUtils
-                    .containsAny(dbName, MONGO_INVALID_DNBAME_CHARACTERS)
+                    .containsAny(dbName, MONGO_INVALID_DBNAME_CHARACTERS)
                     || StringUtils.containsWhitespace(dbName)) {
                 throw new IllegalArgumentException("Invalid Mongo DB name: "
                         + dbName);
@@ -38,8 +56,8 @@ public class Utils {
         // Generate a name from the crawl ID
         dbName = config.getId();
         // Replace invalid character with '_'
-        for (int i = 0; i < MONGO_INVALID_DNBAME_CHARACTERS.length(); i++) {
-            char c = MONGO_INVALID_DNBAME_CHARACTERS.charAt(i);
+        for (int i = 0; i < MONGO_INVALID_DBNAME_CHARACTERS.length(); i++) {
+            char c = MONGO_INVALID_DBNAME_CHARACTERS.charAt(i);
             dbName = dbName.replace(c, '_');
         }
         // Replace whitespaces
