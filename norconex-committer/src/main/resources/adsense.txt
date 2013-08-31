@@ -1,6 +1,6 @@
 <script type="text/javascript"><!--
 google_ad_client = "ca-pub-4572498016361754";
-/* Norconex Importer Site */
+/* Norconex Committer Site */
 google_ad_slot = "8193066023";
 google_ad_width = 728;
 google_ad_height = 90;
