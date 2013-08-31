@@ -61,7 +61,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <item name="License" href="license.html"/>
       <item name="Download" href="download.html"/>
       <item name="Support" href="support.html"/>
-      <!-- <item name="FAQ" href="faq.html"/>-->
+      <item name="FAQ and HOWTOs" href="faq.html"/>
       <!-- <item name="Release Notes" href="release-notes.html" /> -->
       <!-- <item name="Road Map" href="roadmap.html" /> -->
     </menu>
