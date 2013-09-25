@@ -70,7 +70,7 @@ Download
 * Source
   
   Source code can be obtained on GitHub: 
-  {{https://github.com/Norconex/collectors/tree/master/norconex-collector-http}}.
+  {{https://github.com/Norconex/collector-http}}.
   
   Maven users can add the following to their pom.xml:
   
