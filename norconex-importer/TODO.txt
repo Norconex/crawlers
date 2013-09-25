@@ -1,3 +1,0 @@
-
-- Allow to break documents into smaller documents.
-
