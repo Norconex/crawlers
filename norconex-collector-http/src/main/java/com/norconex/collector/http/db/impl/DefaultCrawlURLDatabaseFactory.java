@@ -18,22 +18,17 @@
  */
 package com.norconex.collector.http.db.impl;
 
-import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.db.ICrawlURLDatabase;
-import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
+import com.norconex.collector.http.db.impl.mapdb.MapDBCrawlURLDatabaseFactory;
 
 /**
- * Database factory creating a {@link MapDBCrawlURLDatabase} instance.
+ * Default URL database factory. This class is a straight extension of
+ * {@link MapDBCrawlURLDatabaseFactory} and as such, uses MapDB for its 
+ * implementation
  * @author Pascal Essiembre
  */
 public class DefaultCrawlURLDatabaseFactory 
-        implements ICrawlURLDatabaseFactory {
+        extends MapDBCrawlURLDatabaseFactory {
 
     private static final long serialVersionUID = 370632354864351545L;
 
-    @Override
-    public synchronized ICrawlURLDatabase createCrawlURLDatabase(
-            HttpCrawlerConfig config, boolean resume) {
-        return new MapDBCrawlURLDatabase(config, resume);
-    }
 }

@@ -7,6 +7,17 @@
   </properties>
   <body>
 
+    <release version="1.2.0" date="2013-??-??" description="Feature release.">
+      <action dev="essiembp" type="add">
+        New Mongo URL Database implementation for big data.
+      </action>
+      <action dev="essiembp" type="update">
+        MapDB URL Database classes moved to its own "mapdb" package.
+        DefaultCrawlURLDatabaseFactory still exists, but is just a pointer
+        to MapDBCrawlURLDatabaseFactory. 
+      </action>
+    </release>
+
     <release version="1.1.0" date="2013-08-21" description="Feature release.">
       <action dev="essiembp" type="add">
         Crawler now fires additional events. Added "documentRobotsMetaRejected"
