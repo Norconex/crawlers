@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- When ready to make api changes, take out TargetURLRedirectStrategy and 
+  put that logic into DefaultDocumentFetcher will require signature change.
+
 - Use toSafeFileName and fromSafeFileName from classe FileUtil class to 
   ensure directories can be created without issues.
 

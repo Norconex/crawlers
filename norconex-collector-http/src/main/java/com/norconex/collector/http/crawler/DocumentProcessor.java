@@ -189,6 +189,14 @@ import com.norconex.importer.filter.OnMatch;
             // download as file
             CrawlStatus status = config.getHttpDocumentFetcher().fetchDocument(
                     httpClient, doc);
+            
+
+            //TODO Fix #17. Put in place a more permanent solution to this line
+            TargetURLRedirectStrategy.fixRedirectURL(
+                    httpClient, doc, crawlURL, database);
+            //--- END Fix #17 ---
+            
+            
             if (status == CrawlStatus.OK) {
                 HttpCrawlerEventFirer.fireDocumentFetched(
                         crawler, doc, config.getHttpDocumentFetcher());
@@ -395,7 +403,8 @@ import com.norconex.importer.filter.OnMatch;
                         doc.getMetadata().getContentType(),
                         outputFile,
                         doc.getMetadata(),
-                        doc.getUrl())) {
+                        crawlURL.getUrl())) {
+//               Fix #17: using crawlURL for more accurate url doc.getUrl())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("ACCEPTED document import. URL="
                                 + doc.getUrl());
@@ -567,5 +576,6 @@ import com.norconex.importer.filter.OnMatch;
                 && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
     }
     
+
 }
 
