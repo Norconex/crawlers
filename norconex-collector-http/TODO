@@ -54,9 +54,6 @@ The following are either things to be done, or ideas to consider:
   implementation... this means total download time (both for HEAD and GET) 
   should be added as document properties (not a bad idea to do regardless).
 
-- Provide a non-embedded crawl URL store solution, such as Mongo, or 
-  Generic SQL-DB (hibernate?).
-
 - To consider: Interface for Document Store for downloading documents.
   File system is used now, but could be others like MongoDB?
 
