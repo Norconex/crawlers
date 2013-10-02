@@ -270,7 +270,7 @@ import com.norconex.importer.filter.OnMatch;
             try {
                 FileReader reader = new FileReader(doc.getLocalFile());
                 IURLExtractor urlExtractor = config.getUrlExtractor();
-                urls = urlExtractor.extractURLs(reader, doc.getUrl(), 
+                urls = urlExtractor.extractURLs(reader, crawlURL.getUrl(), 
                         doc.getMetadata().getContentType());
                 reader.close();
             } catch (IOException e) {
