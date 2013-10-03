@@ -29,11 +29,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -389,6 +392,15 @@ public class HttpCrawler extends AbstractResumableJob {
                 okURLsCount++;
             }
             database.processed(crawlURL);
+            
+            //TODO Fix #17. Put in place a more permanent solution to this line
+            if (ObjectUtils.notEqual(doc.getUrl(), crawlURL.getUrl())) {
+                CrawlURL originalURL = crawlURL.safeClone();
+                originalURL.setUrl(doc.getUrl());
+                database.processed(originalURL);
+            }
+            //--- END Fix #17 ---
+            
             if (crawlURL.getStatus() == null) {
                 LOG.warn("URL status is unknown: " + crawlURL.getUrl());
                 crawlURL.setStatus(CrawlStatus.BAD_STATUS);
@@ -415,6 +427,13 @@ public class HttpCrawler extends AbstractResumableJob {
         httpClient = new DefaultHttpClient(m);
         crawlerConfig.getHttpClientInitializer().initializeHTTPClient(
                 httpClient);
+        
+        //TODO Fix #17. Put in place a more permanent solution to the following
+        RedirectStrategy strategy = httpClient.getRedirectStrategy();
+        if (strategy == null) {
+            strategy = new DefaultRedirectStrategy();
+        }
+        httpClient.setRedirectStrategy(new TargetURLRedirectStrategy(strategy));
 	}
 
     @Override

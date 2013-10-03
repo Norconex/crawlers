@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -189,6 +190,14 @@ import com.norconex.importer.filter.OnMatch;
             // download as file
             CrawlStatus status = config.getHttpDocumentFetcher().fetchDocument(
                     httpClient, doc);
+            
+
+            //TODO Fix #17. Put in place a more permanent solution to this line
+            TargetURLRedirectStrategy.fixRedirectURL(
+                    httpClient, doc, crawlURL, database);
+            //--- END Fix #17 ---
+            
+            
             if (status == CrawlStatus.OK) {
                 HttpCrawlerEventFirer.fireDocumentFetched(
                         crawler, doc, config.getHttpDocumentFetcher());
@@ -262,9 +271,9 @@ import com.norconex.importer.filter.OnMatch;
             try {
                 FileReader reader = new FileReader(doc.getLocalFile());
                 IURLExtractor urlExtractor = config.getUrlExtractor();
-                urls = urlExtractor.extractURLs(reader, doc.getUrl(), 
+                urls = urlExtractor.extractURLs(reader, crawlURL.getUrl(), 
                         doc.getMetadata().getContentType());
-                reader.close();
+                IOUtils.closeQuietly(reader);
             } catch (IOException e) {
                 throw new HttpCollectorException(
                         "Cannot extract URLs from: " + crawlURL.getUrl(), e);
@@ -395,7 +404,8 @@ import com.norconex.importer.filter.OnMatch;
                         doc.getMetadata().getContentType(),
                         outputFile,
                         doc.getMetadata(),
-                        doc.getUrl())) {
+                        crawlURL.getUrl())) {
+//               Fix #17: using crawlURL for more accurate url doc.getUrl())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("ACCEPTED document import. URL="
                                 + doc.getUrl());

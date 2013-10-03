@@ -5,6 +5,9 @@ The following are either things to be done, or ideas to consider:
      - type: none|all|first|last
      - stacktrace: false|true
 
+- When ready to make api changes, take out TargetURLRedirectStrategy and 
+  put that logic into DefaultDocumentFetcher will require signature change.
+
 - Use toSafeFileName and fromSafeFileName from classe FileUtil class to 
   ensure directories can be created without issues.
 
@@ -53,6 +56,9 @@ The following are either things to be done, or ideas to consider:
   (in case it is the crawler hammering it).  Probably a change or new delay
   implementation... this means total download time (both for HEAD and GET) 
   should be added as document properties (not a bad idea to do regardless).
+
+- Provide a non-embedded crawl URL store solution, such as Mongo, or 
+  Generic SQL-DB (hibernate?).
 
 - To consider: Interface for Document Store for downloading documents.
   File system is used now, but could be others like MongoDB?

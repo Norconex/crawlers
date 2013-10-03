@@ -22,7 +22,6 @@
 
 %{snippet|file=${project.basedir}/src/main/resources/adsense.txt|verbatim=false}
 
-
 FAQ and HOWTOs
 
   This page focuses on how to do things with Norconex HTTP 
