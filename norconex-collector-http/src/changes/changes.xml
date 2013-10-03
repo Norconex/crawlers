@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="1.1.1" date="2013-??-??" description="Bug fix release.">
+    <release version="1.1.1" date="2013-10-03" description="Bug fix release.">
       <action dev="essiembp" type="fix" issue="18">
         Fixed not being able to extract the "href" attribute when it starts
         a new line.
@@ -15,6 +15,10 @@
       <action dev="essiembp" type="fix" issue="17">
         Fixed HTTP redirects not storing final target URL but the source URL
         instead.
+      </action>
+      <action dev="essiembp" type="update">
+        Upgraded dependent libraries to Norconex Importer 1.1.0 and 
+        Norconex Commons Lang 1.1.0.
       </action>
     </release>
       

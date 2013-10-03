@@ -33,10 +33,12 @@ Download
   Latest releases
 
   * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/${currentStableVersion}/norconex-collector-http-${currentStableVersion}.zip} ${currentStableVersion}.zip}}
-
+                                        
   []
 
   Older releases:
+
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.1.0/norconex-collector-http-1.1.0.zip} 1.1.0.zip}}
 
   * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.2/norconex-collector-http-1.0.2.zip} 1.0.2.zip}}
 
