@@ -20,7 +20,8 @@
             Norconex Inc.
             ------
 
-%{snippet|file=${project.basedir}/src/site/resources/snippets/adsense.html|verbatim=false}
+%{snippet|file=${project.basedir}/src/main/resources/adsense.txt|verbatim=false}
+
 
 FAQ and HOWTOs
 
