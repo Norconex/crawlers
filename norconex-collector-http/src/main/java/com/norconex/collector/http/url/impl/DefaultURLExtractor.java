@@ -66,15 +66,15 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
     private static final int LOGGING_MAX_URL_LENGTH = 200;
     
     private static final Pattern URL_PATTERN = Pattern.compile(
-            "\\W(url|data-url|href|src)(\\s*=\\s*)([\"']{0,1})(.+?)([\"'>])",
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+           "(\\W|^)(url|data-url|href|src)(\\s*=\\s*)([\"']{0,1})(.+?)([\"'>])",
+           Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     
     private static final Pattern META_REFRESH_PATTERN = Pattern.compile(
             "<\\s*meta\\s.*?http-equiv\\s*=\\s*[\"']refresh[\"']",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     
-    private static final int URL_PATTERN_GROUP_URL = 4;
-    private static final int URL_PATTERN_GROUP_ATTR_NAME = 1;
+    private static final int URL_PATTERN_GROUP_URL = 5;
+    private static final int URL_PATTERN_GROUP_ATTR_NAME = 2;
 
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     
@@ -113,11 +113,14 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
                 if (StringUtils.startsWithIgnoreCase(url, "javascript:")) {
                     continue;
                 }
-                if (attrName.equalsIgnoreCase("url")
+                if (attrName != null && attrName.equalsIgnoreCase("url")
                         && !META_REFRESH_PATTERN.matcher(line).find()) {
                     continue;
                 }
                 url = extractURL(urlParts, url);
+                if (url == null) {
+                    continue;
+                }
                 if (url.length() > maxURLLength) {
                     LOG.warn("URL length (" + url.length() + ") exeeding "
                            + "maximum length allowed (" + maxURLLength
@@ -133,6 +136,9 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
      }
 
     private String extractURL(final UrlParts urlParts, final String rawURL) {
+        if (rawURL == null) {
+            return null;
+        }
         String url = rawURL;
         if (url.startsWith("//")) {
             // this is URL relative to protocol

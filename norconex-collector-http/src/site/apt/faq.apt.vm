@@ -1,0 +1,253 @@
+~~ Copyright 2010-2013 Norconex Inc.
+~~ 
+~~ This file is part of Norconex HTTP Collector.
+~~ 
+~~ Norconex HTTP Collector is free software: you can redistribute it and/or 
+~~ modify it under the terms of the GNU General Public License as published by
+~~ the Free Software Foundation, either version 3 of the License, or
+~~ (at your option) any later version.
+~~ 
+~~ Norconex HTTP Collector is distributed in the hope that it will be useful, 
+~~ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+~~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+~~ GNU General Public License for more details.
+~~ 
+~~ You should have received a copy of the GNU General Public License
+~~ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
+            ------
+            FAQ and HOWTOs
+            ------
+            Norconex Inc.
+            ------
+
+%{snippet|file=${project.basedir}/src/main/resources/adsense.txt|verbatim=false}
+
+FAQ and HOWTOs
+
+  This page focuses on how to do things with Norconex HTTP 
+  Collector. If you need help on a specific feature and it
+  is not covered here, we encourage you to ask about it or 
+  share your findings with others in the comments area below.  To report
+  issues, please use {{{https://github.com/norconex/collectors/issues}GitHub}}
+  (also a good place for questions).
+
+  * <<Crawling:>>
+  
+    * {{How to perform authentication on password-protected websites}}
+  
+    * {{How to ignore robot rules or sitemaps}}
+  
+    * {{How to follow HTML meta-equiv redirects without indexing original page}}
+
+  * <<Maintenance:>>
+
+    * {{How to setup a good directory structure}}
+
+  * <<Troubleshooting:>>
+
+    * {{How to change log levels}}
+
+  * <<Importing:>>
+
+    * See Importer FAQ and HOWTOs - Coming soon...
+
+  * <<Committing:>>
+
+    * See Committer FAQ and HOWTOs - Coming soon...
+
+  []
+
+
+~~==============================================================================
+* Crawling 
+~~==============================================================================
+
+
+** How to perform authentication on password-protected websites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  The DefaultHttpClientInitializer class supports 3 types of authentication 
+  schemes: FORM, BASIC, and DIGEST.  Use one of the following in your crawler 
+  configuration:
+
+  <<FORM-Based Authentication:>>
+
++------------------
+<httpClientInitializer>
+    <authMethod>form</authMethod>
+    <authUsername>smithj</authUsername>
+    <authPassword>secret</authPassword>
+    
+    <!-- Name of the HTML fields (or HTTP parameters) used to authenticate -->
+    <authUsernameField>username</authUsernameField>
+    <authPasswordField>password</authPasswordField>
+
+    <!-- URL of the login form page --> 
+    <authURL>http://mysite.com/secure/login.html</authURL>
+</httpClientInitializer>
++------------------
+
+  <<BASIC or DIGEST  Authentication:>>
+
++------------------
+<httpClientInitializer>
+    <!-- For DIGEST, change "basic" to "digest" -->    
+    <authMethod>basic</authMethod>
+    <authUsername>...</authUsername>
+    <authPassword>...</authPassword>
+
+    <authHostname>mysite.com</authHostname>
+    <authPort>80</authPort>
+    <authRealm>My Site Realm</authRealm>
+</httpClientInitializer>
++------------------
+
+
+** How to ignore robot rules or sitemaps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Set <<<ignore="true">>> on any of the following within your crawler 
+  configuration:
+  
++------------------
+<!-- To ignore robots.txt files -->
+<robotsTxt ignore="true" />
+
+<!-- To ignore in-page robot rules -->
+<robotsMeta ignore="true" />
+
+<!-- To ignore sitemap.xml files -->
+<sitemap ignore="true" />
++------------------
+
+
+**  How to follow HTML meta-equiv redirects without indexing original page
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Meta-equiv redirects are found in the <<<\<head\>>>> section of an HTML page
+  and are extracted for processing by default.  They look like this: 
+
++------------------
+<META http-equiv="refresh" content="5;URL=http://goto.com/newpage.html">.
++------------------
+  
+  If you want the URL to be followed you can't filter out the page hosting
+  the redirect tag until its URL is extracted and its content parsed.
+  This mean any filtering option should be defined as a post document 
+  parsing action.  Document parsing is the responsibility of the Importer
+  module. One way to do this is by adding a import
+  <<<RegexMetadataFilter>>> to your crawler configuration:
+  
++------------------
+<importer>
+    <postParseHandlers>
+        <filter class="com.norconex.importer.filter.impl.RegexMetadataFilter" 
+                onMatch="exclude" property="refresh">.*</filter>
+    </postParseHandlers>
+</importer>
++------------------
+
+  If you have specified a prefix to the extracted metadata, make sure to change
+  the property name accordingly.  
+
+
+  []
+
+
+~~==============================================================================
+* <<Maintenance:>>
+~~==============================================================================
+
+
+** How to setup a good directory structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  There are multitudes of ways you can go at this.  The following example 
+  ensures generated files are kept together for each collectors you define, 
+  favors configuration re-use, and ensures portability across environments.
+  Replace <<<\<ROOT_DIR\>>>> with the directory of your choice.  It does <<not>>
+  have to be within the directory where you have installed Norconex HTTP
+  Collector (but you can if you like).  Choosing a separate root directory for
+  your configuration may be a good idea to put emphasis that the same 
+  HTTP Collector can shared by any configuration instance you create. 
+  In this example, we store HTTP Collector next to other directories to
+  demonstrate that. 
+
++------------------
+<ROOT_DIR>/
+    norconex-collector-http-x.x.x/ <-- HTTP Collector installation
+    shared_configs/                <-- contains fragments for all your configs.
+    collectors/                    <-- one sub-directory per collector you have
+        myCollectorA/              <-- Your first collector
+            config/                <-- All configs specific to myCollectorA
+            workdir/               <-- All myCollectorB crawler generated files
+        myCollectorB/              <-- Your second collector
+            config/                <-- All configs specific to myCollectorA
+            workdir/               <-- All myCollectorB crawler generated files
+        ...
++------------------
+
+  To take advantage of this directory structure, you have to update your 
+  configuration file(s) accordingly.  Let's assume we are working on 
+  "myCollectorA".  The first thing you want to do to ensure portability
+  is to abstract your environment specific values in a variables file. 
+  In this case we'll assume the path is different.  We'll store our path in 
+  <<<\<ROOT_DIR>/collectors/myCollectorA/config/collectorA-config.variables>>> and it
+  will contain the following: 
+
++------------------
+workdir = <ROOT_DIR>/collectors/myCollectorA/workdir/
++------------------
+
+  The workdir variable can be referenced in your HTTP Collector configuration
+  with the dollar sign prefix <<<$workdir>>> or <<<$\{workdir\}>>>.  The
+  variable file will be automatically loaded if you store it in the same folder
+  as your main config, with the same name (minus the extension):
+  <<<\<ROOT_DIR>/collectors/myCollectorA/config/collectorA-config.xml>>>.
+  You can alternatively specify an alternat variables file path and name when 
+  as an extra argument when you launch the HTTP Collector.
+  We will use our variable to store every generated file in our working 
+  directory:
+
++------------------
+<httpcollector id="my-Collector-A">
+  <!-- Uncomment the following to hard-code the working directory instead:
+  \#set($workdir = "<ROOT_DIR>/collectors/myCollectorA/workdir/")
+    -->
+  <progressDir>${workdir}/progress</progressDir>
+  <logsDir>${workdir}/logs</logsDir>
+  
+  ...
+
+  <!-- The following takes advantaged of sharing files. -->
+  <importer>
+     \#parse("../../../shared_configs/shared-imports.cfg")
+  </importer>
+  
+  
+  <crawler id="any-crawler">
+    <workDir>$workdir/any-crawler</workDir>
+    ...
+  </crawler>
+</httpcollector>
++------------------
+
+~~==============================================================================
+* <<Troubleshooting:>>
+~~==============================================================================
+
+
+** How to change log levels
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Locate the <<<log4j.properties>>> file located in a sub-directory called
+  <<<classes>>> from your HTTP Collector installation directory.  It is 
+  self-documented enough to change the log level for most frequent scenarios
+  (do not log OK urls, log rejection details, etc).  You can adjust the log 
+  level for other particular classes of HTTP Collector or even your own.
+  Visit {{{http://logging.apache.org/log4j/1.2/}log4j}} site for more 
+  information.
+
+%{snippet|file=${project.basedir}/src/site/resources/snippets/disqus.html|verbatim=false}
+
+

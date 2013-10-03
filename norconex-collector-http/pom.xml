@@ -22,7 +22,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
-  <version>1.1.1-SNAPSHOT</version>
+  <version>1.1.1</version>
   <name>Norconex HTTP Collector</name>
 
   <properties>
@@ -393,12 +393,12 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   <description>Norconex HTTP Collector is a web spider, or crawler that aims to be very flexible, easy to extend, and portable</description>
   <issueManagement>
     <system>GitHub</system>
-    <url>https://github.com/Norconex/collectors/issues</url>
+    <url>https://github.com/Norconex/collector-http/issues</url>
   </issueManagement>
   <scm>
-    <url>https://github.com/Norconex/collectors</url>
-    <connection>scm:git:git@github.com:Norconex/collectors.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/collectors.git</developerConnection>
+    <url>https://github.com/Norconex/collector-http</url>
+    <connection>scm:git:git@github.com:Norconex/collector-http.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/collector-http.git</developerConnection>
   </scm>
 
   <developers>

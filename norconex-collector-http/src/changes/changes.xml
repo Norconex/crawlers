@@ -8,6 +8,10 @@
   <body>
 
     <release version="1.1.1" date="2013-??-??" description="Bug fix release.">
+      <action dev="essiembp" type="fix" issue="18">
+        Fixed not being able to extract the "href" attribute when it starts
+        a new line.
+      </action>
       <action dev="essiembp" type="fix" issue="17">
         Fixed HTTP redirects not storing final target URL but the source URL
         instead.

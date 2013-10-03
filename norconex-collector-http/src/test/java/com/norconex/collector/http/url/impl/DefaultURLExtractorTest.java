@@ -19,6 +19,7 @@
 package com.norconex.collector.http.url.impl;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,6 +41,8 @@ public class DefaultURLExtractorTest {
         String baseURL = "http://www.example.com/";
         String baseDir = baseURL + "test/";
         String docURL = baseDir + "DefaultURLExtractorTest.html";
+
+        // All these must be found
         String[] expectedURLs = {
                 baseURL + "meta-redirect.html",
                 baseURL + "startWithDoubleslash.html",
@@ -47,9 +50,15 @@ public class DefaultURLExtractorTest {
                 docURL, // <-- "#startWithHashMark" (hash is stripped)
                 baseURL + "startWithSlash.html",
                 baseDir + "relativeToLastSegment.html",
-                "http://www.sample.com/blah.html"
+                "http://www.sample.com/blah.html",
+                baseURL + "onTwoLines.html",
         };
         
+        // All these must NOT be found
+        String[] unexpectedURLs = {
+                baseURL + "badhref.html",
+        };
+
         Reader docReader = new InputStreamReader(getClass().getResourceAsStream(
                 "DefaultURLExtractorTest.html"));
         DefaultURLExtractor extractor = new DefaultURLExtractor();
@@ -58,8 +67,12 @@ public class DefaultURLExtractorTest {
                 docReader, docURL, ContentType.HTML);
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find extracted URL: " + expectedURL, 
+            assertTrue("Could not find expected URL: " + expectedURL, 
                     urls.contains(expectedURL));
+        }
+        for (String unexpectedURL : unexpectedURLs) {
+            assertFalse("Found unexpected URL: " + unexpectedURL, 
+                    urls.contains(unexpectedURL));
         }
     }
 }

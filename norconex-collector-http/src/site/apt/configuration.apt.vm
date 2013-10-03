@@ -20,7 +20,7 @@
             Norconex Inc.
             ------
 
-%{snippet|file=src/main/resources/adsense.txt|verbatim=false}
+%{snippet|file=${project.basedir}/src/main/resources/adsense.txt|verbatim=false}
 
 Configuration
 
