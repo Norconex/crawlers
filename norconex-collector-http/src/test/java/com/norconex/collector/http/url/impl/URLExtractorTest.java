@@ -18,29 +18,41 @@
  */
 package com.norconex.collector.http.url.impl;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
+import com.norconex.collector.http.url.IURLExtractor;
 import com.norconex.importer.ContentType;
 
+
 /**
+ * Tests multiple {@link IURLExtractor} implementations.
  * @author Pascal Essiembre
  */
-public class DefaultURLExtractorTest {
+public class URLExtractorTest {
 
     @Test
-    public void testURLExtraction() throws IOException {
+    public void testDefaultURLExtractor() throws IOException {
+        testURLExtraction(new DefaultURLExtractor());
+    }
+    @Test
+    public void testTikaURLExtractor() throws IOException {
+        testURLExtraction(new TikaURLExtractor());
+    }
+
+    private void testURLExtraction(IURLExtractor extractor) throws IOException {
         
         String baseURL = "http://www.example.com/";
         String baseDir = baseURL + "test/";
-        String docURL = baseDir + "DefaultURLExtractorTest.html";
+        String docURL = baseDir + "URLExtractorTest.html";
 
         // All these must be found
         String[] expectedURLs = {
@@ -60,8 +72,7 @@ public class DefaultURLExtractorTest {
         };
 
         Reader docReader = new InputStreamReader(getClass().getResourceAsStream(
-                "DefaultURLExtractorTest.html"));
-        DefaultURLExtractor extractor = new DefaultURLExtractor();
+                "URLExtractorTest.html"));
 
         Set<String> urls = extractor.extractURLs(
                 docReader, docURL, ContentType.HTML);
@@ -74,5 +85,6 @@ public class DefaultURLExtractorTest {
             assertFalse("Found unexpected URL: " + unexpectedURL, 
                     urls.contains(unexpectedURL));
         }
+        IOUtils.closeQuietly(docReader);
     }
 }

@@ -189,7 +189,7 @@ Configuration
 *----------+--------------+----------------+----------------+
 | <<<robotsMeta>>> | Handle in-page robots instructions. | {{{$api/robot/impl/DefaultRobotsMetaProvider.html}DefaultRobotsMetaProvider}} | {{{$api/robot/IRobotsMetaProvider.html}IRobotsMetaProvider}} |
 *----------+--------------+----------------+----------------+
-| <<<urlExtractor>>> | Extract URLs from a document. | {{{$api/url/impl/DefaultURLExtractor.html}DefaultURLExtractor}} | {{{$api/url/IURLExtractor.html}IURLExtractor}} |
+| <<<urlExtractor>>> | Extract URLs from a document. | {{{$api/url/impl/DefaultURLExtractor.html}DefaultURLExtractor}}, {{{$api/url/impl/TikaURLExtractor.html}TikaURLExtractor}} | {{{$api/url/IURLExtractor.html}IURLExtractor}} |
 *----------+--------------+----------------+----------------+
 | <<<httpDocumentFilters>>> | Filter documents. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}} | {{{$api/filter/IHttpDocumentFilter.html}IHttpDocumentFilter}} |
 *----------+--------------+----------------+----------------+
