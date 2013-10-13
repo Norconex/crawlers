@@ -12,13 +12,24 @@
         New Mongo URL Database implementation for big data.
       </action>
       <action dev="essiembp" type="add">
-        New TikaURLExtractor class providing an alternative IURLExtractor 
+        New TikaURLExtractor class providing an alternative IURLExtractor
         implementation based on Apache Tika HTMLParser.
+      </action>
+      <action dev="essiembp" type="add">
+        New SegmentCountURLFilter class for filtering URLs having a specified
+        number of segments (can check duplicate segments too).
+      </action>
+      <action dev="essiembp" type="add">
+        New unit tests.
       </action>
       <action dev="essiembp" type="update">
         MapDB URL Database classes moved to its own "mapdb" package.
         DefaultCrawlURLDatabaseFactory still exists, but is just a pointer
-        to MapDBCrawlURLDatabaseFactory. 
+        to MapDBCrawlURLDatabaseFactory.
+      </action>
+      <action dev="essiembp" type="update">
+        Upgraded dependent libraries: Norconex Committer 1.0.1,
+        Norconex Commons Lang 2.0.0, and other thrid party libraries.
       </action>
     </release>
 
@@ -32,7 +43,7 @@
         instead.
       </action>
       <action dev="essiembp" type="update">
-        Upgraded dependent libraries to Norconex Importer 1.1.0 and 
+        Upgraded dependent libraries to Norconex Importer 1.1.0 and
         Norconex Commons Lang 1.1.0.
       </action>
     </release>
@@ -43,7 +54,7 @@
         and "documentImportRejected" methods to IHttpCrawlerEventListener.
       </action>
       <action dev="essiembp" type="add">
-        DefaultCrawlURLDatabase now uses a MapDB-based implementation for 
+        DefaultCrawlURLDatabase now uses a MapDB-based implementation for
         faster performance.  The derby implementation has been kept for those
         with a preference for it.
       </action>
@@ -53,7 +64,7 @@
       </action>
       <action dev="pascaldimassimo" type="add">
         BASIC and DIGEST authentication now supported.
-      </action>  
+      </action>
       <action dev="essiembp" type="add">
         Now supports in-page robot instructions.  Via "ROBOTS" meta tag first,
         or "X-Robots-Tag" tag if present in HTTP header.
@@ -70,16 +81,16 @@
         Javadoc Jar and Source Jar are now also deployed to Maven repository.
       </action>
       <action dev="essiembp" type="update">
-        Deprecation of *.handler.* package.  Classes have been moved to 
+        Deprecation of *.handler.* package.  Classes have been moved to
         more intuitive packages.
       </action>
       <action dev="essiembp" type="update">
-        IDelayResolver are no longer systematically synchronized 
+        IDelayResolver are no longer systematically synchronized
         (i.e. accessible only one thread a a time). This is a decision left
-        up to each implementation.  
+        up to each implementation.
       </action>
       <action dev="essiembp" type="update">
-        Reduced the number of calls to the crawl database to improve 
+        Reduced the number of calls to the crawl database to improve
         performance (URL filtering but be successfully passed for a document
         to get queued for processing).
       </action>
@@ -94,7 +105,7 @@
       </action>
       <action dev="essiembp" type="update">
         When deleting downloaded files, the text file from the importer
-        output is now also deleted as URLs are being processed, 
+        output is now also deleted as URLs are being processed,
         greatly reducing the number of files on disk during the crawling
         process.
       </action>
@@ -103,9 +114,9 @@
         an error occurs on startup (error-*.log).
       </action>
       <action dev="essiembp" type="fix" issue="16">
-        When reprocessed, orphan URLs are processed/filtered in case there has 
-        been a configuration change.  For instance, if if the maxDepth was 
-        reduced, former URLs that were once good may now be invalid due to 
+        When reprocessed, orphan URLs are processed/filtered in case there has
+        been a configuration change.  For instance, if if the maxDepth was
+        reduced, former URLs that were once good may now be invalid due to
         their depth being too big.  Only "valid" URLs are now considered
         for detecting orphans (OK or UNMODIFIED statuses).
       </action>

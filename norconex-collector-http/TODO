@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+
+- 
+
 - Have configurable the level of verbosity desired when logging exceptions.
   The options could be:
      - type: none|all|first|last

@@ -1,17 +1,17 @@
 ~~ Copyright 2010-2013 Norconex Inc.
-~~ 
+~~
 ~~ This file is part of Norconex HTTP Collector.
-~~ 
-~~ Norconex HTTP Collector is free software: you can redistribute it and/or 
+~~
+~~ Norconex HTTP Collector is free software: you can redistribute it and/or
 ~~ modify it under the terms of the GNU General Public License as published by
 ~~ the Free Software Foundation, either version 3 of the License, or
 ~~ (at your option) any later version.
-~~ 
-~~ Norconex HTTP Collector is distributed in the hope that it will be useful, 
-~~ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+~~
+~~ Norconex HTTP Collector is distributed in the hope that it will be useful,
+~~ but WITHOUT ANY WARRANTY; without even the implied warranty of
 ~~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ~~ GNU General Public License for more details.
-~~ 
+~~
 ~~ You should have received a copy of the GNU General Public License
 ~~ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
             ------
@@ -29,31 +29,31 @@ Configuration
 * Quick start
 
   To get started quickly, download the latest version of Norconex HTTP Collector
-  and locate the file {{./examples/HOWTO_RUN_EXAMPLES.txt}}.  This file will 
-  point you to functional configuration files and we have you running a very 
-  simple crawler in no time.  These sample files are also made available here 
+  and locate the file {{./examples/HOWTO_RUN_EXAMPLES.txt}}.  This file will
+  point you to functional configuration files and we have you running a very
+  simple crawler in no time.  These sample files are also made available here
   for your convinience:
-  
+
   * {{{./examples/minimum/minimum-config.xml}Minimum Configuration Sample}}
-  
+
   * {{{./examples/complex/complex-config.xml}Complex Configuration Sample}}
 
   * {{{./examples/collector-http-config-reference.xml}Self-Documented Configuration Reference}}
-  
+
 * Configuration Options
-  
+
   To get its full potential and know which parts can easily be extended,
-  refer to the following for an XML based configuration. 
+  refer to the following for an XML based configuration.
   Entries with a "class" attribute are expecting an implementation
-  of your choice.   The HTTP Collector API offers several concrete 
+  of your choice.   The HTTP Collector API offers several concrete
   implementations already.  Developers can also create their own
-  by implementing the proper Java interfaces. Refer to the  
-  {{{./apidocs/index.html}HTTP Collector JavaDoc}} 
-  and/or see further down what interfaces you can implement to provide custom 
-  functionality. Go to the 
-  {{{./usage.html#Extend_the_HTTP_Collector} Extend the HTTP Collector}} 
+  by implementing the proper Java interfaces. Refer to the
+  {{{./apidocs/index.html}HTTP Collector JavaDoc}}
+  and/or see further down what interfaces you can implement to provide custom
+  functionality. Go to the
+  {{{./usage.html#Extend_the_HTTP_Collector} Extend the HTTP Collector}}
   page for more details on adding your own implementations.
-  
+
 +-------------------------------+
 <httpcollector id="...">
 
@@ -92,7 +92,7 @@ Configuration
     <httpHeadersFilters>
       <filter class="..." />
       ...
-    </httpHeadersFilters>        
+    </httpHeadersFilters>
     <httpHeadersChecksummer class="..." />
     <httpDocumentFetcher class="..." />
     <robotsMeta ignore="..." class="..."/>
@@ -108,14 +108,14 @@ Configuration
 
     <importer>
        <!-- refer to Importer documentation -->
-    </importer>           
+    </importer>
 
     <httpDocumentChecksummer class="..." />
 
     <postImportProcessors>
       <processor class="..."></processor>
     </postImportProcessors>
-        
+
     <committer class="..." />
   </crawlerDefaults>
 
@@ -129,12 +129,12 @@ Configuration
 </httpcollector>
 +-------------------------------+
 
-  The table below lists interface names that you can easily extend, and 
-  also lists available out-of-the-box implementations.  
+  The table below lists interface names that you can easily extend, and
+  also lists available out-of-the-box implementations.
   Class names starting with "Default..." are the ones automatically configured
   by default unless you overwrite them.
-  
-  In the configuration file, <<you have to use the fully qualified name>>, 
+
+  In the configuration file, <<you have to use the fully qualified name>>,
   as defined in the Javadoc.  Click on a class or interface name to go directly
   to its full documentation, with extra configuration options.
 
@@ -173,7 +173,7 @@ Configuration
 *----------+--------------+----------------+----------------+
 | <<<httpClientInitializer>>> | Normalize incoming URLs. | {{{$api/client/impl/DefaultHttpClientInitializer.html}DefaultHttpClientInitializer}} | {{{$api/client/IHttpClientInitializer.html}IHttpClientInitializer}} |
 *----------+--------------+----------------+----------------+
-| <<<httpURLFilters>>> | Filter based on URLs. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}} | {{{$api/filter/IURLFilter.html}IURLFilter}} |
+| <<<httpURLFilters>>> | Filter based on URLs. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}}, {{{$api/filter/impl/SegmentCountURLFilter.html}SegmentCountURLFilter}} | {{{$api/filter/IURLFilter.html}IURLFilter}} |
 *----------+--------------+----------------+----------------+
 | <<<robotsTxt>>> | Handle robots.txt files. | {{{$api/robot/impl/DefaultRobotsTxtProvider.html}DefaultRobotsTxtProvider}} | {{{$api/robot/IRobotsTxtProvider.html}IRobotsTxtProvider}} |
 *----------+--------------+----------------+----------------+
@@ -181,7 +181,7 @@ Configuration
 *----------+--------------+----------------+----------------+
 | <<<httpHeadersFetcher>>> | Handle robots.txt files. | {{{$api/fetch/impl/SimpleHttpHeadersFetcher.html}SimpleHttpHeadersFetcher}} | {{{$api/fetch/IHttpHeadersFetcher.html}IHttpHeadersFetcher}} |
 *----------+--------------+----------------+----------------+
-| <<<httpHeadersFilters>>> | Filter based on HTTP Headers. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}}, {{{$api/filter/impl/RegexHeaderFilter.html}RegexHeaderFilter }} | {{{$api/filter/IHttpHeadersFilter.html}IHttpHeadersFilter}} |
+| <<<httpHeadersFilters>>> | Filter based on HTTP Headers. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}}, {{{$api/filter/impl/RegexHeaderFilter.html}RegexHeaderFilter }}, {{{$api/filter/impl/SegmentCountURLFilter.html}SegmentCountURLFilter}} | {{{$api/filter/IHttpHeadersFilter.html}IHttpHeadersFilter}} |
 *----------+--------------+----------------+----------------+
 | <<<httpHeadersChecksummer>>> | Create document checksum from HTTP Headers. | {{{$api/checksum/impl/DefaultHttpHeadersChecksummer.html}DefaultHttpHeadersChecksummer}} | {{{$api/checksum/IHttpHeadersChecksummer.html}IHttpHeadersChecksummer}} |
 *----------+--------------+----------------+----------------+
@@ -191,7 +191,7 @@ Configuration
 *----------+--------------+----------------+----------------+
 | <<<urlExtractor>>> | Extract URLs from a document. | {{{$api/url/impl/DefaultURLExtractor.html}DefaultURLExtractor}}, {{{$api/url/impl/TikaURLExtractor.html}TikaURLExtractor}} | {{{$api/url/IURLExtractor.html}IURLExtractor}} |
 *----------+--------------+----------------+----------------+
-| <<<httpDocumentFilters>>> | Filter documents. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}} | {{{$api/filter/IHttpDocumentFilter.html}IHttpDocumentFilter}} |
+| <<<httpDocumentFilters>>> | Filter documents. | {{{$api/filter/impl/ExtensionURLFilter.html}ExtensionURLFilter}}, {{{$api/filter/impl/RegexURLFilter.html}RegexURLFilter}}, {{{$api/filter/impl/SegmentCountURLFilter.html}SegmentCountURLFilter}} | {{{$api/filter/IHttpDocumentFilter.html}IHttpDocumentFilter}} |
 *----------+--------------+----------------+----------------+
 | <<<preImportProcessors>>> | Process a document before import. |  | {{{$api/doc/IHttpDocumentProcessor.html}IHttpDocumentProcessor}} |
 *----------+--------------+----------------+----------------+
@@ -210,9 +210,9 @@ Configuration
 * More Options
 
   There is a lot more you can do to structure your configuration files
-  the way you like.  Refer to this 
+  the way you like.  Refer to this
   {{{../commons-lang/apidocs/com/norconex/commons/lang/config/ConfigurationLoader.html}additional documentation}}
-  for more configuration options such as creating reusable 
-  configuration fragments and using variables to make your file easier 
+  for more configuration options such as creating reusable
+  configuration fragments and using variables to make your file easier
   to maintain and more portable across different environments.
 
