@@ -44,7 +44,10 @@ public class MongoCrawlURLDatabaseFactory implements ICrawlURLDatabaseFactory,
 
     private static final long serialVersionUID = 2798011257427173733L;
 
-    private int port = 27017;
+    /** Default Mongo port. */
+    public static final int DEFAULT_MONGO_PORT = 27017;
+    
+    private int port = DEFAULT_MONGO_PORT;
     private String host = "localhost";
     private String dbName;
 

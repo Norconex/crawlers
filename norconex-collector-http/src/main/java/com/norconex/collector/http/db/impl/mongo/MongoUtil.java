@@ -27,9 +27,13 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
  * @author Pascal Dimassimo
  * @since 1.2
  */
-public class MongoUtil {
+public final class MongoUtil {
 
     public static final String MONGO_INVALID_DBNAME_CHARACTERS = "/\\.\"*<>:|?$";
+
+    private MongoUtil() {
+        super();
+    }
 
     /**
      * Return or generate a DB name
@@ -59,14 +63,14 @@ public class MongoUtil {
         }
 
         // Generate a name from the crawl ID
-        dbName = config.getId();
+        String dbIdName = config.getId();
         // Replace invalid character with '_'
         for (int i = 0; i < MONGO_INVALID_DBNAME_CHARACTERS.length(); i++) {
             char c = MONGO_INVALID_DBNAME_CHARACTERS.charAt(i);
-            dbName = dbName.replace(c, '_');
+            dbIdName = dbIdName.replace(c, '_');
         }
         // Replace whitespaces
-        dbName = dbName.replaceAll("\\s", "_");
-        return dbName;
+        dbIdName = dbIdName.replaceAll("\\s", "_");
+        return dbIdName ;
     }
 }

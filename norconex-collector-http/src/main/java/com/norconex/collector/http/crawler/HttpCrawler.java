@@ -393,13 +393,7 @@ public class HttpCrawler extends AbstractResumableJob {
             }
             database.processed(crawlURL);
             
-            //TODO Fix #17. Put in place a more permanent solution to this line
-            if (ObjectUtils.notEqual(doc.getUrl(), crawlURL.getUrl())) {
-                CrawlURL originalURL = crawlURL.safeClone();
-                originalURL.setUrl(doc.getUrl());
-                database.processed(originalURL);
-            }
-            //--- END Fix #17 ---
+            markOriginalURLAsProcessed(crawlURL, database, doc);
             
             if (crawlURL.getStatus() == null) {
                 LOG.warn("URL status is unknown: " + crawlURL.getUrl());
@@ -415,6 +409,16 @@ public class HttpCrawler extends AbstractResumableJob {
             }
 	    }
 	}
+
+    private void markOriginalURLAsProcessed(CrawlURL crawlURL,
+            ICrawlURLDatabase database, HttpDocument doc) {
+        //TODO Fix #17. Put in place a more permanent solution to this fix?
+        if (ObjectUtils.notEqual(doc.getUrl(), crawlURL.getUrl())) {
+            CrawlURL originalURL = crawlURL.safeClone();
+            originalURL.setUrl(doc.getUrl());
+            database.processed(originalURL);
+        }
+    }
 
 	private void initializeHTTPClient() {
         //TODO set HTTPClient user-agent from config before calling init..

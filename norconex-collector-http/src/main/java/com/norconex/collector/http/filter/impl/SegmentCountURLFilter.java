@@ -82,7 +82,9 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
 
     private static final long serialVersionUID = 927290374632128891L;
 
+    /** Default segment separator pattern. */
     public static final String DEFAULT_SEGMENT_SEPARATOR_PATTERN = "/";
+    /** Default segment count. */
     public static final int DEFAULT_SEGMENT_COUNT = 10;
 
     private String separator = DEFAULT_SEGMENT_SEPARATOR_PATTERN;
@@ -90,16 +92,34 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
     private boolean duplicate;
     private Pattern separatorPattern;
 
+    /**
+     * Constructor.
+     */
     public SegmentCountURLFilter() {
         this(DEFAULT_SEGMENT_COUNT);
     }
+    /**
+     * Constructor.
+     * @param count how many segment
+     */
     public SegmentCountURLFilter(int count) {
         this(count, OnMatch.INCLUDE);
     }
+    /**
+     * Constructor.
+     * @param count how many segment
+     * @param onMatch what to do on match
+     */
     public SegmentCountURLFilter(
             int count, OnMatch onMatch) {
         this(count, onMatch, false);
     }
+    /**
+     * Constructor.
+     * @param count how many segment
+     * @param onMatch what to do on match
+     * @param duplicate whether to handle duplicates
+     */
     public SegmentCountURLFilter(
             int count, OnMatch onMatch, boolean duplicate) {
         super();
@@ -154,15 +174,8 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
         if (StringUtils.isBlank(separator)) {
             return isInclude;
         }
-        String path = new HttpURL(url).getPath();
-        String[] allSegments = separatorPattern.split(path);
-        // remove empty/nulls
-        List<String> cleanSegments = new ArrayList<String>();
-        for (String segment : allSegments) {
-            if (StringUtils.isNotBlank(segment)) {
-                cleanSegments.add(segment);
-            }
-        }
+
+        List<String> cleanSegments = getCleanSegments(url);
 
         boolean reachedCount = false;
         if (duplicate) {
@@ -186,6 +199,19 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
         return reachedCount && isInclude || !reachedCount && !isInclude;
     }
 
+    private List<String> getCleanSegments(String url) {
+        String path = new HttpURL(url).getPath();
+        String[] allSegments = separatorPattern.split(path);
+        // remove empty/nulls
+        List<String> cleanSegments = new ArrayList<String>();
+        for (String segment : allSegments) {
+            if (StringUtils.isNotBlank(segment)) {
+                cleanSegments.add(segment);
+            }
+        }
+        return cleanSegments;
+    }
+    
     @Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);

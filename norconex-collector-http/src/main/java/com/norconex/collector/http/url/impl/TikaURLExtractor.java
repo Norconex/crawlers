@@ -115,7 +115,7 @@ public class TikaURLExtractor implements IURLExtractor, IXMLConfigurable {
             }
             return urls;
         } catch (Exception e) {
-            throw new IOException("Could not parse to extract URLs: " + url);
+            throw new IOException("Could not parse to extract URLs: " + url, e);
         }
     }
     

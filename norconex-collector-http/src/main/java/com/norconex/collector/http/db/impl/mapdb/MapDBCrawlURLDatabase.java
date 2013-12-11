@@ -255,8 +255,6 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     
     @Override
     public synchronized void close() {
-//        threadCount.decrement();
-//        if (threadCount.intValue() == 0 && !db.isClosed()) {
         if (!db.isClosed()) {
             LOG.info(config.getId() + ": Closing crawl database...");
             db.commit();
@@ -276,5 +274,6 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             db.commit();
             db.close();
         }
+        super.finalize();
     }
 }

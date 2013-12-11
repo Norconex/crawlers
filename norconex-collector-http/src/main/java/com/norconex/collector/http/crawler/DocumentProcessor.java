@@ -405,7 +405,7 @@ import com.norconex.importer.filter.OnMatch;
                         outputFile,
                         doc.getMetadata(),
                         crawlURL.getUrl())) {
-//               Fix #17: using crawlURL for more accurate url doc.getUrl())) {
+                    // Fix #17: using crawlURL for more accurate url
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("ACCEPTED document import. URL="
                                 + doc.getUrl());
@@ -423,6 +423,8 @@ import com.norconex.importer.filter.OnMatch;
         }
     }    
 
+    
+    
     
     //--- HTTP Document Checksum -----------------------------------------------
     private class HTTPDocumentChecksumStep implements IURLProcessingStep {

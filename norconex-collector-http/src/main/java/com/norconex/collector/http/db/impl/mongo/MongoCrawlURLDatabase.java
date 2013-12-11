@@ -88,14 +88,26 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
         QUEUED, ACTIVE, PROCESSED;
     };
 
+    /**
+     * Constructor.
+     * @param config crawler config
+     * @param resume whether to resume an aborted job
+     * @param port Mongo port
+     * @param host Mongo host
+     * @param dbName Mongo database name
+     */
     public MongoCrawlURLDatabase(HttpCrawlerConfig config, boolean resume,
             int port, String host, String dbName) {
-        this(config, resume, buildMongoDB(port, host,
-                MongoUtil.getDbNameOrGenerate(dbName, config)));
+        this(resume, buildMongoDB(
+                port, host, MongoUtil.getDbNameOrGenerate(dbName, config)));
     }
 
-    public MongoCrawlURLDatabase(HttpCrawlerConfig config, boolean resume,
-            DB database) {
+    /**
+     * Constructor.
+     * @param resume whether to resume an aborted job
+     * @param database Mongo database
+     */
+    public MongoCrawlURLDatabase(boolean resume, DB database) {
 
         this.database = database;
         this.collUrls = database.getCollection(COLLECTION_URLS);
@@ -248,21 +260,6 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
         return getUrlsCount(State.PROCESSED);
     }
 
-    public void queueCache() {
-        // Get all cached urls
-        DBCursor cursor = collCached.find();
-
-        // Add them to the queue
-        while (cursor.hasNext()) {
-            DBObject next = cursor.next();
-            BasicDBObject whereQuery = new BasicDBObject();
-            whereQuery.put(FIELD_URL, next.get(FIELD_URL));
-
-            next.put(FIELD_STATE, State.QUEUED.name());
-            collUrls.update(whereQuery, next, true, false);
-        }
-    }
-
     /**
      * TODO: same code as Derby impl. Put in a abstract base class?
      */
@@ -285,7 +282,7 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
                 || crawlURL.getStatus() == CrawlStatus.UNMODIFIED;
     }
 
-    protected void changeUrlsState(State state, State newState) {
+    private void changeUrlsState(State state, State newState) {
         BasicDBObject whereQuery = new BasicDBObject(FIELD_STATE, state.name());
         BasicDBObject newDocument = new BasicDBObject("$set",
                 new BasicDBObject(FIELD_STATE, newState.name()));
@@ -312,7 +309,7 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
             return false;
         }
         State currentState = State.valueOf((String) result.get(FIELD_STATE));
-        return state == currentState;
+        return state.equals(currentState);
     }
 
     @Override

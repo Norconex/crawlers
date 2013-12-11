@@ -62,6 +62,7 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
     private static final Logger LOG = LogManager.getLogger(
             DefaultURLExtractor.class);
 
+    /** Default maximum length a URL can have. */
     public static final int DEFAULT_MAX_URL_LENGTH = 2048;
     private static final int LOGGING_MAX_URL_LENGTH = 200;
     
@@ -107,14 +108,7 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
             while (matcher.find()) {
                 String attrName = matcher.group(URL_PATTERN_GROUP_ATTR_NAME);
                 String url = matcher.group(URL_PATTERN_GROUP_URL);
-                if (StringUtils.startsWithIgnoreCase(url, "mailto:")) {
-                    continue;
-                }
-                if (StringUtils.startsWithIgnoreCase(url, "javascript:")) {
-                    continue;
-                }
-                if (attrName != null && attrName.equalsIgnoreCase("url")
-                        && !META_REFRESH_PATTERN.matcher(line).find()) {
+                if (!isValidURL(url, attrName, line)) {
                     continue;
                 }
                 url = extractURL(urlParts, url);
@@ -133,8 +127,22 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
             }
         }
         return urls;
-     }
+    }
 
+    private boolean isValidURL(String url, String attributeName, String line) {
+        if (StringUtils.startsWithIgnoreCase(url, "mailto:")) {
+            return false;
+        }
+        if (StringUtils.startsWithIgnoreCase(url, "javascript:")) {
+            return false;
+        }
+        if (attributeName != null && attributeName.equalsIgnoreCase("url")
+                && !META_REFRESH_PATTERN.matcher(line).find()) {
+            return false;
+        }
+        return true;
+    }
+    
     private String extractURL(final UrlParts urlParts, final String rawURL) {
         if (rawURL == null) {
             return null;
@@ -163,9 +171,17 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
         return url;
     }
 
+    /**
+     * Gets the maximum supported URL length.
+     * @return maximum URL length
+     */
     public int getMaxURLLength() {
         return maxURLLength;
     }
+    /**
+     * Sets the maximum supported URL length.
+     * @param maxURLLength maximum URL length
+     */
     public void setMaxURLLength(int maxURLLength) {
         this.maxURLLength = maxURLLength;
     }

@@ -34,7 +34,7 @@ public class MongoCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 
     @Override
     protected void createImpl(boolean resume) {
-        db = new MongoCrawlURLDatabase(config, resume, mongoDB);
+        db = new MongoCrawlURLDatabase(resume, mongoDB);
         // To test against a real Mongo, use:
         // db = new MongoCrawlURLDatabase(config, resume, 27017, "localhost",
         // "unit-tests-001");
