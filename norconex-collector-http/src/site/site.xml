@@ -18,67 +18,132 @@ You should have received a copy of the GNU General Public License
 along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 -->
 <project name="Norconex Collector HTTP">
+
+  <skin>
+    <groupId>lt.velykis.maven.skins</groupId>
+    <artifactId>reflow-maven-skin</artifactId>
+    <version>1.0.0</version>
+  </skin>
+  
+  <custom>
+    <reflowSkin>
+      <protocolRelativeURLs>false</protocolRelativeURLs>
+      <smoothScroll>false</smoothScroll>
+      <highlightJs>true</highlightJs>
+      <theme>bootswatch-spacelab</theme>
+      <brand>
+          <!-- <img src="./images/norconex_logo.png" style="vertical-align: middle;">  -->
+        <name><![CDATA[
+          <span class="color-highlight">Norconex</span> HTTP Collector
+          ]]>
+        </name>
+        <href>http://www.norconex.com/product/collector-http/</href>
+      </brand>
+      <slogan>Open-Source Enterprise Web Crawler</slogan>
+      <!-- <shortTitle>generate|*</shortTitle> -->
+      <titleTemplate>%2$s | %1$s</titleTemplate>
+      <toc>top</toc>
+      <!-- <topNav>Download|reports</topNav> -->
+      <topNav>Documentation|Contribute</topNav>
+      <bottomNav>
+        <column>Main</column>
+        <column>Maven Documentation</column>
+        <column>Products</column>
+      </bottomNav>
+      <bottomDescription><![CDATA[
+          Norconex HTTP Collector is a free web crawler making 
+          Enterprise Search customers, integrators and developers' 
+          life easier. 
+          ]]>
+      </bottomDescription>
+      <skinAttribution>false</skinAttribution>
+
+      <pages>
+        <index project="norconex-collector-http">
+          <breadcrumbs>true</breadcrumbs>
+          <toc>true</toc>
+          <markPageHeader>false</markPageHeader>
+          <sections>
+            <body />
+            <columns>3</columns>
+            <!-- <sidebar />  -->
+          </sections>
+        </index>
+        <developer-info>
+          <toc>sidebar</toc>
+        </developer-info>
+      </pages>
+    </reflowSkin>
+  </custom>
+  
   <bannerLeft>
-    <name>Norconex HTTP Collector</name>
-    <src>images/leftbanner.png</src>
-    <href>http://www.norconex.com</href>
+    <name><![CDATA[
+      <span class="color-highlight">Norconex</span> HTTP Collector
+      ]]>
+    </name>
+    <href>http://www.norconex.com/product/collector-http/</href>
   </bannerLeft>
   <bannerRight>
-    <src>images/rightbanner.png</src>
-    <href>http://www.norconex.com/product/collector-http</href>
+    <src>images/homepage_303x136.png</src>
   </bannerRight>
-  <skin>
-    <groupId>org.apache.maven.skins</groupId>
-    <artifactId>maven-fluido-skin</artifactId>
-    <version>1.3.0</version>
-  </skin>
-  <custom>
-    <fluidoSkin>
-      <sideBarEnabled>true</sideBarEnabled>
-      <sourceLineNumbersEnabled>false</sourceLineNumbersEnabled>
-      <twitter>
-        <user>Norconex</user>
-        <showUser>false</showUser>
-        <showFollowers>false</showFollowers>
-      </twitter>
-      <facebookLike />
-      <googlePlusOne />
-    </fluidoSkin>
-  </custom>  
 
+  <version position="navigation-bottom"/>
+  <publishDate position="navigation-bottom"/>
+  
   <body>
     <links>
+      <item name="Home" href="index.html"/>
+      <item name="Download" href="download.html"/>
+<!-- 
       <item name="Norconex" href="http://www.norconex.com" />
       <item name="Support" href="support.html"/>
+ -->
     </links>
 
-
-    <menu name="Overview">
+    <menu name="Documentation">
+<!-- 
       <item name="Introduction" href="index.html"/>
+ -->
       <item name="Usage" href="usage.html"/>
       <item name="Configuration" href="configuration.html"/>
       <item name="Javadoc (Latest release)" href="apidocs/index.html"/>
-      <item name="License" href="license.html"/>
-      <item name="Download" href="download.html"/>
-      <item name="Support" href="support.html"/>
       <item name="FAQ and HOWTOs" href="faq.html"/>
-      <!-- <item name="Release Notes" href="release-notes.html" /> -->
+      <item name="Release Notes" href="release-notes.html" />
+      
       <!-- <item name="Road Map" href="roadmap.html" /> -->
     </menu>
 
-    <menu ref="reports"/>
 
-    <menu name="Norconex Products">
+    <menu name="Contribute">
+      <item name="Contribute" href="contribute.html"/>
+      <item name="Issues" href="https://github.com/norconex/collector-http/issues"/>
+      <item name="Fork on GitHub"  href="https://github.com/Norconex/collector-http"/>
+    </menu>
+
+    <menu name="Main">
+      <item name="Product Support" href="support.html"/>
+      <item name="Licensing" href="license.html"/>
+      <item name="Norconex Corporate Site"  href="http://www.norconex.com"/>
+    </menu>
+
+    <menu name="Maven Documentation" ref="reports"/>
+
+    <menu name="Products">
       <item name="Search Analytics" href="http://www.norconex.com/analytics"/>
-      <item name="JEF" href="http://www.norconex.com/product/jef"/>
-      <item name="Importer"  href="http://www.norconex.com/product/importer"/>
       <item name="Committer" href="http://www.norconex.com/product/committer"/>
+      <item name="Importer"  href="http://www.norconex.com/product/importer"/>
+      <item name="JEF" href="http://www.norconex.com/product/jef"/>
       <item name="Commons Lang" href="http://www.norconex.com/product/commons-lang"/>
     </menu>
+
 
   </body>
 
   <googleAnalyticsAccountId>UA-23162620-1</googleAnalyticsAccountId>
+            <!-- <carousel />  -->
+             <!--
+            <thumbs>2</thumbs>
+            -->
 
   <poweredBy>
     <logo name="Maven" href="http://maven.apache.org/" position="right"
@@ -86,5 +151,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <logo name="GPL" href="http://www.gnu.org/licenses/gpl.html" position="right"
           img="images/gplv3-88x31.png"/>
   </poweredBy>
+<!-- 
+ -->
 
 </project>

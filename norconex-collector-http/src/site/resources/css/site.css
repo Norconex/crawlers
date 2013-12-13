@@ -15,26 +15,62 @@
  * You should have received a copy of the GNU General Public License
  * along with Norconex JEF. If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#banner {
-  min-width: 990px;
-  border-width: 1px 1px 0px 1px;
-  border-color: #ccc;
-  border-style: solid;
-  border-radius: 5px 5px 0px 0px;
-}
 
-
-#breadcrumbs .breadcrumb {
-  border-width: 0px 1px 1px 1px;
-  border-color: #ccc;
-  border-style: solid;
-  border-radius: 0px 0px 5px 5px;
+.color-highlight {
+  color: #225e9b;
 }
-
-h1, h2, h3, h4 {
-  color: #D78E24;
+#advertisement {
+  text-align: center;
 }
-h4 {
+#currentStableVersionSection {
+  border-top: 1px solid #bbbbbb;
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 30px;
+  font-size: 16px;
+  color: #bbbbbb;
+}
+#currentStableVersion {
+  text-align: center;
   margin-top: 15px;
+  font-size: 42px;
+  color: #bbbbbb;
+  font-weight: bold;
+}
+
+/* -------------- FIX/MODIF TO reflow-skin.css ------------------------- */
+.project-norconex-collector-http h1[id]:before,
+.project-norconex-collector-http h2[id]:before,
+.project-norconex-collector-http h3[id]:before,
+.project-norconex-collector-http h4[id]:before,
+.project-norconex-collector-http h5[id]:before,
+.project-norconex-collector-http h6[id]:before,
+.project-norconex-collector-http a[name]:before {
+    display:block; 
+    content:""; 
+    height:0px; 
+    margin:-0px 0 0; 
+  
+}
+
+.breadcrumb {
+  height: 1.5em;
+}
+ 
+body.project-norconex-collector-http {
+  padding-top: 60px;
+  padding-bottom: 20px;
+}
+
+.project-norconex-collector-http header.jumbotron.subhead ul.breadcrumb {
+  height: 0px;
+  background-color: #ffffff;
+  border-width: 0px;
+  padding: 0px;
+  margin: 0px 0px 0px 0px;
+  font-size: 13px;
+}
+
+#banner.row div.pull-left {
+  margin-top: 20px;
 }

@@ -1,0 +1,85 @@
+#*
+ Copyright 2010-2013 Norconex Inc.
+ 
+ This file is part of Norconex JEF.
+ 
+ Norconex JEF is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ Norconex JEF is distributed in the hope that it will be useful, 
+ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with Norconex JEF. If not, see <http://www.gnu.org/licenses/>.
+*#
+<head><title>Getting Started</title><meta name="Author" content="Norconex Inc." /></head> 
+
+#parse("adsense.html")
+
+Getting Started
+===============
+
+To make the best use of the JEF API, you have to carefully identify
+all tasks that makes up your program execution workflow.  All these tasks
+are refered to as "jobs".  Jobs are assembled together to obtain the desired
+workflow, refered to as a "Job Suite".    
+  
+First wrap your existing jobs, or create new ones implementing the 
+[IJob](./apidocs/com/norconex/jef/IJob.html) interface to accomplish the 
+required tasks.  Whenever you have more than one job, assemble/group them 
+together using one or a combination of 
+[AsyncJobGroup](./apidocs/com/norconex/jef/AsyncJobGroup.html) and 
+[SyncJobGroup](./apidocs/com/norconex/jef/SyncJobGroup.html).
+  
+Create and configure a 
+[IJobSuite](./apidocs/com/norconex/jef/suite/JobSuite.html) with your created
+jobs. It is highly recommended you job suite creation logic is implemented using
+[IJobSuiteFactory](./apidocs/com/norconex/jef/suite/IJobSuiteFactory.html).
+Using this factory is the preferred way to load and initialize your 
+job suites by external processes such as *JEF Monitor*.
+  
+When you are done, run your job suite by passing it to 
+[JobRunner.runSuite(com.norconex.jef.suite.JobSuite)](./apidocs/com/norconex/jef/JobRunner.html). 
+
+Optionally, you can attach listeners to get notified of every 
+job-related events.  Listners and other useful classes can be found
+in the [JEF API](./apidocs/index.html).
+
+
+Code Sample
+-----------
+
+The creation of a job suite may look like this:
+
+    public class MyJobSuiteFactory implements IJobSuiteFactory {
+
+        public JobSuite createJobSuite() {
+            IJob rootJob = new AsyncJobGroup("asyncGroupSample", new IJob[] {
+                    new MyJobA(),
+                    new SyncJobGroup("syncGroupSample", new IJob[] {
+                            new MyJobB(),
+                            new MyJobC()
+                    }),    
+                    new MyJobD(),
+                    new MyJobE()),
+            });
+            JobSuite suite = new JobSuite(rootJob);
+            
+            // add any listners/handlers to the suite
+    
+            return suite;
+        }
+    }
+
+Then to launch the execution of a the job suite:
+  
+    IJobSuiteFactory factory = new MyJobSuiteFactory();
+    JobSuite suite = factory.createJobSuite();
+    JobRunner jobRunner = new JobRunner();
+    jobRunner.runSuite(suite);
+
+

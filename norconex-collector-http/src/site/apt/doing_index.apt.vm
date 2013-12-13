@@ -22,6 +22,8 @@
 
 %{snippet|file=${project.basedir}/src/main/resources/adsense.txt|verbatim=false}
 
+=====
+
 Welcome to Norconex HTTP Collector
 
   Norconex HTTP Collector is a web crawler that aims to make
