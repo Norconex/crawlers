@@ -20,7 +20,7 @@
   color: #225e9b;
 }
 #advertisement {
-  text-align: center;
+  text-align:  center;
 }
 #currentStableVersionSection {
   border-top: 1px solid #bbbbbb;
@@ -36,6 +36,28 @@
   font-size: 42px;
   color: #bbbbbb;
   font-weight: bold;
+}
+
+#newNoteworthy {
+  border-top: 1px solid #bbbbbb;
+  xxtext-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+}
+
+#nx-download-icon {
+  float:left; 
+  margin: 20px 0px 0px 20px;
+}
+#nx-download-text {
+  float:left; 
+  margin: 35px 0px 0px 10px;
+}
+#nx-download-version {
+  font-size: 20px; 
+}
+#nx-download-date {
+  font-size: 12px;  
 }
 
 /* -------------- FIX/MODIF TO reflow-skin.css ------------------------- */
@@ -73,4 +95,5 @@ body.project-norconex-collector-http {
 
 #banner.row div.pull-left {
   margin-top: 20px;
+  xxmargin-top: 10px;
 }

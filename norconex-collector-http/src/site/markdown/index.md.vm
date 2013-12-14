@@ -22,6 +22,17 @@
 #set($h4 = '####')
 <head><title>Home</title><meta name="Author" content="Norconex Inc." /></head> 
 
+  <p id="nx-download-icon">
+    <a href="./download.html"><img src="./images/download_72.png"/></a>
+  </p>
+  <p id="nx-download-text">
+    <a href="./download.html">
+      <span id="nx-download-version">Download ${currentStableVersion}</span>
+    </a>
+##    <br />
+##    <span id="nx-download-date">Released on ${timestamp}</span>
+  </p>
+
 #parse("adsense.html")
 
 *********************************************************
@@ -61,6 +72,23 @@ pleased with its long [list of features](./features.html).
 
 
 ##******************************************************************************
+
+
+
+##<p id="newNoteworthy"></p>
+#*
+$h2 ![News](./images/megaphone_24.png "News")  New and Noteworthy
+
+**Version 1.2.0 has been released.**  It brings a lot of new features you will 
+like. Here are some of them. This is garbage typing just to make this line
+appear super super long.  Is it long enough yet.  I want it to wrap.
+
+ * Brushes your theeth for you.  Hard to beleive, but true.
+ * Clean your car.  Even big fat cars. 
+ * Does whatever else you want.  OK, maybe not everything.
+
+[Get it now!](./page.html) |  [Release Notes](./releaseNotes.html)
+*#
 
 ##<p id="currentStableVersionSection">Last Stable Release:</p>
 ##<p id="currentStableVersion"><a href="download.html">$currentStableVersion</a></p>

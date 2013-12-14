@@ -32,14 +32,16 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <highlightJs>true</highlightJs>
       <theme>bootswatch-spacelab</theme>
       <brand>
-          <!-- <img src="./images/norconex_logo.png" style="vertical-align: middle;">  -->
         <name><![CDATA[
           <span class="color-highlight">Norconex</span> HTTP Collector
           ]]>
         </name>
         <href>http://www.norconex.com/product/collector-http/</href>
       </brand>
-      <slogan>Open-Source Enterprise Web Crawler</slogan>
+      <slogan><![CDATA[
+          Open-Source Enterprise Web Crawler
+          ]]>
+      </slogan>
       <!-- <shortTitle>generate|*</shortTitle> -->
       <titleTemplate>%2$s | %1$s</titleTemplate>
       <toc>top</toc>
@@ -51,9 +53,9 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <column>Products</column>
       </bottomNav>
       <bottomDescription><![CDATA[
-          Norconex HTTP Collector is a free web crawler making 
-          Enterprise Search customers, integrators and developers' 
-          life easier. 
+          <img src="./images/norconex_logo.png"><br />
+          Norconex HTTP Collector is released and maintained by 
+          <a href="http://www.norconex.com">Norconex</a>. 
           ]]>
       </bottomDescription>
       <skinAttribution>false</skinAttribution>
@@ -86,11 +88,23 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   <bannerRight>
     <src>images/homepage_303x136.png</src>
   </bannerRight>
-
-  <version position="navigation-bottom"/>
+  <version position="none "/>
   <publishDate position="navigation-bottom"/>
   
   <body>
+    <head>
+        <script type="text/javascript" 
+            src="http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-52ab57b042c3970b"></script>
+        <script type="text/javascript">
+            addthis.layers({
+                'theme' : 'transparent',
+                'share' : {
+                    'position' : 'left',
+                    'numPreferredServices' : 5
+                }   
+            });
+        </script>
+    </head>
     <links>
       <item name="Home" href="index.html"/>
       <item name="Download" href="download.html"/>
@@ -145,13 +159,21 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
             <thumbs>2</thumbs>
             -->
 
+<!-- 
+
+in slogan: 
+
+          <br />
+          <span style="color: #aaaaaa; font-size: 14px;">
+          Version: ${currentStableVersion}</span>
+
+
   <poweredBy>
     <logo name="Maven" href="http://maven.apache.org/" position="right"
           img="images/build-by-maven-white.png"/>
     <logo name="GPL" href="http://www.gnu.org/licenses/gpl.html" position="right"
           img="images/gplv3-88x31.png"/>
   </poweredBy>
-<!-- 
  -->
 
 </project>
