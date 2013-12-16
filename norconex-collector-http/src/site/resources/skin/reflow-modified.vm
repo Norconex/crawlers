@@ -1416,8 +1416,7 @@
     <body class="page-$config.fileId project-$config.projectId" data-spy="scroll" data-offset="60" data-target="${esc.h}toc-scroll-target">
 
      $FileUtils.fileRead("src/site/resources/snippets/adsense.html")
-
-
+     $FileUtils.fileRead("src/site/resources/snippets/addthis.html")
 
         <div class="navbar navbar-fixed-top#if ( $config.is( "navbarInverse" ) ) navbar-inverse#end">
             <div class="navbar-inner">
@@ -1586,6 +1585,7 @@
     <!-- Footer
     ================================================== -->
     <footer class="well">
+    
         <div class="container">
             <div class="row">
 #*  *##if( $decoration.body.menus )#*
@@ -1635,7 +1635,7 @@
             </div>
         </div>
     </footer>
-        
+
     <div class="container subfooter">
         <div class="row">
             <div class="span12">

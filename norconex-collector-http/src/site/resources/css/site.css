@@ -23,6 +23,7 @@
   text-align: center;
   padding-top: 4px;
   background-color: black;
+  max-height: 95px;
 }
 
 #currentStableVersionSection {
