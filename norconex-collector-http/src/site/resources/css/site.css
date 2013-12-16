@@ -49,7 +49,7 @@
 }
 
 
-#nx-news {
+.nx-news {
   width:400px;
   background-color: #f7f7f7;
   font-size: 12px;
@@ -62,14 +62,19 @@
   font-size: 8px;
   xxfont-weight: bold;
 }
-#nx-news img {
+.nx-news img {
   padding-right: 5px;
   vertical-align: middle;
 }
-#nx-news a.nx-download-link {
+.nx-news a.nx-download-link {
   font-weight: bold;
 }
 
+.nx-subheading {
+  font-size: 24px;
+  xxfont-style: italic;
+  color: #000000;
+}
 
 
 /* -------------- FIX/MODIF TO reflow-skin.css ------------------------- */

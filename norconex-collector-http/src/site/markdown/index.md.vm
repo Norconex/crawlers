@@ -23,7 +23,7 @@ Norconex HTTP Collector is distributed in the hope that it will be useful,
 <head><title>Home</title><meta name="Author" content="Norconex Inc." /></head> 
 
 
-<p id="nx-news">
+<p class="nx-news">
 
   <img src="./images/megaphone_16.png"/>
   <span class="nx-news-date">2013-12-23&nbsp;&nbsp;</span>
@@ -33,7 +33,6 @@ Norconex HTTP Collector is distributed in the hope that it will be useful,
   <img src="./images/megaphone_16.png"/>
   <span class="nx-news-date">2013-12-18&nbsp;&nbsp;</span>
   New Committer for <a href="./idol.html">Autonomy IDOL</a>.
-
 
 </p>
 

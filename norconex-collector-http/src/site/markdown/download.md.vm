@@ -22,60 +22,60 @@ Norconex HTTP Collector is distributed in the hope that it will be useful,
 #set($h4 = '####')
 <head><title>Download</title><meta name="Author" content="Norconex Inc." /></head> 
 
-#parse("adsense.html")
+<p class="nx-news">
 
-$h1 Download
+  <img src="./images/attention_16.png"/>
+  Also download a <b>Committer</b> to store your collected data.
 
-<<WAIT!>> Don't forget you need a
-{{{Committer_Implementations}committer implementation}} for your target 
-data repository (see below).
+</p>
+
+********************************************************************************
+
+$h2 Latest Release
+
+**[Download Release ${currentStableVersion}](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/${currentStableVersion}/norconex-collector-http-${currentStableVersion}.zip)**
+
+This release contains blah blah blah and the following bla bha blah:
+
+  * More of this
+  * Some of that.
+  * And this too
   
-$h2 Binaries
+[View detailed Release Notes](./release-notes.html) for all releases.
+
+##<span class="nx-subheading">Binaries</span>
+
+Older releases: 
+[1.1.0](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.1.0/norconex-collector-http-1.1.0.zip),
+[1.0.2](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.2/norconex-collector-http-1.0.2.zip),
+[1.0.1](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.1/norconex-collector-http-1.0.1.zip),
+[1.0.0](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.0/norconex-collector-http-1.0.0.zip)
 
 
-Latest releases
+$h2 Committer Implementations
 
-  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/${currentStableVersion}/norconex-collector-http-${currentStableVersion}.zip} ${currentStableVersion}.zip}}
-
-  []
-
-  Older releases:
-
-  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.1.0/norconex-collector-http-1.1.0.zip} 1.1.0.zip}}
-
-  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.2/norconex-collector-http-1.0.2.zip} 1.0.2.zip}}
-
-  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.1/norconex-collector-http-1.0.1.zip} 1.0.1.zip}}
-  
-  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.0/norconex-collector-http-1.0.0.zip} 1.0.0.zip}}
-
-~~  []    
-
-$h3 Committer Implementations
-
-Without a committer matching your target data repository, all you will be able to
-do with the HTTP Collector is saving the crawled content on the 
-file system using the {{{http://www.norconex.com/product/committer/apidocs/com/norconex/committer/impl/FileSystemCommitter.html}FileSystemCommitter}}.
-With your download of HTTP Collector, also download a 
-{{{http://www.norconex.com/product/committer}Committer}} 
-implementation that matches your data source (or 
-{{{mailto:info@norconex.com}contact Norconex}} to have yours created).
-  
-<<Available implementations:>>
-  
-  * {{{http://www.norconex.com/product/committer-solr/index.html}Solr/Lucidworks Committer}} 
-  
-  * {{{http://www.norconex.com/product/committer-elasticsearch/index.html}Elasticsearch Committer}} 
-  
+  * [Solr/Lucidworks](http://www.norconex.com/product/committer-solr/index.html) 
+  * [Elasticsearch](http://www.norconex.com/product/committer-elasticsearch/index.html) 
+  * [Autonomy IDOL](http://www.norconex.com/product/committer-idol/index.html) 
   * More to come...
-    
-  []
 
+If you use the HTTP Collector without a committer matching your target data 
+repository, you will only be able to save the collected content on the 
+file system using the 
+[FileSystemCommitter](http://www.norconex.com/product/committer/apidocs/com/norconex/committer/impl/FileSystemCommitter.html).
+With your download of HTTP Collector, also download the appropriate 
+[Committer](http://www.norconex.com/product/committer)
+implementation from the above list,
+[create your own](http://www.norconex.com/product/committer/createYourOwnTODO.html),
+or [contact Norconex](mailto:info@norconex.com) to have yours created.
+  
+
+********************************************************************************
   
 $h2 Source
   
   Source code can be obtained on GitHub: 
-  {{https://github.com/Norconex/collector-http}}.
+  (https://github.com/Norconex/collector-http).
   
   Maven users can add the following to their pom.xml:
   

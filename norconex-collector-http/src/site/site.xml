@@ -61,22 +61,34 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <skinAttribution>false</skinAttribution>
 
       <pages>
+
         <index project="norconex-collector-http">
-          <breadcrumbs>true</breadcrumbs>
+          <breadcrumbs>false</breadcrumbs>
           <toc>true</toc>
           <markPageHeader>false</markPageHeader>
           <sections>
             <body />
             <columns>3</columns>
-            <!-- 
-               <body />
-               <sidebar />
-                 -->
           </sections>
         </index>
+
+        <download project="norconex-collector-http">
+          <breadcrumbs>false</breadcrumbs>
+          <toc>true</toc>
+          <markPageHeader>false</markPageHeader>
+          <sections>
+            <body />
+            <columns>2</columns>
+            <body />
+          </sections>
+        </download>
+
+
+
         <developer-info>
           <toc>sidebar</toc>
         </developer-info>
+
       </pages>
     </reflowSkin>
   </custom>
