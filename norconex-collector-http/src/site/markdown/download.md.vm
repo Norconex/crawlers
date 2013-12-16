@@ -1,0 +1,112 @@
+#*
+ Copyright 2010-2013 Norconex Inc.
+ 
+ This file is part of Norconex HTTP Collector.
+ 
+Norconex HTTP Collector is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+Norconex HTTP Collector is distributed in the hope that it will be useful, 
+ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
+*#
+#set($h1 = '#')
+#set($h2 = '##')
+#set($h3 = '###')
+#set($h4 = '####')
+<head><title>Download</title><meta name="Author" content="Norconex Inc." /></head> 
+
+#parse("adsense.html")
+
+$h1 Download
+
+<<WAIT!>> Don't forget you need a
+{{{Committer_Implementations}committer implementation}} for your target 
+data repository (see below).
+  
+$h2 Binaries
+
+
+Latest releases
+
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/${currentStableVersion}/norconex-collector-http-${currentStableVersion}.zip} ${currentStableVersion}.zip}}
+
+  []
+
+  Older releases:
+
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.1.0/norconex-collector-http-1.1.0.zip} 1.1.0.zip}}
+
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.2/norconex-collector-http-1.0.2.zip} 1.0.2.zip}}
+
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.1/norconex-collector-http-1.0.1.zip} 1.0.1.zip}}
+  
+  * {{{http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.0/norconex-collector-http-1.0.0.zip} 1.0.0.zip}}
+
+~~  []    
+
+$h3 Committer Implementations
+
+Without a committer matching your target data repository, all you will be able to
+do with the HTTP Collector is saving the crawled content on the 
+file system using the {{{http://www.norconex.com/product/committer/apidocs/com/norconex/committer/impl/FileSystemCommitter.html}FileSystemCommitter}}.
+With your download of HTTP Collector, also download a 
+{{{http://www.norconex.com/product/committer}Committer}} 
+implementation that matches your data source (or 
+{{{mailto:info@norconex.com}contact Norconex}} to have yours created).
+  
+<<Available implementations:>>
+  
+  * {{{http://www.norconex.com/product/committer-solr/index.html}Solr/Lucidworks Committer}} 
+  
+  * {{{http://www.norconex.com/product/committer-elasticsearch/index.html}Elasticsearch Committer}} 
+  
+  * More to come...
+    
+  []
+
+  
+$h2 Source
+  
+  Source code can be obtained on GitHub: 
+  {{https://github.com/Norconex/collector-http}}.
+  
+  Maven users can add the following to their pom.xml:
+  
+    <repository>  
+      <id>norconex-release-repo</id>  
+      <name>Norconex Release Repository</name>  
+      <url>http://norconex.s3.amazonaws.com/repo/release</url>  
+      <releases>  
+        <enabled>true</enabled>  
+      </releases>  
+      <snapshots>  
+        <enabled>false</enabled>  
+      </snapshots>  
+    </repository>  
+
+    <dependency>
+      <groupId>com.norconex.collectors</groupId>
+      <artifactId>norconex-collector-http</artifactId>
+      <version>${currentStableVersion}</version>
+    </dependency>
+
+    <!-- At your own risk: -->
+    <repository>  
+      <id>norconex-snapshot-repo</id>  
+      <name>Norconex Snapshot Repository</name>  
+      <url>http://norconex.s3.amazonaws.com/repo/snapshot</url>  
+      <releases>  
+        <enabled>false</enabled>  
+      </releases>  
+      <snapshots>  
+        <enabled>true</enabled>  
+      </snapshots>  
+    </repository>  
+  

@@ -20,8 +20,11 @@
   color: #225e9b;
 }
 #advertisement {
-  text-align:  center;
+  text-align: center;
+  padding-top: 4px;
+  background-color: black;
 }
+
 #currentStableVersionSection {
   border-top: 1px solid #bbbbbb;
   text-align: center;
@@ -38,27 +41,35 @@
   font-weight: bold;
 }
 
-#newNoteworthy {
-  border-top: 1px solid #bbbbbb;
-  xxtext-align: center;
-  margin-top: 30px;
-  padding-top: 20px;
+#nx-invisible-head {
+  visibility: hidden;
+  line-height: 0px;
+  margin: 0px 0px 0px 0px;
 }
 
-#nx-download-icon {
-  float:left; 
-  margin: 20px 0px 0px 20px;
+
+#nx-news {
+  width:400px;
+  background-color: #f7f7f7;
+  font-size: 12px;
+  padding: 5px;
+  border-radius: 10px;
+  margin: -15px 0px 5px 10px;
+  line-height: 1.4em;
 }
-#nx-download-text {
-  float:left; 
-  margin: 35px 0px 0px 10px;
+.nx-news-date {
+  font-size: 8px;
+  xxfont-weight: bold;
 }
-#nx-download-version {
-  font-size: 20px; 
+#nx-news img {
+  padding-right: 5px;
+  vertical-align: middle;
 }
-#nx-download-date {
-  font-size: 12px;  
+#nx-news a.nx-download-link {
+  font-weight: bold;
 }
+
+
 
 /* -------------- FIX/MODIF TO reflow-skin.css ------------------------- */
 .project-norconex-collector-http h1[id]:before,
@@ -80,10 +91,13 @@
 }
  
 body.project-norconex-collector-http {
-  padding-top: 60px;
+  padding-top: 42px;
   padding-bottom: 20px;
 }
 
+.project-norconex-collector-http header.jumbotron.subhead #banner.row {
+  margin-top: 5px;
+}
 .project-norconex-collector-http header.jumbotron.subhead ul.breadcrumb {
   height: 0px;
   background-color: #ffffff;

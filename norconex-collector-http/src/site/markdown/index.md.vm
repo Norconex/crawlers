@@ -1,20 +1,20 @@
 #*
  Copyright 2010-2013 Norconex Inc.
  
- This file is part of Norconex JEF.
+ This file is part of Norconex HTTP Collector.
  
- Norconex JEF is free software: you can redistribute it and/or modify
+Norconex HTTP Collector is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
  
- Norconex JEF is distributed in the hope that it will be useful, 
+Norconex HTTP Collector is distributed in the hope that it will be useful, 
  but WITHOUT ANY WARRANTY; without even the implied warranty of 
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with Norconex JEF. If not, see <http://www.gnu.org/licenses/>.
+ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 *#
 #set($h1 = '#')
 #set($h2 = '##')
@@ -22,18 +22,53 @@
 #set($h4 = '####')
 <head><title>Home</title><meta name="Author" content="Norconex Inc." /></head> 
 
-  <p id="nx-download-icon">
-    <a href="./download.html"><img src="./images/download_72.png"/></a>
-  </p>
-  <p id="nx-download-text">
-    <a href="./download.html">
-      <span id="nx-download-version">Download ${currentStableVersion}</span>
-    </a>
-##    <br />
-##    <span id="nx-download-date">Released on ${timestamp}</span>
-  </p>
 
-#parse("adsense.html")
+<p id="nx-news">
+
+  <img src="./images/megaphone_16.png"/>
+  <span class="nx-news-date">2013-12-23&nbsp;&nbsp;</span>
+  <a href="./idol.html">Norconex HTTP Collector 1.1.1</a> released.
+
+  <br />
+  <img src="./images/megaphone_16.png"/>
+  <span class="nx-news-date">2013-12-18&nbsp;&nbsp;</span>
+  New Committer for <a href="./idol.html">Autonomy IDOL</a>.
+
+
+</p>
+
+
+
+#*
+  <img src="./images/download_16.png"/>
+  <span class="nx-news-date">2013-12-23:&nbsp;&nbsp;</span>
+  <a class="nx-download-link" href="./download.html">Download ${currentStableVersion}</a>
+
+<p id="nx-news">
+  <img src="./images/megaphone_24.png"/>
+  <span id="nx-news-head">New and Noteworthy</span><br />
+  <span id="nx-news-body">
+
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
+
+  </span>
+</p>
+*#
+##<h6 id="nx-invisible-head">&nbsp;</h6>
+##<h6 id="nx-invisible-head">&nbsp;</h6>
+
+
+
+##parse("adsense.html")
 
 *********************************************************
 

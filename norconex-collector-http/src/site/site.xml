@@ -28,7 +28,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   <custom>
     <reflowSkin>
       <protocolRelativeURLs>false</protocolRelativeURLs>
-      <smoothScroll>false</smoothScroll>
+      <smoothScroll>true</smoothScroll>
       <highlightJs>true</highlightJs>
       <theme>bootswatch-spacelab</theme>
       <brand>
@@ -68,7 +68,10 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           <sections>
             <body />
             <columns>3</columns>
-            <!-- <sidebar />  -->
+            <!-- 
+               <body />
+               <sidebar />
+                 -->
           </sections>
         </index>
         <developer-info>
@@ -93,17 +96,9 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   
   <body>
     <head>
-        <script type="text/javascript" 
-            src="http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-52ab57b042c3970b"></script>
-        <script type="text/javascript">
-            addthis.layers({
-                'theme' : 'transparent',
-                'share' : {
-                    'position' : 'left',
-                    'numPreferredServices' : 5
-                }   
-            });
-        </script>
+
+
+
     </head>
     <links>
       <item name="Home" href="index.html"/>
