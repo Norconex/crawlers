@@ -1,0 +1,79 @@
+#*
+ Copyright 2010-2013 Norconex Inc.
+ 
+ This file is part of Norconex HTTP Collector.
+ 
+Norconex HTTP Collector is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+Norconex HTTP Collector is distributed in the hope that it will be useful, 
+ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
+*#
+#set($h1 = '#')
+#set($h2 = '##')
+#set($h3 = '###')
+#set($h4 = '####')
+#set($arg = '<arg>')
+<head><title>Contribute</title><meta name="Author" content="Norconex Inc." /></head> 
+
+
+$h2 Contribute
+
+Norconex HTTP Collector is an open-source project and contributions are welcome
+to assist with its development and maintenance.  Use GitHub to track your 
+contributions.
+
+**Developers:**
+
+If you are a developer, you are welcome to fork, patch, and contribute code. 
+Contribute your fixes by submiting a 
+[pull request](http://help.github.com/articles/using-pull-requests) on 
+the [Norconex Git repository at GitHub](https://github.com/Norconex/collector-http)
+.   For core features, please inquiry about 
+features you want to implement first on GitHub to prevent work overlap and
+increase the odds of your contribution making its way to a future release.
+Developers are expected to follow 
+[Java Coding Standards](http://www.oracle.com/technetwork/java/codeconv-138413.html) 
+as much as possible/applicable. 
+
+
+**Anyone:**
+
+You do not have to be a developer to contribute.  Feature recommendations, bug
+reports, or any suggestions to to improve the product or its documentation 
+are also a great way to contribute.
+
+Please report any bugs found, feature requests or other issues on 
+[Norconex HTTP Collector GitHub tracker](https://github.com/Norconex/collector-http/issues).
+
+
+$h2 Acknowledgements
+
+This web site was generated with the help of:
+
+  * [Apache Maven Site Plugin](http://maven.apache.org/plugins/maven-site-plugin/).
+    ![Built by Maven](./images/built-by-maven-white.png)
+
+  * [Reflow Maven Skin](http://andriusvelykis.github.io/reflow-maven-skin/)
+    by [Andrius Velykis](http://andrius.velykis.lt/).
+
+  * Icons from :
+  
+    * blah
+    
+    * blah
+
+[Let us know](mailto:info@norconex.com) if you are using the Norconex HTTP 
+Collector and we may decide to show case some of its users.
+
+<p class="nx-heading2">License</p>
+
+Norconex HTTP Collector is dual licensed (GPL3 or Commercial).  Read the
+[Licensing](./license.html) page for more information.

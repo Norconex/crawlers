@@ -86,6 +86,13 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           <toc>top</toc>
         </faq>
 
+        <contribute project="norconex-collector-http">
+          <sections>
+            <columns>2</columns>
+          </sections>
+        </contribute>
+
+
         <developer-info>
         </developer-info>
 
