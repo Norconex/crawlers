@@ -72,12 +72,14 @@ or [contact Norconex](mailto:info@norconex.com) to have yours created.
 
 ********************************************************************************
   
+<a name="source"></a>
+  
 $h2 Source
   
-  Source code can be obtained on GitHub: 
-  (https://github.com/Norconex/collector-http).
+Source code can be obtained on GitHub: 
+(https://github.com/Norconex/collector-http).
   
-  Maven users can add the following to their pom.xml:
+Maven users can add the following to their pom.xml:
   
     <repository>  
       <id>norconex-release-repo</id>  

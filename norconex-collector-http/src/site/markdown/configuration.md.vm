@@ -1,0 +1,361 @@
+#*
+ Copyright 2010-2013 Norconex Inc.
+ 
+ This file is part of Norconex HTTP Collector.
+ 
+Norconex HTTP Collector is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+Norconex HTTP Collector is distributed in the hope that it will be useful, 
+ but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
+*#
+#set($h1 = '#')
+#set($h2 = '##')
+#set($h3 = '###')
+#set($h4 = '####')
+<head><title>Configuration</title><meta name="Author" content="Norconex Inc." /></head> 
+
+$h2 Configuration Quick start
+
+To get started quickly, download the latest version of Norconex HTTP Collector
+and locate the file [./examples/HOWTO_RUN_EXAMPLES.txt](./examples/HOWTO_RUN_EXAMPLES.txt).  This file will
+point you to functional configuration files and we have you running a very
+simple crawler in no time.  These sample files are also made available here
+for your convinience:
+
+  * [Functional Minimum Configuration Sample](./examples/minimum/minimum-config.xml)
+  * [Functional Complex Configuration Sample](./examples/complex/complex-config.xml)
+  * [Self-Documented Configuration Reference](./examples/collector-http-config-reference.xml)
+
+$h2 HTTP Collector Configuration Options
+
+To get its full potential and know which parts can easily be extended,
+refer to the following for an XML based configuration.
+Entries with a "class" attribute are expecting an implementation
+of your choice.   The HTTP Collector API offers several concrete
+implementations already.  Developers can also create their own
+by implementing the proper Java interfaces. Refer to the
+[HTTP Collector JavaDoc](./apidocs/index.html)
+and/or see further down what interfaces you can implement to provide custom
+functionality. Go to the
+[Extend the HTTP Collector](./usage.html#Extend_the_HTTP_Collector)
+page for more details on adding your own implementations.
+
+    <httpcollector id="...">
+    
+      <progressDir>...</progressDir>
+      <logsDir>...</logsDir>
+    
+      <crawlerDefaults>
+        <startURLs>
+          <url>...</url>
+          ...
+        </startURLs>
+        <urlNormalizer class="..." />
+        <delay class="..." />
+        <numThreads>...</numThreads>
+        <maxDepth>...</maxDepth>
+        <maxURLs>...</maxURLs>
+        <workDir>...</workDir>
+        <keepDownloads>...</keepDownloads>
+        <deleteOrphans>...</deleteOrphans>
+        <crawlerListeners>
+          <listener class="..."/>
+          ...
+        </crawlerListeners>
+        <crawlURLDatabaseFactory class="" />
+        <httpClientInitializer class="..." />
+        <httpURLFilters>
+          <filter class="..." />
+          ...
+        </httpURLFilters>
+        <robotsTxt ignore="..." class="..."/>
+        <sitemap ignore="..." lenient="..." class="...">
+          <location>...</location>
+         ...
+        </sitemap>
+        <httpHeadersFetcher class="..." />
+        <httpHeadersFilters>
+          <filter class="..." />
+          ...
+        </httpHeadersFilters>
+        <httpHeadersChecksummer class="..." />
+        <httpDocumentFetcher class="..." />
+        <robotsMeta ignore="..." class="..."/>
+        <urlExtractor class="..." />
+        <httpDocumentFilters>
+          <filter class="..." />
+          ...
+        </httpDocumentFilters>
+        <preImportProcessors>
+          <processor class="..." />
+          ...
+        </preImportProcessors>
+    
+        <importer>
+           <!-- refer to Importer documentation -->
+        </importer>
+    
+        <httpDocumentChecksummer class="..." />
+    
+        <postImportProcessors>
+          <processor class="..."></processor>
+        </postImportProcessors>
+    
+        <committer class="..." />
+      </crawlerDefaults>
+    
+      <crawlers>
+        <crawler id="...">
+           <!-- All default options can be set here too (overwrites default). -->
+        </crawler>
+        ...
+      </crawlers>
+    
+    </httpcollector>
+
+  The table below lists interface names that you can easily extend, and
+  also lists available out-of-the-box implementations.
+  Class names starting with "Default..." are the ones automatically configured
+  by default unless you overwrite them.
+
+  In the configuration file, <<you have to use the fully qualified name>>,
+  as defined in the Javadoc.  Click on a class or interface name to go directly
+  to its full documentation, with extra configuration options.
+
+#set($api="./apidocs/com/norconex/collector/http")
+
+<table>
+ <thead>
+  <tr>
+   <th>Tag</th>
+   <th>Description</th>
+   <th>Classes</th>
+   <th>Interface</th>
+  </tr>
+ </thead>
+ <tbody>
+   <tr>
+     <td>httpcollector</td>
+     <td>Root tag, you must give your configuration a unique identifier value.</td>
+     <td>N/A</td>
+     <td>N/A</td>
+   </tr>
+   <tr>
+     <td>progressDir</td>
+     <td>Directory where to store crawling progress files.  Default is "./progress".</td>
+     <td>N/A</td>
+     <td>N/A</td>
+   </tr>
+   <tr>
+     <td>logsDir</td>
+     <td>Directory where crawl logs will be stored.  Default is "./logs".</td>
+     <td>N/A</td>
+     <td>N/A</td>
+   </tr>
+   <tr>
+     <td>startURLs</td>
+     <td>One or more &lt;url&gt; to start crawling from.  Try to use in combination with filters</td>
+     <td>N/A</td>
+     <td>N/A</td>
+   </tr>
+    <tr>
+     <td>urlNormalizer</td>
+     <td>Normalizes incoming URLs.</td>
+     <td><a href="$api/url/impl/GenericURLNormalizer.html">GenericURLNormalizer</a></td>
+     <td><a href="$api/url/IURLNormalizer.html">IURLNormalizer</a></td>
+    </tr>
+    <tr>
+     <td>delay</td>
+     <td>Handles interval between each page download.</td>
+     <td><a href="$api/delay/impl/DefaultDelayResolver.html">DefaultDelayResolver</a></td>
+     <td><a href="$api/delay/IDelayResolver.html">IDelayResolver</a></td>
+    </tr>
+    <tr>
+     <td>numThreads</td>
+     <td>Number of execution threads for a crawler.  Default is 2.</td>
+     <td>N/A</td>
+     <td>N/A</td>
+    </tr>
+    <tr>
+     <td>maxDepth</td>
+     <td>How many level deep to crawl from start URL(s).  Default is -1 (unlimited).</td>
+     <td>N/A</td>
+     <td>N/A</td>
+    </tr>
+    <tr>
+     <td>maxURLs</td>
+     <td>Maximum URLs to successfully process.  Default is -1 (unlimited).</td>
+     <td>N/A</td>
+     <td>N/A</td>
+    </tr>
+    <tr>
+     <td>workDir</td>
+     <td>Where to store files created as part of crawling activies.  Default is "./work".</td>
+     <td>N/A</td>
+     <td>N/A</td>
+    </tr>
+    <tr>
+     <td>keepDownloads</td>
+     <td>Whether to keep downloaded files. Defaut is false.</td>
+     <td>N/A</td>
+     <td>N/A</td>
+    </tr>
+    <tr>
+     <td>deleteOrphans</td>
+     <td>Whether to keep urls not being referenced anymore. Defaut is false.</td>
+     <td>N/A</td>
+     <td>N/A</td>
+    </tr>
+    <tr>
+     <td>listener</td>
+     <td>Listen to crawling events.</td>
+     <td></td>
+     <td><a href="$api/http/IHttpCrawlerEventListener.html">IHttpCrawlerEventListener</a></td>
+    </tr>
+    <tr>
+     <td>crawlURLDatabaseFactory</td>
+     <td>URL Database.</td>
+     <td><a href="$api/db/impl/DefaultCrawlURLDatabaseFactory.html">DefaultCrawlURLDatabaseFactory</a></td>
+     <td><a href="$api/db/ICrawlURLDatabaseFactory.html">ICrawlURLDatabaseFactory</a></td>
+    </tr>
+    <tr>
+     <td>httpClientInitializer</td>
+     <td>Normalize incoming URLs.</td>
+     <td><a href="$api/client/impl/DefaultHttpClientInitializer.html">DefaultHttpClientInitializer</a></td>
+     <td><a href="$api/client/IHttpClientInitializer.html">IHttpClientInitializer</a></td>
+    </tr>
+    <tr>
+     <td>httpURLFilters</td>
+     <td>Filter based on URLs.</td>
+     <td><a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>, <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>, <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a></td>
+     <td><a href="$api/filter/IURLFilter.html">IURLFilter</a></td>
+    </tr>
+    <tr>
+     <td>robotsTxt</td>
+     <td>Handle robots.txt files.</td>
+     <td><a href="$api/robot/impl/DefaultRobotsTxtProvider.html">DefaultRobotsTxtProvider</a></td>
+     <td><a href="$api/robot/IRobotsTxtProvider.html">IRobotsTxtProvider</a></td>
+    </tr>
+    <tr>
+     <td>sitemap</td>
+     <td>Handle Sitemap files.</td>
+     <td><a href="$api/sitemap/impl/DefaultSitemapResolver.html">DefaultSitemapResolver</a></td>
+     <td><a href="$api/sitemap/ISitemapsResolver.html">ISitemapsResolver</a></td>
+    </tr>
+    <tr>
+     <td>httpHeadersFetcher</td>
+     <td>Handle robots.txt files.</td>
+     <td><a href="$api/fetch/impl/SimpleHttpHeadersFetcher.html">SimpleHttpHeadersFetcher</a></td>
+     <td><a href="$api/fetch/IHttpHeadersFetcher.html">IHttpHeadersFetcher</a></td>
+    </tr>
+    <tr>
+     <td>httpHeadersFilters</td>
+     <td>Filter based on HTTP Headers.</td>
+     <td><a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>, <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>, <a href="$api/filter/impl/RegexHeaderFilter.html">RegexHeaderFilter </a>, <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a></td>
+     <td><a href="$api/filter/IHttpHeadersFilter.html">IHttpHeadersFilter</a></td>
+    </tr>
+    <tr>
+     <td>httpHeadersChecksummer</td>
+     <td>Create document checksum from HTTP Headers.</td>
+     <td><a href="$api/checksum/impl/DefaultHttpHeadersChecksummer.html">DefaultHttpHeadersChecksummer</a></td>
+     <td><a href="$api/checksum/IHttpHeadersChecksummer.html">IHttpHeadersChecksummer</a></td>
+    </tr>
+    <tr>
+     <td>httpDocumentFetcher</td>
+     <td>Fetch a document from URL.</td>
+     <td><a href="$api/fetch/impl/DefaultDocumentFetcher.html">DefaultDocumentFetcher</a></td>
+     <td><a href="$api/fetch/IHttpDocumentFetcher.html">IHttpDocumentFetcher</a></td>
+    </tr>
+    <tr>
+     <td>robotsMeta</td>
+     <td>Handle in-page robots instructions.</td>
+     <td><a href="$api/robot/impl/DefaultRobotsMetaProvider.html">DefaultRobotsMetaProvider</a></td>
+     <td><a href="$api/robot/IRobotsMetaProvider.html">IRobotsMetaProvider</a></td>
+    </tr>
+    <tr>
+     <td>urlExtractor</td>
+     <td>Extract URLs from a document.</td>
+     <td><a href="$api/url/impl/DefaultURLExtractor.html">DefaultURLExtractor</a>, <a href="$api/url/impl/TikaURLExtractor.html">TikaURLExtractor</a></td>
+     <td><a href="$api/url/IURLExtractor.html">IURLExtractor</a></td>
+    </tr>
+    <tr>
+     <td>httpDocumentFilters</td>
+     <td>Filter documents.</td>
+     <td><a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>, <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>, <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a></td>
+     <td><a href="$api/filter/IHttpDocumentFilter.html">IHttpDocumentFilter</a></td>
+    </tr>
+    <tr>
+     <td>preImportProcessors</td>
+     <td>Process a document before import.</td>
+     <td></td>
+     <td><a href="$api/doc/IHttpDocumentProcessor.html">IHttpDocumentProcessor</a></td>
+    </tr>
+    <tr>
+     <td>importer</td>
+     <td>Performs document import.  Many options available, refer to <a href="http://www.norconex.com/product/importer">Import module</a>.</td>
+     <td></td>
+     <td></td>
+    </tr>
+    <tr>
+     <td>httpDocumentChecksummer</td>
+     <td>Create a checksum from document.</td>
+     <td><a href="$api/checksum/impl/DefaultHttpDocumentChecksummer.html">DefaultHttpDocumentChecksummer</a></td>
+     <td><a href="$api/checksum/IHttpDocumentChecksummer.html">IHttpDocumentChecksummer</a></td>
+    </tr>
+    <tr>
+     <td>postImportProcessors</td>
+     <td>Process a document after import.</td>
+     <td></td>
+     <td><a href="$api/doc/IHttpDocumentProcessor.html">IHttpDocumentProcessor</a></td>
+    </tr>
+    <tr>
+     <td>committer</td>
+     <td>Where to commit a document when processed.  Different implementations available, refer to <a href="http://www.norconex.com/product/committer">Committer module</a>.</td>
+     <td></td>
+     <td></td>
+    </tr>
+    <tr>
+     <td>crawler</td>
+     <td>Define as many crawlers as you like.  They much each have a unique identifier.</td>
+     <td>N/A</td>
+     <td>N/A</td>
+    </tr>
+ </tbody>
+</table>
+
+$h2 Importer Configuration Options
+
+The [Importer](http://www.norconex.com/product/importer/) module
+is an integral part of the HTTP Collector.  It is reponsible for extracting
+text out of documents, and also provide ocument manipulation, filtering options,
+and much more are found in this module distributed with the HTTP Collector.   Read the 
+[Importer Configuration Options](http://www.norconex.com/product/importer/configuration.html).
+
+$h2 Committer Configuration Options
+
+The [Committer](http://www.norconex.com/product/committer/) module is 
+responsible for taking the text extracted out of 
+your collected documents and submit it to your target repository (e.g. 
+search engine).  Make sure you download a 
+[Committer implementation](http://www.norconex.com/product/committer/download.html)
+matching your target repository.  Configuration options for is specific
+to each committers.  Refer to your committer documentation.
+
+
+$h2 More Options
+
+There is a lot more you can do to structure your configuration files
+the way you like.  Refer to this
+[additional documentation](../commons-lang/apidocs/com/norconex/commons/lang/config/ConfigurationLoader.html)
+for more configuration options such as creating reusable
+configuration fragments and using variables to make your file easier
+to maintain and more portable across different environments.
+

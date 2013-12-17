@@ -28,7 +28,6 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   <custom>
     <reflowSkin>
       <protocolRelativeURLs>false</protocolRelativeURLs>
-      <smoothScroll>true</smoothScroll>
       <highlightJs>true</highlightJs>
       <theme>bootswatch-spacelab</theme>
       <brand>
@@ -44,7 +43,6 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       </slogan>
       <!-- <shortTitle>generate|*</shortTitle> -->
       <titleTemplate>%2$s | %1$s</titleTemplate>
-      <toc>top</toc>
       <!-- <topNav>Download|reports</topNav> -->
       <topNav>Documentation|Contribute</topNav>
       <bottomNav>
@@ -60,12 +58,15 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       </bottomDescription>
       <skinAttribution>false</skinAttribution>
 
+      <breadcrumbs>false</breadcrumbs>
+      <markPageHeader>false</markPageHeader>
+      <toc>none</toc>
+      <smoothScroll>true</smoothScroll>
+
       <pages>
 
         <index project="norconex-collector-http">
           <breadcrumbs>false</breadcrumbs>
-          <toc>true</toc>
-          <markPageHeader>false</markPageHeader>
           <sections>
             <body />
             <columns>3</columns>
@@ -74,8 +75,6 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
         <download project="norconex-collector-http">
           <breadcrumbs>false</breadcrumbs>
-          <toc>true</toc>
-          <markPageHeader>false</markPageHeader>
           <sections>
             <body />
             <columns>2</columns>
@@ -83,10 +82,10 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           </sections>
         </download>
 
-
+        <configuration project="norconex-collector-http">
+        </configuration>
 
         <developer-info>
-          <toc>sidebar</toc>
         </developer-info>
 
       </pages>
