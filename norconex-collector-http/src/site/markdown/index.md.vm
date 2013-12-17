@@ -36,39 +36,6 @@ Norconex HTTP Collector is distributed in the hope that it will be useful,
 
 </p>
 
-
-
-#*
-  <img src="./images/download_16.png"/>
-  <span class="nx-news-date">2013-12-23:&nbsp;&nbsp;</span>
-  <a class="nx-download-link" href="./download.html">Download ${currentStableVersion}</a>
-
-<p id="nx-news">
-  <img src="./images/megaphone_24.png"/>
-  <span id="nx-news-head">New and Noteworthy</span><br />
-  <span id="nx-news-body">
-
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-  asdf ;laksdfj alksdj;alksj flaks;j alskdf l;aksd asdfasdf asdf asdf asdf asdf 
-
-  </span>
-</p>
-*#
-##<h6 id="nx-invisible-head">&nbsp;</h6>
-##<h6 id="nx-invisible-head">&nbsp;</h6>
-
-
-
-##parse("adsense.html")
-
 *********************************************************
 
 $h2 ![Powerful](./images/powerful_24.png "Powerful") Powerful

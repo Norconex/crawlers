@@ -70,9 +70,14 @@
   font-weight: bold;
 }
 
+.nx-heading {
+  font-size: 41px;
+  color: #000000;
+}
+
+
 .nx-subheading {
   font-size: 24px;
-  xxfont-style: italic;
   color: #000000;
 }
 

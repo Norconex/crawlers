@@ -23,6 +23,18 @@
 
 --------------------------------------------------*###
 #**
+ * Print disqus conversation for the current page.
+ * Usage:
+ *    #disqus()
+ *###
+#macro ( disqus )
+$FileUtils.fileRead("src/site/resources/snippets/disqus.html")
+#end#* /call
+
+
+
+--------------------------------------------------*###
+#**
  * Convenience directive to invoke a method and ignore the return value.
  *
  * Usage:

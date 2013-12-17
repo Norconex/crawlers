@@ -82,8 +82,9 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           </sections>
         </download>
 
-        <configuration project="norconex-collector-http">
-        </configuration>
+        <faq project="norconex-collector-http">
+          <toc>top</toc>
+        </faq>
 
         <developer-info>
         </developer-info>
@@ -112,11 +113,10 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
     </head>
     <links>
-      <item name="Home" href="index.html"/>
       <item name="Download" href="download.html"/>
+      <item name="Support" href="support.html"/>
 <!-- 
       <item name="Norconex" href="http://www.norconex.com" />
-      <item name="Support" href="support.html"/>
  -->
     </links>
 
