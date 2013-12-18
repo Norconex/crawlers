@@ -189,7 +189,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
               <artifactId>maven-site-plugin</artifactId>
               <version>3.3</version>
               <configuration>
-                <generateReports>false</generateReports>
+                <generateReports>true</generateReports>
                 <templateFile>
                   ${basedir}/src/site/resources/skin/reflow-modified.vm
                 </templateFile>
@@ -219,27 +219,6 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
               </dependencies>
             </plugin>
-
-            
-<!-- 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>3.3</version>
-                <dependencies>
-                  <dependency>
-                    <groupId>org.apache.maven.doxia</groupId>
-                    <artifactId>doxia-site-renderer</artifactId>
-                    <version>1.4</version>
-                  </dependency>
-                  <dependency>
-                    <groupId>org.apache.maven.doxia</groupId>
-                    <artifactId>doxia-module-markdown</artifactId>
-                    <version>1.4</version>
-                  </dependency>
-                </dependencies>                
-            </plugin>
- -->        
         </plugins>
     </pluginManagement>
     <plugins>

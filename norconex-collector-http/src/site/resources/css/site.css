@@ -97,10 +97,10 @@
 .project-norconex-collector-http a[name]:before {
     display:block; 
     content:""; 
-    xxheight:0px; 
-    xxmargin:-0px 0 0; 
-      height:90px; 
-    margin:-90px 0 0;
+    height:0px; 
+    margin:-0px 0 0; 
+    xxheight:90px; 
+    xxmargin:-90px 0 0;
 }
 
 .breadcrumb {

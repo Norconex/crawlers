@@ -35,23 +35,21 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           <span class="color-highlight">Norconex</span> HTTP Collector
           ]]>
         </name>
-        <href>http://www.norconex.com/product/collector-http/</href>
+        <href>http://www.norconex.com/product/collector-http/index.html</href>
       </brand>
       <slogan><![CDATA[
           Open-Source Enterprise Web Crawler
           ]]>
       </slogan>
-      <!-- <shortTitle>generate|*</shortTitle> -->
       <titleTemplate>%2$s | %1$s</titleTemplate>
-      <!-- <topNav>Download|reports</topNav> -->
       <topNav>Documentation|Contribute</topNav>
       <bottomNav>
         <column>Main</column>
         <column>Maven Documentation</column>
-        <column>Products</column>
+        <column>Norconex Products</column>
       </bottomNav>
       <bottomDescription><![CDATA[
-          <img src="./images/norconex_logo.png"><br />
+          <a href="http://www.norconex.com"><img src="./images/norconex_logo.png"></a><br />
           Norconex HTTP Collector is released and maintained by 
           <a href="http://www.norconex.com">Norconex</a>. 
           ]]>
@@ -105,7 +103,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <span class="color-highlight">Norconex</span> HTTP Collector
       ]]>
     </name>
-    <href>http://www.norconex.com/product/collector-http/</href>
+    <href>http://www.norconex.com/product/collector-http/index.html</href>
   </bannerLeft>
   <bannerRight>
     <src>images/homepage_303x136.png</src>
@@ -122,20 +120,14 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <links>
       <item name="Download" href="download.html"/>
       <item name="Support" href="support.html"/>
-<!-- 
-      <item name="Norconex" href="http://www.norconex.com" />
- -->
     </links>
 
     <menu name="Documentation">
-<!-- 
-      <item name="Introduction" href="index.html"/>
- -->
       <item name="Usage" href="usage.html"/>
       <item name="Configuration" href="configuration.html"/>
       <item name="Javadoc (Latest release)" href="apidocs/index.html"/>
       <item name="FAQ and HOWTOs" href="faq.html"/>
-      <item name="Release Notes" href="release-notes.html" />
+      <item name="Release Notes" href="changes-report.html" />
       
       <!-- <item name="Road Map" href="roadmap.html" /> -->
     </menu>
@@ -148,14 +140,14 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     </menu>
 
     <menu name="Main">
-      <item name="Product Support" href="support.html"/>
+      <item name="Support" href="support.html"/>
       <item name="Licensing" href="license.html"/>
       <item name="Norconex Corporate Site"  href="http://www.norconex.com"/>
     </menu>
 
     <menu name="Maven Documentation" ref="reports"/>
 
-    <menu name="Products">
+    <menu name="Norconex Products">
       <item name="Search Analytics" href="http://www.norconex.com/analytics"/>
       <item name="Committer" href="http://www.norconex.com/product/committer"/>
       <item name="Importer"  href="http://www.norconex.com/product/importer"/>
@@ -167,26 +159,5 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   </body>
 
   <googleAnalyticsAccountId>UA-23162620-1</googleAnalyticsAccountId>
-            <!-- <carousel />  -->
-             <!--
-            <thumbs>2</thumbs>
-            -->
-
-<!-- 
-
-in slogan: 
-
-          <br />
-          <span style="color: #aaaaaa; font-size: 14px;">
-          Version: ${currentStableVersion}</span>
-
-
-  <poweredBy>
-    <logo name="Maven" href="http://maven.apache.org/" position="right"
-          img="images/build-by-maven-white.png"/>
-    <logo name="GPL" href="http://www.gnu.org/licenses/gpl.html" position="right"
-          img="images/gplv3-88x31.png"/>
-  </poweredBy>
- -->
 
 </project>

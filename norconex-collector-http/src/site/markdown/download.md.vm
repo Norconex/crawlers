@@ -41,9 +41,8 @@ This release contains blah blah blah and the following bla bha blah:
   * Some of that.
   * And this too
   
-[View detailed Release Notes](./release-notes.html) for all releases.
+[View detailed Release Notes](changes-report.html) for all releases.
 
-##<span class="nx-subheading">Binaries</span>
 
 Older releases: 
 [1.1.0](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.1.0/norconex-collector-http-1.1.0.zip),
