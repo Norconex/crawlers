@@ -72,25 +72,6 @@ about things you would like to see included in future releases.
     This prevents from having to maintain different sets 
     of documentation and having discrepencies over time.
    
-  * **Community support**  
-    Can get free help from other users of HTTP Collector or from 
-    [GitHub free ticket system](https://github.com/Norconex/collector-http/issues).
-    No need to be a paying customer to get basic help.
-    Share your tips and tricks!
-    
-  * **Commercial Support**  
-    Norconex provides quality professional support for all its 
-    open-source products
-    [info@norconex.com](mailto:info@norconex.com).
-    
-  * **Free/Open Source**  
-    Free is good.  Open-source: you do not like something, fix it and 
-    never get stuck again!
-    
-  * **No vendor lock-in**  
-    Being open-source, you are not tied to a vendor agenda, or
-    even to a vendor existence.
-
   * **Cross vendors**  
     Not tied to a specific search engine.  You can swith to another search 
     vendor and still use the HTTP Collector.
@@ -165,7 +146,7 @@ about things you would like to see included in future releases.
     as Apacke Tika and Apache Derby.
 
   * **Detects modified documents**  
-    Detect if documents have been modified or deleted from previous run.
+    Detect if documents have been modified or from previous run.
     
   * **Fast**  
     Can control the crawling speed.  Also offers to skip downloading of 
