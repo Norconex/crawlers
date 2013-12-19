@@ -30,7 +30,9 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
  */
 public class HttpCollectorConfig implements Cloneable, Serializable {
 
+    /** Default relative directory where logs from Log4j are stored. */
     public static final String DEFAULT_LOGS_DIR = "./logs";
+    /** Default relative directory where progress files are stored. */
     public static final String DEFAULT_PROGRESS_DIR = "./progress";
     
     private static final long serialVersionUID = -3350877963428801802L;
@@ -51,9 +53,17 @@ public class HttpCollectorConfig implements Cloneable, Serializable {
         this.id = id;
     }
 
+	/**
+	 * Gets this collector unique identifier.
+	 * @return unique identifier
+	 */
 	public String getId() {
         return id;
     }
+    /**
+     * Sets this collector unique identifier.
+     * @param id unique identifier
+     */
     public void setId(String id) {
         this.id = id;
     }

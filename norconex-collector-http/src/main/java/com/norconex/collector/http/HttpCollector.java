@@ -100,21 +100,47 @@ public class HttpCollector implements IJobSuiteFactory {
     public HttpCollector(HttpCollectorConfig collectorConfig) {
         this.collectorConfig = collectorConfig;
     }
+	/**
+	 * Gets the configuration file used to initialize this collector.
+	 * @return XML configuration file
+	 */
 	public File getConfigurationFile() {
         return configurationFile;
     }
+	/**
+	 * Sets the configuration file used to initialize this collector.
+	 * @param configurationFile XML configuration file
+	 */
     public void setConfigurationFile(File configurationFile) {
         this.configurationFile = configurationFile;
     }
+    /**
+     * Gets the file holding configuration variables, or <code>null</code>
+     * if none.
+     * @return variables file
+     */
     public File getVariablesFile() {
         return variablesFile;
     }
+    /**
+     * Sets the file holding configuration variables, or <code>null</code>
+     * if none. 
+     * @param variablesFile variables file
+     */
     public void setVariablesFile(File variablesFile) {
         this.variablesFile = variablesFile;
     }
+    /**
+     * Gets the HTTP crawlers to be run by this collector.
+     * @return HTTP crawlers
+     */
     public HttpCrawler[] getCrawlers() {
         return crawlers;
     }
+    /**
+     * Sets the HTTP crawlers to be run by this collector.
+     * @param crawlers HTTP Crawler
+     */
     public void setCrawlers(HttpCrawler[] crawlers) {
         this.crawlers = ArrayUtils.clone(crawlers);
     }
