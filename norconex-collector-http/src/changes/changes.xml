@@ -28,6 +28,10 @@
         to MapDBCrawlURLDatabaseFactory.
       </action>
       <action dev="essiembp" type="update">
+        Example configurations now point to Norconex test pages to ensure
+        their stability.
+      </action>
+      <action dev="essiembp" type="update">
         Upgraded dependent libraries: Norconex Committer 1.1.0,
         Norconex Commons Lang 2.0.0, MapDB 0.9.7 and 
         other thrid party libraries.
