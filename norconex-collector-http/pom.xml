@@ -189,7 +189,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
               <artifactId>maven-site-plugin</artifactId>
               <version>3.3</version>
               <configuration>
-                <generateReports>true</generateReports>
+                <generateReports>false</generateReports>
                 <templateFile>
                   ${basedir}/src/site/resources/skin/reflow-modified.vm
                 </templateFile>

@@ -29,7 +29,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <reflowSkin>
       <protocolRelativeURLs>false</protocolRelativeURLs>
       <highlightJs>true</highlightJs>
-      <theme>bootswatch-spacelab</theme>
+      <theme>site</theme>
       <brand>
         <name><![CDATA[
           <span class="color-highlight">Norconex</span> HTTP Collector
@@ -90,10 +90,6 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           </sections>
         </contribute>
 
-
-        <developer-info>
-        </developer-info>
-
       </pages>
     </reflowSkin>
   </custom>
@@ -142,7 +138,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <menu name="Main">
       <item name="Support" href="support.html"/>
       <item name="Licensing" href="license.html"/>
-      <item name="Norconex Corporate Site"  href="http://www.norconex.com"/>
+      <item name="Norconex Site"  href="http://www.norconex.com"/>
     </menu>
 
     <menu name="Maven Documentation" ref="reports"/>
