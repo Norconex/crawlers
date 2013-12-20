@@ -297,7 +297,9 @@ import com.norconex.importer.filter.OnMatch;
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("REJECTED document URL" + type + ". URL=" 
-                  + crawlURL.getUrl() + " Filter=[no include filters matched]");
+                  + crawlURL.getUrl() + " Filter=[one or more filter 'onMatch' "
+                  + "attribute is set to 'include', but none of them were "
+                  + "matched]");
         }
     }
     

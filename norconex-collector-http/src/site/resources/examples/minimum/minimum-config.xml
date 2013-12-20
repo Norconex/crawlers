@@ -20,19 +20,26 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 <!-- This configuration shows the minimum required and minimum recommended to 
      run a crawler.  
      -->
-<httpcollector id="Minimal Config HTTP Collector">
+<httpcollector id="Minimum Config HTTP Collector">
+
+  <!-- Decide where to store generated files. -->
+  <progressDir>./examples-output/minimum/progress</progressDir>
+  <logsDir>./examples-output/minimum/logs</logsDir>
 
   <crawlers>
-    <crawler id="Minimal Config Wikipedia 1-page Crawl">
+    <crawler id="Norconex Minimum Test Page">
 
       <!-- === Minimum required: =========================================== -->
 
       <!-- Requires at least one start URL. -->
       <startURLs>
-        <url>http://en.wikipedia.org/wiki/Alice%27s_Adventures_in_Wonderland</url>
+        <url>http://www.norconex.com/product/collector-http-test/minimum.php</url>
       </startURLs>
 
       <!-- === Minimum recommended: ======================================== -->
+
+      <!-- Where the crawler default directory to generate files is. -->
+      <workDir>./examples-output/minimum</workDir>
 
       <!-- Put a maximum depth to avoid infinite crawling (e.g. calendars). -->
       <maxDepth>0</maxDepth>
@@ -45,7 +52,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <filter 
             class="com.norconex.collector.http.filter.impl.RegexURLFilter"
             onMatch="include" >
-          http://en\.wikipedia\.org/wiki/.*
+          http://www\.norconex\.com/product/collector-http-test/.*
         </filter>
       </httpURLFilters>
       
@@ -54,13 +61,13 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           <!-- If your target repository does not support arbitrary fields,
                make sure you only keep the fields you need. -->
           <tagger class="com.norconex.importer.tagger.impl.KeepOnlyTagger"
-                  fields="title,keywords,description"/>
+                  fields="title,keywords,description,document.reference"/>
         </postParseHandlers>
       </importer> 
       
       <!-- Decide what to do with your files by specifying a committer. -->
       <committer class="com.norconex.committer.impl.FileSystemCommitter">
-        <directory>./minimunCrawlFiles</directory>
+        <directory>./examples-output/minimum/crawledFiles</directory>
       </committer>
 
     </crawler>

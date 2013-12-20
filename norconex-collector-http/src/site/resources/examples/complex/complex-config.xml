@@ -31,39 +31,37 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
     <urlNormalizer class="$normalizer" />
     <numThreads>2</numThreads>
-    <maxDepth>1</maxDepth>
+    <maxDepth>0</maxDepth>
     <workDir>$workdir</workDir>
     <deleteOrphans>true</deleteOrphans>
 
     <httpURLFilters>
       <filter class="$extension" onMatch="exclude">jpg,gif,png,ico,css,js</filter>
-      <filter class="$urlRegex">http://en.wikipedia.com/wiki/.*</filter>
-      <filter class="$urlRegex" onMatch="exclude">.*:.*</filter>
+      <filter class="$urlRegex">http://www\.norconex\.com/product/collector-http-test/.*</filter>
     </httpURLFilters>
 
   </crawlerDefaults>
 
   <crawlers>
 
-    <crawler id="Alice Crawl">
+    <crawler id="Norconex Complex Test Page 1">
       <startURLs>
-        <url>http://en.wikipedia.org/wiki/Alice%27s_Adventures_in_Wonderland</url>
+        <url>http://www.norconex.com/product/collector-http-test/complex1.php</url>
       </startURLs>
       #parse("shared/importer-config.xml")
       <committer class="com.norconex.committer.impl.FileSystemCommitter">
-        <directory>${workdir}/AliceCrawledFiles</directory>
+        <directory>${workdir}/crawledFiles1</directory>
       </committer>
     </crawler>
 
-    <crawler id="Wizard of Oz Crawl">
+    <crawler id="Norconex Complex Test Page 2">
       <startURLs>
-        <url>http://en.wikipedia.org/wiki/The_Wonderful_Wizard_of_Oz</url>
+        <url>http://www.norconex.com/product/collector-http-test/complex2.php</url>
       </startURLs>
       #parse("shared/importer-config.xml")
       <committer class="com.norconex.committer.impl.FileSystemCommitter">
-        <directory>${workdir}/OzCrawledFiles</directory>
+        <directory>${workdir}/crawledFiles2</directory>
       </committer>
-
     </crawler>
 
   </crawlers>
