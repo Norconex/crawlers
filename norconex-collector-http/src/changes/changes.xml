@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="1.2.0" date="2013-??-??" description="Feature release.">
+    <release version="1.2.0" date="2014-??-??" description="Feature release.">
       <action dev="essiembp" type="add">
         New Mongo URL Database implementation for big data.
       </action>
@@ -35,6 +35,9 @@
         Upgraded dependent libraries: Norconex Committer 1.1.0,
         Norconex Commons Lang 2.0.0, MapDB 0.9.7 and 
         other thrid party libraries.
+      </action>
+      <action dev="essiembp" type="update">
+        Improved Javadoc.
       </action>
     </release>
 

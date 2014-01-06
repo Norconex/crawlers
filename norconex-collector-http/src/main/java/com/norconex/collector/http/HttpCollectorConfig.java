@@ -67,25 +67,50 @@ public class HttpCollectorConfig implements Cloneable, Serializable {
     public void setId(String id) {
         this.id = id;
     }
+
+    /**
+     * Gets all crawler configurations.
+     * @return crawler configurations
+     */
     public HttpCrawlerConfig[] getCrawlerConfigs() {
         return crawlerConfigs;
     }
+    /**
+     * Sets crawler configurations.
+     * @param crawlerConfigs crawler configurations
+     */
     public void setCrawlerConfigs(HttpCrawlerConfig[] crawlerConfigs) {
         this.crawlerConfigs = ArrayUtils.clone(crawlerConfigs);
     }
 
+    /**
+     * Gets the directory location where progress files (from JEF API)
+     * are stored.
+     * @return progress directory path
+     */
     public String getProgressDir() {
         return progressDir;
     }
-
+    /**
+     * Sets the directory location where progress files (from JEF API)
+     * are stored.
+     * @param progressDir progress directory path
+     */
     public void setProgressDir(String progressDir) {
         this.progressDir = progressDir;
     }
 
+    /**
+     * Gets the directory location of generated log files.
+     * @return logs directory path
+     */
     public String getLogsDir() {
         return logsDir;
     }
-
+    /**
+     * Sets the directory location of generated log files.
+     * @param logsDir logs directory path
+     */
     public void setLogsDir(String logsDir) {
         this.logsDir = logsDir;
     }

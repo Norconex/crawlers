@@ -22,8 +22,27 @@ import java.io.Serializable;
 
 import com.norconex.collector.http.doc.HttpDocument;
 
+/**
+ * Creates a checksum that identifies equivalent HTTP documents.  Checksums
+ * are used to quickly filter out documents that have already been processed
+ * or that have changed since a previous run.
+ * <p/>  
+ * Two HTTP documents do not have to be <em>equal</em> to return the same 
+ * checksum, but they have to be deemed logically the same.  An example of
+ * this can be two different URLs pointing to the same document, where only a 
+ * single instance should be kept. 
+ * <p/>
+ * There are no strict rules that define what is equivalent or not.  
+ *  
+ * @author Pascal Essiembre
+ */
 public interface IHttpDocumentChecksummer extends Serializable {
 
+    /**
+     * Creates a document checksum.
+     * @param document an HTTP document
+     * @return a checksum value
+     */
 	String createChecksum(HttpDocument document);
 	
 }

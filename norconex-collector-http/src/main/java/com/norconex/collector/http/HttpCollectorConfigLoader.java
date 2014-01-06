@@ -42,6 +42,12 @@ public final class HttpCollectorConfigLoader {
         super();
     }
 
+    /**
+     * Loads a collection configuration from file.
+     * @param configFile configuration file
+     * @param configVariables configuration variables file
+     * @return HTTP Collector Configuration
+     */
     public static HttpCollectorConfig loadCollectorConfig(
             File configFile, File configVariables) {
 

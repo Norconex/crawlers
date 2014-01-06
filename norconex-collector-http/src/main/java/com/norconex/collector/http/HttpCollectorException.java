@@ -23,6 +23,7 @@ package com.norconex.collector.http;
  * classes.
  * @author Pascal Essiembre
  */
+@SuppressWarnings("javadoc")
 public class HttpCollectorException extends RuntimeException {
 
     private static final long serialVersionUID = -805913995358009121L;

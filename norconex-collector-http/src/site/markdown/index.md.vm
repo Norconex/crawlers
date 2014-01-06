@@ -25,12 +25,12 @@ Norconex HTTP Collector is distributed in the hope that it will be useful,
 
 <p class="nx-news">
 
-  <img src="./images/megaphone_16.png"/>
+  <img src="./images/news_16.png"/>
   <span class="nx-news-date">2013-12-23&nbsp;&nbsp;</span>
   <a href="./TODO.html">Norconex HTTP Collector 1.1.1</a> released.
 
   <br />
-  <img src="./images/megaphone_16.png"/>
+  <img src="./images/news_16.png"/>
   <span class="nx-news-date">2013-12-18&nbsp;&nbsp;</span>
   New Committer for <a href="./idol.html">Autonomy IDOL</a>.
 
@@ -55,13 +55,13 @@ $h2 ![Easy to Run](./images/running_24.png "Easy to Run") Easy to Run
 Fully documentated and works out-of-the-box with sample configurations you
 can modify to suit your needs. [Get started!](./usage.html)
 
-$h2 ![Flexible](./images/flexible_24.png "Flexible") Flexible
+$h2 ![Flexible](./images/flexiblebar_24.png "Flexible") Flexible
 
 Integrates with virtually any search engines (or else).
 Easily add new functionalities, or replace existing ones.
 [See for yourself](./configuration.html)
 
-$h2 ![Cross-Platform](./images/crossplatform_24.png "Cross-Platform") Cross-Platform
+$h2 ![Cross-Platform](./images/cross_24.png "Cross-Platform") Cross-Platform
 
 100% Java-based.  Runs anywhere.  Test on a operating system (e.g. Windows) and 
 deploy to another one (e.g. Linux).
