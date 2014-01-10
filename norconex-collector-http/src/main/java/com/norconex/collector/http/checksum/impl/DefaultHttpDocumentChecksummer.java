@@ -88,9 +88,19 @@ public class DefaultHttpDocumentChecksummer
 		}
     }
 
+	/**
+	 * Gets the specific field to construct a MD5 checksum on.  Default
+	 * is <code>null</code> (checksum is performed on entire content).
+	 * @return field to perform checksum on
+	 */
 	public String getField() {
 		return field;
 	}
+    /**
+     * Sets the specific field to construct a MD5 checksum on.  Specifying
+     * <code>null</code> means all content will be used.
+     * @param field field to perform checksum on
+     */
 	public void setField(String field) {
 		this.field = field;
 	}

@@ -40,6 +40,10 @@ import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.ImporterConfigLoader;
 
+/**
+ * HTTP Crawler configuration loader.
+ * @author Pascal Essiembre
+ */
 @SuppressWarnings("nls")
 public final class HttpCrawlerConfigLoader {
 

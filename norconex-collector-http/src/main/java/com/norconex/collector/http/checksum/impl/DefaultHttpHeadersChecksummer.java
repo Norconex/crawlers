@@ -58,6 +58,9 @@ public class DefaultHttpHeadersChecksummer
 	private static final Logger LOG = LogManager.getLogger(
 			DefaultHttpHeadersChecksummer.class);
 
+	/**
+	 * Default HTTP header name used to perform checksum.
+	 */
 	public static final String DEFAULT_FIELD = "Last-Modified";
 	
 	private String field = DEFAULT_FIELD;
@@ -71,15 +74,21 @@ public class DefaultHttpHeadersChecksummer
     	}
     	return null;
     }
-    
+
+    /**
+     * Gets the HTTP header name used to perform checksum.
+     * @return HTTP header name
+     */
     public String getField() {
 		return field;
 	}
+    /**
+     * Sets the HTTP header name used to perform checksum.
+     * @param field HTTP header name
+     */
 	public void setField(String field) {
 		this.field = field;
 	}
-
-
 
 	@Override
     public void loadFromXML(Reader in) {

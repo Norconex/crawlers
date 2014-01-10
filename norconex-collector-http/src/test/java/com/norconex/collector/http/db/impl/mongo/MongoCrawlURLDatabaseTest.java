@@ -24,12 +24,10 @@ import org.junit.Before;
 
 import com.foursquare.fongo.Fongo;
 import com.mongodb.DB;
-import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.db.impl.BaseCrawlURLDatabaseTest;
 
 public class MongoCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 
-    private HttpCrawlerConfig config;
     private DB mongoDB;
 
     @Override
@@ -52,7 +50,6 @@ public class MongoCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 
         Fongo fongo = new Fongo("mongo server 1");
         mongoDB = fongo.getDB("crawl-001");
-        config = new HttpCrawlerConfig();
 
         // The DB is brand-new, so no resume
         createImpl(false);

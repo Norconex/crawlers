@@ -96,8 +96,11 @@ public class DefaultHttpClientInitializer implements
             DefaultHttpClientInitializer.class);
 
     //TODO use enum?
+    /** Form-based authentication method. */
 	public static final String AUTH_METHOD_FORM = "form";
+    /** BASIC authentication method. */
     public static final String AUTH_METHOD_BASIC = "basic";
+    /** DIGEST authentication method. */
     public static final String AUTH_METHOD_DIGEST = "digest";
 
     private static final int CONNECTION_TIMEOUT = 30000;
@@ -234,10 +237,13 @@ public class DefaultHttpClientInitializer implements
         writer.writeEndElement();
     }
     
+    /**
+     * Gets the authentication method.
+     * @return authentication method
+     */
     public String getAuthMethod() {
         return authMethod;
     }
-
     /**
      * Sets the authentication method.
      * 
@@ -249,183 +255,256 @@ public class DefaultHttpClientInitializer implements
         this.authMethod = authMethod;
     }
 
+    /**
+     * Gets the name of the HTML field where the username is set.
+     * This is used only for "form" authentication.
+     * @return username name of the HTML field
+     */
     public String getAuthUsernameField() {
         return authUsernameField;
     }
-
     /**
      * Sets the name of the HTML field where the username is set.
-     * 
      * This is used only for "form" authentication.
-     * 
      * @param authUsernameField name of the HTML field
      */
     public void setAuthUsernameField(String authUsernameField) {
         this.authUsernameField = authUsernameField;
     }
 
+    /**
+     * Gets the username.
+     * Used for all authentication methods.
+     * @return username
+     */
     public String getAuthUsername() {
         return authUsername;
     }
-
     /**
      * Sets the username.
-     * 
      * Used for all authentication methods.
-     * 
      * @param authUsername username
      */
     public void setAuthUsername(String authUsername) {
         this.authUsername = authUsername;
     }
 
+    /**
+     * Gets the name of the HTML field where the password is set.
+     * This is used only for "form" authentication.
+     * @return name of the HTML field
+     */
     public String getAuthPasswordField() {
         return authPasswordField;
     }
-
     /**
      * Sets the name of the HTML field where the password is set.
-     * 
      * This is used only for "form" authentication.
-     * 
      * @param authPasswordField name of the HTML field
      */
     public void setAuthPasswordField(String authPasswordField) {
         this.authPasswordField = authPasswordField;
     }
 
+    /**
+     * Gets the password.
+     * Used for all authentication methods.
+     * @return the password
+     */
     public String getAuthPassword() {
         return authPassword;
     }
-
     /**
      * Sets the password.
-     * 
      * Used for all authentication methods.
-     * 
      * @param authPassword password
      */
     public void setAuthPassword(String authPassword) {
         this.authPassword = authPassword;
     }
 
+    /**
+     * Whether cookie support is disabled.
+     * @return <code>true</code> if disabled
+     */
     public boolean isCookiesDisabled() {
         return cookiesDisabled;
     }
-
+    /**
+     * Sets whether cookie support is disabled.
+     * @param cookiesDisabled <code>true</code> if disabled
+     */
     public void setCookiesDisabled(boolean cookiesDisabled) {
         this.cookiesDisabled = cookiesDisabled;
     }
 
+    /**
+     * Gets the URL for "form" authentication.
+     * The username and password will be POSTed to this URL.
+     * This is used only for "form" authentication.
+     * @return "form" authentication URL
+     */
     public String getAuthURL() {
         return authURL;
     }
-
     /**
      * Sets the URL for "form" authentication.
-     * 
      * The username and password will be POSTed to this URL.
-     * 
      * This is used only for "form" authentication.
-     * 
      * @param authURL "form" authentication URL
      */
     public void setAuthURL(String authURL) {
         this.authURL = authURL;
     }
     
+    /**
+     * Gets the host name for the current authentication scope.
+     * <code>null</code> means any host names for the scope.
+     * Used for BASIC and DIGEST authentication.
+     * @return hostname for the scope
+     */
     public String getAuthHostname() {
         return authHostname;
     }
-
     /**
-     * Sets the hostname for the current authentication scope.
-     * 
+     * Sets the host name for the current authentication scope.
      * Setting this to null (default value) indicates "any hostname" for the 
      * scope.
-     * 
      * Used for BASIC and DIGEST authentication.
-     * 
      * @param authHostname hostname for the scope
      */
     public void setAuthHostname(String authHostname) {
         this.authHostname = authHostname;
     }
 
+    /**
+     * Gets the port for the current authentication scope.
+     * A negative number indicates "any port" 
+     * for the scope.
+     * Used for BASIC and DIGEST authentication.
+     * @return port for the scope
+     */
     public int getAuthPort() {
         return authPort;
     }
-
     /**
      * Sets the port for the current authentication scope.
-     * 
      * Setting this to a negative number (default value) indicates "any port" 
      * for the scope.
-     * 
      * Used for BASIC and DIGEST authentication.
-     * 
      * @param authPort port for the scope
      */
     public void setAuthPort(int authPort) {
         this.authPort = authPort;
     }
 
+    /**
+     * Gets the realm name for the current authentication scope.
+     * <code>null</code> indicates "any realm" 
+     * for the scope.
+     * Used for BASIC and DIGEST authentication.
+     * @return realm name for the scope
+     */
     public String getAuthRealm() {
         return authRealm;
     }
-
     /**
      * Sets the realm name for the current authentication scope.
-     * 
      * Setting this to null (the default value) indicates "any realm" 
      * for the scope.
-     * 
      * Used for BASIC and DIGEST authentication.
-     * 
      * @param authRealm reaml name for the scope
      */
     public void setAuthRealm(String authRealm) {
         this.authRealm = authRealm;
     }
 
+    /**
+     * Gets the HTTP user agent.
+     * @return HTTP user agent
+     */
     public String getUserAgent() {
         return userAgent;
     }
-
+    /**
+     * Sets the HTTP user agent
+     * @param userAgent user agent
+     */
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
     }
     
+    /**
+     * Gets the proxy host.
+     * @return proxy host
+     */
     public String getProxyHost() {
         return proxyHost;
     }
+    /**
+     * Sets the proxy host.
+     * @param proxyHost proxy host
+     */
     public void setProxyHost(String proxyHost) {
         this.proxyHost = proxyHost;
     }
 
+    /**
+     * Gets the proxy port.
+     * @return proxy port
+     */
     public int getProxyPort() {
         return proxyPort;
     }
+    /**
+     * Sets the proxy port.
+     * @param proxyPort proxy port
+     */
     public void setProxyPort(int proxyPort) {
         this.proxyPort = proxyPort;
     }
 
+    /**
+     * Gets the proxy username.
+     * @return proxy username
+     */
     public String getProxyUsername() {
         return proxyUsername;
     }
+    /**
+     * Sets the proxy username
+     * @param proxyUsername proxy username
+     */
     public void setProxyUsername(String proxyUsername) {
         this.proxyUsername = proxyUsername;
     }
 
+    /**
+     * Gets the proxy password.
+     * @return proxy password
+     */
     public String getProxyPassword() {
         return proxyPassword;
     }
+    /**
+     * Sets the proxy password.
+     * @param proxyPassword proxy password
+     */
     public void setProxyPassword(String proxyPassword) {
         this.proxyPassword = proxyPassword;
     }
+
+    /**
+     * Gets the proxy realm.
+     * @return proxy realm
+     */
     public String getProxyRealm() {
         return proxyRealm;
     }
+    /**
+     * Sets the proxy realm
+     * @param proxyRealm proxy realm
+     */
     public void setProxyRealm(String proxyRealm) {
         this.proxyRealm = proxyRealm;
     }

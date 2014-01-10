@@ -22,8 +22,28 @@ import java.io.Serializable;
 
 import com.norconex.commons.lang.map.Properties;
 
+/**
+ * Creates a checksum that uniquely identifies an HTTP document content state 
+ * based on its HTTP response header only.  Checksums
+ * are used to quickly filter out documents that have already been processed
+ * or that have changed since a previous run.
+ * <p/>  
+ * Two HTTP documents do not have to be <em>equal</em> to return the same 
+ * checksum, but they have to be deemed logically the same.  An example of
+ * this can be two different URLs pointing to the same document, where only a 
+ * single instance should be kept. 
+ * <p/>
+ * There are no strict rules that define what is equivalent or not.  
+ *  
+ * @author Pascal Essiembre
+ */
 public interface IHttpHeadersChecksummer extends Serializable {
 
+    /**
+     * Creates a document checksum.
+     * @param metadata all HTTP header values
+     * @return a checksum value
+     */
 	String createChecksum(Properties metadata);
 	
 }

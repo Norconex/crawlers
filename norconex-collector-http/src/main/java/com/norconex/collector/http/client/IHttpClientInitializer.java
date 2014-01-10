@@ -32,5 +32,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
  */
 public interface IHttpClientInitializer extends Serializable  {
 
+    /**
+     * Initializes the HTTP Client used for crawling.
+     * @param httpClient Apache HTTP Client
+     */
 	void initializeHTTPClient(DefaultHttpClient httpClient);
 }

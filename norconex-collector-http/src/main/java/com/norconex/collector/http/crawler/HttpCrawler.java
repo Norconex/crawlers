@@ -55,6 +55,10 @@ import com.norconex.jef.progress.IJobStatus;
 import com.norconex.jef.progress.JobProgress;
 import com.norconex.jef.suite.JobSuite;
 
+/**
+ * The HTTP Crawler.
+ * @author Pascal Essiembre
+ */
 public class HttpCrawler extends AbstractResumableJob {
 	
     private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
@@ -66,6 +70,10 @@ public class HttpCrawler extends AbstractResumableJob {
     private boolean stopped;
     private int okURLsCount;
     
+    /**
+     * Constructor.
+     * @param crawlerConfig HTTP crawler configuration
+     */
 	public HttpCrawler(
 	        HttpCrawlerConfig crawlerConfig) {
 		super();
@@ -99,6 +107,10 @@ public class HttpCrawler extends AbstractResumableJob {
 		return crawlerConfig.getId();
 	}
 
+	/**
+	 * Whether the job was stopped.
+	 * @return <code>true</code> if stopped
+	 */
     public boolean isStopped() {
         return stopped;
     }

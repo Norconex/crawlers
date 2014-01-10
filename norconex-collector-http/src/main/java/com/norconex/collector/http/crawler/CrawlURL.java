@@ -26,6 +26,10 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 
+/**
+ * A URL being crawled holding relevant crawl information.
+ * @author Pascal Essiembre
+ */
 public class CrawlURL implements Serializable {
 
     private static final long serialVersionUID = -2219206220476107409L;
@@ -42,14 +46,28 @@ public class CrawlURL implements Serializable {
     private String docChecksum;
     
 
+    /**
+     * Constructor.
+     * @param url URL being crawled
+     * @param depth URL depth
+     */
     public CrawlURL(String url, int depth) {
         super();
         setUrl(url);
         setDepth(depth);
     }
+
+    /**
+     * Gets the URL depth.
+     * @return URL depth
+     */
     public int getDepth() {
         return depth;
     }
+    /**
+     * Gets the URL.
+     * @return url
+     */
     public String getUrl() {
         return url;
     }
@@ -67,21 +85,48 @@ public class CrawlURL implements Serializable {
     public void setSitemapLastMod(Long sitemapLastMod) {
         this.sitemapLastMod = sitemapLastMod;
     }
+    
+    /**
+     * Gets the sitemap change frequency.
+     * @return sitemap change frequency
+     */
     public String getSitemapChangeFreq() {
         return sitemapChangeFreq;
     }
+    /**
+     * Sets the sitemap change frequency.
+     * @param sitemapChangeFreq sitemap change frequency
+     */
     public void setSitemapChangeFreq(String sitemapChangeFreq) {
         this.sitemapChangeFreq = sitemapChangeFreq;
     }
+    
+    /**
+     * Gets the sitemap priority.
+     * @return sitemap priority
+     */
     public Float getSitemapPriority() {
         return sitemapPriority;
     }
+    /**
+     * Sets the sitemap priority.
+     * @param sitemapPriority sitemap priority
+     */
     public void setSitemapPriority(Float sitemapPriority) {
         this.sitemapPriority = sitemapPriority;
     }
+
+    /**
+     * Sets the URL depth.
+     * @param depth URL depth
+     */
     public final void setDepth(int depth) {
         this.depth = depth;
     }
+    /**
+     * Sets the URL.
+     * @param url the url
+     */
     public final void setUrl(String url) {
         this.url = url;
         if (url != null) {
@@ -90,28 +135,63 @@ public class CrawlURL implements Serializable {
             this.urlRoot = null;
         }
     }
+    /**
+     * Gets the URL root (protocol + domain, e.g. http://www.host.com).
+     * @return URL root
+     */
     public String getUrlRoot() {
         return urlRoot;
     }
+    
+    /**
+     * Gets the current crawl status.
+     * @return crawl status
+     */
     public CrawlStatus getStatus() {
         return status;
     }
+    /**
+     * Sets the current crawl status.
+     * @param status crawl status
+     */
     public void setStatus(CrawlStatus status) {
         this.status = status;
     }
+    
+    /**
+     * Gets the HTTP header checksum.
+     * @return the HTTP header checksum
+     */
     public String getHeadChecksum() {
         return headChecksum;
     }
+    /**
+     * Sets the HTTP header checksum.
+     * @param headChecksum the HTTP header checksum
+     */
     public void setHeadChecksum(String headChecksum) {
         this.headChecksum = headChecksum;
     }
+
+    /**
+     * Gets the document checksum.
+     * @return document checksum
+     */
     public String getDocChecksum() {
         return docChecksum;
     }
+    /**
+     * Sets the document checksum.
+     * @param docChecksum document checksum
+     */
     public void setDocChecksum(String docChecksum) {
         this.docChecksum = docChecksum;
     }
     
+    /**
+     * Clones this instance, without any risk of exceptions being thrown.
+     * @return a clone of this instance
+     */
     public CrawlURL safeClone() {
         CrawlURL c = new CrawlURL(url, depth);
         c.setDocChecksum(docChecksum);

@@ -24,7 +24,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-
+/**
+ * Represents a URL crawling status.
+ * @author Pascal Essiembre
+ */
 public enum CrawlStatus implements Serializable { 
     OK, 
     REJECTED, 

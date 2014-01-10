@@ -55,6 +55,10 @@ import com.norconex.committer.ICommitter;
 import com.norconex.importer.ImporterConfig;
 
 
+/**
+ * HTTP Crawler configuration.
+ * @author Pascal Essiembre
+ */
 public class HttpCrawlerConfig implements Cloneable, Serializable {
 
     private static final long serialVersionUID = -3350877963428801802L;

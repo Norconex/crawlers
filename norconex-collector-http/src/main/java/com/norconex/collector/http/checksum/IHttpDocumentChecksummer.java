@@ -23,9 +23,9 @@ import java.io.Serializable;
 import com.norconex.collector.http.doc.HttpDocument;
 
 /**
- * Creates a checksum that identifies equivalent HTTP documents.  Checksums
- * are used to quickly filter out documents that have already been processed
- * or that have changed since a previous run.
+ * Creates a checksum that uniquely identifies an HTTP document content state. 
+ * Checksums are used to quickly filter out documents that have already been 
+ * processed or that have changed since a previous run.
  * <p/>  
  * Two HTTP documents do not have to be <em>equal</em> to return the same 
  * checksum, but they have to be deemed logically the same.  An example of
