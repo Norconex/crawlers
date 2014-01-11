@@ -103,7 +103,7 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
             db.rename(STORE_PROCESSED_VALID, STORE_CACHE);
             cache = processedValid;
             processedValid = db.createHashMap(
-                    STORE_PROCESSED_VALID).keepCounter(true).make();
+                    STORE_PROCESSED_VALID).counterEnable().make();
             db.commit();
         } else {
             LOG.debug(config.getId() + ": New databases created.");
@@ -116,7 +116,6 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
                 .closeOnJvmShutdown()
                 .cacheSoftRefEnable()
 //TODO configurable:    .compressionEnable()
-                .randomAccessFileEnableIfNeeded()
 //TODO configurable:    .freeSpaceReclaimQ(5)
                 .make();
     }
@@ -125,12 +124,12 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
     private void initDB(boolean create) {
         queue = new MappedQueue(db, STORE_QUEUE, create);
         if (create) {
-            active = db.createHashMap(STORE_ACTIVE).keepCounter(true).make();
-            cache = db.createHashMap(STORE_CACHE).keepCounter(true).make();
+            active = db.createHashMap(STORE_ACTIVE).counterEnable().make();
+            cache = db.createHashMap(STORE_CACHE).counterEnable().make();
             processedValid = db.createHashMap(
-                    STORE_PROCESSED_VALID).keepCounter(true).make();
+                    STORE_PROCESSED_VALID).counterEnable().make();
             processedInvalid = db.createHashMap(
-                    STORE_PROCESSED_INVALID).keepCounter(true).make();
+                    STORE_PROCESSED_INVALID).counterEnable().make();
         } else {
             active = db.getHashMap(STORE_ACTIVE);
             cache = db.getHashMap(STORE_CACHE);

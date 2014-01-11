@@ -58,6 +58,7 @@ public class MongoCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
     /**
      * This test don't work with Fongo 1.2.0, but works fine with 1.2.1-SNAPSHOT
      * TODO put back this test when 1.2.1 is released
+     * @throws Exception something went wrong
      */
     // @Test
     public void test_no_next() throws Exception {

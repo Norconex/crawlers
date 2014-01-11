@@ -37,6 +37,7 @@ public interface ISitemapsResolver extends Serializable {
      * @param urlRoot the URL root for which to resolve the sitemap
      * @param robotsTxtLocations sitemap locations specified in robots.txt
      *        (provided robots are not ignored)
+     * @param sitemapURLStore store holding retreived site maps
      */
     void resolveSitemaps(DefaultHttpClient httpClient, String urlRoot, 
             String[] robotsTxtLocations, SitemapURLStore sitemapURLStore);

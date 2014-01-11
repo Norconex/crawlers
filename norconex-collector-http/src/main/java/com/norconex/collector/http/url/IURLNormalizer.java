@@ -20,6 +20,8 @@ package com.norconex.collector.http.url;
 
 import java.io.Serializable;
 
+import com.norconex.collector.http.filter.IURLFilter;
+
 /**
  * Responsible for normalizing URLs.  Normalization is taking a raw URL and
  * modifying it to its most basic or standard form.  In other words, this makes

@@ -182,6 +182,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 
     /**
      * Test that sitemap are deleted when resume is disabled
+     * @throws Exception something went wrong
      */
     @Test
     public void test_sitemap_removed() throws Exception {
@@ -226,6 +227,7 @@ public abstract class BaseCrawlURLDatabaseTest {
     /**
      * When instantiating a new impl with the resume option set to false, the
      * previous cache is deleted and the previous processed becomes the cache.
+     * @throws Exception something went wrong
      */
     @Test
     public void test_not_resume() throws Exception {
@@ -260,6 +262,7 @@ public abstract class BaseCrawlURLDatabaseTest {
      * When instantiating a new impl with the resume option set to false, the
      * previous cache is deleted and the previous processed becomes the cache.
      * BUT the invalid processed urls should get deleted.
+     * @throws Exception something went wrong
      */
     @Test
     public void test_not_resume_invalid() throws Exception {
@@ -289,6 +292,7 @@ public abstract class BaseCrawlURLDatabaseTest {
      * When instantiating a new impl with the resume option set to true, all
      * urls should be kept in the same state, except for active urls that should
      * be queued again.
+     * @throws Exception something went wrong
      */
     @Test
     public void test_resume_queued() throws Exception {
@@ -311,6 +315,7 @@ public abstract class BaseCrawlURLDatabaseTest {
      * When instantiating a new impl with the resume option set to true, all
      * urls should be kept in the same state, except for active urls that should
      * be queued again.
+     * @throws Exception something went wrong
      */
     @Test
     public void test_resume_actived() throws Exception {

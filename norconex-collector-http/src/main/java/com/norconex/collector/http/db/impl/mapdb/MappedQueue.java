@@ -35,8 +35,8 @@ public class MappedQueue implements Queue<CrawlURL> {
     public MappedQueue(DB db, String name, boolean create) {
         super();
         if (create) {
-            queue = db.createQueue(name + "-q", null);
-            map = db.createHashMap(name + "-m").keepCounter(true).make();
+            queue = db.createQueue(name + "-q", null, true);
+            map = db.createHashMap(name + "-m").counterEnable().make();
         } else {
             queue = db.getQueue(name + "-q");
             map = db.getHashMap(name + "-m");

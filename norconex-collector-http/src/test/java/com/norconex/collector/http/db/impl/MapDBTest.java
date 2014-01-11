@@ -51,7 +51,7 @@ public class MapDBTest {
     public void setUp() throws Exception {
         dbFile = tempFolder.newFile();
         initDB(dbFile);
-        map = db.createHashMap("test").keepCounter(true).make();
+        map = db.createHashMap("test").counterEnable().make();
     }
 
     private void initDB(File file) throws IOException {
@@ -72,8 +72,7 @@ public class MapDBTest {
 
     /**
      * Simple test that inserts an url into a new map
-     * 
-     * @throws Exception
+     * @throws Exception something went wrong
      */
     @Test
     public void createDatabaseTest() throws Exception {
@@ -85,8 +84,7 @@ public class MapDBTest {
     /**
      * Test that inserts an url in the map, close the DB, re-open the DB (with
      * same file) and re-open the map and check the content is still there.
-     * 
-     * @throws Exception
+     * @throws Exception something went wrong
      */
     @Test
     public void loadDatabaseTest() throws Exception {

@@ -134,6 +134,7 @@ public interface ICrawlURLDatabase {
      * of an invalid state (e.g. NOT_FOUND) and must exists in the URL cache
      * in a valid state.
      * @param crawlURL the URL
+     * @return <code>true</code> if URL has been deleted on site
      */
     boolean isVanished(CrawlURL crawlURL);
     

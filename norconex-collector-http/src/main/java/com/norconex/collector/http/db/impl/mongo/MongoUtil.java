@@ -41,14 +41,14 @@ public final class MongoUtil {
      * If a valid dbName is provided, it is returned as is. If none is provided,
      * a name is generated from the crawl ID (provided in HttpCrawlerConfig)
      * 
-     * @param dbName
-     * @param config
+     * @param dbName database name
+     * @param config crawler configuration
      * @throws IllegalArgumentException
      *             if the dbName provided contains invalid characters
      * @return DB name
      */
-    public static String getDbNameOrGenerate(String dbName,
-            HttpCrawlerConfig config) {
+    public static String getDbNameOrGenerate(
+            String dbName, HttpCrawlerConfig config) {
 
         // If we already have a name, try to use it
         if (dbName != null && dbName.length() > 0) {
