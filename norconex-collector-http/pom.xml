@@ -460,6 +460,17 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         </roles>
         <timezone>-4</timezone>
     </developer>
+    <developer>
+      <id>fourniem</id>
+      <name>Martin Fournier</name>
+      <email>martin.fournier@norconex.com</email>
+      <organization>Norconex Inc.</organization>
+      <organizationUrl>http://www.norconex.com</organizationUrl>
+      <roles>
+        <role>tester</role>
+      </roles>
+      <timezone>-4</timezone>
+    </developer>
   </developers>
   <contributors>
   </contributors>
