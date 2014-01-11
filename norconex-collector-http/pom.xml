@@ -141,18 +141,6 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <artifactId>mapdb</artifactId>
         <version>0.9.8</version>
     </dependency>
-<!--
-    <dependency>
-        <groupId>com.norconex.collectors</groupId>
-        <artifactId>mapdb</artifactId>
-        <version>0.9.4-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.mapdb</groupId>
-    	<artifactId>mapdb</artifactId>
-    	<version>0.9.5-SNAPSHOT</version>
-    </dependency>
--->
   </dependencies>
   
   <build>
@@ -189,7 +177,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
               <artifactId>maven-site-plugin</artifactId>
               <version>3.3</version>
               <configuration>
-                <generateReports>false</generateReports>
+                <generateReports>true</generateReports>
                 <templateFile>
                   ${basedir}/src/site/resources/skin/reflow-modified.vm
                 </templateFile>
