@@ -18,11 +18,8 @@ The following are either things to be done, or ideas to consider:
   and an event object is passed, allowing any custom event implementation
   to be added, each event having a unique id.
 
-- DONE, need testing: Package source jars with Maven repository deployments.
-
-- Consider BlockingQueue for fast memory access of queued URL, with the 
-  queue fed from DB by another thread.  Could be beneficial for Derby 
-  implementation if MapDB does not stabilize more.
+- Consider BlockingQueue for Derby implementation providing fast memory access
+  of queued URL, with the queue fed from DB by another thread. 
 
 - Maybe: Add documentRejectedChecksum and documentRejectedHeadersChecksum to 
   IHttpCrawlerEventListener and fire them?  <-- Not if we redo event model.
@@ -59,9 +56,6 @@ The following are either things to be done, or ideas to consider:
   (in case it is the crawler hammering it).  Probably a change or new delay
   implementation... this means total download time (both for HEAD and GET) 
   should be added as document properties (not a bad idea to do regardless).
-
-- Provide a non-embedded crawl URL store solution, such as Mongo, or 
-  Generic SQL-DB (hibernate?).
 
 - To consider: Interface for Document Store for downloading documents.
   File system is used now, but could be others like MongoDB?
