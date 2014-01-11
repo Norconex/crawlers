@@ -50,7 +50,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       </bottomNav>
       <bottomDescription><![CDATA[
           <a href="http://www.norconex.com"><img src="./images/norconex_logo.png"></a><br />
-          Norconex HTTP Collector is released and maintained by 
+          Norconex HTTP Collector is released and actively maintained by 
           <a href="http://www.norconex.com">Norconex</a>. 
           ]]>
       </bottomDescription>
@@ -123,6 +123,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <item name="Configuration" href="configuration.html"/>
       <item name="Javadoc (Latest release)" href="apidocs/index.html"/>
       <item name="FAQ and HOWTOs" href="faq.html"/>
+      <item name="Features" href="features.html"/>
       <item name="Release Notes" href="changes-report.html" />
       
       <!-- <item name="Road Map" href="roadmap.html" /> -->
@@ -138,6 +139,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <menu name="Main">
       <item name="Support" href="support.html"/>
       <item name="Licensing" href="license.html"/>
+      <item name="Features" href="features.html"/>
       <item name="Norconex Site"  href="http://www.norconex.com"/>
     </menu>
 

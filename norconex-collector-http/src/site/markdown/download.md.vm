@@ -35,16 +35,18 @@ $h2 Latest Release
 
 **[Download Release ${currentStableVersion}](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/${currentStableVersion}/norconex-collector-http-${currentStableVersion}.zip)**
 
-This release contains blah blah blah and the following bla bha blah:
+Some updates this release contains:
 
-  * More of this
-  * Some of that.
-  * And this too
-  
+  * New optional Mongo URL Database implementation.
+  * New optional IURLExtractor implementation based on Apache Tika HTMLParser.
+  * New filter for filtering URLs having a specified
+    number of segments.
+
 [View detailed Release Notes](changes-report.html) for all releases.
 
 
 Older releases: 
+[1.1.1](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.1.1/norconex-collector-http-1.1.1.zip),
 [1.1.0](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.1.0/norconex-collector-http-1.1.0.zip),
 [1.0.2](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.2/norconex-collector-http-1.0.2.zip),
 [1.0.1](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.1/norconex-collector-http-1.0.1.zip),
@@ -55,7 +57,6 @@ $h2 Committer Implementations
 
   * [Solr/Lucidworks](http://www.norconex.com/product/committer-solr/index.html) 
   * [Elasticsearch](http://www.norconex.com/product/committer-elasticsearch/index.html) 
-  * [Autonomy IDOL](http://www.norconex.com/product/committer-idol/index.html) 
   * More to come...
 
 If you use the HTTP Collector without a committer matching your target data 
@@ -65,8 +66,8 @@ file system using the
 With your download of HTTP Collector, also download the appropriate 
 [Committer](http://www.norconex.com/product/committer)
 implementation from the above list,
-[create your own](http://www.norconex.com/product/committer/createYourOwnTODO.html),
-or [contact Norconex](mailto:info@norconex.com) to have yours created.
+create your own,
+or [contact Norconex](mailto:info@norconex.com) to have yours created for you.
   
 
 ********************************************************************************

@@ -1469,7 +1469,7 @@ $FileUtils.fileRead("src/site/resources/snippets/github-buttons.html")
     
 *###
                     <div class="nav-collapse">
-                        <ul class="nav pull-right">
+                        <ul class="nav pull-right" style="margin-right:60px;">
 #*
     
     *##if ( $decoration.body.links )#*
