@@ -57,6 +57,7 @@ $h2 Committer Implementations
 
   * [Solr/Lucidworks](http://www.norconex.com/product/committer-solr/index.html) 
   * [Elasticsearch](http://www.norconex.com/product/committer-elasticsearch/index.html) 
+  * [HP/Autonomy IDOL](http://www.norconex.com/product/committer-idol/index.html) 
   * More to come...
 
 If you use the HTTP Collector without a committer matching your target data 
