@@ -115,6 +115,7 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
         return DBMaker.newFileDB(dbFile)
                 .closeOnJvmShutdown()
                 .cacheSoftRefEnable()
+                .asyncWriteEnable()
 //TODO configurable:    .compressionEnable()
 //TODO configurable:    .freeSpaceReclaimQ(5)
                 .make();

@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="1.2.1" date="2014-??-??" description="Maintenance release.">
+      <action dev="essiembp" type="update">
+        Re-introducing asynchronous writing to default URL database, increasing
+        performance when using multiple threads.
+      </action>
+    </release>
+
     <release version="1.2.0" date="2014-01-11" description="Feature release.">
       <action dev="essiembp" type="add">
         New optional Mongo URL Database implementation.
