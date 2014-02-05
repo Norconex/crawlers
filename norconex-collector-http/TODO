@@ -1,5 +1,6 @@
 The following are either things to be done, or ideas to consider:
 
+- Add support to bypass SSL certificate validation and accept everything on SSL.
 
 - Add support for NTLM authentication.
 
