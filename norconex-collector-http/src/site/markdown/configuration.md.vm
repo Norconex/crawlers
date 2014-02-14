@@ -58,6 +58,7 @@ page for more details on adding your own implementations.
           <url>...</url>
           ...
         </startURLs>
+        <userAgent>...</userAgent>
         <urlNormalizer class="..." />
         <delay class="..." />
         <numThreads>...</numThreads>
@@ -71,7 +72,7 @@ page for more details on adding your own implementations.
           ...
         </crawlerListeners>
         <crawlURLDatabaseFactory class="" />
-        <httpClientInitializer class="..." />
+        <httpClientFactory class="..." />
         <httpURLFilters>
           <filter class="..." />
           ...
@@ -167,6 +168,12 @@ page for more details on adding your own implementations.
      <td>N/A</td>
    </tr>
     <tr>
+     <td>userAgent</td>
+     <td>The crawler "User-Agent" value to identify your crawler to sites you crawl.</td>
+     <td>N/A</td>
+     <td>N/A</td>
+    </tr>
+    <tr>
      <td>urlNormalizer</td>
      <td>Normalizes incoming URLs.</td>
      <td><a href="$api/url/impl/GenericURLNormalizer.html">GenericURLNormalizer</a></td>
@@ -223,14 +230,14 @@ page for more details on adding your own implementations.
     <tr>
      <td>crawlURLDatabaseFactory</td>
      <td>URL Database.</td>
-     <td><a href="$api/db/impl/DefaultCrawlURLDatabaseFactory.html">DefaultCrawlURLDatabaseFactory</a></td>
+     <td><a href="$api/db/impl/DefaultCrawlURLDatabaseFactory.html">DefaultCrawlURLDatabaseFactory</a>, <a href="$api/db/impl/derby/DerbyCrawlURLDatabaseFactory.html">DerbyCrawlURLDatabaseFactory</a>, <a href="$api/db/impl/mongo/MongoCrawlURLDatabaseFactory.html">MongoCrawlURLDatabaseFactory</a></td>
      <td><a href="$api/db/ICrawlURLDatabaseFactory.html">ICrawlURLDatabaseFactory</a></td>
     </tr>
     <tr>
-     <td>httpClientInitializer</td>
-     <td>Normalize incoming URLs.</td>
-     <td><a href="$api/client/impl/DefaultHttpClientInitializer.html">DefaultHttpClientInitializer</a></td>
-     <td><a href="$api/client/IHttpClientInitializer.html">IHttpClientInitializer</a></td>
+     <td>httpClientFactory</td>
+     <td>HTTP Client creation and initialization.</td>
+     <td><a href="$api/client/impl/DefaultHttpClientFactory.html">DefaultHttpClientFactory</a></td>
+     <td><a href="$api/client/IHttpClientFactory.html">IHttpClientFactory</a></td>
     </tr>
     <tr>
      <td>httpURLFilters</td>

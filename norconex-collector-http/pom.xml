@@ -22,7 +22,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
-  <version>1.2.1-SNAPSHOT</version>
+  <version>1.3.0-SNAPSHOT</version>
   <name>Norconex HTTP Collector</name>
 
   <properties>
@@ -98,7 +98,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
-        <version>1.2.0</version>
+        <version>1.3.0-SNAPSHOT</version>
     </dependency>
     <dependency>
         <groupId>commons-beanutils</groupId>
@@ -139,7 +139,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
         <groupId>org.mapdb</groupId>
         <artifactId>mapdb</artifactId>
-        <version>0.9.8</version>
+        <version>0.9.9</version>
     </dependency>
   </dependencies>
   
@@ -245,7 +245,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           <overview>${basedir}/src/main/resources/javadoc-overview.html</overview>
           <show>protected</show>
           <detectLinks>false</detectLinks>
-          <nodeprecated>true</nodeprecated>
+          <nodeprecated>false</nodeprecated>
           <links>
             <link>http://db.apache.org/derby/docs/10.9/publishedapi/jdbc4/</link>
             <link>http://api.mongodb.org/java/2.11.1/</link>
@@ -364,7 +364,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           </footer>
           <show>protected</show>
           <detectLinks>false</detectLinks>
-          <nodeprecated>true</nodeprecated>
+          <nodeprecated>false</nodeprecated>
           <links>
             <link>http://db.apache.org/derby/docs/10.9/publishedapi/jdbc4/</link>
             <link>http://api.mongodb.org/java/2.11.1/</link>

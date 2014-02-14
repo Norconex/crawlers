@@ -7,10 +7,65 @@
   </properties>
   <body>
 
-    <release version="1.2.1" date="2014-??-??" description="Maintenance release.">
+    <release version="1.3.0" date="2014-??-??" description="Feature release.">
+      <action dev="essiembp" type="add">
+        Now supports NTLM authentication.  SPNEGO and Kerberos were also 
+        added but are experimental (see DefaultHttpClientFactory).
+      </action>
+      <action dev="essiembp" type="add">
+        Can now specify character set of HTTP connections and authentication
+        forms.
+      </action>
+      <action dev="essiembp" type="add">
+        Can now set custom timeout values on HTTP connection-related activities.
+      </action>
+      <action dev="essiembp" type="add">
+        New option to trust all SSL certificates of sites being crawled
+        (see DefaultHttpClientFactory).
+      </action>
+      <action dev="essiembp" type="add">
+        Can now specify a maximum number of HTTP connections for each crawler
+        independently of configured number of threads 
+        (see DefaultHttpClientFactory).
+      </action>
+      <action dev="essiembp" type="add">
+        DefaultHttpClientFactory introduces additional configuration options:
+        proxy scheme, 'Expect: 100-continue' handshake, maximum HTTP redirects,
+        local address, stale connection checks 
+      </action>
       <action dev="essiembp" type="update">
-        Re-introducing asynchronous writing to default URL database, increasing
-        performance when using multiple threads.
+        The userAgent is now a crawler configuration option 
+        (previously was an option of DefaultHttpClientInitializer )
+      </action>
+      <action dev="essiembp" type="update">
+        API change: IRobotsTxtProvider#getRobotsTxt(...) method signature has 
+        changed to accept the User-Agent.
+      </action>
+      <action dev="essiembp" type="update">
+        Http User-Agent is now a core configuration option of a crawler.
+      </action>
+      <action dev="essiembp" type="update">
+        IHttpClientInitializer is now deprecated in favor of IHttpClientFactory,
+        giving you more control over HttpClient creation.
+      </action>
+      <action dev="essiembp" type="update">
+        API methods previously accepting DefaultHttpClient instances now have
+        their signature accepting parent interface HttpClient instead.
+      </action>
+      <action dev="essiembp" type="update">
+        More logging to help resolve crawler issues with DEBUG log level.
+      </action>
+      <action dev="essiembp" type="update">
+        HttpCrawler more lenient upon encountering some errors that were 
+        previous aborting entire execution.  
+      </action>
+      <action dev="essiembp" type="update">
+        Library upgrades.  Updated default crawl url database (MapDB) to 
+        version 0.9.9.  Upgraded Norconex Commons Lang to 1.3.0.
+        Updated Apache HttpClient to 4.3.2.
+      </action>
+      <action dev="essiembp" type="remove">
+        Removed classes deprecated since 1.1.
       </action>
     </release>
 

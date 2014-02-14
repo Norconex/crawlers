@@ -29,8 +29,9 @@ import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
 import com.norconex.collector.http.checksum.IHttpHeadersChecksummer;
 import com.norconex.collector.http.checksum.impl.DefaultHttpDocumentChecksummer;
 import com.norconex.collector.http.checksum.impl.DefaultHttpHeadersChecksummer;
+import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.IHttpClientInitializer;
-import com.norconex.collector.http.client.impl.DefaultHttpClientInitializer;
+import com.norconex.collector.http.client.impl.DefaultHttpClientFactory;
 import com.norconex.collector.http.db.ICrawlURLDatabaseFactory;
 import com.norconex.collector.http.db.impl.DefaultCrawlURLDatabaseFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
@@ -59,6 +60,7 @@ import com.norconex.importer.ImporterConfig;
  * HTTP Crawler configuration.
  * @author Pascal Essiembre
  */
+@SuppressWarnings("deprecation")
 public class HttpCrawlerConfig implements Cloneable, Serializable {
 
     private static final long serialVersionUID = -3350877963428801802L;
@@ -74,14 +76,16 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     private boolean ignoreSitemap;
     private boolean keepDownloads;
     private boolean deleteOrphans;
+    private String userAgent;
 
     private IURLNormalizer urlNormalizer;
 
     private IDelayResolver delayResolver = new DefaultDelayResolver();
     
-    private IHttpClientInitializer httpClientInitializer =
-            new DefaultHttpClientInitializer();
-
+    private IHttpClientInitializer httpClientInitializer = null;
+    private IHttpClientFactory httpClientFactory =
+            new DefaultHttpClientFactory();
+    
     private IHttpDocumentFetcher httpDocumentFetcher =
             new DefaultDocumentFetcher();
 
@@ -173,12 +177,28 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     public void setImporterConfig(ImporterConfig importerConfig) {
         this.importerConfig = importerConfig;
     }
+    /**
+     * @deprecated (1.3) use {@link #getHttpClientFactory()}.
+     */
+    @SuppressWarnings("javadoc")
+    @Deprecated
     public IHttpClientInitializer getHttpClientInitializer() {
         return httpClientInitializer;
     }
+    /**
+     * @deprecated (1.3) use {@link #setHttpClientFactory(IHttpClientFactory)}.
+     */
+    @SuppressWarnings("javadoc")
+    @Deprecated
     public void setHttpClientInitializer(
             IHttpClientInitializer httpClientInitializer) {
         this.httpClientInitializer = httpClientInitializer;
+    }
+    public IHttpClientFactory getHttpClientFactory() {
+        return httpClientFactory;
+    }
+    public void setHttpClientFactory(IHttpClientFactory httpClientFactory) {
+        this.httpClientFactory = httpClientFactory;
     }
     public IHttpDocumentFetcher getHttpDocumentFetcher() {
         return httpDocumentFetcher;
@@ -314,6 +334,12 @@ public class HttpCrawlerConfig implements Cloneable, Serializable {
     }
     public void setSitemapResolver(ISitemapsResolver sitemapResolver) {
         this.sitemapResolver = sitemapResolver;
+    }
+    public String getUserAgent() {
+        return userAgent;
+    }
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
     }
     @Override
     protected Object clone() throws CloneNotSupportedException {

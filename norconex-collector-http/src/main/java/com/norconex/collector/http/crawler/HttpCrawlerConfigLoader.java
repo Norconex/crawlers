@@ -96,6 +96,7 @@ public final class HttpCrawlerConfigLoader {
      * @param node the node representing the crawler configuration.
      * @throws HttpCollectorException problem parsing crawler configuration
      */
+    @SuppressWarnings("deprecation")
     private static void loadCrawlerConfig(
             HttpCrawlerConfig config, XMLConfiguration node) {
         //--- General Configuration --------------------------------------------
@@ -116,6 +117,7 @@ public final class HttpCrawlerConfigLoader {
             config.setId(crawlerId);
         }
 
+        config.setUserAgent(node.getString("userAgent", config.getUserAgent()));
         config.setUrlNormalizer(ConfigurationUtil.newInstance(
                 node, "urlNormalizer", config.getUrlNormalizer()));
         config.setDelayResolver(ConfigurationUtil.newInstance(
@@ -147,6 +149,10 @@ public final class HttpCrawlerConfigLoader {
                 node, "httpClientInitializer",
                 config.getHttpClientInitializer()));
 
+        //--- HTTP Initializer -------------------------------------------------
+        config.setHttpClientFactory(ConfigurationUtil.newInstance(
+                node, "httpClientFactory", config.getHttpClientFactory()));
+        
         //--- URL Filters ------------------------------------------------------
         IURLFilter[] urlFilters = loadURLFilters(node, "httpURLFilters.filter");
         config.setURLFilters(

@@ -1,8 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
-- Add support to bypass SSL certificate validation and accept everything on SSL.
-
-- Add support for NTLM authentication.
+- Add a command prompt action to flush the committer queue. This can be useful
+  if the collector crashed for some reason, while there were files left in
+  the committer queue.  Shall this be done on an AbstractCommitter class
+  so all future collectors automatically has that?
 
 - Add support for having different HTTPContext for each call and/or each
   sites.
@@ -15,7 +16,7 @@ The following are either things to be done, or ideas to consider:
 
 - Provide some duplicate detection mechanism.  Maybe using existing checksums.
 
-- Add the ability to control how many succcessive crawls it has to go through
+- Add the ability to control how many successive crawls it has to go through
   before deleting a document.
 
 - Add the checksums to document metadata.

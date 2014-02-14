@@ -20,9 +20,7 @@ package com.norconex.collector.http.robot;
 
 import java.io.Serializable;
 
-import org.apache.http.impl.client.DefaultHttpClient;
-
-import com.norconex.collector.http.robot.RobotsTxt;
+import org.apache.http.client.HttpClient;
 
 /**
  * Given a URL, extract any "robots.txt" rules.
@@ -30,6 +28,14 @@ import com.norconex.collector.http.robot.RobotsTxt;
  */
 public interface IRobotsTxtProvider extends Serializable {
 
-    RobotsTxt getRobotsTxt(DefaultHttpClient httpClient, String url);
+    /**
+     * Gets robots.txt rules.
+     * This method signature changed in 1.3 to include the userAgent.
+     * @param httpClient the http client to grab robots.txt
+     * @param url the URL to derive the robots.txt from
+     * @param userAgent the User-Agent to match ourselves with the robot rules
+     * @return robots.txt rules
+     */
+    RobotsTxt getRobotsTxt(HttpClient httpClient, String url, String userAgent);
     
 }

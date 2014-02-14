@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -56,7 +56,7 @@ import com.norconex.importer.filter.OnMatch;
     private final List<IHttpCrawlerEventListener> listeners = 
             new ArrayList<IHttpCrawlerEventListener>();
     private final CrawlURL crawlURL;
-    private final DefaultHttpClient httpClient;
+    private final HttpClient httpClient;
     private final ICrawlURLDatabase database;
     private RobotsTxt robotsTxt;
     private RobotsMeta robotsMeta;
@@ -81,7 +81,7 @@ import com.norconex.importer.filter.OnMatch;
     };
 
     /*default*/ URLProcessor(
-            HttpCrawler crawler, DefaultHttpClient httpClient, 
+            HttpCrawler crawler, HttpClient httpClient, 
             ICrawlURLDatabase database, CrawlURL baseURL) {
         this.crawler = crawler;
         this.httpClient = httpClient;
@@ -143,7 +143,7 @@ import com.norconex.importer.filter.OnMatch;
         public boolean processURL() {
             if (!config.isIgnoreRobotsTxt()) {
                 robotsTxt = config.getRobotsTxtProvider().getRobotsTxt(
-                                httpClient, crawlURL.getUrl());
+                        httpClient, crawlURL.getUrl(), config.getUserAgent());
                 if (isURLRejected(robotsTxt.getFilters(), robotsTxt)) {
                     status = CrawlStatus.REJECTED;
                     return false;

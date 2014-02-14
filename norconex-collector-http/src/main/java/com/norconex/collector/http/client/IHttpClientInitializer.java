@@ -28,8 +28,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
  * Implementors also implementing IXMLConfigurable must name their XML tag
  * <code>httpClientInitializer</code> to ensure it gets loaded properly.
  * @author Pascal Essiembre
- *
+ * @deprecated (1.3) use {@link IHttpClientFactory}.
  */
+@Deprecated
 public interface IHttpClientInitializer extends Serializable  {
 
     /**

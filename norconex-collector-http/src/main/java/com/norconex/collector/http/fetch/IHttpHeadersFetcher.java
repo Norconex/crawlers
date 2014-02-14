@@ -20,7 +20,7 @@ package com.norconex.collector.http.fetch;
 
 import java.io.Serializable;
 
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpClient;
 
 import com.norconex.commons.lang.map.Properties;
 
@@ -37,6 +37,6 @@ public interface IHttpHeadersFetcher extends Serializable {
      * @param url the url from which to fetch the headers
      * @return  HTTP headers as metadata
      */
-    Properties fetchHTTPHeaders(DefaultHttpClient httpClient, String url);
+    Properties fetchHTTPHeaders(HttpClient httpClient, String url);
 	
 }

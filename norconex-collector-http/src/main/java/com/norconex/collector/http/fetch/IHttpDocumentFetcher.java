@@ -20,7 +20,7 @@ package com.norconex.collector.http.fetch;
 
 import java.io.Serializable;
 
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpClient;
 
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.doc.HttpDocument;
@@ -40,6 +40,6 @@ public interface IHttpDocumentFetcher extends Serializable {
 	 * @return URL status
 	 */
 	CrawlStatus fetchDocument(
-			DefaultHttpClient httpClient, HttpDocument doc);
+	        HttpClient httpClient, HttpDocument doc);
 	
 }

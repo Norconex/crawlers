@@ -20,9 +20,7 @@ package com.norconex.collector.http.doc;
 
 import java.io.Serializable;
 
-import org.apache.http.impl.client.DefaultHttpClient;
-
-import com.norconex.collector.http.doc.HttpDocument;
+import org.apache.http.client.HttpClient;
 
 /**
  * Custom processing (optional) performed on a document.  Can be used 
@@ -38,5 +36,5 @@ public interface IHttpDocumentProcessor extends Serializable {
 	 * @param httpClient HTTP Client
 	 * @param doc the document
 	 */
-    void processDocument(DefaultHttpClient httpClient, HttpDocument doc);
+    void processDocument(HttpClient httpClient, HttpDocument doc);
 }

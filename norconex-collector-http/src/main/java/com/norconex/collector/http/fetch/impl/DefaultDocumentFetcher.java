@@ -37,8 +37,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -88,7 +88,7 @@ public class DefaultDocumentFetcher
     
 	@Override
 	public CrawlStatus fetchDocument(
-	        DefaultHttpClient httpClient, HttpDocument doc) {
+	        HttpClient httpClient, HttpDocument doc) {
 	    //TODO replace signature with Writer class.
 	    LOG.debug("Fetching document: " + doc.getUrl());
 	    HttpGet method = null;

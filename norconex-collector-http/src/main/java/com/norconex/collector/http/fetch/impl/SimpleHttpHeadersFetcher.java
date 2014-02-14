@@ -32,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -95,7 +95,7 @@ public class SimpleHttpHeadersFetcher
     }
     @Override
 	public Properties fetchHTTPHeaders(
-	        DefaultHttpClient httpClient, String url) {
+	        HttpClient httpClient, String url) {
 	    Properties metadata = new Properties();
 	    HttpHead method = null;
 	    try {

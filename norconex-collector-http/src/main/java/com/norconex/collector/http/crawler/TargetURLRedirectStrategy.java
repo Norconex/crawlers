@@ -23,11 +23,11 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.doc.HttpDocument;
@@ -58,7 +58,8 @@ import com.norconex.collector.http.doc.HttpMetadata;
  * @since 1.1.1
  */
 public class TargetURLRedirectStrategy implements RedirectStrategy {
-    private ThreadLocal<String> currentURL = new ThreadLocal<String>();
+    private static final ThreadLocal<String> CURRENT_URL = 
+            new ThreadLocal<String>();
     private final RedirectStrategy nested;
     
     public TargetURLRedirectStrategy(RedirectStrategy nested) {
@@ -73,14 +74,14 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
         boolean isRedirected = nested.isRedirected(
                 request, response, context);
         HttpUriRequest currentReq = (HttpUriRequest) context.getAttribute( 
-                ExecutionContext.HTTP_REQUEST);
+                HttpCoreContext.HTTP_REQUEST);
         HttpHost currentHost = (HttpHost)  context.getAttribute( 
-                ExecutionContext.HTTP_TARGET_HOST);
+                HttpCoreContext.HTTP_TARGET_HOST);
         if (!isRedirected) {
             if (currentReq.getURI().isAbsolute()) {
-                currentURL.set(currentReq.getURI().toString());
+                CURRENT_URL.set(currentReq.getURI().toString());
             } else {
-                currentURL.set(currentHost.toURI() + currentReq.getURI());
+                CURRENT_URL.set(currentHost.toURI() + currentReq.getURI());
             }
         }
         return isRedirected;
@@ -97,24 +98,20 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
         return nested;
     }
 
-    public String getCurrentUrl() {
-        return currentURL.get();
+    public static String getCurrentUrl() {
+        return CURRENT_URL.get();
     }
     
     public static void fixRedirectURL(
-            DefaultHttpClient httpClient, 
+            HttpClient httpClient, 
             HttpDocument doc,
             CrawlURL crawlURL,
             ICrawlURLDatabase database) {
-        RedirectStrategy aStrategy = httpClient.getRedirectStrategy();
-        if (aStrategy instanceof TargetURLRedirectStrategy) {
-            TargetURLRedirectStrategy s = (TargetURLRedirectStrategy) aStrategy;
-            String originalURL = crawlURL.getUrl();
-            String currentURL = s.getCurrentUrl();
-            if (ObjectUtils.notEqual(currentURL, originalURL)) {
-                crawlURL.setUrl(currentURL);
-                doc.getMetadata().setString(HttpMetadata.DOC_URL, currentURL);
-            }
+        String originalURL = crawlURL.getUrl();
+        String currentURL = getCurrentUrl();
+        if (ObjectUtils.notEqual(currentURL, originalURL)) {
+            crawlURL.setUrl(currentURL);
+            doc.getMetadata().setString(HttpMetadata.DOC_URL, currentURL);
         }
     }
 }

@@ -28,7 +28,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -66,7 +66,7 @@ import com.norconex.importer.filter.OnMatch;
     private final HttpCrawler crawler;
     private final HttpCrawlerConfig config;
     private final CrawlURL crawlURL;
-    private final DefaultHttpClient httpClient;
+    private final HttpClient httpClient;
     private final HttpDocument doc;
     private final IHttpHeadersFetcher hdFetcher;
     private final ICrawlURLDatabase database;
@@ -95,7 +95,7 @@ import com.norconex.importer.filter.OnMatch;
     };
 
     /*default*/ DocumentProcessor(
-            HttpCrawler crawler, DefaultHttpClient httpClient, 
+            HttpCrawler crawler, HttpClient httpClient, 
             ICrawlURLDatabase database, File outputFile,
             HttpDocument doc, CrawlURL crawlURL) {
         this.crawler = crawler;

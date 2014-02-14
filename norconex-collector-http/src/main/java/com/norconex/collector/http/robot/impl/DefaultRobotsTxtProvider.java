@@ -29,9 +29,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.CoreProtocolPNames;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -63,15 +62,13 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
 
     @Override
     public synchronized RobotsTxt getRobotsTxt(
-            DefaultHttpClient httpClient, String url) {
+            HttpClient httpClient, String url, String userAgent) {
         String baseURL = getBaseURL(url);
         RobotsTxt robotsTxt = robotsTxtCache.get(baseURL);
         if (robotsTxt != null) {
             return robotsTxt;
         }
         
-        String userAgent = ((String) httpClient.getParams().getParameter(
-                CoreProtocolPNames.USER_AGENT)).toLowerCase();
         String robotsURL = baseURL + "/robots.txt";
         HttpGet method = new HttpGet(robotsURL);
         List<String> sitemapLocations = new ArrayList<String>();

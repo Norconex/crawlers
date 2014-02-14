@@ -16,30 +16,30 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.sitemap;
+package com.norconex.collector.http.client;
 
 import java.io.Serializable;
 
 import org.apache.http.client.HttpClient;
-
+import org.apache.http.impl.client.CloseableHttpClient;
 
 /**
- * Given a URL root, return the resolve the corresponding sitemap, if any.
+ * Create (and initializes) an {@link HttpClient} to be used for all 
+ * HTTP request this crawler will make.  If implementing 
+ * {@link CloseableHttpClient} the crawler will take care of closing
+ * it properly when crawling ends.
+ * 
+ * Implementors also implementing IXMLConfigurable must name their XML tag
+ * <code>httpClientFactory</code> to ensure it gets loaded properly.
+ * @since 1.3.0
  * @author Pascal Essiembre
  */
-public interface ISitemapsResolver extends Serializable {
+public interface IHttpClientFactory extends Serializable  {
 
     /**
-     * Resolves the sitemap instructions for a URL "root" (e.g. 
-     * http://www.example.com).
-     * @param httpClient the http client to use to stream Internet 
-     *        files if needed
-     * @param urlRoot the URL root for which to resolve the sitemap
-     * @param robotsTxtLocations sitemap locations specified in robots.txt
-     *        (provided robots are not ignored)
-     * @param sitemapURLStore store holding retreived site maps
+     * Initializes the HTTP Client used for crawling.
+     * @param userAgent the HTTP request "User-Agent" header value
+     * @return Apache HTTP Client
      */
-    void resolveSitemaps(HttpClient httpClient, String urlRoot, 
-            String[] robotsTxtLocations, SitemapURLStore sitemapURLStore);
-    
+	HttpClient createHTTPClient(String userAgent);
 }

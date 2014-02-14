@@ -70,6 +70,14 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <url>http://www.sample.com</url>
     </startURLs>
 
+    <!-- Identify yourself to sites you crawl.  It sets the "User-Agent" HTTP 
+         request header value.  This is how browsers identify themselves for
+         instance.  Sometimes required to be certain values for robots.txt 
+         files.
+      -->
+    <userAgent>My Web Crawler</userAgent>
+
+
     <!-- Optional URL normalization feature. The class must implement
          *.url.IURLNormalizer, like the following class does.
       -->

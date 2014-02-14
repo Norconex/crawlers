@@ -34,14 +34,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.http.client.IHttpClientInitializer;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
@@ -59,6 +60,7 @@ import com.norconex.jef.suite.JobSuite;
  * The HTTP Crawler.
  * @author Pascal Essiembre
  */
+@SuppressWarnings("deprecation")
 public class HttpCrawler extends AbstractResumableJob {
 	
     private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
@@ -66,7 +68,7 @@ public class HttpCrawler extends AbstractResumableJob {
 	private static final int MINIMUM_DELAY = 10;
 	
 	private final HttpCrawlerConfig crawlerConfig;
-    private DefaultHttpClient httpClient;
+	HttpClient httpClient;
     private boolean stopped;
     private int okURLsCount;
     
@@ -126,7 +128,7 @@ public class HttpCrawler extends AbstractResumableJob {
             execute(database, progress, suite);
         } finally {
             database.close();
-            httpClient.getConnectionManager().shutdown();
+            closeHttpClient();
         }
     }
 
@@ -147,7 +149,7 @@ public class HttpCrawler extends AbstractResumableJob {
             execute(database, progress, suite);
         } finally {
             database.close();
-            httpClient.getConnectionManager().shutdown();
+            closeHttpClient();
         }
     }
 	
@@ -299,6 +301,10 @@ public class HttpCrawler extends AbstractResumableJob {
             final JobProgress progress, 
             final boolean delete) {
         CrawlURL queuedURL = database.nextQueued();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(getId() 
+                    + " Processing next URL from Queue: " + queuedURL);
+        }
         if (queuedURL != null) {
             if (isMaxURLs()) {
                 LOG.info(getId() + ": Maximum URLs reached: " 
@@ -319,7 +325,15 @@ public class HttpCrawler extends AbstractResumableJob {
                         + " to process: " + queuedURL.getUrl());
             }
         } else {
-            if (database.getActiveCount() == 0 && database.isQueueEmpty()) {
+            int activeCount = database.getActiveCount();
+            boolean queueEmpty = database.isQueueEmpty();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(getId() 
+                        + " URLs currently being processed: " + activeCount);
+                LOG.debug(getId() 
+                        + " Is URL queue empty? " + queueEmpty);
+            }
+            if (activeCount == 0 && queueEmpty) {
                 return false;
             }
             Sleeper.sleepMillis(MINIMUM_DELAY);
@@ -390,37 +404,56 @@ public class HttpCrawler extends AbstractResumableJob {
             LOG.error(getId() + ": Could not process document: " + url
                     + " (" + e.getMessage() + ")", e);
 	    } finally {
-            //--- Flag URL for deletion ----------------------------------------
-	        ICommitter committer = crawlerConfig.getCommitter();
+            finalizeURLProcessing(crawlURL, database, url, outputFile, doc);
+	    }
+	}
+
+    private void finalizeURLProcessing(CrawlURL crawlURL,
+            ICrawlURLDatabase database, String url, File outputFile,
+            HttpDocument doc) {
+        //--- Flag URL for deletion --------------------------------------------
+        try {
+            ICommitter committer = crawlerConfig.getCommitter();
             if (database.isVanished(crawlURL)) {
                 crawlURL.setStatus(CrawlStatus.DELETED);
                 if (committer != null) {
                     committer.queueRemove(url, outputFile, doc.getMetadata());
                 }
             }
-	    	
-            //--- Mark URL as Processed ----------------------------------------
+        } catch (Exception e) {
+            LOG.error(getId() + ": Could not flag URL for deletion: " + url
+                    + " (" + e.getMessage() + ")", e);
+        }
+        
+        //--- Mark URL as Processed --------------------------------------------
+        try {
             if (crawlURL.getStatus() == CrawlStatus.OK) {
                 okURLsCount++;
             }
             database.processed(crawlURL);
-            
             markOriginalURLAsProcessed(crawlURL, database, doc);
-            
             if (crawlURL.getStatus() == null) {
                 LOG.warn("URL status is unknown: " + crawlURL.getUrl());
                 crawlURL.setStatus(CrawlStatus.BAD_STATUS);
             }
             crawlURL.getStatus().logInfo(crawlURL);
-            
+        } catch (Exception e) {
+            LOG.error(getId() + ": Could not mark URL as processed: " + url
+                    + " (" + e.getMessage() + ")", e);
+        }
+
+        try {
             //--- Delete Local File Download -----------------------------------
             if (!crawlerConfig.isKeepDownloads()) {
                 LOG.debug("Deleting " + doc.getLocalFile());
                 FileUtils.deleteQuietly(doc.getLocalFile());
                 FileUtils.deleteQuietly(outputFile);
             }
-	    }
-	}
+        } catch (Exception e) {
+            LOG.error(getId() + ": Could not delete local file: "
+                    + doc.getLocalFile() + " (" + e.getMessage() + ")", e);
+        }
+    }
 
     private void markOriginalURLAsProcessed(CrawlURL crawlURL,
             ICrawlURLDatabase database, HttpDocument doc) {
@@ -432,24 +465,33 @@ public class HttpCrawler extends AbstractResumableJob {
         }
     }
 
-	private void initializeHTTPClient() {
-        //TODO set HTTPClient user-agent from config before calling init..
-	    PoolingClientConnectionManager m = new PoolingClientConnectionManager();
-	    if (crawlerConfig.getNumThreads() <= 0) {
-	        m.setMaxTotal(Integer.MAX_VALUE);
+    private void initializeHTTPClient() {
+	    
+	    // Handle deprecation:
+	    IHttpClientInitializer initializer = 
+	            crawlerConfig.getHttpClientInitializer();
+	    if (initializer != null) {
+	        //TODO set HTTPClient user-agent from config before calling init..
+	        //TODO is this pooling manager necessary with 4.3?
+	        PoolingClientConnectionManager m = new PoolingClientConnectionManager();
+	        if (crawlerConfig.getNumThreads() <= 0) {
+	            m.setMaxTotal(Integer.MAX_VALUE);
+	        } else {
+	            m.setMaxTotal(crawlerConfig.getNumThreads());
+	        }
+	        httpClient = new DefaultHttpClient(m);
+	        LOG.warn("YOU ARE USING DEPRECATED CODE.  Please convert your "
+	               + "implementation of IHttpClientInitializer to "
+	               + "IHttpClientFactory instead. Your class \""
+	               + initializer.getClass().getCanonicalName() 
+	               + "\" may have issues with the current release. "
+	               + "IHttpClientInitializer will be removed in a future "
+	               + "release.");
+	        initializer.initializeHTTPClient((DefaultHttpClient) httpClient);
 	    } else {
-	        m.setMaxTotal(crawlerConfig.getNumThreads());
+	        httpClient = crawlerConfig.getHttpClientFactory().createHTTPClient(
+	                crawlerConfig.getUserAgent());
 	    }
-        httpClient = new DefaultHttpClient(m);
-        crawlerConfig.getHttpClientInitializer().initializeHTTPClient(
-                httpClient);
-        
-        //TODO Fix #17. Put in place a more permanent solution to the following
-        RedirectStrategy strategy = httpClient.getRedirectStrategy();
-        if (strategy == null) {
-            strategy = new DefaultRedirectStrategy();
-        }
-        httpClient.setRedirectStrategy(new TargetURLRedirectStrategy(strategy));
 	}
 
     @Override
@@ -483,6 +525,16 @@ public class HttpCrawler extends AbstractResumableJob {
             metadata.addFloat(HttpMetadata.DOC_SM_PRORITY, 
                     url.getSitemapPriority());
         }        
+    }
+    
+    private void closeHttpClient() {
+        if (httpClient instanceof CloseableHttpClient) {
+            try {
+                ((CloseableHttpClient) httpClient).close();
+            } catch (IOException e) {
+                LOG.error(getId() +  " Cannot close HttpClient.", e);
+            }
+        }
     }
     
     private final class ProcessURLsRunnable implements Runnable {

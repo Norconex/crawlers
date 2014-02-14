@@ -44,8 +44,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -101,7 +101,7 @@ public class DefaultSitemapResolver
     
 
     @Override
-    public void resolveSitemaps(DefaultHttpClient httpClient, String urlRoot,
+    public void resolveSitemaps(HttpClient httpClient, String urlRoot,
             String[] robotsTxtLocations, SitemapURLStore sitemapURLStore) {
 
         final Set<String> resolvedLocations = new HashSet<String>();
@@ -158,7 +158,7 @@ public class DefaultSitemapResolver
         }
     }
 
-    private void resolveLocation(String location, DefaultHttpClient httpClient,
+    private void resolveLocation(String location, HttpClient httpClient,
             SitemapURLStore sitemapURLStore, Set<String> resolvedLocations) {
 
         if (resolvedLocations.contains(location)) {
@@ -201,7 +201,7 @@ public class DefaultSitemapResolver
         }  
     }
     
-    private void parseLocation(InputStream is, DefaultHttpClient httpClient,
+    private void parseLocation(InputStream is, HttpClient httpClient,
             SitemapURLStore sitemapURLStore, Set<String> resolvedLocations,
             String location) throws XMLStreamException {
 

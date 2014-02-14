@@ -49,6 +49,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.IHttpClientInitializer;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -86,7 +87,9 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *  &lt;/httpClientInitializer&gt;
  * </pre>
  * @author Pascal Essiembre
+ * @deprecated (1.3) use {@link IHttpClientFactory}.
  */
+@Deprecated
 public class DefaultHttpClientInitializer implements
 		IHttpClientInitializer, IXMLConfigurable {
 
@@ -125,9 +128,7 @@ public class DefaultHttpClientInitializer implements
 	
     @Override
 	public void initializeHTTPClient(DefaultHttpClient httpClient) {
-
         // Time out after 30 seconds.
-        //TODO Make configurable.
         httpClient.getParams().setParameter(
                 CoreConnectionPNames.CONNECTION_TIMEOUT, CONNECTION_TIMEOUT);
         
@@ -135,15 +136,16 @@ public class DefaultHttpClientInitializer implements
         Scheme ftp = new Scheme("ftp", FTP_PORT, new PlainSocketFactory());
         httpClient.getConnectionManager().getSchemeRegistry().register(ftp);
         
-        //TODO make charset configurable instead since UTF-8 is not right
+        // make charset configurable instead since UTF-8 is not right
         // charset for URL specifications.  It is used here to overcome
-        // so invalid redirect errors, where the redirect target URL is not 
+        // some invalid redirect errors, where the redirect target URL is not 
         // URL-Encoded and has non-ascii values, and fails
         // (e.g. like ja.wikipedia.org).
         // Can consider a custom RedirectStrategy too if need be.
         httpClient.getParams().setParameter(
                 CoreProtocolPNames.HTTP_ELEMENT_CHARSET, "UTF-8");
         
+        //--- Proxy ---
         if (StringUtils.isNotBlank(proxyHost)) {
             httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, 
                     new HttpHost(proxyHost, proxyPort));
@@ -155,6 +157,7 @@ public class DefaultHttpClientInitializer implements
             }
         }
         
+        //--- Authentication ---
         if (!cookiesDisabled) {
             httpClient.getParams().setParameter(
                     ClientPNames.COOKIE_POLICY,
@@ -433,7 +436,7 @@ public class DefaultHttpClientInitializer implements
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
     }
-    
+
     /**
      * Gets the proxy host.
      * @return proxy host
