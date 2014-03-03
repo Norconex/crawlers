@@ -33,6 +33,10 @@
         proxy scheme, 'Expect: 100-continue' handshake, maximum HTTP redirects,
         local address, stale connection checks 
       </action>
+      <action dev="essiembp" type="add">
+        HTTP header checksum and document checksum are now added to the document
+        metadata as HttpMetadata#CHECKSUM_HEADER and HttpMetadata#CHECKSUM_DOC.
+      </action>
       <action dev="essiembp" type="update">
         The empty sub-folders contained under the "download" folder are now 
         periodically deleted.  This speeds up directory scanning and increases
@@ -66,8 +70,8 @@
       </action>
       <action dev="essiembp" type="update">
         Library upgrades.  Updated default crawl url database (MapDB) to 
-        version 0.9.10.  Upgraded Norconex Commons Lang to 1.3.0.
-        Updated Apache HttpClient to 4.3.2.
+        version 0.9.10, Norconex Commons Lang to 1.3.0,
+        Norconex Committer to 1.2.0, and Apache HttpClient to 4.3.2.
       </action>
       <action dev="essiembp" type="fix">
         Now ensures that robots.txt agent matching gives priority to the most 

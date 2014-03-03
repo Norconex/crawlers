@@ -55,7 +55,11 @@ import com.norconex.importer.filter.OnMatch;
 
 /**
  * Performs the document processing.  
- * Instances are only valid for the scope of a single URL.  
+ * Instances are only valid for the scope of a single URL.
+ * <p/>
+ * As of 1.3.0, the header and document checksums are added to the document
+ * metadata under the keys {@link HttpMetadata#CHECKSUM_HEADER} and 
+ * {@link HttpMetadata#CHECKSUM_DOC}.
  * @author Pascal Essiembre
  */
 /*default*/ final class DocumentProcessor {
@@ -437,6 +441,8 @@ import com.norconex.importer.filter.OnMatch;
                 return true;
             }
             String newDocChecksum = check.createChecksum(doc);
+            HttpMetadata metadata = doc.getMetadata();
+            metadata.setString(HttpMetadata.CHECKSUM_DOC, newDocChecksum);
             crawlURL.setDocChecksum(newDocChecksum);
             String oldDocChecksum = null;
             CrawlURL cachedURL = database.getCached(crawlURL.getUrl());
@@ -551,6 +557,7 @@ import com.norconex.importer.filter.OnMatch;
         }
         HttpMetadata headers = doc.getMetadata();
         String newHeadChecksum = check.createChecksum(headers);
+        headers.setString(HttpMetadata.CHECKSUM_HEADER, newHeadChecksum);
         crawlURL.setHeadChecksum(newHeadChecksum);
         String oldHeadChecksum = null;
         CrawlURL cachedURL = database.getCached(crawlURL.getUrl());

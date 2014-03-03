@@ -20,8 +20,6 @@ The following are either things to be done, or ideas to consider:
 - Add the ability to control how many successive crawls it has to go through
   before deleting a document.
 
-- Add the checksums to document metadata.
-
 - Make printing of debug messages for rejection easier/more obvious. Maybe
   have a logger interface with two implementation. One uses log4j as is, one
   uses inline xml configuration instead. 
@@ -50,10 +48,6 @@ The following are either things to be done, or ideas to consider:
 - Make sure maxURL counter saved in progress is in sync with each time we commit
   to avoid having a counter higher than actual URLs processed in case of 
   failure (minor impact).
-
-- Make configurable via HTML many HTTPClient init options, such 
-  as CoreConnectionPNames.CONNECTION_TIMEOUT and/or provide ways to configure
-  abitrary values, referencing Apache docs.
 
 - Add optional flag to support gzip transfer (DecompressingHttpClient).
 

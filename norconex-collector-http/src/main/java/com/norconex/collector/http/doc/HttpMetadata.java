@@ -48,6 +48,13 @@ public class HttpMetadata extends Properties {
     public static final String REFERNCED_URLS = 
             COLLECTOR_PREFIX + "referenced-urls";
 
+    /** Since 1.3.0 */
+    public static final String CHECKSUM_HEADER = 
+            COLLECTOR_PREFIX + "checksum-header";
+    /** Since 1.3.0 */
+    public static final String CHECKSUM_DOC = 
+            COLLECTOR_PREFIX + "checksum-doc";
+
 	
 	public HttpMetadata(String documentURL) {
 		super(false);
