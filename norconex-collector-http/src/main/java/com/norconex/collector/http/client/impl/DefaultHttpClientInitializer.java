@@ -49,7 +49,6 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.HttpCollectorException;
-import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.IHttpClientInitializer;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -87,7 +86,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *  &lt;/httpClientInitializer&gt;
  * </pre>
  * @author Pascal Essiembre
- * @deprecated (1.3) use {@link IHttpClientFactory}.
+ * @deprecated (1.3) use {@link DefaultHttpClientFactory}.
  */
 @Deprecated
 public class DefaultHttpClientInitializer implements

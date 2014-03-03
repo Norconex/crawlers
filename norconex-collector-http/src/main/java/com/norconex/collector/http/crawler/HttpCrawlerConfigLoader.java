@@ -117,23 +117,7 @@ public final class HttpCrawlerConfigLoader {
             config.setId(crawlerId);
         }
 
-        config.setUserAgent(node.getString("userAgent", config.getUserAgent()));
-        config.setUrlNormalizer(ConfigurationUtil.newInstance(
-                node, "urlNormalizer", config.getUrlNormalizer()));
-        config.setDelayResolver(ConfigurationUtil.newInstance(
-                node, "delay", config.getDelayResolver()));
-        config.setNumThreads(node.getInt("numThreads", config.getNumThreads()));
-        config.setMaxDepth(node.getInt("maxDepth", config.getMaxDepth()));
-        config.setMaxURLs(node.getInt("maxURLs", config.getMaxURLs()));
-        config.setWorkDir(new File(node.getString(
-                "workDir", config.getWorkDir().toString())));
-        config.setKeepDownloads(node.getBoolean(
-                "keepDownloads", config.isKeepDownloads()));
-        config.setDeleteOrphans(node.getBoolean(
-                "deleteOrphans", config.isDeleteOrphans()));
-        
-        String[] startURLs = node.getStringArray("startURLs.url");
-        config.setStartURLs(defaultIfEmpty(startURLs, config.getStartURLs()));
+        loadSimpleSettings(config, node);
 
         IHttpCrawlerEventListener[] crawlerListeners = 
                 loadListeners(node, "crawlerListeners.listener");
@@ -234,6 +218,27 @@ public final class HttpCrawlerConfigLoader {
         //--- Document Committers ----------------------------------------------
         config.setCommitter(ConfigurationUtil.newInstance(
                 node, "committer", config.getCommitter()));
+    }
+
+    private static void loadSimpleSettings(HttpCrawlerConfig config,
+            XMLConfiguration node) {
+        config.setUserAgent(node.getString("userAgent", config.getUserAgent()));
+        config.setUrlNormalizer(ConfigurationUtil.newInstance(
+                node, "urlNormalizer", config.getUrlNormalizer()));
+        config.setDelayResolver(ConfigurationUtil.newInstance(
+                node, "delay", config.getDelayResolver()));
+        config.setNumThreads(node.getInt("numThreads", config.getNumThreads()));
+        config.setMaxDepth(node.getInt("maxDepth", config.getMaxDepth()));
+        config.setMaxURLs(node.getInt("maxURLs", config.getMaxURLs()));
+        config.setWorkDir(new File(node.getString(
+                "workDir", config.getWorkDir().toString())));
+        config.setKeepDownloads(node.getBoolean(
+                "keepDownloads", config.isKeepDownloads()));
+        config.setDeleteOrphans(node.getBoolean(
+                "deleteOrphans", config.isDeleteOrphans()));
+        
+        String[] startURLs = node.getStringArray("startURLs.url");
+        config.setStartURLs(defaultIfEmpty(startURLs, config.getStartURLs()));
     }
     
     //TODO consider moving to Norconex Commons Lang

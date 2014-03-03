@@ -68,9 +68,10 @@ public class HttpCrawler extends AbstractResumableJob {
     private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
 	
 	private static final int MINIMUM_DELAY = 10;
+    private static final int FILE_DELETE_COUNT_MAX = 100;
 	
 	private final HttpCrawlerConfig crawlerConfig;
-	HttpClient httpClient;
+	private HttpClient httpClient;
     private boolean stopped;
     private int okURLsCount;
     private int deletedDownloadCount;
@@ -451,23 +452,26 @@ public class HttpCrawler extends AbstractResumableJob {
                 LOG.debug("Deleting " + doc.getLocalFile());
                 FileUtils.deleteQuietly(doc.getLocalFile());
                 FileUtils.deleteQuietly(outputFile);
-                deletedDownloadCount++;
-                if (deletedDownloadCount % 100 == 0) {
-                    final long someTimeAgo = System.currentTimeMillis() 
-                            - (DateUtils.MILLIS_PER_MINUTE * 2);
-                    File dir = gelCrawlerDownloadDir();
-                    Date date = new Date(someTimeAgo);
-                    int dirCount = FileUtil.deleteEmptyDirs(dir, date);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(getId() + ": Deleted " + dirCount 
-                                + " empty directories under " + dir);
-                    }
-                }
-                
+                deleteDownloadDirIfReady();
             }
         } catch (Exception e) {
             LOG.error(getId() + ": Could not delete local file: "
                     + doc.getLocalFile() + " (" + e.getMessage() + ")", e);
+        }
+    }
+
+    private void deleteDownloadDirIfReady() {
+        deletedDownloadCount++;
+        if (deletedDownloadCount % FILE_DELETE_COUNT_MAX == 0) {
+            final long someTimeAgo = System.currentTimeMillis() 
+                    - (DateUtils.MILLIS_PER_MINUTE * 2);
+            File dir = gelCrawlerDownloadDir();
+            Date date = new Date(someTimeAgo);
+            int dirCount = FileUtil.deleteEmptyDirs(dir, date);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(getId() + ": Deleted " + dirCount 
+                        + " empty directories under " + dir);
+            }
         }
     }
 
