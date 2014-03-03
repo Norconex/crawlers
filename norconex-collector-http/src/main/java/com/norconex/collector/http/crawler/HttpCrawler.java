@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -33,6 +34,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -71,6 +73,7 @@ public class HttpCrawler extends AbstractResumableJob {
 	HttpClient httpClient;
     private boolean stopped;
     private int okURLsCount;
+    private int deletedDownloadCount;
     
     /**
      * Constructor.
@@ -448,6 +451,19 @@ public class HttpCrawler extends AbstractResumableJob {
                 LOG.debug("Deleting " + doc.getLocalFile());
                 FileUtils.deleteQuietly(doc.getLocalFile());
                 FileUtils.deleteQuietly(outputFile);
+                deletedDownloadCount++;
+                if (deletedDownloadCount % 100 == 0) {
+                    final long someTimeAgo = System.currentTimeMillis() 
+                            - (DateUtils.MILLIS_PER_MINUTE * 2);
+                    File dir = gelCrawlerDownloadDir();
+                    Date date = new Date(someTimeAgo);
+                    int dirCount = FileUtil.deleteEmptyDirs(dir, date);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(getId() + ": Deleted " + dirCount 
+                                + " empty directories under " + dir);
+                    }
+                }
+                
             }
         } catch (Exception e) {
             LOG.error(getId() + ": Could not delete local file: "

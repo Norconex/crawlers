@@ -56,8 +56,8 @@ import org.apache.http.conn.UnsupportedSchemeException;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.Args;
@@ -74,7 +74,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;httpClientInitializer class="com.norconex.collector.http.client.impl.DefaultHttpClientFactory"&gt;
+ *  &lt;httpClientFactory class="com.norconex.collector.http.client.impl.DefaultHttpClientFactory"&gt;
  *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
  *      &lt;connectionTimeout&gt;...&lt;/connectionTimeout&gt;
  *      &lt;socketTimeout&gt;...&lt;/socketTimeout&gt;
@@ -119,7 +119,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *      &lt;authWorkstation&gt;...&lt;/authWorkstation&gt;
  *      &lt;authDomain&gt;...&lt;/authDomain&gt;
  *
- *  &lt;/httpClientInitializer&gt;
+ *  &lt;/httpClientFactory&gt;
  * </pre>
  * @author Pascal Essiembre
  * @since 1.3.0
@@ -217,7 +217,7 @@ public class DefaultHttpClientFactory
         //Fix GitHub #17 start
         RedirectStrategy strategy = createRedirectStrategy();
         if (strategy == null) {
-            strategy = DefaultRedirectStrategy.INSTANCE;
+            strategy = LaxRedirectStrategy.INSTANCE;
         }
         builder.setRedirectStrategy(new TargetURLRedirectStrategy(strategy));
         //Fix end
@@ -257,7 +257,7 @@ public class DefaultHttpClientFactory
     }
 
     protected RedirectStrategy createRedirectStrategy() {
-        return DefaultRedirectStrategy.INSTANCE;
+        return LaxRedirectStrategy.INSTANCE;
     }
     
     protected SchemePortResolver createSchemePortResolver() {
@@ -399,7 +399,7 @@ public class DefaultHttpClientFactory
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
         try {
             XMLStreamWriter writer = factory.createXMLStreamWriter(out);
-            writer.writeStartElement("httpClientInitializer");
+            writer.writeStartElement("httpClientFactory");
             writer.writeAttribute("class", getClass().getCanonicalName());
 
             writeBoolElement(writer, "cookiesDisabled", cookiesDisabled);

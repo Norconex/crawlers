@@ -149,7 +149,7 @@ public final class HttpCrawlerConfigLoader {
                 node, "httpClientInitializer",
                 config.getHttpClientInitializer()));
 
-        //--- HTTP Initializer -------------------------------------------------
+        //--- HTTP Client Factory ----------------------------------------------
         config.setHttpClientFactory(ConfigurationUtil.newInstance(
                 node, "httpClientFactory", config.getHttpClientFactory()));
         
