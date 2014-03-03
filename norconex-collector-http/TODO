@@ -1,11 +1,6 @@
 The following are either things to be done, or ideas to consider:
 
 
-- Ensure that robots.txt agent matching only reads the most specific
-  From W3C: If the value is "*", the record describes the default access policy 
-  for any robot that has not matched any of the other records. It is not 
-  allowed to have multiple such records in the "/robots.txt" file.
-
 - Add a command prompt action to flush the committer queue. This can be useful
   if the collector crashed for some reason, while there were files left in
   the committer queue.  Shall this be done on an AbstractCommitter class

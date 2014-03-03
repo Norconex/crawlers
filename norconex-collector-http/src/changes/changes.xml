@@ -69,6 +69,11 @@
         version 0.9.10.  Upgraded Norconex Commons Lang to 1.3.0.
         Updated Apache HttpClient to 4.3.2.
       </action>
+      <action dev="essiembp" type="fix">
+        Now ensures that robots.txt agent matching gives priority to the most 
+        specific match (as opposed to the first match).  Sitemaps detected
+        in robots.txt are also preserved for sitemap resolving.
+      </action>
       <action dev="essiembp" type="remove">
         Removed classes deprecated since 1.1.
       </action>
