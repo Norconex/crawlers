@@ -432,6 +432,7 @@ import com.norconex.importer.filter.OnMatch;
     
     //--- HTTP Document Checksum -----------------------------------------------
     private class HTTPDocumentChecksumStep implements IURLProcessingStep {
+        @SuppressWarnings("deprecation")
         @Override
         public boolean processURL() {
             //TODO only if an INCREMENTAL run... else skip.
@@ -550,6 +551,7 @@ import com.norconex.importer.filter.OnMatch;
         return false;        
     }
     
+    @SuppressWarnings("deprecation")
     private boolean isHeadersChecksumRejected() {
         IHttpHeadersChecksummer check = config.getHttpHeadersChecksummer();
         if (check == null) {
