@@ -71,7 +71,8 @@
       <action dev="essiembp" type="update">
         Library upgrades.  Updated default crawl url database (MapDB) to 
         version 0.9.10, Norconex Commons Lang to 1.3.0,
-        Norconex Committer to 1.2.0, and Apache HttpClient to 4.3.2.
+        Norconex Committer to 1.2.0, Norconex Importer to 1.2.0, and 
+        Apache HttpClient to 4.3.2.
       </action>
       <action dev="essiembp" type="fix">
         Now ensures that robots.txt agent matching gives priority to the most 
