@@ -51,15 +51,12 @@
         changed to accept the User-Agent.
       </action>
       <action dev="essiembp" type="update">
-        Http User-Agent is now a core configuration option of a crawler.
-      </action>
-      <action dev="essiembp" type="update">
         IHttpClientInitializer is now deprecated in favor of IHttpClientFactory,
         giving you more control over HttpClient creation.
       </action>
       <action dev="essiembp" type="update">
-        API methods previously accepting DefaultHttpClient instances now have
-        their signature accepting parent interface HttpClient instead.
+        API change: Methods previously accepting DefaultHttpClient instances 
+        now have their signature accepting parent interface HttpClient instead.
       </action>
       <action dev="essiembp" type="update">
         More logging to help resolve crawler issues with DEBUG log level.

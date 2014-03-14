@@ -27,6 +27,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   
   <custom>
     <reflowSkin>
+      <navbarInverse>false</navbarInverse>
       <protocolRelativeURLs>false</protocolRelativeURLs>
       <highlightJs>true</highlightJs>
       <theme>site</theme>
@@ -74,9 +75,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <download project="norconex-collector-http">
           <breadcrumbs>false</breadcrumbs>
           <sections>
-            <body />
             <columns>2</columns>
-            <body />
           </sections>
         </download>
 
@@ -89,6 +88,19 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
             <columns>2</columns>
           </sections>
         </contribute>
+
+        <support project="norconex-collector-http">
+          <sections>
+            <columns>2</columns>
+          </sections>
+        </support>
+
+        <features project="norconex-collector-http">
+          <sections>
+            <body />
+            <columns>2</columns>
+          </sections>
+        </features>
 
       </pages>
     </reflowSkin>

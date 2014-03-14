@@ -242,7 +242,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.9</version>
         <configuration>
-          <overview>${basedir}/src/main/resources/javadoc-overview.html</overview>
+          <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <show>protected</show>
           <detectLinks>false</detectLinks>
           <nodeprecated>false</nodeprecated>
@@ -341,7 +341,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.9</version>
         <configuration>
-          <overview>${basedir}/src/main/resources/javadoc-overview.html</overview>
+          <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <header><![CDATA[
             <style>div.aboutLanguage .siteLink {font-size: 2em;}</style>
             <span class="siteLink">

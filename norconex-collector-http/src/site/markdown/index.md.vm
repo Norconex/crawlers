@@ -22,19 +22,7 @@ Norconex HTTP Collector is distributed in the hope that it will be useful,
 #set($h4 = '####')
 <head><title>Home</title><meta name="Author" content="Norconex Inc." /></head> 
 
-
-<p class="nx-news">
-
-  <img src="./images/news_16.png"/>
-  <span class="nx-news-date">2014-01-12&nbsp;&nbsp;</span>
-  <a href="http://www.norconex.com/product/committer-idol/">New IDOL Committer released.</a>
-
-  <br />
-  <img src="./images/news_16.png"/>
-  <span class="nx-news-date">2014-01-11&nbsp;&nbsp;</span>
-  <a href="download.html">Norconex HTTP Collector 1.2.0 released.</a>
-
-</p>
+<a href="download.html" class="btn btn-primary btn-large">Download ${currentStableVersion}</a> 
 
 *********************************************************
 
@@ -63,7 +51,7 @@ Easily add new functionalities, or replace existing ones.
 
 $h2 ![Cross-Platform](./images/cross_24.png "Cross-Platform") Cross-Platform
 
-100% Java-based.  Runs anywhere.  Test on a operating system (e.g. Windows) and 
+100% Java-based.  Runs anywhere.  Test on an operating system (e.g. Windows) and 
 deploy to another one (e.g. Linux).
 
 $h2 ![Feature-Rich](./images/checkmark_24.png "Feature-Rich") Feature-Rich

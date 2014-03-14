@@ -83,7 +83,7 @@ The following are either things to be done, or ideas to consider:
 
 MAYBE:
 =======
-- Create an XML schema?
+- Create an XML schema/DTD?
 
 - Start offering per-site options?  Like crawl interval and more?
   (can be achieve with defining different crawlers now).

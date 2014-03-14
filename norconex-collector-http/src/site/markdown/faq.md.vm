@@ -29,28 +29,33 @@ This page focuses on how to do things with Norconex HTTP
 Collector. If you need help on a specific feature and it
 is not covered here, we encourage you to ask about it or 
 share your findings with others in the comments area below.  To report
-issues, please use [GitHub Issues](https://github.com/norconex/collectors/issues).
-(also a good place for questions).  
+issues, please use [GitHub Issues](https://github.com/norconex/collectors/issues)
+ (also a good place for questions).  
 
 Use the above menu for faster reference.
 
-**Other FAQs and HOWTOs:**
-
-  * Importer FAQs and HOWTOS (Coming...)
-  * Committer FAQs and HOWTOS (Coming...)
 
 
 ##==============================================================================
 $h2 Crawling 
 ##==============================================================================
 
+$h3 What file formats are supported?
+##------------------------------------------------------------------------------
+
+The parsing of downloaded files is performed by the 
+[Norconex Importer](http://www.norconex.com/product/importer/).
+You can read on its web site the full list of 
+[supported file formats](http://www.norconex.com/product/importer/formats.html).
+
 
 $h3 How to perform authentication on password-protected websites
 ##------------------------------------------------------------------------------
 
-The DefaultHttpClientInitializer class supports 3 types of authentication 
-schemes: FORM, BASIC, and DIGEST.  Use one of the following in your crawler 
-configuration:
+The [DefaultHttpClientFactory](./apidocs/com/norconex/collector/http/client/impl/DefaultHttpClientFactory.html) class 
+offers different types of authentication schemes: 
+FORM, BASIC, DIGEST, NTLM and experimental ones. Below are configuration
+examples covering three frequent ones: 
 
 **FORM-Based Authentication:**
 
@@ -107,8 +112,8 @@ and are extracted for processing by default.  They look like this:
   
 If you want the URL to be followed you can't filter out the page hosting
 the redirect tag until its URL is extracted and its content parsed.
-This mean any filtering option should be defined as a post document 
-parsing action.  Document parsing is the responsibility of the Importer
+This mean any filtering actions should take place after document parsing
+occured.  Document parsing is the responsibility of the Importer
 module. One way to do this is by adding a import
 `RegexMetadataFilter` to your crawler configuration:
   
@@ -132,9 +137,9 @@ and Apache Derby.  The following will help you decide which one is the right
 one for you:
   
   * **MapDB:** Default implementation which should address the vast majority of 
-    cases. MapDB performs really well on a single server, using the local 
-    file-system.  When in doubt, use this one (which does not require explicit 
-    configuration).
+    cases. MapDB performs really well on a single server, using a mix between
+    memory and the local file-system.  When in doubt, use this one 
+    (which does not require explicit configuration).
 
   * **MongoDB:** When dealing with several millions or billions of URLs with 
     MapDB, the disk space required to store them may grow and maybe performance
@@ -156,14 +161,17 @@ $h2 Maintenance
 $h3 How to setup a good directory structure
 ##------------------------------------------------------------------------------
 
-There are multitudes of ways you can go at this.  The following example 
+There is a multitude of ways you can go at this.  The following example 
 ensures generated files are kept together for each collectors you define, 
 favors configuration re-use, and ensures portability across environments.
-Replace `<ROOT_DIR>` with the directory of your choice.  It does <<not>>
+Replace `<ROOT_DIR>` with the directory of your choice.  It does **not**
 have to be within the directory where you have installed Norconex HTTP
-Collector (but you can if you like).  Choosing a separate root directory for
+Collector (but can if you like).  Choosing a separate root directory for
 your configuration may be a good idea to put emphasis that the same 
-HTTP Collector can shared by any configuration instance you create. 
+HTTP Collector can be shared by any configuration instance you create. In other
+words, you can have many concurrent Norconex HTTP Collector instances running,
+each having their own configuration, but all sharing the same binaries
+(no need to have multiple installs unless you are testing different versions).
 In this example, we store HTTP Collector next to other directories to
 demonstrate that. 
 
@@ -183,19 +191,20 @@ To take advantage of this directory structure, you have to update your
 configuration file(s) accordingly.  Let's assume we are working on 
 "myCollectorA".  The first thing you want to do to ensure portability
 is to abstract your environment specific values in a variables file. 
-In this case we'll assume the path is different.  We'll store our path in 
+In this case we'll assume the path is different.  We'll store our path in a file
+named 
 `<ROOT_DIR>/collectors/myCollectorA/config/collectorA-config.variables` and it
 will contain the following: 
 
     workdir = <ROOT_DIR>/collectors/myCollectorA/workdir/
 
 The workdir variable can be referenced in your HTTP Collector configuration
-with the dollar sign prefix <<<$workdir>>> or <<<$\{workdir\}>>>.  The
+with the dollar sign prefix `$workdir` or `${workdir}`.  The
 variable file will be automatically loaded if you store it in the same folder
-as your main config, with the same name (minus the extension):
-<<<\<ROOT_DIR>/collectors/myCollectorA/config/collectorA-config.xml>>>.
-You can alternatively specify an alternat variables file path and name when 
-as an extra argument when you launch the HTTP Collector.
+as your main config, with the same name (but different extension):
+`<ROOT_DIR>/collectors/myCollectorA/config/collectorA-config.xml`.
+You can specify an alternate variables file path and name when 
+you specify it as an extra argument when you launch the HTTP Collector.
 We will use our variable to store every generated file in our working 
 directory:
 

@@ -36,15 +36,15 @@ for your convinience:
 
 $h2 HTTP Collector Configuration Options
 
-To get its full potential and know which parts can easily be extended,
-refer to the following for an XML based configuration.
+To get the full potential of Norconex HTTP Collector and learn which parts 
+can easily be extended, refer to the following for an XML-based configuration.
 Entries with a "class" attribute are expecting an implementation
 of your choice.   The HTTP Collector API offers several concrete
 implementations already.  Developers can also create their own
 by implementing the proper Java interfaces. Refer to the
-[HTTP Collector JavaDoc](./apidocs/index.html)
-and/or see further down what interfaces you can implement to provide custom
-functionality. Go to the
+[Norconex HTTP Collector JavaDoc](./apidocs/index.html)
+and/or see further down what interfaces you can implement.
+Go to the
 [Extend the HTTP Collector](./usage.html#Extend_the_HTTP_Collector)
 page for more details on adding your own implementations.
 
@@ -115,21 +115,23 @@ page for more details on adding your own implementations.
     
       <crawlers>
         <crawler id="...">
-           <!-- All default options can be set here too (overwrites default). -->
+           <!-- All default crawler options are the same you use can use 
+                here (overwriting defaults).  You need to define at least one
+                crawler. -->
         </crawler>
         ...
       </crawlers>
     
     </httpcollector>
 
-  The table below lists interface names that you can easily extend, and
-  also lists available out-of-the-box implementations.
-  Class names starting with "Default..." are the ones automatically configured
-  by default unless you overwrite them.
+The table below lists interface names that you can easily extend, and
+also lists available out-of-the-box implementations.
+Class names starting with "Default..." are the ones automatically configured
+by default unless you overwrite them.
 
-  In the configuration file, <<you have to use the fully qualified name>>,
-  as defined in the Javadoc.  Click on a class or interface name to go directly
-  to its full documentation, with extra configuration options.
+In the configuration file, **you have to use the fully qualified name**,
+as defined in the Javadoc.  Click on a class or interface name to go directly
+to its full documentation, with extra configuration options.
 
 #set($api="./apidocs/com/norconex/collector/http")
 
@@ -230,7 +232,11 @@ page for more details on adding your own implementations.
     <tr>
      <td>crawlURLDatabaseFactory</td>
      <td>URL Database.</td>
-     <td><a href="$api/db/impl/DefaultCrawlURLDatabaseFactory.html">DefaultCrawlURLDatabaseFactory</a>, <a href="$api/db/impl/derby/DerbyCrawlURLDatabaseFactory.html">DerbyCrawlURLDatabaseFactory</a>, <a href="$api/db/impl/mongo/MongoCrawlURLDatabaseFactory.html">MongoCrawlURLDatabaseFactory</a></td>
+     <td>
+       <a href="$api/db/impl/DefaultCrawlURLDatabaseFactory.html">DefaultCrawlURLDatabaseFactory</a>,
+       <a href="$api/db/impl/derby/DerbyCrawlURLDatabaseFactory.html">DerbyCrawlURLDatabaseFactory</a>,
+       <a href="$api/db/impl/mongo/MongoCrawlURLDatabaseFactory.html">MongoCrawlURLDatabaseFactory</a>
+     </td>
      <td><a href="$api/db/ICrawlURLDatabaseFactory.html">ICrawlURLDatabaseFactory</a></td>
     </tr>
     <tr>
@@ -242,7 +248,11 @@ page for more details on adding your own implementations.
     <tr>
      <td>httpURLFilters</td>
      <td>Filter based on URLs.</td>
-     <td><a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>, <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>, <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a></td>
+     <td>
+       <a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>,
+       <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>,
+       <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a>
+     </td>
      <td><a href="$api/filter/IURLFilter.html">IURLFilter</a></td>
     </tr>
     <tr>
@@ -266,7 +276,12 @@ page for more details on adding your own implementations.
     <tr>
      <td>httpHeadersFilters</td>
      <td>Filter based on HTTP Headers.</td>
-     <td><a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>, <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>, <a href="$api/filter/impl/RegexHeaderFilter.html">RegexHeaderFilter </a>, <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a></td>
+     <td>
+       <a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>,
+       <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>,
+       <a href="$api/filter/impl/RegexHeaderFilter.html">RegexHeaderFilter</a>,
+       <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a>
+     </td>
      <td><a href="$api/filter/IHttpHeadersFilter.html">IHttpHeadersFilter</a></td>
     </tr>
     <tr>
@@ -290,13 +305,20 @@ page for more details on adding your own implementations.
     <tr>
      <td>urlExtractor</td>
      <td>Extract URLs from a document.</td>
-     <td><a href="$api/url/impl/DefaultURLExtractor.html">DefaultURLExtractor</a>, <a href="$api/url/impl/TikaURLExtractor.html">TikaURLExtractor</a></td>
+     <td>
+       <a href="$api/url/impl/DefaultURLExtractor.html">DefaultURLExtractor</a>,
+       <a href="$api/url/impl/TikaURLExtractor.html">TikaURLExtractor</a>
+     </td>
      <td><a href="$api/url/IURLExtractor.html">IURLExtractor</a></td>
     </tr>
     <tr>
      <td>httpDocumentFilters</td>
      <td>Filter documents.</td>
-     <td><a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>, <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>, <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a></td>
+     <td>
+       <a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>,
+       <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>,
+       <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a>
+     </td>
      <td><a href="$api/filter/IHttpDocumentFilter.html">IHttpDocumentFilter</a></td>
     </tr>
     <tr>
@@ -305,9 +327,15 @@ page for more details on adding your own implementations.
      <td></td>
      <td><a href="$api/doc/IHttpDocumentProcessor.html">IHttpDocumentProcessor</a></td>
     </tr>
-    <tr>
-     <td>importer</td>
-     <td>Performs document import.  Many options available, refer to <a href="http://www.norconex.com/product/importer">Import module</a>.</td>
+    <tr style="color: black;">
+     <td><b>importer</b></td>
+     <td>
+       Performs document text extraction and manipulation.  It has many features
+       and supports many 
+       <a href="http://www.norconex.com/product/importer/formats.html">file formats</a> 
+       are supported. Refer to 
+       <a href="http://www.norconex.com/product/importer/configuration.html">Importer configuration options</a>.
+     </td>
      <td></td>
      <td></td>
     </tr>
@@ -323,9 +351,12 @@ page for more details on adding your own implementations.
      <td></td>
      <td><a href="$api/doc/IHttpDocumentProcessor.html">IHttpDocumentProcessor</a></td>
     </tr>
-    <tr>
-     <td>committer</td>
-     <td>Where to commit a document when processed.  Different implementations available, refer to <a href="http://www.norconex.com/product/committer">Committer module</a>.</td>
+    <tr style="color: black;">
+     <td><b>committer</b></td>
+     <td>
+       Where to commit a document when processed.  Different implementations are available. 
+       Refer to <a href="http://www.norconex.com/product/committer">Committer module</a>.
+     </td>
      <td></td>
      <td></td>
     </tr>
@@ -342,8 +373,8 @@ $h2 Importer Configuration Options
 
 The [Importer](http://www.norconex.com/product/importer/) module
 is an integral part of the HTTP Collector.  It is reponsible for extracting
-text out of documents, and also provide ocument manipulation, filtering options,
-and much more are found in this module distributed with the HTTP Collector.   Read the 
+text out of documents, and also provide document manipulation options and 
+filtering options.  Much more is found in this module distributed with the HTTP Collector.   Read the 
 [Importer Configuration Options](http://www.norconex.com/product/importer/configuration.html).
 
 $h2 Committer Configuration Options
@@ -352,7 +383,7 @@ The [Committer](http://www.norconex.com/product/committer/) module is
 responsible for taking the text extracted out of 
 your collected documents and submit it to your target repository (e.g. 
 search engine).  Make sure you download a 
-[Committer implementation](http://www.norconex.com/product/committer/download.html)
+[Committer implementation](http://www.norconex.com/product/committer/#list)
 matching your target repository.  Configuration options for is specific
 to each committers.  Refer to your committer documentation.
 
@@ -363,6 +394,6 @@ There is a lot more you can do to structure your configuration files
 the way you like.  Refer to this
 [additional documentation](../commons-lang/apidocs/com/norconex/commons/lang/config/ConfigurationLoader.html)
 for more configuration options such as creating reusable
-configuration fragments and using variables to make your file easier
+configuration fragments and using variables to make your files easier
 to maintain and more portable across different environments.
 

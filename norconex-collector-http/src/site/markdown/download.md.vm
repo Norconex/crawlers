@@ -20,61 +20,71 @@ Norconex HTTP Collector is distributed in the hope that it will be useful,
 #set($h2 = '##')
 #set($h3 = '###')
 #set($h4 = '####')
+#set($releasePath = "http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http")
 <head><title>Download</title><meta name="Author" content="Norconex Inc." /></head> 
 
-<p class="nx-news">
 
-  <img src="./images/attention_16.png"/>
-  Also download a <b>Committer</b> to store your collected data.
+<h2>&nbsp;</h2>
 
+<p class="alert alert-info" style="font-size: 30px; padding: 15px;">
+  Step 1: Install the Collector
 </p>
 
-********************************************************************************
+<h2>&nbsp;</h2>
 
-$h2 Latest Release
-
-**[Download Release ${currentStableVersion}](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/${currentStableVersion}/norconex-collector-http-${currentStableVersion}.zip)**
-
-Some updates this release contains:
-
-  * New optional Mongo URL Database implementation.
-  * New optional IURLExtractor implementation based on Apache Tika HTMLParser.
-  * New filter for filtering URLs having a specified
-    number of segments.
-
-[View detailed Release Notes](changes-report.html) for all releases.
+<p class="alert" style="font-size: 30px; padding: 15px;">
+  Step 2: Install a Committer
+</p>
 
 
-Older releases: 
-[1.1.1](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.1.1/norconex-collector-http-1.1.1.zip),
-[1.1.0](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.1.0/norconex-collector-http-1.1.0.zip),
-[1.0.2](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.2/norconex-collector-http-1.0.2.zip),
-[1.0.1](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.1/norconex-collector-http-1.0.1.zip),
-[1.0.0](http://norconex.s3.amazonaws.com/repo/release/com/norconex/collectors/norconex-collector-http/1.0.0/norconex-collector-http-1.0.0.zip)
+$h2 Binaries
+
+**[Download Latest Release ${currentStableVersion}]($releasePath/${currentStableVersion}/norconex-collector-http-${currentStableVersion}.zip)**
+
+**Release Overview:**
+
+  * Now supports NTLM authentication.  Experiental support added for SPNEGO and
+    Kerberos were also 
+  * Document checksums are added to each document metadata.
+  * Refactoring of HTTPClient creation with many new configuration options added
+    (connection timeout, charset, maximum redirects, and several more).
+  * Can optionnally trust all SSL certificate now.
+  * Integrates new features of 
+    [Norconex Importer 1.2.0](http://www.norconex.com/product/importer/changes-report.html#a1.2.0)
+    such as support for WordPerfect documents, new filter and transformers, etc.
+  * Integrates new features of 
+    [Norconex Committer 1.2.0](http://www.norconex.com/product/committer/changes-report.html#a1.2.0)
+    such as defining multiple committers, retrying upon commit failure, etc.
+  * Other third-party libray upgrades.
+  * [View full list of changes]((changes-report.html))
+
+**Older Releases**
+
+  * [1.1.1]($releasePath/1.1.1/norconex-collector-http-1.1.1.zip)<small>
+    [[Release Notes](changes-report.html#a1.1.1)]</small>
+  * [1.1.0]($releasePath/1.1.0/norconex-collector-http-1.1.0.zip)<small>
+    [[Release Notes](changes-report.html#a1.1.0)]</small>
+  * [1.0.2]($releasePath/1.0.2/norconex-collector-http-1.0.2.zip)<small>
+    [[Release Notes](changes-report.html#a1.0.2)]</small>
+  * [1.0.1]($releasePath/1.0.1/norconex-collector-http-1.0.1.zip)<small>
+    [[Release Notes](changes-report.html#a1.0.1)]</small>
+  * [1.0.0]($releasePath/1.0.0/norconex-collector-http-1.0.0.zip)<small>
+    [[Release Notes](changes-report.html#a1.0.0)]</small>
 
 
-$h2 Committer Implementations
+$h3 Don't skip this:
 
-  * [Solr/Lucidworks](http://www.norconex.com/product/committer-solr/index.html) 
-  * [Elasticsearch](http://www.norconex.com/product/committer-elasticsearch/index.html) 
-  * [HP/Autonomy IDOL](http://www.norconex.com/product/committer-idol/index.html) 
-  * More to come...
+<p class="well">
+In addition to install the Norconex HTTP Collector, you also need a <b>Norconex 
+Committer</b> implementation matching your target data repository 
+(e.g. search engine).  Without one, you will only be able to save your
+collected files or data on the file system.<br /><br />
 
-If you use the HTTP Collector without a committer matching your target data 
-repository, you will only be able to save the collected content on the 
-file system using the 
-[FileSystemCommitter](http://www.norconex.com/product/committer/apidocs/com/norconex/committer/impl/FileSystemCommitter.html).
-With your download of HTTP Collector, also download the appropriate 
-[Committer](http://www.norconex.com/product/committer)
-implementation from the above list,
-create your own,
-or [contact Norconex](mailto:info@norconex.com) to have yours created for you.
-  
+<a href="http://www.norconex.com/product/committer#list" class="btn btn-warning">Give me a Committer</a> 
+</p>
 
-********************************************************************************
-  
-<a name="source"></a>
-  
+
+    
 $h2 Source
   
 Source code can be obtained on GitHub: 

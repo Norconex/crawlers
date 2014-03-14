@@ -30,6 +30,10 @@ Have a look at what you can expect from this product.  Please
 [be vocal](https://github.com/Norconex/collector-http/issues)
 about things you would like to see included in future releases.
 
+*******************************************************************************
+
+<h6>&nbsp;</h6>
+
   * **Portability**  
     Deploy your configuration to different 
     locations (staging, prod, etc) and environment specific settings
@@ -68,13 +72,13 @@ about things you would like to see included in future releases.
   * **Good documentation**  
     Besides examples provided on this site or in distributed packages, 
     up-to-date Javadocs are automatically generated with every release, 
-    and they constitute most of the documentation.  
-    This prevents from having to maintain different sets 
-    of documentation and having discrepencies over time.
+    and they constitute most of the documentation, each of them containing
+    XML configuration options where applicable.
    
   * **Cross vendors**  
-    Not tied to a specific search engine.  You can swith to another search 
-    vendor and still use the HTTP Collector.
+    Not tied to a specific search engine or data repository. You can swith 
+    to another search vendor and still use your Norconex HTTP Collector
+    installation.
   
   * **Powerful**  
     Can do more than just crawling.  Allows for any kinds of document 
@@ -96,6 +100,8 @@ about things you would like to see included in future releases.
     
   * **Robots.txt and in-page Robots meta tag support**  
     Can easily be turned off for your own sites.
+
+<h6>&nbsp;</h6>
 
   * **sitemap.xml support**  
     Includes sitemap index, text or gzip.
@@ -119,7 +125,7 @@ about things you would like to see included in future releases.
     resume it yourself.
     
   * **Can indicate progress**  
-    Uses (Norconex JEF)[http://www.norconex.com/product/jef] which 
+    Uses [Norconex JEF](http://www.norconex.com/product/jef) which 
     automatically stores it progress on file.  With the use of tools such as
     Norconex JEF Monitor, you can visualize the crawl progression.
     
@@ -127,15 +133,15 @@ about things you would like to see included in future releases.
     Can be configured via simple XML.
     
   * **Supports various website authentication schemes**  
-    Supports FORM, BASIC, and DIGEST implementations out-of-the-box.
-    If you use custom authentication mechanism, you can plug your own 
-    authentication logic.
+    Supports FORM, BASIC, DIGEST, NTLM implementations out-of-the-box
+    (with experimental support for SPNEGO and Kerberos).
+    You can also plug your custom authentication logic.
 
   * **Broken down into reusable modules**  
     HTTP Collector uses 
     [Norconex Importer](http://www.norconex.com/product/importer) and 
     [Norconex Committer](http://www.norconex.com/product/committer)
-    which can both be used on their own for your own purpose (e.g. to build
+    which can both be used on their own for different purposes (e.g. to build
     your own collectors).
     
   * **Supports cookies**  
@@ -166,4 +172,7 @@ about things you would like to see included in future releases.
   * **Flexibility:**  
     There are more than one way to do something. 
     Experiment and have fun!
+
+  * **And of course...**  
+    Much more! 
 

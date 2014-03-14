@@ -116,6 +116,9 @@ public class MapDBCrawlURLDatabase implements ICrawlURLDatabase {
                 .closeOnJvmShutdown()
                 .cacheSoftRefEnable()
                 .asyncWriteEnable()
+                .mmapFileEnableIfSupported() //TRY with increased heap size
+//                .fullChunkAllocationEnable()
+//                .cacheDisable()
 //TODO configurable:    .compressionEnable()
 //TODO configurable:    .freeSpaceReclaimQ(5)
                 .make();
