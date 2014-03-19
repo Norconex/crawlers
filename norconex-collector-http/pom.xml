@@ -139,7 +139,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
         <groupId>org.mapdb</groupId>
         <artifactId>mapdb</artifactId>
-        <version>0.9.8</version>
+        <version>0.9.10</version>
     </dependency>
   </dependencies>
   
