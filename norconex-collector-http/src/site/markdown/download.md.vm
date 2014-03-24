@@ -43,23 +43,25 @@ $h2 Binaries
 
 **Release Overview:**
 
-  * Now supports NTLM authentication.  Experiental support added for SPNEGO and
-    Kerberos were also 
+  * Now supports NTLM authentication.  Experimental support added for SPNEGO and
+    Kerberos.
   * Document checksums are added to each document metadata.
   * Refactoring of HTTPClient creation with many new configuration options added
     (connection timeout, charset, maximum redirects, and several more).
-  * Can optionnally trust all SSL certificate now.
+  * Can optionally trust all SSL certificate now.
   * Integrates new features of 
     [Norconex Importer 1.2.0](http://www.norconex.com/product/importer/changes-report.html#a1.2.0)
     such as support for WordPerfect documents, new filter and transformers, etc.
   * Integrates new features of 
     [Norconex Committer 1.2.0](http://www.norconex.com/product/committer/changes-report.html#a1.2.0)
     such as defining multiple committers, retrying upon commit failure, etc.
-  * Other third-party libray upgrades.
+  * Other third-party library upgrades.
   * [View full list of changes]((changes-report.html))
 
 **Older Releases**
 
+  * [1.2.0]($releasePath/1.2.0/norconex-collector-http-1.2.0.zip)<small>
+    [[Release Notes](changes-report.html#a1.2.0)]</small>
   * [1.1.1]($releasePath/1.1.1/norconex-collector-http-1.1.1.zip)<small>
     [[Release Notes](changes-report.html#a1.1.1)]</small>
   * [1.1.0]($releasePath/1.1.0/norconex-collector-http-1.1.0.zip)<small>
