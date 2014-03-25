@@ -59,7 +59,7 @@ examples covering three frequent ones:
 
 **FORM-Based Authentication:**
 
-    <httpClientInitializer>
+    <httpClientFactory>
         <authMethod>form</authMethod>
         <authUsername>smithj</authUsername>
         <authPassword>secret</authPassword>
@@ -70,11 +70,11 @@ examples covering three frequent ones:
     
         <!-- URL of the login form page --> 
         <authURL>http://mysite.com/secure/login.html</authURL>
-    </httpClientInitializer>
+    </httpClientFactory>
 
 **BASIC or DIGEST  Authentication:**
 
-    <httpClientInitializer>
+    <httpClientFactory>
         <!-- For DIGEST, change "basic" to "digest" -->    
         <authMethod>basic</authMethod>
         <authUsername>...</authUsername>
@@ -83,7 +83,7 @@ examples covering three frequent ones:
         <authHostname>mysite.com</authHostname>
         <authPort>80</authPort>
         <authRealm>My Site Realm</authRealm>
-    </httpClientInitializer>
+    </httpClientFactory>
 
 
 $h3 How to ignore robot rules or sitemaps
