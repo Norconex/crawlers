@@ -1,4 +1,4 @@
-/* Copyright 2010-2013 Norconex Inc.
+/* Copyright 2010-2014 Norconex Inc.
  * 
  * This file is part of Norconex HTTP Collector.
  * 
@@ -29,13 +29,14 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.HttpCollectorException;
 import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 
@@ -44,13 +45,19 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * returns a MD5 checksum value of the extracted document content unless
  * a given field is specified.  If a field is specified, a MD5 checksum
  * value is constructed from that field.
+ * <p/>
+ * Since 1.3.1 you can optionally have the checksum value stored with the
+ * document under the field name {@link HttpMetadata#CHECKSUM_DOC} or one
+ * you specify.
  * <p>
  * XML configuration usage (not required since default):
  * </p>
  * <pre>
- *  &lt;httpDocumentChecksummer class="com.norconex.collector.http.checksum.DefaultHttpDocumentChecksummer"&gt;
- *      &lt;field&gt;(optional field name)&lt;/field&gt;
- *  &lt;/httpDocumentChecksummer &gt;
+ *  &lt;httpDocumentChecksummer 
+ *      class="com.norconex.collector.http.checksum.DefaultHttpDocumentChecksummer"&gt;
+ *      field="(optional field used to create checksum)"
+ *      store="[false|true]"
+ *      storeField="(field to store checksum)" /&gt;
  * </pre>
  * @author Pascal Essiembre
  */
@@ -63,6 +70,8 @@ public class DefaultHttpDocumentChecksummer
 			DefaultHttpDocumentChecksummer.class);
 
 	private String field = null;
+	private boolean store;
+    private String storeField = HttpMetadata.CHECKSUM_DOC;
 	
 	@Override
 	public String createChecksum(HttpDocument document) {
@@ -72,6 +81,9 @@ public class DefaultHttpDocumentChecksummer
     		if (StringUtils.isNotBlank(value)) {
     			String checksum = DigestUtils.md5Hex(value);
     			LOG.debug("Document checksum: " + checksum);
+                if (isStore()) {
+                    document.getMetadata().addString(getStoreField(), checksum);
+                }
     			return checksum;
     		}
     		return null;
@@ -81,6 +93,9 @@ public class DefaultHttpDocumentChecksummer
 	    	String checksum = DigestUtils.md5Hex(is);
 			LOG.debug("Document checksum: " + checksum);
 	    	is.close();
+	    	if (isStore()) {
+	    	    document.getMetadata().addString(getStoreField(), checksum);
+	    	}
 	    	return checksum;
 		} catch (IOException e) {
 			throw new HttpCollectorException("Cannot create checksum on : " 
@@ -105,10 +120,57 @@ public class DefaultHttpDocumentChecksummer
 		this.field = field;
 	}
 
-	@Override
+	/**
+	 * Whether to store the document checksum value as a new field in the 
+	 * document metadata.
+	 * @return <code>true</code> to store the checksum
+	 */
+	public boolean isStore() {
+        return store;
+    }
+    /**
+     * Sets whether to store the document checksum value as a new field in the 
+     * document metadata. 
+     * @param store <code>true</code> to store the checksum
+     */
+    public void setStore(boolean store) {
+        this.store = store;
+    }
+
+    /**
+     * Gets the metadata field to use to store the checksum value.
+     * Defaults to {@link HttpMetadata#CHECKSUM_DOC}.  Only applicable
+     * if {@link #isStore()} returns {@code true}
+     * @return metadata field name
+     */
+    public String getStoreField() {
+        return storeField;
+    }
+    /**
+     * Sets the metadata field name to use to store the checksum value.
+     * @param storeField the metadata field name
+     */
+    public void setStoreField(String storeField) {
+        this.storeField = storeField;
+    }
+
+    @Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);
-        setField(xml.getString("field", null));
+        String tagField = xml.getString("field", null);
+        String attrField = xml.getString("[@field]", field);
+
+        if (StringUtils.isNotBlank(tagField)) {
+            LOG.warn("<field> tag is not deprecated.  Use \"field\" attribute "
+                    + "instead");
+        }
+        if (StringUtils.isNotBlank(attrField)) {
+            setField(attrField);
+        } else if (StringUtils.isNotBlank(tagField)) {
+            setField(tagField);
+        }
+        setStore(xml.getBoolean("[@store]", store));
+        setStoreField(xml.getString("[@storeField]", storeField));
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
@@ -117,9 +179,9 @@ public class DefaultHttpDocumentChecksummer
             XMLStreamWriter writer = factory.createXMLStreamWriter(out);
             writer.writeStartElement("httpDocumentChecksummer");
             writer.writeAttribute("class", getClass().getCanonicalName());
-            writer.writeStartElement("field");
-            writer.writeCharacters(field);
-            writer.writeEndElement();
+            writer.writeAttribute("field", getField());
+            writer.writeAttribute("store", Boolean.toString(isStore()));
+            writer.writeAttribute("storeField", getStoreField());
             writer.writeEndElement();
             writer.flush();
             writer.close();
