@@ -54,7 +54,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * </p>
  * <pre>
  *  &lt;httpDocumentChecksummer 
- *      class="com.norconex.collector.http.checksum.DefaultHttpDocumentChecksummer"&gt;
+ *      class="com.norconex.collector.http.checksum.impl.DefaultHttpDocumentChecksummer"&gt;
  *      field="(optional field used to create checksum)"
  *      store="[false|true]"
  *      storeField="(field to store checksum)" /&gt;
