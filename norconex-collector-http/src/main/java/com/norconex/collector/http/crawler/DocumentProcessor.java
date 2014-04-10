@@ -442,8 +442,6 @@ import com.norconex.importer.filter.OnMatch;
                 return true;
             }
             String newDocChecksum = check.createChecksum(doc);
-            HttpMetadata metadata = doc.getMetadata();
-            metadata.setString(HttpMetadata.CHECKSUM_DOC, newDocChecksum);
             crawlURL.setDocChecksum(newDocChecksum);
             String oldDocChecksum = null;
             CrawlURL cachedURL = database.getCached(crawlURL.getUrl());
@@ -559,7 +557,6 @@ import com.norconex.importer.filter.OnMatch;
         }
         HttpMetadata headers = doc.getMetadata();
         String newHeadChecksum = check.createChecksum(headers);
-        headers.setString(HttpMetadata.CHECKSUM_HEADER, newHeadChecksum);
         crawlURL.setHeadChecksum(newHeadChecksum);
         String oldHeadChecksum = null;
         CrawlURL cachedURL = database.getCached(crawlURL.getUrl());
