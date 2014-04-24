@@ -24,12 +24,16 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 import com.norconex.collector.http.crawler.CrawlStatus;
 import com.norconex.collector.http.crawler.CrawlURL;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
@@ -45,6 +49,23 @@ import com.norconex.collector.http.db.ICrawlURLDatabase;
  * <p>The cached urls are stored in a separated collection named "cached".</p>
  * 
  * <p>The sitemaps information are stored in a "sitemaps" collection.</p>
+ * 
+ * <p>
+ * XML configuration usage:
+ * </p>
+ * <pre>
+ *  &lt;crawlURLDatabaseFactory  
+ *      class="com.norconex.collector.http.db.impl.mongo.MongoCrawlURLDatabaseFactory"&gt;
+ *      &lt;host&gt;(Optional Mongo server hostname. Default to localhost)&lt;/host&gt;
+ *      &lt;port&gt;(Optional Mongo port. Default to 27017)&lt;/port&gt;
+ *      &lt;dbname&gt;(Optional Mongo database name. Default to crawl id)&lt;/dbname&gt;
+ *      &lt;username&gt;(Optional user name)&lt;/username&gt;
+ *      &lt;password&gt;(User password)&lt;/password&gt;
+ *  &lt;/crawlURLDatabaseFactory&gt;
+ * </pre>
+ * <p>
+ * If "username" is not provided, no authentication will be attempted. The "username" must be a valid user that has the "readWrite" role over the database (set with "dbname").
+ * </p>
  * 
  * @author Pascal Dimassimo
  * @since 1.2
@@ -95,11 +116,14 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
      * @param port Mongo port
      * @param host Mongo host
      * @param dbName Mongo database name
+     * @param password Mongo user name 
+     * @param username Mongo password
      */
     public MongoCrawlURLDatabase(HttpCrawlerConfig config, boolean resume,
-            int port, String host, String dbName) {
-        this(resume, buildMongoDB(
-                port, host, MongoUtil.getDbNameOrGenerate(dbName, config)));
+            int port, String host, String dbName, String username, String password) {
+        this(resume, 
+             buildMongoDB(port, host, MongoUtil.getDbNameOrGenerate(dbName, config), 
+                     username, password));
     }
 
     /**
@@ -141,9 +165,16 @@ public class MongoCrawlURLDatabase implements ICrawlURLDatabase {
         coll.ensureIndex(fieldsObject, null, unique);
     }
 
-    protected static DB buildMongoDB(int port, String host, String dbName) {
+    protected static DB buildMongoDB(int port, String host, String dbName, String username, String password) {
         try {
-            MongoClient client = new MongoClient(host, port);
+            ServerAddress server = new ServerAddress(host, port);
+            List<MongoCredential> credentialsList = new ArrayList<MongoCredential>();
+            if (StringUtils.isNoneBlank(username)) {
+                MongoCredential credential = MongoCredential.createMongoCRCredential(
+                        username, dbName, password.toCharArray());
+                credentialsList.add(credential);
+            }
+            MongoClient client = new MongoClient(server, credentialsList);
             return client.getDB(dbName);
         } catch (UnknownHostException e) {
             throw new CrawlURLDatabaseException(e);
