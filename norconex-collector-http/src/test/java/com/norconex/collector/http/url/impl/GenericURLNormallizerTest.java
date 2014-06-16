@@ -61,6 +61,23 @@ public class GenericURLNormallizerTest {
 	}
 	
     @Test
+    public void testGithubIssue29() throws IOException {
+        // Github issue #29
+        GenericURLNormalizer n = new GenericURLNormalizer();
+        n.setNormalizations(
+                Normalization.lowerCaseSchemeHost,
+                Normalization.upperCaseEscapeSequence,
+                Normalization.decodeUnreservedCharacters,
+                Normalization.removeDefaultPort);
+        n.setReplaces(
+                n.new Replace("&view=print", "&view=html"));
+        
+        s = "http://www.somehost.com/hook/";
+        t = "http://www.somehost.com/hook/";
+        assertEquals(t, n.normalizeURL(s));
+    }
+    
+    @Test
     public void testWriteRead() throws IOException {
         GenericURLNormalizer n = new GenericURLNormalizer();
         n.setNormalizations(

@@ -7,6 +7,25 @@
   </properties>
   <body>
 
+    <release version="1.3.2" date="2014-06-??" description="Bug fix release.">
+      <action dev="essiembp" type="fix">
+        DefaultURLExtractor no longer treat empty href as being a URL ending
+        with a double-quote.
+      </action>
+      <action dev="essiembp" type="update">
+        Renamed HttpMetadata key "collector.http.dept" to 
+        "collector.http.depth" (typo fix).
+      </action>
+      <action dev="essiembp" type="update">
+        Upgraded to Norconex Commons Lang 1.3.2
+      </action>
+      <action dev="essiembp" type="update">
+        GenericURLNormallizer no longer rejects URLs with spaces in them.
+        It now logs a warning instead (thanks to Norconex Commons Lang upgrade).
+      </action>
+
+    </release>
+    
     <release version="1.3.1" date="2014-04-10" description="Bug fix release.">
       <action dev="essiembp" type="fix">
         Header and document checksum value are no longer added by default to
