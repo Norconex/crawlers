@@ -27,6 +27,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
@@ -50,11 +51,13 @@ public class MongoCrawlURLDatabaseFactory implements ICrawlURLDatabaseFactory,
     private int port = DEFAULT_MONGO_PORT;
     private String host = "localhost";
     private String dbName;
+    private String username;
+    private String password;
 
     @Override
     public ICrawlURLDatabase createCrawlURLDatabase(HttpCrawlerConfig config,
             boolean resume) {
-        return new MongoCrawlURLDatabase(config, resume, port, host, dbName);
+        return new MongoCrawlURLDatabase(config, resume, port, host, dbName, username, password);
     }
 
     @Override
@@ -62,7 +65,9 @@ public class MongoCrawlURLDatabaseFactory implements ICrawlURLDatabaseFactory,
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);
         port = xml.getInt("port", port);
         host = xml.getString("host", host);
-        dbName = xml.getString("dbname", dbName);
+        dbName = xml.getString("dbname");
+        username = xml.getString("username");
+        password = xml.getString("password");
     }
 
     @Override
@@ -79,9 +84,19 @@ public class MongoCrawlURLDatabaseFactory implements ICrawlURLDatabaseFactory,
             writer.writeCharacters(host);
             writer.writeEndElement();
 
-            if (dbName != null && dbName.length() > 0) {
+            if (StringUtils.isNotBlank(dbName)) {
                 writer.writeStartElement("dbname");
                 writer.writeCharacters(dbName);
+                writer.writeEndElement();
+            }
+            
+            if (StringUtils.isNotBlank(username)) {
+                writer.writeStartElement("username");
+                writer.writeCharacters(username);
+                writer.writeEndElement();
+                
+                writer.writeStartElement("password");
+                writer.writeCharacters(password);
                 writer.writeEndElement();
             }
 
