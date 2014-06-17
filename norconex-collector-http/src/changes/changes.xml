@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="1.3.2" date="2014-06-??" description="Bug fix release.">
+    <release version="1.3.2" date="2014-06-17" description="Bug fix release.">
       <action dev="essiembp" type="fix">
         DefaultURLExtractor no longer treat empty href as being a URL ending
         with a double-quote.
@@ -17,7 +17,7 @@
         "collector.http.depth" (typo fix).
       </action>
       <action dev="essiembp" type="update">
-        Upgraded to Norconex Commons Lang 1.3.2
+        Upgraded Norconex Commons Lang to 1.3.2
       </action>
       <action dev="essiembp" type="update">
         GenericURLNormallizer no longer rejects URLs with spaces in them.
