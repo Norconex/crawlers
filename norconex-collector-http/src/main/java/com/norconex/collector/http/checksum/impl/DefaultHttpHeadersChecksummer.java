@@ -50,7 +50,7 @@ import com.norconex.commons.lang.map.Properties;
  * </p>
  * <pre>
  *  &lt;httpHeadersChecksummer 
- *      class="com.norconex.collector.http.checksum.DefaultHttpHeadersChecksummer"&gt;
+ *      class="com.norconex.collector.http.checksum.impl.DefaultHttpHeadersChecksummer"&gt;
  *      field="(optional header field used to create checksum)"
  *      store="[false|true]"
  *      storeField="(field to store checksum)" /&gt;
