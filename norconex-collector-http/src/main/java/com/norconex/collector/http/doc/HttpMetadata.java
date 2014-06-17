@@ -37,7 +37,7 @@ public class HttpMetadata extends Properties {
     public static final String DOC_URL = COLLECTOR_PREFIX + "url";
     public static final String DOC_MIMETYPE = COLLECTOR_PREFIX + "mimetype";
     public static final String DOC_CHARSET = COLLECTOR_PREFIX + "charset";
-    public static final String DOC_DEPTH = COLLECTOR_PREFIX + "dept";
+    public static final String DOC_DEPTH = COLLECTOR_PREFIX + "depth";
     public static final String DOC_SM_LASTMOD = 
             COLLECTOR_PREFIX + "sitemap-lastmod";
     public static final String DOC_SM_CHANGE_FREQ = 

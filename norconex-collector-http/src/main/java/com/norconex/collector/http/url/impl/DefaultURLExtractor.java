@@ -67,7 +67,7 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
     private static final int LOGGING_MAX_URL_LENGTH = 200;
     
     private static final Pattern URL_PATTERN = Pattern.compile(
-           "(\\W|^)(url|data-url|href|src)(\\s*=\\s*)([\"']{0,1})(.+?)([\"'>])",
+           "(\\W|^)(url|data-url|href|src)(\\s*=\\s*)([\"']{0,1})(.*?)([\"'>])",
            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     
     private static final Pattern META_REFRESH_PATTERN = Pattern.compile(
