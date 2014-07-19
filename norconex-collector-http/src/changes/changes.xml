@@ -7,6 +7,16 @@
   </properties>
   <body>
 
+    <release version="1.3.3" date="2014-??-??" description="Bug fix release.">
+      <action dev="essiembp" type="update">
+        Upgraded JEF to 3.0.1 to fix stop action not working.  
+      </action>
+      <action dev="essiembp" type="fix">
+        Fixed NullPointerException in robots.txt resolution under some 
+        circonstances.  
+      </action>
+    </release>
+
     <release version="1.3.2" date="2014-06-17" description="Bug fix release.">
       <action dev="essiembp" type="fix">
         DefaultURLExtractor no longer treat empty href as being a URL ending
