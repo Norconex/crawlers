@@ -1,5 +1,11 @@
 The following are either things to be done, or ideas to consider:
 
+- When issuing a STOP, add an option to specify which crawler to stop,
+  and let others run.
+  
+- Add a startup flag that will generate a batch/sh script for the user which 
+  abstracts the call to the config file 
+  (e.g., abcCollector.sh start|stop|resume)
 
 - Add a command prompt action to flush the committer queue. This can be useful
   if the collector crashed for some reason, while there were files left in
