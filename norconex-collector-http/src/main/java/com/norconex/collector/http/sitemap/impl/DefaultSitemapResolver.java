@@ -180,7 +180,7 @@ public class DefaultSitemapResolver
                     is = new GZIPInputStream(is);
                 }
                 parseLocation(is, httpClient, sitemapURLStore, 
-                        resolvedLocations, location);
+                            resolvedLocations, location);
                 IOUtils.closeQuietly(is);
                 LOG.info("         Resolved: " + location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
@@ -190,6 +190,11 @@ public class DefaultSitemapResolver
                         + ".  Expected status code " + HttpStatus.SC_OK
                         + ", but got " + statusCode);
             }
+        } catch (XMLStreamException e) {
+                LOG.error("Cannot fetch sitemap: " + location
+                        + " -- Likely an invalid sitemap XML format causing "
+                        + "a parsing error (actual error: " 
+                        + e.getMessage() + ").");
         } catch (Exception e) {
             LOG.error("Cannot fetch sitemap: " + location
                     + " (" + e.getMessage() + ")");
