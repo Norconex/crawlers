@@ -83,7 +83,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <dependency>
         <groupId>com.norconex.jef</groupId>
         <artifactId>norconex-jef</artifactId>
-        <version>3.0.1-SNAPSHOT</version>
+        <version>3.0.1</version>
     </dependency>
     <dependency>
         <groupId>com.norconex.collectors</groupId>
