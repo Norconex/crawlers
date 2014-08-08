@@ -137,7 +137,7 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
         if ("*".equals(value)) {
             return RobotData.Precision.WILD;
         }
-        if (userAgent.equalsIgnoreCase(value)) {
+        if (StringUtils.equalsIgnoreCase(userAgent, value)) {
             return RobotData.Precision.EXACT;
         }
         if (value.endsWith("*")) {
