@@ -26,7 +26,7 @@ $h2 Configuration Quick start
 
 To get started quickly, download the latest version of Norconex HTTP Collector
 and locate the file [./examples/HOWTO_RUN_EXAMPLES.txt](./examples/HOWTO_RUN_EXAMPLES.txt).  This file will
-point you to functional configuration files and we have you running a very
+point you to functional configuration files and will have you running a very
 simple crawler in no time.  These sample files are also made available here
 for your convinience:
 
@@ -331,7 +331,7 @@ to its full documentation, with extra configuration options.
      <td><b>importer</b></td>
      <td>
        Performs document text extraction and manipulation.  It has many features
-       and supports many 
+       and many 
        <a href="http://www.norconex.com/product/importer/formats.html">file formats</a> 
        are supported. Refer to 
        <a href="http://www.norconex.com/product/importer/configuration.html">Importer configuration options</a>.
@@ -362,7 +362,7 @@ to its full documentation, with extra configuration options.
     </tr>
     <tr>
      <td>crawler</td>
-     <td>Define as many crawlers as you like.  They much each have a unique identifier.</td>
+     <td>Define as many crawlers as you like.  They must each have a unique identifier.</td>
      <td>N/A</td>
      <td>N/A</td>
     </tr>
