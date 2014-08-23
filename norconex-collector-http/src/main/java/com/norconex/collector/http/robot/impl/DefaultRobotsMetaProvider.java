@@ -38,8 +38,8 @@ import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.ContentType;
 
 /**
  * <p>Default implementation of {@link IRobotsMetaProvider}. 

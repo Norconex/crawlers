@@ -20,7 +20,12 @@ package com.norconex.collector.http.sitemap;
 
 import java.io.Serializable;
 
-import com.norconex.collector.http.crawler.CrawlURL;
+import com.norconex.collector.http.crawler.HttpDocReference;
+
+
+// THIS is a wrapper class where add( ) will add a URL found in sitemap file
+// into reference Store for processing.
+
 
 /**
  * <p>Represents a queue of sitemap URLs.  Adding a URL to this queue will
@@ -30,9 +35,9 @@ import com.norconex.collector.http.crawler.CrawlURL;
  * <a href="http://www.sitemaps.org/protocol.html">
  * http://www.sitemaps.org/protocol.html</a></p>
  * @author Pascal Essiembre
- * @see ISitemapsResolver
+ * @see ISitemapResolver
  */
-public abstract class SitemapURLStore implements Serializable {
+public abstract class SitemapURLAdder implements Serializable {
 
     private static final long serialVersionUID = 1504818537850961659L;
 
@@ -47,7 +52,7 @@ public abstract class SitemapURLStore implements Serializable {
     }
     public static final Float DEFAULT_PRIORITY = 0.5f;
     
-    public SitemapURLStore() {
+    public SitemapURLAdder() {
         super();
     }
 
@@ -61,12 +66,12 @@ public abstract class SitemapURLStore implements Serializable {
         if (changefreq != null) {
             setChangeFreq = changefreq.toString().toLowerCase();
         }
-        CrawlURL baseURL = new CrawlURL(url, 0);
+        HttpDocReference baseURL = new HttpDocReference(url, 0);
         baseURL.setSitemapChangeFreq(setChangeFreq);
         baseURL.setSitemapLastMod(lastmod);
         baseURL.setSitemapPriority(setPriority);
         add(baseURL);
     }
     
-    public abstract void add(CrawlURL baseURL);
+    public abstract void add(HttpDocReference baseURL);
 }

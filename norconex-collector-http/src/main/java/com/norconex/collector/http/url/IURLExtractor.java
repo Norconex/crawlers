@@ -23,7 +23,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.util.Set;
 
-import com.norconex.importer.ContentType;
+import com.norconex.commons.lang.file.ContentType;
 
 /**
  * Responsible for extracting URLs out of a document.

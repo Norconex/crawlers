@@ -18,54 +18,26 @@
  */
 package com.norconex.collector.http;
 
-import java.io.Serializable;
+import java.io.Writer;
 
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.norconex.collector.core.AbstractCollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
 /**
  * HTTP Collector configuration.
  * @author Pascal Essiembre
  */
-public class HttpCollectorConfig implements Cloneable, Serializable {
+public class HttpCollectorConfig extends AbstractCollectorConfig {
 
-    /** Default relative directory where logs from Log4j are stored. */
-    public static final String DEFAULT_LOGS_DIR = "./logs";
-    /** Default relative directory where progress files are stored. */
-    public static final String DEFAULT_PROGRESS_DIR = "./progress";
-    
     private static final long serialVersionUID = -3350877963428801802L;
-    private String id;
-    private HttpCrawlerConfig[] crawlerConfigs;
-    private String progressDir = DEFAULT_PROGRESS_DIR;
-    private String logsDir = DEFAULT_LOGS_DIR;
-    
-    /**
-     * Creates a new collector with the given unique id.  It is important
-     * the id of the collector is unique amongst your collectors.  This
-     * facilitates integration with different systems and facilitates
-     * tracking.
-     * @param id unique identifier
-     */
-	public HttpCollectorConfig(String id) {
-        super();
-        this.id = id;
-    }
 
-	/**
-	 * Gets this collector unique identifier.
-	 * @return unique identifier
-	 */
-	public String getId() {
-        return id;
-    }
-    /**
-     * Sets this collector unique identifier.
-     * @param id unique identifier
-     */
-    public void setId(String id) {
-        this.id = id;
+    private HttpCrawlerConfig[] crawlerConfigs;
+
+	public HttpCollectorConfig() {
+        super();
     }
 
     /**
@@ -83,35 +55,13 @@ public class HttpCollectorConfig implements Cloneable, Serializable {
         this.crawlerConfigs = ArrayUtils.clone(crawlerConfigs);
     }
 
-    /**
-     * Gets the directory location where progress files (from JEF API)
-     * are stored.
-     * @return progress directory path
-     */
-    public String getProgressDir() {
-        return progressDir;
-    }
-    /**
-     * Sets the directory location where progress files (from JEF API)
-     * are stored.
-     * @param progressDir progress directory path
-     */
-    public void setProgressDir(String progressDir) {
-        this.progressDir = progressDir;
+    @Override
+    protected void saveCollectorConfigToXML(Writer out) {
+        // Nothing more than what the super class already saves.
     }
 
-    /**
-     * Gets the directory location of generated log files.
-     * @return logs directory path
-     */
-    public String getLogsDir() {
-        return logsDir;
-    }
-    /**
-     * Sets the directory location of generated log files.
-     * @param logsDir logs directory path
-     */
-    public void setLogsDir(String logsDir) {
-        this.logsDir = logsDir;
+    @Override
+    protected void loadCollectorConfigFromXML(XMLConfiguration xml) {
+        // Nothing more than what the super class already loads.
     }
 }

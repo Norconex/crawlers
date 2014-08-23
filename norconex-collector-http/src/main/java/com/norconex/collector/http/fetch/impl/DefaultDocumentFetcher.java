@@ -42,12 +42,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.HttpCollectorException;
-import com.norconex.collector.http.crawler.CrawlStatus;
+import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.ref.ReferenceState;
+import com.norconex.collector.http.crawler.HttpDocReferenceState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.importer.doc.Content;
 
 /**
  * Default implementation of {@link IHttpDocumentFetcher}.  
@@ -87,13 +89,13 @@ public class DefaultDocumentFetcher
     
     
 	@Override
-	public CrawlStatus fetchDocument(
+	public ReferenceState fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
 	    //TODO replace signature with Writer class.
-	    LOG.debug("Fetching document: " + doc.getUrl());
+	    LOG.debug("Fetching document: " + doc.getReference());
 	    HttpGet method = null;
 	    try {
-	        method = new HttpGet(doc.getUrl());
+	        method = new HttpGet(doc.getReference());
 	    	
 	        // Execute the method.
             HttpResponse response = httpClient.execute(method);
@@ -116,12 +118,21 @@ public class DefaultDocumentFetcher
                 }
                 
                 //--- Fetch body
-                FileOutputStream os = FileUtils.openOutputStream(
-                        doc.getLocalFile());
-                IOUtils.copy(is, os);
-                IOUtils.closeQuietly(is);
-                IOUtils.closeQuietly(os);
-                return CrawlStatus.OK;
+//                FileOutputStream os = FileUtils.openOutputStream(
+//                        doc.getLocalFile());
+//                IOUtils.copy(is, os);
+                
+                doc.setContent(new Content(is));
+                //TODO read a copy to force caching and then close the HTTP stream???
+                
+//                IOUtils.
+                
+//                IOUtils.closeQuietly(is);
+                
+                //TODO save a download copy if downloads are kept.
+                
+//                IOUtils.closeQuietly(os);
+                return HttpDocReferenceState.OK;
             }
             // read response anyway to be safer, but ignore content
             BufferedInputStream bis = new BufferedInputStream(is);
@@ -131,20 +142,20 @@ public class DefaultDocumentFetcher
             }        
             IOUtils.closeQuietly(bis);
             if (statusCode == HttpStatus.SC_NOT_FOUND) {
-                return CrawlStatus.NOT_FOUND;
+                return HttpDocReferenceState.NOT_FOUND;
             }
             LOG.debug("Unsupported HTTP Response: "
                     + response.getStatusLine());
-            return CrawlStatus.BAD_STATUS;
+            return HttpDocReferenceState.BAD_STATUS;
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
-                LOG.error("Cannot fetch document: " + doc.getUrl()
+                LOG.error("Cannot fetch document: " + doc.getReference()
                         + " (" + e.getMessage() + ")", e);
             } else {
-                LOG.error("Cannot fetch document: " + doc.getUrl()
+                LOG.error("Cannot fetch document: " + doc.getReference()
                         + " (" + e.getMessage() + ")");
             }
-            throw new HttpCollectorException(e);
+            throw new CollectorException(e);
         } finally {
             if (method != null) {
                 method.releaseConnection();

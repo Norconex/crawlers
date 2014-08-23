@@ -37,7 +37,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -125,7 +125,7 @@ public class SimpleHttpHeadersFetcher
         } catch (Exception e) {
         	LOG.error("Cannot fetch document: " + url
         	        + " (" + e.getMessage() + ")", e);
-        	throw new HttpCollectorException(e);
+        	throw new CollectorException(e);
         } finally {
 	        if (method != null) {
 	            method.releaseConnection();

@@ -46,8 +46,8 @@ import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.importer.filter.AbstractOnMatchFilter;
-import com.norconex.importer.filter.OnMatch;
+import com.norconex.importer.handler.filter.AbstractOnMatchFilter;
+import com.norconex.importer.handler.filter.OnMatch;
 /**
  * Filters URL based based on the number of URL segments. A URL with
  * a number of segments equal or more than the specified count will either
@@ -162,7 +162,7 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
 
     @Override
     public boolean acceptDocument(HttpDocument document) {
-        return acceptURL(document.getUrl());
+        return acceptURL(document.getReference());
     }
     @Override
     public boolean acceptDocument(String url, HttpMetadata headers) {

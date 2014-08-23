@@ -40,8 +40,8 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.importer.filter.AbstractOnMatchFilter;
-import com.norconex.importer.filter.OnMatch;
+import com.norconex.importer.handler.filter.AbstractOnMatchFilter;
+import com.norconex.importer.handler.filter.OnMatch;
 /**
  * Accepts or rejects one or more HTTP header values using regular expression.
  * <p>

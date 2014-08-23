@@ -33,45 +33,45 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.HttpCollectorException;
-import com.norconex.collector.http.client.IHttpClientInitializer;
-import com.norconex.collector.http.db.ICrawlURLDatabase;
+import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.crawler.AbstractCrawler;
+import com.norconex.collector.core.ref.IReference;
+import com.norconex.collector.core.ref.store.IReferenceStore;
+import com.norconex.collector.http.crawler.pipe.doc.DocumentPipeline;
+import com.norconex.collector.http.crawler.pipe.doc.DocumentPipelineContext;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.util.PathUtils;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.FileUtil;
-import com.norconex.jef.AbstractResumableJob;
-import com.norconex.jef.IJobContext;
-import com.norconex.jef.progress.IJobStatus;
-import com.norconex.jef.progress.JobProgress;
-import com.norconex.jef.suite.JobSuite;
+import com.norconex.jef4.status.IJobStatus;
+import com.norconex.jef4.status.JobStatusUpdater;
+import com.norconex.jef4.suite.JobSuite;
 
 /**
  * The HTTP Crawler.
  * @author Pascal Essiembre
  */
 @SuppressWarnings("deprecation")
-public class HttpCrawler extends AbstractResumableJob {
+public class HttpCrawler extends AbstractCrawler {
 	
     private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
 	
+    private static final String PROP_OK_URL_COUNT = "okUrlCount";
 	private static final int MINIMUM_DELAY = 10;
     private static final int FILE_DELETE_COUNT_MAX = 100;
 	
-	private final HttpCrawlerConfig crawlerConfig;
 	private HttpClient httpClient;
+	private ISitemapResolver sitemapResolver;
     private boolean stopped;
     private int okURLsCount;
     private int deletedDownloadCount;
@@ -80,37 +80,14 @@ public class HttpCrawler extends AbstractResumableJob {
      * Constructor.
      * @param crawlerConfig HTTP crawler configuration
      */
-	public HttpCrawler(
-	        HttpCrawlerConfig crawlerConfig) {
-		super();
-		this.crawlerConfig = crawlerConfig;
+	public HttpCrawler(HttpCrawlerConfig crawlerConfig) {
+		super(crawlerConfig);
         crawlerConfig.getWorkDir().mkdirs();
 	}
 	
 	@Override
-	public IJobContext createJobContext() {
-	    return new IJobContext() {            
-            private static final long serialVersionUID = 2785476254478043557L;
-            @Override
-            public long getProgressMinimum() {
-                return IJobContext.PROGRESS_ZERO;
-            }
-            @Override
-            public long getProgressMaximum() {
-                return IJobContext.PROGRESS_100;
-            }
-            @Override
-            public String getDescription() {
-                return "Norconex HTTP Crawler";
-            }
-        };
-	}
-	
-	
-	
-	@Override
 	public String getId() {
-		return crawlerConfig.getId();
+		return getCrawlerConfig().getId();
 	}
 
 	/**
@@ -122,64 +99,78 @@ public class HttpCrawler extends AbstractResumableJob {
     }
     
     @Override
-    protected void resumeExecution(JobProgress progress, JobSuite suite) {
-        ICrawlURLDatabase database = 
-              crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
-                      crawlerConfig, true);
-        initializeHTTPClient();
-        okURLsCount = NumberUtils.toInt(progress.getMetadata());
-        try {
-            execute(database, progress, suite);
-        } finally {
-            database.close();
-            closeHttpClient();
-        }
+    public HttpCrawlerConfig getCrawlerConfig() {
+        return (HttpCrawlerConfig) super.getCrawlerConfig();
+    }
+    
+    /**
+     * @return the httpClient
+     */
+    public HttpClient getHttpClient() {
+        return httpClient;
+    }
+    
+    /**
+     * @return the sitemapResolver
+     */
+    public ISitemapResolver getSitemapResolver() {
+        return sitemapResolver;
     }
 
     @Override
-    protected void startExecution(JobProgress progress, JobSuite suite) {
-        ICrawlURLDatabase database = 
-              crawlerConfig.getCrawlURLDatabaseFactory().createCrawlURLDatabase(
-                      crawlerConfig, false);
+    protected void prepareExecution(
+            JobStatusUpdater statusUpdater, JobSuite suite, 
+            IReferenceStore refStore, boolean resume) {
+        logInitializationInformation();
         initializeHTTPClient();
-        String[] startURLs = crawlerConfig.getStartURLs();
-        for (int i = 0; i < startURLs.length; i++) {
-            String startURL = startURLs[i];
-            new URLProcessor(this, httpClient, database, 
-                    new CrawlURL(startURL, 0)).processURL();
+        if (resume) {
+            okURLsCount = statusUpdater.getProperties().getInt(
+                    PROP_OK_URL_COUNT, 0);
+        } else {
+            String[] startURLs = getCrawlerConfig().getStartURLs();
+            for (int i = 0; i < startURLs.length; i++) {
+                String startURL = startURLs[i];
+                new URLProcessor(this, httpClient, refStore, 
+                        new HttpDocReference(startURL, 0), 
+                                sitemapResolver).processURL();
+            }
+            HttpCrawlerEventFirer.fireCrawlerStarted(this);
         }
-        HttpCrawlerEventFirer.fireCrawlerStarted(this);
-        try {
-            execute(database, progress, suite);
-        } finally {
-            database.close();
-            closeHttpClient();
-        }
-    }
-	
-    private void execute(
-            ICrawlURLDatabase database, JobProgress progress, JobSuite suite) {
-
-        StopWatch watch = new StopWatch();
-        watch.start();
         
-        //TODO print initialization information
-        LOG.info(getId() +  ": RobotsTxt support " + 
-                (crawlerConfig.isIgnoreRobotsTxt() ? "disabled." : "enabled"));
-        LOG.info(getId() +  ": RobotsMeta support " + 
-                (crawlerConfig.isIgnoreRobotsMeta() ? "disabled." : "enabled"));
-        LOG.info(getId() +  ": Sitemap support " + 
-                (crawlerConfig.isIgnoreSitemap() ? "disabled." : "enabled"));
+    }
+    
+    private void logInitializationInformation() {
+        LOG.info(getId() +  ": RobotsTxt support: " 
+                + getCrawlerConfig().isIgnoreRobotsTxt());
+        LOG.info(getId() +  ": RobotsMeta support: "  
+                + getCrawlerConfig().isIgnoreRobotsMeta()); 
+        LOG.info(getId() +  ": Sitemap support: " 
+                + getCrawlerConfig().isIgnoreSitemap());
+    }
+
+    @Override
+    protected void cleanupExecution(JobStatusUpdater statusUpdater,
+            JobSuite suite, IReferenceStore refStore) {
+        closeHttpClient();
+    }
+    
+    @Override
+    protected void execute(JobStatusUpdater statusUpdater,
+            JobSuite suite, IReferenceStore refStore) {
+//        
+//        StopWatch watch = new StopWatch();
+//        watch.start();
+//        
 
         //--- Process start/queued URLS ----------------------------------------
         LOG.info(getId() + ": Crawling URLs...");
-        processURLs(database, progress, suite, false);
+        processURLs(refStore, statusUpdater, suite, false);
 
         if (!isStopped()) {
-            handleOrphans(database, progress, suite);
+            handleOrphans(refStore, statusUpdater, suite);
         }
         
-        ICommitter committer = crawlerConfig.getCommitter();
+        ICommitter committer = getCrawlerConfig().getCommitter();
         if (committer != null) {
             LOG.info(getId() + ": Crawler \"" + getId() + "\" " 
                     + (stopped ? "stopping" : "finishing")
@@ -189,10 +180,10 @@ public class HttpCrawler extends AbstractResumableJob {
 
         deleteDownloadDirectory();
         
-        watch.stop();
-        LOG.info(getId() + ": "
-                + database.getProcessedCount() + " URLs processed "
-                + "in " + watch.toString() + " for \"" + getId() + "\".");
+//        watch.stop();
+//        LOG.info(getId() + ": "
+//                + refStore.getProcessedCount() + " URLs processed "
+//                + "in " + watch.toString() + " for \"" + getId() + "\".");
 
         LOG.debug(getId() + ": Removing empty directories");
         FileUtil.deleteEmptyDirs(gelCrawlerDownloadDir());
@@ -205,7 +196,7 @@ public class HttpCrawler extends AbstractResumableJob {
     }
 
     private void deleteDownloadDirectory() {
-        if (!crawlerConfig.isKeepDownloads()) {
+        if (!getCrawlerConfig().isKeepDownloads()) {
             if (LOG.isInfoEnabled()) {
                 LOG.info("Deleting crawler downloads directory: "
                         + gelCrawlerDownloadDir());
@@ -220,63 +211,64 @@ public class HttpCrawler extends AbstractResumableJob {
         }
     }
 
-    private void handleOrphans(ICrawlURLDatabase database,
-            JobProgress progress, JobSuite suite) {
-        if (crawlerConfig.isDeleteOrphans()) {
+    private void handleOrphans(IReferenceStore refStore,
+            JobStatusUpdater statusUpdater, JobSuite suite) {
+        if (getCrawlerConfig().isDeleteOrphans()) {
             LOG.info(getId() + ": Deleting orphan URLs (if any)...");
-            deleteCacheOrphans(database, progress, suite);
+            deleteCacheOrphans(refStore, statusUpdater, suite);
         } else {
             if (!isMaxURLs()) {
                 LOG.info(getId() + ": Re-processing orphan URLs (if any)...");
-                reprocessCacheOrphans(database, progress, suite);
+                reprocessCacheOrphans(refStore, statusUpdater, suite);
             }
             // In case any item remains after we are done re-processing:
             LOG.info(getId() + ": Deleting remaining orphan URLs (if any)...");
-            deleteCacheOrphans(database, progress, suite);
+            deleteCacheOrphans(refStore, statusUpdater, suite);
         }
     }
     
     private void reprocessCacheOrphans(
-            ICrawlURLDatabase database, JobProgress progress, JobSuite suite) {
+            IReferenceStore refStore, JobStatusUpdater statusUpdater, JobSuite suite) {
         long count = 0;
-        Iterator<CrawlURL> it = database.getCacheIterator();
+        Iterator<IReference> it = refStore.getCacheIterator();
         if (it != null) {
             while (it.hasNext()) {
-                CrawlURL crawlURL = it.next();
+                HttpDocReference httpDocReference = (HttpDocReference) it.next();
                 new URLProcessor(
-                        this, httpClient, database, crawlURL).processURL();
+                        this, httpClient, refStore, httpDocReference, 
+                                sitemapResolver).processURL();
                 count++;
             }
-            processURLs(database, progress, suite, false);
+            processURLs(refStore, statusUpdater, suite, false);
         }
         LOG.info(getId() + ": Reprocessed " + count + " orphan URLs...");
     }
     
     private void deleteCacheOrphans(
-            ICrawlURLDatabase database, JobProgress progress, JobSuite suite) {
+            IReferenceStore refStore, JobStatusUpdater statusUpdater, JobSuite suite) {
         long count = 0;
-        Iterator<CrawlURL> it = database.getCacheIterator();
+        Iterator<IReference> it = refStore.getCacheIterator();
         if (it != null) {
             while (it.hasNext()) {
-                database.queue(it.next());
+                refStore.queue(it.next());
                 count++;
             }
-            processURLs(database, progress, suite, true);
+            processURLs(refStore, statusUpdater, suite, true);
         }
         LOG.info(getId() + ": Deleted " + count + " orphan URLs...");
     }
     
-    /*default*/ HttpCrawlerConfig getCrawlerConfig() {
-        return crawlerConfig;
-    }
-    
+//    /*default*/ HttpCrawlerConfig getCrawlerConfig() {
+//        return crawlerConfig;
+//    }
+//    
     private void processURLs(
-    		final ICrawlURLDatabase database,
-    		final JobProgress progress, 
+    		final IReferenceStore refStore,
+    		final JobStatusUpdater statusUpdater, 
     		final JobSuite suite,
     		final boolean delete) {
         
-        int numThreads = crawlerConfig.getNumThreads();
+        int numThreads = getCrawlerConfig().getNumThreads();
         final CountDownLatch latch = new CountDownLatch(numThreads);
         ExecutorService pool = Executors.newFixedThreadPool(numThreads);
 
@@ -286,14 +278,14 @@ public class HttpCrawler extends AbstractResumableJob {
             LOG.debug(getId() 
                     + ": Crawler thread #" + threadIndex + " started.");
             pool.execute(new ProcessURLsRunnable(
-                    suite, progress, database, delete, latch));
+                    suite, statusUpdater, refStore, delete, latch));
         }
 
         try {
             latch.await();
             pool.shutdown();
         } catch (InterruptedException e) {
-             throw new HttpCollectorException(e);
+             throw new CollectorException(e);
         }
     }
     
@@ -301,10 +293,10 @@ public class HttpCrawler extends AbstractResumableJob {
      * @return <code>true</code> if more urls to process
      */
     private boolean processNextURL(
-            final ICrawlURLDatabase database,
-            final JobProgress progress, 
+            final IReferenceStore refStore,
+            final JobStatusUpdater statusUpdater, 
             final boolean delete) {
-        CrawlURL queuedURL = database.nextQueued();
+        HttpDocReference queuedURL = (HttpDocReference) refStore.nextQueued();
         if (LOG.isDebugEnabled()) {
             LOG.debug(getId() 
                     + " Processing next URL from Queue: " + queuedURL);
@@ -312,25 +304,26 @@ public class HttpCrawler extends AbstractResumableJob {
         if (queuedURL != null) {
             if (isMaxURLs()) {
                 LOG.info(getId() + ": Maximum URLs reached: " 
-                        + crawlerConfig.getMaxURLs());
+                        + getCrawlerConfig().getMaxURLs());
                 return false;
             }
             StopWatch watch = new StopWatch();
             watch.start();
             int preOKCount = okURLsCount;
-            processNextQueuedURL(queuedURL, database, delete);
+            processNextQueuedURL(queuedURL, refStore, delete);
             if (preOKCount != okURLsCount) {
-                progress.setMetadata(Integer.toString(okURLsCount));
+                statusUpdater.getProperties().setInt(
+                        PROP_OK_URL_COUNT, okURLsCount);
             }
-            setProgress(progress, database);
+            setProgress(statusUpdater, refStore);
             watch.stop();
             if (LOG.isDebugEnabled()) {
                 LOG.debug(getId() + ": " + watch.toString() 
-                        + " to process: " + queuedURL.getUrl());
+                        + " to process: " + queuedURL.getReference());
             }
         } else {
-            int activeCount = database.getActiveCount();
-            boolean queueEmpty = database.isQueueEmpty();
+            int activeCount = refStore.getActiveCount();
+            boolean queueEmpty = refStore.isQueueEmpty();
             if (LOG.isDebugEnabled()) {
                 LOG.debug(getId() 
                         + " URLs currently being processed: " + activeCount);
@@ -345,82 +338,107 @@ public class HttpCrawler extends AbstractResumableJob {
         return true;
     }
     
-    private void setProgress(JobProgress progress, ICrawlURLDatabase db) {
+    private void setProgress(
+            JobStatusUpdater statusUpdater, IReferenceStore db) {
         int queued = db.getQueueSize();
         int processed = db.getProcessedCount();
         int total = queued + processed;
         if (total == 0) {
-            progress.setProgress(progress.getJobContext().getProgressMaximum());
+            statusUpdater.setProgress(0); //TODO was previously set to maximum, why?
         } else {
-            progress.setProgress(BigDecimal.valueOf(processed)
+            statusUpdater.setProgress(BigDecimal.valueOf(processed)
                     .divide(BigDecimal.valueOf(total), RoundingMode.DOWN)
-                    .multiply(BigDecimal.valueOf(IJobContext.PROGRESS_100))
-                    .intValue());
+                    .doubleValue());
         }
-        progress.setNote(
+        statusUpdater.setNote(
                 NumberFormat.getIntegerInstance().format(processed)
                 + " urls processed out of "
                 + NumberFormat.getIntegerInstance().format(total));
     }
 
-    private File createLocalFile(CrawlURL crawlURL, String extension) {
+    private File createLocalFile(IReference httpDocReference, String extension) {
         return new File(gelCrawlerDownloadDir().getAbsolutePath() 
                 + SystemUtils.FILE_SEPARATOR 
-                + PathUtils.urlToPath(crawlURL.getUrl())
+                + PathUtils.urlToPath(httpDocReference.getReference())
                 + extension);
     }
     
     private void deleteURL(
-            CrawlURL crawlURL, File outputFile, HttpDocument doc) {
-        LOG.debug(getId() + ": Deleting URL: " + crawlURL.getUrl());
-        ICommitter committer = crawlerConfig.getCommitter();
-        crawlURL.setStatus(CrawlStatus.DELETED);
+            IReference reference, File outputFile, HttpDocument doc) {
+        LOG.debug(getId() + ": Deleting URL: " + reference.getReference());
+        ICommitter committer = getCrawlerConfig().getCommitter();
+        ((HttpDocReference) reference).setState(HttpDocReferenceState.DELETED);
         if (committer != null) {
             committer.queueRemove(
-                    crawlURL.getUrl(), outputFile, doc.getMetadata());
+                    reference.getReference(), outputFile, doc.getMetadata());
         }
     }
     
-    private void processNextQueuedURL(
-            CrawlURL crawlURL, ICrawlURLDatabase database, boolean delete) {
-        String url = crawlURL.getUrl();
-        File outputFile = createLocalFile(crawlURL, ".txt");
-        HttpDocument doc = new HttpDocument(
-                crawlURL.getUrl(), createLocalFile(crawlURL, ".raw"));
-        setURLMetadata(doc.getMetadata(), crawlURL);
+    private void processNextQueuedURL(HttpDocReference reference, 
+            IReferenceStore refStore, boolean delete) {
+        String url = reference.getReference();
+//        File outputFile = createLocalFile(reference, ".txt");
+//        HttpDocument doc = new HttpDocument(
+//                reference.getReference(), createLocalFile(reference, ".raw"));
+        HttpDocument doc = new HttpDocument(reference);
+        setURLMetadata(doc.getMetadata(), reference);
         
         try {
             if (delete) {
-                deleteURL(crawlURL, outputFile, doc);
+                File outputFile = File.createTempFile(
+                        "committer-delete-", ".txt", 
+                        getCrawlerConfig().getWorkDir());
+                FileUtils.copyInputStreamToFile(
+                        doc.getContent().getInputStream(), outputFile);
+
+                
+                deleteURL(reference, outputFile, doc);
                 return;
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug(getId() + ": Processing URL: " + url);
             }
-            if (!new DocumentProcessor(this, httpClient, database, 
-                    outputFile, doc, crawlURL).processURL()) {
+            
+            //TODO create pipeline context prototype
+            //TODO cache the pipeline object?
+            DocumentPipelineContext context = new DocumentPipelineContext(
+                    this, refStore, doc/*, robotsTxt*/);
+            if (!new DocumentPipeline().process(context)) {
                 return;
             }
+            
+//            if (!new DocumentProcessor(this, httpClient, refStore, 
+//                    outputFile, doc, reference, sitemapResolver).processURL()) {
+//                return;
+//            }
         } catch (Exception e) {
             //TODO do we really want to catch anything other than 
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
-            crawlURL.setStatus(CrawlStatus.ERROR);
+            ((HttpDocReference) reference).setState(HttpDocReferenceState.ERROR);
             LOG.error(getId() + ": Could not process document: " + url
                     + " (" + e.getMessage() + ")", e);
 	    } finally {
-            finalizeURLProcessing(crawlURL, database, url, outputFile, doc);
+            finalizeURLProcessing(reference, refStore, url, /*outputFile,*/ doc);
 	    }
 	}
 
-    private void finalizeURLProcessing(CrawlURL crawlURL,
-            ICrawlURLDatabase database, String url, File outputFile,
+    private void finalizeURLProcessing(IReference reference,
+            IReferenceStore refStore, String url, /*File outputFile,*/
             HttpDocument doc) {
         //--- Flag URL for deletion --------------------------------------------
         try {
-            ICommitter committer = crawlerConfig.getCommitter();
-            if (database.isVanished(crawlURL)) {
-                crawlURL.setStatus(CrawlStatus.DELETED);
+            ICommitter committer = getCrawlerConfig().getCommitter();
+            if (refStore.isVanished(reference)) {
+                ((HttpDocReference) reference).setState(
+                        HttpDocReferenceState.DELETED);
                 if (committer != null) {
+                    
+                    File outputFile = File.createTempFile(
+                            "committer-delete-", ".txt", 
+                            getCrawlerConfig().getWorkDir());
+                    FileUtils.copyInputStreamToFile(
+                            doc.getContent().getInputStream(), outputFile);
+                    
                     committer.queueRemove(url, outputFile, doc.getMetadata());
                 }
             }
@@ -431,16 +449,17 @@ public class HttpCrawler extends AbstractResumableJob {
         
         //--- Mark URL as Processed --------------------------------------------
         try {
-            if (crawlURL.getStatus() == CrawlStatus.OK) {
+            if (reference.getState().isOneOf(HttpDocReferenceState.NEW, HttpDocReferenceState.MODIFIED)) {
+//            if (reference.getState() == HttpDocReferenceState.OK) {
                 okURLsCount++;
             }
-            database.processed(crawlURL);
-            markOriginalURLAsProcessed(crawlURL, database, doc);
-            if (crawlURL.getStatus() == null) {
-                LOG.warn("URL status is unknown: " + crawlURL.getUrl());
-                crawlURL.setStatus(CrawlStatus.BAD_STATUS);
+            refStore.processed(reference);
+            markOriginalURLAsProcessed(reference, refStore, doc);
+            if (reference.getState() == null) {
+                LOG.warn("URL status is unknown: " + reference.getReference());
+                ((HttpDocReference) reference).setState(HttpDocReferenceState.BAD_STATUS);
             }
-            crawlURL.getStatus().logInfo(crawlURL);
+//            reference.getState().logInfo(reference);
         } catch (Exception e) {
             LOG.error(getId() + ": Could not mark URL as processed: " + url
                     + " (" + e.getMessage() + ")", e);
@@ -448,15 +467,22 @@ public class HttpCrawler extends AbstractResumableJob {
 
         try {
             //--- Delete Local File Download -----------------------------------
-            if (!crawlerConfig.isKeepDownloads()) {
-                LOG.debug("Deleting " + doc.getLocalFile());
-                FileUtils.deleteQuietly(doc.getLocalFile());
-                FileUtils.deleteQuietly(outputFile);
+            if (!getCrawlerConfig().isKeepDownloads()) {
+                
+                //TODO write content to file if keeping download, else dispose
+                
+                doc.getContent().getInputStream().dispose();
+                
+                
+//                LOG.debug("Deleting " + doc.getLocalFile());
+//                FileUtils.deleteQuietly(doc.getLocalFile());
+//                FileUtils.deleteQuietly(outputFile);
                 deleteDownloadDirIfReady();
             }
         } catch (Exception e) {
-            LOG.error(getId() + ": Could not delete local file: "
-                    + doc.getLocalFile() + " (" + e.getMessage() + ")", e);
+            LOG.error("Could not dispose of resources.", e);
+//            LOG.error(getId() + ": Could not delete local file: "
+//                    + doc.getLocalFile() + " (" + e.getMessage() + ")", e);
         }
     }
 
@@ -475,63 +501,41 @@ public class HttpCrawler extends AbstractResumableJob {
         }
     }
 
-    private void markOriginalURLAsProcessed(CrawlURL crawlURL,
-            ICrawlURLDatabase database, HttpDocument doc) {
+    private void markOriginalURLAsProcessed(IReference reference,
+            IReferenceStore refStore, HttpDocument doc) {
         //TODO Fix #17. Put in place a more permanent solution to this fix?
-        if (ObjectUtils.notEqual(doc.getUrl(), crawlURL.getUrl())) {
-            CrawlURL originalURL = crawlURL.safeClone();
-            originalURL.setUrl(doc.getUrl());
-            database.processed(originalURL);
+        if (ObjectUtils.notEqual(doc.getReference(), reference.getReference())) {
+            IReference originalURL = reference.safeClone();
+            ((HttpDocReference) originalURL).setReference(doc.getReference());
+            refStore.processed(originalURL);
         }
     }
 
     private void initializeHTTPClient() {
-	    
-	    // Handle deprecation:
-	    IHttpClientInitializer initializer = 
-	            crawlerConfig.getHttpClientInitializer();
-	    if (initializer != null) {
-	        //TODO set HTTPClient user-agent from config before calling init..
-	        //TODO is this pooling manager necessary with 4.3?
-	        PoolingClientConnectionManager m = new PoolingClientConnectionManager();
-	        if (crawlerConfig.getNumThreads() <= 0) {
-	            m.setMaxTotal(Integer.MAX_VALUE);
-	        } else {
-	            m.setMaxTotal(crawlerConfig.getNumThreads());
-	        }
-	        httpClient = new DefaultHttpClient(m);
-	        LOG.warn("YOU ARE USING DEPRECATED CODE.  Please convert your "
-	               + "implementation of IHttpClientInitializer to "
-	               + "IHttpClientFactory instead. Your class \""
-	               + initializer.getClass().getCanonicalName() 
-	               + "\" may have issues with the current release. "
-	               + "IHttpClientInitializer will be removed in a future "
-	               + "release.");
-	        initializer.initializeHTTPClient((DefaultHttpClient) httpClient);
-	    } else {
-	        httpClient = crawlerConfig.getHttpClientFactory().createHTTPClient(
-	                crawlerConfig.getUserAgent());
-	    }
+        httpClient = getCrawlerConfig().getHttpClientFactory().createHTTPClient(
+                getCrawlerConfig().getUserAgent());
 	}
 
     @Override
-    public void stop(IJobStatus progress, JobSuite suite) {
+    public void stop(IJobStatus jobStatus, JobSuite suite) {
         stopped = true;
-        LOG.info("Stopping the crawler \"" + progress.getJobId() +  "\".");
+        LOG.info("Stopping the crawler \"" + jobStatus.getJobId() +  "\".");
     }
     private File gelBaseDownloadDir() {
         return new File(
-                crawlerConfig.getWorkDir().getAbsolutePath() + "/downloads");
+                getCrawlerConfig().getWorkDir().getAbsolutePath() + "/downloads");
     }
     private File gelCrawlerDownloadDir() {
-        return new File(gelBaseDownloadDir() + "/" + crawlerConfig.getId());
+        return new File(gelBaseDownloadDir() + "/" + getCrawlerConfig().getId());
     }
     
     private boolean isMaxURLs() {
-        return crawlerConfig.getMaxURLs() > -1 
-                && okURLsCount >= crawlerConfig.getMaxURLs();
+        return getCrawlerConfig().getMaxURLs() > -1 
+                && okURLsCount >= getCrawlerConfig().getMaxURLs();
     }
-    private void setURLMetadata(HttpMetadata metadata, CrawlURL url) {
+    private void setURLMetadata(HttpMetadata metadata, IReference ref) {
+        HttpDocReference url = (HttpDocReference) ref;
+        
         metadata.addInt(HttpMetadata.DOC_DEPTH, url.getDepth());
         if (StringUtils.isNotBlank(url.getSitemapChangeFreq())) {
             metadata.addString(HttpMetadata.DOC_SM_CHANGE_FREQ, 
@@ -559,17 +563,17 @@ public class HttpCrawler extends AbstractResumableJob {
     
     private final class ProcessURLsRunnable implements Runnable {
         private final JobSuite suite;
-        private final JobProgress progress;
-        private final ICrawlURLDatabase database;
+        private final JobStatusUpdater statusUpdater;
+        private final IReferenceStore refStore;
         private final boolean delete;
         private final CountDownLatch latch;
 
-        private ProcessURLsRunnable(JobSuite suite, JobProgress progress,
-                ICrawlURLDatabase database, boolean delete,
+        private ProcessURLsRunnable(JobSuite suite, JobStatusUpdater statusUpdater,
+                IReferenceStore refStore, boolean delete,
                 CountDownLatch latch) {
             this.suite = suite;
-            this.progress = progress;
-            this.database = database;
+            this.statusUpdater = statusUpdater;
+            this.refStore = refStore;
             this.delete = delete;
             this.latch = latch;
         }
@@ -579,7 +583,7 @@ public class HttpCrawler extends AbstractResumableJob {
             try {
                 while (!isStopped()) {
                     try {
-                        if (!processNextURL(database, progress, delete)) {
+                        if (!processNextURL(refStore, statusUpdater, delete)) {
                             break;
                         }
                     } catch (Exception e) {
@@ -587,7 +591,7 @@ public class HttpCrawler extends AbstractResumableJob {
                             + "An error occured that could compromise "
                             + "the stability of the crawler. Stopping "
                             + "excution to avoid further issues...", e);
-                        stop(progress, suite);
+                        stop(suite.getJobStatus(suite.getRootJob()), suite);
                     }
                 }
             } catch (Exception e) {
@@ -597,5 +601,7 @@ public class HttpCrawler extends AbstractResumableJob {
             }
         }
     }
+
+
 
 }

@@ -39,7 +39,7 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.http.url.IURLExtractor;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.importer.ContentType;
+import com.norconex.commons.lang.file.ContentType;
 
 /**
  * Default implementation of {@link IURLExtractor}.  

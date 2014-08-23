@@ -1,5 +1,27 @@
 The following are either things to be done, or ideas to consider:
 
+
+For 2.0.0:
+============
+
+- Distinguish between NEW and MODIFIED docs.
+
+- Address Fix #17 where URL may change due to permanent redirect 
+  (we want to store the final URL).  Create a new RedirectResolverStage 
+  in DocumentPipeline?
+
+- Introduce life cycle container scope objects.  Those contain references to 
+  objects only valid for processing a reference, a document, etc.  
+  
+- Cache Importer instance now created each time in ImportModuleStep?
+
+- Change Committer to support readers instead of File???
+
+- Write content to file if keeping download, else dispose
+
+Any release:
+============
+
 - When issuing a STOP, add an option to specify which crawler to stop,
   and let others run.
   

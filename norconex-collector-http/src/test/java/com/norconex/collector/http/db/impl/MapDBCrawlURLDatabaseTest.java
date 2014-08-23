@@ -22,7 +22,7 @@ public class MapDBCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
     @Override
     protected void createImpl(boolean resume) {
         db.close();
-        db = new DefaultCrawlURLDatabaseFactory().createCrawlURLDatabase(
+        db = new DefaultReferenceStoreFactory().createCrawlURLDatabase(
                 config, resume);
     }
 
@@ -31,7 +31,7 @@ public class MapDBCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
         config = new HttpCrawlerConfig();
         // the tempFolder is re-created at each test
         config.setWorkDir(tempFolder.getRoot());
-        db = new DefaultCrawlURLDatabaseFactory().createCrawlURLDatabase(
+        db = new DefaultReferenceStoreFactory().createCrawlURLDatabase(
                 config, false);
     }
 }

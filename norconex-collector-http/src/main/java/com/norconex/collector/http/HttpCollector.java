@@ -18,36 +18,32 @@
  */
 package com.norconex.collector.http;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.IOException;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.norconex.collector.core.AbstractCollector;
+import com.norconex.collector.core.AbstractCollectorConfig;
+import com.norconex.collector.core.AbstractCollectorLauncher;
+import com.norconex.collector.core.CollectorConfigLoader;
+import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.ICollector;
+import com.norconex.collector.core.ICollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.commons.lang.EqualsUtil;
-import com.norconex.jef.AsyncJobGroup;
-import com.norconex.jef.IJob;
-import com.norconex.jef.JobRunner;
-import com.norconex.jef.log.FileLogManager;
-import com.norconex.jef.progress.JobProgressPropertiesFileSerializer;
-import com.norconex.jef.suite.FileStopRequestHandler;
-import com.norconex.jef.suite.IJobSuiteFactory;
-import com.norconex.jef.suite.JobSuite;
+import com.norconex.jef4.job.IJob;
+import com.norconex.jef4.job.group.AsyncJobGroup;
+import com.norconex.jef4.log.FileLogManager;
+import com.norconex.jef4.status.FileJobStatusStore;
+import com.norconex.jef4.suite.JobSuite;
+import com.norconex.jef4.suite.JobSuiteConfig;
  
 /**
  * Main application class. In order to use it properly, you must first configure
  * it, either by providing a populated instance of {@link HttpCollectorConfig},
- * or by XML configuration, loaded using {@link HttpCollectorConfigLoader}.
+ * or by XML configuration, loaded using {@link CollectorConfigLoader}.
  * Instances of this class can hold several crawler, running at once.
  * This is convenient when there are configuration setting to be shared amongst
  * crawlers.  When you have many crawler jobs defined that have nothing
@@ -57,79 +53,29 @@ import com.norconex.jef.suite.JobSuite;
  * @author Pascal Essiembre
  */
 @SuppressWarnings("nls")
-public class HttpCollector implements IJobSuiteFactory {
+public class HttpCollector extends AbstractCollector {
 
 	private static final Logger LOG = LogManager.getLogger(HttpCollector.class);
+
+	private HttpCrawler[] crawlers;
 	
-	private static final String ARG_ACTION = "action";
-    private static final String ARG_ACTION_START = "start";
-    private static final String ARG_ACTION_RESUME = "resume";
-    private static final String ARG_ACTION_STOP = "stop";
-    private static final String ARG_CONFIG = "config";
-    private static final String ARG_VARIABLES = "variables";
-	
-    private File configurationFile;
-    private File variablesFile;
-    private HttpCrawler[] crawlers;
-    private HttpCollectorConfig collectorConfig;
+	private JobSuite jobSuite;
     
     /**
      * Creates a non-configured HTTP collector.
      */
     public HttpCollector() {
-        super();
+        super(new HttpCollectorConfig());
     }
-    /**
-     * Creates an HTTP Collector configured using the provided
-     * configuration fine and variable files.  Sample configuration files
-     * and documentation on configuration options and the differences 
-     * between a variables file and configuration are found on 
-     * the HTTP Collector web site.
-     * @param configFile a configuration file
-     * @param variablesFile a variables file
-     */
-	public HttpCollector(File configFile, File variablesFile) {
-	    this.configurationFile = configFile;
-	    this.variablesFile = variablesFile;
-	}
 	/**
 	 * Creates and configure an HTTP Collector with the provided
 	 * configuration.
 	 * @param collectorConfig HTTP Collector configuration
 	 */
     public HttpCollector(HttpCollectorConfig collectorConfig) {
-        this.collectorConfig = collectorConfig;
+        super(collectorConfig);
     }
-	/**
-	 * Gets the configuration file used to initialize this collector.
-	 * @return XML configuration file
-	 */
-	public File getConfigurationFile() {
-        return configurationFile;
-    }
-	/**
-	 * Sets the configuration file used to initialize this collector.
-	 * @param configurationFile XML configuration file
-	 */
-    public void setConfigurationFile(File configurationFile) {
-        this.configurationFile = configurationFile;
-    }
-    /**
-     * Gets the file holding configuration variables, or <code>null</code>
-     * if none.
-     * @return variables file
-     */
-    public File getVariablesFile() {
-        return variablesFile;
-    }
-    /**
-     * Sets the file holding configuration variables, or <code>null</code>
-     * if none. 
-     * @param variablesFile variables file
-     */
-    public void setVariablesFile(File variablesFile) {
-        this.variablesFile = variablesFile;
-    }
+
     /**
      * Gets the HTTP crawlers to be run by this collector.
      * @return HTTP crawlers
@@ -151,40 +97,18 @@ public class HttpCollector implements IJobSuiteFactory {
      *    list of command-line options.
      */
 	public static void main(String[] args) {
-	    CommandLine cmd = parseCommandLineArguments(args);
-        String action = cmd.getOptionValue(ARG_ACTION);
-        File configFile = new File(cmd.getOptionValue(ARG_CONFIG));
-        File varFile = null;
-        if (cmd.hasOption(ARG_VARIABLES)) {
-            varFile = new File(cmd.getOptionValue(ARG_VARIABLES));
-        }
-	    
-        try {
-            HttpCollector conn = new HttpCollector(configFile, varFile);
-    	    if (ARG_ACTION_START.equalsIgnoreCase(action)) {
-    	        conn.crawl(false);
-    	    } else if (ARG_ACTION_RESUME.equalsIgnoreCase(action)) {
-                conn.crawl(true);
-    	    } else if (ARG_ACTION_STOP.equalsIgnoreCase(action)) {
-    	        conn.stop();
-    	    }
-        } catch (Exception e) {
-        	File errorFile = new File(
-        			"./error-" + System.currentTimeMillis() + ".log");
-        	System.err.println("\n\nAn ERROR occured:\n\n"
-                  + e.getLocalizedMessage());
-        	System.err.println("\n\nDetails of the error has been stored at: "
-        			+ errorFile.getAbsolutePath() + "\n\n");
-        	try {
-        		PrintWriter w = new PrintWriter(errorFile);
-				e.printStackTrace(w);
-				w.flush();
-				w.close();
-			} catch (FileNotFoundException e1) {
-				throw new HttpCollectorException(
-				        "Cannot write error file.", e1);
-			}
-        }
+	    new AbstractCollectorLauncher() {
+	        @Override
+	        protected ICollector createCollector(
+	                ICollectorConfig config) {
+	            return new HttpCollector((HttpCollectorConfig) config);
+	        }
+	        @Override
+	        protected Class<? extends AbstractCollectorConfig> 
+	                getCollectorConfigClass() {
+	            return HttpCollectorConfig.class;
+	        }
+	    }.launch(args);
 	}
 
     /**
@@ -192,37 +116,54 @@ public class HttpCollector implements IJobSuiteFactory {
      * @param resumeNonCompleted whether to resume where previous crawler
      *        aborted (if applicable) 
      */
-    public void crawl(boolean resumeNonCompleted) {
-        JobSuite suite = createJobSuite();
-        JobRunner jobRunner = new JobRunner();
-        jobRunner.runSuite(suite, resumeNonCompleted);
+    public void start(boolean resumeNonCompleted) {
+        if (jobSuite != null) {
+            throw new CollectorException(
+                    "Collector is already running. Wait for it to complete "
+                  + "before starting the same instance again, or stop "
+                  + "the currently running instance first.");
+        }
+        jobSuite = createJobSuite();
+        try {
+            jobSuite.execute(resumeNonCompleted);
+        } finally {
+            jobSuite = null;
+        }
+//        JobRunner jobRunner = new JobRunner();
+//        jobRunner.runSuite(suite, resumeNonCompleted);
     }
 
     /**
      * Stops a running instance of this HTTP Collector.
      */
     public void stop() {
-        JobSuite suite = createJobSuite();
-        ((FileStopRequestHandler) 
-                suite.getStopRequestHandler()).fireStopRequest();
+        if (jobSuite == null) {
+            throw new CollectorException(
+                    "This collector cannot be stopped since it is NOT "
+                  + "running.");
+        }
+        try {
+            jobSuite.stop();
+            //TODO wait for stop confirmation before setting to null?
+            jobSuite = null;
+        } catch (IOException e) {
+            throw new CollectorException(
+                    "Could not stop collector: " + getId(), e);
+        }
+//        JobSuite.stop(indexFile);
+//        JobSuite suite = createJobSuite();
+//        ((FileStopRequestHandler) 
+//                suite.getStopRequestHandler()).fireStopRequest();
     }
     
+    @Override
+    public HttpCollectorConfig getCollectorConfig() {
+        return (HttpCollectorConfig) super.getCollectorConfig();
+    }
     
     @Override
     public JobSuite createJobSuite() {
-        if (collectorConfig == null) {
-            try {
-                collectorConfig = HttpCollectorConfigLoader.loadCollectorConfig(
-                        getConfigurationFile(), getVariablesFile());
-            } catch (Exception e) {
-                throw new HttpCollectorException(e);
-            }
-        }
-        if (collectorConfig == null) {
-        	throw new HttpCollectorException(
-        			"Configuration file does not exists: "
-        			+ getConfigurationFile());
-        }
+        HttpCollectorConfig collectorConfig = getCollectorConfig();
         HttpCrawlerConfig[] configs = collectorConfig.getCrawlerConfigs();
         crawlers = new HttpCrawler[configs.length];
         for (int i = 0; i < configs.length; i++) {
@@ -239,44 +180,26 @@ public class HttpCollector implements IJobSuiteFactory {
             rootJob = crawlers[0];
         }
         
+        JobSuiteConfig suiteConfig = new JobSuiteConfig();
+
+        
+        //TODO have a base workdir, which is used to figure out where to put
+        // everything (log, progress), and make log and progress overwritable.
+
+        suiteConfig.setLogManager(
+                new FileLogManager(collectorConfig.getLogsDir()));
+        suiteConfig.setJobStatusStore(
+                new FileJobStatusStore(collectorConfig.getProgressDir()));
+        suiteConfig.setWorkdir(collectorConfig.getProgressDir()); 
         JobSuite suite = new JobSuite(
-                rootJob, 
-                new JobProgressPropertiesFileSerializer(
-                        collectorConfig.getProgressDir()),
-                new FileLogManager(collectorConfig.getLogsDir()),
-                new FileStopRequestHandler(collectorConfig.getId(), 
-                        collectorConfig.getProgressDir()));
+                rootJob, suiteConfig);
+//                new JobProgressPropertiesFileSerializer(
+//                        collectorConfig.getProgressDir()),
+//                new FileLogManager(collectorConfig.getLogsDir()),
+//                new FileStopRequestHandler(collectorConfig.getId(), 
+//                        collectorConfig.getProgressDir()));
         LOG.info("Suite of " + crawlers.length + " HTTP crawler jobs created.");
         return suite;
     }
 
-    private static CommandLine parseCommandLineArguments(String[] args) {
-        Options options = new Options();
-        options.addOption("c", ARG_CONFIG, true, 
-                "Required: HTTP Collector configuration file.");
-        options.addOption("v", ARG_VARIABLES, true, 
-                "Optional: variable file.");
-        options.addOption("a", ARG_ACTION, true, 
-                "Required: one of start|resume|stop");
-        
-        CommandLineParser parser = new PosixParser();
-        CommandLine cmd = null;
-        try {
-            cmd = parser.parse( options, args);
-            if(!cmd.hasOption(ARG_CONFIG) || !cmd.hasOption(ARG_ACTION)
-                    || EqualsUtil.equalsNone(cmd.getOptionValue(ARG_ACTION),
-                        ARG_ACTION_START, ARG_ACTION_RESUME, ARG_ACTION_STOP)) {
-                HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp( "collector-http[.bat|.sh]", options );
-                System.exit(-1);
-            }
-        } catch (ParseException e) {
-            System.err.println("Could not parse arguments.");
-            e.printStackTrace(System.err);
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "collector-http[.bat|.sh]", options );
-            System.exit(-1);
-        }
-        return cmd;
-    }
 }

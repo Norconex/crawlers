@@ -16,31 +16,36 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http;
+package com.norconex.collector.http.doc;
 
-/**
- * Runtime exception for most unrecoverable issues thrown by HTTP Collector
- * classes.
- * @author Pascal Essiembre
- */
-public class HttpCollectorException extends RuntimeException {
+import java.io.File;
+import java.io.Serializable;
 
-    private static final long serialVersionUID = -805913995358009121L;
+public class ORIGINAL_HttpDocument implements Serializable {
 
-    public HttpCollectorException() {
+    private static final long serialVersionUID = 4376740210800410675L;
+    private final String url;
+    private final File localFile;
+    private final ORIGINAL_HttpMetadata metadata;
+
+    public ORIGINAL_HttpDocument(String url, File localFile) {
         super();
+        this.url = url;
+        this.localFile = localFile;
+        this.metadata = new ORIGINAL_HttpMetadata(url);
     }
 
-    public HttpCollectorException(String message) {
-        super(message);
+    public String getUrl() {
+        //TODO make it point to meta URL or keep separate to distinguish
+        //between original URL and potentiallly overwritten one?
+        return url;
     }
 
-    public HttpCollectorException(Throwable cause) {
-        super(cause);
+    public File getLocalFile() {
+        return localFile;
     }
 
-    public HttpCollectorException(String message, Throwable cause) {
-        super(message, cause);
+    public ORIGINAL_HttpMetadata getMetadata() {
+        return metadata;
     }
-
 }

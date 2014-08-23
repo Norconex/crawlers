@@ -22,9 +22,8 @@ import java.util.Collection;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.doc.ImporterMetadata;
 
-public class HttpMetadata extends ImporterMetadata {
+public class ORIGINAL_HttpMetadata extends Properties {
 
 	private static final long serialVersionUID = 1454870639551983430L;
 
@@ -55,7 +54,7 @@ public class HttpMetadata extends ImporterMetadata {
             COLLECTOR_PREFIX + "checksum-doc";
 
 	
-	public HttpMetadata(String documentURL) {
+	public ORIGINAL_HttpMetadata(String documentURL) {
 		super(false);
 		addString(DOC_URL, documentURL);
 	}

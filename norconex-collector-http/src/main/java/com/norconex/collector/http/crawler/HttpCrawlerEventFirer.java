@@ -99,7 +99,7 @@ public final class HttpCrawlerEventFirer {
     public static void fireDocumentFetched(HttpCrawler crawler,
             HttpDocument document, IHttpDocumentFetcher fetcher) {
         debug("Document fetched. URL=%s File=%s Content-Type=%s", 
-                document.getUrl(), document.getLocalFile(), 
+                document.getHttpReference().getReference(), "",//document.getLocalFile(), 
                 document.getMetadata().getContentType());
         for (IHttpCrawlerEventListener listener : getListeners(crawler)) {
             listener.documentFetched(crawler, document, fetcher);
@@ -108,7 +108,7 @@ public final class HttpCrawlerEventFirer {
 
     public static void fireDocumentURLsExtracted(
             HttpCrawler crawler, HttpDocument document) {
-        debug("Document URLs extracted. URL=%s", document.getUrl());
+        debug("Document URLs extracted. URL=%s", document.getHttpReference().getReference());
         for (IHttpCrawlerEventListener listener : getListeners(crawler)) {
             listener.documentURLsExtracted(crawler, document);
         }
@@ -117,7 +117,7 @@ public final class HttpCrawlerEventFirer {
     public static void fireDocumentRejected(HttpCrawler crawler,
             HttpDocument document, IHttpDocumentFilter filter) {
         debug("Document rejected by document filter. URL=%s Filter=%s",
-                document.getUrl(), filter);
+                document.getHttpReference().getReference(), filter);
         for (IHttpCrawlerEventListener listener : getListeners(crawler)) {
             listener.documentRejected(crawler, document, filter);
         }
@@ -126,7 +126,7 @@ public final class HttpCrawlerEventFirer {
     public static void fireDocumentPreProcessed(
             HttpCrawler crawler, HttpDocument document,
             IHttpDocumentProcessor preProcessor) {
-        debug("Document pre-processed. URL=%s", document.getUrl());
+        debug("Document pre-processed. URL=%s", document.getHttpReference().getReference());
         for (IHttpCrawlerEventListener listener : getListeners(crawler)) {
             listener.documentPreProcessed(crawler, document, preProcessor);
         }
@@ -134,7 +134,7 @@ public final class HttpCrawlerEventFirer {
 
     public static void fireDocumentImported(
             HttpCrawler crawler,HttpDocument document) {
-        debug("Document imported. URL=%s", document.getUrl());
+        debug("Document imported. URL=%s", document.getHttpReference().getReference());
         for (IHttpCrawlerEventListener listener : getListeners(crawler)) {
             listener.documentImported(crawler, document);
         }
@@ -142,7 +142,7 @@ public final class HttpCrawlerEventFirer {
     
     public static void fireDocumentImportRejected(
             HttpCrawler crawler, HttpDocument document) {
-        debug("Document rejected by Importer. URL=%s", document.getUrl());
+        debug("Document rejected by Importer. URL=%s", document.getHttpReference().getReference());
         for (IHttpCrawlerEventListener listener : getListeners(crawler)) {
             listener.documentImportRejected(crawler, document);
         }
@@ -150,7 +150,7 @@ public final class HttpCrawlerEventFirer {
 
     public static void fireDocumentPostProcessed(HttpCrawler crawler, 
             HttpDocument document, IHttpDocumentProcessor postProcessor) {
-        debug("Document post-processed. URL=%s", document.getUrl());
+        debug("Document post-processed. URL=%s", document.getHttpReference().getReference());
         for (IHttpCrawlerEventListener listener : getListeners(crawler)) {
             listener.documentPostProcessed(crawler, document, postProcessor);
         }
@@ -165,7 +165,7 @@ public final class HttpCrawlerEventFirer {
 
     public static void fireDocumentCrawled(
             HttpCrawler crawler, HttpDocument document) {
-        debug("Document crawled. URL=%s", document.getUrl());
+        debug("Document crawled. URL=%s", document.getHttpReference().getReference());
         for (IHttpCrawlerEventListener listener : getListeners(crawler)) {
             listener.documentCrawled(crawler, document);
         }

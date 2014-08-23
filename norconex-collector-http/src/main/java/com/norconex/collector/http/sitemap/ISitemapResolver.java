@@ -24,10 +24,12 @@ import org.apache.http.client.HttpClient;
 
 
 /**
- * Given a URL root, return the resolve the corresponding sitemap, if any.
+ * Given a URL root, resolve the corresponding sitemap(s), if any, and 
+ * only if it has not yet been resolved for a crawling session.
+ * 
  * @author Pascal Essiembre
  */
-public interface ISitemapsResolver extends Serializable {
+public interface ISitemapResolver extends Serializable {
 
     /**
      * Resolves the sitemap instructions for a URL "root" (e.g. 
@@ -37,9 +39,9 @@ public interface ISitemapsResolver extends Serializable {
      * @param urlRoot the URL root for which to resolve the sitemap
      * @param robotsTxtLocations sitemap locations specified in robots.txt
      *        (provided robots are not ignored)
-     * @param sitemapURLStore store holding retreived site maps
+     * @param sitemapURLAdder where to store retrieved site map URLs
      */
     void resolveSitemaps(HttpClient httpClient, String urlRoot, 
-            String[] robotsTxtLocations, SitemapURLStore sitemapURLStore);
+            String[] robotsTxtLocations, SitemapURLAdder sitemapURLAdder);
     
 }

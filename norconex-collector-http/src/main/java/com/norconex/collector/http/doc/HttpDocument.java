@@ -18,34 +18,53 @@
  */
 package com.norconex.collector.http.doc;
 
-import java.io.File;
-import java.io.Serializable;
+import com.norconex.collector.http.crawler.HttpDocReference;
+import com.norconex.importer.doc.ImporterDocument;
 
-public class HttpDocument implements Serializable {
+public class HttpDocument extends ImporterDocument {
 
-	private static final long serialVersionUID = 4376740210800410675L;
-	private final String url;
-	private final File localFile;
-	private final HttpMetadata metadata;
+    private static final long serialVersionUID = 4376740210800410675L;
+//    private final String url;
+//    private final File localFile;
+//    private final HttpMetadata metadata;
 
-	public HttpDocument(String url, File localFile) {
-		super();
-		this.url = url;
-		this.localFile = localFile;
-		this.metadata = new HttpMetadata(url);
-	}
+    private final HttpDocReference httpReference;
+    
+    
+    public HttpDocument(HttpDocReference httpReference) {
+        super(httpReference.getReference(), new HttpMetadata(
+                httpReference.getReference()));
+        this.httpReference = httpReference;
+    }
+    
+    /**
+     * @return the httpReference
+     */
+    public HttpDocReference getHttpReference() {
+        return httpReference;
+    }
+    
+//    
+//    
+//    public HttpDocument(String url, File localFile) {
+//        super(new http);
+//        this.url = url;
+//        this.localFile = localFile;
+//        this.metadata = new HttpMetadata(url);
+//    }
 
-	public String getUrl() {
-	    //TODO make it point to meta URL or keep separate to distinguish
-	    //between original URL and potentiallly overwritten one?
-		return url;
-	}
+//    public String getUrl() {
+//        //TODO make it point to meta URL or keep separate to distinguish
+//        //between original URL and potentiallly overwritten one?
+//        return url;
+//    }
+//
+//    public File getLocalFile() {
+//        return localFile;
+//    }
 
-	public File getLocalFile() {
-		return localFile;
-	}
 
-	public HttpMetadata getMetadata() {
-		return metadata;
-	}
+    public HttpMetadata getMetadata() {
+        return (HttpMetadata) super.getMetadata();
+    }
 }

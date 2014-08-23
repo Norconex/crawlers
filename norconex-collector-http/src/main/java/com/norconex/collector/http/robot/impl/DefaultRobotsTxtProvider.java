@@ -41,7 +41,7 @@ import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.collector.http.filter.impl.RegexURLFilter;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.RobotsTxt;
-import com.norconex.importer.filter.OnMatch;
+import com.norconex.importer.handler.filter.OnMatch;
 
 /**
  * Default implementation of {@link IRobotsTxtProvider}.  

@@ -1,4 +1,4 @@
-/* Copyright 2010-2013 Norconex Inc.
+/* Copyright 2014 Norconex Inc.
  * 
  * This file is part of Norconex HTTP Collector.
  * 
@@ -16,15 +16,15 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.db;
+package com.norconex.collector.http.sitemap;
 
 import java.io.Serializable;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
-public interface ICrawlURLDatabaseFactory extends Serializable {
+public interface ISitemapResolverFactory extends Serializable {
 
-    ICrawlURLDatabase createCrawlURLDatabase(
+    ISitemapResolver createSitemapResolver(
             HttpCrawlerConfig config, boolean resume);
     
 }

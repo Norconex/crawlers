@@ -27,14 +27,15 @@ import org.apache.http.client.HttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.db.ICrawlURLDatabase;
+import com.norconex.collector.core.ref.ReferenceState;
+import com.norconex.collector.core.ref.store.IReferenceStore;
 import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.RobotsTxt;
-import com.norconex.collector.http.sitemap.ISitemapsResolver;
-import com.norconex.collector.http.sitemap.SitemapURLStore;
-import com.norconex.importer.filter.IOnMatchFilter;
-import com.norconex.importer.filter.OnMatch;
+import com.norconex.collector.http.sitemap.ISitemapResolver;
+import com.norconex.collector.http.sitemap.SitemapURLAdder;
+import com.norconex.importer.handler.filter.IOnMatchFilter;
+import com.norconex.importer.handler.filter.OnMatch;
 
 /**
  * Performs a URL handling logic before actual processing of the document
@@ -43,24 +44,25 @@ import com.norconex.importer.filter.OnMatch;
  * Instances are only valid for the scope of a single URL.  
  * @author Pascal Essiembre
  */
-/*default*/ final class URLProcessor {
+public final class URLProcessor {
 
     private static final Logger LOG = 
             LogManager.getLogger(URLProcessor.class);
     
-    private static final List<String> SITEMAP_RESOLVED = 
-            new ArrayList<String>();
+//    private static final List<String> SITEMAP_RESOLVED = 
+//            new ArrayList<String>();
 
     private final HttpCrawler crawler;
     private final HttpCrawlerConfig config;
     private final List<IHttpCrawlerEventListener> listeners = 
             new ArrayList<IHttpCrawlerEventListener>();
-    private final CrawlURL crawlURL;
+    private final HttpDocReference httpDocReference;
     private final HttpClient httpClient;
-    private final ICrawlURLDatabase database;
+    private final IReferenceStore refStore;
+    private final ISitemapResolver sitemapResolver;
     private RobotsTxt robotsTxt;
     private RobotsMeta robotsMeta;
-    private CrawlStatus status;
+    private ReferenceState status;
     
     // Order is important.  E.g. Robots must be after URL Filters and before 
     // Delay resolver
@@ -80,14 +82,16 @@ import com.norconex.importer.filter.OnMatch;
         new StoreNextURLStep(),
     };
 
-    /*default*/ URLProcessor(
+    public URLProcessor(
             HttpCrawler crawler, HttpClient httpClient, 
-            ICrawlURLDatabase database, CrawlURL baseURL) {
+            IReferenceStore refStore, HttpDocReference baseURL,
+            ISitemapResolver sitemapResolver) {
         this.crawler = crawler;
+        this.sitemapResolver = sitemapResolver;
         this.httpClient = httpClient;
-        this.database = database;
+        this.refStore = refStore;
         this.config = crawler.getCrawlerConfig();
-        this.crawlURL = baseURL;
+        this.httpDocReference = baseURL;
         IHttpCrawlerEventListener[] ls = config.getCrawlerListeners();
         if (ls != null) {
             this.listeners.addAll(Arrays.asList(ls));
@@ -113,12 +117,12 @@ import com.norconex.importer.filter.OnMatch;
         @Override
         public boolean processURL() {
             if (config.getMaxDepth() != -1 
-                    && crawlURL.getDepth() > config.getMaxDepth()) {
+                    && httpDocReference.getDepth() > config.getMaxDepth()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("URL too deep to process (" 
-                            + crawlURL.getDepth() + "): " + crawlURL.getUrl());
+                            + httpDocReference.getDepth() + "): " + httpDocReference.getReference());
                 }
-                status = CrawlStatus.TOO_DEEP;
+                status = HttpDocReferenceState.TOO_DEEP;
                 return false;
             }
             return true;
@@ -130,7 +134,7 @@ import com.norconex.importer.filter.OnMatch;
         @Override
         public boolean processURL() {
             if (isURLRejected(config.getURLFilters(), null)) {
-                status = CrawlStatus.REJECTED;
+                status = HttpDocReferenceState.REJECTED;
                 return false;
             }
             return true;
@@ -143,9 +147,9 @@ import com.norconex.importer.filter.OnMatch;
         public boolean processURL() {
             if (!config.isIgnoreRobotsTxt()) {
                 robotsTxt = config.getRobotsTxtProvider().getRobotsTxt(
-                        httpClient, crawlURL.getUrl(), config.getUserAgent());
+                        httpClient, httpDocReference.getReference(), config.getUserAgent());
                 if (isURLRejected(robotsTxt.getFilters(), robotsTxt)) {
-                    status = CrawlStatus.REJECTED;
+                    status = HttpDocReferenceState.REJECTED;
                     return false;
                 }
             }
@@ -160,31 +164,22 @@ import com.norconex.importer.filter.OnMatch;
             if (config.isIgnoreSitemap()) {
                 return true;
             }
-            String urlRoot = crawlURL.getUrlRoot();
-            boolean resolved = SITEMAP_RESOLVED.contains(urlRoot);
-            if (!resolved) {
-                resolved = database.isSitemapResolved(urlRoot);
+            String urlRoot = httpDocReference.getUrlRoot();
+            String[] robotsTxtLocations = null;
+            if (robotsTxt != null) {
+                robotsTxtLocations = robotsTxt.getSitemapLocations();
             }
-            if (!resolved) {
-                ISitemapsResolver sitemapResolver = config.getSitemapResolver();
-                String[] robotsTxtLocations = null;
-                if (robotsTxt != null) {
-                    robotsTxtLocations = robotsTxt.getSitemapLocations();
+            SitemapURLAdder urlStore = new SitemapURLAdder() {
+                private static final long serialVersionUID = 
+                        7618470895330355434L;
+                @Override
+                public void add(HttpDocReference baseURL) {
+                    new URLProcessor(crawler, httpClient, refStore, baseURL, 
+                            sitemapResolver).processSitemapURL();
                 }
-                SitemapURLStore urlStore = new SitemapURLStore() {
-                    private static final long serialVersionUID = 
-                            7618470895330355434L;
-                    @Override
-                    public void add(CrawlURL baseURL) {
-                        new URLProcessor(crawler, httpClient, database, baseURL)
-                                .processSitemapURL();
-                    }
-                };
-                sitemapResolver.resolveSitemaps(httpClient, urlRoot, 
-                        robotsTxtLocations, urlStore);
-                database.sitemapResolved(urlRoot);
-                SITEMAP_RESOLVED.add(urlRoot);
-            }
+            };
+            sitemapResolver.resolveSitemaps(httpClient, urlRoot, 
+                    robotsTxtLocations, urlStore);
             return true;
         }
     }
@@ -200,12 +195,12 @@ import com.norconex.importer.filter.OnMatch;
         public boolean processURL() {
             if (config.getUrlNormalizer() != null) {
                 String url = config.getUrlNormalizer().normalizeURL(
-                        crawlURL.getUrl());
+                        httpDocReference.getReference());
                 if (url == null) {
-                    status = CrawlStatus.REJECTED;
+                    status = HttpDocReferenceState.REJECTED;
                     return false;
                 }
-                crawlURL.setUrl(url);
+                httpDocReference.setReference(url);
             }
             return true;
         }
@@ -218,18 +213,18 @@ import com.norconex.importer.filter.OnMatch;
             if (robotsMeta != null && robotsMeta.isNofollow()) {
                 return true;
             }
-            String url = crawlURL.getUrl();
+            String url = httpDocReference.getReference();
             if (StringUtils.isBlank(url)) {
                 return true;
             }
-            if (database.isActive(url)) {
+            if (refStore.isActive(url)) {
                 debug("Already being processed: %s", url);
-            } else if (database.isQueued(url)) {
+            } else if (refStore.isQueued(url)) {
                 debug("Already queued: %s", url);
-            } else if (database.isProcessed(url)) {
+            } else if (refStore.isProcessed(url)) {
                 debug("Already processed: %s", url);
             } else {
-                database.queue(new CrawlURL(url, crawlURL.getDepth()));
+                refStore.queue(new HttpDocReference(url, httpDocReference.getDepth()));
                 debug("Queued for processing: %s", url);
             }
             return true;
@@ -254,7 +249,7 @@ import com.norconex.importer.filter.OnMatch;
         boolean hasIncludes = false;
         boolean atLeastOneIncludeMatch = false;
         for (IURLFilter filter : filters) {
-            boolean accepted = filter.acceptURL(crawlURL.getUrl());
+            boolean accepted = filter.acceptURL(httpDocReference.getReference());
             
             // Deal with includes
             if (isIncludeFilter(filter)) {
@@ -269,7 +264,7 @@ import com.norconex.importer.filter.OnMatch;
             if (accepted) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("ACCEPTED document URL" + type 
-                            + ". URL=" + crawlURL.getUrl()
+                            + ". URL=" + httpDocReference.getReference()
                             + " Filter=" + filter);
                 }
             } else {
@@ -289,15 +284,15 @@ import com.norconex.importer.filter.OnMatch;
         for (IHttpCrawlerEventListener listener : listeners) {
             if (robots != null) {
                 listener.documentRobotsTxtRejected(
-                        crawler, crawlURL.getUrl(), filter, robots);
+                        crawler, httpDocReference.getReference(), filter, robots);
             } else {
                 listener.documentURLRejected(
-                        crawler, crawlURL.getUrl(), filter);
+                        crawler, httpDocReference.getReference(), filter);
             }
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("REJECTED document URL" + type + ". URL=" 
-                  + crawlURL.getUrl() + " Filter=[one or more filter 'onMatch' "
+                  + httpDocReference.getReference() + " Filter=[one or more filter 'onMatch' "
                   + "attribute is set to 'include', but none of them were "
                   + "matched]");
         }
@@ -311,24 +306,24 @@ import com.norconex.importer.filter.OnMatch;
                     return false;
                 }
             }
-            status = CrawlStatus.OK;
+            status = HttpDocReferenceState.OK;
             return true;
         } catch (Exception e) {
             //TODO do we really want to catch anything other than 
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
-            status = CrawlStatus.ERROR;
-            LOG.error("Could not process URL: " + crawlURL.getUrl(), e);
+            status = HttpDocReferenceState.ERROR;
+            LOG.error("Could not process URL: " + httpDocReference.getReference(), e);
             return false;
         } finally {
             //--- Mark URL as Processed ----------------------------------------
-            if (status != CrawlStatus.OK) {
+            if (status != HttpDocReferenceState.OK) {
                 if (status == null) {
-                    status = CrawlStatus.BAD_STATUS;
+                    status = HttpDocReferenceState.BAD_STATUS;
                 }
-                crawlURL.setStatus(status);
-                database.processed(crawlURL);
-                status.logInfo(crawlURL);
+                httpDocReference.setState(status);
+                refStore.processed(httpDocReference);
+//                status.logInfo(httpDocReference);
             }
         }
     }

@@ -62,7 +62,7 @@ import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.Args;
 
-import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.crawler.TargetURLRedirectStrategy;
 import com.norconex.commons.lang.config.ConfigurationLoader;
@@ -251,7 +251,7 @@ public class DefaultHttpClientFactory
             post.setEntity(entity);
             httpClient.execute(post);
         } catch (Exception e) {
-            throw new HttpCollectorException(e);
+            throw new CollectorException(e);
         }
         post.releaseConnection();
     }
@@ -283,7 +283,7 @@ public class DefaultHttpClientFactory
             try {
                 builder.setLocalAddress(InetAddress.getByName(localAddress));
             } catch (UnknownHostException e) {
-                throw new HttpCollectorException(
+                throw new CollectorException(
                         "Invalid local address: " + localAddress, e);
             }
         }
@@ -347,7 +347,7 @@ public class DefaultHttpClientFactory
                     }
                 }).build();
         } catch (Exception e) {
-            throw new HttpCollectorException(
+            throw new CollectorException(
                     "Cannot create SSL context trusting all certificates.", e);
         }
         return sslcontext;

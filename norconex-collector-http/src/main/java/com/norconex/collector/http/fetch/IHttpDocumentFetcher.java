@@ -22,7 +22,7 @@ import java.io.Serializable;
 
 import org.apache.http.client.HttpClient;
 
-import com.norconex.collector.http.crawler.CrawlStatus;
+import com.norconex.collector.core.ref.ReferenceState;
 import com.norconex.collector.http.doc.HttpDocument;
 
 /**
@@ -36,10 +36,10 @@ public interface IHttpDocumentFetcher extends Serializable {
 	/**
 	 * Fetches HTTP document and saves it to a local file
 	 * @param httpClient the HTTP client
-	 * @param doc HttpDocument the document to fetch and save
+	 * @param doc NewHttpDocument the document to fetch and save
 	 * @return URL status
 	 */
-	CrawlStatus fetchDocument(
+	ReferenceState fetchDocument(
 	        HttpClient httpClient, HttpDocument doc);
 	
 }

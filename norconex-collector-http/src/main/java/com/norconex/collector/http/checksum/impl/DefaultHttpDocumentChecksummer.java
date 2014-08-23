@@ -20,6 +20,8 @@ package com.norconex.collector.http.checksum.impl;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 
@@ -33,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
@@ -89,7 +91,8 @@ public class DefaultHttpDocumentChecksummer
     		return null;
     	}
 		try {
-			FileInputStream is = new FileInputStream(document.getLocalFile());
+//			FileInputStream is = new FileInputStream(document.getLocalFile());
+		    InputStream is = document.getContent().getInputStream();
 	    	String checksum = DigestUtils.md5Hex(is);
 			LOG.debug("Document checksum: " + checksum);
 	    	is.close();
@@ -98,8 +101,8 @@ public class DefaultHttpDocumentChecksummer
 	    	}
 	    	return checksum;
 		} catch (IOException e) {
-			throw new HttpCollectorException("Cannot create checksum on : " 
-			        + document.getLocalFile(), e);
+			throw new CollectorException("Cannot create document checksum on : " 
+			        + document.getHttpReference().getReference(), e);
 		}
     }
 

@@ -47,7 +47,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalTime;
 
-import com.norconex.collector.http.HttpCollectorException;
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.commons.lang.config.ConfigurationException;
@@ -392,7 +392,7 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
         }
         private int getDOW(String str) {
             if (str.length() < MIN_DOW_LENGTH) {
-                throw new HttpCollectorException(
+                throw new CollectorException(
                         "Invalid day of week: " + str);
             }
             String dow = str.substring(0, MIN_DOW_LENGTH);
@@ -404,7 +404,7 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
             out = out.replace("to", "-");
             out = StringUtils.remove(out, " ");
             if (!out.contains("-")) {
-                throw new HttpCollectorException(
+                throw new CollectorException(
                         "Invalid range format: " + str);
             }
             return out;

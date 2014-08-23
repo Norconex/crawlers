@@ -22,9 +22,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
 
-import com.norconex.collector.http.robot.RobotsMeta;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.ContentType;
 
 /**
  * Responsible for extracting robot information from a page.

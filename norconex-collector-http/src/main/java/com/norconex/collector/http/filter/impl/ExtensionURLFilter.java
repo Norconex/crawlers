@@ -41,8 +41,8 @@ import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.importer.filter.AbstractOnMatchFilter;
-import com.norconex.importer.filter.OnMatch;
+import com.norconex.importer.handler.filter.AbstractOnMatchFilter;
+import com.norconex.importer.handler.filter.OnMatch;
 
 /**
  * Filters URL based on coma-separated list of file extensions.
@@ -155,7 +155,7 @@ public class ExtensionURLFilter extends AbstractOnMatchFilter implements
     
     @Override
     public boolean acceptDocument(HttpDocument document) {
-        return acceptURL(document.getUrl());
+        return acceptURL(document.getReference());
     }
     @Override
     public boolean acceptDocument(String url, HttpMetadata headers) {
