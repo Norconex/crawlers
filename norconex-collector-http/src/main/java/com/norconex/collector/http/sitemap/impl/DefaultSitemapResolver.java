@@ -180,7 +180,7 @@ public class DefaultSitemapResolver
                     is = new GZIPInputStream(is);
                 }
                 parseLocation(is, httpClient, sitemapURLStore, 
-                        resolvedLocations, location);
+                            resolvedLocations, location);
                 IOUtils.closeQuietly(is);
                 LOG.info("         Resolved: " + location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
