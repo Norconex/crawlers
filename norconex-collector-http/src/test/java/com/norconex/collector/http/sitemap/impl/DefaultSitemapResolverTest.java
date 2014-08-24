@@ -28,7 +28,7 @@ public class DefaultSitemapResolverTest {
 
     @Test
     public void testWriteRead() throws IOException {
-        DefaultSitemapResolver r = new DefaultSitemapResolver();
+        DefaultSitemapResolverFactory r = new DefaultSitemapResolverFactory();
         r.setLenient(true);
         r.setSitemapLocations(
                 "http://www.example.com/sitemap.xml",

@@ -57,7 +57,7 @@ public class DefaultSitemapResolverFactory
     public String[] getSitemapLocations() {
         return sitemapLocations;
     }
-    public void setSitemapLocations(String[] sitemapLocations) {
+    public void setSitemapLocations(String... sitemapLocations) {
         this.sitemapLocations = sitemapLocations;
     }
 

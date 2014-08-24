@@ -5,6 +5,7 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.ref.impl.DefaultReferenceStoreFactory;
 
 public class MapDBCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
 
@@ -22,7 +23,7 @@ public class MapDBCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
     @Override
     protected void createImpl(boolean resume) {
         db.close();
-        db = new DefaultReferenceStoreFactory().createCrawlURLDatabase(
+        db = new DefaultReferenceStoreFactory().createReferenceStore(
                 config, resume);
     }
 
@@ -31,7 +32,7 @@ public class MapDBCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
         config = new HttpCrawlerConfig();
         // the tempFolder is re-created at each test
         config.setWorkDir(tempFolder.getRoot());
-        db = new DefaultReferenceStoreFactory().createCrawlURLDatabase(
+        db = new DefaultReferenceStoreFactory().createReferenceStore(
                 config, false);
     }
 }

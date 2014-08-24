@@ -30,7 +30,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import com.norconex.collector.http.url.IURLExtractor;
-import com.norconex.importer.ContentType;
+import com.norconex.commons.lang.file.ContentType;
 
 
 /**
