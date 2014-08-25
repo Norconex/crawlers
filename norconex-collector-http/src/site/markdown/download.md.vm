@@ -45,8 +45,7 @@ $h2 Binaries
 
   * MongoCrawlURLDatabase now supports user authentication.
   * Now requires Java 7 or higher.
-  * Fixed DefaultRobotsTxtProvider failing to parse some robots.txt
-    patterns (github #36).  
+  * Fixed DefaultRobotsTxtProvider failing to parse some robots.txt patterns. 
   * [View full list of changes]((changes-report.html))
 
 **Older Releases**
