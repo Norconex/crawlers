@@ -14,7 +14,7 @@
       <action dev="dimassip" type="update">
         Now requires Java 7 or higher.
       </action>
-      <action dev="essiembp" type="fix">
+      <action dev="leonardsaers" type="fix">
         Fixed DefaultRobotsTxtProvider failing to parse some robots.txt
         patterns (github #36).  
       </action>
