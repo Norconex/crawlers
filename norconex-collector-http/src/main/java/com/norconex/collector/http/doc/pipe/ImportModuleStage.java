@@ -1,14 +1,14 @@
 /**
  * 
  */
-package com.norconex.collector.http.crawler.pipe.doc;
+package com.norconex.collector.http.doc.pipe;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
-import com.norconex.collector.http.crawler.HttpDocReferenceState;
+import com.norconex.collector.http.ref.HttpDocReferenceState;
 import com.norconex.importer.Importer;
 import com.norconex.importer.ImporterResponse;
 
@@ -28,9 +28,15 @@ import com.norconex.importer.ImporterResponse;
             
             ImporterResponse response = importer.importDocument(
                     ctx.getDocument().getContent().getInputStream(),
-                    ctx.getMetadata().getContentType(),
+                    ctx.getDocument().getContentType(),
                     ctx.getMetadata(),
                     ctx.getReference().getReference());
+            ctx.setImporterResponse(response);
+            
+            //TODO how to set the document back in context so it is overwritten
+            // everywhere with the returned one?
+            
+            
             if (response.isSuccess()) {
                 // Fix #17: using crawlURL for more accurate url
                 if (LOG.isDebugEnabled()) {

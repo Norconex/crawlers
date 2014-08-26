@@ -20,8 +20,6 @@ package com.norconex.collector.http.doc;
 
 import java.util.Collection;
 
-import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.ImporterMetadata;
 
 public class HttpMetadata extends ImporterMetadata {
@@ -33,45 +31,46 @@ public class HttpMetadata extends ImporterMetadata {
 	public static final String HTTP_CONTENT_TYPE = "Content-Type";
     public static final String HTTP_CONTENT_LENGTH = "Content-Length";
     
-    public static final String DOC_URL = COLLECTOR_PREFIX + "url";
-    public static final String DOC_MIMETYPE = COLLECTOR_PREFIX + "mimetype";
-    public static final String DOC_CHARSET = COLLECTOR_PREFIX + "charset";
-    public static final String DOC_DEPTH = COLLECTOR_PREFIX + "depth";
-    public static final String DOC_SM_LASTMOD = 
+    public static final String COLLECTOR_URL = COLLECTOR_PREFIX + "url";
+    public static final String COLLECTOR_CONTENT_TYPE = 
+            COLLECTOR_PREFIX + "contentType";
+    public static final String COLLECTOR_CHARSET = COLLECTOR_PREFIX + "charset";
+    public static final String COLLECTOR_DEPTH = COLLECTOR_PREFIX + "depth";
+    public static final String COLLECTOR_SM_LASTMOD = 
             COLLECTOR_PREFIX + "sitemap-lastmod";
-    public static final String DOC_SM_CHANGE_FREQ = 
+    public static final String COLLECTOR_SM_CHANGE_FREQ = 
             COLLECTOR_PREFIX + "sitemap-changefreq";
-    public static final String DOC_SM_PRORITY = 
+    public static final String COLLECTOR_SM_PRORITY = 
             COLLECTOR_PREFIX + "sitemap-priority";
 
-    public static final String REFERNCED_URLS = 
+    public static final String COLLECTOR_REFERNCED_URLS = 
             COLLECTOR_PREFIX + "referenced-urls";
 
     /** Since 1.3.0 */
-    public static final String CHECKSUM_HEADER = 
+    public static final String COLLECTOR_CHECKSUM_HEADER = 
             COLLECTOR_PREFIX + "checksum-header";
     /** Since 1.3.0 */
-    public static final String CHECKSUM_DOC = 
+    public static final String COLLECTOR_CHECKSUM_DOC = 
             COLLECTOR_PREFIX + "checksum-doc";
 
 	
 	public HttpMetadata(String documentURL) {
 		super(false);
-		addString(DOC_URL, documentURL);
+		addString(COLLECTOR_URL, documentURL);
 	}
 
-	public ContentType getContentType() {
-	    String type = getString(HTTP_CONTENT_TYPE);
-	    if (type != null) {
-	        type = type.replaceFirst("(.*?)(\\;)(.*)", "$1");
-	    }
-		return ContentType.valueOf(type);
-	}
+//	public ContentType getContentType() {
+//	    String type = getString(HTTP_CONTENT_TYPE);
+//	    if (type != null) {
+//	        type = type.replaceFirst("(.*?)(\\;)(.*)", "$1");
+//	    }
+//		return ContentType.valueOf(type);
+//	}
 	public String getDocumentUrl() {
-	    return getString(DOC_URL);
+	    return getString(COLLECTOR_URL);
 	}
 	public Collection<String> getDocumentUrls() {
-	    return getStrings(REFERNCED_URLS);
+	    return getStrings(COLLECTOR_REFERNCED_URLS);
 	}
 	
 }

@@ -20,7 +20,7 @@ package com.norconex.collector.http;
 
 import java.io.IOException;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -48,7 +48,7 @@ import com.norconex.jef4.suite.JobSuiteConfig;
  * This is convenient when there are configuration setting to be shared amongst
  * crawlers.  When you have many crawler jobs defined that have nothing
  * in common, it may be best to configure and run them separately, to facilitate
- * troubleshooting.  There is no fair rule for this, experimenting with your
+ * troubleshooting.  There is no set rules for this, experimenting with your
  * target sites will help you.
  * @author Pascal Essiembre
  */
@@ -83,13 +83,16 @@ public class HttpCollector extends AbstractCollector {
     public HttpCrawler[] getCrawlers() {
         return crawlers;
     }
-    /**
-     * Sets the HTTP crawlers to be run by this collector.
-     * @param crawlers HTTP Crawler
-     */
-    public void setCrawlers(HttpCrawler[] crawlers) {
-        this.crawlers = ArrayUtils.clone(crawlers);
-    }
+    
+//TODO conflicts with having crawler configurable in config.
+//     do we really want support both methods?
+//    /**
+//     * Sets the HTTP crawlers to be run by this collector.
+//     * @param crawlers HTTP Crawler
+//     */
+//    public void setCrawlers(HttpCrawler[] crawlers) {
+//        this.crawlers = ArrayUtils.clone(crawlers);
+//    }
     
     /**
      * Invokes the HTTP Collector from the command line.  
@@ -117,6 +120,14 @@ public class HttpCollector extends AbstractCollector {
      *        aborted (if applicable) 
      */
     public void start(boolean resumeNonCompleted) {
+        
+        //TODO move this code to a config validator class?
+        //TODO move this code to base class?
+        if (StringUtils.isBlank(getCollectorConfig().getId())) {
+            throw new CollectorException("HTTP Collector must be given "
+                    + "a unique identifier (id).");
+        }
+        
         if (jobSuite != null) {
             throw new CollectorException(
                     "Collector is already running. Wait for it to complete "

@@ -44,7 +44,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
-import com.norconex.collector.http.crawler.HttpDocReference;
+import com.norconex.collector.http.ref.HttpDocReference;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
 

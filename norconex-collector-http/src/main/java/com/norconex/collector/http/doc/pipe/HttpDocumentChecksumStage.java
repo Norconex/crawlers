@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.norconex.collector.http.crawler.pipe.doc;
+package com.norconex.collector.http.doc.pipe;
 
 import java.util.Objects;
 
@@ -11,8 +11,8 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
-import com.norconex.collector.http.crawler.HttpDocReference;
-import com.norconex.collector.http.crawler.HttpDocReferenceState;
+import com.norconex.collector.http.ref.HttpDocReference;
+import com.norconex.collector.http.ref.HttpDocReferenceState;
 
 /**
  * @author Pascal Essiembre

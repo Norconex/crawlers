@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.norconex.collector.http.crawler.pipe.doc;
+package com.norconex.collector.http.doc.pipe;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,13 +14,13 @@ import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.core.pipeline.Pipeline;
 import com.norconex.collector.core.ref.ReferenceState;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
-import com.norconex.collector.http.crawler.HttpDocReference;
-import com.norconex.collector.http.crawler.HttpDocReferenceState;
 import com.norconex.collector.http.crawler.TargetURLRedirectStrategy;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
+import com.norconex.collector.http.ref.HttpDocReference;
+import com.norconex.collector.http.ref.HttpDocReferenceState;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.map.Properties;
 
@@ -55,9 +55,9 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         addStage(new DocumentFiltersStage());
         addStage(new DocumentPreProcessingStage());        
         addStage(new ImportModuleStage());        
-        addStage(new HttpDocumentChecksumStage());        
-        addStage(new DocumentPostProcessingStage());        
-        addStage(new CommitModuleStage());        
+        addStage(new HttpDocumentChecksumStage());     //TODO redo with ImporterResponse   
+        addStage(new DocumentPostProcessingStage());   //TODO redo with ImporterResponse     
+        addStage(new CommitModuleStage());             //TODO redo with ImporterResponse
         
 
     }
@@ -107,7 +107,10 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                 return false;
             }
             metadata.putAll(headers);
+            
             DocumentPipelineUtil.enhanceHTTPHeaders(metadata);
+            DocumentPipelineUtil.resolveDocumentContentType(ctx.getDocument());
+            
             HttpCrawlerEventFirer.fireDocumentHeadersFetched(
                     ctx.getCrawler(), ref.getReference(), 
                     headersFetcher, metadata);
@@ -138,8 +141,11 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
             // download as file
             ReferenceState state = ctx.getConfig().getHttpDocumentFetcher()
                     .fetchDocument(ctx.getHttpClient(), ctx.getDocument());
-            
 
+            DocumentPipelineUtil.enhanceHTTPHeaders(
+                    ctx.getDocument().getMetadata());
+            DocumentPipelineUtil.resolveDocumentContentType(ctx.getDocument());
+            
             //TODO Fix #17. Put in place a more permanent solution to this line
             TargetURLRedirectStrategy.fixRedirectURL(
                     ctx.getHttpClient(), ctx.getDocument(), 
@@ -271,8 +277,12 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                     File outputFile = File.createTempFile(
                             "committer-add-", ".txt", 
                             ctx.getConfig().getWorkDir());
+                    
+                    // Handle multi docs...
+                    
                     FileUtils.copyInputStreamToFile(
-                            ctx.getContent().getInputStream(), outputFile);
+                            ctx.getImporterResponse().getDocument().getContent()
+                                    .getInputStream(), outputFile);
                     
                     committer.queueAdd(ctx.getReference().getReference(), 
                             outputFile, ctx.getMetadata());
@@ -286,7 +296,5 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
             return true;
         }
     }  
-
-    
 
 }

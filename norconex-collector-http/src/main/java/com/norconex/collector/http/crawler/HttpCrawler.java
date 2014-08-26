@@ -44,15 +44,19 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
 import com.norconex.collector.core.ref.IReference;
 import com.norconex.collector.core.ref.store.IReferenceStore;
-import com.norconex.collector.http.crawler.pipe.doc.DocumentPipeline;
-import com.norconex.collector.http.crawler.pipe.doc.DocumentPipelineContext;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.pipe.DocumentPipeline;
+import com.norconex.collector.http.doc.pipe.DocumentPipelineContext;
+import com.norconex.collector.http.ref.HttpDocReference;
+import com.norconex.collector.http.ref.HttpDocReferenceState;
+import com.norconex.collector.http.ref.pipe.ReferencePipeline;
+import com.norconex.collector.http.ref.pipe.ReferencePipelineContext;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.util.PathUtils;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.commons.lang.io.FileUtil;
+import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.jef4.status.IJobStatus;
 import com.norconex.jef4.status.JobStatusUpdater;
 import com.norconex.jef4.suite.JobSuite;
@@ -123,6 +127,10 @@ public class HttpCrawler extends AbstractCrawler {
             IReferenceStore refStore, boolean resume) {
         logInitializationInformation();
         initializeHTTPClient();
+        
+        this.sitemapResolver = getCrawlerConfig().getSitemapResolverFactory()
+                .createSitemapResolver(getCrawlerConfig(), resume);
+        
         if (resume) {
             okURLsCount = statusUpdater.getProperties().getInt(
                     PROP_OK_URL_COUNT, 0);
@@ -130,9 +138,9 @@ public class HttpCrawler extends AbstractCrawler {
             String[] startURLs = getCrawlerConfig().getStartURLs();
             for (int i = 0; i < startURLs.length; i++) {
                 String startURL = startURLs[i];
-                new URLProcessor(this, httpClient, refStore, 
-                        new HttpDocReference(startURL, 0), 
-                                sitemapResolver).processURL();
+                ReferencePipelineContext context = new ReferencePipelineContext(
+                        this, refStore, new HttpDocReference(startURL, 0));
+                new ReferencePipeline().process(context);
             }
             HttpCrawlerEventFirer.fireCrawlerStarted(this);
         }
@@ -157,7 +165,16 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     protected void execute(JobStatusUpdater statusUpdater,
             JobSuite suite, IReferenceStore refStore) {
-//        
+
+        
+        //TODO move this code to a config validator class?
+        //TODO move this code to base class?
+        if (StringUtils.isBlank(getCrawlerConfig().getId())) {
+            throw new CollectorException("HTTP Crawler must be given "
+                    + "a unique identifier (id).");
+        }
+
+        
 //        StopWatch watch = new StopWatch();
 //        watch.start();
 //        
@@ -233,10 +250,10 @@ public class HttpCrawler extends AbstractCrawler {
         Iterator<IReference> it = refStore.getCacheIterator();
         if (it != null) {
             while (it.hasNext()) {
-                HttpDocReference httpDocReference = (HttpDocReference) it.next();
-                new URLProcessor(
-                        this, httpClient, refStore, httpDocReference, 
-                                sitemapResolver).processURL();
+                HttpDocReference reference = (HttpDocReference) it.next();
+                ReferencePipelineContext context = new ReferencePipelineContext(
+                        this, refStore, reference);
+                new ReferencePipeline().process(context);
                 count++;
             }
             processURLs(refStore, statusUpdater, suite, false);
@@ -403,8 +420,13 @@ public class HttpCrawler extends AbstractCrawler {
             DocumentPipelineContext context = new DocumentPipelineContext(
                     this, refStore, doc/*, robotsTxt*/);
             if (!new DocumentPipeline().process(context)) {
+                
+//                LOG.error(context.getImporterResponse().getImporterStatus().getDescription());
+                
                 return;
             }
+            
+            
             
 //            if (!new DocumentProcessor(this, httpClient, refStore, 
 //                    outputFile, doc, reference, sitemapResolver).processURL()) {
@@ -536,17 +558,17 @@ public class HttpCrawler extends AbstractCrawler {
     private void setURLMetadata(HttpMetadata metadata, IReference ref) {
         HttpDocReference url = (HttpDocReference) ref;
         
-        metadata.addInt(HttpMetadata.DOC_DEPTH, url.getDepth());
+        metadata.addInt(HttpMetadata.COLLECTOR_DEPTH, url.getDepth());
         if (StringUtils.isNotBlank(url.getSitemapChangeFreq())) {
-            metadata.addString(HttpMetadata.DOC_SM_CHANGE_FREQ, 
+            metadata.addString(HttpMetadata.COLLECTOR_SM_CHANGE_FREQ, 
                     url.getSitemapChangeFreq());
         }
         if (url.getSitemapLastMod() != null) {
-            metadata.addLong(HttpMetadata.DOC_SM_LASTMOD, 
+            metadata.addLong(HttpMetadata.COLLECTOR_SM_LASTMOD, 
                     url.getSitemapLastMod());
         }        
         if (url.getSitemapPriority() != null) {
-            metadata.addFloat(HttpMetadata.DOC_SM_PRORITY, 
+            metadata.addFloat(HttpMetadata.COLLECTOR_SM_PRORITY, 
                     url.getSitemapPriority());
         }        
     }

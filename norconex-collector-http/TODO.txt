@@ -10,14 +10,18 @@ For 2.0.0:
   (we want to store the final URL).  Create a new RedirectResolverStage 
   in DocumentPipeline?
 
-- Introduce life cycle container scope objects.  Those contain references to 
-  objects only valid for processing a reference, a document, etc.  
-  
+- Create much better/complete unit tests using jetty with Junit to create
+  crawls. 
+
 - Cache Importer instance now created each time in ImportModuleStep?
 
 - Change Committer to support readers instead of File???
 
 - Write content to file if keeping download, else dispose
+
+- remove content type and content family method to avoid
+  conflicts with HTTP Collector?
+
 
 Any release:
 ============

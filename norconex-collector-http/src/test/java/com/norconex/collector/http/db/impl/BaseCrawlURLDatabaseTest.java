@@ -31,8 +31,8 @@ import org.junit.Test;
 import com.norconex.collector.core.ref.IReference;
 import com.norconex.collector.core.ref.ReferenceState;
 import com.norconex.collector.core.ref.store.IReferenceStore;
-import com.norconex.collector.http.crawler.HttpDocReference;
-import com.norconex.collector.http.crawler.HttpDocReferenceState;
+import com.norconex.collector.http.ref.HttpDocReference;
+import com.norconex.collector.http.ref.HttpDocReferenceState;
 
 /**
  * Base class that includes all tests that an implementation of
@@ -154,7 +154,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         Iterator<IReference> it = db.getCacheIterator();
         assertTrue(it.hasNext());
-        HttpDocReference httpDocReference = (HttpDocReference) it.next();
+        IReference httpDocReference = it.next();
         assertEquals(url, httpDocReference.getReference()); 
     }
 

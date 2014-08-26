@@ -1,4 +1,4 @@
-/* Copyright 2010-2013 Norconex Inc.
+/* Copyright 2010-2014 Norconex Inc.
  * 
  * This file is part of Norconex HTTP Collector.
  * 
@@ -85,7 +85,7 @@ public class DefaultURLExtractor implements IURLExtractor, IXMLConfigurable {
             throws IOException {
         
         // Do not extract if non-HTML
-        if (!contentType.equals(ContentType.HTML)) {
+        if (!ContentType.HTML.equals(contentType)) {
             return null;
         }
         

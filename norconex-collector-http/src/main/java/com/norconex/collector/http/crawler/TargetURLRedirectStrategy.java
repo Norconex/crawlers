@@ -29,10 +29,10 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 
-import com.norconex.collector.core.ref.IReference;
 import com.norconex.collector.core.ref.store.IReferenceStore;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.ref.HttpDocReference;
 
 /**
  * <p>
@@ -112,7 +112,7 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
         String currentURL = getCurrentUrl();
         if (ObjectUtils.notEqual(currentURL, originalURL)) {
             httpDocReference.setReference(currentURL);
-            doc.getMetadata().setString(HttpMetadata.DOC_URL, currentURL);
+            doc.getMetadata().setString(HttpMetadata.COLLECTOR_URL, currentURL);
         }
     }
 }

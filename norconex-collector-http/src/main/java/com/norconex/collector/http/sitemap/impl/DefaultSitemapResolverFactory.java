@@ -6,6 +6,7 @@ package com.norconex.collector.http.sitemap.impl;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Arrays;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -13,6 +14,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
@@ -98,4 +100,43 @@ public class DefaultSitemapResolverFactory
             throw new IOException("Cannot save as XML.", e);
         }
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (lenient ? 1231 : 1237);
+        result = prime * result + Arrays.hashCode(sitemapLocations);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof DefaultSitemapResolverFactory)) {
+            return false;
+        }
+        DefaultSitemapResolverFactory other = (DefaultSitemapResolverFactory) obj;
+        if (lenient != other.lenient) {
+            return false;
+        }
+        if (!Arrays.equals(sitemapLocations, other.sitemapLocations)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        ToStringBuilder builder = new ToStringBuilder(this);
+        builder.append("sitemapLocations", sitemapLocations);
+        builder.append("lenient", lenient);
+        return builder.toString();
+    }
+    
 }

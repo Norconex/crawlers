@@ -43,7 +43,7 @@ import com.norconex.commons.lang.map.Properties;
  * alternate header is specified.
  * <p/>
  * Since 1.3.1 you can optionally have the checksum value stored with the
- * document under the field name {@link HttpMetadata#CHECKSUM_HEADER} or one
+ * document under the field name {@link HttpMetadata#COLLECTOR_CHECKSUM_HEADER} or one
  * you specify.
  * <p>
  * XML configuration usage (not required since default):
@@ -72,7 +72,7 @@ public class DefaultHttpHeadersChecksummer
 	
 	private String field = DEFAULT_FIELD;
     private boolean store;
-    private String storeField = HttpMetadata.CHECKSUM_HEADER;
+    private String storeField = HttpMetadata.COLLECTOR_CHECKSUM_HEADER;
 	
     @Override
     public String createChecksum(Properties metadata) {
@@ -118,7 +118,7 @@ public class DefaultHttpHeadersChecksummer
 
     /**
      * Gets the metadata field to use to store the checksum value.
-     * Defaults to {@link HttpMetadata#CHECKSUM_HEADER}.  Only applicable
+     * Defaults to {@link HttpMetadata#COLLECTOR_CHECKSUM_HEADER}.  Only applicable
      * if {@link #isStore()} returns {@code true}
      * @return metadata field name
      */

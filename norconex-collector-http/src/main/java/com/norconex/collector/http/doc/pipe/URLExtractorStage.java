@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.norconex.collector.http.crawler.pipe.doc;
+package com.norconex.collector.http.doc.pipe;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -16,9 +16,10 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
-import com.norconex.collector.http.crawler.HttpDocReference;
-import com.norconex.collector.http.crawler.URLProcessor;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.ref.HttpDocReference;
+import com.norconex.collector.http.ref.pipe.ReferencePipeline;
+import com.norconex.collector.http.ref.pipe.ReferencePipelineContext;
 import com.norconex.collector.http.url.IURLExtractor;
 
 /**
@@ -50,7 +51,7 @@ import com.norconex.collector.http.url.IURLExtractor;
             IURLExtractor urlExtractor = ctx.getConfig().getUrlExtractor();
             urls = urlExtractor.extractURLs(
                     reader, ctx.getReference().getReference(), 
-                    ctx.getMetadata().getContentType());
+                    ctx.getDocument().getContentType());
             IOUtils.closeQuietly(reader);
         } catch (IOException e) {
             throw new CollectorException(
@@ -62,15 +63,15 @@ import com.norconex.collector.http.url.IURLExtractor;
             for (String url : urls) {
                 HttpDocReference newURL = new HttpDocReference(
                         url, ctx.getReference().getDepth() + 1);
-                if (new URLProcessor(ctx.getCrawler(), ctx.getHttpClient(), 
-                        ctx.getReferenceStore(), newURL, 
-                        ctx.getSitemapResolver()).processURL()) {
+                ReferencePipelineContext context = new ReferencePipelineContext(
+                        ctx.getCrawler(), ctx.getReferenceStore(), newURL);
+                if (new ReferencePipeline().process(context)) {
                     uniqueURLs.add(newURL.getReference());
                 }
             }
         }
         if (!uniqueURLs.isEmpty()) {
-            ctx.getMetadata().addString(HttpMetadata.REFERNCED_URLS, 
+            ctx.getMetadata().addString(HttpMetadata.COLLECTOR_REFERNCED_URLS, 
                     uniqueURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
         HttpCrawlerEventFirer.fireDocumentURLsExtracted(

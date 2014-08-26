@@ -18,7 +18,7 @@
  */
 package com.norconex.collector.http.doc;
 
-import com.norconex.collector.http.crawler.HttpDocReference;
+import com.norconex.collector.http.ref.HttpDocReference;
 import com.norconex.importer.doc.ImporterDocument;
 
 public class HttpDocument extends ImporterDocument {

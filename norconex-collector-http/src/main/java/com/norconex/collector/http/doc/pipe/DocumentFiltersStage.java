@@ -1,15 +1,15 @@
 /**
  * 
  */
-package com.norconex.collector.http.crawler.pipe.doc;
+package com.norconex.collector.http.doc.pipe;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
-import com.norconex.collector.http.crawler.HttpDocReferenceState;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
+import com.norconex.collector.http.ref.HttpDocReferenceState;
 import com.norconex.importer.handler.filter.IOnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 

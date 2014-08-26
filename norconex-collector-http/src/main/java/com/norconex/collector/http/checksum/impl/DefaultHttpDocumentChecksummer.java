@@ -49,7 +49,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * value is constructed from that field.
  * <p/>
  * Since 1.3.1 you can optionally have the checksum value stored with the
- * document under the field name {@link HttpMetadata#CHECKSUM_DOC} or one
+ * document under the field name {@link HttpMetadata#COLLECTOR_CHECKSUM_DOC} or one
  * you specify.
  * <p>
  * XML configuration usage (not required since default):
@@ -73,7 +73,7 @@ public class DefaultHttpDocumentChecksummer
 
 	private String field = null;
 	private boolean store;
-    private String storeField = HttpMetadata.CHECKSUM_DOC;
+    private String storeField = HttpMetadata.COLLECTOR_CHECKSUM_DOC;
 	
 	@Override
 	public String createChecksum(HttpDocument document) {
@@ -142,7 +142,7 @@ public class DefaultHttpDocumentChecksummer
 
     /**
      * Gets the metadata field to use to store the checksum value.
-     * Defaults to {@link HttpMetadata#CHECKSUM_DOC}.  Only applicable
+     * Defaults to {@link HttpMetadata#COLLECTOR_CHECKSUM_DOC}.  Only applicable
      * if {@link #isStore()} returns {@code true}
      * @return metadata field name
      */

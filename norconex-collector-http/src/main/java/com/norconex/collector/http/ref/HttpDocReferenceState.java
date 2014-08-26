@@ -16,7 +16,7 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.crawler;
+package com.norconex.collector.http.ref;
 
 import com.norconex.collector.core.ref.ReferenceState;
 

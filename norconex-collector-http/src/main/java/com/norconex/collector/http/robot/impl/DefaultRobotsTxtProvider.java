@@ -99,6 +99,10 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
         boolean parse = false;
         String line;
         while ((line = br.readLine()) != null) {
+            
+            if (ignoreLine(line))continue;
+            line = cleanLineFromComments(line);
+            
             String key = line.replaceFirst("(.*?)(:.*)", "$1").trim();
             String value = line.replaceFirst("(.*?:)(.*)", "$2").trim();
             
@@ -123,13 +127,27 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
                 if ("crawl-delay".equalsIgnoreCase(key)) {
                     data.crawlDelay = value;
                 } else {
-                    data.rules.put(key, value);
+                    data.rules.put(value, key);
                 }
             }
         }
         isr.close();
         
         return data.toRobotsTxt(baseURL);
+    }
+
+    private String cleanLineFromComments(String line) {
+        if (line.matches(".*\\s+#.*")){
+            line = line.replaceFirst("\\s+#.*", "");
+        }
+        return line;
+    }
+
+    private boolean ignoreLine(String line) {
+        if (line.matches("\\s*#.*") || line.equals("Allow: /")) {
+            return true;
+        }
+        return false;
     }
     
     private RobotData.Precision matchesUserAgent(
@@ -175,14 +193,18 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
         }
         private RobotsTxt toRobotsTxt(String baseURL) {
             List<IURLFilter> filters = new ArrayList<IURLFilter>();
-            for (String key : rules.keySet()) {
-                String value = rules.get(key);
-                if ("disallow".equalsIgnoreCase(key)) {
-                    filters.add(buildURLFilter(
-                            baseURL, value, OnMatch.EXCLUDE));
-                } else if ("allow".equalsIgnoreCase(key)) {
-                    filters.add(buildURLFilter(
-                            baseURL, value, OnMatch.INCLUDE));
+            for (String path : rules.keySet()) {
+                String rule = rules.get(path);
+                if ("disallow".equalsIgnoreCase(rule)) {
+                    IURLFilter filter;
+                    filter = buildURLFilter(baseURL, path, OnMatch.EXCLUDE);
+                    LOG.debug("Add filter from robots.txt: " + filter.toString());
+                    filters.add(filter);
+                } else if ("allow".equalsIgnoreCase(rule)) {                    
+                    IURLFilter filter;
+                    filter = buildURLFilter(baseURL, path, OnMatch.INCLUDE);
+                    LOG.debug("Add filter from robots.txt: " + filter.toString());
+                    filters.add(filter);
                 } 
             }
             float delay = NumberUtils.toFloat(
@@ -197,7 +219,7 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
             String regex = path;
             regex = regex.replaceAll("\\*", ".*");
             if (!regex.endsWith("$")) {
-                regex += ".*";
+                regex += "?.*";
             }
             regex = baseURL + regex;
             RegexURLFilter filter = new RegexURLFilter(regex, onMatch, false) {
@@ -205,7 +227,7 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
                         -5051322223143577684L;
                 @Override
                 public String toString() {
-                    return "Robots.txt (" 
+                    return "Robots.txt ("
                             + (onMatch == OnMatch.INCLUDE 
                             ? "Allow:" : "Disallow:") + path + ")";
                 }
@@ -214,3 +236,4 @@ public class DefaultRobotsTxtProvider implements IRobotsTxtProvider {
         }
     }
 }
+

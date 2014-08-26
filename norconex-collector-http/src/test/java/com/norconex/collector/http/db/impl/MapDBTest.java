@@ -34,7 +34,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 
-import com.norconex.collector.http.crawler.HttpDocReference;
+import com.norconex.collector.http.ref.HttpDocReference;
 
 public class MapDBTest {
 

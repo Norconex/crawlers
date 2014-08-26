@@ -44,9 +44,9 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.ref.ReferenceState;
-import com.norconex.collector.http.crawler.HttpDocReferenceState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
+import com.norconex.collector.http.ref.HttpDocReferenceState;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.importer.doc.Content;

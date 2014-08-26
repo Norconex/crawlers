@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.norconex.collector.http.crawler.pipe.doc;
+package com.norconex.collector.http.doc.pipe;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -14,13 +14,14 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.ref.store.IReferenceStore;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.crawler.HttpDocReference;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
+import com.norconex.collector.http.ref.HttpDocReference;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
+import com.norconex.importer.ImporterResponse;
 import com.norconex.importer.doc.Content;
 
 /**
@@ -34,6 +35,7 @@ public class DocumentPipelineContext {
     private final IReferenceStore refStore;
 //    private final RobotsTxt robotsTxt;
     private RobotsMeta robotsMeta;
+    private ImporterResponse importerResponse;
     
     public DocumentPipelineContext(
             HttpCrawler crawler, IReferenceStore refStore, 
@@ -98,6 +100,14 @@ public class DocumentPipelineContext {
         return getConfig().getHttpHeadersFetcher() != null;
     }
     
+    public ImporterResponse getImporterResponse() {
+        return importerResponse;
+    }
+
+    public void setImporterResponse(ImporterResponse importerResponse) {
+        this.importerResponse = importerResponse;
+    }
+
     public Content getContent() {
         return getDocument().getContent();
     }

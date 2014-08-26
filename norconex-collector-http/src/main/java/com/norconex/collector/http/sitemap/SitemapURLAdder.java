@@ -20,7 +20,7 @@ package com.norconex.collector.http.sitemap;
 
 import java.io.Serializable;
 
-import com.norconex.collector.http.crawler.HttpDocReference;
+import com.norconex.collector.http.ref.HttpDocReference;
 
 
 // THIS is a wrapper class where add( ) will add a URL found in sitemap file

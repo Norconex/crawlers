@@ -18,6 +18,7 @@
  */
 package com.norconex.collector.http.robot.impl;
 
+import com.norconex.collector.http.filter.IURLFilter;
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
@@ -55,24 +56,45 @@ public class DefaultRobotsTxtProviderTest {
               + "Disallow: /dontgo/there/\n"
               + "User-agent: mister-crawler\n"
               + "Disallow: /bathroom/\n";
+        String robotTxt5 = 
+                "# robots.txt\n"
+              + "User-agent: *\n"
+              + "Disallow: /some/fake/ # Spiders, keep out! \n"
+              + "Disallow: /spidertrap/\n"
+              + "Allow: /open/\n"
+              + "Allow: /\n";
         
         
-        Assert.assertEquals("Robots.txt (Disallow:/bathroom/)", 
-                parseRobotRule("mister-crawler", robotTxt1));
-        Assert.assertEquals("Robots.txt (Disallow:/bathroom/)", 
-                parseRobotRule("mister-crawler", robotTxt2));
-        Assert.assertEquals("Robots.txt (Disallow:/dontgo/there/)", 
-                parseRobotRule("mister-crawler", robotTxt3));
-        Assert.assertEquals("Robots.txt (Disallow:/bathroom/)", 
-                parseRobotRule("mister-crawler", robotTxt4));
+        Assert.assertEquals("Robots.txt (Disallow:/bathroom/)",
+                parseRobotRule("mister-crawler", robotTxt1)[1].toString());
+        Assert.assertEquals("Robots.txt (Disallow:/bathroom/)",
+                parseRobotRule("mister-crawler", robotTxt2)[0].toString());
+        Assert.assertEquals("Robots.txt (Disallow:/dontgo/there/)",
+                parseRobotRule("mister-crawler", robotTxt3)[0].toString());
+        Assert.assertEquals("Robots.txt (Disallow:/bathroom/)",
+                parseRobotRule("mister-crawler", robotTxt4)[1].toString());
+        
+        Assert.assertEquals("Robots.txt (Disallow:/some/fake/)",
+                parseRobotRule("mister-crawler", robotTxt5)[0].toString());
+        Assert.assertEquals("Robots.txt (Disallow:/spidertrap/)",
+                parseRobotRule("mister-crawler", robotTxt5)[1].toString());
+        Assert.assertEquals("Robots.txt (Allow:/open/)", 
+                parseRobotRule("mister-crawler", robotTxt5)[2].toString());
+        
     }
     
-    private String parseRobotRule(String agent, String content) 
+    private IURLFilter[] parseRobotRule(String agent, String content, String url) 
             throws IOException {
         DefaultRobotsTxtProvider robotProvider = new DefaultRobotsTxtProvider();
         return robotProvider.parseRobotsTxt(
                 IOUtils.toInputStream(content), 
-                "http://www.testinguseragents.test/some/fake/url.html",
-                "mister-crawler").getFilters()[0].toString();
+                url,
+                "mister-crawler").getFilters();
+    }
+    
+    private IURLFilter[] parseRobotRule(String agent, String content) 
+            throws IOException {
+        return parseRobotRule(agent, content, 
+                "http://www.testinguseragents.test/some/fake/url.html");
     }
 }
