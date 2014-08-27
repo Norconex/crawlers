@@ -15,6 +15,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
@@ -60,10 +61,9 @@ public class TestWebServer {
 //                ANALYTICS_MAPPING, 
 //                EnumSet.of(DispatcherType.REQUEST));
         
-        // Add Index service
-//        ReportIndexService service = new ReportIndexService();
-//        ServletHolder servletHolder = new ServletHolder(service);
-//        webappContext.addServlet(servletHolder, SERVICE_MAPPING);
+        // Add test serlet
+        ServletHolder servletHolder = new ServletHolder(new TestServlet());
+        webappContext.addServlet(servletHolder, "/test");
         
         // Add custom error message
         webappContext.setErrorHandler(new ErrorHandler() {

@@ -37,7 +37,7 @@ public class HttpCollectorConfig extends AbstractCollectorConfig {
     private HttpCrawlerConfig[] crawlerConfigs;
 
 	public HttpCollectorConfig() {
-        super();
+        super(HttpCrawlerConfig.class);
     }
 
     /**

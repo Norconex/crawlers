@@ -31,6 +31,8 @@ import com.norconex.collector.core.CollectorConfigLoader;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.ICollector;
 import com.norconex.collector.core.ICollectorConfig;
+import com.norconex.collector.core.crawler.ICrawler;
+import com.norconex.collector.core.crawler.ICrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.jef4.job.IJob;
@@ -57,7 +59,7 @@ public class HttpCollector extends AbstractCollector {
 
 	private static final Logger LOG = LogManager.getLogger(HttpCollector.class);
 
-	private HttpCrawler[] crawlers;
+//	private HttpCrawler[] crawlers;
 	
 	private JobSuite jobSuite;
     
@@ -76,22 +78,23 @@ public class HttpCollector extends AbstractCollector {
         super(collectorConfig);
     }
 
-    /**
-     * Gets the HTTP crawlers to be run by this collector.
-     * @return HTTP crawlers
-     */
-    public HttpCrawler[] getCrawlers() {
-        return crawlers;
-    }
+//    /**
+//     * Gets the HTTP crawlers to be run by this collector.
+//     * @return HTTP crawlers
+//     */
+//    public HttpCrawler[] getCrawlers() {
+//        super.getCrawlers();
+//        return crawlers;
+//    }
     
 //TODO conflicts with having crawler configurable in config.
 //     do we really want support both methods?
-//    /**
-//     * Sets the HTTP crawlers to be run by this collector.
-//     * @param crawlers HTTP Crawler
-//     */
+    /**
+     * Sets the HTTP crawlers to be run by this collector.
+     * @param crawlers HTTP Crawler
+     */
 //    public void setCrawlers(HttpCrawler[] crawlers) {
-//        this.crawlers = ArrayUtils.clone(crawlers);
+////        this.crawlers = ArrayUtils.clone(crawlers);
 //    }
     
     /**
@@ -174,18 +177,18 @@ public class HttpCollector extends AbstractCollector {
     
     @Override
     public JobSuite createJobSuite() {
-        HttpCollectorConfig collectorConfig = getCollectorConfig();
-        HttpCrawlerConfig[] configs = collectorConfig.getCrawlerConfigs();
-        crawlers = new HttpCrawler[configs.length];
-        for (int i = 0; i < configs.length; i++) {
-            HttpCrawlerConfig crawlerConfig = configs[i];
-            crawlers[i] = new HttpCrawler(crawlerConfig);
-        }
-
+//        HttpCrawlerConfig[] configs = collectorConfig.getCrawlerConfigs();
+//        crawlers = new HttpCrawler[configs.length];
+//        for (int i = 0; i < configs.length; i++) {
+//            HttpCrawlerConfig crawlerConfig = configs[i];
+//            crawlers[i] = new HttpCrawler(crawlerConfig);
+//        }
+        ICrawler[] crawlers = getCrawlers();
+        
         IJob rootJob = null;
         if (crawlers.length > 1) {
             rootJob = new AsyncJobGroup(
-                    collectorConfig.getId(), crawlers
+                    getId(), crawlers
             );
         } else if (crawlers.length == 1) {
             rootJob = crawlers[0];
@@ -197,6 +200,7 @@ public class HttpCollector extends AbstractCollector {
         //TODO have a base workdir, which is used to figure out where to put
         // everything (log, progress), and make log and progress overwritable.
 
+        HttpCollectorConfig collectorConfig = getCollectorConfig();
         suiteConfig.setLogManager(
                 new FileLogManager(collectorConfig.getLogsDir()));
         suiteConfig.setJobStatusStore(
@@ -213,4 +217,8 @@ public class HttpCollector extends AbstractCollector {
         return suite;
     }
 
+    @Override
+    protected ICrawler createCrawler(ICrawlerConfig config) {
+        return new HttpCrawler((HttpCrawlerConfig) config);
+    }
 }

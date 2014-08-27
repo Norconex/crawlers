@@ -27,7 +27,6 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.norconex.collector.http.HttpCollector;
@@ -37,7 +36,7 @@ import com.norconex.committer.impl.FileSystemCommitter;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.FileUtil;
 
-public class HttpCrawlerTest {
+public abstract class AbstractHttpTest {
 
     static {
         Logger logger = Logger.getRootLogger();
@@ -78,17 +77,36 @@ public class HttpCrawlerTest {
         FileUtil.delete(tempFolder.getRoot());
     }
 
-    public String getBaseUrl() {
+    protected String getBaseUrl() {
         return "http://localhost:" + SERVER.getLocalPort();
     }
+    protected String newUrl(String urlPath) {
+        return getBaseUrl() + urlPath;
+    }
+    protected File newTempFolder(String folderName) throws IOException {
+        return tempFolder.newFolder(folderName);
+    }
+    protected File getCommitterAddDir(HttpCollector collector) {
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        FileSystemCommitter committer = (FileSystemCommitter)
+                crawler.getCrawlerConfig().getCommitter();
+        return committer.getAddDir();
+    }
+    protected File getCommitterRemoveDir(HttpCollector collector) {
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        FileSystemCommitter committer = (FileSystemCommitter)
+                crawler.getCrawlerConfig().getCommitter();
+        return committer.getRemoveDir();
+    }
+    
+    
 
-
-    @Test
-    public void testFeatures() throws IOException {
-        File progressDir = tempFolder.newFolder("progress");
-        File logsDir = tempFolder.newFolder("logs");
-        File workdir = tempFolder.newFolder("workdir");
-        File committerDir = tempFolder.newFolder("committedFiles");
+    protected HttpCollector newHttpCollector1Crawler(String... startURLs) 
+            throws IOException {
+        File progressDir = newTempFolder("progress");
+        File logsDir = newTempFolder("logs");
+        File workdir = newTempFolder("workdir");
+        File committerDir = newTempFolder("committedFiles");
         
         //--- Committer ---
         //ICommitter committer = new NilCommitter();
@@ -98,29 +116,25 @@ public class HttpCrawlerTest {
         //--- Crawler ---
         HttpCrawlerConfig httpConfig = new HttpCrawlerConfig();
         httpConfig.setId("Unit Test HTTP Crawler");
-        httpConfig.setStartURLs(new String[]{
-                getBaseUrl() + "/index.html"
-        });
+        String[] urls = new String[startURLs.length];
+        for (int i = 0; i < startURLs.length; i++) {
+            urls[i] = getBaseUrl() + startURLs[i];
+        }
+        httpConfig.setStartURLs(urls);
         httpConfig.setWorkDir(workdir);
         httpConfig.setNumThreads(1);
         httpConfig.setCommitter(committer);
+        HttpCrawler crawler = new HttpCrawler(httpConfig);
         
         //--- Collector ---
         HttpCollectorConfig colConfig = new HttpCollectorConfig();
         colConfig.setId("Unit Test HTTP Collector");
         colConfig.setProgressDir(progressDir.getAbsolutePath());
         colConfig.setLogsDir(logsDir.getAbsolutePath());
-        colConfig.setCrawlerConfigs(new HttpCrawlerConfig[]{ httpConfig });
-        
-        
-        
         HttpCollector collector = new HttpCollector(colConfig);
-
-        collector.start(false);
-        
-        System.out.println("committer dir: " + tempFolder.getRoot());
+        collector.setCrawlers(new HttpCrawler[]{ crawler });
+        return collector;
     }
 
     
-
 }
