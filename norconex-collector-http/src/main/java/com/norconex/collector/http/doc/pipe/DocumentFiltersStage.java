@@ -8,8 +8,8 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
+import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
-import com.norconex.collector.http.ref.HttpDocReferenceState;
 import com.norconex.importer.handler.filter.IOnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 
@@ -50,19 +50,19 @@ import com.norconex.importer.handler.filter.OnMatch;
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format(
                             "ACCEPTED document. URL=%s Filter=%s", ctx
-                                    .getReference().getReference(), filter));
+                                    .getDocCrawl().getReference(), filter));
                 }
             } else {
                 HttpCrawlerEventFirer.fireDocumentRejected(ctx.getCrawler(),
                         ctx.getDocument(), filter);
-                ctx.getReference().setState(HttpDocReferenceState.REJECTED);
+                ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                 return false;
             }
         }
         if (hasIncludes && !atLeastOneIncludeMatch) {
             HttpCrawlerEventFirer.fireDocumentRejected(ctx.getCrawler(),
                     ctx.getDocument(), null);
-            ctx.getReference().setState(HttpDocReferenceState.REJECTED);
+            ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
             return false;
         }
         return true;

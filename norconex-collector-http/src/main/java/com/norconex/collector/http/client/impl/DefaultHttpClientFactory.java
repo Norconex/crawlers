@@ -65,7 +65,7 @@ import org.apache.http.util.Args;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.crawler.TargetURLRedirectStrategy;
-import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 
 /**
@@ -355,7 +355,7 @@ public class DefaultHttpClientFactory
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         cookiesDisabled = xml.getBoolean("cookiesDisabled", cookiesDisabled);
         authMethod = xml.getString("authMethod", authMethod);
         authUsernameField = 

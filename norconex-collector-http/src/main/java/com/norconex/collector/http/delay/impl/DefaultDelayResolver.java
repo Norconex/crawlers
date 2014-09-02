@@ -51,7 +51,7 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.commons.lang.config.ConfigurationException;
-import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 
 /**
@@ -219,7 +219,7 @@ public class DefaultDelayResolver implements IDelayResolver, IXMLConfigurable {
     @Override
     public void loadFromXML(Reader in) throws IOException {
         try {
-            XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+            XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
             defaultDelay = xml.getLong("[@default]", defaultDelay);
             ignoreRobotsCrawlDelay = xml.getBoolean(
                     "[@ignoreRobotsCrawlDelay]", ignoreRobotsCrawlDelay);

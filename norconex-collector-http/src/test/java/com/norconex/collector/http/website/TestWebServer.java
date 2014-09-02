@@ -63,7 +63,7 @@ public class TestWebServer {
         
         // Add test serlet
         ServletHolder servletHolder = new ServletHolder(new TestServlet());
-        webappContext.addServlet(servletHolder, "/test");
+        webappContext.addServlet(servletHolder, "/test/*");
         
         // Add custom error message
         webappContext.setErrorHandler(new ErrorHandler() {

@@ -47,13 +47,13 @@ import com.norconex.collector.http.client.impl.DefaultHttpClientFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.DefaultDelayResolver;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
+import com.norconex.collector.http.doccrawl.impl.DefaultDocCrawlStoreFactory;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.fetch.impl.DefaultDocumentFetcher;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.ref.impl.DefaultReferenceStoreFactory;
 import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.impl.DefaultRobotsMetaProvider;
@@ -138,7 +138,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     
     public HttpCrawlerConfig() {
         super();
-        setReferenceStoreFactory(new DefaultReferenceStoreFactory());
+        setReferenceStoreFactory(new DefaultDocCrawlStoreFactory());
     }
     public String[] getStartURLs() {
         return startURLs;

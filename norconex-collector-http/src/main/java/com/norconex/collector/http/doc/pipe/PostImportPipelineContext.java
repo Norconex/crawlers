@@ -1,0 +1,119 @@
+/**
+ * 
+ */
+package com.norconex.collector.http.doc.pipe;
+
+import org.apache.http.client.HttpClient;
+
+import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
+import com.norconex.collector.http.crawler.HttpCrawler;
+import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
+
+/**
+ * @author Pascal Essiembre
+ *
+ */
+public class PostImportPipelineContext {
+
+    private final HttpCrawler crawler;
+    private final HttpDocument doc;
+    private final IDocCrawlStore docCrawlStore;
+    private final HttpDocCrawl docCrawl;
+//    private RobotsMeta robotsMeta;
+//    private ImporterResponse importerResponse;
+    
+    public PostImportPipelineContext(
+            HttpCrawler crawler, IDocCrawlStore docCrawlStore,
+            HttpDocument doc, HttpDocCrawl docCrawl) {
+        this.crawler = crawler;
+        this.docCrawlStore = docCrawlStore;
+        this.doc = doc;
+        this.docCrawl = docCrawl;
+    }
+
+    public HttpCrawler getCrawler() {
+        return crawler;
+    }
+
+    public HttpCrawlerConfig getConfig() {
+        return crawler.getCrawlerConfig();
+    }
+    
+    /**
+     * @return the docCrawl
+     */
+    public HttpDocCrawl getDocCrawl() {
+        return docCrawl;
+    }
+    
+    public HttpClient getHttpClient() {
+        return crawler.getHttpClient();
+    }
+
+    public HttpDocument getDocument() {
+        return doc;
+    }
+    
+    /**
+     * @return the docCrawlStore
+     */
+    public IDocCrawlStore getDocCrawlStore() {
+        return docCrawlStore;
+    }
+    
+//
+//    public IHttpHeadersFetcher getHttpHeadersFetcher() {
+//        return getConfig().getHttpHeadersFetcher();
+//    }
+//
+//    public IDocCrawlStore getReferenceStore() {
+//        return docCrawlStore;
+//    }
+//
+//    public ISitemapResolver getSitemapResolver() {
+//        return crawler.getSitemapResolver();
+//    }
+//    
+//    public HttpMetadata getMetadata() {
+//        return doc.getMetadata();
+//    }
+//
+//    public RobotsMeta getRobotsMeta() {
+//        return robotsMeta;
+//    }
+//    /**
+//     * @param robotsMeta the robotsMeta to set
+//     */
+//    public void setRobotsMeta(RobotsMeta robotsMeta) {
+//        this.robotsMeta = robotsMeta;
+//    }
+//
+//    public boolean isHttpHeadFetchEnabled() {
+//        return getConfig().getHttpHeadersFetcher() != null;
+//    }
+//    
+//    public ImporterResponse getImporterResponse() {
+//        return importerResponse;
+//    }
+//
+//    public void setImporterResponse(ImporterResponse importerResponse) {
+//        this.importerResponse = importerResponse;
+//    }
+//
+//    public Content getContent() {
+//        return getDocument().getContent();
+//    }
+//
+//    public Reader getContentReader() {
+//        try {
+//            return new InputStreamReader(
+//                    getDocument().getContent().getInputStream(), 
+//                    CharEncoding.UTF_8);
+//        } catch (UnsupportedEncodingException e) {
+//            throw new CollectorException(e);
+//        }
+//    }
+
+}

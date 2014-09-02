@@ -17,9 +17,9 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.ref.HttpDocReference;
-import com.norconex.collector.http.ref.pipe.ReferencePipeline;
-import com.norconex.collector.http.ref.pipe.ReferencePipelineContext;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
+import com.norconex.collector.http.doccrawl.pipe.DocCrawlPipeline;
+import com.norconex.collector.http.doccrawl.pipe.DocCrawlPipelineContext;
 import com.norconex.collector.http.url.IURLExtractor;
 
 /**
@@ -40,7 +40,7 @@ import com.norconex.collector.http.url.IURLExtractor;
                 && ctx.getRobotsMeta().isNofollow()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("No URLs extracted due to Robots nofollow rule "
-                        + "for URL: " + ctx.getReference().getReference());
+                        + "for URL: " + ctx.getDocCrawl().getReference());
             }
             return true;
         }
@@ -50,24 +50,27 @@ import com.norconex.collector.http.url.IURLExtractor;
             Reader reader = ctx.getContentReader();
             IURLExtractor urlExtractor = ctx.getConfig().getUrlExtractor();
             urls = urlExtractor.extractURLs(
-                    reader, ctx.getReference().getReference(), 
+                    reader, ctx.getDocCrawl().getReference(), 
                     ctx.getDocument().getContentType());
             IOUtils.closeQuietly(reader);
         } catch (IOException e) {
             throw new CollectorException(
-                    "Cannot extract URLs from: " + ctx.getReference().getReference(), e);
+                    "Cannot extract URLs from: " + ctx.getDocCrawl().getReference(), e);
         }
 
         Set<String> uniqueURLs = new HashSet<String>();
         if (urls != null) {
             for (String url : urls) {
-                HttpDocReference newURL = new HttpDocReference(
-                        url, ctx.getReference().getDepth() + 1);
-                ReferencePipelineContext context = new ReferencePipelineContext(
+                HttpDocCrawl newURL = new HttpDocCrawl(
+                        url, ctx.getDocCrawl().getDepth() + 1);
+                DocCrawlPipelineContext context = new DocCrawlPipelineContext(
                         ctx.getCrawler(), ctx.getReferenceStore(), newURL);
-                if (new ReferencePipeline().process(context)) {
-                    uniqueURLs.add(newURL.getReference());
-                }
+//                if (new DocCrawlPipeline().process(context)) {
+//                    uniqueURLs.add(newURL.getReference());
+//                }
+                //TODO do we want to capture them all or just the valid ones?
+                new DocCrawlPipeline().process(context);
+                uniqueURLs.add(newURL.getReference());
             }
         }
         if (!uniqueURLs.isEmpty()) {

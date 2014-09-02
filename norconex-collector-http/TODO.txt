@@ -22,9 +22,15 @@ For 2.0.0:
 - remove content type and content family method to avoid
   conflicts with HTTP Collector?
 
+- Pass HTTP date of right format to importer 
 
 Any release:
 ============
+
+- Have an interface for how to optionally store downloaded files
+  (i.e., location, directory structure, file naming).  This could allow
+  usage of the collector to clone a site.  Should the DocumentFetcher do it 
+  instead?
 
 - When issuing a STOP, add an option to specify which crawler to stop,
   and let others run.

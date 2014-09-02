@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.map.Properties;
@@ -32,14 +33,15 @@ public class TestServlet extends HttpServlet {
      */
     public TestServlet() {
         testCases.put("list", new ListTestCases());
-        testCases.put("depth", new DepthTestCase());
-        
+        testCases.put("basic", new BasicTestCase());
+        testCases.put("redirect", new RedirectTestCase());
+        testCases.put("userAgent", new UserAgentTestCase());
+        testCases.put("keepDownloads", new KeepDownloadedFilesTestCase());
     }
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-    
         String testCaseKey = StringUtils.trimToNull(req.getParameter("case"));
         if (StringUtils.isBlank(testCaseKey)) {
             testCaseKey = "list";
@@ -48,7 +50,6 @@ public class TestServlet extends HttpServlet {
         if (testCase == null) {
             testCase = testCases.get("list");
         }
-        
         try {
             testCase.doTestCase(req, resp);
         } catch (Exception e) {
@@ -64,6 +65,7 @@ public class TestServlet extends HttpServlet {
         public void doTestCase(HttpServletRequest req, 
                 HttpServletResponse resp) throws Exception {
             resp.setContentType("text/html");
+            resp.setCharacterEncoding(CharEncoding.UTF_8);
             PrintWriter out = resp.getWriter();
             out.println("<html style=\"font-family:Arial, "
                    + "Helvetica, sans-serif;\">");
@@ -88,26 +90,69 @@ public class TestServlet extends HttpServlet {
             out.println("</ul>");
         }
     }
-    class DepthTestCase extends HtmlTestCase {
+
+    class BasicTestCase extends HtmlTestCase {
         public void doTestCase(HttpServletRequest req, 
                 HttpServletResponse resp, PrintWriter out) throws Exception {
             Properties params = new Properties();
             params.load(req.getParameterMap());
-
             int depth = params.getInt("depth", 0);
             int prevDepth = depth - 1;
             int nextDepth = depth + 1;
-            
-            out.println("<h1>Dept test case:</h1>");
-            
+            out.println("<h1>Basic features test page</h1>");
+            out.println("<p>Tests: depth, validMetadata</p>");
             if (prevDepth >= 0) {
-                out.println("<a href=\"?case=depth&depth=" + prevDepth
+                out.println("<a href=\"?case=basic&depth=" + prevDepth
                         + "\">Previous depth is " + prevDepth + "</a><p />");
             }
             out.println("<b>This page is of depth: " + depth + "</b><p />");
-            out.println("<a href=\"?case=depth&depth=" + nextDepth
+            out.println("<a href=\"?case=basic&depth=" + nextDepth
                     + "\">Next depth is " + nextDepth + "</a>");
-            
         }
     }
+    
+    /**
+     * The final URL of a redirect should be stored so relative links in it
+     * are relative to final URL, not the first.  Github issue #17.
+     */
+    class RedirectTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+
+            if (req.getPathInfo() == null 
+                    || !req.getPathInfo().contains("redirected")) {
+                System.out.println("path info is: " + req.getPathInfo());
+                resp.sendRedirect("http://localhost:" + req.getLocalPort() 
+                        + "/test/redirected/page.html?case=redirect");
+                return;
+            }
+            out.println("<h1>Redirected test page</h1>");
+            out.println("The URL was redirected."
+                    + "The URLs on this page should be relative to "
+                    + "/test/redirected/ and not /.  The crawler should "
+                    + "redirect and figure that out.<p />");
+            out.println("<a href=\"page1.html\">Page 1 (broken)</a>");
+            out.println("<a href=\"page2.html\">Page 2 (broken)</a>");
+        }
+    }
+    
+    class UserAgentTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            String userAgent = req.getHeader("User-Agent");
+            out.println("<h1>User Agent test page</h1>");
+            out.println("The user agent is: " + userAgent);
+        }
+    }
+
+    class KeepDownloadedFilesTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+
+            out.println("<h1>Keep downloaded files == true</h1>");
+            out.println("<b>This</b> file <i>must</i> be saved as is, "
+                    + "with this <span>formatting</span>");
+        }
+    }
+
 }

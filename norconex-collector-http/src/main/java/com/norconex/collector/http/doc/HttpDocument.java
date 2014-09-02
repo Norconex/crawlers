@@ -18,7 +18,6 @@
  */
 package com.norconex.collector.http.doc;
 
-import com.norconex.collector.http.ref.HttpDocReference;
 import com.norconex.importer.doc.ImporterDocument;
 
 public class HttpDocument extends ImporterDocument {
@@ -28,21 +27,45 @@ public class HttpDocument extends ImporterDocument {
 //    private final File localFile;
 //    private final HttpMetadata metadata;
 
-    private final HttpDocReference httpReference;
+//    private final HttpDocCrawl httpReference;
     
-    
-    public HttpDocument(HttpDocReference httpReference) {
-        super(httpReference.getReference(), new HttpMetadata(
-                httpReference.getReference()));
-        this.httpReference = httpReference;
+//    private String originalReference;
+//    
+//    public HttpDocument(HttpDocCrawl httpReference) {
+//        super(httpReference.getReference(), new HttpMetadata(
+//                httpReference.getReference()));
+//        this.httpReference = httpReference;
+//    }
+
+    public HttpDocument(String reference) {
+        super(reference, new HttpMetadata(reference));
+        
+        
+//        private String reference;
+//        private Content content;
+//        private final ImporterMetadata metadata;
+//        private ContentType contentType;
+//        private String contentEncoding;
+    }
+
+    public HttpDocument(ImporterDocument importerDocument) {
+        super(importerDocument.getReference());
+        setReference(importerDocument.getReference());
+        setContent(importerDocument.getContent());
+        getMetadata().putAll(importerDocument.getMetadata());
+        setContentType(importerDocument.getContentType());
+        setContentEncoding(importerDocument.getContentEncoding());
     }
     
-    /**
-     * @return the httpReference
-     */
-    public HttpDocReference getHttpReference() {
-        return httpReference;
-    }
+//    
+//    /**
+//     * @return the httpReference
+//     */
+//    public HttpDocCrawl getHttpReference() {
+//        return httpReference;
+//    }
+//    
+    
     
 //    
 //    
@@ -62,6 +85,17 @@ public class HttpDocument extends ImporterDocument {
 //    public File getLocalFile() {
 //        return localFile;
 //    }
+
+
+//    public String getOriginalReference() {
+//        return originalReference;
+//    }
+//
+//    public void setOriginalReference(String originalReference) {
+//        this.originalReference = originalReference;
+//    }
+
+
 
 
     public HttpMetadata getMetadata() {

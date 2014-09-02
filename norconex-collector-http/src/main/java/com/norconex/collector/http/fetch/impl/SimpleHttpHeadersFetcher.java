@@ -39,7 +39,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
-import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 
@@ -135,7 +135,7 @@ public class SimpleHttpHeadersFetcher
 	
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         String validCodes = xml.getString("validStatusCodes");
         int[] intCodes = DEFAULT_VALID_STATUS_CODES;
         if (StringUtils.isNotBlank(validCodes)) {

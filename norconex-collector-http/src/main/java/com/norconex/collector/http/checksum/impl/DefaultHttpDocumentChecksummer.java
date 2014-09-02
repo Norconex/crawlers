@@ -18,10 +18,8 @@
  */
 package com.norconex.collector.http.checksum.impl;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 
@@ -39,7 +37,7 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 
 /**
@@ -102,7 +100,7 @@ public class DefaultHttpDocumentChecksummer
 	    	return checksum;
 		} catch (IOException e) {
 			throw new CollectorException("Cannot create document checksum on : " 
-			        + document.getHttpReference().getReference(), e);
+			        + document.getReference(), e);
 		}
     }
 
@@ -159,12 +157,12 @@ public class DefaultHttpDocumentChecksummer
 
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         String tagField = xml.getString("field", null);
         String attrField = xml.getString("[@field]", field);
 
         if (StringUtils.isNotBlank(tagField)) {
-            LOG.warn("<field> tag is not deprecated.  Use \"field\" attribute "
+            LOG.warn("<field> tag is now deprecated.  Use \"field\" attribute "
                     + "instead");
         }
         if (StringUtils.isNotBlank(attrField)) {

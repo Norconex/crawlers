@@ -34,7 +34,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 
-import com.norconex.collector.http.ref.HttpDocReference;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 
 public class MapDBTest {
 
@@ -43,7 +43,7 @@ public class MapDBTest {
 
     private DB db;
 
-    private Map<String, HttpDocReference> map;
+    private Map<String, HttpDocCrawl> map;
 
     private File dbFile;
 
@@ -63,8 +63,8 @@ public class MapDBTest {
         db.close();
     }
 
-    private HttpDocReference buildCrawlURL() {
-        HttpDocReference c = new HttpDocReference("http://www.example.com", 3);
+    private HttpDocCrawl buildCrawlURL() {
+        HttpDocCrawl c = new HttpDocCrawl("http://www.example.com", 3);
         c.setContentChecksum("docchecksum1111");
         c.setSitemapPriority(0.8f);
         return c;
@@ -76,7 +76,7 @@ public class MapDBTest {
      */
     @Test
     public void createDatabaseTest() throws Exception {
-        HttpDocReference c = buildCrawlURL();
+        HttpDocCrawl c = buildCrawlURL();
         map.put("url1", c);
         assertEquals(1, map.size());
     }
@@ -89,7 +89,7 @@ public class MapDBTest {
     @Test
     public void loadDatabaseTest() throws Exception {
         // Insert test data
-        HttpDocReference c = buildCrawlURL();
+        HttpDocCrawl c = buildCrawlURL();
         map.put("url1", c);
 
         // Close DB

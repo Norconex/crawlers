@@ -44,7 +44,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
-import com.norconex.collector.http.ref.HttpDocReference;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
 
@@ -255,7 +255,7 @@ public class DefaultSitemapResolver implements ISitemapResolver {
         if("sitemap".equalsIgnoreCase(tag)) {
             parseState.sitemapIndex = true;
         } else if("url".equalsIgnoreCase(tag)){
-            parseState.baseURL = new HttpDocReference("", 0);
+            parseState.baseURL = new HttpDocCrawl("", 0);
         } else if("loc".equalsIgnoreCase(tag)){
             parseState.loc = true;
         } else if("lastmod".equalsIgnoreCase(tag)){
@@ -306,7 +306,7 @@ public class DefaultSitemapResolver implements ISitemapResolver {
     }
 
     private class ParseState {
-        private HttpDocReference baseURL = null;
+        private HttpDocCrawl baseURL = null;
         private boolean sitemapIndex = false;
         private boolean loc = false;
         private boolean lastmod = false;

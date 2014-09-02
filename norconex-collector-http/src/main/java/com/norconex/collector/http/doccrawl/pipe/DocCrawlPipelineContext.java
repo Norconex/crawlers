@@ -1,15 +1,14 @@
 /**
  * 
  */
-package com.norconex.collector.http.ref.pipe;
+package com.norconex.collector.http.doccrawl.pipe;
 
 import org.apache.http.client.HttpClient;
 
-import com.norconex.collector.core.ref.store.IReferenceStore;
+import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.ref.HttpDocReference;
-import com.norconex.collector.http.robot.RobotsMeta;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 
@@ -17,23 +16,23 @@ import com.norconex.collector.http.sitemap.ISitemapResolver;
  * @author Pascal Essiembre
  *
  */
-public class ReferencePipelineContext {
+public class DocCrawlPipelineContext {
 
     private final HttpCrawler crawler;
-    private final IReferenceStore refStore;
-    private final HttpDocReference reference;
+    private final IDocCrawlStore docCrawlStore;
+    private final HttpDocCrawl docCrawl;
     private final RobotsTxt robotsTxt;
 
 //    private RobotsMeta robotsMeta;
     
-    public ReferencePipelineContext(
-            HttpCrawler crawler, IReferenceStore refStore, 
-            HttpDocReference reference /*, RobotsTxt robotsTxt*/) {
+    public DocCrawlPipelineContext(
+            HttpCrawler crawler, IDocCrawlStore refStore, 
+            HttpDocCrawl reference /*, RobotsTxt robotsTxt*/) {
         this.crawler = crawler;
-        this.refStore = refStore;
-        this.reference = reference;
+        this.docCrawlStore = refStore;
+        this.docCrawl = reference;
         this.robotsTxt = getConfig().getRobotsTxtProvider().getRobotsTxt(
-                getHttpClient(), getReference().getReference(), 
+                getHttpClient(), getDocCrawl().getReference(), 
                 getConfig().getUserAgent());
     }
 
@@ -45,16 +44,16 @@ public class ReferencePipelineContext {
         return crawler.getCrawlerConfig();
     }
     
-    public HttpDocReference getReference() {
-        return reference;
+    public HttpDocCrawl getDocCrawl() {
+        return docCrawl;
     }
 
     public HttpClient getHttpClient() {
         return crawler.getHttpClient();
     }
 
-    public IReferenceStore getReferenceStore() {
-        return refStore;
+    public IDocCrawlStore getDocCrawlStore() {
+        return docCrawlStore;
     }
 
     public ISitemapResolver getSitemapResolver() {

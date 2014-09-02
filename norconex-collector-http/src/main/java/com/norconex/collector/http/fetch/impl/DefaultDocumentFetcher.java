@@ -19,7 +19,6 @@
 package com.norconex.collector.http.fetch.impl;
 
 import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -30,7 +29,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,11 +41,11 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.ref.ReferenceState;
+import com.norconex.collector.core.doccrawl.DocCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
-import com.norconex.collector.http.ref.HttpDocReferenceState;
-import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.importer.doc.Content;
 
@@ -89,7 +87,7 @@ public class DefaultDocumentFetcher
     
     
 	@Override
-	public ReferenceState fetchDocument(
+	public DocCrawlState fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
 	    //TODO replace signature with Writer class.
 	    LOG.debug("Fetching document: " + doc.getReference());
@@ -132,7 +130,7 @@ public class DefaultDocumentFetcher
                 //TODO save a download copy if downloads are kept.
                 
 //                IOUtils.closeQuietly(os);
-                return HttpDocReferenceState.OK;
+                return HttpDocCrawlState.NEW;
             }
             // read response anyway to be safer, but ignore content
             BufferedInputStream bis = new BufferedInputStream(is);
@@ -142,11 +140,11 @@ public class DefaultDocumentFetcher
             }        
             IOUtils.closeQuietly(bis);
             if (statusCode == HttpStatus.SC_NOT_FOUND) {
-                return HttpDocReferenceState.NOT_FOUND;
+                return HttpDocCrawlState.NOT_FOUND;
             }
             LOG.debug("Unsupported HTTP Response: "
                     + response.getStatusLine());
-            return HttpDocReferenceState.BAD_STATUS;
+            return HttpDocCrawlState.BAD_STATUS;
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.error("Cannot fetch document: " + doc.getReference()
@@ -177,7 +175,7 @@ public class DefaultDocumentFetcher
     }
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         String validCodes = xml.getString("validStatusCodes");
         int[] intCodes = SimpleHttpHeadersFetcher.DEFAULT_VALID_STATUS_CODES;
         if (StringUtils.isNotBlank(validCodes)) {

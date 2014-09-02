@@ -16,32 +16,32 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.ref;
+package com.norconex.collector.http.doccrawl;
 
-import com.norconex.collector.core.ref.ReferenceState;
+import com.norconex.collector.core.doccrawl.DocCrawlState;
 
 /**
  * Represents a URL crawling status.
  * @author Pascal Essiembre
  */
-public class HttpDocReferenceState extends ReferenceState { 
+public class HttpDocCrawlState extends DocCrawlState { 
 
     private static final long serialVersionUID = 1466828686562714860L;
 
-    public static final HttpDocReferenceState TOO_DEEP = 
-            new HttpDocReferenceState("TOO_DEEP");
-    public static final HttpDocReferenceState DELETED = 
-            new HttpDocReferenceState("DELETED");
-    public static final HttpDocReferenceState NOT_FOUND = 
-            new HttpDocReferenceState("NOT_FOUND");
-    public static final HttpDocReferenceState BAD_STATUS = 
-            new HttpDocReferenceState("BAD_STATUS");
+    public static final HttpDocCrawlState TOO_DEEP = 
+            new HttpDocCrawlState("TOO_DEEP");
+    public static final HttpDocCrawlState DELETED = 
+            new HttpDocCrawlState("DELETED");
+    public static final HttpDocCrawlState NOT_FOUND = 
+            new HttpDocCrawlState("NOT_FOUND");
+    public static final HttpDocCrawlState BAD_STATUS = 
+            new HttpDocCrawlState("BAD_STATUS");
     
 //    private static final int LOGGING_STATUS_PADDING = 10;
 //    private static final int LOGGING_DEPTH_PADDING = 6;
     
 //    private final Logger log;
-    protected HttpDocReferenceState(String state) {
+    protected HttpDocCrawlState(String state) {
         super(state);
 //        log = LogManager.getLogger(
 //                this.getClass().getCanonicalName() + "." + toString());

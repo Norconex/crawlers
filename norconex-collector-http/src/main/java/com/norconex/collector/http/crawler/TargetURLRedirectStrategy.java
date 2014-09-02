@@ -29,20 +29,15 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 
-import com.norconex.collector.core.ref.store.IReferenceStore;
+import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.ref.HttpDocReference;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 
 /**
  * <p>
- * This class is a hot fix for github issue #17 where HTTP redirects does not
- * store target URL but the source instead.  <b>It should be considered 
- * a temporary solution and assume this class will disappear.</b>   
- * A better solution would involve breaking an
- * interface method signature.  A more permanent fix should be put in place
- * in <code>DefaultHttpDocumentFetcher</code> once we are in a position to 
- * make non-backward compatible changes (new minor/major release).
+ * This class handles HTTP redirects which by default ends up not not
+ * storing the final redirect URL but the original one instead.  
  * </p>
  * <p>
  * This class is set in <code>HttpCrawler</code> after invoking the 
@@ -52,8 +47,7 @@ import com.norconex.collector.http.ref.HttpDocReference;
  * <code>RedirectStrategy</code>, please not that it will transparently
  * be wrapped by this class.  If you need to access to your implementation,
  * later down in the processing flow, you can call the method 
- * <code>getOriginalRedirectStrategy</code> to obtain it. Again, be
- * warned this wrapper class will disappear.
+ * <code>getOriginalRedirectStrategy</code> to obtain it. 
  * </p>
  * @author Pascal Essiembre
  * @since 1.1.1
@@ -106,13 +100,17 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
     public static void fixRedirectURL(
             HttpClient httpClient, 
             HttpDocument doc,
-            HttpDocReference httpDocReference,
-            IReferenceStore database) {
-        String originalURL = httpDocReference.getReference();
+            HttpDocCrawl httpDocCrawl,
+            IDocCrawlStore database) {
+        String originalURL = httpDocCrawl.getReference();
         String currentURL = getCurrentUrl();
         if (ObjectUtils.notEqual(currentURL, originalURL)) {
-            httpDocReference.setReference(currentURL);
+            httpDocCrawl.setOriginalReference(originalURL);
+            httpDocCrawl.setReference(currentURL);
             doc.getMetadata().setString(HttpMetadata.COLLECTOR_URL, currentURL);
+            doc.setReference(currentURL);
+//            Unless the DocCrawl is enough to ensure proper storing + sending to committer?
+//                     or... add a setNewURL() instead of storing original URL.
         }
     }
 }

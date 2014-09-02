@@ -28,11 +28,11 @@ import java.util.Iterator;
 
 import org.junit.Test;
 
-import com.norconex.collector.core.ref.IReference;
-import com.norconex.collector.core.ref.ReferenceState;
-import com.norconex.collector.core.ref.store.IReferenceStore;
-import com.norconex.collector.http.ref.HttpDocReference;
-import com.norconex.collector.http.ref.HttpDocReferenceState;
+import com.norconex.collector.core.doccrawl.IDocCrawl;
+import com.norconex.collector.core.doccrawl.DocCrawlState;
+import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
+import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 
 /**
  * Base class that includes all tests that an implementation of
@@ -43,24 +43,24 @@ public abstract class BaseCrawlURLDatabaseTest {
     /**
      * Actual implementation will be provided by the concrete class.
      */
-    protected IReferenceStore db;
+    protected IDocCrawlStore db;
 
-    protected void cacheUrl(String url, int depth, ReferenceState status,
+    protected void cacheUrl(String url, int depth, DocCrawlState status,
             String headChecksum, String docChecksum) {
 
         // To cache an url, it needs to be processed first, then we need to
         // transfer the processed url to the cache.
-        HttpDocReference httpDocReference = new HttpDocReference(url, depth);
-        httpDocReference.setState(status);
-        httpDocReference.setMetaChecksum(headChecksum);
-        httpDocReference.setContentChecksum(docChecksum);
-        db.processed(httpDocReference);
+        HttpDocCrawl httpDocCrawl = new HttpDocCrawl(url, depth);
+        httpDocCrawl.setState(status);
+        httpDocCrawl.setMetaChecksum(headChecksum);
+        httpDocCrawl.setContentChecksum(docChecksum);
+        db.processed(httpDocCrawl);
 
         processedToCache();
     }
 
     protected void cacheUrl(String url) {
-        cacheUrl(url, 0, HttpDocReferenceState.OK, null, null);
+        cacheUrl(url, 0, HttpDocCrawlState.NEW, null, null);
     }
 
     abstract protected void processedToCache();
@@ -71,7 +71,7 @@ public abstract class BaseCrawlURLDatabaseTest {
     public void test_queue() throws Exception {
 
         String url = "http://www.norconex.com/";
-        db.queue(new HttpDocReference(url, 0));
+        db.queue(new HttpDocCrawl(url, 0));
 
         // Make sure the url is queued
         assertFalse(db.isQueueEmpty());
@@ -83,10 +83,10 @@ public abstract class BaseCrawlURLDatabaseTest {
     public void test_next() throws Exception {
 
         String url = "http://www.norconex.com/";
-        db.queue(new HttpDocReference(url, 0));
+        db.queue(new HttpDocCrawl(url, 0));
 
         // Make sure the next url is the one we just queue
-        HttpDocReference next = (HttpDocReference) db.nextQueued();
+        HttpDocCrawl next = (HttpDocCrawl) db.nextQueued();
         assertEquals(url, next.getReference());
 
         // Make sure the url was removed from queue and marked as active
@@ -99,11 +99,11 @@ public abstract class BaseCrawlURLDatabaseTest {
     public void test_process() throws Exception {
 
         String url = "http://www.norconex.com/";
-        db.queue(new HttpDocReference(url, 0));
-        HttpDocReference next = (HttpDocReference) db.nextQueued();
+        db.queue(new HttpDocCrawl(url, 0));
+        HttpDocCrawl next = (HttpDocCrawl) db.nextQueued();
 
         // Simulate a successful fetch
-        next.setState(HttpDocReferenceState.OK);
+        next.setState(HttpDocCrawlState.NEW);
 
         // Mark as processed
         db.processed(next);
@@ -122,7 +122,7 @@ public abstract class BaseCrawlURLDatabaseTest {
         cacheUrl(url);
 
         // Make sure the url is cached
-        HttpDocReference cached = (HttpDocReference) db.getCached(url);
+        HttpDocCrawl cached = (HttpDocCrawl) db.getCached(url);
         assertNotNull(cached);
         assertFalse(db.isCacheEmpty());
     }
@@ -135,13 +135,13 @@ public abstract class BaseCrawlURLDatabaseTest {
         cacheUrl(url);
 
         // Process it
-        db.queue(new HttpDocReference(url, 0));
-        HttpDocReference next = (HttpDocReference) db.nextQueued();
-        next.setState(HttpDocReferenceState.OK);
+        db.queue(new HttpDocCrawl(url, 0));
+        HttpDocCrawl next = (HttpDocCrawl) db.nextQueued();
+        next.setState(HttpDocCrawlState.NEW);
         db.processed(next);
 
         // Make sure it's not cached anymore
-        HttpDocReference cached = (HttpDocReference) db.getCached(url);
+        HttpDocCrawl cached = (HttpDocCrawl) db.getCached(url);
         assertNull(cached);
     }
 
@@ -152,9 +152,9 @@ public abstract class BaseCrawlURLDatabaseTest {
         String url = "http://www.norconex.com/";
         cacheUrl(url);
 
-        Iterator<IReference> it = db.getCacheIterator();
+        Iterator<IDocCrawl> it = db.getCacheIterator();
         assertTrue(it.hasNext());
-        IReference httpDocReference = it.next();
+        IDocCrawl httpDocReference = it.next();
         assertEquals(url, httpDocReference.getReference()); 
     }
 
@@ -166,9 +166,9 @@ public abstract class BaseCrawlURLDatabaseTest {
         cacheUrl(url);
 
         // Set it with an invalid state
-        db.queue(new HttpDocReference(url, 0));
-        HttpDocReference next = (HttpDocReference) db.nextQueued();
-        next.setState(HttpDocReferenceState.NOT_FOUND);
+        db.queue(new HttpDocCrawl(url, 0));
+        HttpDocCrawl next = (HttpDocCrawl) db.nextQueued();
+        next.setState(HttpDocCrawlState.NOT_FOUND);
 
         // Make sure it's considered vanished
         assertTrue(db.isVanished(next));
@@ -200,12 +200,12 @@ public abstract class BaseCrawlURLDatabaseTest {
     public void test_queued_unique() throws Exception {
 
         String url = "http://www.norconex.com/";
-        HttpDocReference httpDocReference = new HttpDocReference(url, 0);
-        db.queue(httpDocReference);
+        HttpDocCrawl httpDocCrawl = new HttpDocCrawl(url, 0);
+        db.queue(httpDocCrawl);
         assertEquals(1, db.getQueueSize());
 
         // Queue the same url. The queued size should stay the same
-        db.queue(httpDocReference);
+        db.queue(httpDocCrawl);
         assertEquals(1, db.getQueueSize());
     }
 
@@ -213,16 +213,16 @@ public abstract class BaseCrawlURLDatabaseTest {
     public void test_processed_unique() throws Exception {
 
         String url = "http://www.norconex.com/";
-        HttpDocReference httpDocReference = new HttpDocReference(url, 0);
-        httpDocReference.setContentChecksum("docChecksum");
-        httpDocReference.setMetaChecksum("headChecksum");
-        httpDocReference.setState(HttpDocReferenceState.OK);
+        HttpDocCrawl httpDocCrawl = new HttpDocCrawl(url, 0);
+        httpDocCrawl.setContentChecksum("docChecksum");
+        httpDocCrawl.setMetaChecksum("headChecksum");
+        httpDocCrawl.setState(HttpDocCrawlState.NEW);
 
-        db.processed(httpDocReference);
+        db.processed(httpDocCrawl);
         assertEquals(1, db.getProcessedCount());
 
         // Queue the same url. The queued size should stay the same
-        db.processed(httpDocReference);
+        db.processed(httpDocCrawl);
         assertEquals(1, db.getProcessedCount());
     }
 
@@ -240,9 +240,9 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         // Simulate a successful fetch
         String url = "http://www.norconex.com/";
-        db.queue(new HttpDocReference(url, 0));
-        HttpDocReference next = (HttpDocReference) db.nextQueued();
-        next.setState(HttpDocReferenceState.OK);
+        db.queue(new HttpDocCrawl(url, 0));
+        HttpDocCrawl next = (HttpDocCrawl) db.nextQueued();
+        next.setState(HttpDocCrawlState.NEW);
         db.processed(next);
 
         // Instantiate a new impl with the "resume" option set to false. All
@@ -250,7 +250,7 @@ public abstract class BaseCrawlURLDatabaseTest {
         createImpl(false);
 
         // Make sure the url was cached
-        HttpDocReference cached = (HttpDocReference) db.getCached(url);
+        HttpDocCrawl cached = (HttpDocCrawl) db.getCached(url);
         assertNotNull(cached);
         assertFalse(db.isCacheEmpty());
 
@@ -275,9 +275,9 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         // Simulate a unsuccessful fetch
         String url = "http://www.norconex.com/";
-        db.queue(new HttpDocReference(url, 0));
-        HttpDocReference next = (HttpDocReference) db.nextQueued();
-        next.setState(HttpDocReferenceState.NOT_FOUND);
+        db.queue(new HttpDocCrawl(url, 0));
+        HttpDocCrawl next = (HttpDocCrawl) db.nextQueued();
+        next.setState(HttpDocCrawlState.NOT_FOUND);
         db.processed(next);
 
         // Instantiate a new impl with the "resume" option set to false. Since
@@ -285,7 +285,7 @@ public abstract class BaseCrawlURLDatabaseTest {
         createImpl(false);
 
         // Make sure the url was NOT cached
-        HttpDocReference cached = (HttpDocReference) db.getCached(url);
+        HttpDocCrawl cached = (HttpDocCrawl) db.getCached(url);
         assertNull(cached);
         assertTrue(db.isCacheEmpty());
     }
@@ -301,7 +301,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         // Queue a url
         String url = "http://www.norconex.com/";
-        db.queue(new HttpDocReference(url, 0));
+        db.queue(new HttpDocCrawl(url, 0));
 
         // Instantiate a new impl with the "resume" option set to true. The
         // url should still be queued.
@@ -324,7 +324,7 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         // Activate an url
         String url = "http://www.norconex.com/";
-        db.queue(new HttpDocReference(url, 0));
+        db.queue(new HttpDocCrawl(url, 0));
         db.nextQueued();
 
         // Instantiate a new impl with the "resume" option set to true. The
@@ -342,9 +342,9 @@ public abstract class BaseCrawlURLDatabaseTest {
 
         // Process an url
         String url = "http://www.norconex.com/";
-        db.queue(new HttpDocReference(url, 0));
-        HttpDocReference next = (HttpDocReference) db.nextQueued();
-        next.setState(HttpDocReferenceState.OK);
+        db.queue(new HttpDocCrawl(url, 0));
+        HttpDocCrawl next = (HttpDocCrawl) db.nextQueued();
+        next.setState(HttpDocCrawlState.NEW);
         db.processed(next);
 
         // Instantiate a new impl with the "resume" option set to true. The
@@ -368,7 +368,7 @@ public abstract class BaseCrawlURLDatabaseTest {
         createImpl(true);
 
         // Make sure the url is still cached
-        HttpDocReference cached = (HttpDocReference) db.getCached(url);
+        HttpDocCrawl cached = (HttpDocCrawl) db.getCached(url);
         assertNotNull(cached);
         assertFalse(db.isCacheEmpty());
     }

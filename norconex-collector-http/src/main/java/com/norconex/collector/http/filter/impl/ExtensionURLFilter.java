@@ -39,7 +39,7 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.importer.handler.filter.AbstractOnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
@@ -128,7 +128,7 @@ public class ExtensionURLFilter extends AbstractOnMatchFilter implements
     }
     @Override
     public void loadFromXML(Reader in)  {
-        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         setExtensions(xml.getString(""));
         loadFromXML(xml);
         setCaseSensitive(xml.getBoolean("[@caseSensitive]", false));

@@ -12,7 +12,6 @@ import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.handler.filter.IOnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 
@@ -31,11 +30,13 @@ import com.norconex.importer.handler.filter.OnMatch;
     private DocumentPipelineUtil() {
     }
 
-    public static void resolveDocumentContentType(HttpDocument doc) {
+    public static void applyMetadataToDocument(HttpDocument doc) {
         if (doc.getContentType() == null) {
             doc.setContentType(ContentType.valueOf(
                     doc.getMetadata().getString(
                             HttpMetadata.COLLECTOR_CONTENT_TYPE)));
+            doc.setContentEncoding(doc.getMetadata().getString(
+                    HttpMetadata.COLLECTOR_CONTENT_ENCODING));
         }
     }
     
@@ -58,7 +59,7 @@ import com.norconex.importer.handler.filter.OnMatch;
             String charset = contentType.replaceFirst("(.*?)(; )(.*)", "$3");
             charset = charset.replaceFirst("(charset=)(.*)", "$2");
             metadata.addString(HttpMetadata.COLLECTOR_CONTENT_TYPE, mimeType);
-            metadata.addString(HttpMetadata.COLLECTOR_CHARSET, charset);
+            metadata.addString(HttpMetadata.COLLECTOR_CONTENT_ENCODING, charset);
         }
     }
 
@@ -72,7 +73,7 @@ import com.norconex.importer.handler.filter.OnMatch;
         boolean atLeastOneIncludeMatch = false;
         for (IHttpHeadersFilter filter : filters) {
             boolean accepted = filter.acceptDocument(
-                    ctx.getReference().getReference(), headers);
+                    ctx.getDocCrawl().getReference(), headers);
             boolean isInclude = filter instanceof IOnMatchFilter
                    && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
             if (isInclude) {
@@ -86,19 +87,19 @@ import com.norconex.importer.handler.filter.OnMatch;
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format(
                             "ACCEPTED document http headers. URL=%s Filter=%s",
-                            ctx.getReference().getReference(), filter));
+                            ctx.getDocCrawl().getReference(), filter));
                 }
             } else {
                 HttpCrawlerEventFirer.fireDocumentHeadersRejected(
                         ctx.getCrawler(), 
-                        ctx.getReference().getReference(), filter, headers);
+                        ctx.getDocCrawl().getReference(), filter, headers);
                 return true;
             }
         }
         if (hasIncludes && !atLeastOneIncludeMatch) {
             HttpCrawlerEventFirer.fireDocumentHeadersRejected(
                     ctx.getCrawler(), 
-                    ctx.getReference().getReference(), null, headers);
+                    ctx.getDocCrawl().getReference(), null, headers);
             return true;
         }
         return false;        

@@ -33,7 +33,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.checksum.IHttpHeadersChecksummer;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 
@@ -135,7 +135,7 @@ public class DefaultHttpHeadersChecksummer
 
 	@Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         String tagField = xml.getString("field", null);
         String attrField = xml.getString("[@field]", field);
 

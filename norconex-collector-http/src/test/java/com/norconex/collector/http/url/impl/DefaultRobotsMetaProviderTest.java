@@ -11,6 +11,7 @@ import org.junit.Test;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.impl.DefaultRobotsMetaProvider;
+import com.norconex.commons.lang.file.ContentType;
 
 public class DefaultRobotsMetaProviderTest {
 
@@ -24,7 +25,7 @@ public class DefaultRobotsMetaProviderTest {
 
         DefaultRobotsMetaProvider p = new DefaultRobotsMetaProvider();
         RobotsMeta robotsMeta = p.getRobotsMeta(
-                docReader, docURL, metadata.getContentType(), metadata);
+                docReader, docURL, ContentType.HTML, metadata);
         
         assertTrue("Robots meta should be noindex nofollow.", 
                 robotsMeta.isNofollow() && robotsMeta.isNoindex());

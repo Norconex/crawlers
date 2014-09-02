@@ -16,18 +16,18 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.ref;
+package com.norconex.collector.http.doccrawl;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import com.norconex.collector.core.ref.BasicReference;
+import com.norconex.collector.core.doccrawl.BasicDocCrawl;
 
 
 /**
  * A URL being crawled holding relevant crawl information.
  * @author Pascal Essiembre
  */
-public class HttpDocReference extends BasicReference {
+public class HttpDocCrawl extends BasicDocCrawl {
 
     private static final long serialVersionUID = -2219206220476107409L;
 
@@ -36,8 +36,9 @@ public class HttpDocReference extends BasicReference {
     private Long sitemapLastMod;
     private String sitemapChangeFreq;
     private Float sitemapPriority;
+    private String originalReference;
 
-    public HttpDocReference() {
+    public HttpDocCrawl() {
         super();
     }
 
@@ -46,10 +47,18 @@ public class HttpDocReference extends BasicReference {
      * @param url URL being crawled
      * @param depth URL depth
      */
-    public HttpDocReference(String url, int depth) {
+    public HttpDocCrawl(String url, int depth) {
         super();
         setReference(url);
         setDepth(depth);
+    }
+
+    
+    public String getOriginalReference() {
+        return originalReference;
+    }
+    public void setOriginalReference(String originalReference) {
+        this.originalReference = originalReference;
     }
 
     /**
@@ -153,10 +162,10 @@ public class HttpDocReference extends BasicReference {
         if (!super.equals(obj)) {
             return false;
         }
-        if (!(obj instanceof HttpDocReference)) {
+        if (!(obj instanceof HttpDocCrawl)) {
             return false;
         }
-        HttpDocReference other = (HttpDocReference) obj;
+        HttpDocCrawl other = (HttpDocCrawl) obj;
         if (depth != other.depth) {
             return false;
         }

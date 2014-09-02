@@ -20,6 +20,7 @@ package com.norconex.collector.http.doc;
 
 import java.util.Collection;
 
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.ImporterMetadata;
 
 public class HttpMetadata extends ImporterMetadata {
@@ -34,7 +35,8 @@ public class HttpMetadata extends ImporterMetadata {
     public static final String COLLECTOR_URL = COLLECTOR_PREFIX + "url";
     public static final String COLLECTOR_CONTENT_TYPE = 
             COLLECTOR_PREFIX + "contentType";
-    public static final String COLLECTOR_CHARSET = COLLECTOR_PREFIX + "charset";
+    public static final String COLLECTOR_CONTENT_ENCODING = 
+            COLLECTOR_PREFIX + "contentEncoding";
     public static final String COLLECTOR_DEPTH = COLLECTOR_PREFIX + "depth";
     public static final String COLLECTOR_SM_LASTMOD = 
             COLLECTOR_PREFIX + "sitemap-lastmod";
@@ -53,12 +55,15 @@ public class HttpMetadata extends ImporterMetadata {
     public static final String COLLECTOR_CHECKSUM_DOC = 
             COLLECTOR_PREFIX + "checksum-doc";
 
-	
 	public HttpMetadata(String documentURL) {
 		super(false);
-		addString(COLLECTOR_URL, documentURL);
+		setString(COLLECTOR_URL, documentURL);
 	}
 
+    public HttpMetadata(Properties metadata) {
+        super(metadata, false);
+    }
+	
 //	public ContentType getContentType() {
 //	    String type = getString(HTTP_CONTENT_TYPE);
 //	    if (type != null) {

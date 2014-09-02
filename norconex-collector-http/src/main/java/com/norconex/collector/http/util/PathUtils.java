@@ -19,13 +19,17 @@
 package com.norconex.collector.http.util;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.norconex.commons.lang.file.FileUtil;
 
 public final class PathUtils {
 
-    private static final int PATH_SEGMENT_SIZE = 5;
-    private static final int MAX_PATH_LENGTH = 256;
+    private static final int MAX_PATH_LENGTH = 25;
     
     private PathUtils() {
         super();
@@ -43,25 +47,35 @@ public final class PathUtils {
         String domain = url.replaceFirst("(.*?)(://)(.*?)(/)(.*)", "$1_$3");
         domain = domain.replaceAll("[\\W]+", "_");
         String path = url.replaceFirst("(.*?)(://)(.*?)(/)(.*)", "$5");
-        path = path.replaceAll("[\\W]+", "_");
-        StringBuilder b = new StringBuilder();
-        for (int i = 0; i < path.length(); i++) {
-        	if (i % PATH_SEGMENT_SIZE == 0) {
-        		b.append(sep);
-        	}
-        	b.append(path.charAt(i));
-		}
-        path = b.toString();
         
-        //TODO is truncating after 256 a risk of creating false duplicates?
-        if (path.length() > MAX_PATH_LENGTH) {
-            path = StringUtils.right(path, MAX_PATH_LENGTH);
-            if (!path.startsWith(File.separator)) {
-                path = File.separator + path;
+        String[] segments = path.split("[\\/]");
+        StringBuilder b = new StringBuilder();
+        for (String segment : segments) {
+            if (StringUtils.isNotBlank(segment)) {
+                String[] segParts = splitLargeSegment(segment);
+                for (String segPart : segParts) {
+                    if (b.length() > 0) {
+                        b.append(File.separatorChar);
+                    }
+                    b.append(FileUtil.toSafeFileName(segPart));
+                }
             }
         }
-        return domain + path;
+        return domain + File.separatorChar + b.toString();
     }
-
-
+    
+    private static String[] splitLargeSegment(String segment) {
+        if (segment.length() <= MAX_PATH_LENGTH) {
+            return new String[] { segment };
+        }
+        
+        List<String> segments = new ArrayList<>();
+        StringBuilder b = new StringBuilder(segment);
+        while (b.length() > MAX_PATH_LENGTH) {
+            segments.add(b.substring(0, MAX_PATH_LENGTH));
+            b.delete(0, MAX_PATH_LENGTH);
+        }
+        segments.add(b.substring(0));
+        return segments.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+    }
 }

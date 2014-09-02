@@ -11,18 +11,17 @@ import org.apache.commons.lang3.CharEncoding;
 import org.apache.http.client.HttpClient;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.ref.store.IReferenceStore;
+import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
-import com.norconex.collector.http.ref.HttpDocReference;
 import com.norconex.collector.http.robot.RobotsMeta;
-import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
-import com.norconex.importer.ImporterResponse;
 import com.norconex.importer.doc.Content;
+import com.norconex.importer.response.ImporterResponse;
 
 /**
  * @author Pascal Essiembre
@@ -32,18 +31,18 @@ public class DocumentPipelineContext {
 
     private final HttpCrawler crawler;
     private final HttpDocument doc;
-    private final IReferenceStore refStore;
-//    private final RobotsTxt robotsTxt;
+    private final IDocCrawlStore docCrawlStore;
+    private final HttpDocCrawl docCrawl;
     private RobotsMeta robotsMeta;
     private ImporterResponse importerResponse;
     
     public DocumentPipelineContext(
-            HttpCrawler crawler, IReferenceStore refStore, 
-            HttpDocument doc /*, RobotsTxt robotsTxt*/) {
+            HttpCrawler crawler, IDocCrawlStore docCrawlStore, 
+            HttpDocument doc, HttpDocCrawl docCrawl /*, RobotsTxt robotsTxt*/) {
         this.crawler = crawler;
-        this.refStore = refStore;
+        this.docCrawlStore = docCrawlStore;
         this.doc = doc;
-//        this.robotsTxt = robotsTxt;
+        this.docCrawl = docCrawl;
     }
 
     public HttpCrawler getCrawler() {
@@ -54,10 +53,13 @@ public class DocumentPipelineContext {
         return crawler.getCrawlerConfig();
     }
     
-    public HttpDocReference getReference() {
-        return doc.getHttpReference();
+    /**
+     * @return the docCrawl
+     */
+    public HttpDocCrawl getDocCrawl() {
+        return docCrawl;
     }
-
+    
     public HttpClient getHttpClient() {
         return crawler.getHttpClient();
     }
@@ -70,8 +72,8 @@ public class DocumentPipelineContext {
         return getConfig().getHttpHeadersFetcher();
     }
 
-    public IReferenceStore getReferenceStore() {
-        return refStore;
+    public IDocCrawlStore getReferenceStore() {
+        return docCrawlStore;
     }
 
     public ISitemapResolver getSitemapResolver() {
@@ -81,10 +83,6 @@ public class DocumentPipelineContext {
     public HttpMetadata getMetadata() {
         return doc.getMetadata();
     }
-
-//    public RobotsTxt getRobotsTxt() {
-//        return robotsTxt;
-//    }
 
     public RobotsMeta getRobotsMeta() {
         return robotsMeta;

@@ -129,7 +129,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           -->
     <maxURLs>-1</maxURLs>
 
-    <!-- Crawler "work" directory.  This is where files dowloaded or created as
+    <!-- Crawler "work" directory.  This is where files downloaded or created as
          part of crawling activities (besides logs and progress) get stored.
          It should be unique to each crawlers.
          -->
@@ -140,9 +140,9 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
          -->
     <keepDownloads>false</keepDownloads>
 
-    <!-- Whether to mark orphan pages for deletion.  Orphans are URLs/pages, 
-         which on subsequent crawls can no longer be reached when spidering
-         the site (there are no links pointing to that page anymore).
+    <!-- Whether to mark orphan pages for deletion.  Orphans are valid 
+         URLs/pages, which on subsequent crawls can no longer be reached when 
+         spidering the site (there are no links pointing to that page anymore).
          Default behavior is false to keep them as they still exist.
          -->
     <deleteOrphans>false</deleteOrphans>
@@ -274,14 +274,20 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
               <tagger class="..."/>
               <transformer class="..." />
               <filter class="..." />
+              <splitter class="..." />
           </preParseHandlers>
           <documentParserFactory class="..." />
           <postParseHandlers>
               <tagger class="..."/>
               <transformer class="..." />
               <filter class="..." />
+              <splitter class="..." />
           </postParseHandlers>
+          <responseProcessors>
+              <responseProcessor class="YourClass" />
+          </responseProcessors>
       </importer>           
+
 
       <!-- Create a checksum out of a document to figure out if a document
            has changed, AFTER it has been imported.

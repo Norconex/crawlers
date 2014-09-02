@@ -36,6 +36,10 @@ import com.norconex.collector.http.doc.HttpDocument;
  *  
  * @author Pascal Essiembre
  */
+
+//TODO make part of core
+
+
 public interface IHttpDocumentChecksummer extends Serializable {
 
     /**

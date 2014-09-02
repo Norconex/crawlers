@@ -38,7 +38,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
-import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.importer.handler.filter.AbstractOnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
@@ -134,7 +134,7 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
 
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         setHeader(xml.getString("[@header]"));
         setRegex(xml.getString(""));
         super.loadFromXML(xml);

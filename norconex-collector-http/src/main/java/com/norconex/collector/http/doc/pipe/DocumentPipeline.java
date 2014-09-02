@@ -5,22 +5,25 @@ package com.norconex.collector.http.doc.pipe;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Reader;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.doccrawl.DocCrawlState;
 import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.core.pipeline.Pipeline;
-import com.norconex.collector.core.ref.ReferenceState;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
 import com.norconex.collector.http.crawler.TargetURLRedirectStrategy;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
+import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
-import com.norconex.collector.http.ref.HttpDocReference;
-import com.norconex.collector.http.ref.HttpDocReferenceState;
+import com.norconex.collector.http.util.PathUtils;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.map.Properties;
 
@@ -47,6 +50,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         
         // HTTP "GET" and onward:
         addStage(new DocumentFetcherStage());
+        addStage(new SaveDownloadedFileStage());
         addStage(new RobotsMetaCreateStage());
         addStage(new URLExtractorStage());
         addStage(new RobotsMetaNoIndexStage());
@@ -55,11 +59,9 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         addStage(new DocumentFiltersStage());
         addStage(new DocumentPreProcessingStage());        
         addStage(new ImportModuleStage());        
-        addStage(new HttpDocumentChecksumStage());     //TODO redo with ImporterResponse   
-        addStage(new DocumentPostProcessingStage());   //TODO redo with ImporterResponse     
-        addStage(new CommitModuleStage());             //TODO redo with ImporterResponse
-        
-
+//        addStage(new HttpDocumentChecksumStage());     //TODO redo with ImporterResponse   
+//        addStage(new DocumentPostProcessingStage());   //TODO redo with ImporterResponse     
+//        addStage(new CommitModuleStage());             //TODO redo with ImporterResponse
     }
     
     private abstract class DocStage 
@@ -77,9 +79,9 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                 delayResolver.delay(
                         ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
                                 ctx.getHttpClient(), 
-                                ctx.getReference().getReference(), 
+                                ctx.getDocCrawl().getReference(), 
                                 ctx.getConfig().getUserAgent()), 
-                        ctx.getReference().getReference());
+                        ctx.getDocCrawl().getReference());
 
                 
 //                delayResolver.delay(
@@ -99,17 +101,17 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
 
             HttpMetadata metadata = ctx.getMetadata();
             IHttpHeadersFetcher headersFetcher = ctx.getHttpHeadersFetcher();
-            HttpDocReference ref = ctx.getReference();
+            HttpDocCrawl ref = ctx.getDocCrawl();
             Properties headers = headersFetcher.fetchHTTPHeaders(
                     ctx.getHttpClient(), ref.getReference());
             if (headers == null) {
-                ref.setState(HttpDocReferenceState.REJECTED);
+                ref.setState(HttpDocCrawlState.REJECTED);
                 return false;
             }
             metadata.putAll(headers);
             
             DocumentPipelineUtil.enhanceHTTPHeaders(metadata);
-            DocumentPipelineUtil.resolveDocumentContentType(ctx.getDocument());
+            DocumentPipelineUtil.applyMetadataToDocument(ctx.getDocument());
             
             HttpCrawlerEventFirer.fireDocumentHeadersFetched(
                     ctx.getCrawler(), ref.getReference(), 
@@ -124,7 +126,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         public boolean process(DocumentPipelineContext ctx) {
             if (ctx.getHttpHeadersFetcher() != null 
                     && DocumentPipelineUtil.isHeadersRejected(ctx)) {
-                ctx.getReference().setState(HttpDocReferenceState.REJECTED);
+                ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                 return false;
             }
             return true;
@@ -139,34 +141,63 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         public boolean process(DocumentPipelineContext ctx) {
             //TODO for now we assume the document is downloadable.
             // download as file
-            ReferenceState state = ctx.getConfig().getHttpDocumentFetcher()
+            DocCrawlState state = ctx.getConfig().getHttpDocumentFetcher()
                     .fetchDocument(ctx.getHttpClient(), ctx.getDocument());
 
             DocumentPipelineUtil.enhanceHTTPHeaders(
                     ctx.getDocument().getMetadata());
-            DocumentPipelineUtil.resolveDocumentContentType(ctx.getDocument());
+            DocumentPipelineUtil.applyMetadataToDocument(ctx.getDocument());
             
             //TODO Fix #17. Put in place a more permanent solution to this line
             TargetURLRedirectStrategy.fixRedirectURL(
                     ctx.getHttpClient(), ctx.getDocument(), 
-                    ctx.getReference(), ctx.getReferenceStore());
+                    ctx.getDocCrawl(), ctx.getReferenceStore());
             //--- END Fix #17 ---
             
-            
 //            if (status == HttpDocReferenceState.OK) {
-            if (state.isValid()) {
+            if (state.isGoodState()) {
                 HttpCrawlerEventFirer.fireDocumentFetched(
                         ctx.getCrawler(), ctx.getDocument(), 
                         ctx.getConfig().getHttpDocumentFetcher());
             }
-            ctx.getReference().setState(state);
-            if (!ctx.getReference().getState().isValid()) {
+            ctx.getDocCrawl().setState(state);
+            if (!state.isGoodState()) {
 //            if (ctx.getReference().getState() != HttpDocReferenceState.OK) {
                 return false;
             }
             return true;
         }
     }
+
+    //--- Save Download --------------------------------------------------------            
+    private class SaveDownloadedFileStage extends DocStage {
+        @Override
+        public boolean process(DocumentPipelineContext ctx) {
+            if (!ctx.getConfig().isKeepDownloads()) {
+                return true;
+            }
+            
+            //TODO have an interface for how to store downloaded files
+            //(i.e., location, directory structure, file naming)
+            File workdir = ctx.getConfig().getWorkDir();
+            File downloadDir = new File(workdir, "/downloads");
+            if (!downloadDir.exists()) {
+                downloadDir.mkdirs();
+            }
+            File downloadFile = new File(downloadDir, 
+                    PathUtils.urlToPath(ctx.getDocCrawl().getReference()));
+            try {
+                OutputStream out = FileUtils.openOutputStream(downloadFile);
+                IOUtils.copy(
+                        ctx.getDocument().getContent().getInputStream(), out);
+                IOUtils.closeQuietly(out);
+            } catch (IOException e) {
+                throw new CollectorException("Cannot create RobotsMeta for : " 
+                                + ctx.getDocCrawl().getReference(), e);
+            }            
+            return true;
+        }
+    }    
     
     //--- Robots Meta Creation -------------------------------------------------
     private class RobotsMetaCreateStage extends DocStage {
@@ -180,13 +211,13 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                 Reader reader = ctx.getContentReader();
                 ctx.setRobotsMeta(
                         ctx.getConfig().getRobotsMetaProvider().getRobotsMeta(
-                                reader, ctx.getReference().getReference(),
-                                ctx.getMetadata().getContentType(),
+                                reader, ctx.getDocCrawl().getReference(),
+                                ctx.getDocument().getContentType(),
                                 ctx.getMetadata()));
                 reader.close();
             } catch (IOException e) {
                 throw new CollectorException("Cannot create RobotsMeta for : " 
-                                + ctx.getReference().getReference(), e);
+                                + ctx.getDocCrawl().getReference(), e);
             }
             return true;
         }
@@ -204,9 +235,9 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                     || !ctx.getRobotsMeta().isNoindex();
             if (!canIndex) {
                 HttpCrawlerEventFirer.fireDocumentRobotsMetaRejected(
-                        ctx.getCrawler(), ctx.getReference().getReference(), 
+                        ctx.getCrawler(), ctx.getDocCrawl().getReference(), 
                         ctx.getRobotsMeta());
-                ctx.getReference().setState(HttpDocReferenceState.REJECTED);
+                ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                 return false;
             }
             return canIndex;
@@ -220,7 +251,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
             if (ctx.getHttpHeadersFetcher() == null) {
                 DocumentPipelineUtil.enhanceHTTPHeaders(ctx.getMetadata());
                 if (DocumentPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getReference().setState(HttpDocReferenceState.REJECTED);
+                    ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                     return false;
                 }
             }
@@ -248,53 +279,53 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
 
     
     
-    //--- Document Post-Processing ---------------------------------------------
-    private class DocumentPostProcessingStage extends DocStage {
-        @Override
-        public boolean process(DocumentPipelineContext ctx) {
-            if (ctx.getConfig().getPostImportProcessors() != null) {
-                for (IHttpDocumentProcessor postProc :
-                        ctx.getConfig().getPostImportProcessors()) {
-                    postProc.processDocument(
-                            ctx.getHttpClient(), ctx.getDocument());
-                    HttpCrawlerEventFirer.fireDocumentPostProcessed(
-                            ctx.getCrawler(), ctx.getDocument(), postProc);
-                }            
-            }
-            return true;
-        }
-    }  
-    
-    //--- Document Commit ------------------------------------------------------
-    private class CommitModuleStage extends DocStage {
-        @Override
-        public boolean process(DocumentPipelineContext ctx) {
-            ICommitter committer = ctx.getConfig().getCommitter();
-            if (committer != null) {
-
-                //TODO pass InputStream (or Content) instead of File?
-                try {
-                    File outputFile = File.createTempFile(
-                            "committer-add-", ".txt", 
-                            ctx.getConfig().getWorkDir());
-                    
-                    // Handle multi docs...
-                    
-                    FileUtils.copyInputStreamToFile(
-                            ctx.getImporterResponse().getDocument().getContent()
-                                    .getInputStream(), outputFile);
-                    
-                    committer.queueAdd(ctx.getReference().getReference(), 
-                            outputFile, ctx.getMetadata());
-                } catch (IOException e) {
-                    throw new CollectorException(
-                            "Could not queue document in committer");
-                }
-            }
-            HttpCrawlerEventFirer.fireDocumentCrawled(ctx.getCrawler(), 
-                    ctx.getDocument());
-            return true;
-        }
-    }  
+//    //--- Document Post-Processing ---------------------------------------------
+//    private class DocumentPostProcessingStage extends DocStage {
+//        @Override
+//        public boolean process(DocumentPipelineContext ctx) {
+//            if (ctx.getConfig().getPostImportProcessors() != null) {
+//                for (IHttpDocumentProcessor postProc :
+//                        ctx.getConfig().getPostImportProcessors()) {
+//                    postProc.processDocument(
+//                            ctx.getHttpClient(), ctx.getDocument());
+//                    HttpCrawlerEventFirer.fireDocumentPostProcessed(
+//                            ctx.getCrawler(), ctx.getDocument(), postProc);
+//                }            
+//            }
+//            return true;
+//        }
+//    }  
+//    
+//    //--- Document Commit ------------------------------------------------------
+//    private class CommitModuleStage extends DocStage {
+//        @Override
+//        public boolean process(DocumentPipelineContext ctx) {
+//            ICommitter committer = ctx.getConfig().getCommitter();
+//            if (committer != null) {
+//
+//                //TODO pass InputStream (or Content) instead of File?
+//                try {
+//                    File outputFile = File.createTempFile(
+//                            "committer-add-", ".txt", 
+//                            ctx.getConfig().getWorkDir());
+//                    
+//                    // Handle multi docs...
+//                    
+//                    FileUtils.copyInputStreamToFile(
+//                            ctx.getImporterResponse().getDocument().getContent()
+//                                    .getInputStream(), outputFile);
+//                    
+//                    committer.queueAdd(ctx.getDocCrawl().getReference(), 
+//                            outputFile, ctx.getMetadata());
+//                } catch (IOException e) {
+//                    throw new CollectorException(
+//                            "Could not queue document in committer");
+//                }
+//            }
+//            HttpCrawlerEventFirer.fireDocumentCrawled(ctx.getCrawler(), 
+//                    ctx.getDocument());
+//            return true;
+//        }
+//    }  
 
 }

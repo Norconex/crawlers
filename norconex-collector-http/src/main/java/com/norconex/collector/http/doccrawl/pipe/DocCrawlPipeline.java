@@ -16,20 +16,20 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.ref.pipe;
+package com.norconex.collector.http.doccrawl.pipe;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
 import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.core.pipeline.Pipeline;
-import com.norconex.collector.core.ref.store.IReferenceStore;
 import com.norconex.collector.http.crawler.IHttpCrawlerEventListener;
+import com.norconex.collector.http.doccrawl.HttpDocCrawl;
+import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.filter.IURLFilter;
-import com.norconex.collector.http.ref.HttpDocReference;
-import com.norconex.collector.http.ref.HttpDocReferenceState;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.importer.handler.filter.IOnMatchFilter;
@@ -42,16 +42,16 @@ import com.norconex.importer.handler.filter.OnMatch;
  * Instances are only valid for the scope of a single URL.  
  * @author Pascal Essiembre
  */
-public final class ReferencePipeline 
-        extends Pipeline<ReferencePipelineContext> {
+public final class DocCrawlPipeline 
+        extends Pipeline<DocCrawlPipelineContext> {
 
     private static final Logger LOG = 
-            LogManager.getLogger(ReferencePipeline.class);
+            LogManager.getLogger(DocCrawlPipeline.class);
     
-    public ReferencePipeline() {
+    public DocCrawlPipeline() {
         this(false);
     }
-    public ReferencePipeline(boolean isSitemapReference) {
+    public DocCrawlPipeline(boolean isSitemapReference) {
         super();
         
         addStage(new DepthValidationStage());
@@ -81,18 +81,18 @@ public final class ReferencePipeline
 
     //--- URL Depth ------------------------------------------------------------
     private class DepthValidationStage
-            implements IPipelineStage<ReferencePipelineContext> {
+            implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(ReferencePipelineContext ctx) {
+        public boolean process(DocCrawlPipelineContext ctx) {
             if (ctx.getConfig().getMaxDepth() != -1 
-                    && ctx.getReference().getDepth() 
+                    && ctx.getDocCrawl().getDepth() 
                             > ctx.getConfig().getMaxDepth()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("URL too deep to process (" 
-                            + ctx.getReference().getDepth() + "): " 
-                            + ctx.getReference().getReference());
+                            + ctx.getDocCrawl().getDepth() + "): " 
+                            + ctx.getDocCrawl().getReference());
                 }
-                ctx.getReference().setState(HttpDocReferenceState.TOO_DEEP);
+                ctx.getDocCrawl().setState(HttpDocCrawlState.TOO_DEEP);
                 return false;
             }
             return true;
@@ -101,11 +101,11 @@ public final class ReferencePipeline
     
     //--- URL Filters ----------------------------------------------------------
     private class URLFiltersStage
-            implements IPipelineStage<ReferencePipelineContext> {
+            implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(ReferencePipelineContext ctx) {
+        public boolean process(DocCrawlPipelineContext ctx) {
             if (isURLRejected(ctx.getConfig().getURLFilters(), null, ctx)) {
-                ctx.getReference().setState(HttpDocReferenceState.REJECTED);
+                ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                 return false;
             }
             return true;
@@ -114,13 +114,13 @@ public final class ReferencePipeline
     
     //--- Robots.txt Filters ---------------------------------------------------
     private class RobotsTxtFiltersStage
-            implements IPipelineStage<ReferencePipelineContext> {
+            implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(ReferencePipelineContext ctx) {
+        public boolean process(DocCrawlPipelineContext ctx) {
             if (!ctx.getConfig().isIgnoreRobotsTxt()) {
                 RobotsTxt robotsTxt = ctx.getRobotsTxt();
                 if (isURLRejected(robotsTxt.getFilters(), robotsTxt, ctx)) {
-                    ctx.getReference().setState(HttpDocReferenceState.REJECTED);
+                    ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                     return false;
                 }
             }
@@ -130,14 +130,14 @@ public final class ReferencePipeline
 
     //--- Sitemap URL Extraction -----------------------------------------------
     private class SitemapStage
-            implements IPipelineStage<ReferencePipelineContext> {
+            implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(final ReferencePipelineContext ctx) {
+        public boolean process(final DocCrawlPipelineContext ctx) {
             if (ctx.getConfig().isIgnoreSitemap() 
                     || ctx.getCrawler().getSitemapResolver() == null) {
                 return true;
             }
-            String urlRoot = ctx.getReference().getUrlRoot();
+            String urlRoot = ctx.getDocCrawl().getUrlRoot();
             String[] robotsTxtLocations = null;
             if (ctx.getRobotsTxt() != null) {
                 robotsTxtLocations = ctx.getRobotsTxt().getSitemapLocations();
@@ -146,13 +146,13 @@ public final class ReferencePipeline
                 private static final long serialVersionUID = 
                         7618470895330355434L;
                 @Override
-                public void add(HttpDocReference reference) {
-                    ReferencePipelineContext context = 
-                            new ReferencePipelineContext(
+                public void add(HttpDocCrawl reference) {
+                    DocCrawlPipelineContext context = 
+                            new DocCrawlPipelineContext(
                                     ctx.getCrawler(), 
-                                    ctx.getReferenceStore(), 
+                                    ctx.getDocCrawlStore(), 
                                     reference);
-                    new ReferencePipeline(true).process(context);
+                    new DocCrawlPipeline(true).process(context);
                 }
             };
             ctx.getSitemapResolver().resolveSitemaps(
@@ -166,17 +166,17 @@ public final class ReferencePipeline
     
     //--- URL Normalizer -------------------------------------------------------
     private class URLNormalizerStage
-            implements IPipelineStage<ReferencePipelineContext> {
+            implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(final ReferencePipelineContext ctx) {
+        public boolean process(final DocCrawlPipelineContext ctx) {
             if (ctx.getConfig().getUrlNormalizer() != null) {
                 String url = ctx.getConfig().getUrlNormalizer().normalizeURL(
-                        ctx.getReference().getReference());
+                        ctx.getDocCrawl().getReference());
                 if (url == null) {
-                    ctx.getReference().setState(HttpDocReferenceState.REJECTED);
+                    ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                     return false;
                 }
-                ctx.getReference().setReference(url);
+                ctx.getDocCrawl().setReference(url);
             }
             return true;
         }
@@ -184,17 +184,17 @@ public final class ReferencePipeline
 
     //--- Store Next URLs to process -------------------------------------------
     private class StoreNextURLStage
-            implements IPipelineStage<ReferencePipelineContext> {
+            implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(final ReferencePipelineContext ctx) {
+        public boolean process(final DocCrawlPipelineContext ctx) {
 //            if (robotsMeta != null && robotsMeta.isNofollow()) {
 //                return true;
 //            }
-            String url = ctx.getReference().getReference();
+            String url = ctx.getDocCrawl().getReference();
             if (StringUtils.isBlank(url)) {
                 return true;
             }
-            IReferenceStore refStore = ctx.getReferenceStore();
+            IDocCrawlStore refStore = ctx.getDocCrawlStore();
             
             if (refStore.isActive(url)) {
                 debug("Already being processed: %s", url);
@@ -203,8 +203,8 @@ public final class ReferencePipeline
             } else if (refStore.isProcessed(url)) {
                 debug("Already processed: %s", url);
             } else {
-                refStore.queue(new HttpDocReference(
-                        url, ctx.getReference().getDepth()));
+                refStore.queue(new HttpDocCrawl(
+                        url, ctx.getDocCrawl().getDepth()));
                 debug("Queued for processing: %s", url);
             }
             return true;
@@ -219,7 +219,7 @@ public final class ReferencePipeline
 
     //=== Utility methods ======================================================
     private boolean isURLRejected(IURLFilter[] filters, RobotsTxt robots, 
-            ReferencePipelineContext ctx) {
+            DocCrawlPipelineContext ctx) {
         if (filters == null) {
             return false;
         }
@@ -231,7 +231,7 @@ public final class ReferencePipeline
         boolean atLeastOneIncludeMatch = false;
         for (IURLFilter filter : filters) {
             boolean accepted = filter.acceptURL(
-                    ctx.getReference().getReference());
+                    ctx.getDocCrawl().getReference());
             
             // Deal with includes
             if (isIncludeFilter(filter)) {
@@ -246,7 +246,7 @@ public final class ReferencePipeline
             if (accepted) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("ACCEPTED document URL" + type 
-                            + ". URL=" + ctx.getReference().getReference()
+                            + ". URL=" + ctx.getDocCrawl().getReference()
                             + " Filter=" + filter);
                 }
             } else {
@@ -263,7 +263,7 @@ public final class ReferencePipeline
     }
     
     private void fireDocumentRejected(IURLFilter filter, RobotsTxt robots, 
-            String type, ReferencePipelineContext ctx) {
+            String type, DocCrawlPipelineContext ctx) {
         
         IHttpCrawlerEventListener[] listeners =
                 ctx.getConfig().getCrawlerListeners();
@@ -273,15 +273,15 @@ public final class ReferencePipeline
         for (IHttpCrawlerEventListener listener : listeners) {
             if (robots != null) {
                 listener.documentRobotsTxtRejected(ctx.getCrawler(), 
-                        ctx.getReference().getReference(), filter, robots);
+                        ctx.getDocCrawl().getReference(), filter, robots);
             } else {
                 listener.documentURLRejected(ctx.getCrawler(), 
-                        ctx.getReference().getReference(), filter);
+                        ctx.getDocCrawl().getReference(), filter);
             }
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("REJECTED document URL" + type + ". URL=" 
-                  + ctx.getReference().getReference() 
+                  + ctx.getDocCrawl().getReference() 
                   + " Filter=[one or more filter 'onMatch' "
                   + "attribute is set to 'include', but none of them were "
                   + "matched]");
@@ -289,11 +289,12 @@ public final class ReferencePipeline
     }
     
     @Override
-    public boolean process(ReferencePipelineContext context)
+    public boolean process(DocCrawlPipelineContext context)
             throws CollectorException {
         try {
             if (super.process(context)) {
-                context.getReference().setState(HttpDocReferenceState.OK);
+                // the state is set to new/modified/unmodified by checksummers
+//                context.getDocCrawl().setState(HttpDocCrawlState.OK);
                 return true;
             }
             return false;
@@ -301,19 +302,18 @@ public final class ReferencePipeline
             //TODO do we really want to catch anything other than 
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
-            context.getReference().setState(HttpDocReferenceState.ERROR);
+            context.getDocCrawl().setState(HttpDocCrawlState.ERROR);
             LOG.error("Could not process URL: " 
-                    + context.getReference().getReference(), e);
+                    + context.getDocCrawl().getReference(), e);
             return false;
         } finally {
             //--- Mark URL as Processed ----------------------------------------
-            if (!context.getReference().getState().equals(
-                    HttpDocReferenceState.OK)) {
-                if (context.getReference().getState() == null) {
-                    context.getReference().setState(
-                            HttpDocReferenceState.BAD_STATUS);
+            if (!context.getDocCrawl().getState().isGoodState()) {
+                if (context.getDocCrawl().getState() == null) {
+                    context.getDocCrawl().setState(
+                            HttpDocCrawlState.BAD_STATUS);
                 }
-                context.getReferenceStore().processed(context.getReference());
+                context.getDocCrawlStore().processed(context.getDocCrawl());
 //                status.logInfo(httpDocReference);
             }
         }
