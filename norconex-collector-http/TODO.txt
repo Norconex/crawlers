@@ -4,28 +4,26 @@ The following are either things to be done, or ideas to consider:
 For 2.0.0:
 ============
 
-- Distinguish between NEW and MODIFIED docs.
-
-- Address Fix #17 where URL may change due to permanent redirect 
-  (we want to store the final URL).  Create a new RedirectResolverStage 
-  in DocumentPipeline?
-
-- Create much better/complete unit tests using jetty with Junit to create
-  crawls. 
-
-- Cache Importer instance now created each time in ImportModuleStep?
-
 - Change Committer to support readers instead of File???
 
-- Write content to file if keeping download, else dispose
+- Improve logging/reporting/event control
 
-- remove content type and content family method to avoid
-  conflicts with HTTP Collector?
+DONE: By Importer 2.0: Pass HTTP date of right format to importer 
 
-- Pass HTTP date of right format to importer 
+DONE: remove content type and content family method to avoid
+      conflicts with HTTP Collector?
+
+DONE: Write content to file if keeping download, else dispose
+
+DONE: Distinguish between NEW and MODIFIED docs.
+
+DONE: Create much better/complete unit tests using jetty with Junit to create
+      crawls. 
 
 Any release:
 ============
+
+- Cache Importer instance now created each time in ImportModuleStep?
 
 - Have an interface for how to optionally store downloaded files
   (i.e., location, directory structure, file naming).  This could allow

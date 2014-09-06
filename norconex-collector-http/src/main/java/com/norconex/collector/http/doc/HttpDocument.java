@@ -49,10 +49,11 @@ public class HttpDocument extends ImporterDocument {
     }
 
     public HttpDocument(ImporterDocument importerDocument) {
-        super(importerDocument.getReference());
+        super(importerDocument.getReference(), 
+                new HttpMetadata(importerDocument.getMetadata()));
         setReference(importerDocument.getReference());
         setContent(importerDocument.getContent());
-        getMetadata().putAll(importerDocument.getMetadata());
+//        getMetadata().putAll(importerDocument.getMetadata());
         setContentType(importerDocument.getContentType());
         setContentEncoding(importerDocument.getContentEncoding());
     }
