@@ -20,7 +20,7 @@ import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
-import com.norconex.importer.doc.Content;
+import com.norconex.commons.lang.Content;
 import com.norconex.importer.response.ImporterResponse;
 
 /**

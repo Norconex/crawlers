@@ -9,11 +9,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.http.checksum.IHttpHeadersChecksummer;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
+import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
  * @author Pascal Essiembre
@@ -33,7 +33,7 @@ import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
     }
 
     @Override
-    public boolean process(DocumentPipelineContext ctx) {
+    public boolean execute(DocumentPipelineContext ctx) {
         //TODO only if an INCREMENTAL run... else skip.
         if (useHttpHEADFetchHeaders && !ctx.isHttpHeadFetchEnabled()) {
             return true;

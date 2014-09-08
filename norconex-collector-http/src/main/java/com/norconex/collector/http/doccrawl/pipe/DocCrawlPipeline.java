@@ -24,14 +24,14 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
-import com.norconex.collector.core.pipeline.IPipelineStage;
-import com.norconex.collector.core.pipeline.Pipeline;
 import com.norconex.collector.http.crawler.IHttpCrawlerEventListener;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
+import com.norconex.commons.lang.pipeline.IPipelineStage;
+import com.norconex.commons.lang.pipeline.Pipeline;
 import com.norconex.importer.handler.filter.IOnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 
@@ -83,7 +83,7 @@ public final class DocCrawlPipeline
     private class DepthValidationStage
             implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(DocCrawlPipelineContext ctx) {
+        public boolean execute(DocCrawlPipelineContext ctx) {
             if (ctx.getConfig().getMaxDepth() != -1 
                     && ctx.getDocCrawl().getDepth() 
                             > ctx.getConfig().getMaxDepth()) {
@@ -103,7 +103,7 @@ public final class DocCrawlPipeline
     private class URLFiltersStage
             implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(DocCrawlPipelineContext ctx) {
+        public boolean execute(DocCrawlPipelineContext ctx) {
             if (isURLRejected(ctx.getConfig().getURLFilters(), null, ctx)) {
                 ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                 return false;
@@ -116,7 +116,7 @@ public final class DocCrawlPipeline
     private class RobotsTxtFiltersStage
             implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(DocCrawlPipelineContext ctx) {
+        public boolean execute(DocCrawlPipelineContext ctx) {
             if (!ctx.getConfig().isIgnoreRobotsTxt()) {
                 RobotsTxt robotsTxt = ctx.getRobotsTxt();
                 if (isURLRejected(robotsTxt.getFilters(), robotsTxt, ctx)) {
@@ -132,7 +132,7 @@ public final class DocCrawlPipeline
     private class SitemapStage
             implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(final DocCrawlPipelineContext ctx) {
+        public boolean execute(final DocCrawlPipelineContext ctx) {
             if (ctx.getConfig().isIgnoreSitemap() 
                     || ctx.getCrawler().getSitemapResolver() == null) {
                 return true;
@@ -152,7 +152,7 @@ public final class DocCrawlPipeline
                                     ctx.getCrawler(), 
                                     ctx.getDocCrawlStore(), 
                                     reference);
-                    new DocCrawlPipeline(true).process(context);
+                    new DocCrawlPipeline(true).execute(context);
                 }
             };
             ctx.getSitemapResolver().resolveSitemaps(
@@ -168,7 +168,7 @@ public final class DocCrawlPipeline
     private class URLNormalizerStage
             implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(final DocCrawlPipelineContext ctx) {
+        public boolean execute(final DocCrawlPipelineContext ctx) {
             if (ctx.getConfig().getUrlNormalizer() != null) {
                 String url = ctx.getConfig().getUrlNormalizer().normalizeURL(
                         ctx.getDocCrawl().getReference());
@@ -186,7 +186,7 @@ public final class DocCrawlPipeline
     private class StoreNextURLStage
             implements IPipelineStage<DocCrawlPipelineContext> {
         @Override
-        public boolean process(final DocCrawlPipelineContext ctx) {
+        public boolean execute(final DocCrawlPipelineContext ctx) {
 //            if (robotsMeta != null && robotsMeta.isNofollow()) {
 //                return true;
 //            }
@@ -289,10 +289,10 @@ public final class DocCrawlPipeline
     }
     
     @Override
-    public boolean process(DocCrawlPipelineContext context)
+    public boolean execute(DocCrawlPipelineContext context)
             throws CollectorException {
         try {
-            if (super.process(context)) {
+            if (super.execute(context)) {
                 // the state is set to new/modified/unmodified by checksummers
 //                context.getDocCrawl().setState(HttpDocCrawlState.OK);
                 return true;

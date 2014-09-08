@@ -9,10 +9,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
+import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
  * @author Pascal Essiembre
@@ -24,7 +24,7 @@ import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
     private static final Logger LOG = 
             LogManager.getLogger(ImportModuleStage.class);
     @Override
-    public boolean process(PostImportPipelineContext ctx) {
+    public boolean execute(PostImportPipelineContext ctx) {
         //TODO only if an INCREMENTAL run... else skip.
         IHttpDocumentChecksummer check = 
                 ctx.getConfig().getHttpDocumentChecksummer();

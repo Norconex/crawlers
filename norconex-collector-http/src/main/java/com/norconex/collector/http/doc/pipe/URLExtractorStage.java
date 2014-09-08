@@ -14,13 +14,13 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.pipeline.IPipelineStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.pipe.DocCrawlPipeline;
 import com.norconex.collector.http.doccrawl.pipe.DocCrawlPipelineContext;
 import com.norconex.collector.http.url.IURLExtractor;
+import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
  * Extract URLs before sending to importer (because the importer may
@@ -35,7 +35,7 @@ import com.norconex.collector.http.url.IURLExtractor;
             .getLogger(URLExtractorStage.class);
     
     @Override
-    public boolean process(DocumentPipelineContext ctx) {
+    public boolean execute(DocumentPipelineContext ctx) {
         if (ctx.getRobotsMeta() != null 
                 && ctx.getRobotsMeta().isNofollow()) {
             if (LOG.isDebugEnabled()) {
@@ -69,7 +69,7 @@ import com.norconex.collector.http.url.IURLExtractor;
 //                    uniqueURLs.add(newURL.getReference());
 //                }
                 //TODO do we want to capture them all or just the valid ones?
-                new DocCrawlPipeline().process(context);
+                new DocCrawlPipeline().execute(context);
                 uniqueURLs.add(newURL.getReference());
             }
         }

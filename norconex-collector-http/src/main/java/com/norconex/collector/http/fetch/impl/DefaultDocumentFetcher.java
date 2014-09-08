@@ -45,9 +45,9 @@ import com.norconex.collector.core.doccrawl.DocCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
+import com.norconex.commons.lang.Content;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.importer.doc.Content;
 
 /**
  * Default implementation of {@link IHttpDocumentFetcher}.  

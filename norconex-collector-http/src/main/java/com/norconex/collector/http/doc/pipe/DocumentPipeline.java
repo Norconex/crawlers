@@ -13,8 +13,6 @@ import org.apache.commons.io.IOUtils;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doccrawl.DocCrawlState;
-import com.norconex.collector.core.pipeline.IPipelineStage;
-import com.norconex.collector.core.pipeline.Pipeline;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
 import com.norconex.collector.http.crawler.TargetURLRedirectStrategy;
 import com.norconex.collector.http.delay.IDelayResolver;
@@ -24,8 +22,9 @@ import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.util.PathUtils;
-import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.pipeline.IPipelineStage;
+import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
  * @author Pascal Essiembre
@@ -71,7 +70,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     //--- Wait for delay to expire ---------------------------------------------
     private class DelayResolverStage extends DocStage {
         @Override
-        public boolean process(DocumentPipelineContext ctx) {
+        public boolean execute(DocumentPipelineContext ctx) {
             IDelayResolver delayResolver = 
                     ctx.getConfig().getDelayResolver();
             if (delayResolver != null) {
@@ -94,7 +93,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     //--- HTTP Headers Fetcher -------------------------------------------------
     private class HttpHeadersFetcherStage extends DocStage {
         @Override
-        public boolean process(DocumentPipelineContext ctx) {
+        public boolean execute(DocumentPipelineContext ctx) {
             if (!ctx.isHttpHeadFetchEnabled()) {
                 return true;
             }
@@ -123,7 +122,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     //--- HTTP Headers Filters -------------------------------------------------
     private class HttpHeadersFiltersHEADStage extends DocStage {
         @Override
-        public boolean process(DocumentPipelineContext ctx) {
+        public boolean execute(DocumentPipelineContext ctx) {
             if (ctx.getHttpHeadersFetcher() != null 
                     && DocumentPipelineUtil.isHeadersRejected(ctx)) {
                 ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
@@ -138,7 +137,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     //--- Document Fetcher -----------------------------------------------------            
     private class DocumentFetcherStage extends DocStage {
         @Override
-        public boolean process(DocumentPipelineContext ctx) {
+        public boolean execute(DocumentPipelineContext ctx) {
             //TODO for now we assume the document is downloadable.
             // download as file
             DocCrawlState state = ctx.getConfig().getHttpDocumentFetcher()
@@ -172,7 +171,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     //--- Save Download --------------------------------------------------------            
     private class SaveDownloadedFileStage extends DocStage {
         @Override
-        public boolean process(DocumentPipelineContext ctx) {
+        public boolean execute(DocumentPipelineContext ctx) {
             if (!ctx.getConfig().isKeepDownloads()) {
                 return true;
             }
@@ -202,7 +201,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     //--- Robots Meta Creation -------------------------------------------------
     private class RobotsMetaCreateStage extends DocStage {
         @Override
-        public boolean process(DocumentPipelineContext ctx) {
+        public boolean execute(DocumentPipelineContext ctx) {
             if (ctx.getConfig().isIgnoreRobotsMeta()) {
                 return true;
             }
@@ -229,7 +228,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     //--- Robots Meta NoIndex Check --------------------------------------------
     private class RobotsMetaNoIndexStage extends DocStage {
         @Override
-        public boolean process(DocumentPipelineContext ctx) {
+        public boolean execute(DocumentPipelineContext ctx) {
             boolean canIndex = ctx.getConfig().isIgnoreRobotsMeta() 
                     || ctx.getRobotsMeta() == null
                     || !ctx.getRobotsMeta().isNoindex();
@@ -247,7 +246,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     //--- Headers filters if not done already ----------------------------------
     private class HttpHeadersFiltersGETStage extends DocStage {
         @Override
-        public boolean process(DocumentPipelineContext ctx) {
+        public boolean execute(DocumentPipelineContext ctx) {
             if (ctx.getHttpHeadersFetcher() == null) {
                 DocumentPipelineUtil.enhanceHTTPHeaders(ctx.getMetadata());
                 if (DocumentPipelineUtil.isHeadersRejected(ctx)) {
@@ -263,7 +262,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     //--- Document Pre-Processing ----------------------------------------------
     private class DocumentPreProcessingStage extends DocStage {
         @Override
-        public boolean process(DocumentPipelineContext ctx) {
+        public boolean execute(DocumentPipelineContext ctx) {
             if (ctx.getConfig().getPreImportProcessors() != null) {
                 for (IHttpDocumentProcessor preProc :
                         ctx.getConfig().getPreImportProcessors()) {

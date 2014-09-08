@@ -136,7 +136,7 @@ public class HttpCrawler extends AbstractCrawler {
                 String startURL = startURLs[i];
                 DocCrawlPipelineContext context = new DocCrawlPipelineContext(
                         this, refStore, new HttpDocCrawl(startURL, 0));
-                new DocCrawlPipeline().process(context);
+                new DocCrawlPipeline().execute(context);
             }
             HttpCrawlerEventFirer.fireCrawlerStarted(this);
         }
@@ -231,7 +231,7 @@ public class HttpCrawler extends AbstractCrawler {
                 HttpDocCrawl reference = (HttpDocCrawl) it.next();
                 DocCrawlPipelineContext context = new DocCrawlPipelineContext(
                         this, refStore, reference);
-                new DocCrawlPipeline().process(context);
+                new DocCrawlPipeline().execute(context);
                 count++;
             }
             processURLs(refStore, statusUpdater, suite, false);
@@ -399,7 +399,7 @@ public class HttpCrawler extends AbstractCrawler {
             //TODO cache the pipeline object?
             DocumentPipelineContext context = new DocumentPipelineContext(
                     this, docCrawlStore, doc, docCrawl/*, robotsTxt*/);
-            if (new DocumentPipeline().process(context)) {
+            if (new DocumentPipeline().execute(context)) {
                 ImporterResponse response = context.getImporterResponse();
                 if (response != null) {
                     processImportResponse(response, docCrawlStore, docCrawl);
@@ -440,7 +440,7 @@ public class HttpCrawler extends AbstractCrawler {
                 PostImportPipelineContext context = 
                         new PostImportPipelineContext(
                                 this, docCrawlStore, doc, docCrawl);
-                new PostImportPipeline().process(context);
+                new PostImportPipeline().execute(context);
                 ImporterResponse[] children = response.getNestedResponses();
                 for (ImporterResponse child : children) {
                     HttpDocCrawl childDocCrawl = new HttpDocCrawl(

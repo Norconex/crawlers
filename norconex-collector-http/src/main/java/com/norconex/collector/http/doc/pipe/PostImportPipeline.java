@@ -9,11 +9,11 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.pipeline.IPipelineStage;
-import com.norconex.collector.core.pipeline.Pipeline;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.committer.ICommitter;
+import com.norconex.commons.lang.pipeline.IPipelineStage;
+import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
  * @author Pascal Essiembre
@@ -35,7 +35,7 @@ public class PostImportPipeline
     //--- Document Post-Processing ---------------------------------------------
     private class DocumentPostProcessingStage extends DocStage {
         @Override
-        public boolean process(PostImportPipelineContext ctx) {
+        public boolean execute(PostImportPipelineContext ctx) {
             if (ctx.getConfig().getPostImportProcessors() != null) {
                 for (IHttpDocumentProcessor postProc :
                         ctx.getConfig().getPostImportProcessors()) {
@@ -52,7 +52,7 @@ public class PostImportPipeline
     //--- Document Commit ------------------------------------------------------
     private class CommitModuleStage extends DocStage {
         @Override
-        public boolean process(PostImportPipelineContext ctx) {
+        public boolean execute(PostImportPipelineContext ctx) {
             ICommitter committer = ctx.getConfig().getCommitter();
             if (committer != null) {
 

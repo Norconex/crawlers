@@ -41,9 +41,9 @@ import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.website.TestWebServer;
 import com.norconex.committer.impl.FileSystemCommitter;
+import com.norconex.commons.lang.Content;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.importer.doc.Content;
 
 public abstract class AbstractHttpTest {
 
