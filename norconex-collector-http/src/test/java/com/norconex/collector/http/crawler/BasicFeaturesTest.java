@@ -57,9 +57,9 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         assertListSize("referenced URLs", inPageUrls, 2);
 
         Assert.assertTrue("Invalid relative URL: " + inPageUrls.get(0),
-                inPageUrls.get(0).endsWith("/test/redirected/page1.html"));
+                inPageUrls.get(0).matches(".*/test/redirected/page[12].html"));
         Assert.assertTrue("Invalid relative URL: " + inPageUrls.get(1),
-                inPageUrls.get(1).endsWith("/test/redirected/page2.html"));
+                inPageUrls.get(1).matches(".*/test/redirected/page[12].html"));
     }
     
     @Test
