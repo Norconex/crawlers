@@ -28,7 +28,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -359,13 +358,12 @@ public class HttpCrawler extends AbstractCrawler {
 //    }
     
     private void deleteURL(
-            IDocCrawl docCrawl, File outputFile, HttpDocument doc) {
+            IDocCrawl docCrawl, /*File outputFile,*/ HttpDocument doc) {
         LOG.debug(getId() + ": Deleting URL: " + docCrawl.getReference());
         ICommitter committer = getCrawlerConfig().getCommitter();
         ((HttpDocCrawl) docCrawl).setState(HttpDocCrawlState.DELETED);
         if (committer != null) {
-            committer.queueRemove(
-                    docCrawl.getReference(), outputFile, doc.getMetadata());
+            committer.remove(docCrawl.getReference(), doc.getMetadata());
         }
     }
     
@@ -382,14 +380,14 @@ public class HttpCrawler extends AbstractCrawler {
         
         try {
             if (delete) {
-                File outputFile = File.createTempFile(
-                        "committer-delete-", ".txt", 
-                        getCrawlerConfig().getWorkDir());
-                FileUtils.copyInputStreamToFile(
-                        doc.getContent().getInputStream(), outputFile);
+//                File outputFile = File.createTempFile(
+//                        "committer-delete-", ".txt", 
+//                        getCrawlerConfig().getWorkDir());
+//                FileUtils.copyInputStreamToFile(
+//                        doc.getContent().getInputStream(), outputFile);
 
                 
-                deleteURL(docCrawl, outputFile, doc);
+                deleteURL(docCrawl, /*outputFile, */doc);
                 return;
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug(getId() + ": Processing URL: " + url);
@@ -466,14 +464,14 @@ public class HttpCrawler extends AbstractCrawler {
                         HttpDocCrawlState.DELETED);
                 if (committer != null) {
                     
-                    File outputFile = File.createTempFile(
-                            "committer-delete-", ".txt", 
-                            getCrawlerConfig().getWorkDir());
-                    FileUtils.copyInputStreamToFile(
-                            doc.getContent().getInputStream(), outputFile);
+//                    File outputFile = File.createTempFile(
+//                            "committer-delete-", ".txt", 
+//                            getCrawlerConfig().getWorkDir());
+//                    FileUtils.copyInputStreamToFile(
+//                            doc.getContent().getInputStream(), outputFile);
                     
-                    committer.queueRemove(docCrawl.getReference(), 
-                            outputFile, doc.getMetadata());
+                    committer.remove(
+                            docCrawl.getReference(), doc.getMetadata());
                 }
             }
         } catch (Exception e) {

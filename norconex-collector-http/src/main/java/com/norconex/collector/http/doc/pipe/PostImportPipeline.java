@@ -3,13 +3,8 @@
  */
 package com.norconex.collector.http.doc.pipe;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
-
-import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
+import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
@@ -57,23 +52,25 @@ public class PostImportPipeline
             if (committer != null) {
 
                 //TODO pass InputStream (or Content) instead of File?
-                try {
-                    File outputFile = File.createTempFile(
-                            "committer-add-", ".txt", 
-                            ctx.getConfig().getWorkDir());
+//                try {
+//                    File outputFile = File.createTempFile(
+//                            "committer-add-", ".txt", 
+//                            ctx.getConfig().getWorkDir());
+//                    
+//                    // Handle multi docs...
+//                    
+//                    FileUtils.copyInputStreamToFile(
+//                            ctx.getDocument().getContent()
+//                                    .getInputStream(), outputFile);
+                    HttpDocument doc = ctx.getDocument();
                     
-                    // Handle multi docs...
                     
-                    FileUtils.copyInputStreamToFile(
-                            ctx.getDocument().getContent()
-                                    .getInputStream(), outputFile);
-                    
-                    committer.queueAdd(ctx.getDocument().getReference(), 
-                            outputFile, ctx.getDocument().getMetadata());
-                } catch (IOException e) {
-                    throw new CollectorException(
-                            "Could not queue document in committer");
-                }
+                    committer.add(doc.getReference(), 
+                            doc.getContent().getInputStream(), doc.getMetadata());
+//                } catch (IOException e) {
+//                    throw new CollectorException(
+//                            "Could not queue document in committer");
+//                }
             }
             HttpCrawlerEventFirer.fireDocumentCrawled(ctx.getCrawler(), 
                     ctx.getDocument());
