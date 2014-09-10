@@ -1,4 +1,4 @@
-/* Copyright 2010-2013 Norconex Inc.
+/* Copyright 2010-2014 Norconex Inc.
  * 
  * This file is part of Norconex HTTP Collector.
  * 
@@ -38,6 +38,8 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
+import com.norconex.collector.core.crawler.event.CrawlerEventManager;
+import com.norconex.collector.core.crawler.event.DocCrawlEvent;
 import com.norconex.collector.core.doccrawl.IDocCrawl;
 import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
 import com.norconex.collector.http.doc.HttpDocument;
@@ -74,6 +76,7 @@ public class HttpCrawler extends AbstractCrawler {
 	private ISitemapResolver sitemapResolver;
     private boolean stopped;
     private int okURLsCount;
+    private CrawlerEventManager crawlerEventManager;
     
     /**
      * Constructor.
@@ -126,6 +129,9 @@ public class HttpCrawler extends AbstractCrawler {
         this.sitemapResolver = getCrawlerConfig().getSitemapResolverFactory()
                 .createSitemapResolver(getCrawlerConfig(), resume);
         
+        this.crawlerEventManager = new CrawlerEventManager(
+                this, getCrawlerConfig().getCrawlerListeners());
+        
         if (resume) {
             okURLsCount = statusUpdater.getProperties().getInt(
                     PROP_OK_URL_COUNT, 0);
@@ -137,7 +143,7 @@ public class HttpCrawler extends AbstractCrawler {
                         this, refStore, new HttpDocCrawl(startURL, 0));
                 new DocCrawlPipeline().execute(context);
             }
-            HttpCrawlerEventFirer.fireCrawlerStarted(this);
+            this.crawlerEventManager.crawlerStarted();
         }
         
     }
@@ -199,7 +205,7 @@ public class HttpCrawler extends AbstractCrawler {
         FileUtil.deleteEmptyDirs(gelCrawlerDownloadDir());
 
         if (!stopped) {
-            HttpCrawlerEventFirer.fireCrawlerFinished(this);
+            this.crawlerEventManager.crawlerFinished();
         }
         LOG.info(getId() + ": Crawler \"" + getId() + "\" " 
                 + (stopped ? "stopped." : "completed."));
@@ -625,5 +631,7 @@ public class HttpCrawler extends AbstractCrawler {
     }
 
 
-
+    public void fireDocCrawlEvent(DocCrawlEvent event) {
+        crawlerEventManager.crawlerDocumentEvent(event);
+    }
 }

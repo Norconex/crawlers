@@ -1,4 +1,4 @@
-/* Copyright 2010-2013 Norconex Inc.
+/* Copyright 2010-2014 Norconex Inc.
  * 
  * This file is part of Norconex HTTP Collector.
  * 
@@ -23,8 +23,9 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.crawler.event.DocCrawlEvent;
 import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
-import com.norconex.collector.http.crawler.IHttpCrawlerEventListener;
+import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.filter.IURLFilter;
@@ -93,6 +94,9 @@ public final class DocCrawlPipeline
                             + ctx.getDocCrawl().getReference());
                 }
                 ctx.getDocCrawl().setState(HttpDocCrawlState.TOO_DEEP);
+                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                        HttpDocCrawlEvent.REJECTED_TOO_DEEP, 
+                        ctx.getDocCrawl(), ctx.getDocCrawl().getDepth()));
                 return false;
             }
             return true;
@@ -264,21 +268,11 @@ public final class DocCrawlPipeline
     
     private void fireDocumentRejected(IURLFilter filter, RobotsTxt robots, 
             String type, DocCrawlPipelineContext ctx) {
-        
-        IHttpCrawlerEventListener[] listeners =
-                ctx.getConfig().getCrawlerListeners();
-        if (listeners == null) {
-            return;
-        }
-        for (IHttpCrawlerEventListener listener : listeners) {
-            if (robots != null) {
-                listener.documentRobotsTxtRejected(ctx.getCrawler(), 
-                        ctx.getDocCrawl().getReference(), filter, robots);
-            } else {
-                listener.documentURLRejected(ctx.getCrawler(), 
-                        ctx.getDocCrawl().getReference(), filter);
-            }
-        }
+
+        ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                HttpDocCrawlEvent.REJECTED_FILTER, 
+                ctx.getDocCrawl(), filter));
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("REJECTED document URL" + type + ". URL=" 
                   + ctx.getDocCrawl().getReference() 
@@ -303,6 +297,11 @@ public final class DocCrawlPipeline
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
             context.getDocCrawl().setState(HttpDocCrawlState.ERROR);
+            
+            context.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                    HttpDocCrawlEvent.REJECTED_ERROR, 
+                    context.getDocCrawl(), e));
+            
             LOG.error("Could not process URL: " 
                     + context.getDocCrawl().getReference(), e);
             return false;

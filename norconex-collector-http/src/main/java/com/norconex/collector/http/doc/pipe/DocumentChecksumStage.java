@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.norconex.collector.core.crawler.event.DocCrawlEvent;
 import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
@@ -53,6 +54,9 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
                 LOG.debug("REJECTED document checkum (unmodified): URL=" 
                         + ctx.getDocCrawl().getReference());
             }
+            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                    DocCrawlEvent.REJECTED_UNMODIFIED, 
+                    ctx.getDocCrawl(), check));
             ctx.getDocCrawl().setState(HttpDocCrawlState.UNMODIFIED);
             return false;
         }

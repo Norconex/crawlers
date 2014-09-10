@@ -6,7 +6,7 @@ package com.norconex.collector.http.doc.pipe;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
+import com.norconex.collector.core.crawler.event.DocCrawlEvent;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
@@ -53,15 +53,17 @@ import com.norconex.importer.handler.filter.OnMatch;
                                     .getDocCrawl().getReference(), filter));
                 }
             } else {
-                HttpCrawlerEventFirer.fireDocumentRejected(ctx.getCrawler(),
-                        ctx.getDocument(), filter);
+                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                        DocCrawlEvent.REJECTED_FILTER, 
+                        ctx.getDocCrawl(), filter));
                 ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                 return false;
             }
         }
         if (hasIncludes && !atLeastOneIncludeMatch) {
-            HttpCrawlerEventFirer.fireDocumentRejected(ctx.getCrawler(),
-                    ctx.getDocument(), null);
+            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                    DocCrawlEvent.REJECTED_FILTER, 
+                    ctx.getDocCrawl(), null));
             ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
             return false;
         }

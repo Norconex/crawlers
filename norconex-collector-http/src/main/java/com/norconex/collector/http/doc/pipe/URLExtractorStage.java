@@ -14,7 +14,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
+import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.pipe.DocCrawlPipeline;
@@ -77,8 +78,10 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
             ctx.getMetadata().addString(HttpMetadata.COLLECTOR_REFERNCED_URLS, 
                     uniqueURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
-        HttpCrawlerEventFirer.fireDocumentURLsExtracted(
-                ctx.getCrawler(), ctx.getDocument());
+        
+        ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                HttpDocCrawlEvent.URLS_EXTRACTED, 
+                ctx.getDocCrawl(), uniqueURLs));
         return true;
     }
 }

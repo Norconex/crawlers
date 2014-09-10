@@ -3,7 +3,8 @@
  */
 package com.norconex.collector.http.doc.pipe;
 
-import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
+import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.committer.ICommitter;
@@ -36,8 +37,10 @@ public class PostImportPipeline
                         ctx.getConfig().getPostImportProcessors()) {
                     postProc.processDocument(
                             ctx.getHttpClient(), ctx.getDocument());
-                    HttpCrawlerEventFirer.fireDocumentPostProcessed(
-                            ctx.getCrawler(), ctx.getDocument(), postProc);
+                    
+                    ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                            HttpDocCrawlEvent.DOCUMENT_POSTIMPORTED, 
+                            ctx.getDocCrawl(), postProc));
                 }            
             }
             return true;
@@ -72,8 +75,10 @@ public class PostImportPipeline
 //                            "Could not queue document in committer");
 //                }
             }
-            HttpCrawlerEventFirer.fireDocumentCrawled(ctx.getCrawler(), 
-                    ctx.getDocument());
+            
+            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                    HttpDocCrawlEvent.DOCUMENT_COMMITTED, 
+                    ctx.getDocCrawl(), committer));
             return true;
         }
     }  

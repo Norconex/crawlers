@@ -12,8 +12,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.doccrawl.DocCrawlState;
-import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
+import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
 import com.norconex.collector.http.crawler.TargetURLRedirectStrategy;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
@@ -112,9 +112,9 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
             DocumentPipelineUtil.enhanceHTTPHeaders(metadata);
             DocumentPipelineUtil.applyMetadataToDocument(ctx.getDocument());
             
-            HttpCrawlerEventFirer.fireDocumentHeadersFetched(
-                    ctx.getCrawler(), ref.getReference(), 
-                    headersFetcher, metadata);
+            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                    DocCrawlEvent.HEADERS_FETCHED, 
+                    ctx.getDocCrawl(), headersFetcher));
             return true;
         }
     }
@@ -140,8 +140,9 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         public boolean execute(DocumentPipelineContext ctx) {
             //TODO for now we assume the document is downloadable.
             // download as file
-            DocCrawlState state = ctx.getConfig().getHttpDocumentFetcher()
-                    .fetchDocument(ctx.getHttpClient(), ctx.getDocument());
+            HttpDocCrawlState state = (HttpDocCrawlState) 
+                    ctx.getConfig().getHttpDocumentFetcher().fetchDocument(
+                            ctx.getHttpClient(), ctx.getDocument());
 
             DocumentPipelineUtil.enhanceHTTPHeaders(
                     ctx.getDocument().getMetadata());
@@ -153,15 +154,22 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                     ctx.getDocCrawl(), ctx.getReferenceStore());
             //--- END Fix #17 ---
             
-//            if (status == HttpDocReferenceState.OK) {
             if (state.isGoodState()) {
-                HttpCrawlerEventFirer.fireDocumentFetched(
-                        ctx.getCrawler(), ctx.getDocument(), 
-                        ctx.getConfig().getHttpDocumentFetcher());
+                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                        DocCrawlEvent.DOCUMENT_FETCHED, ctx.getDocCrawl(), 
+                        ctx.getConfig().getHttpDocumentFetcher()));
             }
             ctx.getDocCrawl().setState(state);
             if (!state.isGoodState()) {
-//            if (ctx.getReference().getState() != HttpDocReferenceState.OK) {
+                String eventType = null;
+                if (state.isOneOf(HttpDocCrawlState.NOT_FOUND)) {
+                    eventType = HttpDocCrawlEvent.REJECTED_NOTFOUND;
+                } else {
+                    eventType = HttpDocCrawlEvent.REJECTED_BAD_STATUS;
+                }
+                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                        eventType, ctx.getDocCrawl(), 
+                        ctx.getConfig().getHttpDocumentFetcher()));
                 return false;
             }
             return true;
@@ -190,6 +198,10 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                 IOUtils.copy(
                         ctx.getDocument().getContent().getInputStream(), out);
                 IOUtils.closeQuietly(out);
+                
+                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                        HttpDocCrawlEvent.SAVED_FILE, ctx.getDocCrawl(), 
+                        downloadFile));
             } catch (IOException e) {
                 throw new CollectorException("Cannot create RobotsMeta for : " 
                                 + ctx.getDocCrawl().getReference(), e);
@@ -214,6 +226,11 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                                 ctx.getDocument().getContentType(),
                                 ctx.getMetadata()));
                 reader.close();
+
+                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                        HttpDocCrawlEvent.CREATED_ROBOTS_META, 
+                        ctx.getDocCrawl(), 
+                        ctx.getRobotsMeta()));
             } catch (IOException e) {
                 throw new CollectorException("Cannot create RobotsMeta for : " 
                                 + ctx.getDocCrawl().getReference(), e);
@@ -233,9 +250,11 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                     || ctx.getRobotsMeta() == null
                     || !ctx.getRobotsMeta().isNoindex();
             if (!canIndex) {
-                HttpCrawlerEventFirer.fireDocumentRobotsMetaRejected(
-                        ctx.getCrawler(), ctx.getDocCrawl().getReference(), 
-                        ctx.getRobotsMeta());
+                
+                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                        HttpDocCrawlEvent.REJECTED_ROBOTS_META_NOINDEX, 
+                        ctx.getDocCrawl(), 
+                        ctx.getRobotsMeta()));
                 ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
                 return false;
             }
@@ -268,8 +287,10 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                         ctx.getConfig().getPreImportProcessors()) {
                     preProc.processDocument(
                             ctx.getHttpClient(), ctx.getDocument());
-                    HttpCrawlerEventFirer.fireDocumentPreProcessed(
-                            ctx.getCrawler(), ctx.getDocument(), preProc);
+                    
+                    ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                            HttpDocCrawlEvent.DOCUMENT_PREIMPORTED, 
+                            ctx.getDocCrawl(), preProc));
                 }
             }
             return true;

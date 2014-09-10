@@ -6,7 +6,7 @@ package com.norconex.collector.http.doc.pipe;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.crawler.HttpCrawlerEventFirer;
+import com.norconex.collector.core.crawler.event.DocCrawlEvent;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
@@ -54,8 +54,10 @@ import com.norconex.importer.response.ImporterResponse;
                     LOG.debug("ACCEPTED document import. URL="
                             + ctx.getDocCrawl().getReference());
                 }
-                HttpCrawlerEventFirer.fireDocumentImported(ctx.getCrawler(),
-                        ctx.getDocument());
+                
+                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                        DocCrawlEvent.DOCUMENT_IMPORTED, 
+                        ctx.getDocCrawl(), response));
                 return true;
             }
                 
@@ -74,8 +76,9 @@ import com.norconex.importer.response.ImporterResponse;
 //                    HttpCrawlerEventFirer.fireDocumentImported(ctx.getCrawler(), doc);
 //                    return true;
 //                }
-            HttpCrawlerEventFirer.fireDocumentImportRejected(ctx.getCrawler(), 
-                    ctx.getDocument());
+            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                    DocCrawlEvent.REJECTED_IMPORT, 
+                    ctx.getDocCrawl(), response));
             ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
             return false;
         }

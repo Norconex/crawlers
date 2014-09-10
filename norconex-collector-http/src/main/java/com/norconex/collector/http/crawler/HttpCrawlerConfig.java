@@ -1,4 +1,4 @@
-/* Copyright 2010-2013 Norconex Inc.
+/* Copyright 2010-2014 Norconex Inc.
  * 
  * This file is part of Norconex HTTP Collector.
  * 
@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
 import com.norconex.collector.core.crawler.ICrawlerConfig;
+import com.norconex.collector.core.crawler.event.ICrawlerEventListener;
 import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
 import com.norconex.collector.http.checksum.IHttpHeadersChecksummer;
 import com.norconex.collector.http.checksum.impl.DefaultHttpDocumentChecksummer;
@@ -132,7 +133,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private IHttpDocumentChecksummer httpDocumentChecksummer =
     		new DefaultHttpDocumentChecksummer();
 	
-    private IHttpCrawlerEventListener[] crawlerListeners;
+    private ICrawlerEventListener[] crawlerListeners;
     
     private ICommitter committer;
     
@@ -237,11 +238,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setDelayResolver(IDelayResolver delayResolver) {
         this.delayResolver = delayResolver;
     }
-    public IHttpCrawlerEventListener[] getCrawlerListeners() {
+    public ICrawlerEventListener[] getCrawlerListeners() {
         return crawlerListeners;
     }
     public void setCrawlerListeners(
-            IHttpCrawlerEventListener[] crawlerListeners) {
+            ICrawlerEventListener[] crawlerListeners) {
         this.crawlerListeners = ArrayUtils.clone(crawlerListeners);
     }
     public IHttpHeadersFilter[] getHttpHeadersFilters() {
@@ -430,7 +431,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         loadSimpleSettings(xml);
 
         //--- Crawler Listeners ------------------------------------------------
-        IHttpCrawlerEventListener[] crawlerListeners = loadListeners(xml,
+        ICrawlerEventListener[] crawlerListeners = loadListeners(xml,
                 "crawlerListeners.listener");
         setCrawlerListeners(defaultIfEmpty(crawlerListeners,
                 getCrawlerListeners()));
@@ -588,18 +589,18 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return filters.toArray(new IHttpDocumentFilter[] {});
     }
 
-    private IHttpCrawlerEventListener[] loadListeners(XMLConfiguration xml,
+    private ICrawlerEventListener[] loadListeners(XMLConfiguration xml,
             String xmlPath) {
-        List<IHttpCrawlerEventListener> listeners = new ArrayList<>();
+        List<ICrawlerEventListener> listeners = new ArrayList<>();
         List<HierarchicalConfiguration> listenerNodes = xml
                 .configurationsAt(xmlPath);
         for (HierarchicalConfiguration listenerNode : listenerNodes) {
-            IHttpCrawlerEventListener listener = ConfigurationUtil
+            ICrawlerEventListener listener = ConfigurationUtil
                     .newInstance(listenerNode);
             listeners.add(listener);
             LOG.info("HTTP Crawler event listener loaded: " + listener);
         }
-        return listeners.toArray(new IHttpCrawlerEventListener[] {});
+        return listeners.toArray(new ICrawlerEventListener[] {});
     }
 
     private IHttpDocumentProcessor[] loadProcessors(XMLConfiguration xml,
