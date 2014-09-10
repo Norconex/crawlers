@@ -4,9 +4,10 @@ The following are either things to be done, or ideas to consider:
 For 2.0.0:
 ============
 
-- Change Committer to support readers instead of File???
 
 - Improve logging/reporting/event control
+
+DONE: Change Committer to support readers instead of File???
 
 DONE: By Importer 2.0: Pass HTTP date of right format to importer 
 

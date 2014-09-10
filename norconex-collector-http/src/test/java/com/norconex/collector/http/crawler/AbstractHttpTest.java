@@ -119,14 +119,19 @@ public abstract class AbstractHttpTest {
         Collection<File> files = FileUtils.listFiles(addDir, null, true);
         List<HttpDocument> docs = new ArrayList<>();
         for (File file : files) {
-            if (file.isDirectory() || file.getName().endsWith(".meta")) {
+            if (file.isDirectory() 
+                    || file.getName().endsWith(".meta")
+                    || file.getName().endsWith(".ref")
+                    ) {
                 continue;
             }
             HttpMetadata meta = new HttpMetadata(file.getAbsolutePath());
             meta.load(FileUtils.openInputStream(
                     new File(file.getAbsolutePath() + ".meta")));
-            HttpDocument doc = new HttpDocument(
-                    meta.getString(HttpMetadata.DOC_REFERENCE));
+            String reference = FileUtils.readFileToString(
+                    new File(file.getAbsolutePath() + ".ref"));
+            
+            HttpDocument doc = new HttpDocument(reference);
             // remove previous reference to avoid duplicates
             doc.getMetadata().remove(HttpMetadata.COLLECTOR_URL);
             doc.getMetadata().load(meta);
