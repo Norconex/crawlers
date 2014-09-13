@@ -30,6 +30,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -101,6 +102,8 @@ public class DefaultDocumentFetcher
 
 	        
             InputStream is = response.getEntity().getContent();
+            
+            
             if (ArrayUtils.contains(validStatusCodes, statusCode)) {
                 //--- Fetch headers ---
                 Header[] headers = response.getAllHeaders();
@@ -116,20 +119,11 @@ public class DefaultDocumentFetcher
                 }
                 
                 //--- Fetch body
-//                FileOutputStream os = FileUtils.openOutputStream(
-//                        doc.getLocalFile());
-//                IOUtils.copy(is, os);
-                
                 doc.setContent(new Content(is));
-                //TODO read a copy to force caching and then close the HTTP stream???
                 
-//                IOUtils.
-                
-//                IOUtils.closeQuietly(is);
-                
-                //TODO save a download copy if downloads are kept.
-                
-//                IOUtils.closeQuietly(os);
+                //read a copy to force caching and then close the HTTP stream
+                IOUtils.copy(doc.getContent().getInputStream(), 
+                        new NullOutputStream());
                 return HttpDocCrawlState.NEW;
             }
             // read response anyway to be safer, but ignore content

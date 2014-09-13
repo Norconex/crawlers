@@ -23,29 +23,9 @@ import com.norconex.importer.doc.ImporterDocument;
 public class HttpDocument extends ImporterDocument {
 
     private static final long serialVersionUID = 4376740210800410675L;
-//    private final String url;
-//    private final File localFile;
-//    private final HttpMetadata metadata;
-
-//    private final HttpDocCrawl httpReference;
-    
-//    private String originalReference;
-//    
-//    public HttpDocument(HttpDocCrawl httpReference) {
-//        super(httpReference.getReference(), new HttpMetadata(
-//                httpReference.getReference()));
-//        this.httpReference = httpReference;
-//    }
 
     public HttpDocument(String reference) {
         super(reference, new HttpMetadata(reference));
-        
-        
-//        private String reference;
-//        private Content content;
-//        private final ImporterMetadata metadata;
-//        private ContentType contentType;
-//        private String contentEncoding;
     }
 
     public HttpDocument(ImporterDocument importerDocument) {
@@ -53,51 +33,9 @@ public class HttpDocument extends ImporterDocument {
                 new HttpMetadata(importerDocument.getMetadata()));
         setReference(importerDocument.getReference());
         setContent(importerDocument.getContent());
-//        getMetadata().putAll(importerDocument.getMetadata());
         setContentType(importerDocument.getContentType());
         setContentEncoding(importerDocument.getContentEncoding());
     }
-    
-//    
-//    /**
-//     * @return the httpReference
-//     */
-//    public HttpDocCrawl getHttpReference() {
-//        return httpReference;
-//    }
-//    
-    
-    
-//    
-//    
-//    public HttpDocument(String url, File localFile) {
-//        super(new http);
-//        this.url = url;
-//        this.localFile = localFile;
-//        this.metadata = new HttpMetadata(url);
-//    }
-
-//    public String getUrl() {
-//        //TODO make it point to meta URL or keep separate to distinguish
-//        //between original URL and potentiallly overwritten one?
-//        return url;
-//    }
-//
-//    public File getLocalFile() {
-//        return localFile;
-//    }
-
-
-//    public String getOriginalReference() {
-//        return originalReference;
-//    }
-//
-//    public void setOriginalReference(String originalReference) {
-//        this.originalReference = originalReference;
-//    }
-
-
-
 
     public HttpMetadata getMetadata() {
         return (HttpMetadata) super.getMetadata();

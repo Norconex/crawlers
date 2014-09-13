@@ -4,25 +4,17 @@ The following are either things to be done, or ideas to consider:
 For 2.0.0:
 ============
 
+- Add total execution time, periodic time elapsed and estimated remaining, print docs so far.
 
-- Improve logging/reporting/event control
+- Test that deletion of embedded docs are detected and sent to committer
 
-DONE: Change Committer to support readers instead of File???
-
-DONE: By Importer 2.0: Pass HTTP date of right format to importer 
-
-DONE: remove content type and content family method to avoid
-      conflicts with HTTP Collector?
-
-DONE: Write content to file if keeping download, else dispose
-
-DONE: Distinguish between NEW and MODIFIED docs.
-
-DONE: Create much better/complete unit tests using jetty with Junit to create
-      crawls. 
+- Do we want DefaultReferenceStore implementation or shall we call the 
+  Collector Core MapDB one "Default" ?
 
 Any release:
 ============
+
+- Store somewhere whether a committed document is new or modified.
 
 - Cache Importer instance now created each time in ImportModuleStep?
 
@@ -57,30 +49,10 @@ Any release:
 - Add the ability to control how many successive crawls it has to go through
   before deleting a document.
 
-- Make printing of debug messages for rejection easier/more obvious. Maybe
-  have a logger interface with two implementation. One uses log4j as is, one
-  uses inline xml configuration instead. 
-  
 - Have configurable the level of verbosity desired when logging exceptions.
   The options could be:
      - type: none|all|first|last
      - stacktrace: false|true
-
-- When ready to make api changes, take out TargetURLRedirectStrategy and 
-  put that logic into DefaultDocumentFetcher will require signature change.
-
-- Use toSafeFileName and fromSafeFileName from classe FileUtil class to 
-  ensure directories can be created without issues.
-
-- Redo crawler event model so only 1 method needs to be implemented
-  and an event object is passed, allowing any custom event implementation
-  to be added, each event having a unique id.
-
-- Consider BlockingQueue for Derby implementation providing fast memory access
-  of queued URL, with the queue fed from DB by another thread. 
-
-- Maybe: Add documentRejectedChecksum and documentRejectedHeadersChecksum to 
-  IHttpCrawlerEventListener and fire them?  <-- Not if we redo event model.
 
 - Make sure maxURL counter saved in progress is in sync with each time we commit
   to avoid having a counter higher than actual URLs processed in case of 

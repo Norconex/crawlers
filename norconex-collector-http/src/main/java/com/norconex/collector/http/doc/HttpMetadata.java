@@ -34,9 +34,9 @@ public class HttpMetadata extends ImporterMetadata {
     
     public static final String COLLECTOR_URL = COLLECTOR_PREFIX + "url";
     public static final String COLLECTOR_CONTENT_TYPE = 
-            COLLECTOR_PREFIX + "contentType";
+            COLLECTOR_PREFIX + "content-type";
     public static final String COLLECTOR_CONTENT_ENCODING = 
-            COLLECTOR_PREFIX + "contentEncoding";
+            COLLECTOR_PREFIX + "content-encoding";
     public static final String COLLECTOR_DEPTH = COLLECTOR_PREFIX + "depth";
     public static final String COLLECTOR_SM_LASTMOD = 
             COLLECTOR_PREFIX + "sitemap-lastmod";
@@ -44,14 +44,10 @@ public class HttpMetadata extends ImporterMetadata {
             COLLECTOR_PREFIX + "sitemap-changefreq";
     public static final String COLLECTOR_SM_PRORITY = 
             COLLECTOR_PREFIX + "sitemap-priority";
-
     public static final String COLLECTOR_REFERNCED_URLS = 
             COLLECTOR_PREFIX + "referenced-urls";
-
-    /** Since 1.3.0 */
     public static final String COLLECTOR_CHECKSUM_HEADER = 
             COLLECTOR_PREFIX + "checksum-header";
-    /** Since 1.3.0 */
     public static final String COLLECTOR_CHECKSUM_DOC = 
             COLLECTOR_PREFIX + "checksum-doc";
 
@@ -64,13 +60,6 @@ public class HttpMetadata extends ImporterMetadata {
         super(metadata, false);
     }
 	
-//	public ContentType getContentType() {
-//	    String type = getString(HTTP_CONTENT_TYPE);
-//	    if (type != null) {
-//	        type = type.replaceFirst("(.*?)(\\;)(.*)", "$1");
-//	    }
-//		return ContentType.valueOf(type);
-//	}
 	public String getDocumentUrl() {
 	    return getString(COLLECTOR_URL);
 	}

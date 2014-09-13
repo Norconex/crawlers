@@ -47,8 +47,8 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * value is constructed from that field.
  * <p/>
  * Since 1.3.1 you can optionally have the checksum value stored with the
- * document under the field name {@link HttpMetadata#COLLECTOR_CHECKSUM_DOC} or one
- * you specify.
+ * document under the field name {@link HttpMetadata#COLLECTOR_CHECKSUM_DOC}
+ * or one you specify.
  * <p>
  * XML configuration usage (not required since default):
  * </p>
@@ -89,7 +89,6 @@ public class DefaultHttpDocumentChecksummer
     		return null;
     	}
 		try {
-//			FileInputStream is = new FileInputStream(document.getLocalFile());
 		    InputStream is = document.getContent().getInputStream();
 	    	String checksum = DigestUtils.md5Hex(is);
 			LOG.debug("Document checksum: " + checksum);

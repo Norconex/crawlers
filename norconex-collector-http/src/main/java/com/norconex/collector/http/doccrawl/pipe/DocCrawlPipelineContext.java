@@ -23,11 +23,9 @@ public class DocCrawlPipelineContext {
     private final HttpDocCrawl docCrawl;
     private final RobotsTxt robotsTxt;
 
-//    private RobotsMeta robotsMeta;
-    
     public DocCrawlPipelineContext(
             HttpCrawler crawler, IDocCrawlStore refStore, 
-            HttpDocCrawl reference /*, RobotsTxt robotsTxt*/) {
+            HttpDocCrawl reference) {
         this.crawler = crawler;
         this.docCrawlStore = refStore;
         this.docCrawl = reference;

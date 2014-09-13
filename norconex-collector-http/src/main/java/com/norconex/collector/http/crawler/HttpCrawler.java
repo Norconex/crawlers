@@ -258,10 +258,6 @@ public class HttpCrawler extends AbstractCrawler {
         LOG.info(getId() + ": Deleted " + count + " orphan URLs...");
     }
     
-//    /*default*/ HttpCrawlerConfig getCrawlerConfig() {
-//        return crawlerConfig;
-//    }
-//    
     private void processURLs(
     		final IDocCrawlStore refStore,
     		final JobStatusUpdater statusUpdater, 
@@ -356,13 +352,6 @@ public class HttpCrawler extends AbstractCrawler {
                 + NumberFormat.getIntegerInstance().format(total));
     }
 
-//    private File createLocalFile(IDocCrawl httpDocReference, String extension) {
-//        return new File(gelCrawlerDownloadDir().getAbsolutePath() 
-//                + SystemUtils.FILE_SEPARATOR 
-//                + PathUtils.urlToPath(httpDocReference.getReference())
-//                + extension);
-//    }
-    
     private void deleteURL(
             IDocCrawl docCrawl, /*File outputFile,*/ HttpDocument doc) {
         LOG.debug(getId() + ": Deleting URL: " + docCrawl.getReference());
@@ -376,9 +365,6 @@ public class HttpCrawler extends AbstractCrawler {
     private void processNextQueuedURL(HttpDocCrawl docCrawl, 
             IDocCrawlStore docCrawlStore, boolean delete) {
         String url = docCrawl.getReference();
-//        File outputFile = createLocalFile(reference, ".txt");
-//        HttpDocument doc = new HttpDocument(
-//                reference.getReference(), createLocalFile(reference, ".raw"));
         HttpDocument doc = new HttpDocument(docCrawl.getReference());
         setURLMetadata(doc.getMetadata(), docCrawl);
         
@@ -386,14 +372,7 @@ public class HttpCrawler extends AbstractCrawler {
         
         try {
             if (delete) {
-//                File outputFile = File.createTempFile(
-//                        "committer-delete-", ".txt", 
-//                        getCrawlerConfig().getWorkDir());
-//                FileUtils.copyInputStreamToFile(
-//                        doc.getContent().getInputStream(), outputFile);
-
-                
-                deleteURL(docCrawl, /*outputFile, */doc);
+                deleteURL(docCrawl, doc);
                 return;
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug(getId() + ": Processing URL: " + url);
@@ -403,17 +382,26 @@ public class HttpCrawler extends AbstractCrawler {
             //TODO cache the pipeline object?
             DocumentPipelineContext context = new DocumentPipelineContext(
                     this, docCrawlStore, doc, docCrawl/*, robotsTxt*/);
-            if (new DocumentPipeline().execute(context)) {
-                ImporterResponse response = context.getImporterResponse();
-                if (response != null) {
-                    processImportResponse(response, docCrawlStore, docCrawl);
-                }
+
+//            if (new DocumentPipeline().execute(context)) {
+            new DocumentPipeline().execute(context);
+            ImporterResponse response = context.getImporterResponse();
+            
+            
+            
+            if (response != null) {
+                processImportResponse(response, docCrawlStore, docCrawl);
+                fullyProcessed = true;
             } else {
-//              LOG.error(context.getImporterResponse().getImporterStatus().getDescription());
+                fireDocCrawlEvent(new DocCrawlEvent(
+                      DocCrawlEvent.REJECTED_IMPORT, docCrawl, response));
             }
+//            } else {
+//                LOG.debug("Document process pipeline ended before "
+//                        + "completion for : " + url);
+//            }
             
             
-            fullyProcessed = true;
             
 //            if (!new DocumentProcessor(this, httpClient, refStore, 
 //                    outputFile, doc, reference, sitemapResolver).processURL()) {
@@ -439,20 +427,26 @@ public class HttpCrawler extends AbstractCrawler {
             HttpDocCrawl docCrawl) {
         HttpDocument doc = null;
         try {
-            doc = new HttpDocument(response.getDocument());
             if (response.isSuccess()) {
+                fireDocCrawlEvent(new DocCrawlEvent(
+                        DocCrawlEvent.DOCUMENT_IMPORTED, docCrawl, response));
+                doc = new HttpDocument(response.getDocument());
                 PostImportPipelineContext context = 
                         new PostImportPipelineContext(
                                 this, docCrawlStore, doc, docCrawl);
                 new PostImportPipeline().execute(context);
-                ImporterResponse[] children = response.getNestedResponses();
-                for (ImporterResponse child : children) {
-                    HttpDocCrawl childDocCrawl = new HttpDocCrawl(
-                            child.getReference(), docCrawl.getDepth());
-                    processImportResponse(child, docCrawlStore, childDocCrawl);
-                }
             } else {
-                //TODO log failure
+                fireDocCrawlEvent(new DocCrawlEvent(
+                        DocCrawlEvent.REJECTED_IMPORT, docCrawl, response));
+                LOG.debug("Importing unsuccessful for \"" 
+                        + docCrawl.getReference() + "\": "
+                        + response.getImporterStatus().getDescription());
+            }
+            ImporterResponse[] children = response.getNestedResponses();
+            for (ImporterResponse child : children) {
+                HttpDocCrawl childDocCrawl = new HttpDocCrawl(
+                        child.getReference(), docCrawl.getDepth());
+                processImportResponse(child, docCrawlStore, childDocCrawl);
             }
         } finally {
             finalizeURLProcessing(docCrawl, docCrawlStore, doc);;
@@ -469,13 +463,6 @@ public class HttpCrawler extends AbstractCrawler {
                 docCrawl.setState(
                         HttpDocCrawlState.DELETED);
                 if (committer != null) {
-                    
-//                    File outputFile = File.createTempFile(
-//                            "committer-delete-", ".txt", 
-//                            getCrawlerConfig().getWorkDir());
-//                    FileUtils.copyInputStreamToFile(
-//                            doc.getContent().getInputStream(), outputFile);
-                    
                     committer.remove(
                             docCrawl.getReference(), doc.getMetadata());
                 }
@@ -489,7 +476,6 @@ public class HttpCrawler extends AbstractCrawler {
         //--- Mark URL as Processed --------------------------------------------
         try {
             if (docCrawl.getState().isCommittable()) {
-//            if (reference.getState() == HttpDocReferenceState.OK) {
                 okURLsCount++;
             }
             refStore.processed(docCrawl);
@@ -498,7 +484,6 @@ public class HttpCrawler extends AbstractCrawler {
                 LOG.warn("URL status is unknown: " + docCrawl.getReference());
                 docCrawl.setState(HttpDocCrawlState.BAD_STATUS);
             }
-//            reference.getState().logInfo(reference);
         } catch (Exception e) {
             LOG.error(getId() + ": Could not mark URL as processed: " 
                     + docCrawl.getReference()
@@ -506,23 +491,11 @@ public class HttpCrawler extends AbstractCrawler {
         }
 
         try {
-//            //--- Delete Local File Download -----------------------------------
-//            if (!getCrawlerConfig().isKeepDownloads()) {
-//                
-//                //TODO write content to file if keeping download, else dispose
-                
-                doc.getContent().getInputStream().dispose();
-                
-                
-//                LOG.debug("Deleting " + doc.getLocalFile());
-//                FileUtils.deleteQuietly(doc.getLocalFile());
-//                FileUtils.deleteQuietly(outputFile);
-//                deleteDownloadDirIfReady();
-//            }
+            if (doc != null) {
+                doc.getContent().dispose();
+            }
         } catch (Exception e) {
             LOG.error("Could not dispose of resources.", e);
-//            LOG.error(getId() + ": Could not delete local file: "
-//                    + doc.getLocalFile() + " (" + e.getMessage() + ")", e);
         }
     }
 
@@ -549,11 +522,12 @@ public class HttpCrawler extends AbstractCrawler {
         LOG.info("Stopping the crawler \"" + jobStatus.getJobId() +  "\".");
     }
     private File gelBaseDownloadDir() {
-        return new File(
-                getCrawlerConfig().getWorkDir().getAbsolutePath() + "/downloads");
+        return new File(getCrawlerConfig().getWorkDir().getAbsolutePath() 
+                + "/downloads");
     }
     private File gelCrawlerDownloadDir() {
-        return new File(gelBaseDownloadDir() + "/" + getCrawlerConfig().getId());
+        return new File(gelBaseDownloadDir() 
+                + "/" + getCrawlerConfig().getId());
     }
     
     private boolean isMaxURLs() {
@@ -611,7 +585,8 @@ public class HttpCrawler extends AbstractCrawler {
             try {
                 while (!isStopped()) {
                     try {
-                        if (!processNextURL(crawlStore, statusUpdater, delete)) {
+                        if (!processNextURL(
+                                crawlStore, statusUpdater, delete)) {
                             break;
                         }
                     } catch (Exception e) {

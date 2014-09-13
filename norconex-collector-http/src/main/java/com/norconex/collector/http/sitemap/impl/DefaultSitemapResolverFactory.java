@@ -29,11 +29,11 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * XML configuration usage (not required since default):
  * </p>
  * <pre>
- *  &lt;sitemapResolverFactory ignore="(false|true)" lenient="(false|true)"
+ *  &lt;sitemap ignore="(false|true)" lenient="(false|true)"
  *     class="com.norconex.collector.http.sitemap.impl.DefaultSitemapResolverFactory"&gt;
  *     &lt;location&gt;(optional location of sitemap.xml)&lt;/location&gt;
  *     (... repeat location tag as needed ...)
- *  &lt;/sitemapResolverFactory&gt;
+ *  &lt;/sitemap&gt;
  * </pre>
  */
 public class DefaultSitemapResolverFactory 

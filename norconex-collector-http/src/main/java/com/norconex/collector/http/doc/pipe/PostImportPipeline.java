@@ -53,29 +53,10 @@ public class PostImportPipeline
         public boolean execute(PostImportPipelineContext ctx) {
             ICommitter committer = ctx.getConfig().getCommitter();
             if (committer != null) {
-
-                //TODO pass InputStream (or Content) instead of File?
-//                try {
-//                    File outputFile = File.createTempFile(
-//                            "committer-add-", ".txt", 
-//                            ctx.getConfig().getWorkDir());
-//                    
-//                    // Handle multi docs...
-//                    
-//                    FileUtils.copyInputStreamToFile(
-//                            ctx.getDocument().getContent()
-//                                    .getInputStream(), outputFile);
-                    HttpDocument doc = ctx.getDocument();
-                    
-                    
-                    committer.add(doc.getReference(), 
-                            doc.getContent().getInputStream(), doc.getMetadata());
-//                } catch (IOException e) {
-//                    throw new CollectorException(
-//                            "Could not queue document in committer");
-//                }
+                HttpDocument doc = ctx.getDocument();
+                committer.add(doc.getReference(), 
+                        doc.getContent().getInputStream(), doc.getMetadata());
             }
-            
             ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
                     HttpDocCrawlEvent.DOCUMENT_COMMITTED, 
                     ctx.getDocCrawl(), committer));

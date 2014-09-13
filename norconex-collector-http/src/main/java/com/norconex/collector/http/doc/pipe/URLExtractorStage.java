@@ -49,6 +49,7 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
         Set<String> urls = null;
         try {
             Reader reader = ctx.getContentReader();
+            
             IURLExtractor urlExtractor = ctx.getConfig().getUrlExtractor();
             urls = urlExtractor.extractURLs(
                     reader, ctx.getDocCrawl().getReference(), 

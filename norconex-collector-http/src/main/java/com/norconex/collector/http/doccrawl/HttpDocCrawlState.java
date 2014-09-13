@@ -37,24 +37,7 @@ public class HttpDocCrawlState extends DocCrawlState {
     public static final HttpDocCrawlState BAD_STATUS = 
             new HttpDocCrawlState("BAD_STATUS");
     
-//    private static final int LOGGING_STATUS_PADDING = 10;
-//    private static final int LOGGING_DEPTH_PADDING = 6;
-    
-//    private final Logger log;
     protected HttpDocCrawlState(String state) {
         super(state);
-//        log = LogManager.getLogger(
-//                this.getClass().getCanonicalName() + "." + toString());
     }
-    
-//    void logInfo(CrawlURL crawlURL){
-//        if (log.isInfoEnabled()) {
-//            log.info(StringUtils.leftPad(
-//                    crawlURL.getStatus().toString(), LOGGING_STATUS_PADDING)
-//                  + " > " + StringUtils.leftPad(
-//                    "(" + crawlURL.getDepth() + ") ", LOGGING_DEPTH_PADDING)
-//                  + crawlURL.getUrl());
-//        }
-//    }
-
 }

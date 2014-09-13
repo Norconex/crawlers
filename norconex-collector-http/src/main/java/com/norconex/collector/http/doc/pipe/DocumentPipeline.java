@@ -59,9 +59,6 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         addStage(new DocumentFiltersStage());
         addStage(new DocumentPreProcessingStage());        
         addStage(new ImportModuleStage());        
-//        addStage(new HttpDocumentChecksumStage());     //TODO redo with ImporterResponse   
-//        addStage(new DocumentPostProcessingStage());   //TODO redo with ImporterResponse     
-//        addStage(new CommitModuleStage());             //TODO redo with ImporterResponse
     }
     
     private abstract class DocStage 
@@ -72,20 +69,14 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
     private class DelayResolverStage extends DocStage {
         @Override
         public boolean execute(DocumentPipelineContext ctx) {
-            IDelayResolver delayResolver = 
-                    ctx.getConfig().getDelayResolver();
+            IDelayResolver delayResolver = ctx.getConfig().getDelayResolver();
             if (delayResolver != null) {
-                
                 delayResolver.delay(
                         ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
                                 ctx.getHttpClient(), 
                                 ctx.getDocCrawl().getReference(), 
                                 ctx.getConfig().getUserAgent()), 
                         ctx.getDocCrawl().getReference());
-
-                
-//                delayResolver.delay(
-//                        ctx.getRobotsTxt(), ctx.getReference().getReference());
             }
             return true;
         }
@@ -297,56 +288,4 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
             return true;
         }
     }    
-
-    
-    
-//    //--- Document Post-Processing ---------------------------------------------
-//    private class DocumentPostProcessingStage extends DocStage {
-//        @Override
-//        public boolean process(DocumentPipelineContext ctx) {
-//            if (ctx.getConfig().getPostImportProcessors() != null) {
-//                for (IHttpDocumentProcessor postProc :
-//                        ctx.getConfig().getPostImportProcessors()) {
-//                    postProc.processDocument(
-//                            ctx.getHttpClient(), ctx.getDocument());
-//                    HttpCrawlerEventFirer.fireDocumentPostProcessed(
-//                            ctx.getCrawler(), ctx.getDocument(), postProc);
-//                }            
-//            }
-//            return true;
-//        }
-//    }  
-//    
-//    //--- Document Commit ------------------------------------------------------
-//    private class CommitModuleStage extends DocStage {
-//        @Override
-//        public boolean process(DocumentPipelineContext ctx) {
-//            ICommitter committer = ctx.getConfig().getCommitter();
-//            if (committer != null) {
-//
-//                //TODO pass InputStream (or Content) instead of File?
-//                try {
-//                    File outputFile = File.createTempFile(
-//                            "committer-add-", ".txt", 
-//                            ctx.getConfig().getWorkDir());
-//                    
-//                    // Handle multi docs...
-//                    
-//                    FileUtils.copyInputStreamToFile(
-//                            ctx.getImporterResponse().getDocument().getContent()
-//                                    .getInputStream(), outputFile);
-//                    
-//                    committer.queueAdd(ctx.getDocCrawl().getReference(), 
-//                            outputFile, ctx.getMetadata());
-//                } catch (IOException e) {
-//                    throw new CollectorException(
-//                            "Could not queue document in committer");
-//                }
-//            }
-//            HttpCrawlerEventFirer.fireDocumentCrawled(ctx.getCrawler(), 
-//                    ctx.getDocument());
-//            return true;
-//        }
-//    }  
-
 }

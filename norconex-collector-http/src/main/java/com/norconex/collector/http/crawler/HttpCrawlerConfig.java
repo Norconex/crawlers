@@ -452,8 +452,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
         //--- Sitemap Resolver -------------------------------------------------
         setSitemapResolverFactory(ConfigurationUtil.newInstance(xml,
-                "sitemapResolverFactory", getSitemapResolverFactory()));
-        setIgnoreSitemap(xml.getBoolean("sitemapResolverFactory[@ignore]",
+                "sitemap", getSitemapResolverFactory()));
+        setIgnoreSitemap(xml.getBoolean("sitemap[@ignore]",
                 isIgnoreSitemap()));
 
         //--- HTTP Headers Fetcher ---------------------------------------------

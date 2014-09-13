@@ -59,8 +59,6 @@ public class HttpCollector extends AbstractCollector {
 
 	private static final Logger LOG = LogManager.getLogger(HttpCollector.class);
 
-//	private HttpCrawler[] crawlers;
-	
 	private JobSuite jobSuite;
     
     /**
@@ -78,25 +76,6 @@ public class HttpCollector extends AbstractCollector {
         super(collectorConfig);
     }
 
-//    /**
-//     * Gets the HTTP crawlers to be run by this collector.
-//     * @return HTTP crawlers
-//     */
-//    public HttpCrawler[] getCrawlers() {
-//        super.getCrawlers();
-//        return crawlers;
-//    }
-    
-//TODO conflicts with having crawler configurable in config.
-//     do we really want support both methods?
-    /**
-     * Sets the HTTP crawlers to be run by this collector.
-     * @param crawlers HTTP Crawler
-     */
-//    public void setCrawlers(HttpCrawler[] crawlers) {
-////        this.crawlers = ArrayUtils.clone(crawlers);
-//    }
-    
     /**
      * Invokes the HTTP Collector from the command line.  
      * @param args Invoke it once without any arguments to get a 
@@ -143,8 +122,6 @@ public class HttpCollector extends AbstractCollector {
         } finally {
             jobSuite = null;
         }
-//        JobRunner jobRunner = new JobRunner();
-//        jobRunner.runSuite(suite, resumeNonCompleted);
     }
 
     /**
@@ -164,10 +141,6 @@ public class HttpCollector extends AbstractCollector {
             throw new CollectorException(
                     "Could not stop collector: " + getId(), e);
         }
-//        JobSuite.stop(indexFile);
-//        JobSuite suite = createJobSuite();
-//        ((FileStopRequestHandler) 
-//                suite.getStopRequestHandler()).fireStopRequest();
     }
     
     @Override
@@ -177,12 +150,6 @@ public class HttpCollector extends AbstractCollector {
     
     @Override
     public JobSuite createJobSuite() {
-//        HttpCrawlerConfig[] configs = collectorConfig.getCrawlerConfigs();
-//        crawlers = new HttpCrawler[configs.length];
-//        for (int i = 0; i < configs.length; i++) {
-//            HttpCrawlerConfig crawlerConfig = configs[i];
-//            crawlers[i] = new HttpCrawler(crawlerConfig);
-//        }
         ICrawler[] crawlers = getCrawlers();
         
         IJob rootJob = null;
@@ -206,13 +173,7 @@ public class HttpCollector extends AbstractCollector {
         suiteConfig.setJobStatusStore(
                 new FileJobStatusStore(collectorConfig.getProgressDir()));
         suiteConfig.setWorkdir(collectorConfig.getProgressDir()); 
-        JobSuite suite = new JobSuite(
-                rootJob, suiteConfig);
-//                new JobProgressPropertiesFileSerializer(
-//                        collectorConfig.getProgressDir()),
-//                new FileLogManager(collectorConfig.getLogsDir()),
-//                new FileStopRequestHandler(collectorConfig.getId(), 
-//                        collectorConfig.getProgressDir()));
+        JobSuite suite = new JobSuite(rootJob, suiteConfig);
         LOG.info("Suite of " + crawlers.length + " HTTP crawler jobs created.");
         return suite;
     }
