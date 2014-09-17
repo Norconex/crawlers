@@ -71,12 +71,16 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         public boolean execute(DocumentPipelineContext ctx) {
             IDelayResolver delayResolver = ctx.getConfig().getDelayResolver();
             if (delayResolver != null) {
-                delayResolver.delay(
-                        ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
-                                ctx.getHttpClient(), 
-                                ctx.getDocCrawl().getReference(), 
-                                ctx.getConfig().getUserAgent()), 
-                        ctx.getDocCrawl().getReference());
+                if (!ctx.getConfig().isIgnoreRobotsTxt()) {
+                    delayResolver.delay(
+                            ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
+                                    ctx.getHttpClient(), 
+                                    ctx.getDocCrawl().getReference(), 
+                                    ctx.getConfig().getUserAgent()), 
+                            ctx.getDocCrawl().getReference());
+                } else {
+                    delayResolver.delay(null, ctx.getDocCrawl().getReference());
+                }
             }
             return true;
         }

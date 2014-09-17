@@ -38,6 +38,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -92,9 +93,9 @@ public class DefaultDocumentFetcher
 	        HttpClient httpClient, HttpDocument doc) {
 	    //TODO replace signature with Writer class.
 	    LOG.debug("Fetching document: " + doc.getReference());
-	    HttpGet method = null;
+	    HttpRequestBase method = null;
 	    try {
-	        method = new HttpGet(doc.getReference());
+	        method = createUriRequest(doc);
 	    	
 	        // Execute the method.
             HttpResponse response = httpClient.execute(method);
@@ -126,13 +127,18 @@ public class DefaultDocumentFetcher
                         new NullOutputStream());
                 return HttpDocCrawlState.NEW;
             }
-            // read response anyway to be safer, but ignore content
-            BufferedInputStream bis = new BufferedInputStream(is);
-            int result = bis.read();
-            while(result != -1) {
-              result = bis.read();
-            }        
-            IOUtils.closeQuietly(bis);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Rejected response content: " + IOUtils.toString(is));
+                IOUtils.closeQuietly(is);
+            } else {
+                // read response anyway to be safer, but ignore content
+                BufferedInputStream bis = new BufferedInputStream(is);
+                int result = bis.read();
+                while(result != -1) {
+                  result = bis.read();
+                }        
+                IOUtils.closeQuietly(bis);
+            }
             if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 return HttpDocCrawlState.NOT_FOUND;
             }
@@ -153,6 +159,18 @@ public class DefaultDocumentFetcher
                 method.releaseConnection();
             }
         }  
+	}
+	
+	/**
+	 * Creates the HTTP request to be executed.  Default implementation
+	 * returns an {@link HttpGet} request around the document reference.
+	 * This method can be overwritten to return another type of request,
+	 * add HTTP headers, etc.
+	 * @param doc document to fetch
+	 * @return HTTP request
+	 */
+	protected HttpRequestBase createUriRequest(HttpDocument doc) {
+	    return new HttpGet(doc.getReference());
 	}
 	
     public int[] getValidStatusCodes() {

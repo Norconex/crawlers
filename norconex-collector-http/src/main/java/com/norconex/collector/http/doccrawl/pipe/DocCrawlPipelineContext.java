@@ -29,9 +29,13 @@ public class DocCrawlPipelineContext {
         this.crawler = crawler;
         this.docCrawlStore = refStore;
         this.docCrawl = reference;
-        this.robotsTxt = getConfig().getRobotsTxtProvider().getRobotsTxt(
-                getHttpClient(), getDocCrawl().getReference(), 
-                getConfig().getUserAgent());
+        if (!getConfig().isIgnoreRobotsTxt()) {
+            this.robotsTxt = getConfig().getRobotsTxtProvider().getRobotsTxt(
+                    getHttpClient(), getDocCrawl().getReference(), 
+                    getConfig().getUserAgent());
+        } else {
+            this.robotsTxt = null;
+        }
     }
 
     public HttpCrawler getCrawler() {
@@ -61,14 +65,4 @@ public class DocCrawlPipelineContext {
     public RobotsTxt getRobotsTxt() {
         return robotsTxt;
     }
-
-//    public RobotsMeta getRobotsMeta() {
-//        return robotsMeta;
-//    }
-//    /**
-//     * @param robotsMeta the robotsMeta to set
-//     */
-//    public void setRobotsMeta(RobotsMeta robotsMeta) {
-//        this.robotsMeta = robotsMeta;
-//    }
 }

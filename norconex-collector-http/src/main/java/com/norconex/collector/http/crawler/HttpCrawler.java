@@ -126,8 +126,10 @@ public class HttpCrawler extends AbstractCrawler {
         logInitializationInformation();
         initializeHTTPClient();
         
-        this.sitemapResolver = getCrawlerConfig().getSitemapResolverFactory()
-                .createSitemapResolver(getCrawlerConfig(), resume);
+        if (!getCrawlerConfig().isIgnoreSitemap()) {
+            this.sitemapResolver = getCrawlerConfig().getSitemapResolverFactory()
+                    .createSitemapResolver(getCrawlerConfig(), resume);
+        }
         
         this.crawlerEventManager = new CrawlerEventManager(
                 this, getCrawlerConfig().getCrawlerListeners());
@@ -150,11 +152,11 @@ public class HttpCrawler extends AbstractCrawler {
     
     private void logInitializationInformation() {
         LOG.info(getId() +  ": RobotsTxt support: " 
-                + getCrawlerConfig().isIgnoreRobotsTxt());
+                + !getCrawlerConfig().isIgnoreRobotsTxt());
         LOG.info(getId() +  ": RobotsMeta support: "  
-                + getCrawlerConfig().isIgnoreRobotsMeta()); 
+                + !getCrawlerConfig().isIgnoreRobotsMeta()); 
         LOG.info(getId() +  ": Sitemap support: " 
-                + getCrawlerConfig().isIgnoreSitemap());
+                + !getCrawlerConfig().isIgnoreSitemap());
     }
 
     @Override
