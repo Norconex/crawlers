@@ -47,7 +47,6 @@ import com.norconex.collector.core.doccrawl.DocCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
-import com.norconex.commons.lang.Content;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 
@@ -120,11 +119,10 @@ public class DefaultDocumentFetcher
                 }
                 
                 //--- Fetch body
-                doc.setContent(new Content(is));
+                doc.setContent(doc.getContent().newInputStream(is));
                 
                 //read a copy to force caching and then close the HTTP stream
-                IOUtils.copy(doc.getContent().getInputStream(), 
-                        new NullOutputStream());
+                IOUtils.copy(doc.getContent(), new NullOutputStream());
                 return HttpDocCrawlState.NEW;
             }
             if (LOG.isDebugEnabled()) {

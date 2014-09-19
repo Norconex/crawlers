@@ -55,7 +55,7 @@ public class PostImportPipeline
             if (committer != null) {
                 HttpDocument doc = ctx.getDocument();
                 committer.add(doc.getReference(), 
-                        doc.getContent().getInputStream(), doc.getMetadata());
+                        doc.getContent(), doc.getMetadata());
             }
             ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
                     HttpDocCrawlEvent.DOCUMENT_COMMITTED, 

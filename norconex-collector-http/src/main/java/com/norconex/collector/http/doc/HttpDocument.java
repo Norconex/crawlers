@@ -18,21 +18,22 @@
  */
 package com.norconex.collector.http.doc;
 
+import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.ImporterDocument;
 
 public class HttpDocument extends ImporterDocument {
 
     private static final long serialVersionUID = 4376740210800410675L;
 
-    public HttpDocument(String reference) {
-        super(reference, new HttpMetadata(reference));
+    public HttpDocument(String reference, CachedInputStream content) {
+        super(reference, content, new HttpMetadata(reference));
     }
 
     public HttpDocument(ImporterDocument importerDocument) {
         super(importerDocument.getReference(), 
+                importerDocument.getContent(),
                 new HttpMetadata(importerDocument.getMetadata()));
         setReference(importerDocument.getReference());
-        setContent(importerDocument.getContent());
         setContentType(importerDocument.getContentType());
         setContentEncoding(importerDocument.getContentEncoding());
     }

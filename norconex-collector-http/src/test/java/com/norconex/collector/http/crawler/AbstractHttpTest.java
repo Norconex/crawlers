@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -41,7 +42,6 @@ import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.website.TestWebServer;
 import com.norconex.committer.impl.FileSystemCommitter;
-import com.norconex.commons.lang.Content;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.FileUtil;
 
@@ -119,23 +119,24 @@ public abstract class AbstractHttpTest {
         Collection<File> files = FileUtils.listFiles(addDir, null, true);
         List<HttpDocument> docs = new ArrayList<>();
         for (File file : files) {
-            if (file.isDirectory() 
-                    || file.getName().endsWith(".meta")
-                    || file.getName().endsWith(".ref")
-                    ) {
+            if (file.isDirectory() || !file.getName().endsWith(
+                    FileSystemCommitter.EXTENSION_CONTENT)) {
                 continue;
             }
             HttpMetadata meta = new HttpMetadata(file.getAbsolutePath());
+            String basePath = StringUtils.removeEnd(
+                    file.getAbsolutePath(), 
+                    FileSystemCommitter.EXTENSION_CONTENT);
             meta.load(FileUtils.openInputStream(
-                    new File(file.getAbsolutePath() + ".meta")));
+                    new File(basePath + ".meta")));
             String reference = FileUtils.readFileToString(
-                    new File(file.getAbsolutePath() + ".ref"));
+                    new File(basePath + ".ref"));
             
-            HttpDocument doc = new HttpDocument(reference);
+            HttpDocument doc = new HttpDocument(
+                    reference, crawler.getStreamFactory().newInputStream(file));
             // remove previous reference to avoid duplicates
             doc.getMetadata().remove(HttpMetadata.COLLECTOR_URL);
             doc.getMetadata().load(meta);
-            doc.setContent(new Content(file));
             docs.add(doc);
         }
         return docs;

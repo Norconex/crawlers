@@ -155,4 +155,19 @@ public class TestServlet extends HttpServlet {
         }
     }
 
+    
+//    class InfinitTestCase extends HtmlTestCase {
+//        public void doTestCase(HttpServletRequest req, 
+//                HttpServletResponse resp, PrintWriter out) throws Exception {
+//
+//            int count = NumberUtils.toInt(req.getParameter("count"), 0);
+//            count++;
+//            
+//            out.println("<h1>To infinity and beyond!</h1>");
+//            out.println("Useful test case when long-running crawls are"
+//                    + "desired.");
+//            out.println("<a href=\"\">" +  + "</a>");
+//        }
+//    }
+
 }

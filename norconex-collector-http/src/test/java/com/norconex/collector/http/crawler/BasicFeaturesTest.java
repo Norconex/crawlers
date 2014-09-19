@@ -121,9 +121,8 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         assertListSize("document", docs, 1);
 
         HttpDocument doc = docs.get(0);
-        Assert.assertTrue("Wrong or undetected User-Agent.",
-                IOUtils.toString(doc.getContent().getInputStream()).contains(
-                        "Super Secret Agent"));
+        Assert.assertTrue("Wrong or undetected User-Agent.", IOUtils.toString(
+                doc.getContent()).contains("Super Secret Agent"));
     }
     
     private void testDepth(List<HttpDocument> docs) {

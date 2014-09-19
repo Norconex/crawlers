@@ -89,7 +89,7 @@ public class DefaultHttpDocumentChecksummer
     		return null;
     	}
 		try {
-		    InputStream is = document.getContent().getInputStream();
+		    InputStream is = document.getContent();
 	    	String checksum = DigestUtils.md5Hex(is);
 			LOG.debug("Document checksum: " + checksum);
 	    	is.close();

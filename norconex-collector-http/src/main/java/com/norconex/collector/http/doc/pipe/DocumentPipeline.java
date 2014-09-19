@@ -191,8 +191,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                     PathUtils.urlToPath(ctx.getDocCrawl().getReference()));
             try {
                 OutputStream out = FileUtils.openOutputStream(downloadFile);
-                IOUtils.copy(
-                        ctx.getDocument().getContent().getInputStream(), out);
+                IOUtils.copy(ctx.getDocument().getContent(), out);
                 IOUtils.closeQuietly(out);
                 
                 ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(

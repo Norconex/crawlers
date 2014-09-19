@@ -13,13 +13,12 @@ import com.norconex.importer.response.ImporterResponse;
         
         @Override
         public boolean execute(DocumentPipelineContext ctx) {
-            Importer importer = new Importer(
-                    ctx.getConfig().getImporterConfig());
+            Importer importer = ctx.getImporter();
                 
             HttpDocument doc = ctx.getDocument();
             
             ImporterResponse response = importer.importDocument(
-                    doc.getContent().getInputStream(),
+                    doc.getContent(),
                     doc.getContentType(),
                     doc.getContentEncoding(),
                     doc.getMetadata(),

@@ -56,6 +56,8 @@ import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.importer.Importer;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.jef4.status.IJobStatus;
 import com.norconex.jef4.status.JobStatusUpdater;
@@ -77,6 +79,8 @@ public class HttpCrawler extends AbstractCrawler {
     private boolean stopped;
     private int okURLsCount;
     private CrawlerEventManager crawlerEventManager;
+    private Importer importer;
+    private CachedStreamFactory streamFactory;
     
     /**
      * Constructor.
@@ -112,6 +116,15 @@ public class HttpCrawler extends AbstractCrawler {
         return httpClient;
     }
     
+    
+    public Importer getImporter() {
+        return importer;
+    }
+    
+    public CachedStreamFactory getStreamFactory() {
+        return streamFactory;
+    }
+    
     /**
      * @return the sitemapResolver
      */
@@ -123,12 +136,17 @@ public class HttpCrawler extends AbstractCrawler {
     protected void prepareExecution(
             JobStatusUpdater statusUpdater, JobSuite suite, 
             IDocCrawlStore refStore, boolean resume) {
+        
+        importer = new Importer(getCrawlerConfig().getImporterConfig());
+        streamFactory = importer.getStreamFactory();
+                
         logInitializationInformation();
         initializeHTTPClient();
         
         if (!getCrawlerConfig().isIgnoreSitemap()) {
-            this.sitemapResolver = getCrawlerConfig().getSitemapResolverFactory()
-                    .createSitemapResolver(getCrawlerConfig(), resume);
+            this.sitemapResolver = 
+                    getCrawlerConfig().getSitemapResolverFactory()
+                            .createSitemapResolver(getCrawlerConfig(), resume);
         }
         
         this.crawlerEventManager = new CrawlerEventManager(
@@ -367,7 +385,8 @@ public class HttpCrawler extends AbstractCrawler {
     private void processNextQueuedURL(HttpDocCrawl docCrawl, 
             IDocCrawlStore docCrawlStore, boolean delete) {
         String url = docCrawl.getReference();
-        HttpDocument doc = new HttpDocument(docCrawl.getReference());
+        HttpDocument doc = new HttpDocument(
+                docCrawl.getReference(), streamFactory.newInputStream());
         setURLMetadata(doc.getMetadata(), docCrawl);
         
         boolean fullyProcessed = false;
@@ -383,7 +402,7 @@ public class HttpCrawler extends AbstractCrawler {
             //TODO create pipeline context prototype
             //TODO cache the pipeline object?
             DocumentPipelineContext context = new DocumentPipelineContext(
-                    this, docCrawlStore, doc, docCrawl/*, robotsTxt*/);
+                    this, docCrawlStore, doc, docCrawl, importer);
 
 //            if (new DocumentPipeline().execute(context)) {
             new DocumentPipeline().execute(context);

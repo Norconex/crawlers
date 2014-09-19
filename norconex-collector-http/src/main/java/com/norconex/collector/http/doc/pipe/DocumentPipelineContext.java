@@ -20,7 +20,8 @@ import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
-import com.norconex.commons.lang.Content;
+import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.importer.Importer;
 import com.norconex.importer.response.ImporterResponse;
 
 /**
@@ -33,16 +34,18 @@ public class DocumentPipelineContext {
     private final HttpDocument doc;
     private final IDocCrawlStore docCrawlStore;
     private final HttpDocCrawl docCrawl;
+    private final Importer importer;
     private RobotsMeta robotsMeta;
     private ImporterResponse importerResponse;
     
     public DocumentPipelineContext(
             HttpCrawler crawler, IDocCrawlStore docCrawlStore, 
-            HttpDocument doc, HttpDocCrawl docCrawl /*, RobotsTxt robotsTxt*/) {
+            HttpDocument doc, HttpDocCrawl docCrawl, Importer importer) {
         this.crawler = crawler;
         this.docCrawlStore = docCrawlStore;
         this.doc = doc;
         this.docCrawl = docCrawl;
+        this.importer = importer;
     }
 
     public HttpCrawler getCrawler() {
@@ -83,6 +86,10 @@ public class DocumentPipelineContext {
     public HttpMetadata getMetadata() {
         return doc.getMetadata();
     }
+    
+    public Importer getImporter() {
+        return importer;
+    }
 
     public RobotsMeta getRobotsMeta() {
         return robotsMeta;
@@ -106,14 +113,14 @@ public class DocumentPipelineContext {
         this.importerResponse = importerResponse;
     }
 
-    public Content getContent() {
+    public CachedInputStream getContent() {
         return getDocument().getContent();
     }
 
     public Reader getContentReader() {
         try {
             return new InputStreamReader(
-                    getDocument().getContent().getInputStream(), 
+                    getDocument().getContent(), 
                     CharEncoding.UTF_8);
         } catch (UnsupportedEncodingException e) {
             throw new CollectorException(e);
