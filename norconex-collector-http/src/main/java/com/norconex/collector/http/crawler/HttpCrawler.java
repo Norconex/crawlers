@@ -78,6 +78,7 @@ public class HttpCrawler extends AbstractCrawler {
 	private ISitemapResolver sitemapResolver;
     private boolean stopped;
     private int okURLsCount;
+    private double lastPercent;
     private CrawlerEventManager crawlerEventManager;
     private Importer importer;
     private CachedStreamFactory streamFactory;
@@ -196,10 +197,6 @@ public class HttpCrawler extends AbstractCrawler {
         }
 
         
-//        StopWatch watch = new StopWatch();
-//        watch.start();
-//        
-
         //--- Process start/queued URLS ----------------------------------------
         LOG.info(getId() + ": Crawling URLs...");
         processURLs(refStore, statusUpdater, suite, false);
@@ -216,10 +213,9 @@ public class HttpCrawler extends AbstractCrawler {
             committer.commit();
         }
 
-//        watch.stop();
-//        LOG.info(getId() + ": "
-//                + refStore.getProcessedCount() + " URLs processed "
-//                + "in " + watch.toString() + " for \"" + getId() + "\".");
+        LOG.info(getId() + ": "
+                + refStore.getProcessedCount() 
+                + " URLs processed for \"" + getId() + "\".");
 
         LOG.debug(getId() + ": Removing empty directories");
         FileUtil.deleteEmptyDirs(gelCrawlerDownloadDir());
@@ -323,8 +319,11 @@ public class HttpCrawler extends AbstractCrawler {
                         + getCrawlerConfig().getMaxURLs());
                 return false;
             }
-            StopWatch watch = new StopWatch();
-            watch.start();
+            StopWatch watch = null;
+            if (LOG.isDebugEnabled()) {
+                watch = new StopWatch();
+                watch.start();
+            }
             int preOKCount = okURLsCount;
             processNextQueuedURL(queuedURL, docCrawlStore, delete);
             if (preOKCount != okURLsCount) {
@@ -332,8 +331,8 @@ public class HttpCrawler extends AbstractCrawler {
                         PROP_OK_URL_COUNT, okURLsCount);
             }
             setProgress(statusUpdater, docCrawlStore);
-            watch.stop();
             if (LOG.isDebugEnabled()) {
+                watch.stop();
                 LOG.debug(getId() + ": " + watch.toString() 
                         + " to process: " + queuedURL.getReference());
             }
@@ -359,17 +358,32 @@ public class HttpCrawler extends AbstractCrawler {
         int queued = db.getQueueSize();
         int processed = db.getProcessedCount();
         int total = queued + processed;
-        if (total == 0) {
-            statusUpdater.setProgress(0); //TODO was previously set to maximum, why?
-        } else {
-            statusUpdater.setProgress(BigDecimal.valueOf(processed)
-                    .divide(BigDecimal.valueOf(total), RoundingMode.DOWN)
-                    .doubleValue());
+
+        double progress = 0;
+        
+        if (total != 0) {
+            progress = BigDecimal.valueOf(processed)
+                    .divide(BigDecimal.valueOf(total), 4, RoundingMode.DOWN)
+                    .doubleValue();
         }
+        statusUpdater.setProgress(progress);
+
         statusUpdater.setNote(
                 NumberFormat.getIntegerInstance().format(processed)
                 + " urls processed out of "
                 + NumberFormat.getIntegerInstance().format(total));
+        
+
+        if (LOG.isInfoEnabled()) {
+            int percent = BigDecimal.valueOf(progress).movePointLeft(-2)
+                    .intValue();
+            if (lastPercent != percent) {
+                LOG.info(BigDecimal.valueOf(progress).movePointLeft(-2)
+                        .intValue() + "% completed (" 
+                        + processed + " processed/" + total + " total)");
+            }
+            lastPercent = percent;
+        }
     }
 
     private void deleteURL(
