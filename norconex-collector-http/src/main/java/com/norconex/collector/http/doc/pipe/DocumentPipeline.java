@@ -13,7 +13,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.event.DocCrawlEvent;
-import com.norconex.collector.core.doccrawl.DocCrawlState;
+import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
 import com.norconex.collector.http.crawler.TargetURLRedirectStrategy;
 import com.norconex.collector.http.delay.IDelayResolver;
@@ -136,7 +136,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         public boolean execute(DocumentPipelineContext ctx) {
             //TODO for now we assume the document is downloadable.
             // download as file
-            DocCrawlState state = 
+            CrawlState state = 
                     ctx.getConfig().getHttpDocumentFetcher().fetchDocument(
                             ctx.getHttpClient(), ctx.getDocument());
 

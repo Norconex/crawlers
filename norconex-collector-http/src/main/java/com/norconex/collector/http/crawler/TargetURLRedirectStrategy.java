@@ -29,7 +29,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 
-import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
@@ -101,7 +101,7 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
             HttpClient httpClient, 
             HttpDocument doc,
             HttpDocCrawl httpDocCrawl,
-            IDocCrawlStore database) {
+            ICrawlDataStore database) {
         String originalURL = httpDocCrawl.getReference();
         String currentURL = getCurrentUrl();
         if (ObjectUtils.notEqual(currentURL, originalURL)) {

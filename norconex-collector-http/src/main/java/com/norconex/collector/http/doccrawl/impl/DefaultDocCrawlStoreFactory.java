@@ -18,16 +18,16 @@
  */
 package com.norconex.collector.http.doccrawl.impl;
 
-import com.norconex.collector.core.doccrawl.store.impl.mapdb.MapDBDocCrawlStoreFactory;
+import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
 
 /**
  * Default URL database factory. This class is a straight extension of
- * {@link MapDBDocCrawlStoreFactory} and as such, uses MapDB for its 
+ * {@link MapDBCrawlDataStoreFactory} and as such, uses MapDB for its 
  * implementation
  * @author Pascal Essiembre
  */
 public class DefaultDocCrawlStoreFactory 
-        extends MapDBDocCrawlStoreFactory {
+        extends MapDBCrawlDataStoreFactory {
 
     private static final long serialVersionUID = 370632354864351545L;
 

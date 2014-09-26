@@ -24,9 +24,9 @@ import java.sql.SQLException;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import com.norconex.collector.core.doccrawl.IDocCrawl;
-import com.norconex.collector.core.doccrawl.store.impl.derby.DerbyDocCrawlStore;
-import com.norconex.collector.core.doccrawl.store.impl.derby.IDerbySerializer;
+import com.norconex.collector.core.data.ICrawlData;
+import com.norconex.collector.core.data.store.impl.derby.DerbyCrawlDataStore;
+import com.norconex.collector.core.data.store.impl.derby.IDerbySerializer;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 
@@ -68,7 +68,7 @@ public class HttpDerbySerializer implements IDerbySerializer {
                 + "PRIMARY KEY (reference))";
 
         String[] sqls = new String[] { sql };
-        if (DerbyDocCrawlStore.TABLE_QUEUE.equals(table)) {
+        if (DerbyCrawlDataStore.TABLE_QUEUE.equals(table)) {
             sqls = ArrayUtils.add(sqls, 
                     "CREATE INDEX orderindex ON queue(depth)");
         }
@@ -84,7 +84,7 @@ public class HttpDerbySerializer implements IDerbySerializer {
     public String getDeleteDocCrawlSQL(String table) {
         return "DELETE FROM " + table + " WHERE reference = ?";
     }
-    public Object[] getDeleteDocCrawlValues(String table, IDocCrawl crawlURL) {
+    public Object[] getDeleteDocCrawlValues(String table, ICrawlData crawlURL) {
         return new Object[] { crawlURL.getReference() };
     }
     
@@ -94,8 +94,8 @@ public class HttpDerbySerializer implements IDerbySerializer {
                 + ") values (?,?,?,?,?,?,?,?,?,?)";
     }
     @Override
-    public Object[] getInsertDocCrawlValues(String table, IDocCrawl docCrawl) {
-        HttpDocCrawl data = (HttpDocCrawl) docCrawl;
+    public Object[] getInsertDocCrawlValues(String table, ICrawlData crawlData) {
+        HttpDocCrawl data = (HttpDocCrawl) crawlData;
         return new Object[] { 
                 data.getReference(),
                 data.getParentRootReference(),
@@ -114,7 +114,7 @@ public class HttpDerbySerializer implements IDerbySerializer {
     @Override
     public String getNextQueuedDocCrawlSQL() {
         return "SELECT " + ALL_FIELDS 
-                + "FROM " + DerbyDocCrawlStore.TABLE_QUEUE
+                + "FROM " + DerbyCrawlDataStore.TABLE_QUEUE
                 + " ORDER BY depth";
     }
     @Override
@@ -125,7 +125,7 @@ public class HttpDerbySerializer implements IDerbySerializer {
     @Override
     public String getCachedDocCrawlSQL() {
         return "SELECT " + ALL_FIELDS 
-                + "FROM " + DerbyDocCrawlStore.TABLE_CACHE
+                + "FROM " + DerbyCrawlDataStore.TABLE_CACHE
                 + " WHERE reference = ? ";
     }
     @Override
@@ -143,7 +143,7 @@ public class HttpDerbySerializer implements IDerbySerializer {
     }
     
     @Override
-    public IDocCrawl toDocCrawl(String table, ResultSet rs)
+    public ICrawlData toDocCrawl(String table, ResultSet rs)
             throws SQLException {
         if (rs == null) {
             return null;

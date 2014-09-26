@@ -43,7 +43,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.doccrawl.DocCrawlState;
+import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
@@ -88,7 +88,7 @@ public class DefaultDocumentFetcher
     
     
 	@Override
-	public DocCrawlState fetchDocument(
+	public CrawlState fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
 	    //TODO replace signature with Writer class.
 	    LOG.debug("Fetching document: " + doc.getReference());

@@ -18,13 +18,13 @@
  */
 package com.norconex.collector.http.doccrawl;
 
-import com.norconex.collector.core.doccrawl.DocCrawlState;
+import com.norconex.collector.core.data.CrawlState;
 
 /**
  * Represents a URL crawling status.
  * @author Pascal Essiembre
  */
-public class HttpDocCrawlState extends DocCrawlState { 
+public class HttpDocCrawlState extends CrawlState { 
 
     private static final long serialVersionUID = 1466828686562714860L;
 

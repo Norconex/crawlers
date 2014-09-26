@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.event.DocCrawlEvent;
-import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
@@ -198,7 +198,7 @@ public final class DocCrawlPipeline
             if (StringUtils.isBlank(url)) {
                 return true;
             }
-            IDocCrawlStore refStore = ctx.getDocCrawlStore();
+            ICrawlDataStore refStore = ctx.getDocCrawlStore();
             
             if (refStore.isActive(url)) {
                 debug("Already being processed: %s", url);

@@ -20,14 +20,14 @@ package com.norconex.collector.http.doccrawl;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import com.norconex.collector.core.doccrawl.BasicDocCrawl;
+import com.norconex.collector.core.data.BasicCrawlData;
 
 
 /**
  * A URL being crawled holding relevant crawl information.
  * @author Pascal Essiembre
  */
-public class HttpDocCrawl extends BasicDocCrawl {
+public class HttpDocCrawl extends BasicCrawlData {
 
     private static final long serialVersionUID = -2219206220476107409L;
 

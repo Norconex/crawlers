@@ -40,8 +40,8 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
 import com.norconex.collector.core.crawler.event.CrawlerEventManager;
 import com.norconex.collector.core.crawler.event.DocCrawlEvent;
-import com.norconex.collector.core.doccrawl.IDocCrawl;
-import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
+import com.norconex.collector.core.data.ICrawlData;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doc.pipe.DocumentPipeline;
@@ -136,7 +136,7 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     protected void prepareExecution(
             JobStatusUpdater statusUpdater, JobSuite suite, 
-            IDocCrawlStore refStore, boolean resume) {
+            ICrawlDataStore refStore, boolean resume) {
         
         importer = new Importer(getCrawlerConfig().getImporterConfig());
         streamFactory = importer.getStreamFactory();
@@ -180,13 +180,13 @@ public class HttpCrawler extends AbstractCrawler {
 
     @Override
     protected void cleanupExecution(JobStatusUpdater statusUpdater,
-            JobSuite suite, IDocCrawlStore refStore) {
+            JobSuite suite, ICrawlDataStore refStore) {
         closeHttpClient();
     }
     
     @Override
     protected void execute(JobStatusUpdater statusUpdater,
-            JobSuite suite, IDocCrawlStore refStore) {
+            JobSuite suite, ICrawlDataStore refStore) {
 
         
         //TODO move this code to a config validator class?
@@ -227,7 +227,7 @@ public class HttpCrawler extends AbstractCrawler {
                 + (stopped ? "stopped." : "completed."));
     }
 
-    private void handleOrphans(IDocCrawlStore refStore,
+    private void handleOrphans(ICrawlDataStore refStore,
             JobStatusUpdater statusUpdater, JobSuite suite) {
         if (getCrawlerConfig().isDeleteOrphans()) {
             LOG.info(getId() + ": Deleting orphan URLs (if any)...");
@@ -244,9 +244,9 @@ public class HttpCrawler extends AbstractCrawler {
     }
     
     private void reprocessCacheOrphans(
-            IDocCrawlStore refStore, JobStatusUpdater statusUpdater, JobSuite suite) {
+            ICrawlDataStore refStore, JobStatusUpdater statusUpdater, JobSuite suite) {
         long count = 0;
-        Iterator<IDocCrawl> it = refStore.getCacheIterator();
+        Iterator<ICrawlData> it = refStore.getCacheIterator();
         if (it != null) {
             while (it.hasNext()) {
                 HttpDocCrawl reference = (HttpDocCrawl) it.next();
@@ -261,9 +261,9 @@ public class HttpCrawler extends AbstractCrawler {
     }
     
     private void deleteCacheOrphans(
-            IDocCrawlStore refStore, JobStatusUpdater statusUpdater, JobSuite suite) {
+            ICrawlDataStore refStore, JobStatusUpdater statusUpdater, JobSuite suite) {
         long count = 0;
-        Iterator<IDocCrawl> it = refStore.getCacheIterator();
+        Iterator<ICrawlData> it = refStore.getCacheIterator();
         if (it != null && it.hasNext()) {
             while (it.hasNext()) {
                 refStore.queue(it.next());
@@ -275,7 +275,7 @@ public class HttpCrawler extends AbstractCrawler {
     }
     
     private void processURLs(
-    		final IDocCrawlStore refStore,
+    		final ICrawlDataStore refStore,
     		final JobStatusUpdater statusUpdater, 
     		final JobSuite suite,
     		final boolean delete) {
@@ -305,10 +305,10 @@ public class HttpCrawler extends AbstractCrawler {
      * @return <code>true</code> if more urls to process
      */
     private boolean processNextURL(
-            final IDocCrawlStore docCrawlStore,
+            final ICrawlDataStore crawlDataStore,
             final JobStatusUpdater statusUpdater, 
             final boolean delete) {
-        HttpDocCrawl queuedURL = (HttpDocCrawl) docCrawlStore.nextQueued();
+        HttpDocCrawl queuedURL = (HttpDocCrawl) crawlDataStore.nextQueued();
         if (LOG.isDebugEnabled()) {
             LOG.debug(getId() 
                     + " Processing next URL from Queue: " + queuedURL);
@@ -325,20 +325,20 @@ public class HttpCrawler extends AbstractCrawler {
                 watch.start();
             }
             int preOKCount = okURLsCount;
-            processNextQueuedURL(queuedURL, docCrawlStore, delete);
+            processNextQueuedURL(queuedURL, crawlDataStore, delete);
             if (preOKCount != okURLsCount) {
                 statusUpdater.getProperties().setInt(
                         PROP_OK_URL_COUNT, okURLsCount);
             }
-            setProgress(statusUpdater, docCrawlStore);
+            setProgress(statusUpdater, crawlDataStore);
             if (LOG.isDebugEnabled()) {
                 watch.stop();
                 LOG.debug(getId() + ": " + watch.toString() 
                         + " to process: " + queuedURL.getReference());
             }
         } else {
-            int activeCount = docCrawlStore.getActiveCount();
-            boolean queueEmpty = docCrawlStore.isQueueEmpty();
+            int activeCount = crawlDataStore.getActiveCount();
+            boolean queueEmpty = crawlDataStore.isQueueEmpty();
             if (LOG.isDebugEnabled()) {
                 LOG.debug(getId() 
                         + " URLs currently being processed: " + activeCount);
@@ -354,7 +354,7 @@ public class HttpCrawler extends AbstractCrawler {
     }
     
     private void setProgress(
-            JobStatusUpdater statusUpdater, IDocCrawlStore db) {
+            JobStatusUpdater statusUpdater, ICrawlDataStore db) {
         int queued = db.getQueueSize();
         int processed = db.getProcessedCount();
         int total = queued + processed;
@@ -387,17 +387,17 @@ public class HttpCrawler extends AbstractCrawler {
     }
 
     private void deleteURL(
-            IDocCrawl docCrawl, /*File outputFile,*/ HttpDocument doc) {
-        LOG.debug(getId() + ": Deleting URL: " + docCrawl.getReference());
+            ICrawlData crawlData, /*File outputFile,*/ HttpDocument doc) {
+        LOG.debug(getId() + ": Deleting URL: " + crawlData.getReference());
         ICommitter committer = getCrawlerConfig().getCommitter();
-        ((HttpDocCrawl) docCrawl).setState(HttpDocCrawlState.DELETED);
+        ((HttpDocCrawl) crawlData).setState(HttpDocCrawlState.DELETED);
         if (committer != null) {
-            committer.remove(docCrawl.getReference(), doc.getMetadata());
+            committer.remove(crawlData.getReference(), doc.getMetadata());
         }
     }
     
     private void processNextQueuedURL(HttpDocCrawl docCrawl, 
-            IDocCrawlStore docCrawlStore, boolean delete) {
+            ICrawlDataStore crawlDataStore, boolean delete) {
         String url = docCrawl.getReference();
         HttpDocument doc = new HttpDocument(
                 docCrawl.getReference(), streamFactory.newInputStream());
@@ -416,7 +416,7 @@ public class HttpCrawler extends AbstractCrawler {
             //TODO create pipeline context prototype
             //TODO cache the pipeline object?
             DocumentPipelineContext context = new DocumentPipelineContext(
-                    this, docCrawlStore, doc, docCrawl, importer);
+                    this, crawlDataStore, doc, docCrawl, importer);
 
 //            if (new DocumentPipeline().execute(context)) {
             new DocumentPipeline().execute(context);
@@ -425,7 +425,7 @@ public class HttpCrawler extends AbstractCrawler {
             
             
             if (response != null) {
-                processImportResponse(response, docCrawlStore, docCrawl);
+                processImportResponse(response, crawlDataStore, docCrawl);
                 fullyProcessed = true;
             } else {
                 fireDocCrawlEvent(new DocCrawlEvent(
@@ -451,14 +451,14 @@ public class HttpCrawler extends AbstractCrawler {
                     + " (" + e.getMessage() + ")", e);
 	    } finally {
 	        if (!fullyProcessed) {
-	            finalizeURLProcessing(docCrawl, docCrawlStore, /*url, outputFile,*/ doc);
+	            finalizeURLProcessing(docCrawl, crawlDataStore, /*url, outputFile,*/ doc);
 	        }
 	    }
 	}
     
     private void processImportResponse(
             ImporterResponse response, 
-            IDocCrawlStore docCrawlStore,
+            ICrawlDataStore crawlDataStore,
             HttpDocCrawl docCrawl) {
         HttpDocument doc = null;
         try {
@@ -468,7 +468,7 @@ public class HttpCrawler extends AbstractCrawler {
                 doc = new HttpDocument(response.getDocument());
                 PostImportPipelineContext context = 
                         new PostImportPipelineContext(
-                                this, docCrawlStore, doc, docCrawl);
+                                this, crawlDataStore, doc, docCrawl);
                 new PostImportPipeline().execute(context);
             } else {
                 fireDocCrawlEvent(new DocCrawlEvent(
@@ -481,15 +481,15 @@ public class HttpCrawler extends AbstractCrawler {
             for (ImporterResponse child : children) {
                 HttpDocCrawl childDocCrawl = new HttpDocCrawl(
                         child.getReference(), docCrawl.getDepth());
-                processImportResponse(child, docCrawlStore, childDocCrawl);
+                processImportResponse(child, crawlDataStore, childDocCrawl);
             }
         } finally {
-            finalizeURLProcessing(docCrawl, docCrawlStore, doc);;
+            finalizeURLProcessing(docCrawl, crawlDataStore, doc);;
         }
     }
 
     private void finalizeURLProcessing(HttpDocCrawl docCrawl,
-            IDocCrawlStore refStore,/* String url, File outputFile,*/
+            ICrawlDataStore refStore,/* String url, File outputFile,*/
             HttpDocument doc) {
         //--- Flag URL for deletion --------------------------------------------
         try {
@@ -535,7 +535,7 @@ public class HttpCrawler extends AbstractCrawler {
     }
 
     private void markOriginalURLAsProcessed(
-            HttpDocCrawl docCrawl, IDocCrawlStore refStore) {
+            HttpDocCrawl docCrawl, ICrawlDataStore refStore) {
         if (StringUtils.isNotBlank(docCrawl.getOriginalReference()) 
                 && ObjectUtils.notEqual(docCrawl.getOriginalReference(), 
                         docCrawl.getReference())) {
@@ -569,7 +569,7 @@ public class HttpCrawler extends AbstractCrawler {
         return getCrawlerConfig().getMaxURLs() > -1 
                 && okURLsCount >= getCrawlerConfig().getMaxURLs();
     }
-    private void setURLMetadata(HttpMetadata metadata, IDocCrawl ref) {
+    private void setURLMetadata(HttpMetadata metadata, ICrawlData ref) {
         HttpDocCrawl url = (HttpDocCrawl) ref;
         
         metadata.addInt(HttpMetadata.COLLECTOR_DEPTH, url.getDepth());
@@ -600,13 +600,13 @@ public class HttpCrawler extends AbstractCrawler {
     private final class ProcessURLsRunnable implements Runnable {
         private final JobSuite suite;
         private final JobStatusUpdater statusUpdater;
-        private final IDocCrawlStore crawlStore;
+        private final ICrawlDataStore crawlStore;
         private final boolean delete;
         private final CountDownLatch latch;
 
         private ProcessURLsRunnable(JobSuite suite, 
                 JobStatusUpdater statusUpdater,
-                IDocCrawlStore refStore, boolean delete,
+                ICrawlDataStore refStore, boolean delete,
                 CountDownLatch latch) {
             this.suite = suite;
             this.statusUpdater = statusUpdater;

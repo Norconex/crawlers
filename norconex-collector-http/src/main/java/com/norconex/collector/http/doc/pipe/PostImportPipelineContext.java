@@ -5,7 +5,7 @@ package com.norconex.collector.http.doc.pipe;
 
 import org.apache.http.client.HttpClient;
 
-import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doc.HttpDocument;
@@ -19,16 +19,16 @@ public class PostImportPipelineContext {
 
     private final HttpCrawler crawler;
     private final HttpDocument doc;
-    private final IDocCrawlStore docCrawlStore;
+    private final ICrawlDataStore crawlDataStore;
     private final HttpDocCrawl docCrawl;
 //    private RobotsMeta robotsMeta;
 //    private ImporterResponse importerResponse;
     
     public PostImportPipelineContext(
-            HttpCrawler crawler, IDocCrawlStore docCrawlStore,
+            HttpCrawler crawler, ICrawlDataStore crawlDataStore,
             HttpDocument doc, HttpDocCrawl docCrawl) {
         this.crawler = crawler;
-        this.docCrawlStore = docCrawlStore;
+        this.crawlDataStore = crawlDataStore;
         this.doc = doc;
         this.docCrawl = docCrawl;
     }
@@ -57,10 +57,10 @@ public class PostImportPipelineContext {
     }
     
     /**
-     * @return the docCrawlStore
+     * @return the crawlDataStore
      */
-    public IDocCrawlStore getDocCrawlStore() {
-        return docCrawlStore;
+    public ICrawlDataStore getDocCrawlStore() {
+        return crawlDataStore;
     }
     
 //
@@ -68,8 +68,8 @@ public class PostImportPipelineContext {
 //        return getConfig().getHttpHeadersFetcher();
 //    }
 //
-//    public IDocCrawlStore getReferenceStore() {
-//        return docCrawlStore;
+//    public ICrawlDataStore getReferenceStore() {
+//        return crawlDataStore;
 //    }
 //
 //    public ISitemapResolver getSitemapResolver() {

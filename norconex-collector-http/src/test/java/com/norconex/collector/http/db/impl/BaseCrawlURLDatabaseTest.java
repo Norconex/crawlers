@@ -28,9 +28,9 @@ import java.util.Iterator;
 
 import org.junit.Test;
 
-import com.norconex.collector.core.doccrawl.IDocCrawl;
-import com.norconex.collector.core.doccrawl.DocCrawlState;
-import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
+import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.data.ICrawlData;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 
@@ -43,9 +43,9 @@ public abstract class BaseCrawlURLDatabaseTest {
     /**
      * Actual implementation will be provided by the concrete class.
      */
-    protected IDocCrawlStore db;
+    protected ICrawlDataStore db;
 
-    protected void cacheUrl(String url, int depth, DocCrawlState status,
+    protected void cacheUrl(String url, int depth, CrawlState status,
             String headChecksum, String docChecksum) {
 
         // To cache an url, it needs to be processed first, then we need to
@@ -152,9 +152,9 @@ public abstract class BaseCrawlURLDatabaseTest {
         String url = "http://www.norconex.com/";
         cacheUrl(url);
 
-        Iterator<IDocCrawl> it = db.getCacheIterator();
+        Iterator<ICrawlData> it = db.getCacheIterator();
         assertTrue(it.hasNext());
-        IDocCrawl httpDocReference = it.next();
+        ICrawlData httpDocReference = it.next();
         assertEquals(url, httpDocReference.getReference()); 
     }
 

@@ -11,7 +11,7 @@ import org.apache.commons.lang3.CharEncoding;
 import org.apache.http.client.HttpClient;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doc.HttpDocument;
@@ -32,17 +32,17 @@ public class DocumentPipelineContext {
 
     private final HttpCrawler crawler;
     private final HttpDocument doc;
-    private final IDocCrawlStore docCrawlStore;
+    private final ICrawlDataStore crawlDataStore;
     private final HttpDocCrawl docCrawl;
     private final Importer importer;
     private RobotsMeta robotsMeta;
     private ImporterResponse importerResponse;
     
     public DocumentPipelineContext(
-            HttpCrawler crawler, IDocCrawlStore docCrawlStore, 
+            HttpCrawler crawler, ICrawlDataStore crawlDataStore, 
             HttpDocument doc, HttpDocCrawl docCrawl, Importer importer) {
         this.crawler = crawler;
-        this.docCrawlStore = docCrawlStore;
+        this.crawlDataStore = crawlDataStore;
         this.doc = doc;
         this.docCrawl = docCrawl;
         this.importer = importer;
@@ -75,8 +75,8 @@ public class DocumentPipelineContext {
         return getConfig().getHttpHeadersFetcher();
     }
 
-    public IDocCrawlStore getReferenceStore() {
-        return docCrawlStore;
+    public ICrawlDataStore getReferenceStore() {
+        return crawlDataStore;
     }
 
     public ISitemapResolver getSitemapResolver() {

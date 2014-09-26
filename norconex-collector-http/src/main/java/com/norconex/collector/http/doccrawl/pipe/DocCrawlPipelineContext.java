@@ -5,7 +5,7 @@ package com.norconex.collector.http.doccrawl.pipe;
 
 import org.apache.http.client.HttpClient;
 
-import com.norconex.collector.core.doccrawl.store.IDocCrawlStore;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doccrawl.HttpDocCrawl;
@@ -19,15 +19,15 @@ import com.norconex.collector.http.sitemap.ISitemapResolver;
 public class DocCrawlPipelineContext {
 
     private final HttpCrawler crawler;
-    private final IDocCrawlStore docCrawlStore;
+    private final ICrawlDataStore crawlDataStore;
     private final HttpDocCrawl docCrawl;
     private final RobotsTxt robotsTxt;
 
     public DocCrawlPipelineContext(
-            HttpCrawler crawler, IDocCrawlStore refStore, 
+            HttpCrawler crawler, ICrawlDataStore refStore, 
             HttpDocCrawl reference) {
         this.crawler = crawler;
-        this.docCrawlStore = refStore;
+        this.crawlDataStore = refStore;
         this.docCrawl = reference;
         if (!getConfig().isIgnoreRobotsTxt()) {
             this.robotsTxt = getConfig().getRobotsTxtProvider().getRobotsTxt(
@@ -54,8 +54,8 @@ public class DocCrawlPipelineContext {
         return crawler.getHttpClient();
     }
 
-    public IDocCrawlStore getDocCrawlStore() {
-        return docCrawlStore;
+    public ICrawlDataStore getDocCrawlStore() {
+        return crawlDataStore;
     }
 
     public ISitemapResolver getSitemapResolver() {

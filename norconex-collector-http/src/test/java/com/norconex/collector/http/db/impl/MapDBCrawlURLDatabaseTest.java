@@ -30,6 +30,7 @@ public class MapDBCrawlURLDatabaseTest extends BaseCrawlURLDatabaseTest {
     @Before
     public void setup() {
         config = new HttpCrawlerConfig();
+        config.setId("test");
         // the tempFolder is re-created at each test
         config.setWorkDir(tempFolder.getRoot());
         db = new DefaultDocCrawlStoreFactory().createReferenceStore(

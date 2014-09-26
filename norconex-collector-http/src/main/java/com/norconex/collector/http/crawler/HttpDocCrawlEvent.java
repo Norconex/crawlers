@@ -4,7 +4,7 @@
 package com.norconex.collector.http.crawler;
 
 import com.norconex.collector.core.crawler.event.DocCrawlEvent;
-import com.norconex.collector.core.doccrawl.IDocCrawl;
+import com.norconex.collector.core.data.ICrawlData;
 
 /**
  * @author Pascal Essiembre
@@ -19,9 +19,9 @@ public class HttpDocCrawlEvent extends DocCrawlEvent {
     public static final String REJECTED_TOO_DEEP = "REJECTED_TOO_DEEP";
     public static final String URLS_EXTRACTED = "URLS_EXTRACTED";
 
-    public HttpDocCrawlEvent(String eventType, IDocCrawl docCrawl,
+    public HttpDocCrawlEvent(String eventType, ICrawlData crawlData,
             Object subject) {
-        super(eventType, docCrawl, subject);
+        super(eventType, crawlData, subject);
     }
 
 }
