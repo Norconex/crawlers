@@ -23,7 +23,10 @@
         and improves performance in most cases.
       </action>
       <action dev="essiembre" type="add">
-        Now keeps track of parent refrences (for embedded/splitted documents).
+        New H2 database implementation for URL database (crawl data store).
+      </action>
+      <action dev="essiembre" type="add">
+        Now keeps track of parent references (for embedded/split documents).
       </action>
       <action dev="essiembre" type="add">
         More unit tests, with the addition of an embedded Jetty Web server
