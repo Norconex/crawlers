@@ -16,36 +16,43 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.data.store.impl.derby;
+package com.norconex.collector.http.data.store.impl.jdbc;
 
-import com.norconex.collector.core.crawler.ICrawlerConfig;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
-import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
-import com.norconex.collector.core.data.store.impl.derby.DerbyCrawlDataStore;
+import com.norconex.collector.core.data.store.impl.jdbc.AbstractJDBCDataStoreFactory;
+import com.norconex.collector.core.data.store.impl.jdbc.IJDBCSerializer;
+import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Database;
 
 /**
- * Derby {@link ICrawlDataStoreFactory} implementation.
+ * JDBC implementation of {@link ICrawlDataStore}.  Defaults to H2 
+ * database.
  * <p />
  * XML configuration usage:
  * <p />
  * <pre>
- *  &lt;crawlDataStoreFactory  
- *      class="com.norconex.collector.http.data.store.impl.derby.DerbyCrawlDataStoreFactory" /&gt;
+ *  &lt;crawlDataStoreFactory 
+ *          class="com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory"&gt;
+ *      &lt;database&gt;[h2|derby]&lt;/database&gt;
+ *  &lt;/crawlDataStoreFactory&gt;
  * </pre>
+ *
  * @author Pascal Essiembre
  */
-public class DerbyCrawlDataStoreFactory 
-        implements ICrawlDataStoreFactory {
+public class JDBCCrawlDataStoreFactory 
+        extends AbstractJDBCDataStoreFactory {
 
     private static final long serialVersionUID = 2288102775288980171L;
 
+    public JDBCCrawlDataStoreFactory() {
+        super();
+    }
+    public JDBCCrawlDataStoreFactory(Database database) {
+        super(database);
+    }
+
     @Override
-    public ICrawlDataStore createCrawlDataStore(
-            ICrawlerConfig config, boolean resume) {
-        String storeDir = config.getWorkDir().getPath()
-                + "/refstore/" + config.getId() + "/";
-        return new DerbyCrawlDataStore(storeDir, resume, 
-                new DerbyCrawlDataSerializer());
+    protected IJDBCSerializer createJDBCSerializer() {
+        return new JDBCCrawlDataSerializer();
     }
 }
 

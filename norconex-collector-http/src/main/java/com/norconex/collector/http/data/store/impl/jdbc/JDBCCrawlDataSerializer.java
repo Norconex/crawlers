@@ -16,7 +16,7 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.data.store.impl.derby;
+package com.norconex.collector.http.data.store.impl.jdbc;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -25,12 +25,12 @@ import java.sql.SQLException;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.norconex.collector.core.data.ICrawlData;
-import com.norconex.collector.core.data.store.impl.derby.DerbyCrawlDataStore;
-import com.norconex.collector.core.data.store.impl.derby.IDerbySerializer;
+import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore;
+import com.norconex.collector.core.data.store.impl.jdbc.IJDBCSerializer;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 
-class DerbyCrawlDataSerializer implements IDerbySerializer {
+class JDBCCrawlDataSerializer implements IJDBCSerializer {
 
     protected static final String ALL_FIELDS = 
             // common attributes:
@@ -64,7 +64,7 @@ class DerbyCrawlDataSerializer implements IDerbySerializer {
                 + "PRIMARY KEY (reference))";
 
         String[] sqls = new String[] { sql };
-        if (DerbyCrawlDataStore.TABLE_QUEUE.equals(table)) {
+        if (JDBCCrawlDataStore.TABLE_QUEUE.equals(table)) {
             sqls = ArrayUtils.add(sqls, 
                     "CREATE INDEX orderindex ON queue(depth)");
         }
@@ -111,7 +111,7 @@ class DerbyCrawlDataSerializer implements IDerbySerializer {
     @Override
     public String getNextQueuedDocCrawlSQL() {
         return "SELECT " + ALL_FIELDS 
-                + "FROM " + DerbyCrawlDataStore.TABLE_QUEUE
+                + "FROM " + JDBCCrawlDataStore.TABLE_QUEUE
                 + " ORDER BY depth";
     }
     @Override
@@ -122,7 +122,7 @@ class DerbyCrawlDataSerializer implements IDerbySerializer {
     @Override
     public String getCachedDocCrawlSQL() {
         return "SELECT " + ALL_FIELDS 
-                + "FROM " + DerbyCrawlDataStore.TABLE_CACHE
+                + "FROM " + JDBCCrawlDataStore.TABLE_CACHE
                 + " WHERE reference = ? ";
     }
     @Override

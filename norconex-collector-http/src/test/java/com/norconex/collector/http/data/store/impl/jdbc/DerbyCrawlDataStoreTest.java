@@ -16,14 +16,17 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.data.store.impl.derby;
+package com.norconex.collector.http.data.store.impl.jdbc;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import com.norconex.collector.core.data.store.ICrawlDataStore;
+import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Database;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.store.impl.BaseCrawlDataStoreTest;
+import com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory;
 
 public class DerbyCrawlDataStoreTest extends BaseCrawlDataStoreTest {
 
@@ -44,19 +47,26 @@ public class DerbyCrawlDataStoreTest extends BaseCrawlDataStoreTest {
         if (db != null) {
             db.close();
         }
-        db = new DerbyCrawlDataStoreFactory().createCrawlDataStore(
-                config, resume);
+        db = createCrawlDataStore(resume);
     }
 
 	@Before
 	public void setup() {
 
 		config = new HttpCrawlerConfig();
-        config.setId("DerbyTest");
+        config.setId("JDBCTest");
 		// the tempFolder is re-created at each test
 		config.setWorkDir(tempFolder.getRoot());
-		db = new DerbyCrawlDataStoreFactory().createCrawlDataStore(
-		        config, false);
+		db = createCrawlDataStore(false);
+	}
+	
+	protected HttpCrawlerConfig getConfig() {
+	    return config;
+	}
+	
+	protected ICrawlDataStore createCrawlDataStore(boolean resume) {
+        return new JDBCCrawlDataStoreFactory(
+                Database.DERBY).createCrawlDataStore(config, resume);
 	}
 
 }
