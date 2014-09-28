@@ -16,7 +16,7 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.doccrawl.impl;
+package com.norconex.collector.http.data.store.impl.derby;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -27,14 +27,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.impl.derby.DerbyCrawlDataStore;
 import com.norconex.collector.core.data.store.impl.derby.IDerbySerializer;
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
-import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
+import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.data.HttpCrawlState;
 
-/**
- * @author Pascal Essiembre
- * @since 2.0.0
- */
-public class HttpDerbySerializer implements IDerbySerializer {
+class DerbyCrawlDataSerializer implements IDerbySerializer {
 
     protected static final String ALL_FIELDS = 
             // common attributes:
@@ -84,7 +80,8 @@ public class HttpDerbySerializer implements IDerbySerializer {
     public String getDeleteDocCrawlSQL(String table) {
         return "DELETE FROM " + table + " WHERE reference = ?";
     }
-    public Object[] getDeleteDocCrawlValues(String table, ICrawlData crawlURL) {
+    public Object[] getDeleteDocCrawlValues(
+            String table, ICrawlData crawlURL) {
         return new Object[] { crawlURL.getReference() };
     }
     
@@ -94,8 +91,9 @@ public class HttpDerbySerializer implements IDerbySerializer {
                 + ") values (?,?,?,?,?,?,?,?,?,?)";
     }
     @Override
-    public Object[] getInsertDocCrawlValues(String table, ICrawlData crawlData) {
-        HttpDocCrawl data = (HttpDocCrawl) crawlData;
+    public Object[] getInsertDocCrawlValues(
+            String table, ICrawlData crawlData) {
+        HttpCrawlData data = (HttpCrawlData) crawlData;
         return new Object[] { 
                 data.getReference(),
                 data.getParentRootReference(),
@@ -109,7 +107,6 @@ public class HttpDerbySerializer implements IDerbySerializer {
                 data.getSitemapPriority()
         };
     }
-
     
     @Override
     public String getNextQueuedDocCrawlSQL() {
@@ -138,7 +135,8 @@ public class HttpDerbySerializer implements IDerbySerializer {
         return "SELECT 1 FROM " + table + " WHERE reference = ?";
     }
     @Override
-    public Object[] getReferenceExistsValues(String table, String reference) {
+    public Object[] getReferenceExistsValues(
+            String table, String reference) {
         return new Object[] { reference };
     }
     
@@ -148,11 +146,11 @@ public class HttpDerbySerializer implements IDerbySerializer {
         if (rs == null) {
             return null;
         }
-        HttpDocCrawl data = new HttpDocCrawl();
+        HttpCrawlData data = new HttpCrawlData();
         data.setReference(rs.getString("reference"));
         data.setParentRootReference(rs.getString("parentRootReference"));
         data.setRootParentReference(rs.getBoolean("isRootParentReference"));
-        data.setState(HttpDocCrawlState.valueOf(rs.getString("state")));
+        data.setState(HttpCrawlState.valueOf(rs.getString("state")));
         data.setMetaChecksum(rs.getString("metaChecksum"));
         data.setContentChecksum(rs.getString("contentChecksum"));
         data.setDepth(rs.getInt("depth"));

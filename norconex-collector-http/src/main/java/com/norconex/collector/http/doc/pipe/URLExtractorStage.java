@@ -14,12 +14,12 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
+import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.data.pipe.CrawlDataPipeline;
+import com.norconex.collector.http.data.pipe.CrawlDataPipelineContext;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
-import com.norconex.collector.http.doccrawl.pipe.DocCrawlPipeline;
-import com.norconex.collector.http.doccrawl.pipe.DocCrawlPipelineContext;
 import com.norconex.collector.http.url.IURLExtractor;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 
@@ -63,15 +63,15 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
         Set<String> uniqueURLs = new HashSet<String>();
         if (urls != null) {
             for (String url : urls) {
-                HttpDocCrawl newURL = new HttpDocCrawl(
+                HttpCrawlData newURL = new HttpCrawlData(
                         url, ctx.getDocCrawl().getDepth() + 1);
-                DocCrawlPipelineContext context = new DocCrawlPipelineContext(
+                CrawlDataPipelineContext context = new CrawlDataPipelineContext(
                         ctx.getCrawler(), ctx.getReferenceStore(), newURL);
-//                if (new DocCrawlPipeline().process(context)) {
+//                if (new CrawlDataPipeline().process(context)) {
 //                    uniqueURLs.add(newURL.getReference());
 //                }
                 //TODO do we want to capture them all or just the valid ones?
-                new DocCrawlPipeline().execute(context);
+                new CrawlDataPipeline().execute(context);
                 uniqueURLs.add(newURL.getReference());
             }
         }
@@ -80,7 +80,7 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
                     uniqueURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
         
-        ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+        ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                 HttpDocCrawlEvent.URLS_EXTRACTED, 
                 ctx.getDocCrawl(), uniqueURLs));
         return true;

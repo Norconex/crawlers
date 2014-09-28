@@ -16,18 +16,23 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.doccrawl;
+package com.norconex.collector.http.data;
 
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.BasicCrawlData;
+import com.norconex.collector.core.data.ICrawlData;
 
 
 /**
  * A URL being crawled holding relevant crawl information.
  * @author Pascal Essiembre
  */
-public class HttpDocCrawl extends BasicCrawlData {
+public class HttpCrawlData extends BasicCrawlData {
 
     private static final long serialVersionUID = -2219206220476107409L;
 
@@ -38,16 +43,26 @@ public class HttpDocCrawl extends BasicCrawlData {
     private Float sitemapPriority;
     private String originalReference;
 
-    public HttpDocCrawl() {
+    public HttpCrawlData() {
         super();
     }
 
+    public HttpCrawlData(ICrawlData crawlData) {
+        if (crawlData != null) {
+            try {
+                BeanUtils.copyProperties(this, crawlData);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new CollectorException(e);
+            }
+        }
+    }
+    
     /**
      * Constructor.
      * @param url URL being crawled
      * @param depth URL depth
      */
-    public HttpDocCrawl(String url, int depth) {
+    public HttpCrawlData(String url, int depth) {
         super();
         setReference(url);
         setDepth(depth);
@@ -162,10 +177,10 @@ public class HttpDocCrawl extends BasicCrawlData {
         if (!super.equals(obj)) {
             return false;
         }
-        if (!(obj instanceof HttpDocCrawl)) {
+        if (!(obj instanceof HttpCrawlData)) {
             return false;
         }
-        HttpDocCrawl other = (HttpDocCrawl) obj;
+        HttpCrawlData other = (HttpCrawlData) obj;
         if (depth != other.depth) {
             return false;
         }

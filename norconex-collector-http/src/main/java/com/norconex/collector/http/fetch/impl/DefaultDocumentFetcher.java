@@ -44,8 +44,8 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -123,7 +123,7 @@ public class DefaultDocumentFetcher
                 
                 //read a copy to force caching and then close the HTTP stream
                 IOUtils.copy(doc.getContent(), new NullOutputStream());
-                return HttpDocCrawlState.NEW;
+                return HttpCrawlState.NEW;
             }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Rejected response content: " + IOUtils.toString(is));
@@ -138,11 +138,11 @@ public class DefaultDocumentFetcher
                 IOUtils.closeQuietly(bis);
             }
             if (statusCode == HttpStatus.SC_NOT_FOUND) {
-                return HttpDocCrawlState.NOT_FOUND;
+                return HttpCrawlState.NOT_FOUND;
             }
             LOG.debug("Unsupported HTTP Response: "
                     + response.getStatusLine());
-            return HttpDocCrawlState.BAD_STATUS;
+            return HttpCrawlState.BAD_STATUS;
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.error("Cannot fetch document: " + doc.getReference()

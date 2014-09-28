@@ -30,9 +30,9 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 
 import com.norconex.collector.core.data.store.ICrawlDataStore;
+import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 
 /**
  * <p>
@@ -100,13 +100,13 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
     public static void fixRedirectURL(
             HttpClient httpClient, 
             HttpDocument doc,
-            HttpDocCrawl httpDocCrawl,
+            HttpCrawlData httpCrawlData,
             ICrawlDataStore database) {
-        String originalURL = httpDocCrawl.getReference();
+        String originalURL = httpCrawlData.getReference();
         String currentURL = getCurrentUrl();
         if (ObjectUtils.notEqual(currentURL, originalURL)) {
-            httpDocCrawl.setOriginalReference(originalURL);
-            httpDocCrawl.setReference(currentURL);
+            httpCrawlData.setOriginalReference(originalURL);
+            httpCrawlData.setReference(currentURL);
             doc.getMetadata().setString(HttpMetadata.COLLECTOR_URL, currentURL);
             doc.setReference(currentURL);
 //            Unless the DocCrawl is enough to ensure proper storing + sending to committer?

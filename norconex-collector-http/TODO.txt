@@ -3,6 +3,7 @@ The following are either things to be done, or ideas to consider:
 
 For 2.0.0:
 ============
+- Add H2 relational DB and test performance (compared to derby).
 
 - Add total execution time, periodic time elapsed and estimated remaining, print docs so far.
 

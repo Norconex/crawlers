@@ -8,8 +8,8 @@ import org.apache.http.client.HttpClient;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 
 /**
  * @author Pascal Essiembre
@@ -20,13 +20,13 @@ public class PostImportPipelineContext {
     private final HttpCrawler crawler;
     private final HttpDocument doc;
     private final ICrawlDataStore crawlDataStore;
-    private final HttpDocCrawl docCrawl;
+    private final HttpCrawlData docCrawl;
 //    private RobotsMeta robotsMeta;
 //    private ImporterResponse importerResponse;
     
     public PostImportPipelineContext(
             HttpCrawler crawler, ICrawlDataStore crawlDataStore,
-            HttpDocument doc, HttpDocCrawl docCrawl) {
+            HttpDocument doc, HttpCrawlData docCrawl) {
         this.crawler = crawler;
         this.crawlDataStore = crawlDataStore;
         this.doc = doc;
@@ -44,7 +44,7 @@ public class PostImportPipelineContext {
     /**
      * @return the docCrawl
      */
-    public HttpDocCrawl getDocCrawl() {
+    public HttpCrawlData getDocCrawl() {
         return docCrawl;
     }
     

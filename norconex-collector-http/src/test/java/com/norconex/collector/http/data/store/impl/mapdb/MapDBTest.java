@@ -1,4 +1,4 @@
-package com.norconex.collector.http.db.impl;
+package com.norconex.collector.http.data.store.impl.mapdb;
 
 /* Copyright 2010-2014 Norconex Inc.
  * 
@@ -34,7 +34,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
+import com.norconex.collector.http.data.HttpCrawlData;
 
 public class MapDBTest {
 
@@ -43,7 +43,7 @@ public class MapDBTest {
 
     private DB db;
 
-    private Map<String, HttpDocCrawl> map;
+    private Map<String, HttpCrawlData> map;
 
     private File dbFile;
 
@@ -63,8 +63,8 @@ public class MapDBTest {
         db.close();
     }
 
-    private HttpDocCrawl buildCrawlURL() {
-        HttpDocCrawl c = new HttpDocCrawl("http://www.example.com", 3);
+    private HttpCrawlData buildCrawlURL() {
+        HttpCrawlData c = new HttpCrawlData("http://www.example.com", 3);
         c.setContentChecksum("docchecksum1111");
         c.setSitemapPriority(0.8f);
         return c;
@@ -76,7 +76,7 @@ public class MapDBTest {
      */
     @Test
     public void createDatabaseTest() throws Exception {
-        HttpDocCrawl c = buildCrawlURL();
+        HttpCrawlData c = buildCrawlURL();
         map.put("url1", c);
         assertEquals(1, map.size());
     }
@@ -89,7 +89,7 @@ public class MapDBTest {
     @Test
     public void loadDatabaseTest() throws Exception {
         // Insert test data
-        HttpDocCrawl c = buildCrawlURL();
+        HttpCrawlData c = buildCrawlURL();
         map.put("url1", c);
 
         // Close DB

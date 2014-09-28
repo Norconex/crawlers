@@ -9,10 +9,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
-import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
+import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
@@ -31,13 +31,13 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
                 ctx.getConfig().getHttpDocumentChecksummer();
         if (check == null) {
             // NEW is default state (?)
-            ctx.getDocCrawl().setState(HttpDocCrawlState.NEW);
+            ctx.getDocCrawl().setState(HttpCrawlState.NEW);
             return true;
         }
         String newDocChecksum = check.createChecksum(ctx.getDocument());
         ctx.getDocCrawl().setContentChecksum(newDocChecksum);
         String oldDocChecksum = null;
-        HttpDocCrawl cachedURL = (HttpDocCrawl) 
+        HttpCrawlData cachedURL = (HttpCrawlData) 
                 ctx.getDocCrawlStore().getCached(
                         ctx.getDocCrawl().getReference());
         if (cachedURL != null) {
@@ -45,7 +45,7 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
         } else {
             LOG.debug("ACCEPTED document checkum (new): URL=" 
                     + ctx.getDocCrawl().getReference());
-            ctx.getDocCrawl().setState(HttpDocCrawlState.NEW);
+            ctx.getDocCrawl().setState(HttpCrawlState.NEW);
             return true;
         }
         if (StringUtils.isNotBlank(newDocChecksum) 
@@ -54,15 +54,15 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
                 LOG.debug("REJECTED document checkum (unmodified): URL=" 
                         + ctx.getDocCrawl().getReference());
             }
-            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
-                    DocCrawlEvent.REJECTED_UNMODIFIED, 
+            ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
+                    CrawlerEvent.REJECTED_UNMODIFIED, 
                     ctx.getDocCrawl(), check));
-            ctx.getDocCrawl().setState(HttpDocCrawlState.UNMODIFIED);
+            ctx.getDocCrawl().setState(HttpCrawlState.UNMODIFIED);
             return false;
         }
         LOG.debug("ACCEPTED document checkum (modified): URL=" 
                 + ctx.getDocCrawl().getReference());
-        ctx.getDocCrawl().setState(HttpDocCrawlState.MODIFIED);
+        ctx.getDocCrawl().setState(HttpCrawlState.MODIFIED);
         return true;
     }
 }   

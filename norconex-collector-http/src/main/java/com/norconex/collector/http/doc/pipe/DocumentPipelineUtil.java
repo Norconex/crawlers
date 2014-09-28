@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
@@ -91,14 +91,14 @@ import com.norconex.importer.handler.filter.OnMatch;
                             ctx.getDocCrawl().getReference(), filter));
                 }
             } else {
-                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                         HttpDocCrawlEvent.REJECTED_FILTER, 
                         ctx.getDocCrawl(), filter));
                 return true;
             }
         }
         if (hasIncludes && !atLeastOneIncludeMatch) {
-            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+            ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                     HttpDocCrawlEvent.REJECTED_FILTER, 
                     ctx.getDocCrawl(), null));
             return true;

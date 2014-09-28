@@ -16,21 +16,28 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.doccrawl.impl;
+package com.norconex.collector.http.data.store.impl.mapdb;
 
+import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
 
 /**
- * Default URL database factory. This class is a straight extension of
+ * Default {@link ICrawlDataStoreFactory} implementation. 
+ * This class is a straight extension of
  * {@link MapDBCrawlDataStoreFactory} and as such, uses MapDB for its 
  * implementation
+ * <p />
+ * XML configuration usage (not required since default):
+ * <p />
+ * <pre>
+ *  &lt;crawlDataStoreFactory  
+ *      class="com.norconex.collector.http.data.store.impl.mapdb.DefaultCrawlDataStoreFactory" /&gt;
+ * </pre>
  * @author Pascal Essiembre
  */
-public class DefaultDocCrawlStoreFactory 
+public class DefaultCrawlDataStoreFactory 
         extends MapDBCrawlDataStoreFactory {
 
     private static final long serialVersionUID = 370632354864351545L;
 
-    
-    
 }

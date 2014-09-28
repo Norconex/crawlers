@@ -3,14 +3,14 @@
  */
 package com.norconex.collector.http.crawler;
 
-import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.core.data.ICrawlData;
 
 /**
  * @author Pascal Essiembre
  *
  */
-public class HttpDocCrawlEvent extends DocCrawlEvent {
+public class HttpDocCrawlEvent extends CrawlerEvent {
 
     public static final String SAVED_FILE = "SAVED_FILE";
     public static final String CREATED_ROBOTS_META = "CREATED_ROBOTS_META";

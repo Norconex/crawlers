@@ -14,9 +14,9 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
@@ -33,14 +33,14 @@ public class DocumentPipelineContext {
     private final HttpCrawler crawler;
     private final HttpDocument doc;
     private final ICrawlDataStore crawlDataStore;
-    private final HttpDocCrawl docCrawl;
+    private final HttpCrawlData docCrawl;
     private final Importer importer;
     private RobotsMeta robotsMeta;
     private ImporterResponse importerResponse;
     
     public DocumentPipelineContext(
             HttpCrawler crawler, ICrawlDataStore crawlDataStore, 
-            HttpDocument doc, HttpDocCrawl docCrawl, Importer importer) {
+            HttpDocument doc, HttpCrawlData docCrawl, Importer importer) {
         this.crawler = crawler;
         this.crawlDataStore = crawlDataStore;
         this.doc = doc;
@@ -59,7 +59,7 @@ public class DocumentPipelineContext {
     /**
      * @return the docCrawl
      */
-    public HttpDocCrawl getDocCrawl() {
+    public HttpCrawlData getDocCrawl() {
         return docCrawl;
     }
     

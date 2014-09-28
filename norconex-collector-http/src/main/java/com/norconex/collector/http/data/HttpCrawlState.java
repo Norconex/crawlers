@@ -16,7 +16,7 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.doccrawl;
+package com.norconex.collector.http.data;
 
 import com.norconex.collector.core.data.CrawlState;
 
@@ -24,20 +24,20 @@ import com.norconex.collector.core.data.CrawlState;
  * Represents a URL crawling status.
  * @author Pascal Essiembre
  */
-public class HttpDocCrawlState extends CrawlState { 
+public class HttpCrawlState extends CrawlState { 
 
     private static final long serialVersionUID = 1466828686562714860L;
 
-    public static final HttpDocCrawlState TOO_DEEP = 
-            new HttpDocCrawlState("TOO_DEEP");
-    public static final HttpDocCrawlState DELETED = 
-            new HttpDocCrawlState("DELETED");
-    public static final HttpDocCrawlState NOT_FOUND = 
-            new HttpDocCrawlState("NOT_FOUND");
-    public static final HttpDocCrawlState BAD_STATUS = 
-            new HttpDocCrawlState("BAD_STATUS");
+    public static final HttpCrawlState TOO_DEEP = 
+            new HttpCrawlState("TOO_DEEP");
+    public static final HttpCrawlState DELETED = 
+            new HttpCrawlState("DELETED");
+    public static final HttpCrawlState NOT_FOUND = 
+            new HttpCrawlState("NOT_FOUND");
+    public static final HttpCrawlState BAD_STATUS = 
+            new HttpCrawlState("BAD_STATUS");
     
-    protected HttpDocCrawlState(String state) {
+    protected HttpCrawlState(String state) {
         super(state);
     }
 }

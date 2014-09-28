@@ -3,7 +3,7 @@
  */
 package com.norconex.collector.http.doc.pipe;
 
-import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
@@ -38,7 +38,7 @@ public class PostImportPipeline
                     postProc.processDocument(
                             ctx.getHttpClient(), ctx.getDocument());
                     
-                    ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                    ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                             HttpDocCrawlEvent.DOCUMENT_POSTIMPORTED, 
                             ctx.getDocCrawl(), postProc));
                 }            
@@ -57,7 +57,7 @@ public class PostImportPipeline
                 committer.add(doc.getReference(), 
                         doc.getContent(), doc.getMetadata());
             }
-            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+            ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                     HttpDocCrawlEvent.DOCUMENT_COMMITTED, 
                     ctx.getDocCrawl(), committer));
             return true;

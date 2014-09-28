@@ -12,15 +12,15 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
 import com.norconex.collector.http.crawler.TargetURLRedirectStrategy;
+import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
-import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.util.PathUtils;
 import com.norconex.commons.lang.map.Properties;
@@ -96,11 +96,11 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
 
             HttpMetadata metadata = ctx.getMetadata();
             IHttpHeadersFetcher headersFetcher = ctx.getHttpHeadersFetcher();
-            HttpDocCrawl ref = ctx.getDocCrawl();
+            HttpCrawlData ref = ctx.getDocCrawl();
             Properties headers = headersFetcher.fetchHTTPHeaders(
                     ctx.getHttpClient(), ref.getReference());
             if (headers == null) {
-                ref.setState(HttpDocCrawlState.REJECTED);
+                ref.setState(HttpCrawlState.REJECTED);
                 return false;
             }
             metadata.putAll(headers);
@@ -108,8 +108,8 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
             DocumentPipelineUtil.enhanceHTTPHeaders(metadata);
             DocumentPipelineUtil.applyMetadataToDocument(ctx.getDocument());
             
-            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
-                    DocCrawlEvent.HEADERS_FETCHED, 
+            ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
+                    CrawlerEvent.HEADERS_FETCHED, 
                     ctx.getDocCrawl(), headersFetcher));
             return true;
         }
@@ -121,7 +121,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
         public boolean execute(DocumentPipelineContext ctx) {
             if (ctx.getHttpHeadersFetcher() != null 
                     && DocumentPipelineUtil.isHeadersRejected(ctx)) {
-                ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
+                ctx.getDocCrawl().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             return true;
@@ -151,19 +151,19 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
             //--- END Fix #17 ---
             
             if (state.isGoodState()) {
-                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
-                        DocCrawlEvent.DOCUMENT_FETCHED, ctx.getDocCrawl(), 
+                ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
+                        CrawlerEvent.DOCUMENT_FETCHED, ctx.getDocCrawl(), 
                         ctx.getConfig().getHttpDocumentFetcher()));
             }
             ctx.getDocCrawl().setState(state);
             if (!state.isGoodState()) {
                 String eventType = null;
-                if (state.isOneOf(HttpDocCrawlState.NOT_FOUND)) {
+                if (state.isOneOf(HttpCrawlState.NOT_FOUND)) {
                     eventType = HttpDocCrawlEvent.REJECTED_NOTFOUND;
                 } else {
                     eventType = HttpDocCrawlEvent.REJECTED_BAD_STATUS;
                 }
-                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                         eventType, ctx.getDocCrawl(), 
                         ctx.getConfig().getHttpDocumentFetcher()));
                 return false;
@@ -194,7 +194,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                 IOUtils.copy(ctx.getDocument().getContent(), out);
                 IOUtils.closeQuietly(out);
                 
-                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                         HttpDocCrawlEvent.SAVED_FILE, ctx.getDocCrawl(), 
                         downloadFile));
             } catch (IOException e) {
@@ -222,7 +222,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                                 ctx.getMetadata()));
                 reader.close();
 
-                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                         HttpDocCrawlEvent.CREATED_ROBOTS_META, 
                         ctx.getDocCrawl(), 
                         ctx.getRobotsMeta()));
@@ -246,11 +246,11 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                     || !ctx.getRobotsMeta().isNoindex();
             if (!canIndex) {
                 
-                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                         HttpDocCrawlEvent.REJECTED_ROBOTS_META_NOINDEX, 
                         ctx.getDocCrawl(), 
                         ctx.getRobotsMeta()));
-                ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
+                ctx.getDocCrawl().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             return canIndex;
@@ -264,7 +264,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
             if (ctx.getHttpHeadersFetcher() == null) {
                 DocumentPipelineUtil.enhanceHTTPHeaders(ctx.getMetadata());
                 if (DocumentPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
+                    ctx.getDocCrawl().setState(HttpCrawlState.REJECTED);
                     return false;
                 }
             }
@@ -283,7 +283,7 @@ public class DocumentPipeline extends Pipeline<DocumentPipelineContext> {
                     preProc.processDocument(
                             ctx.getHttpClient(), ctx.getDocument());
                     
-                    ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                    ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                             HttpDocCrawlEvent.DOCUMENT_PREIMPORTED, 
                             ctx.getDocCrawl(), preProc));
                 }

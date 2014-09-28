@@ -20,7 +20,7 @@ package com.norconex.collector.http.sitemap;
 
 import java.io.Serializable;
 
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
+import com.norconex.collector.http.data.HttpCrawlData;
 
 
 // THIS is a wrapper class where add( ) will add a URL found in sitemap file
@@ -66,12 +66,12 @@ public abstract class SitemapURLAdder implements Serializable {
         if (changefreq != null) {
             setChangeFreq = changefreq.toString().toLowerCase();
         }
-        HttpDocCrawl baseURL = new HttpDocCrawl(url, 0);
+        HttpCrawlData baseURL = new HttpCrawlData(url, 0);
         baseURL.setSitemapChangeFreq(setChangeFreq);
         baseURL.setSitemapLastMod(lastmod);
         baseURL.setSitemapPriority(setPriority);
         add(baseURL);
     }
     
-    public abstract void add(HttpDocCrawl baseURL);
+    public abstract void add(HttpCrawlData baseURL);
 }

@@ -40,7 +40,7 @@ isoparser               - see LICENSE(Apache2.0).txt
 jdom                    - see LICENSE(JDOM).txt
 joda-time               - see LICENSE(Apache2.0).txt
 jempbox                 - see LICENSE(Apache2.0).txt
-juniversalchardet       - see LICENSE(MPL).txt
+juniversalchardet       - see LICENSE(GPL3).txt
 log4j                   - see LICENSE(Apache2.0).txt
 mapdb                   - see LICENSE(Apache2.0).txt
 metadata-extractor      - see LICENSE(Apache2.0).txt

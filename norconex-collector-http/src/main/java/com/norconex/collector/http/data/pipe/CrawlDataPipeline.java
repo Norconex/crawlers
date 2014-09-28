@@ -16,18 +16,18 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.doccrawl.pipe;
+package com.norconex.collector.http.data.pipe;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpDocCrawlEvent;
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
-import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
+import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
@@ -43,16 +43,16 @@ import com.norconex.importer.handler.filter.OnMatch;
  * Instances are only valid for the scope of a single URL.  
  * @author Pascal Essiembre
  */
-public final class DocCrawlPipeline 
-        extends Pipeline<DocCrawlPipelineContext> {
+public final class CrawlDataPipeline 
+        extends Pipeline<CrawlDataPipelineContext> {
 
     private static final Logger LOG = 
-            LogManager.getLogger(DocCrawlPipeline.class);
+            LogManager.getLogger(CrawlDataPipeline.class);
     
-    public DocCrawlPipeline() {
+    public CrawlDataPipeline() {
         this(false);
     }
-    public DocCrawlPipeline(boolean isSitemapReference) {
+    public CrawlDataPipeline(boolean isSitemapReference) {
         super();
         
         addStage(new DepthValidationStage());
@@ -82,9 +82,9 @@ public final class DocCrawlPipeline
 
     //--- URL Depth ------------------------------------------------------------
     private class DepthValidationStage
-            implements IPipelineStage<DocCrawlPipelineContext> {
+            implements IPipelineStage<CrawlDataPipelineContext> {
         @Override
-        public boolean execute(DocCrawlPipelineContext ctx) {
+        public boolean execute(CrawlDataPipelineContext ctx) {
             if (ctx.getConfig().getMaxDepth() != -1 
                     && ctx.getDocCrawl().getDepth() 
                             > ctx.getConfig().getMaxDepth()) {
@@ -93,8 +93,8 @@ public final class DocCrawlPipeline
                             + ctx.getDocCrawl().getDepth() + "): " 
                             + ctx.getDocCrawl().getReference());
                 }
-                ctx.getDocCrawl().setState(HttpDocCrawlState.TOO_DEEP);
-                ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+                ctx.getDocCrawl().setState(HttpCrawlState.TOO_DEEP);
+                ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                         HttpDocCrawlEvent.REJECTED_TOO_DEEP, 
                         ctx.getDocCrawl(), ctx.getDocCrawl().getDepth()));
                 return false;
@@ -105,11 +105,11 @@ public final class DocCrawlPipeline
     
     //--- URL Filters ----------------------------------------------------------
     private class URLFiltersStage
-            implements IPipelineStage<DocCrawlPipelineContext> {
+            implements IPipelineStage<CrawlDataPipelineContext> {
         @Override
-        public boolean execute(DocCrawlPipelineContext ctx) {
+        public boolean execute(CrawlDataPipelineContext ctx) {
             if (isURLRejected(ctx.getConfig().getURLFilters(), null, ctx)) {
-                ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
+                ctx.getDocCrawl().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             return true;
@@ -118,13 +118,13 @@ public final class DocCrawlPipeline
     
     //--- Robots.txt Filters ---------------------------------------------------
     private class RobotsTxtFiltersStage
-            implements IPipelineStage<DocCrawlPipelineContext> {
+            implements IPipelineStage<CrawlDataPipelineContext> {
         @Override
-        public boolean execute(DocCrawlPipelineContext ctx) {
+        public boolean execute(CrawlDataPipelineContext ctx) {
             if (!ctx.getConfig().isIgnoreRobotsTxt()) {
                 RobotsTxt robotsTxt = ctx.getRobotsTxt();
                 if (isURLRejected(robotsTxt.getFilters(), robotsTxt, ctx)) {
-                    ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
+                    ctx.getDocCrawl().setState(HttpCrawlState.REJECTED);
                     return false;
                 }
             }
@@ -134,9 +134,9 @@ public final class DocCrawlPipeline
 
     //--- Sitemap URL Extraction -----------------------------------------------
     private class SitemapStage
-            implements IPipelineStage<DocCrawlPipelineContext> {
+            implements IPipelineStage<CrawlDataPipelineContext> {
         @Override
-        public boolean execute(final DocCrawlPipelineContext ctx) {
+        public boolean execute(final CrawlDataPipelineContext ctx) {
             if (ctx.getConfig().isIgnoreSitemap() 
                     || ctx.getCrawler().getSitemapResolver() == null) {
                 return true;
@@ -150,13 +150,13 @@ public final class DocCrawlPipeline
                 private static final long serialVersionUID = 
                         7618470895330355434L;
                 @Override
-                public void add(HttpDocCrawl reference) {
-                    DocCrawlPipelineContext context = 
-                            new DocCrawlPipelineContext(
+                public void add(HttpCrawlData reference) {
+                    CrawlDataPipelineContext context = 
+                            new CrawlDataPipelineContext(
                                     ctx.getCrawler(), 
                                     ctx.getDocCrawlStore(), 
                                     reference);
-                    new DocCrawlPipeline(true).execute(context);
+                    new CrawlDataPipeline(true).execute(context);
                 }
             };
             ctx.getSitemapResolver().resolveSitemaps(
@@ -170,14 +170,14 @@ public final class DocCrawlPipeline
     
     //--- URL Normalizer -------------------------------------------------------
     private class URLNormalizerStage
-            implements IPipelineStage<DocCrawlPipelineContext> {
+            implements IPipelineStage<CrawlDataPipelineContext> {
         @Override
-        public boolean execute(final DocCrawlPipelineContext ctx) {
+        public boolean execute(final CrawlDataPipelineContext ctx) {
             if (ctx.getConfig().getUrlNormalizer() != null) {
                 String url = ctx.getConfig().getUrlNormalizer().normalizeURL(
                         ctx.getDocCrawl().getReference());
                 if (url == null) {
-                    ctx.getDocCrawl().setState(HttpDocCrawlState.REJECTED);
+                    ctx.getDocCrawl().setState(HttpCrawlState.REJECTED);
                     return false;
                 }
                 ctx.getDocCrawl().setReference(url);
@@ -188,9 +188,9 @@ public final class DocCrawlPipeline
 
     //--- Store Next URLs to process -------------------------------------------
     private class StoreNextURLStage
-            implements IPipelineStage<DocCrawlPipelineContext> {
+            implements IPipelineStage<CrawlDataPipelineContext> {
         @Override
-        public boolean execute(final DocCrawlPipelineContext ctx) {
+        public boolean execute(final CrawlDataPipelineContext ctx) {
 //            if (robotsMeta != null && robotsMeta.isNofollow()) {
 //                return true;
 //            }
@@ -207,7 +207,7 @@ public final class DocCrawlPipeline
             } else if (refStore.isProcessed(url)) {
                 debug("Already processed: %s", url);
             } else {
-                refStore.queue(new HttpDocCrawl(
+                refStore.queue(new HttpCrawlData(
                         url, ctx.getDocCrawl().getDepth()));
                 debug("Queued for processing: %s", url);
             }
@@ -223,7 +223,7 @@ public final class DocCrawlPipeline
 
     //=== Utility methods ======================================================
     private boolean isURLRejected(IURLFilter[] filters, RobotsTxt robots, 
-            DocCrawlPipelineContext ctx) {
+            CrawlDataPipelineContext ctx) {
         if (filters == null) {
             return false;
         }
@@ -267,9 +267,9 @@ public final class DocCrawlPipeline
     }
     
     private void fireDocumentRejected(IURLFilter filter, RobotsTxt robots, 
-            String type, DocCrawlPipelineContext ctx) {
+            String type, CrawlDataPipelineContext ctx) {
 
-        ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+        ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                 HttpDocCrawlEvent.REJECTED_FILTER, 
                 ctx.getDocCrawl(), filter));
 
@@ -283,12 +283,12 @@ public final class DocCrawlPipeline
     }
     
     @Override
-    public boolean execute(DocCrawlPipelineContext context)
+    public boolean execute(CrawlDataPipelineContext context)
             throws CollectorException {
         try {
             if (super.execute(context)) {
                 // the state is set to new/modified/unmodified by checksummers
-//                context.getDocCrawl().setState(HttpDocCrawlState.OK);
+//                context.getDocCrawl().setState(HttpCrawlState.OK);
                 return true;
             }
             return false;
@@ -296,9 +296,9 @@ public final class DocCrawlPipeline
             //TODO do we really want to catch anything other than 
             // HTTPFetchException?  In case we want special treatment to the 
             // class?
-            context.getDocCrawl().setState(HttpDocCrawlState.ERROR);
+            context.getDocCrawl().setState(HttpCrawlState.ERROR);
             
-            context.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
+            context.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
                     HttpDocCrawlEvent.REJECTED_ERROR, 
                     context.getDocCrawl(), e));
             
@@ -310,7 +310,7 @@ public final class DocCrawlPipeline
             if (!context.getDocCrawl().getState().isGoodState()) {
                 if (context.getDocCrawl().getState() == null) {
                     context.getDocCrawl().setState(
-                            HttpDocCrawlState.BAD_STATUS);
+                            HttpCrawlState.BAD_STATUS);
                 }
                 context.getDocCrawlStore().processed(context.getDocCrawl());
 //                status.logInfo(httpDocReference);

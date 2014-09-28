@@ -45,10 +45,10 @@ import com.norconex.collector.http.checksum.impl.DefaultHttpDocumentChecksummer;
 import com.norconex.collector.http.checksum.impl.DefaultHttpHeadersChecksummer;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.impl.DefaultHttpClientFactory;
+import com.norconex.collector.http.data.store.impl.mapdb.DefaultCrawlDataStoreFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.DefaultDelayResolver;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
-import com.norconex.collector.http.doccrawl.impl.DefaultDocCrawlStoreFactory;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.fetch.impl.DefaultDocumentFetcher;
@@ -139,7 +139,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     
     public HttpCrawlerConfig() {
         super();
-        setReferenceStoreFactory(new DefaultDocCrawlStoreFactory());
+        setReferenceStoreFactory(new DefaultCrawlDataStoreFactory());
     }
     public String[] getStartURLs() {
         return startURLs;

@@ -9,11 +9,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.core.crawler.event.DocCrawlEvent;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.http.checksum.IHttpHeadersChecksummer;
+import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.doccrawl.HttpDocCrawl;
-import com.norconex.collector.http.doccrawl.HttpDocCrawlState;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
@@ -48,14 +48,14 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
                 ctx.getConfig().getHttpHeadersChecksummer();
         if (check == null) {
             // NEW is default state (?)
-            ctx.getDocCrawl().setState(HttpDocCrawlState.NEW);
+            ctx.getDocCrawl().setState(HttpCrawlState.NEW);
             return false;
         }
         HttpMetadata headers = ctx.getMetadata();
         String newHeadChecksum = check.createChecksum(headers);
         ctx.getDocCrawl().setMetaChecksum(newHeadChecksum);
         String oldHeadChecksum = null;
-        HttpDocCrawl cachedURL = (HttpDocCrawl) 
+        HttpCrawlData cachedURL = (HttpCrawlData) 
                 ctx.getReferenceStore().getCached(
                         ctx.getDocCrawl().getReference());
         if (cachedURL != null) {
@@ -63,7 +63,7 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
         } else {
             LOG.debug("ACCEPTED document headers checkum (new): URL="
                     + ctx.getDocCrawl().getReference());
-            ctx.getDocCrawl().setState(HttpDocCrawlState.NEW);
+            ctx.getDocCrawl().setState(HttpCrawlState.NEW);
             return false;
         }
         if (StringUtils.isNotBlank(newHeadChecksum) 
@@ -72,13 +72,13 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
                 LOG.debug("REJECTED document headers checkum (unmodified): URL="
                         + ctx.getDocCrawl().getReference());
             }
-            ctx.getCrawler().fireDocCrawlEvent(new DocCrawlEvent(
-                    DocCrawlEvent.REJECTED_UNMODIFIED, 
+            ctx.getCrawler().fireDocCrawlEvent(new CrawlerEvent(
+                    CrawlerEvent.REJECTED_UNMODIFIED, 
                     ctx.getDocCrawl(), check));
-            ctx.getDocCrawl().setState(HttpDocCrawlState.UNMODIFIED);
+            ctx.getDocCrawl().setState(HttpCrawlState.UNMODIFIED);
             return true;
         }
-        ctx.getDocCrawl().setState(HttpDocCrawlState.MODIFIED);
+        ctx.getDocCrawl().setState(HttpCrawlState.MODIFIED);
         LOG.debug("ACCEPTED document headers checkum (modified): URL=" 
                 + ctx.getDocCrawl().getReference());
         return false;
