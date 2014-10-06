@@ -41,7 +41,7 @@ public class URLExtractorTest {
 
     @Test
     public void testDefaultURLExtractor() throws IOException {
-        testURLExtraction(new DefaultURLExtractor());
+        testURLExtraction(new GenericURLExtractor());
     }
     @Test
     public void testTikaURLExtractor() throws IOException {

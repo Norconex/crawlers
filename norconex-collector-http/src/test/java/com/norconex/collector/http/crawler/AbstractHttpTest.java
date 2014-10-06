@@ -35,9 +35,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.rules.TemporaryFolder;
 
+import com.norconex.collector.core.crawler.AbstractCrawler;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
-import com.norconex.collector.http.delay.impl.DefaultDelayResolver;
+import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.website.TestWebServer;
@@ -50,14 +51,26 @@ public abstract class AbstractHttpTest {
     static {
         // Root
         Logger logger = Logger.getRootLogger();
-        logger.setLevel(Level.INFO);
+        logger.setLevel(Level.WARN);
         logger.setAdditivity(false);
         logger.addAppender(new ConsoleAppender(
                 new PatternLayout("%-5p [%C{1}] %m%n"), 
                 ConsoleAppender.SYSTEM_OUT));
+        // Core
+        logger = Logger.getLogger(AbstractCrawler.class);
+        logger.setLevel(Level.INFO);
+
         // Crawler
         logger = Logger.getLogger(HttpCrawler.class);
-        logger.setLevel(Level.DEBUG);
+        logger.setLevel(Level.INFO);
+        
+        // Jetty
+        logger = Logger.getLogger("org.eclipse.jetty");
+        logger.setLevel(Level.WARN);
+        
+        // Apache
+        logger = Logger.getLogger("org.apache");
+        logger.setLevel(Level.WARN);
         
     }
     
@@ -105,12 +118,20 @@ public abstract class AbstractHttpTest {
     protected File getCommitterAddDir(HttpCrawler crawler) {
         FileSystemCommitter committer = (FileSystemCommitter)
                 crawler.getCrawlerConfig().getCommitter();
-        return committer.getAddDir();
+        File dir = committer.getAddDir();
+//        if (!dir.exists()) {
+//            dir.mkdirs();
+//        }
+        return dir;
     }
     protected File getCommitterRemoveDir(HttpCrawler crawler) {
         FileSystemCommitter committer = (FileSystemCommitter)
                 crawler.getCrawlerConfig().getCommitter();
-        return committer.getRemoveDir();
+        File dir = committer.getRemoveDir();
+//        if (!dir.exists()) {
+//            dir.mkdirs();
+//        }
+        return dir;
     }
     
     protected List<HttpDocument> getCommitedDocuments(HttpCrawler crawler)
@@ -149,7 +170,7 @@ public abstract class AbstractHttpTest {
         File logsDir = tempFolder.newFolder("logs" + UUID.randomUUID());
         File workdir = tempFolder.newFolder("workdir" + UUID.randomUUID());
         File committerDir = tempFolder.newFolder(
-                "committedFiles" + UUID.randomUUID());
+                "committedFiles_" + UUID.randomUUID());
         
         //--- Committer ---
         //ICommitter committer = new NilCommitter();
@@ -167,9 +188,11 @@ public abstract class AbstractHttpTest {
         httpConfig.setStartURLs(urls);
         httpConfig.setWorkDir(workdir);
         httpConfig.setNumThreads(1);
-        DefaultDelayResolver resolver = new DefaultDelayResolver();
+        GenericDelayResolver resolver = new GenericDelayResolver();
         resolver.setDefaultDelay(0);
         httpConfig.setDelayResolver(resolver);
+        httpConfig.setIgnoreRobotsMeta(true);
+        httpConfig.setIgnoreSitemap(true);
         httpConfig.setCommitter(committer);
         HttpCrawler crawler = new HttpCrawler(httpConfig);
         

@@ -62,7 +62,7 @@ public abstract class BaseCrawlDataStoreTest {
         HttpCrawlData httpCrawlData = new HttpCrawlData(url, depth);
         httpCrawlData.setState(status);
         httpCrawlData.setMetaChecksum(headChecksum);
-        httpCrawlData.setContentChecksum(docChecksum);
+        httpCrawlData.setDocumentChecksum(docChecksum);
         db.processed(httpCrawlData);
 
         processedToCache();
@@ -223,7 +223,7 @@ public abstract class BaseCrawlDataStoreTest {
 
         String url = "http://www.norconex.com/";
         HttpCrawlData httpCrawlData = new HttpCrawlData(url, 0);
-        httpCrawlData.setContentChecksum("docChecksum");
+        httpCrawlData.setDocumentChecksum("docChecksum");
         httpCrawlData.setMetaChecksum("headChecksum");
         httpCrawlData.setState(HttpCrawlState.NEW);
 

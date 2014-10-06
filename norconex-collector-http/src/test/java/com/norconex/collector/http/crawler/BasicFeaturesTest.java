@@ -10,13 +10,16 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.CharEncoding;
+import org.apache.commons.lang3.mutable.Mutable;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.util.PathUtils;
+import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.commons.lang.file.IFileVisitor;
 
 /**
  * @author Pascal Essiembre
@@ -37,7 +40,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
         crawler.getCrawlerConfig().setMaxDepth(0);
         collector.start(false);
-
+        
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
@@ -84,14 +87,24 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
         crawler.getCrawlerConfig().setMaxDepth(0);
         crawler.getCrawlerConfig().setKeepDownloads(true);
-        String url = crawler.getCrawlerConfig().getStartURLs()[0];
+//        String url = crawler.getCrawlerConfig().getStartURLs()[0];
         collector.start(false);
 
         File downloadDir = 
                 new File(crawler.getCrawlerConfig().getWorkDir(), "downloads");
-        File downloadedFile = new File(downloadDir, PathUtils.urlToPath(url));
-        
-        String content = FileUtils.readFileToString(downloadedFile);
+        final Mutable<File> downloadedFile = new MutableObject<>();
+        FileUtil.visitAllFiles(downloadDir, new IFileVisitor() {
+            @Override
+            public void visit(File file) {
+                if (downloadedFile.getValue() != null) {
+                    return;
+                }
+                if (file.toString().contains("downloads")) {
+                    downloadedFile.setValue(file);
+                }
+            }
+        });
+        String content = FileUtils.readFileToString(downloadedFile.getValue());
         Assert.assertTrue("Invalid or missing download file.",
                 content.contains("<b>This</b> file <i>must</i> be saved as is, "
                         + "with this <span>formatting</span>"));
@@ -102,7 +115,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=basic&depth=0");
         HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
-        crawler.getCrawlerConfig().setMaxURLs(15);
+        crawler.getCrawlerConfig().setMaxDocuments(15);
         collector.start(false);
 
         List<HttpDocument> docs = getCommitedDocuments(crawler);
@@ -117,6 +130,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         crawler.getCrawlerConfig().setMaxDepth(0);
         crawler.getCrawlerConfig().setUserAgent("Super Secret Agent");
         collector.start(false);
+        
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
@@ -156,4 +170,5 @@ public class BasicFeaturesTest extends AbstractHttpTest {
                     1, meta.getStrings(field).size());
         }
     }
+
 }

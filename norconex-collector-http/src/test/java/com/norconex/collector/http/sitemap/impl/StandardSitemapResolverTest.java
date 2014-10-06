@@ -16,23 +16,25 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.doc;
+package com.norconex.collector.http.sitemap.impl;
 
-import java.io.Serializable;
+import java.io.IOException;
 
-import org.apache.http.client.HttpClient;
+import org.junit.Test;
 
-/**
- * Custom processing (optional) performed on a document.  Can be used 
- * just before of after a document has been imported.  
- * @author Pascal Essiembre
- */
-public interface IHttpDocumentProcessor extends Serializable {
+import com.norconex.commons.lang.config.ConfigurationUtil;
 
-	/**
-	 * Processes a document.
-	 * @param httpClient HTTP Client
-	 * @param doc the document
-	 */
-    void processDocument(HttpClient httpClient, HttpDocument doc);
+public class StandardSitemapResolverTest {
+
+    @Test
+    public void testWriteRead() throws IOException {
+        StandardSitemapResolverFactory r = new StandardSitemapResolverFactory();
+        r.setLenient(true);
+        r.setSitemapLocations(
+                "http://www.example.com/sitemap.xml",
+                "http://www.example.com/subdir/sitemap.xml");
+        System.out.println("Writing/Reading this: " + r);
+        ConfigurationUtil.assertWriteRead(r);
+    }
+
 }

@@ -33,26 +33,9 @@ public class HttpCollectorConfig extends AbstractCollectorConfig {
 
     private static final long serialVersionUID = -3350877963428801802L;
 
-//    private HttpCrawlerConfig[] crawlerConfigs;
-//
 	public HttpCollectorConfig() {
         super(HttpCrawlerConfig.class);
     }
-
-//    /**
-//     * Gets all crawler configurations.
-//     * @return crawler configurations
-//     */
-//    public HttpCrawlerConfig[] getCrawlerConfigs() {
-//        return crawlerConfigs;
-//    }
-//    /**
-//     * Sets crawler configurations.
-//     * @param crawlerConfigs crawler configurations
-//     */
-//    public void setCrawlerConfigs(HttpCrawlerConfig[] crawlerConfigs) {
-//        this.crawlerConfigs = ArrayUtils.clone(crawlerConfigs);
-//    }
 
     @Override
     protected void saveCollectorConfigToXML(Writer out) {

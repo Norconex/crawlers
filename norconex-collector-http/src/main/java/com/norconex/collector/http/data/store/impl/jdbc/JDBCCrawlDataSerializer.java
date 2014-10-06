@@ -72,26 +72,26 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
     }
 
     @Override
-    public String getSelectDocCrawlSQL(String table) {
+    public String getSelectCrawlDataSQL(String table) {
         return "SELECT " + ALL_FIELDS + "FROM " + table;
     }
 
     @Override
-    public String getDeleteDocCrawlSQL(String table) {
+    public String getDeleteCrawlDataSQL(String table) {
         return "DELETE FROM " + table + " WHERE reference = ?";
     }
-    public Object[] getDeleteDocCrawlValues(
+    public Object[] getDeleteCrawlDataValues(
             String table, ICrawlData crawlURL) {
         return new Object[] { crawlURL.getReference() };
     }
     
     @Override
-    public String getInsertDocCrawlSQL(String table) {
+    public String getInsertCrawlDataSQL(String table) {
         return "INSERT INTO " + table + "(" + ALL_FIELDS 
                 + ") values (?,?,?,?,?,?,?,?,?,?)";
     }
     @Override
-    public Object[] getInsertDocCrawlValues(
+    public Object[] getInsertCrawlDataValues(
             String table, ICrawlData crawlData) {
         HttpCrawlData data = (HttpCrawlData) crawlData;
         return new Object[] { 
@@ -109,24 +109,24 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
     }
     
     @Override
-    public String getNextQueuedDocCrawlSQL() {
+    public String getNextQueuedCrawlDataSQL() {
         return "SELECT " + ALL_FIELDS 
                 + "FROM " + JDBCCrawlDataStore.TABLE_QUEUE
                 + " ORDER BY depth";
     }
     @Override
-    public Object[] getNextQueuedDocCrawlValues() {
+    public Object[] getNextQueuedCrawlDataValues() {
         return null;
     }
 
     @Override
-    public String getCachedDocCrawlSQL() {
+    public String getCachedCrawlDataSQL() {
         return "SELECT " + ALL_FIELDS 
                 + "FROM " + JDBCCrawlDataStore.TABLE_CACHE
                 + " WHERE reference = ? ";
     }
     @Override
-    public Object[] getCachedDocCrawlValues(String reference) {
+    public Object[] getCachedCrawlDataValues(String reference) {
         return new Object[] { reference };
     }
 
@@ -141,7 +141,7 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
     }
     
     @Override
-    public ICrawlData toDocCrawl(String table, ResultSet rs)
+    public ICrawlData toCrawlData(String table, ResultSet rs)
             throws SQLException {
         if (rs == null) {
             return null;
@@ -152,7 +152,7 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
         data.setRootParentReference(rs.getBoolean("isRootParentReference"));
         data.setState(HttpCrawlState.valueOf(rs.getString("state")));
         data.setMetaChecksum(rs.getString("metaChecksum"));
-        data.setContentChecksum(rs.getString("contentChecksum"));
+        data.setDocumentChecksum(rs.getString("contentChecksum"));
         data.setDepth(rs.getInt("depth"));
         BigDecimal bigLM = rs.getBigDecimal("sitemapLastMod");
         if (bigLM != null) {

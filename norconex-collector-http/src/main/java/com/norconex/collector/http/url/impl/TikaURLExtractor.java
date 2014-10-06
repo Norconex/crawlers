@@ -53,7 +53,7 @@ import com.norconex.commons.lang.file.ContentType;
  * Implementation of {@link IURLExtractor} using 
  * <a href="http://tika.apache.org/">Apache Tika</a> to perform URL 
  * extractions from HTML documents.
- * This is an alternative to the {@link DefaultURLExtractor}.
+ * This is an alternative to the {@link GenericURLExtractor}.
  * <p>
  * XML configuration usage:
  * </p>

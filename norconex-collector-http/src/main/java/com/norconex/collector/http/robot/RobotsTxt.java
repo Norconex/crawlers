@@ -25,7 +25,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.http.filter.IURLFilter;
+import com.norconex.collector.core.filter.IReferenceFilter;
 
 public class RobotsTxt implements Serializable {
 
@@ -33,28 +33,28 @@ public class RobotsTxt implements Serializable {
     
     public static final float UNSPECIFIED_CRAWL_DELAY = -1;
     
-    private final IURLFilter[] filters;
+    private final IReferenceFilter[] filters;
     private final float crawlDelay;
     private final String[] sitemapLocations;
     
-    public RobotsTxt(IURLFilter[] filters) {
+    public RobotsTxt(IReferenceFilter[] filters) {
         this(filters, UNSPECIFIED_CRAWL_DELAY);
     }
-    public RobotsTxt(IURLFilter[] filters, float crawlDelay) {
+    public RobotsTxt(IReferenceFilter[] filters, float crawlDelay) {
         this(filters, null, crawlDelay);
     }
-    public RobotsTxt(IURLFilter[] filters, String[] sitemapLocations) {
+    public RobotsTxt(IReferenceFilter[] filters, String[] sitemapLocations) {
         this(filters, sitemapLocations, UNSPECIFIED_CRAWL_DELAY);
     }
-    public RobotsTxt(
-            IURLFilter[] filters, String[] sitemapLocations, float crawlDelay) {
+    public RobotsTxt(IReferenceFilter[] filters, String[] sitemapLocations, 
+            float crawlDelay) {
         super();
         this.filters = ArrayUtils.clone(filters);
         this.sitemapLocations = ArrayUtils.clone(sitemapLocations);
         this.crawlDelay = crawlDelay;
     }
 
-    public IURLFilter[] getFilters() {
+    public IReferenceFilter[] getFilters() {
         return filters;
     }
     public String[] getSitemapLocations() {

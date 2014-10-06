@@ -20,7 +20,7 @@ package com.norconex.collector.http.url;
 
 import java.io.Serializable;
 
-import com.norconex.collector.http.filter.IURLFilter;
+import com.norconex.collector.core.filter.IReferenceFilter;
 
 /**
  * Responsible for normalizing URLs.  Normalization is taking a raw URL and
@@ -31,7 +31,7 @@ import com.norconex.collector.http.filter.IURLFilter;
  * from a document, before each of these URLs is even considered
  * for further processing.  Returning null will effectively tells the crawler
  * to not even consider it for processing (it won't go through the regular
- * document processing flow).  You may want to consider {@link IURLFilter} 
+ * document processing flow).  You may want to consider {@link IReferenceFilter} 
  * to exclude URLs as part has the regular document processing flow
  * (may create a trace in the logs and gives you more options).
  * Implementors also implementing IXMLConfigurable must name their XML tag

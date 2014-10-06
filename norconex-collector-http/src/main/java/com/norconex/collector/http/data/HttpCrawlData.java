@@ -24,7 +24,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.data.BasicCrawlData;
+import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.ICrawlData;
 
 
@@ -32,7 +32,7 @@ import com.norconex.collector.core.data.ICrawlData;
  * A URL being crawled holding relevant crawl information.
  * @author Pascal Essiembre
  */
-public class HttpCrawlData extends BasicCrawlData {
+public class HttpCrawlData extends BaseCrawlData {
 
     private static final long serialVersionUID = -2219206220476107409L;
 

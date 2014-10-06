@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.store.impl.BaseCrawlDataStoreTest;
 
@@ -25,7 +26,7 @@ public class MapDBCrawlDataStoreTest extends BaseCrawlDataStoreTest {
         if (db != null) {
             db.close();
         }
-        db = new DefaultCrawlDataStoreFactory().createCrawlDataStore(
+        db = new MapDBCrawlDataStoreFactory().createCrawlDataStore(
                 config, resume);
     }
 
@@ -35,7 +36,7 @@ public class MapDBCrawlDataStoreTest extends BaseCrawlDataStoreTest {
         config.setId("MapDBTest");
         // the tempFolder is re-created at each test
         config.setWorkDir(tempFolder.getRoot());
-        db = new DefaultCrawlDataStoreFactory().createCrawlDataStore(
+        db = new MapDBCrawlDataStoreFactory().createCrawlDataStore(
                 config, false);
     }
 }

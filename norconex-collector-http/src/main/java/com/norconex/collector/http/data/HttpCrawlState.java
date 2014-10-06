@@ -30,13 +30,8 @@ public class HttpCrawlState extends CrawlState {
 
     public static final HttpCrawlState TOO_DEEP = 
             new HttpCrawlState("TOO_DEEP");
-    public static final HttpCrawlState DELETED = 
-            new HttpCrawlState("DELETED");
     public static final HttpCrawlState NOT_FOUND = 
             new HttpCrawlState("NOT_FOUND");
-    public static final HttpCrawlState BAD_STATUS = 
-            new HttpCrawlState("BAD_STATUS");
-    
     protected HttpCrawlState(String state) {
         super(state);
     }

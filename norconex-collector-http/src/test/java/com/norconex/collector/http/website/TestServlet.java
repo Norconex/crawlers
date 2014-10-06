@@ -52,6 +52,7 @@ public class TestServlet extends HttpServlet {
         }
         try {
             testCase.doTestCase(req, resp);
+            resp.flushBuffer();
         } catch (Exception e) {
             e.printStackTrace(resp.getWriter());
         }
@@ -121,7 +122,7 @@ public class TestServlet extends HttpServlet {
 
             if (req.getPathInfo() == null 
                     || !req.getPathInfo().contains("redirected")) {
-                System.out.println("path info is: " + req.getPathInfo());
+//                System.out.println("path info is: " + req.getPathInfo());
                 resp.sendRedirect("http://localhost:" + req.getLocalPort() 
                         + "/test/redirected/page.html?case=redirect");
                 return;

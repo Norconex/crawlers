@@ -44,32 +44,32 @@ public class SegmentCountURLFilterTest {
         //--- Test proper segment counts ---
         url = "http://www.example.com/one/two/three/four/five/page.html";
         f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE);
-        Assert.assertFalse("URL wrongfully rejected.", f.acceptURL(url));
+        Assert.assertFalse("URL wrongfully rejected.", f.acceptReference(url));
         f = new SegmentCountURLFilter(6, OnMatch.EXCLUDE);
-        Assert.assertFalse("URL wrongfully accepted.", f.acceptURL(url));
+        Assert.assertFalse("URL wrongfully accepted.", f.acceptReference(url));
         f = new SegmentCountURLFilter(7, OnMatch.EXCLUDE);
-        Assert.assertTrue("URL wrongfully rejected.", f.acceptURL(url));
+        Assert.assertTrue("URL wrongfully rejected.", f.acceptReference(url));
 
         //--- Test proper duplicate counts ---
         url = "http://www.example.com/aa/bb/aa/cc/bb/aa/aa/bb/cc/dd.html";
         f = new SegmentCountURLFilter(3, OnMatch.EXCLUDE, true);
-        Assert.assertFalse("URL wrongfully rejected.", f.acceptURL(url));
+        Assert.assertFalse("URL wrongfully rejected.", f.acceptReference(url));
         f = new SegmentCountURLFilter(4, OnMatch.EXCLUDE, true);
-        Assert.assertFalse("URL wrongfully accepted.", f.acceptURL(url));
+        Assert.assertFalse("URL wrongfully accepted.", f.acceptReference(url));
         f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE, true);
-        Assert.assertTrue("URL wrongfully rejected.", f.acceptURL(url));
+        Assert.assertTrue("URL wrongfully rejected.", f.acceptReference(url));
 
         //--- Test custom separator (query string ---
         url = "http://www.example.com/one/two_three|four-five/page.html";
         f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE);
         f.setSeparator("[/_|-]");
-        Assert.assertFalse("URL wrongfully rejected.", f.acceptURL(url));
+        Assert.assertFalse("URL wrongfully rejected.", f.acceptReference(url));
         f = new SegmentCountURLFilter(6, OnMatch.EXCLUDE);
         f.setSeparator("[/_|-]");
-        Assert.assertFalse("URL wrongfully accepted.", f.acceptURL(url));
+        Assert.assertFalse("URL wrongfully accepted.", f.acceptReference(url));
         f = new SegmentCountURLFilter(7, OnMatch.EXCLUDE);
         f.setSeparator("[/_|-]");
-        Assert.assertTrue("URL wrongfully rejected.", f.acceptURL(url));
+        Assert.assertTrue("URL wrongfully rejected.", f.acceptReference(url));
     }
 
     @Test

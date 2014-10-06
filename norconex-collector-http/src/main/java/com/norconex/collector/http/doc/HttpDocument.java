@@ -21,6 +21,7 @@ package com.norconex.collector.http.doc;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.ImporterDocument;
 
+//TODO consider dropping since it just brings HttpMetadata cast.
 public class HttpDocument extends ImporterDocument {
 
     private static final long serialVersionUID = 4376740210800410675L;

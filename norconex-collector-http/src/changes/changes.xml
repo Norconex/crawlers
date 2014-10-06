@@ -15,12 +15,13 @@
         individual documents, new taggers for language detection, changing
         character case, parsing and formatting dates, providing content 
         statistics, and more.  Please read the Norconex Importer release notes
-        for a complete list of changes.
+        for a complete list of changes at: 
+        http://www.norconex.com/product/importer/changes-report.html#a2.0.0
       </action>
       <action dev="essiembre" type="update">
         The collector now references document content as reusable InputStream
-        instead of relying on files. This saves a great deal of disk I/O
-        and improves performance in most cases.
+        with memory caching instead of relying only on files. This saves a great
+        deal of disk I/O and improves performance in most cases.
       </action>
       <action dev="essiembre" type="add">
         New H2 database implementation for URL database (crawl data store).
@@ -33,12 +34,39 @@
         rendering test pages for some unit tests.
       </action>
       <action dev="essiembre" type="update">
-        Several references to "url" were changed to "reference" for consistency
-        with other collectors.
+        Refactored to use the new Norconex Collector Core library.  
+        A significant portion of the Norconex HTTP Collector code has 
+        been moved to that core library.  Some of the moved classes are
+        (base package being com.norconex.collector.*):
+        http.checksum.IHttpDocumentChecksummer 
+          to core.checksum.IDocumentChecksummer,
+        http.checksum.IHttpHeadersChecksummer 
+          to core.checksum.IMetadataChecksummer,
+        http.checksum.DefaultHttpDocumentChecksummer 
+          to core.checksum.impl.MD5DocumentChecksummer,
+        http.filter.IURLFilter to core.filter.IReferenceFilter
       </action>
       <action dev="essiembre" type="update">
-        Refactored to use the new Norconex Collector Core library.  Crawler,
-        Collector, and reference store are now part of that library.
+        Amongst others, the following classes were renamed (within 
+        com.norconex.collector.http.*):
+        checksum.impl.DefaultHttpHeadersChecksummer to 
+          checksum.impl.HttpMetadataChecksummer,
+        client.impl.DefaultHttpClientFactory 
+          to client.impl.GenericHttpClientFactory,
+        delay.impl.DefaultDelayResolver to delay.impl.GenericDelayResolver,
+        fetch.impl.DefaultDocumentFetcher to fetch.impl.GenericDocumentFetcher,
+        fetch.impl.SimpleHttpHeadersFetcher 
+          to fetch.impl.GenericHttpHeadersFetcher,
+        robot.impl.DefaultRobotsMetaProvider 
+          to robot.impl.StandardRobotsMetaProvider,
+        robot.impl.DefaultRobotsTxtProvider
+          to robot.impl.StandardRobotsTxtProvider,
+        sitemap.impl.DefaultSitemapResolver 
+          to sitemap.impl.StandardSitemapResolver,
+        url.impl.DefaultURLExtractor to url.impl.GenericURLExtractor
+      </action>      
+      <action dev="essiembre" type="update">
+        Several references to "url" were changed to "reference".  
       </action>
       <action dev="essiembre" type="update">
         New and more scalable crawler event model along with new listeners.
@@ -48,23 +76,18 @@
         monitor.
       </action>
       <action dev="essiembre" type="update">
+        Other libray upgrades: Norconex Committer to 2.0.0 and 
+        Norconex Commons Lang to 1.5.0.
+      </action>
+      <action dev="essiembre" type="update">
         Removed previously deprecated classes.
       </action>
       <action dev="essiembre" type="update">
         Crawled sitemap details now has its own store (no longer mixed with
-        the reference store).
+        the crawl data store).
       </action>
       <action dev="essiembre" type="update">
         ISiteMapResolver now needs an ISiteMapResolverFactory.
-      </action>
-      <action dev="essiembre" type="update">
-        Upgraded: Norconex Committer to 2.0.0, Norconex Importer to 2.0.0,
-        and Norconex Commons Lang to 1.5.0.
-      </action>
-      <action dev="essiembre" type="remove">
-        Dropped MongoDB and Derby has alternate reference store implementations
-        (previously called Crawl URL Store). Only kept MapDB as 
-        reference implementation.
       </action>
       
     </release>

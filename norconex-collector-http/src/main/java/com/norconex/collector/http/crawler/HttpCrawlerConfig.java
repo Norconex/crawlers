@@ -18,58 +18,45 @@
  */
 package com.norconex.collector.http.crawler;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
-import com.norconex.collector.core.crawler.ICrawlerConfig;
-import com.norconex.collector.core.crawler.event.ICrawlerEventListener;
-import com.norconex.collector.http.checksum.IHttpDocumentChecksummer;
-import com.norconex.collector.http.checksum.IHttpHeadersChecksummer;
-import com.norconex.collector.http.checksum.impl.DefaultHttpDocumentChecksummer;
-import com.norconex.collector.http.checksum.impl.DefaultHttpHeadersChecksummer;
+import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
+import com.norconex.collector.core.filter.IReferenceFilter;
+import com.norconex.collector.http.checksum.impl.HttpMetadataChecksummer;
 import com.norconex.collector.http.client.IHttpClientFactory;
-import com.norconex.collector.http.client.impl.DefaultHttpClientFactory;
-import com.norconex.collector.http.data.store.impl.mapdb.DefaultCrawlDataStoreFactory;
+import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
-import com.norconex.collector.http.delay.impl.DefaultDelayResolver;
+import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
-import com.norconex.collector.http.fetch.impl.DefaultDocumentFetcher;
+import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
-import com.norconex.collector.http.filter.IURLFilter;
 import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
-import com.norconex.collector.http.robot.impl.DefaultRobotsMetaProvider;
-import com.norconex.collector.http.robot.impl.DefaultRobotsTxtProvider;
+import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
+import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.collector.http.sitemap.ISitemapResolverFactory;
-import com.norconex.collector.http.sitemap.impl.DefaultSitemapResolverFactory;
+import com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory;
 import com.norconex.collector.http.url.IURLExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.collector.http.url.impl.DefaultURLExtractor;
-import com.norconex.committer.ICommitter;
+import com.norconex.collector.http.url.impl.GenericURLExtractor;
 import com.norconex.commons.lang.config.ConfigurationUtil;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
-import com.norconex.importer.ImporterConfig;
-import com.norconex.importer.ImporterConfigLoader;
 
 
 /**
@@ -82,64 +69,52 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private static final Logger LOG = 
             LogManager.getLogger(HttpCrawlerConfig.class);
     
-    
     private int maxDepth = -1;
-    private File workDir = new File("./work");
     private String[] startURLs;
-    private int numThreads = 2;
-    private int maxURLs = -1;
     
     private boolean ignoreRobotsTxt;
     private boolean ignoreRobotsMeta;
     private boolean ignoreSitemap;
     private boolean keepDownloads;
-    private boolean deleteOrphans;
     private String userAgent;
 
     private IURLNormalizer urlNormalizer;
 
-    private IDelayResolver delayResolver = new DefaultDelayResolver();
+    private IDelayResolver delayResolver = new GenericDelayResolver();
     
     private IHttpClientFactory httpClientFactory =
-            new DefaultHttpClientFactory();
+            new GenericHttpClientFactory();
     
     private IHttpDocumentFetcher httpDocumentFetcher =
-            new DefaultDocumentFetcher();
+            new GenericDocumentFetcher();
 
     private IHttpHeadersFetcher httpHeadersFetcher;
 
-    private IURLExtractor urlExtractor = new DefaultURLExtractor();
+    private IURLExtractor urlExtractor = new GenericURLExtractor();
 
     private IRobotsTxtProvider robotsTxtProvider =
-            new DefaultRobotsTxtProvider();
+            new StandardRobotsTxtProvider();
     private IRobotsMetaProvider robotsMetaProvider =
-            new DefaultRobotsMetaProvider();
+            new StandardRobotsMetaProvider();
     private ISitemapResolverFactory sitemapResolverFactory =
-            new DefaultSitemapResolverFactory();
+            new StandardSitemapResolverFactory();
 
-    private ImporterConfig importerConfig = new ImporterConfig();
+
 
     private IHttpDocumentFilter[] documentfilters;
 	
-    private IURLFilter[] urlFilters;	
+    private IReferenceFilter[] urlFilters;	
 
     private IHttpHeadersFilter[] httpHeadersFilters;
-    private IHttpHeadersChecksummer httpHeadersChecksummer = 
-    		new DefaultHttpHeadersChecksummer();
+    private IMetadataChecksummer metadataChecksummer = 
+    		new HttpMetadataChecksummer();
 	
     private IHttpDocumentProcessor[] preImportProcessors;
     private IHttpDocumentProcessor[] postImportProcessors;
 
-    private IHttpDocumentChecksummer httpDocumentChecksummer =
-    		new DefaultHttpDocumentChecksummer();
-	
-    private ICrawlerEventListener[] crawlerListeners;
-    
-    private ICommitter committer;
-    
     public HttpCrawlerConfig() {
         super();
-        setReferenceStoreFactory(new DefaultCrawlDataStoreFactory());
+        setCrawlDataStoreFactory(new MapDBCrawlDataStoreFactory());
     }
     public String[] getStartURLs() {
         return startURLs;
@@ -153,41 +128,17 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public int getMaxDepth() {
         return maxDepth;
     }
-    public void setWorkDir(File workDir) {
-        this.workDir = workDir;
-    }
-    public File getWorkDir() {
-        return workDir;
-    }
-    public int getNumThreads() {
-        return numThreads;
-    }
-    public void setNumThreads(int numThreads) {
-        this.numThreads = numThreads;
-    }
-    public int getMaxURLs() {
-        return maxURLs;
-    }
-    public void setMaxURLs(int maxURLs) {
-        this.maxURLs = maxURLs;
-    }
     public IHttpDocumentFilter[] getHttpDocumentfilters() {
         return documentfilters;
     }
     public void setHttpDocumentfilters(IHttpDocumentFilter[] documentfilters) {
         this.documentfilters = ArrayUtils.clone(documentfilters);
     }
-    public IURLFilter[] getURLFilters() {
+    public IReferenceFilter[] getURLFilters() {
         return urlFilters;
     }
-    public void setURLFilters(IURLFilter[] urlFilters) {
+    public void setURLFilters(IReferenceFilter[] urlFilters) {
         this.urlFilters = ArrayUtils.clone(urlFilters);
-    }
-    public ImporterConfig getImporterConfig() {
-        return importerConfig;
-    }
-    public void setImporterConfig(ImporterConfig importerConfig) {
-        this.importerConfig = importerConfig;
     }
     public IHttpClientFactory getHttpClientFactory() {
         return httpClientFactory;
@@ -226,24 +177,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setUrlNormalizer(IURLNormalizer urlNormalizer) {
         this.urlNormalizer = urlNormalizer;
     }
-    public boolean isDeleteOrphans() {
-        return deleteOrphans;
-    }
-    public void setDeleteOrphans(boolean deleteOrphans) {
-        this.deleteOrphans = deleteOrphans;
-    }
     public IDelayResolver getDelayResolver() {
         return delayResolver;
     }
     public void setDelayResolver(IDelayResolver delayResolver) {
         this.delayResolver = delayResolver;
-    }
-    public ICrawlerEventListener[] getCrawlerListeners() {
-        return crawlerListeners;
-    }
-    public void setCrawlerListeners(
-            ICrawlerEventListener[] crawlerListeners) {
-        this.crawlerListeners = ArrayUtils.clone(crawlerListeners);
     }
     public IHttpHeadersFilter[] getHttpHeadersFilters() {
         return httpHeadersFilters;
@@ -272,32 +210,18 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setIgnoreRobotsTxt(boolean ignoreRobotsTxt) {
         this.ignoreRobotsTxt = ignoreRobotsTxt;
     }
-    
-    public ICommitter getCommitter() {
-        return committer;
-    }
-    public void setCommitter(ICommitter committer) {
-        this.committer = committer;
-    }
     public boolean isKeepDownloads() {
         return keepDownloads;
     }
     public void setKeepDownloads(boolean keepDownloads) {
         this.keepDownloads = keepDownloads;
     }
-    public IHttpHeadersChecksummer getHttpHeadersChecksummer() {
-		return httpHeadersChecksummer;
+    public IMetadataChecksummer getMetadataChecksummer() {
+		return metadataChecksummer;
 	}
-	public void setHttpHeadersChecksummer(
-			IHttpHeadersChecksummer httpHeadersChecksummer) {
-		this.httpHeadersChecksummer = httpHeadersChecksummer;
-	}
-	public IHttpDocumentChecksummer getHttpDocumentChecksummer() {
-		return httpDocumentChecksummer;
-	}
-	public void setHttpDocumentChecksummer(
-			IHttpDocumentChecksummer httpDocumentChecksummer) {
-		this.httpDocumentChecksummer = httpDocumentChecksummer;
+	public void setMetadataChecksummer(
+	        IMetadataChecksummer metadataChecksummer) {
+		this.metadataChecksummer = metadataChecksummer;
 	}
 	public boolean isIgnoreRobotsMeta() {
         return ignoreRobotsMeta;
@@ -335,12 +259,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         try {
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
             writer.writeElementString("userAgent", getUserAgent());
-            writer.writeElementInteger("numThreads", getNumThreads());
             writer.writeElementInteger("maxDepth", getMaxDepth());
-            writer.writeElementInteger("maxURLs", getMaxURLs());
-            writer.writeElementString("workDir", getWorkDir().toString());
             writer.writeElementBoolean("keepDownloads", isKeepDownloads());
-            writer.writeElementBoolean("deleteOrphans", isDeleteOrphans());
             writer.writeStartElement("startURLs");
             for (String url : getStartURLs()) {
                 writer.writeStartElement("url");
@@ -348,12 +268,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 writer.writeEndElement();
             }
             writer.writeEndElement();
-            writer.flush();
             
             writeObject(out, "urlNormalizer", getUrlNormalizer());
             writeObject(out, "delay", getDelayResolver());
-            writeArray(out, "crawlerListeners", "listener", 
-                    getCrawlerListeners());
             writeObject(out, "httpClientFactory", getHttpClientFactory());
             writeArray(out, "httpURLFilters", "filter", getURLFilters());
             writeObject(out, "robotsTxt", 
@@ -363,8 +280,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writeObject(out, "httpHeadersFetcher", getHttpHeadersFetcher());
             writeArray(out, "httpHeadersFilters", 
                     "filter", getHttpHeadersFilters());
-            writeObject(out, "httpHeadersChecksummer", 
-                    getHttpHeadersChecksummer());
+            writeObject(out, "metadataChecksummer", getMetadataChecksummer());
             writeObject(out, "httpDocumentFetcher", getHttpDocumentFetcher());
             writeObject(out, "robotsMeta", 
                     getRobotsMetaProvider(), isIgnoreRobotsMeta());
@@ -373,75 +289,25 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                     "filter", getHttpDocumentfilters());
             writeArray(out, "preImportProcessors", 
                     "processor", getPreImportProcessors());
-            writeObject(out, "importer", getImporterConfig());
             writeArray(out, "postImportProcessors", 
                     "processor", getPostImportProcessors());
-            writeObject(out, "httpDocumentChecksummer", 
-                    getHttpDocumentChecksummer());
-            writeObject(out, "committer", getCommitter());
         } catch (XMLStreamException e) {
             throw new IOException(
                     "Could not write to XML config: " + getId(), e);
         }
     }
 
-    private void writeArray(Writer out, String listTagName, 
-            String objectTagName, Object[] array) throws IOException {
-        if (ArrayUtils.isEmpty(array)) {
-            return;
-        }
-        out.write("<" + listTagName + ">"); 
-        for (Object obj : array) {
-            writeObject(out, objectTagName, obj);
-        }
-        out.write("</" + listTagName + ">"); 
-        out.flush();
-    }
-    private void writeObject(
-            Writer out, String tagName, Object object) throws IOException {
-        writeObject(out, tagName, object, false);
-    }
-    private void writeObject(
-            Writer out, String tagName, Object object, boolean ignore) 
-                    throws IOException {
-        if (object == null) {
-            if (ignore) {
-                out.write("<" + tagName + " ignore=\"" + ignore + "\" />");
-            }
-            return;
-        }
-        StringWriter w = new StringWriter();
-        if (object instanceof IXMLConfigurable) {
-            ((IXMLConfigurable) object).saveToXML(w);
-        } else {
-            w.write("<" + tagName + " class=\"" 
-                    + object.getClass().getCanonicalName() + "\" />");
-        }
-        String xml = w.toString();
-        if (ignore) {
-            xml = xml.replace("<" + tagName + " class=\"" , 
-                    "<" + tagName + " ignore=\"true\" class=\"" );
-        }
-        out.write(xml);
-        out.flush();
-    }
-    
     @Override
     protected void loadCrawlerConfigFromXML(XMLConfiguration xml) {
+        //--- Simple Settings --------------------------------------------------
         loadSimpleSettings(xml);
-
-        //--- Crawler Listeners ------------------------------------------------
-        ICrawlerEventListener[] crawlerListeners = loadListeners(xml,
-                "crawlerListeners.listener");
-        setCrawlerListeners(defaultIfEmpty(crawlerListeners,
-                getCrawlerListeners()));
 
         //--- HTTP Client Factory ----------------------------------------------
         setHttpClientFactory(ConfigurationUtil.newInstance(xml,
                 "httpClientFactory", getHttpClientFactory()));
 
         //--- URL Filters ------------------------------------------------------
-        IURLFilter[] urlFilters = loadURLFilters(xml, "httpURLFilters.filter");
+        IReferenceFilter[] urlFilters = loadURLFilters(xml, "httpURLFilters.filter");
         setURLFilters(defaultIfEmpty(urlFilters, getURLFilters()));
 
         //--- RobotsTxt provider -----------------------------------------------
@@ -466,9 +332,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setHttpHeadersFilters(defaultIfEmpty(headersFilters,
                 getHttpHeadersFilters()));
 
-        //--- HTTP Headers Checksummer -----------------------------------------
-        setHttpHeadersChecksummer(ConfigurationUtil.newInstance(xml,
-                "httpHeadersChecksummer", getHttpHeadersChecksummer()));
+        //--- Metadata Checksummer -----------------------------------------
+        setMetadataChecksummer(ConfigurationUtil.newInstance(xml,
+                "metadataChecksummer", getMetadataChecksummer()));
 
         //--- HTTP Document Fetcher --------------------------------------------
         setHttpDocumentFetcher(ConfigurationUtil.newInstance(xml,
@@ -496,27 +362,12 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setPreImportProcessors(defaultIfEmpty(preProcFilters,
                 getPreImportProcessors()));
 
-        //--- IMPORTER ---------------------------------------------------------
-        XMLConfiguration importerNode = ConfigurationUtil.getXmlAt(xml,
-                "importer");
-        ImporterConfig importerConfig = ImporterConfigLoader
-                .loadImporterConfig(importerNode);
-        setImporterConfig(ObjectUtils.defaultIfNull(importerConfig,
-                getImporterConfig()));
-
         //--- HTTP Post-Processors ---------------------------------------------
         IHttpDocumentProcessor[] postProcFilters = loadProcessors(xml,
                 "postImportProcessors.processor");
         setPostImportProcessors(defaultIfEmpty(postProcFilters,
                 getPostImportProcessors()));
 
-        //--- HTTP Document Checksummer ----------------------------------------
-        setHttpDocumentChecksummer(ConfigurationUtil.newInstance(xml,
-                "httpDocumentChecksummer", getHttpDocumentChecksummer()));
-
-        //--- Document Committers ----------------------------------------------
-        setCommitter(ConfigurationUtil.newInstance(xml, "committer",
-                getCommitter()));
     }
 
     private void loadSimpleSettings(XMLConfiguration xml) {
@@ -525,31 +376,20 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 xml, "urlNormalizer", getUrlNormalizer()));
         setDelayResolver(ConfigurationUtil.newInstance(
                 xml, "delay", getDelayResolver()));
-        setNumThreads(xml.getInt("numThreads", getNumThreads()));
         setMaxDepth(xml.getInt("maxDepth", getMaxDepth()));
-        setMaxURLs(xml.getInt("maxURLs", getMaxURLs()));
-        setWorkDir(new File(xml.getString("workDir", getWorkDir().toString())));
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
-        setDeleteOrphans(xml.getBoolean("deleteOrphans", isDeleteOrphans()));
 
         String[] startURLs = xml.getStringArray("startURLs.url");
         setStartURLs(defaultIfEmpty(startURLs, getStartURLs()));
     }
 
-    // TODO consider moving to Norconex Commons Lang
-    private <T> T[] defaultIfEmpty(T[] array, T[] defaultArray) {
-        if (ArrayUtils.isEmpty(array)) {
-            return defaultArray;
-        }
-        return array;
-    }
-
-    private IURLFilter[] loadURLFilters(XMLConfiguration xml, String xmlPath) {
-        List<IURLFilter> urlFilters = new ArrayList<>();
+    private IReferenceFilter[] loadURLFilters(
+            XMLConfiguration xml, String xmlPath) {
+        List<IReferenceFilter> urlFilters = new ArrayList<>();
         List<HierarchicalConfiguration> filterNodes = 
                 xml.configurationsAt(xmlPath);
         for (HierarchicalConfiguration filterNode : filterNodes) {
-            IURLFilter urlFilter = ConfigurationUtil.newInstance(filterNode);
+            IReferenceFilter urlFilter = ConfigurationUtil.newInstance(filterNode);
             if (urlFilter != null) {
                 urlFilters.add(urlFilter);
                 LOG.info("URL filter loaded: " + urlFilter);
@@ -558,7 +398,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                         + "please check for other log messages.");
             }
         }
-        return urlFilters.toArray(new IURLFilter[] {});
+        return urlFilters.toArray(new IReferenceFilter[] {});
     }
 
     private IHttpHeadersFilter[] loadHeadersFilters(XMLConfiguration xml,
@@ -589,20 +429,6 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return filters.toArray(new IHttpDocumentFilter[] {});
     }
 
-    private ICrawlerEventListener[] loadListeners(XMLConfiguration xml,
-            String xmlPath) {
-        List<ICrawlerEventListener> listeners = new ArrayList<>();
-        List<HierarchicalConfiguration> listenerNodes = xml
-                .configurationsAt(xmlPath);
-        for (HierarchicalConfiguration listenerNode : listenerNodes) {
-            ICrawlerEventListener listener = ConfigurationUtil
-                    .newInstance(listenerNode);
-            listeners.add(listener);
-            LOG.info("HTTP Crawler event listener loaded: " + listener);
-        }
-        return listeners.toArray(new ICrawlerEventListener[] {});
-    }
-
     private IHttpDocumentProcessor[] loadProcessors(XMLConfiguration xml,
             String xmlPath) {
         List<IHttpDocumentProcessor> filters = new ArrayList<>();
@@ -617,13 +443,4 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return filters.toArray(new IHttpDocumentProcessor[] {});
     }
 
-    @Override
-    public ICrawlerConfig safeClone() {
-        try {
-            return (HttpCrawlerConfig) BeanUtils.cloneBean(this);
-        } catch (Exception e) {
-            throw new CollectorException(
-                    "Cannot clone crawler configuration.", e);
-        }
-    }
 }

@@ -65,7 +65,7 @@ public class MapDBTest {
 
     private HttpCrawlData buildCrawlURL() {
         HttpCrawlData c = new HttpCrawlData("http://www.example.com", 3);
-        c.setContentChecksum("docchecksum1111");
+        c.setDocumentChecksum("docchecksum1111");
         c.setSitemapPriority(0.8f);
         return c;
     }

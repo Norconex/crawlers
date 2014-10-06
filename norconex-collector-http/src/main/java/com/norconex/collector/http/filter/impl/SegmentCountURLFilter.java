@@ -42,7 +42,7 @@ import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
-import com.norconex.collector.http.filter.IURLFilter;
+import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.HttpURL;
@@ -75,7 +75,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  */
 @SuppressWarnings("nls")
 public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
-        IURLFilter,
+        IReferenceFilter,
         IHttpDocumentFilter,
         IHttpHeadersFilter,
         IXMLConfigurable{
@@ -162,14 +162,14 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
 
     @Override
     public boolean acceptDocument(HttpDocument document) {
-        return acceptURL(document.getReference());
+        return acceptReference(document.getReference());
     }
     @Override
     public boolean acceptDocument(String url, HttpMetadata headers) {
-        return acceptURL(url);
+        return acceptReference(url);
     }
     @Override
-    public boolean acceptURL(String url) {
+    public boolean acceptReference(String url) {
         boolean isInclude = getOnMatch() == OnMatch.INCLUDE;
         if (StringUtils.isBlank(separator)) {
             return isInclude;
