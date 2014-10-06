@@ -22,10 +22,10 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.norconex.collector.core.data.ICrawlData;
-import com.norconex.collector.core.data.store.impl.mongo.BasicMongoSerializer;
+import com.norconex.collector.core.data.store.impl.mongo.BaseMongoSerializer;
 import com.norconex.collector.http.data.HttpCrawlData;
 
-public class MongoCrawlDataSerializer extends BasicMongoSerializer {
+public class MongoCrawlDataSerializer extends BaseMongoSerializer {
 
     private static final String FIELD_DEPTH = "depth";
     private static final String FIELD_SITEMAP_LAST_MOD = "sitemapLastMod";

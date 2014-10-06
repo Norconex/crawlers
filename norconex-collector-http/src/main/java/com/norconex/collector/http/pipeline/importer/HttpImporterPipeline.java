@@ -104,7 +104,7 @@ public class HttpImporterPipeline
             ImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
             
             ctx.getCrawler().fireCrawlerEvent(
-                    HttpCrawlerEvent.DOCUMENT_META_FETCHED, 
+                    HttpCrawlerEvent.DOCUMENT_METADATA_FETCHED, 
                     ctx.getCrawlData(), headersFetcher);
             return true;
         }
