@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.doc;
 
-import java.io.Serializable;
-
 import org.apache.http.client.HttpClient;
 
 /**
@@ -27,7 +25,7 @@ import org.apache.http.client.HttpClient;
  * just before of after a document has been imported.  
  * @author Pascal Essiembre
  */
-public interface IHttpDocumentProcessor extends Serializable {
+public interface IHttpDocumentProcessor {
 
 	/**
 	 * Processes a document.

@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.filter;
 
-import java.io.Serializable;
-
 import com.norconex.collector.http.doc.HttpMetadata;
 
 /**
@@ -33,7 +31,7 @@ import com.norconex.collector.http.doc.HttpMetadata;
  * </p>
  * @author Pascal Essiembre
  */
-public interface IHttpHeadersFilter extends Serializable {
+public interface IHttpHeadersFilter {
 
     /**
      * Whether to accept a URL HTTP headers.  

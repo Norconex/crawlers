@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.filter;
 
-import java.io.Serializable;
-
 import com.norconex.collector.http.doc.HttpDocument;
 
 /**
@@ -32,7 +30,7 @@ import com.norconex.collector.http.doc.HttpDocument;
  * </p>
  * @author Pascal Essiembre
  */
-public interface IHttpDocumentFilter extends Serializable {
+public interface IHttpDocumentFilter {
 
     /**
      * Whether to accept a HTTP document.  

@@ -64,10 +64,9 @@ import com.norconex.commons.lang.map.Properties;
 public class GenericHttpHeadersFetcher 
         implements IHttpHeadersFetcher, IXMLConfigurable {
 
-	private static final long serialVersionUID = 6526443843689019304L;
     private static final Logger LOG = LogManager.getLogger(
 			GenericHttpHeadersFetcher.class);
-    public static final int[] DEFAULT_VALID_STATUS_CODES = new int[] {
+    /*default*/ static final int[] DEFAULT_VALID_STATUS_CODES = new int[] {
         HttpStatus.SC_OK,
     };
 	
@@ -82,7 +81,7 @@ public class GenericHttpHeadersFetcher
         this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
     }
 	public int[] getValidStatusCodes() {
-        return validStatusCodes;
+        return ArrayUtils.clone(validStatusCodes);
     }
     public void setValidStatusCodes(int[] validStatusCodes) {
         this.validStatusCodes = ArrayUtils.clone(validStatusCodes);

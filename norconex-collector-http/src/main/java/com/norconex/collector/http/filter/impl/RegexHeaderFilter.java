@@ -61,8 +61,6 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
         implements IHttpHeadersFilter, IXMLConfigurable {
 
     //TODO use Importer RegexMetadataFilter here?  Catching import exception
-    
-    private static final long serialVersionUID = -8029862304058855686L;
 
     private boolean caseSensitive;
     private String header;

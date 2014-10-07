@@ -164,7 +164,11 @@ public abstract class BaseCrawlDataStoreTest {
         Iterator<ICrawlData> it = db.getCacheIterator();
         assertTrue(it.hasNext());
         ICrawlData httpDocReference = it.next();
-        assertEquals(url, httpDocReference.getReference()); 
+        assertEquals(url, httpDocReference.getReference());
+        // read it all to be nice and have the iterator release its connection
+        while (it.hasNext()) {
+            it.next();
+        }
     }
 
     @Test

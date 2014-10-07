@@ -18,15 +18,13 @@
  */
 package com.norconex.collector.http.robot;
 
-import java.io.Serializable;
-
 import org.apache.http.client.HttpClient;
 
 /**
  * Given a URL, extract any "robots.txt" rules.
  * @author Pascal Essiembre
  */
-public interface IRobotsTxtProvider extends Serializable {
+public interface IRobotsTxtProvider {
 
     /**
      * Gets robots.txt rules.

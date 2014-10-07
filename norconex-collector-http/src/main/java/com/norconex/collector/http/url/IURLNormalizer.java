@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.url;
 
-import java.io.Serializable;
-
 import com.norconex.collector.core.filter.IReferenceFilter;
 
 /**
@@ -38,7 +36,7 @@ import com.norconex.collector.core.filter.IReferenceFilter;
  * <code>urlNormalizer</code> to ensure it gets loaded properly.
  * @author Pascal Essiembre
  */
-public interface IURLNormalizer extends Serializable {
+public interface IURLNormalizer {
 
     /**
      * Normalize the given URL.

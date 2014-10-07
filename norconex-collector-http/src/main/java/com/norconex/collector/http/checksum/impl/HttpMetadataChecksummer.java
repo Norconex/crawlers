@@ -47,7 +47,6 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  */
 public class HttpMetadataChecksummer extends AbstractMetadataChecksummer {
 
-	private static final long serialVersionUID = -6759418012119786557L;
 	private static final Logger LOG = LogManager.getLogger(
 			HttpMetadataChecksummer.class);
 

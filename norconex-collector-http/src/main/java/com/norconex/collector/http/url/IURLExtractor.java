@@ -20,7 +20,6 @@ package com.norconex.collector.http.url;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Serializable;
 import java.util.Set;
 
 import com.norconex.commons.lang.file.ContentType;
@@ -29,7 +28,7 @@ import com.norconex.commons.lang.file.ContentType;
  * Responsible for extracting URLs out of a document.
  * @author Pascal Essiembre
  */
-public interface IURLExtractor extends Serializable  {
+public interface IURLExtractor {
 
 	/**
 	 * Extracts URLs out of a document.

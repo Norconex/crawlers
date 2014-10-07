@@ -58,14 +58,12 @@ import com.norconex.collector.http.url.impl.GenericURLExtractor;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
-
 /**
  * HTTP Crawler configuration.
  * @author Pascal Essiembre
  */
 public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
-    private static final long serialVersionUID = -3350877963428801802L;
     private static final Logger LOG = 
             LogManager.getLogger(HttpCrawlerConfig.class);
     
@@ -129,13 +127,13 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return maxDepth;
     }
     public IHttpDocumentFilter[] getHttpDocumentfilters() {
-        return documentfilters;
+        return ArrayUtils.clone(documentfilters);
     }
     public void setHttpDocumentfilters(IHttpDocumentFilter[] documentfilters) {
         this.documentfilters = ArrayUtils.clone(documentfilters);
     }
     public IReferenceFilter[] getURLFilters() {
-        return urlFilters;
+        return ArrayUtils.clone(urlFilters);
     }
     public void setURLFilters(IReferenceFilter[] urlFilters) {
         this.urlFilters = ArrayUtils.clone(urlFilters);
@@ -184,21 +182,21 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         this.delayResolver = delayResolver;
     }
     public IHttpHeadersFilter[] getHttpHeadersFilters() {
-        return httpHeadersFilters;
+        return ArrayUtils.clone(httpHeadersFilters);
     }
     public void setHttpHeadersFilters(IHttpHeadersFilter[] httpHeadersFilters) {
         this.httpHeadersFilters = ArrayUtils.clone(httpHeadersFilters);
     }
 
     public IHttpDocumentProcessor[] getPreImportProcessors() {
-        return preImportProcessors;
+        return ArrayUtils.clone(preImportProcessors);
     }
     public void setPreImportProcessors(
     		IHttpDocumentProcessor[] httpPreProcessors) {
         this.preImportProcessors = ArrayUtils.clone(httpPreProcessors);
     }
     public IHttpDocumentProcessor[] getPostImportProcessors() {
-        return postImportProcessors;
+        return ArrayUtils.clone(postImportProcessors);
     }
     public void setPostImportProcessors(
     		IHttpDocumentProcessor[] httpPostProcessors) {
@@ -442,5 +440,4 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         }
         return filters.toArray(new IHttpDocumentProcessor[] {});
     }
-
 }

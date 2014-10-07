@@ -69,10 +69,8 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * @author Pascal Essiembre
  */
 public class GenericDocumentFetcher 
-        implements IHttpDocumentFetcher, 
-                   IXMLConfigurable {
+        implements IHttpDocumentFetcher, IXMLConfigurable {
 
-	private static final long serialVersionUID = -6523482835344340418L;
     private static final Logger LOG = LogManager.getLogger(
 			GenericDocumentFetcher.class);
     private int[] validStatusCodes;
@@ -172,7 +170,7 @@ public class GenericDocumentFetcher
 	}
 	
     public int[] getValidStatusCodes() {
-        return validStatusCodes;
+        return ArrayUtils.clone(validStatusCodes);
     }
     public final void setValidStatusCodes(int[] validStatusCodes) {
         this.validStatusCodes = ArrayUtils.clone(validStatusCodes);

@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.sitemap;
 
-import java.io.Serializable;
-
 import org.apache.http.client.HttpClient;
 
 
@@ -29,7 +27,7 @@ import org.apache.http.client.HttpClient;
  * 
  * @author Pascal Essiembre
  */
-public interface ISitemapResolver extends Serializable {
+public interface ISitemapResolver {
 
     /**
      * Resolves the sitemap instructions for a URL "root" (e.g. 

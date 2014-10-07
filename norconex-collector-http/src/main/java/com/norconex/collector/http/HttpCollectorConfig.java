@@ -31,8 +31,6 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
  */
 public class HttpCollectorConfig extends AbstractCollectorConfig {
 
-    private static final long serialVersionUID = -3350877963428801802L;
-
 	public HttpCollectorConfig() {
         super(HttpCrawlerConfig.class);
     }

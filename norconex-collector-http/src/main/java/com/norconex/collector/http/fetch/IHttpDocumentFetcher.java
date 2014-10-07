@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.fetch;
 
-import java.io.Serializable;
-
 import org.apache.http.client.HttpClient;
 
 import com.norconex.collector.core.data.CrawlState;
@@ -31,7 +29,7 @@ import com.norconex.collector.http.doc.HttpDocument;
  * is saved to the document local file.
  * @author Pascal Essiembre
  */
-public interface IHttpDocumentFetcher extends Serializable {
+public interface IHttpDocumentFetcher {
 
 	/**
 	 * Fetches HTTP document and saves it to a local file

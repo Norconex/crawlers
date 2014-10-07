@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.delay;
 
-import java.io.Serializable;
-
 import com.norconex.collector.http.robot.RobotsTxt;
 
 /**
@@ -31,7 +29,7 @@ import com.norconex.collector.http.robot.RobotsTxt;
  * Try to be "nice" to the web sites you crawl.
  * @author Pascal Essiembre
  */
-public interface IDelayResolver extends Serializable  {
+public interface IDelayResolver {
 
     /**
      * Delay crawling activities (if applicable).

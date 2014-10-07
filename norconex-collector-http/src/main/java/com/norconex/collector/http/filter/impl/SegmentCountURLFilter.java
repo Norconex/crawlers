@@ -38,11 +38,11 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.filter.IHttpDocumentFilter;
 import com.norconex.collector.http.filter.IHttpHeadersFilter;
-import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.HttpURL;
@@ -79,8 +79,6 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
         IHttpDocumentFilter,
         IHttpHeadersFilter,
         IXMLConfigurable{
-
-    private static final long serialVersionUID = 927290374632128891L;
 
     /** Default segment separator pattern. */
     public static final String DEFAULT_SEGMENT_SEPARATOR_PATTERN = "/";

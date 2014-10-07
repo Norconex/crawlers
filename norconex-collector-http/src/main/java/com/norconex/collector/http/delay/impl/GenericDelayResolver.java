@@ -108,8 +108,6 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  */
 public class GenericDelayResolver implements IDelayResolver, IXMLConfigurable {
 
-    private static final long serialVersionUID = -7742290966880042419L;
-
     private static final Logger LOG = 
             LogManager.getLogger(GenericDelayResolver.class);
     

@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.fetch;
 
-import java.io.Serializable;
-
 import org.apache.http.client.HttpClient;
 
 import com.norconex.commons.lang.map.Properties;
@@ -28,7 +26,7 @@ import com.norconex.commons.lang.map.Properties;
  * Fetches the HTTP Header, typically via a HEAD request.
  * @author Pascal Essiembre
  */
-public interface IHttpHeadersFetcher extends Serializable {
+public interface IHttpHeadersFetcher {
 
     /**
      * Returning <code>null</code> means the headers could not be fetched

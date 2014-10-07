@@ -22,7 +22,7 @@ import java.io.Serializable;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
-public interface ISitemapResolverFactory extends Serializable {
+public interface ISitemapResolverFactory {
 
     ISitemapResolver createSitemapResolver(
             HttpCrawlerConfig config, boolean resume);

@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.sitemap;
 
-import java.io.Serializable;
-
 import com.norconex.collector.http.data.HttpCrawlData;
 
 
@@ -37,9 +35,7 @@ import com.norconex.collector.http.data.HttpCrawlData;
  * @author Pascal Essiembre
  * @see ISitemapResolver
  */
-public abstract class SitemapURLAdder implements Serializable {
-
-    private static final long serialVersionUID = 1504818537850961659L;
+public abstract class SitemapURLAdder {
 
     public enum ChangeFrequency {
         ALWAYS,

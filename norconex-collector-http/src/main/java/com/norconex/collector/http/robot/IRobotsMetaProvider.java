@@ -20,7 +20,6 @@ package com.norconex.collector.http.robot;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Serializable;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
@@ -29,7 +28,7 @@ import com.norconex.commons.lang.map.Properties;
  * Responsible for extracting robot information from a page.
  * @author Pascal Essiembre
  */
-public interface IRobotsMetaProvider extends Serializable {
+public interface IRobotsMetaProvider {
 
     /**
      * Extracts Robots meta information for a page, if any.
