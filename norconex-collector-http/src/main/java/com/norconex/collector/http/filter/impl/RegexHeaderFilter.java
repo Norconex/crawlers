@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -29,8 +30,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -122,7 +122,7 @@ public class RegexHeaderFilter extends AbstractOnMatchFilter
 
         Collection<String> values = headers.getStrings(header);
         for (Object value : values) {
-            String strVal = ObjectUtils.toString(value);
+            String strVal = Objects.toString(value, StringUtils.EMPTY);
             if (pattern.matcher(strVal).matches()) {
                 return getOnMatch() == OnMatch.INCLUDE;
             }
