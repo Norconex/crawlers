@@ -39,6 +39,8 @@ import com.norconex.jef.AsyncJobGroup;
 import com.norconex.jef.IJob;
 import com.norconex.jef.JobRunner;
 import com.norconex.jef.log.FileLogManager;
+import com.norconex.jef.progress.IJobStatus;
+import com.norconex.jef.progress.IJobStatus.Status;
 import com.norconex.jef.progress.JobProgressPropertiesFileSerializer;
 import com.norconex.jef.suite.FileStopRequestHandler;
 import com.norconex.jef.suite.IJobSuiteFactory;
@@ -203,6 +205,17 @@ public class HttpCollector implements IJobSuiteFactory {
      */
     public void stop() {
         JobSuite suite = createJobSuite();
+        String[] jobIds = suite.getJobIds();
+        if (jobIds.length == 0) {
+            throw new HttpCollectorException("Job ID is undefined.");
+        }
+        IJobStatus progress = suite.getJobProgress(jobIds[0]);
+        boolean running = progress != null 
+                && progress.getStatus() == Status.RUNNING;
+        if (!running) {
+            throw new HttpCollectorException("Job is NOT running.");
+        }
+        // Running job: stop it
         ((FileStopRequestHandler) 
                 suite.getStopRequestHandler()).fireStopRequest();
     }
