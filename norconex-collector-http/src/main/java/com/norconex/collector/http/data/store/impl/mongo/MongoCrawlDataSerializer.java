@@ -65,8 +65,10 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         data.setSitemapLastMod((Long) dbObject.get(FIELD_SITEMAP_LAST_MOD));
         data.setSitemapChangeFreq(
                 (String) dbObject.get(FIELD_SITEMAP_CHANGE_FREQ));
-        data.setSitemapPriority(
-                (Float) dbObject.get(FIELD_SITEMAP_PRIORITY));
+        Double val = (Double) dbObject.get(FIELD_SITEMAP_PRIORITY);
+        if (val != null) {
+            data.setSitemapPriority(val.floatValue());
+        }
         return data;
     }
     
