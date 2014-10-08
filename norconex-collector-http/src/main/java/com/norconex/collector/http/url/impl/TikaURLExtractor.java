@@ -64,7 +64,6 @@ import com.norconex.commons.lang.file.ContentType;
  */
 public class TikaURLExtractor implements IURLExtractor, IXMLConfigurable {
 
-    private static final long serialVersionUID = -1079980784629581346L;
     private static final Logger LOG = LogManager.getLogger(
             TikaURLExtractor.class);
     

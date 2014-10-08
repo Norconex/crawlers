@@ -2,8 +2,6 @@ package com.norconex.collector.http.delay.impl;
 
 public class ThreadDelay extends AbstractDelay {
 
-    private static final long serialVersionUID = -8757454203476804459L;
-
     private ThreadLocal<Long> threadLastHitNanos;
     
     public void delay(long expectedDelayNanos, String url) {

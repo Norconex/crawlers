@@ -162,8 +162,7 @@ public class HttpCrawler extends AbstractCrawler {
                 (HttpCrawlData) crawlData, (HttpDocument) doc);
         new HttpImporterPipeline(
                 getCrawlerConfig().isKeepDownloads()).execute(context);
-        ImporterResponse response = context.getImporterResponse();
-        return response;
+        return context.getImporterResponse();
     }
 
     @Override

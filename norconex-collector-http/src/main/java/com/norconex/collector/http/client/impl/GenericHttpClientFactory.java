@@ -127,8 +127,6 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
 public class GenericHttpClientFactory 
         implements IHttpClientFactory, IXMLConfigurable {
 
-    private static final long serialVersionUID = -4618198319976755219L;
-    
     /** Form-based authentication method. */
     public static final String AUTH_METHOD_FORM = "form";
     /** BASIC authentication method. */

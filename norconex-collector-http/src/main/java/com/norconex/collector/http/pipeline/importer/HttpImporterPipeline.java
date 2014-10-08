@@ -48,9 +48,6 @@ public class HttpImporterPipeline
     //sharing all thread safe/common information, 
     //just changing what is url/doc specific.
     
-//    private static final Logger LOG = 
-//            LogManager.getLogger(DocumentPipeline.class);
-    
     public HttpImporterPipeline(boolean isKeepDownloads) {
         addStage(new DelayResolverStage());
 
@@ -73,10 +70,9 @@ public class HttpImporterPipeline
         addStage(new DocumentPreProcessingStage());        
         addStage(new ImportModuleStage());        
     }
-    
 
     //--- Wait for delay to expire ---------------------------------------------
-    private class DelayResolverStage extends AbstractImporterStage {
+    private static class DelayResolverStage extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             IDelayResolver delayResolver = ctx.getConfig().getDelayResolver();
@@ -89,7 +85,8 @@ public class HttpImporterPipeline
                                     ctx.getConfig().getUserAgent()), 
                             ctx.getCrawlData().getReference());
                 } else {
-                    delayResolver.delay(null, ctx.getCrawlData().getReference());
+                    delayResolver.delay(
+                            null, ctx.getCrawlData().getReference());
                 }
             }
             return true;
@@ -97,7 +94,7 @@ public class HttpImporterPipeline
     }
 
     //--- HTTP Headers Fetcher -------------------------------------------------
-    private class HttpHeadersFetcherStage extends AbstractImporterStage {
+    private static class HttpHeadersFetcherStage extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (!ctx.isHttpHeadFetchEnabled()) {
@@ -126,7 +123,8 @@ public class HttpImporterPipeline
     }
     
     //--- HTTP Headers Filters -------------------------------------------------
-    private class HttpHeadersFiltersHEADStage extends AbstractImporterStage {
+    private static class HttpHeadersFiltersHEADStage 
+            extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (ctx.getHttpHeadersFetcher() != null 
@@ -141,7 +139,7 @@ public class HttpImporterPipeline
 
     
     //--- Document Fetcher -----------------------------------------------------            
-    private class DocumentFetcherStage extends AbstractImporterStage {
+    private static class DocumentFetcherStage extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             //TODO for now we assume the document is downloadable.
@@ -182,41 +180,8 @@ public class HttpImporterPipeline
         }
     }
 
-//    //--- Save Download --------------------------------------------------------            
-//    private class SaveDownloadedFileStage extends AbstractImporterStage {
-//        @Override
-//        public boolean executeStage(HttpImporterPipelineContext ctx) {
-//            if (!ctx.getConfig().isKeepDownloads()) {
-//                return true;
-//            }
-//            
-//            //TODO have an interface for how to store downloaded files
-//            //(i.e., location, directory structure, file naming)
-//            File workdir = ctx.getConfig().getWorkDir();
-//            File downloadDir = new File(workdir, "/downloads");
-//            if (!downloadDir.exists()) {
-//                downloadDir.mkdirs();
-//            }
-//            File downloadFile = new File(downloadDir, 
-//                    PathUtils.urlToPath(ctx.getCrawlData().getReference()));
-//            try {
-//                OutputStream out = FileUtils.openOutputStream(downloadFile);
-//                IOUtils.copy(ctx.getDocument().getContent(), out);
-//                IOUtils.closeQuietly(out);
-//                
-//                ctx.getCrawler().fireCrawlerEvent(
-//                        CrawlerEvent.SAVED_FILE, ctx.getCrawlData(), 
-//                        downloadFile);
-//            } catch (IOException e) {
-//                throw new CollectorException("Cannot create RobotsMeta for : " 
-//                                + ctx.getCrawlData().getReference(), e);
-//            }            
-//            return true;
-//        }
-//    }    
-    
     //--- Robots Meta Creation -------------------------------------------------
-    private class RobotsMetaCreateStage extends AbstractImporterStage {
+    private static class RobotsMetaCreateStage extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (ctx.getConfig().isIgnoreRobotsMeta()) {
@@ -248,7 +213,7 @@ public class HttpImporterPipeline
 
     
     //--- Robots Meta NoIndex Check --------------------------------------------
-    private class RobotsMetaNoIndexStage extends AbstractImporterStage {
+    private static class RobotsMetaNoIndexStage extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             boolean canIndex = ctx.getConfig().isIgnoreRobotsMeta() 
@@ -268,7 +233,8 @@ public class HttpImporterPipeline
     }
     
     //--- Headers filters if not done already ----------------------------------
-    private class HttpHeadersFiltersGETStage extends AbstractImporterStage {
+    private static class HttpHeadersFiltersGETStage 
+            extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (ctx.getHttpHeadersFetcher() == null) {
@@ -284,7 +250,8 @@ public class HttpImporterPipeline
     
     
     //--- Document Pre-Processing ----------------------------------------------
-    private class DocumentPreProcessingStage extends AbstractImporterStage {
+    private static class DocumentPreProcessingStage 
+            extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (ctx.getConfig().getPreImportProcessors() != null) {

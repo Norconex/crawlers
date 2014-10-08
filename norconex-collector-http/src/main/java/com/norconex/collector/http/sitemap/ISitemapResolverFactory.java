@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.sitemap;
 
-import java.io.Serializable;
-
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
 public interface ISitemapResolverFactory {

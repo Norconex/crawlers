@@ -1,7 +1,5 @@
 package com.norconex.collector.http.delay.impl;
 
-import java.io.Serializable;
-
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -11,9 +9,8 @@ import com.norconex.commons.lang.Sleeper;
  * Convenience class to encapsulate various delay strategies.
  * @author Pascal Essiembre
  */
-public abstract class AbstractDelay implements Serializable {
+public abstract class AbstractDelay {
 
-    private static final long serialVersionUID = 3203916955634153382L;
     private static final Logger LOG = LogManager.getLogger(AbstractDelay.class);
 
     protected static final int TINY_SLEEP_MS = 10;

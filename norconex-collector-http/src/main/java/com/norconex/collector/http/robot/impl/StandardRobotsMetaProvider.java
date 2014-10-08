@@ -74,8 +74,6 @@ import com.norconex.commons.lang.map.Properties;
 public class StandardRobotsMetaProvider 
         implements IRobotsMetaProvider, IXMLConfigurable {
 
-    private static final long serialVersionUID = 5762255033770481717L;
-
     private static final Logger LOG = LogManager.getLogger(
             StandardRobotsMetaProvider.class);
     private static final Pattern ROBOTS_PATTERN = Pattern.compile(

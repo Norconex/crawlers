@@ -58,7 +58,6 @@ import com.norconex.commons.lang.file.ContentType;
  */
 public class GenericURLExtractor implements IURLExtractor, IXMLConfigurable {
 
-    private static final long serialVersionUID = 4130729871145622411L;
     private static final Logger LOG = LogManager.getLogger(
             GenericURLExtractor.class);
 
@@ -209,7 +208,7 @@ public class GenericURLExtractor implements IURLExtractor, IXMLConfigurable {
         }       
     }
     
-    private class UrlParts {
+    private static class UrlParts {
         private final String protocol;
         private final String path;
         private final String relativeBase;

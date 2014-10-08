@@ -18,7 +18,6 @@
  */
 package com.norconex.collector.http.robot;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -27,10 +26,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.core.filter.IReferenceFilter;
 
-public class RobotsTxt implements Serializable {
+public class RobotsTxt {
 
-    private static final long serialVersionUID = -2203572498193869416L;
-    
     public static final float UNSPECIFIED_CRAWL_DELAY = -1;
     
     private final IReferenceFilter[] filters;
@@ -55,10 +52,10 @@ public class RobotsTxt implements Serializable {
     }
 
     public IReferenceFilter[] getFilters() {
-        return filters;
+        return ArrayUtils.clone(filters);
     }
     public String[] getSitemapLocations() {
-        return sitemapLocations;
+        return ArrayUtils.clone(sitemapLocations);
     }
     public float getCrawlDelay() {
         return crawlDelay;

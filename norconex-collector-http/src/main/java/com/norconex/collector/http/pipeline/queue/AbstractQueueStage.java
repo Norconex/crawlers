@@ -16,23 +16,23 @@
  * along with Norconex HTTP Collector. If not, 
  * see <http://www.gnu.org/licenses/>.
  */
-package com.norconex.collector.http.pipeline.importer;
+package com.norconex.collector.http.pipeline.queue;
 
-import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
+import com.norconex.collector.core.pipeline.BasePipelineContext;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
  * @author Pascal Essiembre
  *
  */
-/*default*/ abstract class AbstractImporterStage 
-        implements IPipelineStage<ImporterPipelineContext> {
+/*default*/ abstract class AbstractQueueStage 
+        implements IPipelineStage<BasePipelineContext> {
     @Override
-    public final boolean execute(ImporterPipelineContext context) {
-        if (!(context instanceof HttpImporterPipelineContext)) {
+    public final boolean execute(BasePipelineContext context) {
+        if (!(context instanceof HttpQueuePipelineContext)) {
             throw new AssertionError("Unexpected type: " + context);
         }
-        return executeStage((HttpImporterPipelineContext) context);
+        return executeStage((HttpQueuePipelineContext) context);
     }
-    public abstract boolean executeStage(HttpImporterPipelineContext ctx);
+    public abstract boolean executeStage(HttpQueuePipelineContext ctx);
 }

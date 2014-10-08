@@ -19,13 +19,16 @@
 package com.norconex.collector.http.sitemap.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
 public class SitemapStore {
@@ -52,8 +55,12 @@ public class SitemapStore {
         this.config = config;
         String dbDir = config.getWorkDir().getPath()
                 + "/sitemaps/" + config.getId() + "/";
-        
-        new File(dbDir).mkdirs();
+        try {
+            FileUtils.forceMkdir(new File(dbDir));
+        } catch (IOException e) {
+            throw new CollectorException(
+                    "Cannot create sitemap directory: " + dbDir, e);
+        }
         File dbFile = new File(dbDir + "mapdb");
         boolean create = !dbFile.exists() || !dbFile.isFile();
         

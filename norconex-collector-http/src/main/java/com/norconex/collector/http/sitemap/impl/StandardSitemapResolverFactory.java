@@ -21,13 +21,14 @@ package com.norconex.collector.http.sitemap.impl;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.Arrays;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -54,8 +55,6 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
 public class StandardSitemapResolverFactory 
         implements ISitemapResolverFactory, IXMLConfigurable {
 
-    private static final long serialVersionUID = 7647490140299818323L;
-
     private String[] sitemapLocations;
     private boolean lenient;
     
@@ -72,7 +71,7 @@ public class StandardSitemapResolverFactory
     }
 
     public String[] getSitemapLocations() {
-        return sitemapLocations;
+        return ArrayUtils.clone(sitemapLocations);
     }
     public void setSitemapLocations(String... sitemapLocations) {
         this.sitemapLocations = sitemapLocations;
@@ -116,35 +115,7 @@ public class StandardSitemapResolverFactory
         }
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (lenient ? 1231 : 1237);
-        result = prime * result + Arrays.hashCode(sitemapLocations);
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof StandardSitemapResolverFactory)) {
-            return false;
-        }
-        StandardSitemapResolverFactory other = (StandardSitemapResolverFactory) obj;
-        if (lenient != other.lenient) {
-            return false;
-        }
-        if (!Arrays.equals(sitemapLocations, other.sitemapLocations)) {
-            return false;
-        }
-        return true;
-    }
+    
 
     @Override
     public String toString() {
@@ -152,6 +123,24 @@ public class StandardSitemapResolverFactory
         builder.append("sitemapLocations", sitemapLocations);
         builder.append("lenient", lenient);
         return builder.toString();
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof StandardSitemapResolverFactory)) {
+            return false;
+        }
+        StandardSitemapResolverFactory castOther = 
+                (StandardSitemapResolverFactory) other;
+        return new EqualsBuilder()
+                .append(sitemapLocations, castOther.sitemapLocations)
+                .append(lenient, castOther.lenient).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(sitemapLocations).append(lenient)
+                .toHashCode();
     }
     
 }

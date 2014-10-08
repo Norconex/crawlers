@@ -29,6 +29,9 @@ import com.norconex.commons.lang.pipeline.IPipelineStage;
         implements IPipelineStage<DocumentPipelineContext> {
     @Override
     public final boolean execute(DocumentPipelineContext context) {
+        if (!(context instanceof HttpCommitterPipelineContext)) {
+            throw new AssertionError("Unexpected type: " + context);
+        }
         return executeStage((HttpCommitterPipelineContext) context);
     }
     public abstract boolean executeStage(HttpCommitterPipelineContext ctx);

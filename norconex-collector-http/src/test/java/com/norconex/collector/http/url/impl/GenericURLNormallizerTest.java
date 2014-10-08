@@ -26,6 +26,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import com.norconex.collector.http.url.impl.GenericURLNormalizer.Normalization;
+import com.norconex.collector.http.url.impl.GenericURLNormalizer.Replace;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 
 public class GenericURLNormallizerTest {
@@ -43,9 +44,9 @@ public class GenericURLNormallizerTest {
 	public void testReplacements() {
         GenericURLNormalizer n = new GenericURLNormalizer();
         n.setReplaces(
-                n.new Replace("\\.htm$", ".html"),
-                n.new Replace("&debug=true"),
-                n.new Replace("(http://)(.*//)(www.example.com)", "$1$3"));
+                new Replace("\\.htm$", ".html"),
+                new Replace("&debug=true"),
+                new Replace("(http://)(.*//)(www.example.com)", "$1$3"));
 
         s = "http://www.example.com//www.example.com/page1.html";
         t = "http://www.example.com/page1.html";
@@ -70,7 +71,7 @@ public class GenericURLNormallizerTest {
                 Normalization.decodeUnreservedCharacters,
                 Normalization.removeDefaultPort);
         n.setReplaces(
-                n.new Replace("&view=print", "&view=html"));
+                new Replace("&view=print", "&view=html"));
         
         s = "http://www.somehost.com/hook/";
         t = "http://www.somehost.com/hook/";
@@ -88,8 +89,8 @@ public class GenericURLNormallizerTest {
                 Normalization.removeDuplicateSlashes,
                 Normalization.removeSessionIds);
         n.setReplaces(
-                n.new Replace("\\.htm", ".html"),
-                n.new Replace("&debug=true"));
+                new Replace("\\.htm", ".html"),
+                new Replace("&debug=true"));
         System.out.println("Writing/Reading this: " + n);
         ConfigurationUtil.assertWriteRead(n);
     }

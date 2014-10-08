@@ -50,7 +50,7 @@ public class HttpQueuePipelineContext extends BasePipelineContext {
         }
     }
 
-    public HttpClient getHttpClient() {
+    public final HttpClient getHttpClient() {
         return getCrawler().getHttpClient();
     }
 

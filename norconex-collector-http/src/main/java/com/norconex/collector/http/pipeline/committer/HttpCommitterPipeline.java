@@ -39,7 +39,8 @@ public class HttpCommitterPipeline
     }
     
     //--- Document Post-Processing ---------------------------------------------
-    private class DocumentPostProcessingStage extends AbstractCommitterStage {
+    private static class DocumentPostProcessingStage 
+            extends AbstractCommitterStage {
         @Override
         public boolean executeStage(HttpCommitterPipelineContext ctx) {
             if (ctx.getConfig().getPostImportProcessors() != null) {
@@ -56,22 +57,4 @@ public class HttpCommitterPipeline
             return true;
         }
     }  
-//    
-//    //--- Document Commit ------------------------------------------------------
-//    private class CommitModuleStage extends AbstractCommitterStage {
-//        @Override
-//        public boolean executeStage(HttpCommitterPipelineContext ctx) {
-//            ICommitter committer = ctx.getConfig().getCommitter();
-//            if (committer != null) {
-//                HttpDocument doc = ctx.getDocument();
-//                committer.add(doc.getReference(), 
-//                        doc.getContent(), doc.getMetadata());
-//            }
-//            ctx.getCrawler().fireCrawlerEvent(
-//                    HttpCrawlerEvent.DOCUMENT_COMMITTED, 
-//                    ctx.getCrawlData(), committer);
-//            return true;
-//        }
-//    }  
-
 }

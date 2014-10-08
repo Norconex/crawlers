@@ -81,9 +81,6 @@ import com.norconex.collector.http.url.IURLExtractor;
                         new HttpQueuePipelineContext(
                                 ctx.getCrawler(), ctx.getCrawlDataStore(), 
                                 newURL);
-//                if (new CrawlDataPipeline().process(context)) {
-//                    uniqueURLs.add(newURL.getReference());
-//                }
                 //TODO do we want to capture them all or just the valid ones?
                 new HttpQueuePipeline().execute(newContext);
                 uniqueURLs.add(newURL.getReference());

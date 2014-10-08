@@ -125,10 +125,8 @@ import com.norconex.commons.lang.url.URLNormalizer;
  *  &lt;/urlNormalizer&gt;
  * @author Pascal Essiembre
  */
-public class GenericURLNormalizer 
-        implements IURLNormalizer, IXMLConfigurable {
+public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
-    private static final long serialVersionUID = 3847717776792688065L;
     private static final Logger LOG = LogManager.getLogger(
             GenericURLNormalizer.class);
   
@@ -292,7 +290,7 @@ public class GenericURLNormalizer
                 + ", replaces=" + replaces + "]";
     }
 
-    public class Replace {
+    public static class Replace {
         private final String match;
         private final String replacement;
         public Replace(String match) {

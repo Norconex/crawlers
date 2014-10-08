@@ -73,8 +73,6 @@ import com.norconex.collector.http.sitemap.SitemapURLAdder;
  */
 public class StandardSitemapResolver implements ISitemapResolver {
 
-    private static final long serialVersionUID = 4047819847150159618L;
-
     private static final Logger LOG = LogManager.getLogger(
             StandardSitemapResolver.class);
 
@@ -105,7 +103,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
     public String[] getSitemapLocations() {
-        return sitemapLocations;
+        return ArrayUtils.clone(sitemapLocations);
     }
     public void setSitemapLocations(String... sitemapLocations) {
         this.sitemapLocations = sitemapLocations;
@@ -307,7 +305,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 .append("lenient", lenient).toString();
     }
 
-    private class ParseState {
+    private static class ParseState {
         private HttpCrawlData baseURL = null;
         private boolean sitemapIndex = false;
         private boolean loc = false;

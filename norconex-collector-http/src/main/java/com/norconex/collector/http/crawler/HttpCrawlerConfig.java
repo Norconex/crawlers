@@ -115,7 +115,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setCrawlDataStoreFactory(new MapDBCrawlDataStoreFactory());
     }
     public String[] getStartURLs() {
-        return startURLs;
+        return ArrayUtils.clone(startURLs);
     }
     public void setStartURLs(String[] startURLs) {
         this.startURLs = ArrayUtils.clone(startURLs);

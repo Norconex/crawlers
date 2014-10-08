@@ -11,9 +11,6 @@ import com.norconex.commons.lang.Sleeper;
 
 public class SiteDelay extends AbstractDelay {
 
-
-    private static final long serialVersionUID = -2927712101067189677L;
-
     private Map<String, SleepState> siteLastHitNanos =
             new ConcurrentHashMap<String, SleepState>();
     
@@ -46,7 +43,7 @@ public class SiteDelay extends AbstractDelay {
         }
     }
 
-    private class SleepState {
+    private static class SleepState {
         private long lastHitEpochNanos = System.nanoTime();
         private boolean sleeping;
         @Override

@@ -10,8 +10,6 @@ import com.norconex.commons.lang.Sleeper;
  */
 public class CrawlerDelay extends AbstractDelay {
 
-    private static final long serialVersionUID = 777976658500752380L;
-
     private MutableLong lastHitEpochNanos = new MutableLong(-1);
     private boolean sleeping = false;
 

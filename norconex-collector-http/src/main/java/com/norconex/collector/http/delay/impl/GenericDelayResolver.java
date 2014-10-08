@@ -20,7 +20,6 @@ package com.norconex.collector.http.delay.impl;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Serializable;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -307,8 +306,7 @@ public class GenericDelayResolver implements IDelayResolver, IXMLConfigurable {
                 .append("scope", scope).toString();
     }
     
-    public static class DelaySchedule implements Serializable {
-        private static final long serialVersionUID = 5602602696446583844L;
+    public static class DelaySchedule {
         private final Range<Integer> dayOfWeekRange;
         private final Range<Integer> dayOfMonthRange;
         private final ImmutablePair<LocalTime, LocalTime> timeRange;

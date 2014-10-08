@@ -18,8 +18,6 @@
  */
 package com.norconex.collector.http.client;
 
-import java.io.Serializable;
-
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 
@@ -34,7 +32,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
  * @since 1.3.0
  * @author Pascal Essiembre
  */
-public interface IHttpClientFactory extends Serializable  {
+public interface IHttpClientFactory {
 
     /**
      * Initializes the HTTP Client used for crawling.

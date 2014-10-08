@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpResponse;
@@ -58,7 +59,6 @@ import com.norconex.importer.handler.filter.OnMatch;
  */
 public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
 
-    private static final long serialVersionUID = 1459917072724725590L;
     private static final Logger LOG = LogManager.getLogger(
             StandardRobotsTxtProvider.class);
     
@@ -90,12 +90,12 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     }
 
     
-    public RobotsTxt parseRobotsTxt(
+    /*default*/ RobotsTxt parseRobotsTxt(
             InputStream is, String url, String userAgent) throws IOException {
         String baseURL = getBaseURL(url);
         
         //--- Load matching data ---
-        InputStreamReader isr = new InputStreamReader(is);
+        InputStreamReader isr = new InputStreamReader(is, CharEncoding.UTF_8);
         BufferedReader br = new BufferedReader(isr);
         RobotData data = new RobotData();
         boolean parse = false;
@@ -225,8 +225,6 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             }
             regex = baseURL + regex;
             RegexURLFilter filter = new RegexURLFilter(regex, onMatch, false) {
-                private static final long serialVersionUID = 
-                        -5051322223143577684L;
                 @Override
                 public String toString() {
                     return "Robots.txt ("
