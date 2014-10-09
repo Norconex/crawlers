@@ -23,6 +23,8 @@ DONE: Remove HttpDocumentChecksummer and references in favor of Core
 
 - Test that deletion of embedded docs are detected and sent to committer
 
+- Add the option to ignore orphans at the end of a crawl (we only have the 
+  options of deleting them or to re-process them).
 
 Any release:
 ============
