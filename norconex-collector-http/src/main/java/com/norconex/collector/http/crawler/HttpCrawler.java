@@ -112,29 +112,33 @@ public class HttpCrawler extends AbstractCrawler {
     private void queueStartURLs(ICrawlDataStore crawlDataStore) {
         // Queue regular start urls
         String[] startURLs = getCrawlerConfig().getStartURLs();
-        for (int i = 0; i < startURLs.length; i++) {
-            String startURL = startURLs[i];
-            executeQueuePipeline(
-                    new HttpCrawlData(startURL, 0), crawlDataStore);
+        if (startURLs != null) {
+            for (int i = 0; i < startURLs.length; i++) {
+                String startURL = startURLs[i];
+                executeQueuePipeline(
+                        new HttpCrawlData(startURL, 0), crawlDataStore);
+            }
         }
         // Queue start urls define in one or more seed files
         String[] urlsFiles = getCrawlerConfig().getUrlsFiles();
-        for (int i = 0; i < urlsFiles.length; i++) {
-            String urlsFile = urlsFiles[i];
-            LineIterator it = null;
-            try {
-                it = IOUtils.lineIterator(
-                        new FileInputStream(urlsFile), CharEncoding.UTF_8);
-                while (it.hasNext()) {
-                    String startURL = it.nextLine();
-                    executeQueuePipeline(new HttpCrawlData(
-                            startURL, 0), crawlDataStore);
+        if (urlsFiles != null) {
+            for (int i = 0; i < urlsFiles.length; i++) {
+                String urlsFile = urlsFiles[i];
+                LineIterator it = null;
+                try {
+                    it = IOUtils.lineIterator(
+                            new FileInputStream(urlsFile), CharEncoding.UTF_8);
+                    while (it.hasNext()) {
+                        String startURL = it.nextLine();
+                        executeQueuePipeline(new HttpCrawlData(
+                                startURL, 0), crawlDataStore);
+                    }
+                } catch (IOException e) {
+                    throw new CollectorException(
+                            "Could not process URLs file: " + urlsFile, e);
+                } finally {
+                    LineIterator.closeQuietly(it);;
                 }
-            } catch (IOException e) {
-                throw new CollectorException(
-                        "Could not process URLs file: " + urlsFile, e);
-            } finally {
-                LineIterator.closeQuietly(it);;
             }
         }
     }

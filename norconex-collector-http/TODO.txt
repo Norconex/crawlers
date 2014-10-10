@@ -4,8 +4,6 @@ The following are either things to be done, or ideas to consider:
 For 2.0.0:
 ============
 
-- Add seedFile support for start URLs.
-
 - Create a listener logging progress CrawlState changes (offering options
   similar to DebugTagger and allowing regex to match fields).
 
@@ -15,11 +13,6 @@ For 2.0.0:
 - remove the http* prefix to XML configuration options since some come from
   core and it creates confusion???   Or keep it to make a distinction between
   HTTP classes and core?  HTTP XML tags do not have consistently http* though.
-
-DONE: Remove HttpDocumentChecksummer and references in favor of Core 
-      IDocumentChecksummer.
-
-- Test H2 vs Derby performance.
 
 - Add total execution time, periodic time elapsed and estimated remaining.
 

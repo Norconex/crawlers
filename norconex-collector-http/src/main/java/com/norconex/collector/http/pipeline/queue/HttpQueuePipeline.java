@@ -113,7 +113,7 @@ public final class HttpQueuePipeline
             if (ctx.getRobotsTxt() != null) {
                 robotsTxtLocations = ctx.getRobotsTxt().getSitemapLocations();
             }
-            SitemapURLAdder urlStore = new SitemapURLAdder() {
+            SitemapURLAdder urlAdder = new SitemapURLAdder() {
                 @Override
                 public void add(HttpCrawlData reference) {
                     HttpQueuePipelineContext context = 
@@ -126,7 +126,7 @@ public final class HttpQueuePipeline
             };
             ctx.getSitemapResolver().resolveSitemaps(
                     ctx.getHttpClient(), urlRoot, 
-                    robotsTxtLocations, urlStore);
+                    robotsTxtLocations, urlAdder);
             return true;
         }
     }
