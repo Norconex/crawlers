@@ -49,6 +49,7 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.importer.doc.ImporterDocument;
 import com.norconex.importer.response.ImporterResponse;
+import com.norconex.jef4.status.IJobStatus;
 import com.norconex.jef4.status.JobStatusUpdater;
 import com.norconex.jef4.suite.JobSuite;
 
@@ -90,6 +91,12 @@ public class HttpCrawler extends AbstractCrawler {
         return sitemapResolver;
     }
 
+    @Override
+    public void stop(IJobStatus jobStatus, JobSuite suite) {
+        super.stop(jobStatus, suite);
+        sitemapResolver.stop();
+    }
+    
     @Override
     protected void prepareExecution(
             JobStatusUpdater statusUpdater, JobSuite suite, 

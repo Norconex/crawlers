@@ -80,6 +80,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
     
     private String[] sitemapLocations;
     private boolean lenient;
+    private boolean stopped;
 
     public StandardSitemapResolver(SitemapStore sitemapStore) {
         super();
@@ -95,8 +96,8 @@ public class StandardSitemapResolver implements ISitemapResolver {
             Set<String> uniqueLocations = 
                     combineLocations(robotsTxtLocations, urlRoot);
             for (String location : uniqueLocations) {
-                resolveLocation(
-                        location, httpClient, sitemapURLAdder, resolvedLocations);
+                resolveLocation(location, httpClient, 
+                        sitemapURLAdder, resolvedLocations);
             }
             sitemapStore.markResolved(urlRoot);
         }
@@ -115,11 +116,20 @@ public class StandardSitemapResolver implements ISitemapResolver {
         this.lenient = lenient;
     }
 
-
+    @Override
+    public void stop() {
+        this.stopped = true;
+    }
 
     private void resolveLocation(String location, HttpClient httpClient,
             SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations) {
 
+        if (stopped) {
+            LOG.debug("Skipping resolution of sitemap "
+                    + "location (stop requested): " + location);
+            return;
+        }
+        
         if (resolvedLocations.contains(location)) {
             return;
         }

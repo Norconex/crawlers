@@ -104,6 +104,10 @@
       <action dev="essiembre" type="update">
         ISiteMapResolver now needs an ISiteMapResolverFactory.
       </action>
+      <action dev="essiembre" type="fix">
+        Ongoing sitemap resolution will now be stopped when a stop request 
+        is sent to the crawler.
+      </action>
       
     </release>
   

@@ -29,6 +29,7 @@ import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.robot.RobotsTxt;
+import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
@@ -113,6 +114,8 @@ public final class HttpQueuePipeline
             if (ctx.getRobotsTxt() != null) {
                 robotsTxtLocations = ctx.getRobotsTxt().getSitemapLocations();
             }
+            final ISitemapResolver sitemapResolver = ctx.getSitemapResolver();
+            
             SitemapURLAdder urlAdder = new SitemapURLAdder() {
                 @Override
                 public void add(HttpCrawlData reference) {
@@ -124,7 +127,7 @@ public final class HttpQueuePipeline
                     new HttpQueuePipeline(true).execute(context);
                 }
             };
-            ctx.getSitemapResolver().resolveSitemaps(
+            sitemapResolver.resolveSitemaps(
                     ctx.getHttpClient(), urlRoot, 
                     robotsTxtLocations, urlAdder);
             return true;
