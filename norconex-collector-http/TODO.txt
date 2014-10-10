@@ -18,7 +18,7 @@ For 2.0.0:
 
 - Test that deletion of embedded docs are detected and sent to committer
 
-- Add the option to ignore orphans at the end of a crawl (we only have the 
+DONE: Add the option to ignore orphans at the end of a crawl (we only have the 
   options of deleting them or to re-process them).
 
 Any release:
@@ -26,7 +26,7 @@ Any release:
 
 - Store somewhere whether a committed document is new or modified.
 
-- Cache Importer instance now created each time in ImportModuleStep?
+DONE: Cache Importer instance now created each time in ImportModuleStep?
 
 - Have an interface for how to optionally store downloaded files
   (i.e., location, directory structure, file naming).  This could allow
@@ -57,7 +57,7 @@ Any release:
 - Provide some duplicate detection mechanism.  Maybe using existing checksums.
 
 - Add the ability to control how many successive crawls it has to go through
-  before deleting a document.
+  before deleting a document because it was not found (404).
 
 - Have configurable the level of verbosity desired when logging exceptions.
   The options could be:

@@ -36,6 +36,10 @@
         New JMX/MBean support added on crawlers.
       </action>
       <action dev="essiembre" type="update">
+        Replaced the configuration option "deleteOrphans(true|false)" with
+        "orphansStrategy(DELETE|PROCESS|IGNORE)".
+      </action>
+      <action dev="essiembre" type="update">
         The collector now references document content as reusable InputStream
         with memory caching instead of relying only on files. This saves a great
         deal of disk I/O and improves performance in most cases.
