@@ -33,6 +33,9 @@
         More unit tests, with the addition of an embedded Jetty Web server
         rendering test pages for some unit tests.
       </action>
+      <action dev="essiembre" type="add">
+        New JMX/MBean support added on crawlers.
+      </action>
       <action dev="essiembre" type="update">
         Refactored to use the new Norconex Collector Core library.  
         A significant portion of the Norconex HTTP Collector code has 
@@ -45,6 +48,14 @@
         http.checksum.DefaultHttpDocumentChecksummer 
           to core.checksum.impl.MD5DocumentChecksummer,
         http.filter.IURLFilter to core.filter.IReferenceFilter
+        http.filter.IHttpHeadersFilter to core.filter.IMetadataFilter
+        http.filter.IHttpDocumentFilter to core.filter.IDocumentFilter
+        http.filter.impl.ExtensionURLFilter 
+          to core.filter.impl.ExtensionURLFilter
+        http.filter.impl.RegexHeaderFilter
+          to core.filter.impl.RegexMetadataFilter
+        http.filter.impl.RegexURLFilter
+          to core.filter.impl.RegexReferenceFilter
       </action>
       <action dev="essiembre" type="update">
         Amongst others, the following classes were renamed (within 
