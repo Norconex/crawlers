@@ -18,10 +18,9 @@
         for a complete list of changes at: 
         http://www.norconex.com/product/importer/changes-report.html#a2.0.0
       </action>
-      <action dev="essiembre" type="update">
-        The collector now references document content as reusable InputStream
-        with memory caching instead of relying only on files. This saves a great
-        deal of disk I/O and improves performance in most cases.
+      <action dev="essiembre" type="add">
+        Can now supplied a "pathsFile" as part of the startPaths, 
+        acting as a seed list.
       </action>
       <action dev="essiembre" type="add">
         New H2 database implementation for URL database (crawl data store).
@@ -35,6 +34,11 @@
       </action>
       <action dev="essiembre" type="add">
         New JMX/MBean support added on crawlers.
+      </action>
+      <action dev="essiembre" type="update">
+        The collector now references document content as reusable InputStream
+        with memory caching instead of relying only on files. This saves a great
+        deal of disk I/O and improves performance in most cases.
       </action>
       <action dev="essiembre" type="update">
         Refactored to use the new Norconex Collector Core library.  

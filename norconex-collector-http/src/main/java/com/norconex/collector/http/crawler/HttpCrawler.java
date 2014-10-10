@@ -18,8 +18,12 @@
  */
 package com.norconex.collector.http.crawler;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
@@ -27,6 +31,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
 import com.norconex.collector.core.crawler.ICrawler;
 import com.norconex.collector.core.data.BaseCrawlData;
@@ -100,11 +105,36 @@ public class HttpCrawler extends AbstractCrawler {
         }
 
         if (!resume) {
-            String[] startURLs = getCrawlerConfig().getStartURLs();
-            for (int i = 0; i < startURLs.length; i++) {
-                String startURL = startURLs[i];
-                executeQueuePipeline(
-                        new HttpCrawlData(startURL, 0), crawlDataStore);
+            queueStartURLs(crawlDataStore);
+        }
+    }
+    
+    private void queueStartURLs(ICrawlDataStore crawlDataStore) {
+        // Queue regular start urls
+        String[] startURLs = getCrawlerConfig().getStartURLs();
+        for (int i = 0; i < startURLs.length; i++) {
+            String startURL = startURLs[i];
+            executeQueuePipeline(
+                    new HttpCrawlData(startURL, 0), crawlDataStore);
+        }
+        // Queue start urls define in one or more seed files
+        String[] urlsFiles = getCrawlerConfig().getUrlsFiles();
+        for (int i = 0; i < urlsFiles.length; i++) {
+            String urlsFile = urlsFiles[i];
+            LineIterator it = null;
+            try {
+                it = IOUtils.lineIterator(
+                        new FileInputStream(urlsFile), CharEncoding.UTF_8);
+                while (it.hasNext()) {
+                    String startURL = it.nextLine();
+                    executeQueuePipeline(new HttpCrawlData(
+                            startURL, 0), crawlDataStore);
+                }
+            } catch (IOException e) {
+                throw new CollectorException(
+                        "Could not process URLs file: " + urlsFile, e);
+            } finally {
+                LineIterator.closeQuietly(it);;
             }
         }
     }

@@ -66,6 +66,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     
     private int maxDepth = -1;
     private String[] startURLs;
+    private String[] urlsFiles;
     
     private boolean ignoreRobotsTxt;
     private boolean ignoreRobotsMeta;
@@ -109,6 +110,12 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     public void setStartURLs(String[] startURLs) {
         this.startURLs = ArrayUtils.clone(startURLs);
+    }
+    public String[] getUrlsFiles() {
+        return ArrayUtils.clone(urlsFiles);
+    }
+    public void setUrlsFiles(String[] urlsFiles) {
+        this.urlsFiles = ArrayUtils.clone(urlsFiles);
     }
     public void setMaxDepth(int depth) {
         this.maxDepth = depth;
@@ -237,6 +244,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 writer.writeCharacters(url);
                 writer.writeEndElement();
             }
+            for (String path : getUrlsFiles()) {
+                writer.writeStartElement("urlsFile");
+                writer.writeCharacters(path);
+                writer.writeEndElement();
+            }
             writer.writeEndElement();
             
             writeObject(out, "urlNormalizer", getUrlNormalizer());
@@ -330,6 +342,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
         String[] startURLs = xml.getStringArray("startURLs.url");
         setStartURLs(defaultIfEmpty(startURLs, getStartURLs()));
+        
+        String[] urlsFiles = xml.getStringArray("startURLs.urlsFile");
+        setUrlsFiles(defaultIfEmpty(urlsFiles, getUrlsFiles()));
     }
 
     private IHttpDocumentProcessor[] loadProcessors(XMLConfiguration xml,
