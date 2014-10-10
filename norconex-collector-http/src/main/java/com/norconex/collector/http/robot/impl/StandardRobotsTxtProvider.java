@@ -39,7 +39,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.filter.IReferenceFilter;
-import com.norconex.collector.http.filter.impl.RegexURLFilter;
+import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.importer.handler.filter.OnMatch;
@@ -224,7 +224,8 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
                 regex += "?.*";
             }
             regex = baseURL + regex;
-            RegexURLFilter filter = new RegexURLFilter(regex, onMatch, false) {
+            RegexReferenceFilter filter = new RegexReferenceFilter(
+                    regex, onMatch, false) {
                 @Override
                 public String toString() {
                     return "Robots.txt ("

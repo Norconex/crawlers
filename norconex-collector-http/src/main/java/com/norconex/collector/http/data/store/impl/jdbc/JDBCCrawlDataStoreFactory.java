@@ -24,7 +24,7 @@ import com.norconex.collector.core.data.store.impl.jdbc.IJDBCSerializer;
 import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Database;
 
 /**
- * JDBC implementation of {@link ICrawlDataStore}.  Defaults to H2 
+ * JDBC implementation of {@link ICrawlDataStore}.  Defaults to Derby 
  * database.
  * <p />
  * XML configuration usage:

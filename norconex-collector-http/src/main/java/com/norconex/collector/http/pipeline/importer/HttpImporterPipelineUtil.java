@@ -19,30 +19,21 @@
 package com.norconex.collector.http.pipeline.importer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
-import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.importer.handler.filter.IOnMatchFilter;
-import com.norconex.importer.handler.filter.OnMatch;
 
 /**
  * @author Pascal Essiembre
  *
  */
-/*default*/ final class ImporterPipelineUtil {
+/*default*/ final class HttpImporterPipelineUtil {
 
-    private static final Logger LOG = 
-            LogManager.getLogger(ImporterPipelineUtil.class);
-    
     /**
      * Constructor.
      */
-    private ImporterPipelineUtil() {
+    private HttpImporterPipelineUtil() {
     }
 
     //TODO consider making public, putting content type and encoding in CORE.
@@ -78,46 +69,4 @@ import com.norconex.importer.handler.filter.OnMatch;
             metadata.addString(HttpMetadata.COLLECTOR_CONTENT_ENCODING, charset);
         }
     }
-
-    public static boolean isHeadersRejected(HttpImporterPipelineContext ctx) {
-        IHttpHeadersFilter[] filters = ctx.getConfig().getHttpHeadersFilters();
-        if (filters == null) {
-            return false;
-        }
-        HttpMetadata headers = ctx.getMetadata();
-        boolean hasIncludes = false;
-        boolean atLeastOneIncludeMatch = false;
-        for (IHttpHeadersFilter filter : filters) {
-            boolean accepted = filter.acceptDocument(
-                    ctx.getCrawlData().getReference(), headers);
-            boolean isInclude = filter instanceof IOnMatchFilter
-                   && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
-            if (isInclude) {
-                hasIncludes = true;
-                if (accepted) {
-                    atLeastOneIncludeMatch = true;
-                }
-                continue;
-            }
-            if (accepted) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format(
-                            "ACCEPTED document http headers. URL=%s Filter=%s",
-                            ctx.getCrawlData().getReference(), filter));
-                }
-            } else {
-                ctx.getCrawler().fireCrawlerEvent(
-                        HttpCrawlerEvent.REJECTED_FILTER, 
-                        ctx.getCrawlData(), filter);
-                return true;
-            }
-        }
-        if (hasIncludes && !atLeastOneIncludeMatch) {
-            ctx.getCrawler().fireCrawlerEvent(
-                    HttpCrawlerEvent.REJECTED_FILTER, ctx.getCrawlData(), null);
-            return true;
-        }
-        return false;        
-    }
-
 }

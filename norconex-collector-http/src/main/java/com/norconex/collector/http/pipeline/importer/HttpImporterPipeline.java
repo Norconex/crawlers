@@ -23,8 +23,10 @@ import java.io.Reader;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.pipeline.importer.DocumentFiltersStage;
 import com.norconex.collector.core.pipeline.importer.ImportModuleStage;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
+import com.norconex.collector.core.pipeline.importer.ImporterPipelineUtil;
 import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.crawler.TargetURLRedirectStrategy;
@@ -52,8 +54,8 @@ public class HttpImporterPipeline
         addStage(new DelayResolverStage());
 
         // When HTTP headers are fetched (HTTP "HEAD") before document:
-        addStage(new HttpHeadersFetcherStage());
-        addStage(new HttpHeadersFiltersHEADStage());
+        addStage(new HttpMetadataFetcherStage());
+        addStage(new HttpMetadataFiltersHEADStage());
         addStage(new HttpMetadataChecksumStage(true));
         
         // HTTP "GET" and onward:
@@ -64,7 +66,7 @@ public class HttpImporterPipeline
         addStage(new RobotsMetaCreateStage());
         addStage(new URLExtractorStage());
         addStage(new RobotsMetaNoIndexStage());
-        addStage(new HttpHeadersFiltersGETStage());
+        addStage(new HttpMetadataFiltersGETStage());
         addStage(new HttpMetadataChecksumStage(false));
         addStage(new DocumentFiltersStage());
         addStage(new DocumentPreProcessingStage());        
@@ -94,7 +96,8 @@ public class HttpImporterPipeline
     }
 
     //--- HTTP Headers Fetcher -------------------------------------------------
-    private static class HttpHeadersFetcherStage extends AbstractImporterStage {
+    private static class HttpMetadataFetcherStage 
+            extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (!ctx.isHttpHeadFetchEnabled()) {
@@ -112,8 +115,8 @@ public class HttpImporterPipeline
             }
             metadata.putAll(headers);
             
-            ImporterPipelineUtil.enhanceHTTPHeaders(metadata);
-            ImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
+            HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
+            HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
             
             ctx.getCrawler().fireCrawlerEvent(
                     HttpCrawlerEvent.DOCUMENT_METADATA_FETCHED, 
@@ -123,7 +126,7 @@ public class HttpImporterPipeline
     }
     
     //--- HTTP Headers Filters -------------------------------------------------
-    private static class HttpHeadersFiltersHEADStage 
+    private static class HttpMetadataFiltersHEADStage 
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
@@ -148,9 +151,9 @@ public class HttpImporterPipeline
                     ctx.getConfig().getHttpDocumentFetcher().fetchDocument(
                             ctx.getHttpClient(), ctx.getDocument());
 
-            ImporterPipelineUtil.enhanceHTTPHeaders(
+            HttpImporterPipelineUtil.enhanceHTTPHeaders(
                     ctx.getDocument().getMetadata());
-            ImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
+            HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
             
             //TODO Fix #17. Put in place a more permanent solution to this line
             TargetURLRedirectStrategy.fixRedirectURL(
@@ -233,12 +236,11 @@ public class HttpImporterPipeline
     }
     
     //--- Headers filters if not done already ----------------------------------
-    private static class HttpHeadersFiltersGETStage 
+    private static class HttpMetadataFiltersGETStage 
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (ctx.getHttpHeadersFetcher() == null) {
-                ImporterPipelineUtil.enhanceHTTPHeaders(ctx.getMetadata());
                 if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
                     ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
                     return false;

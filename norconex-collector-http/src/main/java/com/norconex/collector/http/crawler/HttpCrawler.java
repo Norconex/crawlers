@@ -19,14 +19,6 @@
 package com.norconex.collector.http.crawler;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +27,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
 import com.norconex.collector.core.crawler.ICrawler;
 import com.norconex.collector.core.data.BaseCrawlData;
@@ -44,7 +35,6 @@ import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.mbean.Monitoring;
 import com.norconex.collector.http.pipeline.committer.HttpCommitterPipeline;
 import com.norconex.collector.http.pipeline.committer.HttpCommitterPipelineContext;
 import com.norconex.collector.http.pipeline.importer.HttpImporterPipeline;
@@ -102,7 +92,6 @@ public class HttpCrawler extends AbstractCrawler {
         
         logInitializationInformation();
         initializeHTTPClient();
-        registerMonitoringMbean(crawlDataStore);
 
         if (!getCrawlerConfig().isIgnoreSitemap()) {
             this.sitemapResolver = 
@@ -129,22 +118,6 @@ public class HttpCrawler extends AbstractCrawler {
                 + !getCrawlerConfig().isIgnoreSitemap());
     }
 
-    private void registerMonitoringMbean(ICrawlDataStore crawlDataStore) {
-        try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
-            ObjectName name = 
-                    new ObjectName("com.norconex.collector.http.crawler:type=" + 
-                            getCrawlerConfig().getId()); 
-            Monitoring mbean = new Monitoring(crawlDataStore); 
-            mbs.registerMBean(mbean, name);
-        } catch (MalformedObjectNameException | 
-                 InstanceAlreadyExistsException | 
-                 MBeanRegistrationException | 
-                 NotCompliantMBeanException e) {
-            throw new CollectorException(e);
-        }
-    }
-    
     @Override
     protected void executeQueuePipeline(
             ICrawlData crawlData, ICrawlDataStore crawlDataStore) {

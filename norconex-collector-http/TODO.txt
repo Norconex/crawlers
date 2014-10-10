@@ -4,6 +4,8 @@ The following are either things to be done, or ideas to consider:
 For 2.0.0:
 ============
 
+- Add seedFile support for start URLs.
+
 - Create a listener logging progress CrawlState changes (offering options
   similar to DebugTagger and allowing regex to match fields).
 

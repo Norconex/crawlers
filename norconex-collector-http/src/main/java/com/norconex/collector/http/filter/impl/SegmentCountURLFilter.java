@@ -38,14 +38,14 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.norconex.collector.core.filter.IDocumentFilter;
+import com.norconex.collector.core.filter.IMetadataFilter;
 import com.norconex.collector.core.filter.IReferenceFilter;
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.filter.IHttpDocumentFilter;
-import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.importer.doc.ImporterDocument;
 import com.norconex.importer.handler.filter.AbstractOnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 /**
@@ -75,10 +75,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  */
 @SuppressWarnings("nls")
 public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
-        IReferenceFilter,
-        IHttpDocumentFilter,
-        IHttpHeadersFilter,
-        IXMLConfigurable{
+        IReferenceFilter, IDocumentFilter, IMetadataFilter, IXMLConfigurable{
 
     /** Default segment separator pattern. */
     public static final String DEFAULT_SEGMENT_SEPARATOR_PATTERN = "/";
@@ -159,12 +156,12 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
     }
 
     @Override
-    public boolean acceptDocument(HttpDocument document) {
+    public boolean acceptDocument(ImporterDocument document) {
         return acceptReference(document.getReference());
     }
     @Override
-    public boolean acceptDocument(String url, HttpMetadata headers) {
-        return acceptReference(url);
+    public boolean acceptMetadata(String reference, Properties metadata) {
+        return acceptReference(reference);
     }
     @Override
     public boolean acceptReference(String url) {

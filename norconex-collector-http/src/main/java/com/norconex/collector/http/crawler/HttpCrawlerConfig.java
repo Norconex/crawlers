@@ -34,7 +34,6 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
 import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
-import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.collector.http.checksum.impl.HttpMetadataChecksummer;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
@@ -44,8 +43,6 @@ import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
 import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
-import com.norconex.collector.http.filter.IHttpDocumentFilter;
-import com.norconex.collector.http.filter.IHttpHeadersFilter;
 import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
@@ -97,13 +94,6 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private ISitemapResolverFactory sitemapResolverFactory =
             new StandardSitemapResolverFactory();
 
-
-
-    private IHttpDocumentFilter[] documentfilters;
-	
-    private IReferenceFilter[] urlFilters;	
-
-    private IHttpHeadersFilter[] httpHeadersFilters;
     private IMetadataChecksummer metadataChecksummer = 
     		new HttpMetadataChecksummer();
 	
@@ -125,18 +115,6 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     public int getMaxDepth() {
         return maxDepth;
-    }
-    public IHttpDocumentFilter[] getHttpDocumentfilters() {
-        return ArrayUtils.clone(documentfilters);
-    }
-    public void setHttpDocumentfilters(IHttpDocumentFilter[] documentfilters) {
-        this.documentfilters = ArrayUtils.clone(documentfilters);
-    }
-    public IReferenceFilter[] getURLFilters() {
-        return ArrayUtils.clone(urlFilters);
-    }
-    public void setURLFilters(IReferenceFilter[] urlFilters) {
-        this.urlFilters = ArrayUtils.clone(urlFilters);
     }
     public IHttpClientFactory getHttpClientFactory() {
         return httpClientFactory;
@@ -180,12 +158,6 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     public void setDelayResolver(IDelayResolver delayResolver) {
         this.delayResolver = delayResolver;
-    }
-    public IHttpHeadersFilter[] getHttpHeadersFilters() {
-        return ArrayUtils.clone(httpHeadersFilters);
-    }
-    public void setHttpHeadersFilters(IHttpHeadersFilter[] httpHeadersFilters) {
-        this.httpHeadersFilters = ArrayUtils.clone(httpHeadersFilters);
     }
 
     public IHttpDocumentProcessor[] getPreImportProcessors() {
@@ -270,21 +242,16 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writeObject(out, "urlNormalizer", getUrlNormalizer());
             writeObject(out, "delay", getDelayResolver());
             writeObject(out, "httpClientFactory", getHttpClientFactory());
-            writeArray(out, "httpURLFilters", "filter", getURLFilters());
             writeObject(out, "robotsTxt", 
                     getRobotsTxtProvider(), isIgnoreRobotsTxt());
             writeObject(out, "sitemapResolverFactory", 
                     getSitemapResolverFactory(), isIgnoreSitemap());
             writeObject(out, "httpHeadersFetcher", getHttpHeadersFetcher());
-            writeArray(out, "httpHeadersFilters", 
-                    "filter", getHttpHeadersFilters());
             writeObject(out, "metadataChecksummer", getMetadataChecksummer());
             writeObject(out, "httpDocumentFetcher", getHttpDocumentFetcher());
             writeObject(out, "robotsMeta", 
                     getRobotsMetaProvider(), isIgnoreRobotsMeta());
             writeObject(out, "urlExtractor", getUrlExtractor());
-            writeArray(out, "httpDocumentFilters", 
-                    "filter", getHttpDocumentfilters());
             writeArray(out, "preImportProcessors", 
                     "processor", getPreImportProcessors());
             writeArray(out, "postImportProcessors", 
@@ -304,10 +271,6 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setHttpClientFactory(ConfigurationUtil.newInstance(xml,
                 "httpClientFactory", getHttpClientFactory()));
 
-        //--- URL Filters ------------------------------------------------------
-        IReferenceFilter[] urlFilters = loadURLFilters(xml, "httpURLFilters.filter");
-        setURLFilters(defaultIfEmpty(urlFilters, getURLFilters()));
-
         //--- RobotsTxt provider -----------------------------------------------
         setRobotsTxtProvider(ConfigurationUtil.newInstance(xml,
                 "robotsTxt", getRobotsTxtProvider()));
@@ -323,12 +286,6 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         //--- HTTP Headers Fetcher ---------------------------------------------
         setHttpHeadersFetcher(ConfigurationUtil.newInstance(xml,
                 "httpHeadersFetcher", getHttpHeadersFetcher()));
-
-        //--- HTTP Headers Filters ---------------------------------------------
-        IHttpHeadersFilter[] headersFilters = loadHeadersFilters(xml,
-                "httpHeadersFilters.filter");
-        setHttpHeadersFilters(defaultIfEmpty(headersFilters,
-                getHttpHeadersFilters()));
 
         //--- Metadata Checksummer -----------------------------------------
         setMetadataChecksummer(ConfigurationUtil.newInstance(xml,
@@ -347,12 +304,6 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         //--- URL Extractor ----------------------------------------------------
         setUrlExtractor(ConfigurationUtil.newInstance(xml,
                 "urlExtractor", getUrlExtractor()));
-
-        //--- Document Filters -------------------------------------------------
-        IHttpDocumentFilter[] docFilters = loadDocumentFilters(xml,
-                "httpDocumentFilters.filter");
-        setHttpDocumentfilters(defaultIfEmpty(docFilters,
-                getHttpDocumentfilters()));
 
         //--- HTTP Pre-Processors ----------------------------------------------
         IHttpDocumentProcessor[] preProcFilters = loadProcessors(xml,
@@ -379,52 +330,6 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
         String[] startURLs = xml.getStringArray("startURLs.url");
         setStartURLs(defaultIfEmpty(startURLs, getStartURLs()));
-    }
-
-    private IReferenceFilter[] loadURLFilters(
-            XMLConfiguration xml, String xmlPath) {
-        List<IReferenceFilter> urlFilters = new ArrayList<>();
-        List<HierarchicalConfiguration> filterNodes = 
-                xml.configurationsAt(xmlPath);
-        for (HierarchicalConfiguration filterNode : filterNodes) {
-            IReferenceFilter urlFilter = ConfigurationUtil.newInstance(filterNode);
-            if (urlFilter != null) {
-                urlFilters.add(urlFilter);
-                LOG.info("URL filter loaded: " + urlFilter);
-            } else {
-                LOG.error("Problem loading filter, "
-                        + "please check for other log messages.");
-            }
-        }
-        return urlFilters.toArray(new IReferenceFilter[] {});
-    }
-
-    private IHttpHeadersFilter[] loadHeadersFilters(XMLConfiguration xml,
-            String xmlPath) {
-        List<IHttpHeadersFilter> filters = new ArrayList<>();
-        List<HierarchicalConfiguration> filterNodes = xml
-                .configurationsAt(xmlPath);
-        for (HierarchicalConfiguration filterNode : filterNodes) {
-            IHttpHeadersFilter filter = ConfigurationUtil
-                    .newInstance(filterNode);
-            filters.add(filter);
-            LOG.info("HTTP headers filter loaded: " + filter);
-        }
-        return filters.toArray(new IHttpHeadersFilter[] {});
-    }
-
-    private IHttpDocumentFilter[] loadDocumentFilters(XMLConfiguration xml,
-            String xmlPath) {
-        List<IHttpDocumentFilter> filters = new ArrayList<>();
-        List<HierarchicalConfiguration> filterNodes = xml
-                .configurationsAt(xmlPath);
-        for (HierarchicalConfiguration filterNode : filterNodes) {
-            IHttpDocumentFilter filter = ConfigurationUtil
-                    .newInstance(filterNode);
-            filters.add(filter);
-            LOG.info("HTTP document filter loaded: " + filter);
-        }
-        return filters.toArray(new IHttpDocumentFilter[] {});
     }
 
     private IHttpDocumentProcessor[] loadProcessors(XMLConfiguration xml,
