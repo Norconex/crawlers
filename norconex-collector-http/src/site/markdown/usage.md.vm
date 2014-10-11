@@ -50,12 +50,13 @@ class, by passing it a
 [HttpCollectorConfig](./apidocs/com/norconex/collector/http/HttpCollectorConfig.html).
 You can build the configuration using java, or by loading an XML configuration 
 file using the 
-[HttpCollectorConfigLoader](./apidocs/com/norconex/collector/http/HttpCollectorConfigLoader.html)
+[CollectorConfigLoader](../collector-core/apidocs/com/norconex/collector/core/CollectorConfigLoader.html)
 class. Below is a sample code usage:
 
     /* XML configuration: */
-    //HttpCollectorConfig config = HttpCollectorConfigLoader.loadCollectorConfig(
-    //    myXMLFile, myVariableFile);
+    //HttpCollectorConfig config = 
+    //    new CollectorConfigLoader(HttpCollectorConfig.class)
+    //        .loadCollectorConfig(myXMLFile, myVariableFile);
 
     /* Java configuration: */
     HttpCollectorConfig config = new HttpCollectorConfig();
