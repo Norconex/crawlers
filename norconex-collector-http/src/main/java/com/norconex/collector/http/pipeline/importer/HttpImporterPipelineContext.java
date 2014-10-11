@@ -27,7 +27,7 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
+import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.importer.Importer;
@@ -66,8 +66,8 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
         return (HttpDocument) super.getDocument();
     }
 
-    public IHttpHeadersFetcher getHttpHeadersFetcher() {
-        return getConfig().getHttpHeadersFetcher();
+    public IHttpMetadataFetcher getHttpHeadersFetcher() {
+        return getConfig().getMetadataFetcher();
     }
 
     public ISitemapResolver getSitemapResolver() {
@@ -93,7 +93,7 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     }
 
     public boolean isHttpHeadFetchEnabled() {
-        return getConfig().getHttpHeadersFetcher() != null;
+        return getConfig().getMetadataFetcher() != null;
     }
     
 }

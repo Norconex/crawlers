@@ -50,7 +50,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <!-- At a minimum make sure you stay on your domain. -->
       <httpURLFilters>
         <filter 
-            class="com.norconex.collector.http.filter.impl.RegexURLFilter"
+            class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
             onMatch="include" >
           http://www\.norconex\.com/product/collector-http-test/.*
         </filter>
@@ -65,7 +65,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         </postParseHandlers>
       </importer> 
       
-      <!-- Decide what to do with your files by specifying a committer. -->
+      <!-- Decide what to do with your files by specifying a Committer. -->
       <committer class="com.norconex.committer.impl.FileSystemCommitter">
         <directory>./examples-output/minimum/crawledFiles</directory>
       </committer>

@@ -19,25 +19,26 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 -->
 <httpcollector id="Complex Crawl">
 
-  #set($basepkg = "com.norconex.collector.http")
-  #set($normalizer = "${basepkg}.url.impl.GenericURLNormalizer")
-  #set($extension = "${basepkg}.filter.impl.ExtensionURLFilter")
-  #set($urlRegex = "${basepkg}.filter.impl.RegexURLFilter")
+  #set($http = "com.norconex.collector.http")
+  #set($core = "com.norconex.collector.core")
+  #set($urlNormalizer   = "${http}.url.impl.GenericURLNormalizer")
+  #set($filterExtension = "${core}.filter.impl.ExtensionReferenceFilter")
+  #set($filterRegexRef  = "${core}.filter.impl.RegexReferenceFilter")
   
   <progressDir>${workdir}/progress</progressDir>
   <logsDir>${workdir}/logs</logsDir>
 
   <crawlerDefaults>
 
-    <urlNormalizer class="$normalizer" />
+    <urlNormalizer class="$urlNormalizer" />
     <numThreads>2</numThreads>
     <maxDepth>0</maxDepth>
     <workDir>$workdir</workDir>
     <deleteOrphans>true</deleteOrphans>
 
     <httpURLFilters>
-      <filter class="$extension" onMatch="exclude">jpg,gif,png,ico,css,js</filter>
-      <filter class="$urlRegex">http://www\.norconex\.com/product/collector-http-test/.*</filter>
+      <filter class="$filterExtension" onMatch="exclude">jpg,gif,png,ico,css,js</filter>
+      <filter class="$filterRegexRef">http://www\.norconex\.com/product/collector-http-test/.*</filter>
     </httpURLFilters>
 
   </crawlerDefaults>

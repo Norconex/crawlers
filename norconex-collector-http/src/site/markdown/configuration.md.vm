@@ -40,7 +40,8 @@ To get the full potential of Norconex HTTP Collector and learn which parts
 can easily be extended, refer to the following for an XML-based configuration.
 Entries with a "class" attribute are expecting an implementation
 of your choice.   The HTTP Collector API offers several concrete
-implementations already.  Developers can also create their own
+implementations already.  Configuration options with a default value
+does not have to be defined.  Developers can also create their own
 by implementing the proper Java interfaces. Refer to the
 [Norconex HTTP Collector JavaDoc](./apidocs/index.html)
 and/or see further down what interfaces you can implement.
@@ -56,6 +57,7 @@ page for more details on adding your own implementations.
       <crawlerDefaults>
         <startURLs>
           <url>...</url>
+          <urlsFile>...</urlsFile>
           ...
         </startURLs>
         <userAgent>...</userAgent>
@@ -63,38 +65,38 @@ page for more details on adding your own implementations.
         <delay class="..." />
         <numThreads>...</numThreads>
         <maxDepth>...</maxDepth>
-        <maxURLs>...</maxURLs>
+        <maxDocuments>...</maxDocuments>
         <workDir>...</workDir>
         <keepDownloads>...</keepDownloads>
-        <deleteOrphans>...</deleteOrphans>
+        <orphansStrategy>...</orphansStrategy>
         <crawlerListeners>
           <listener class="..."/>
           ...
         </crawlerListeners>
-        <crawlURLDatabaseFactory class="" />
+        <crawlDataStoreFactory class="" />
         <httpClientFactory class="..." />
-        <httpURLFilters>
+        <referenceFilters>
           <filter class="..." />
           ...
-        </httpURLFilters>
+        </referenceFilters>
         <robotsTxt ignore="..." class="..."/>
         <sitemap ignore="..." lenient="..." class="...">
           <location>...</location>
          ...
         </sitemap>
-        <httpHeadersFetcher class="..." />
-        <httpHeadersFilters>
+        <metaFetcher class="..." />
+        <metadataFilters>
           <filter class="..." />
           ...
-        </httpHeadersFilters>
-        <httpHeadersChecksummer class="..." />
-        <httpDocumentFetcher class="..." />
+        </metadataFilters>
+        <metadataChecksummer class="..." />
+        <documentFetcher class="..." />
         <robotsMeta ignore="..." class="..."/>
         <urlExtractor class="..." />
-        <httpDocumentFilters>
+        <documentFilters>
           <filter class="..." />
           ...
-        </httpDocumentFilters>
+        </documentFilters>
         <preImportProcessors>
           <processor class="..." />
           ...
@@ -104,7 +106,7 @@ page for more details on adding your own implementations.
            <!-- refer to Importer documentation -->
         </importer>
     
-        <httpDocumentChecksummer class="..." />
+        <documentChecksummer class="..." />
     
         <postImportProcessors>
           <processor class="..."></processor>
@@ -126,14 +128,16 @@ page for more details on adding your own implementations.
 
 The table below lists interface names that you can easily extend, and
 also lists available out-of-the-box implementations.
-Class names starting with "Default..." are the ones automatically configured
-by default unless you overwrite them.
 
 In the configuration file, **you have to use the fully qualified name**,
 as defined in the Javadoc.  Click on a class or interface name to go directly
 to its full documentation, with extra configuration options.
 
-#set($api="./apidocs/com/norconex/collector/http")
+When a default implementation exists for a configuration option taking
+a "class" attribute, the default implementations is <u>underlined</u>. 
+
+#set($httpAPI="./apidocs/com/norconex/collector/http")
+#set($coreAPI="../collector-core/apidocs/com/norconex/collector/core")
 
 <table>
  <thead>
@@ -165,7 +169,8 @@ to its full documentation, with extra configuration options.
    </tr>
    <tr>
      <td>startURLs</td>
-     <td>One or more &lt;url&gt; to start crawling from.  Try to use in combination with filters</td>
+     <td>One or more &lt;url&gt; or files containing URls to start crawling from.  
+         Try to use in combination with filters.</td>
      <td>N/A</td>
      <td>N/A</td>
    </tr>
@@ -178,14 +183,14 @@ to its full documentation, with extra configuration options.
     <tr>
      <td>urlNormalizer</td>
      <td>Normalizes incoming URLs.</td>
-     <td><a href="$api/url/impl/GenericURLNormalizer.html">GenericURLNormalizer</a></td>
-     <td><a href="$api/url/IURLNormalizer.html">IURLNormalizer</a></td>
+     <td><a href="$httpAPI/url/impl/GenericURLNormalizer.html">GenericURLNormalizer</a></td>
+     <td><a href="$httpAPI/url/IURLNormalizer.html">IURLNormalizer</a></td>
     </tr>
     <tr>
      <td>delay</td>
      <td>Handles interval between each page download.</td>
-     <td><a href="$api/delay/impl/DefaultDelayResolver.html">DefaultDelayResolver</a></td>
-     <td><a href="$api/delay/IDelayResolver.html">IDelayResolver</a></td>
+     <td><u><a href="$httpAPI/delay/impl/GenericDelayResolver.html">GenericDelayResolver</a></u></td>
+     <td><a href="$httpAPI/delay/IDelayResolver.html">IDelayResolver</a></td>
     </tr>
     <tr>
      <td>numThreads</td>
@@ -200,8 +205,8 @@ to its full documentation, with extra configuration options.
      <td>N/A</td>
     </tr>
     <tr>
-     <td>maxURLs</td>
-     <td>Maximum URLs to successfully process.  Default is -1 (unlimited).</td>
+     <td>maxDocuments</td>
+     <td>Maximum documents to successfully process.  Default is -1 (unlimited).</td>
      <td>N/A</td>
      <td>N/A</td>
     </tr>
@@ -218,114 +223,115 @@ to its full documentation, with extra configuration options.
      <td>N/A</td>
     </tr>
     <tr>
-     <td>deleteOrphans</td>
-     <td>Whether to keep urls not being referenced anymore. Defaut is false.</td>
+     <td>orphansStrategy</td>
+     <td>What to do with urls not being referenced anymore. IGNORE (default), DELETE, or PROCESS.</td>
      <td>N/A</td>
      <td>N/A</td>
     </tr>
     <tr>
-     <td>listener</td>
+     <td>crawlerListeners</td>
      <td>Listen to crawling events.</td>
      <td></td>
-     <td><a href="$api/http/IHttpCrawlerEventListener.html">IHttpCrawlerEventListener</a></td>
+     <td><a href="$coreAPI/crawler/event/ICrawlerEventListener.html">ICrawlerEventListener</a></td>
     </tr>
     <tr>
-     <td>crawlURLDatabaseFactory</td>
-     <td>URL Database.</td>
+     <td>crawlDataStoreFactory</td>
+     <td>URLs and crawl-related information data store.</td>
      <td>
-       <a href="$api/db/impl/DefaultCrawlURLDatabaseFactory.html">DefaultCrawlURLDatabaseFactory</a>,
-       <a href="$api/db/impl/derby/DerbyCrawlURLDatabaseFactory.html">DerbyCrawlURLDatabaseFactory</a>,
-       <a href="$api/db/impl/mongo/MongoCrawlURLDatabaseFactory.html">MongoCrawlURLDatabaseFactory</a>
+       <u><a href="$coreAPI/data/store/impl/mapdb/MapDBCrawlDataStoreFactory.html">MapDBCrawlDataStoreFactory</a></u>,
+       <a href="$httpAPI/data/store/impl/jdbc/JDBCCrawlDataStoreFactory.html">JDBCCrawlDataStoreFactory</a>,
+       <a href="$httpAPI/data/store/impl/mongo/MongoCrawlDataStoreFactory.html">MongoCrawlDataStoreFactory</a>
      </td>
-     <td><a href="$api/db/ICrawlURLDatabaseFactory.html">ICrawlURLDatabaseFactory</a></td>
+     <td><a href="$coreAPI/data/store/ICrawlDataStoreFactory.html">ICrawlDataStoreFactory</a></td>
     </tr>
     <tr>
      <td>httpClientFactory</td>
      <td>HTTP Client creation and initialization.</td>
-     <td><a href="$api/client/impl/DefaultHttpClientFactory.html">DefaultHttpClientFactory</a></td>
-     <td><a href="$api/client/IHttpClientFactory.html">IHttpClientFactory</a></td>
+     <td><u><a href="$httpAPI/client/impl/GenericHttpClientFactory.html">GenericHttpClientFactory</a></u></td>
+     <td><a href="$httpAPI/client/IHttpClientFactory.html">IHttpClientFactory</a></td>
     </tr>
     <tr>
-     <td>httpURLFilters</td>
-     <td>Filter based on URLs.</td>
+     <td>referenceFilters</td>
+     <td>Filter based on refereences (i.e. URLs).</td>
      <td>
-       <a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>,
-       <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>,
-       <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a>
+       <a href="$coreAPI/filter/impl/ExtensionReferenceFilter.html">ExtensionReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexReferenceFilter.html">RegexReferenceFilter</a>,
+       <a href="$httpAPI/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a>
      </td>
-     <td><a href="$api/filter/IURLFilter.html">IURLFilter</a></td>
+     <td><a href="$coreAPI/filter/IReferenceFilter.html">IReferenceFilter</a></td>
     </tr>
     <tr>
      <td>robotsTxt</td>
      <td>Handle robots.txt files.</td>
-     <td><a href="$api/robot/impl/DefaultRobotsTxtProvider.html">DefaultRobotsTxtProvider</a></td>
-     <td><a href="$api/robot/IRobotsTxtProvider.html">IRobotsTxtProvider</a></td>
+     <td><u><a href="$httpAPI/robot/impl/StandardRobotsTxtProvider.html">StandardRobotsTxtProvider</a></u></td>
+     <td><a href="$httpAPI/robot/IRobotsTxtProvider.html">IRobotsTxtProvider</a></td>
     </tr>
     <tr>
      <td>sitemap</td>
      <td>Handle Sitemap files.</td>
-     <td><a href="$api/sitemap/impl/DefaultSitemapResolver.html">DefaultSitemapResolver</a></td>
-     <td><a href="$api/sitemap/ISitemapsResolver.html">ISitemapsResolver</a></td>
+     <td><u><a href="$httpAPI/sitemap/impl/StandardSitemapResolverFactory.html">StandardSitemapResolverFactory</a></u></td>
+     <td><a href="$httpAPI/sitemap/ISitemapResolverFactory.html">ISitemapResolverFactory</a></td>
     </tr>
     <tr>
-     <td>httpHeadersFetcher</td>
-     <td>Handle robots.txt files.</td>
-     <td><a href="$api/fetch/impl/SimpleHttpHeadersFetcher.html">SimpleHttpHeadersFetcher</a></td>
-     <td><a href="$api/fetch/IHttpHeadersFetcher.html">IHttpHeadersFetcher</a></td>
+     <td>metaFetcher</td>
+     <td>Fetches HTTP headers for a URL.</td>
+     <td><a href="$httpAPI/fetch/impl/GenericMetadataFetcher.html">GenericMetadataFetcher</a></td>
+     <td><a href="$httpAPI/fetch/IHttpMetadataFetcher.html">IHttpMetadataFetcher</a></td>
     </tr>
     <tr>
-     <td>httpHeadersFilters</td>
+     <td>metadataFilters</td>
      <td>Filter based on HTTP Headers.</td>
      <td>
-       <a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>,
-       <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>,
-       <a href="$api/filter/impl/RegexHeaderFilter.html">RegexHeaderFilter</a>,
-       <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a>
+       <a href="$coreAPI/filter/impl/ExtensionReferenceFilter.html">ExtensionReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexReferenceFilter.html">RegexReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexMetadataFilter.html">RegexMetadataFilter</a>,
+       <a href="$httpAPI/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a>
      </td>
-     <td><a href="$api/filter/IHttpHeadersFilter.html">IHttpHeadersFilter</a></td>
+     <td><a href="$coreAPI/filter/IMetadataFilter.html">IMetadataFilter</a></td>
     </tr>
     <tr>
-     <td>httpHeadersChecksummer</td>
+     <td>metadataChecksummer</td>
      <td>Create document checksum from HTTP Headers.</td>
-     <td><a href="$api/checksum/impl/DefaultHttpHeadersChecksummer.html">DefaultHttpHeadersChecksummer</a></td>
-     <td><a href="$api/checksum/IHttpHeadersChecksummer.html">IHttpHeadersChecksummer</a></td>
+     <td><u><a href="$httpAPI/checksum/impl/HttpMetadataChecksummer.html">HttpMetadataChecksummer</a></u></td>
+     <td><a href="$coreAPI/checksum/IMetadataChecksummer.html">IMetadataChecksummer</a></td>
     </tr>
     <tr>
-     <td>httpDocumentFetcher</td>
+     <td>documentFetcher</td>
      <td>Fetch a document from URL.</td>
-     <td><a href="$api/fetch/impl/DefaultDocumentFetcher.html">DefaultDocumentFetcher</a></td>
-     <td><a href="$api/fetch/IHttpDocumentFetcher.html">IHttpDocumentFetcher</a></td>
+     <td><u><a href="$httpAPI/fetch/impl/GenericDocumentFetcher.html">GenericDocumentFetcher</a></u></td>
+     <td><a href="$httpAPI/fetch/IHttpDocumentFetcher.html">IHttpDocumentFetcher</a></td>
     </tr>
     <tr>
      <td>robotsMeta</td>
      <td>Handle in-page robots instructions.</td>
-     <td><a href="$api/robot/impl/DefaultRobotsMetaProvider.html">DefaultRobotsMetaProvider</a></td>
-     <td><a href="$api/robot/IRobotsMetaProvider.html">IRobotsMetaProvider</a></td>
+     <td><u><a href="$httpAPI/robot/impl/StandardRobotsMetaProvider.html">StandardRobotsMetaProvider</a></u></td>
+     <td><a href="$httpAPI/robot/IRobotsMetaProvider.html">IRobotsMetaProvider</a></td>
     </tr>
     <tr>
      <td>urlExtractor</td>
      <td>Extract URLs from a document.</td>
      <td>
-       <a href="$api/url/impl/DefaultURLExtractor.html">DefaultURLExtractor</a>,
-       <a href="$api/url/impl/TikaURLExtractor.html">TikaURLExtractor</a>
+       <u><a href="$httpAPI/url/impl/GenericURLExtractor.html">GenericURLExtractor</a></u>,
+       <a href="$httpAPI/url/impl/TikaURLExtractor.html">TikaURLExtractor</a>
      </td>
-     <td><a href="$api/url/IURLExtractor.html">IURLExtractor</a></td>
+     <td><a href="$httpAPI/url/IURLExtractor.html">IURLExtractor</a></td>
     </tr>
     <tr>
-     <td>httpDocumentFilters</td>
+     <td>documentFilters</td>
      <td>Filter documents.</td>
      <td>
-       <a href="$api/filter/impl/ExtensionURLFilter.html">ExtensionURLFilter</a>,
-       <a href="$api/filter/impl/RegexURLFilter.html">RegexURLFilter</a>,
-       <a href="$api/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a>
+       <a href="$coreAPI/filter/impl/ExtensionReferenceFilter.html">ExtensionReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexReferenceFilter.html">RegexReferenceFilter</a>,
+       <a href="$coreAPI/filter/impl/RegexMetadataFilter.html">RegexMetadataFilter</a>,
+       <a href="$httpAPI/filter/impl/SegmentCountURLFilter.html">SegmentCountURLFilter</a>
      </td>
-     <td><a href="$api/filter/IHttpDocumentFilter.html">IHttpDocumentFilter</a></td>
+     <td><a href="$coreAPI/filter/IDocumentFilter.html">IDocumentFilter</a></td>
     </tr>
     <tr>
      <td>preImportProcessors</td>
      <td>Process a document before import.</td>
      <td></td>
-     <td><a href="$api/doc/IHttpDocumentProcessor.html">IHttpDocumentProcessor</a></td>
+     <td><a href="$httpAPI/doc/IHttpDocumentProcessor.html">IHttpDocumentProcessor</a></td>
     </tr>
     <tr style="color: black;">
      <td><b>importer</b></td>
@@ -340,16 +346,16 @@ to its full documentation, with extra configuration options.
      <td></td>
     </tr>
     <tr>
-     <td>httpDocumentChecksummer</td>
+     <td>documentChecksummer</td>
      <td>Create a checksum from document.</td>
-     <td><a href="$api/checksum/impl/DefaultHttpDocumentChecksummer.html">DefaultHttpDocumentChecksummer</a></td>
-     <td><a href="$api/checksum/IHttpDocumentChecksummer.html">IHttpDocumentChecksummer</a></td>
+     <td><u><a href="$coreAPI/checksum/impl/MD5DocumentChecksummer.html">MD5DocumentChecksummer</a></u></td>
+     <td><a href="$coreAPI/checksum/IDocumentChecksummer.html">IDocumentChecksummer</a></td>
     </tr>
     <tr>
      <td>postImportProcessors</td>
      <td>Process a document after import.</td>
      <td></td>
-     <td><a href="$api/doc/IHttpDocumentProcessor.html">IHttpDocumentProcessor</a></td>
+     <td><a href="$httpAPI/doc/IHttpDocumentProcessor.html">IHttpDocumentProcessor</a></td>
     </tr>
     <tr style="color: black;">
      <td><b>committer</b></td>

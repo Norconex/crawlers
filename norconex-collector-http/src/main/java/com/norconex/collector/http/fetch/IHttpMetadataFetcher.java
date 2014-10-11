@@ -26,7 +26,7 @@ import com.norconex.commons.lang.map.Properties;
  * Fetches the HTTP Header, typically via a HEAD request.
  * @author Pascal Essiembre
  */
-public interface IHttpHeadersFetcher {
+public interface IHttpMetadataFetcher {
 
     /**
      * Returning <code>null</code> means the headers could not be fetched

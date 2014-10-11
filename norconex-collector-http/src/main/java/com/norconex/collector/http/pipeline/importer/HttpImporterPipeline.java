@@ -35,7 +35,7 @@ import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
-import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
+import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
@@ -105,7 +105,7 @@ public class HttpImporterPipeline
             }
 
             HttpMetadata metadata = ctx.getMetadata();
-            IHttpHeadersFetcher headersFetcher = ctx.getHttpHeadersFetcher();
+            IHttpMetadataFetcher headersFetcher = ctx.getHttpHeadersFetcher();
             HttpCrawlData crawlData = ctx.getCrawlData();
             Properties headers = headersFetcher.fetchHTTPHeaders(
                     ctx.getHttpClient(), crawlData.getReference());
@@ -148,7 +148,7 @@ public class HttpImporterPipeline
             //TODO for now we assume the document is downloadable.
             // download as file
             CrawlState state = 
-                    ctx.getConfig().getHttpDocumentFetcher().fetchDocument(
+                    ctx.getConfig().getDocumentFetcher().fetchDocument(
                             ctx.getHttpClient(), ctx.getDocument());
 
             HttpImporterPipelineUtil.enhanceHTTPHeaders(
@@ -164,7 +164,7 @@ public class HttpImporterPipeline
             if (state.isGoodState()) {
                 ctx.getCrawler().fireCrawlerEvent(
                         HttpCrawlerEvent.DOCUMENT_FETCHED, ctx.getCrawlData(), 
-                        ctx.getConfig().getHttpDocumentFetcher());
+                        ctx.getConfig().getDocumentFetcher());
             }
             ctx.getCrawlData().setState(state);
             if (!state.isGoodState()) {
@@ -176,7 +176,7 @@ public class HttpImporterPipeline
                 }
                 ctx.getCrawler().fireCrawlerEvent(
                         eventType, ctx.getCrawlData(), 
-                        ctx.getConfig().getHttpDocumentFetcher());
+                        ctx.getConfig().getDocumentFetcher());
                 return false;
             }
             return true;

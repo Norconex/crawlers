@@ -147,12 +147,12 @@ about things you would like to see included in future releases.
   * **Supports cookies**  
     Humm... cookies!
     
-  * **Relies on proven technology**  
-    Many of HTTP Collector core features rely on proven technology such
-    as Apacke Tika and Apache Derby.
-
   * **Detects modified documents**  
-    Detect if documents have been modified or from previous run.
+    Detects if documents have been modified or from previous run.
+
+  * **Detects deleted documents**
+    Detecs if a document was deleted from its original source and deletes it
+    from your target repository (e.g. search engine).
     
   * **Fast**  
     Can control the crawling speed.  Also offers to skip downloading of 

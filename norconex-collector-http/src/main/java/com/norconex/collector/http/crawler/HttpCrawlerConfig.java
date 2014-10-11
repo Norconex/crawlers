@@ -41,7 +41,7 @@ import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
-import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
+import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
 import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
@@ -81,10 +81,10 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private IHttpClientFactory httpClientFactory =
             new GenericHttpClientFactory();
     
-    private IHttpDocumentFetcher httpDocumentFetcher =
+    private IHttpDocumentFetcher documentFetcher =
             new GenericDocumentFetcher();
 
-    private IHttpHeadersFetcher httpHeadersFetcher;
+    private IHttpMetadataFetcher metadataFetcher;
 
     private IURLExtractor urlExtractor = new GenericURLExtractor();
 
@@ -129,18 +129,18 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setHttpClientFactory(IHttpClientFactory httpClientFactory) {
         this.httpClientFactory = httpClientFactory;
     }
-    public IHttpDocumentFetcher getHttpDocumentFetcher() {
-        return httpDocumentFetcher;
+    public IHttpDocumentFetcher getDocumentFetcher() {
+        return documentFetcher;
     }
-    public void setHttpDocumentFetcher(
-    		IHttpDocumentFetcher httpDocumentFetcher) {
-        this.httpDocumentFetcher = httpDocumentFetcher;
+    public void setDocumentFetcher(
+    		IHttpDocumentFetcher documentFetcher) {
+        this.documentFetcher = documentFetcher;
     }
-    public IHttpHeadersFetcher getHttpHeadersFetcher() {
-        return httpHeadersFetcher;
+    public IHttpMetadataFetcher getMetadataFetcher() {
+        return metadataFetcher;
     }
-    public void setHttpHeadersFetcher(IHttpHeadersFetcher httpHeadersFetcher) {
-        this.httpHeadersFetcher = httpHeadersFetcher;
+    public void setMetadataFetcher(IHttpMetadataFetcher metadataFetcher) {
+        this.metadataFetcher = metadataFetcher;
     }
     public IURLExtractor getUrlExtractor() {
         return urlExtractor;
@@ -258,9 +258,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                     getRobotsTxtProvider(), isIgnoreRobotsTxt());
             writeObject(out, "sitemapResolverFactory", 
                     getSitemapResolverFactory(), isIgnoreSitemap());
-            writeObject(out, "httpHeadersFetcher", getHttpHeadersFetcher());
+            writeObject(out, "metadataFetcher", getMetadataFetcher());
             writeObject(out, "metadataChecksummer", getMetadataChecksummer());
-            writeObject(out, "httpDocumentFetcher", getHttpDocumentFetcher());
+            writeObject(out, "documentFetcher", getDocumentFetcher());
             writeObject(out, "robotsMeta", 
                     getRobotsMetaProvider(), isIgnoreRobotsMeta());
             writeObject(out, "urlExtractor", getUrlExtractor());
@@ -296,16 +296,16 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 isIgnoreSitemap()));
 
         //--- HTTP Headers Fetcher ---------------------------------------------
-        setHttpHeadersFetcher(ConfigurationUtil.newInstance(xml,
-                "httpHeadersFetcher", getHttpHeadersFetcher()));
+        setMetadataFetcher(ConfigurationUtil.newInstance(xml,
+                "metadataFetcher", getMetadataFetcher()));
 
         //--- Metadata Checksummer -----------------------------------------
         setMetadataChecksummer(ConfigurationUtil.newInstance(xml,
                 "metadataChecksummer", getMetadataChecksummer()));
 
         //--- HTTP Document Fetcher --------------------------------------------
-        setHttpDocumentFetcher(ConfigurationUtil.newInstance(xml,
-                "httpDocumentFetcher", getHttpDocumentFetcher()));
+        setDocumentFetcher(ConfigurationUtil.newInstance(xml,
+                "documentFetcher", getDocumentFetcher()));
 
         //--- RobotsMeta provider ----------------------------------------------
         setRobotsMetaProvider(ConfigurationUtil.newInstance(xml,

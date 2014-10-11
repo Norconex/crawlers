@@ -77,7 +77,7 @@ public class GenericDocumentFetcher
     private String headersPrefix;
     
     public GenericDocumentFetcher() {
-        this(GenericHttpHeadersFetcher.DEFAULT_VALID_STATUS_CODES);
+        this(GenericMetadataFetcher.DEFAULT_VALID_STATUS_CODES);
     }
     public GenericDocumentFetcher(int[] validStatusCodes) {
         super();
@@ -185,7 +185,7 @@ public class GenericDocumentFetcher
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         String validCodes = xml.getString("validStatusCodes");
-        int[] intCodes = GenericHttpHeadersFetcher.DEFAULT_VALID_STATUS_CODES;
+        int[] intCodes = GenericMetadataFetcher.DEFAULT_VALID_STATUS_CODES;
         if (StringUtils.isNotBlank(validCodes)) {
             String[] strCodes = validCodes.split(",");
             intCodes = new int[strCodes.length];

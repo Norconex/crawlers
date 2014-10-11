@@ -4,13 +4,15 @@ The following are either things to be done, or ideas to consider:
 For 2.0.0:
 ============
 
-- Create a listener logging progress CrawlState changes (offering options
-  similar to DebugTagger and allowing regex to match fields).
+- Add a crawler event listener that acts as a link checker, logging/storing
+  every bad (404) URLs encountered.
+
+- Introduce "Add-ons" like social media add-ons to crawl social media sites.
 
 - Maybe remove custon crawldata serializers/factories in favor of an instance
    configured by default with a http serializer plugged in? Maybe not a good idea.
 
-- remove the http* prefix to XML configuration options since some come from
+DONE: remove the http* prefix to XML configuration options since some come from
   core and it creates confusion???   Or keep it to make a distinction between
   HTTP classes and core?  HTTP XML tags do not have consistently http* though.
 

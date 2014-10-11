@@ -38,19 +38,19 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.http.fetch.IHttpHeadersFetcher;
+import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 
 /**
- * Basic implementation of {@link IHttpHeadersFetcher}.  
+ * Basic implementation of {@link IHttpMetadataFetcher}.  
  * <p>
  * XML configuration usage:
  * </p>
  * <pre>
  *  &lt;httpHeadersFetcher 
- *      class="com.norconex.collector.http.fetch.impl.GenericHttpHeadersFetcher" &gt;
+ *      class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" &gt;
  *      &lt;validStatusCodes&gt;200&lt;/validStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
  *  &lt;/httpHeadersFetcher&gt;
@@ -61,11 +61,11 @@ import com.norconex.commons.lang.map.Properties;
  * </p>
  * @author Pascal Essiembre
  */
-public class GenericHttpHeadersFetcher 
-        implements IHttpHeadersFetcher, IXMLConfigurable {
+public class GenericMetadataFetcher 
+        implements IHttpMetadataFetcher, IXMLConfigurable {
 
     private static final Logger LOG = LogManager.getLogger(
-			GenericHttpHeadersFetcher.class);
+			GenericMetadataFetcher.class);
     /*default*/ static final int[] DEFAULT_VALID_STATUS_CODES = new int[] {
         HttpStatus.SC_OK,
     };
@@ -73,10 +73,10 @@ public class GenericHttpHeadersFetcher
     private int[] validStatusCodes;
     private String headersPrefix;
 
-    public GenericHttpHeadersFetcher() {
+    public GenericMetadataFetcher() {
         this(DEFAULT_VALID_STATUS_CODES);
     }
-    public GenericHttpHeadersFetcher(int[] validStatusCodes) {
+    public GenericMetadataFetcher(int[] validStatusCodes) {
         super();
         this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
     }
