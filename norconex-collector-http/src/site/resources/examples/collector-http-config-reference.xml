@@ -224,7 +224,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
     <metadataFetcher class="$metaFetcher" validStatusCodes="200" />
 
     <!-- Optionally filter AFTER download of HTTP headers.  Classes must 
-         implement *.fetch.IHttpHeadersFetcher.  
+         implement com.norconex.collector.core.filter.IMetadataFilter.  
          -->
     <metadataFilters>
       <filter class="$filterRegexMeta" 
