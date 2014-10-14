@@ -42,4 +42,11 @@ public interface ISitemapsResolver extends Serializable {
     void resolveSitemaps(HttpClient httpClient, String urlRoot, 
             String[] robotsTxtLocations, SitemapURLStore sitemapURLStore);
     
+    /**
+     * Stops any ongoing sitemap resolution.  Some sitemaps can be huge, 
+     * and they may take a while to process.  Upon the crawler receiving a 
+     * stop request, this method will be invoked and implementors should
+     * try to exit cleanly without much delay.
+     */
+    void stop();
 }

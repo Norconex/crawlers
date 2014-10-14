@@ -97,7 +97,7 @@ public class DefaultSitemapResolver
     
     private String[] sitemapLocations;
     private boolean lenient;
-
+    private boolean stopped;
     
 
     @Override
@@ -127,6 +127,11 @@ public class DefaultSitemapResolver
         this.lenient = lenient;
     }
 
+    @Override
+    public void stop() {
+        this.stopped = true;
+    }
+    
     @Override
     public void loadFromXML(Reader in) throws IOException {
         XMLConfiguration xml = ConfigurationLoader.loadXML(in);
@@ -161,6 +166,12 @@ public class DefaultSitemapResolver
     private void resolveLocation(String location, HttpClient httpClient,
             SitemapURLStore sitemapURLStore, Set<String> resolvedLocations) {
 
+        if (stopped) {
+            LOG.debug("Skipping resolution of sitemap "
+                    + "location (stop requested): " + location);
+            return;
+        }
+        
         if (resolvedLocations.contains(location)) {
             return;
         }

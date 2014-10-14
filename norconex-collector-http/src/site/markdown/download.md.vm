@@ -43,14 +43,15 @@ $h2 Binaries
 
 **Release Overview:**
 
-  * DefaultURLExtractor no longer treat empty href as being a URL ending
-    with a double-quote.
-  * GenericURLNormallizer no longer rejects URLs with spaces in them.
-    It now logs a warning instead.
+  * MongoCrawlURLDatabase now supports user authentication.
+  * Now requires Java 7 or higher.
+  * Fixed DefaultRobotsTxtProvider failing to parse some robots.txt patterns. 
   * [View full list of changes]((changes-report.html))
 
 **Older Releases**
 
+  * [1.3.3]($releasePath/1.3.3/norconex-collector-http-1.3.3.zip)<small>
+    [[Release Notes](changes-report.html#a1.3.3)]</small>
   * [1.3.2]($releasePath/1.3.2/norconex-collector-http-1.3.2.zip)<small>
     [[Release Notes](changes-report.html#a1.3.2)]</small>
   * [1.3.1]($releasePath/1.3.1/norconex-collector-http-1.3.1.zip)<small>

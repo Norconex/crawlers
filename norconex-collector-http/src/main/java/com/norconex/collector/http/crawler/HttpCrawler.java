@@ -48,6 +48,7 @@ import com.norconex.collector.http.client.IHttpClientInitializer;
 import com.norconex.collector.http.db.ICrawlURLDatabase;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.sitemap.ISitemapsResolver;
 import com.norconex.collector.http.util.PathUtils;
 import com.norconex.committer.ICommitter;
 import com.norconex.commons.lang.Sleeper;
@@ -518,6 +519,10 @@ public class HttpCrawler extends AbstractResumableJob {
     public void stop(IJobStatus progress, JobSuite suite) {
         stopped = true;
         LOG.info("Stopping the crawler \"" + progress.getJobId() +  "\".");
+        ISitemapsResolver sitemapResolver = crawlerConfig.getSitemapResolver();
+        if (sitemapResolver != null) {
+            sitemapResolver.stop();
+        }
     }
     private File gelBaseDownloadDir() {
         return new File(

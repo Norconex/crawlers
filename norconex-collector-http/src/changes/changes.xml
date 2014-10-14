@@ -6,15 +6,24 @@
     <author email="info@norconex.com">Norconex Inc.</author>
   </properties>
   <body>
+
+    <release version="1.3.5" date="2014-??-??" description="Maintenance release.">
+      <action dev="dimassip" type="fix">
+        Now checks if crawler is running before attempting to stop it (github #37).
+      </action>
+      <action dev="essiembp" type="fix">
+        Sitemap resolution now stops when a stop request is ussued (github #38).
+      </action>
+    </release>
   
-    <release version="1.3.4" date="2014-??-??" description="Maintenance release.">
+    <release version="1.3.4" date="2014-08-24" description="Maintenance release.">
       <action dev="dimassip" type="add">
         MongoCrawlURLDatabase now supports user authentication.
       </action>
       <action dev="dimassip" type="update">
         Now requires Java 7 or higher.
       </action>
-      <action dev="essiembp" type="fix">
+      <action dev="leonardsaers" type="fix">
         Fixed DefaultRobotsTxtProvider failing to parse some robots.txt
         patterns (github #36).  
       </action>
