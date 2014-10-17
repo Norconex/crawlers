@@ -23,6 +23,10 @@
         acting as a seed list.
       </action>
       <action dev="essiembre" type="add">
+        New fast MVStore database implementation for URL database 
+        (from Norconex Collector Core).
+      </action>
+      <action dev="essiembre" type="add">
         New H2 database implementation for URL database (crawl data store).
       </action>
       <action dev="essiembre" type="add">

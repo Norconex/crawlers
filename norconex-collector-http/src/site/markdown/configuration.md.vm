@@ -241,6 +241,7 @@ a "class" attribute, the default implementations is <u>underlined</u>.
      <td>URLs and crawl-related information data store.</td>
      <td>
        <u><a href="$coreAPI/data/store/impl/mapdb/MapDBCrawlDataStoreFactory.html">MapDBCrawlDataStoreFactory</a></u>,
+       <a href="$coreAPI/data/store/impl/mvstore/MVStoreCrawlDataStoreFactory.html">MVStoreCrawlDataStoreFactory</a>,
        <a href="$httpAPI/data/store/impl/jdbc/JDBCCrawlDataStoreFactory.html">JDBCCrawlDataStoreFactory</a>,
        <a href="$httpAPI/data/store/impl/mongo/MongoCrawlDataStoreFactory.html">MongoCrawlDataStoreFactory</a>
      </td>
