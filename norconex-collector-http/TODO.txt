@@ -7,32 +7,23 @@ For 2.0.0:
 - Add a crawler event listener that acts as a link checker, logging/storing
   every bad (404) URLs encountered.
 
-- Introduce "Add-ons" like social media add-ons to crawl social media sites.
-
-- Maybe remove custon crawldata serializers/factories in favor of an instance
-   configured by default with a http serializer plugged in? Maybe not a good idea.
-
-DONE: remove the http* prefix to XML configuration options since some come from
-  core and it creates confusion???   Or keep it to make a distinction between
-  HTTP classes and core?  HTTP XML tags do not have consistently http* though.
-
 - Add total execution time, periodic time elapsed and estimated remaining.
 
 - Test that deletion of embedded docs are detected and sent to committer
 
-DONE: Add the option to ignore orphans at the end of a crawl (we only have the 
-  options of deleting them or to re-process them).
+- Store somewhere whether a committed document is new or modified.
+
+- Add a more stable fast off-heap key/value database as an alternative
+  to MapDB (which has stability issues).
 
 Any release:
 ============
 
+- Introduce "Add-ons" like social media add-ons to crawl social media sites.
+
 - Consider adding engine with JavaScript runtime like Selenium (or HtmlUnit,
   or embedded browser engine) to crawl pages partly generated with JavaScript 
   (and maybe help with screenshots)?
-
-- Store somewhere whether a committed document is new or modified.
-
-DONE: Cache Importer instance now created each time in ImportModuleStep?
 
 - Have an interface for how to optionally store downloaded files
   (i.e., location, directory structure, file naming).  This could allow
@@ -54,8 +45,9 @@ DONE: Cache Importer instance now created each time in ImportModuleStep?
 - Add support for having different HTTPContext for each call and/or each
   sites.
   
-- Add ability to provide custom URL pattern matching for URL Extraction
-  (removing need to subclass).
+- DONE (can specify tag/attribute and can specify more than one link extractor:
+   Add ability to provide custom URL pattern matching for URL Extraction
+   (removing need to subclass).
 
 - Ability to crawl up to a given size.  Absolute number or percentage of 
   disk capacity?
@@ -70,12 +62,9 @@ DONE: Cache Importer instance now created each time in ImportModuleStep?
      - type: none|all|first|last
      - stacktrace: false|true
 
-- Make sure maxURL counter saved in progress is in sync with each time we commit
-  to avoid having a counter higher than actual URLs processed in case of 
+- DONE Make sure maxURL counter saved in progress is in sync with each time we 
+  commit to avoid having a counter higher than actual URLs processed in case of 
   failure (minor impact).
-
-- DONE (out-of-the-box with 4.3 HttpClientBuilder): Add optional flag to 
-  support gzip transfer (DecompressingHttpClient).
 
 - Rotate/break log files when too big.
 
@@ -88,7 +77,7 @@ DONE: Cache Importer instance now created each time in ImportModuleStep?
 
 - Test that IPV6 is supported
 
-- Consider having support for different URLExractors for different content 
+- DONE: Consider having support for different URLExractors for different content 
   types.  Maybe also offer to default one ability to define custom patterns
   for how to identify URLs.
 
@@ -100,8 +89,9 @@ DONE: Cache Importer instance now created each time in ImportModuleStep?
   implementation... this means total download time (both for HEAD and GET) 
   should be added as document properties (not a bad idea to do regardless).
 
-- DONE: To consider: Interface for Document Store for downloading documents.
-  File system is used now, but could be others like MongoDB?
+- To consider: Interface for how to save documents whey they are kept.
+  Same with default committer queue location.
+  File system is used for both now, but could be others like MongoDB?
 
 - Add option to skip certain http response code (like 500).  Those docs 
   that should not be added nor deleted because they are in a temporary bad 
