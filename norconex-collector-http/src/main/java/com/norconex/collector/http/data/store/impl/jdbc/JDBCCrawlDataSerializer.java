@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore;
@@ -44,7 +45,11 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
             + "depth, "
             + "sitemapLastMod, "
             + "sitemapChangeFreq, "
-            + "sitemapPriority ";
+            + "sitemapPriority, "
+            + "referrerReference, "
+            + "referrerLinkTag, "
+            + "referrerLinkText, "
+            + "referrerLinkTitle ";
     
     @Override
     public String[] getCreateTableSQLs(String table) {
@@ -61,6 +66,10 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
                 + "sitemapLastMod BIGINT, "
                 + "sitemapChangeFreq VARCHAR(7), "
                 + "sitemapPriority FLOAT, "
+                + "referrerReference VARCHAR(32672), "
+                + "referrerLinkTag VARCHAR(1024), "
+                + "referrerLinkText VARCHAR(2048), "
+                + "referrerLinkTitle VARCHAR(2048), "
                 + "PRIMARY KEY (reference))";
 
         String[] sqls = new String[] { sql };
@@ -88,7 +97,7 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
     @Override
     public String getInsertCrawlDataSQL(String table) {
         return "INSERT INTO " + table + "(" + ALL_FIELDS 
-                + ") values (?,?,?,?,?,?,?,?,?,?)";
+                + ") values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     }
     @Override
     public Object[] getInsertCrawlDataValues(
@@ -104,7 +113,11 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
                 data.getDepth(),
                 data.getSitemapLastMod(),
                 data.getSitemapChangeFreq(),
-                data.getSitemapPriority()
+                data.getSitemapPriority(),
+                data.getReferrerReference(),
+                StringUtils.substring(data.getReferrerLinkTag(), 0, 1024),
+                StringUtils.substring(data.getReferrerLinkText(), 0, 2048),
+                StringUtils.substring(data.getReferrerLinkTitle(), 0, 2048),
         };
     }
     
@@ -163,6 +176,11 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
             data.setSitemapPriority(bigP.floatValue());
         }
         data.setSitemapChangeFreq(rs.getString("sitemapChangeFreq"));
+        data.setReferrerReference(rs.getString("referrerReference"));
+        data.setReferrerLinkTag(rs.getString("referrerLinkTag"));
+        data.setReferrerLinkText(rs.getString("referrerLinkText"));
+        data.setReferrerLinkTitle(rs.getString("referrerLinkTitle"));
+        
         return data;
     }
 }

@@ -21,7 +21,10 @@ package com.norconex.collector.http.data;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.BaseCrawlData;
@@ -42,7 +45,11 @@ public class HttpCrawlData extends BaseCrawlData {
     private String sitemapChangeFreq;
     private Float sitemapPriority;
     private String originalReference;
-
+    private String referrerLinkText;
+    private String referrerReference;
+    private String referrerLinkTag;
+    private String referrerLinkTitle;
+    
     public HttpCrawlData() {
         super();
     }
@@ -135,6 +142,35 @@ public class HttpCrawlData extends BaseCrawlData {
     public final void setDepth(int depth) {
         this.depth = depth;
     }
+    
+    public String getReferrerLinkText() {
+        return referrerLinkText;
+    }
+    public void setReferrerLinkText(String referrerLinkText) {
+        this.referrerLinkText = referrerLinkText;
+    }
+
+    public String getReferrerReference() {
+        return referrerReference;
+    }
+    public void setReferrerReference(String referrerReference) {
+        this.referrerReference = referrerReference;
+    }
+
+    public String getReferrerLinkTag() {
+        return referrerLinkTag;
+    }
+    public void setReferrerLinkTag(String referrerLinkTag) {
+        this.referrerLinkTag = referrerLinkTag;
+    }
+    
+    public String getReferrerLinkTitle() {
+        return referrerLinkTitle;
+    }
+    public void setReferrerLinkTitle(String referrerLinkTitle) {
+        this.referrerLinkTitle = referrerLinkTitle;
+    }
+
     @Override
     public final void setReference(String url) {
         super.setReference(url);
@@ -153,82 +189,49 @@ public class HttpCrawlData extends BaseCrawlData {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + depth;
-        result = prime
-                * result
-                + ((sitemapChangeFreq == null) ? 0 : sitemapChangeFreq
-                        .hashCode());
-        result = prime * result
-                + ((sitemapLastMod == null) ? 0 : sitemapLastMod.hashCode());
-        result = prime * result
-                + ((sitemapPriority == null) ? 0 : sitemapPriority.hashCode());
-        result = prime * result + ((urlRoot == null) ? 0 : urlRoot.hashCode());
-        return result;
+    public boolean equals(final Object other) {
+        if (!(other instanceof HttpCrawlData)) {
+            return false;
+        }
+        HttpCrawlData castOther = (HttpCrawlData) other;
+        return new EqualsBuilder().appendSuper(super.equals(other))
+                .append(depth, castOther.depth)
+                .append(urlRoot, castOther.urlRoot)
+                .append(sitemapLastMod, castOther.sitemapLastMod)
+                .append(sitemapChangeFreq, castOther.sitemapChangeFreq)
+                .append(sitemapPriority, castOther.sitemapPriority)
+                .append(originalReference, castOther.originalReference)
+                .append(referrerLinkText, castOther.referrerLinkText)
+                .append(referrerReference, castOther.referrerReference)
+                .append(referrerLinkTag, castOther.referrerLinkTag)
+                .append(referrerLinkTitle, castOther.referrerLinkTitle)
+                .isEquals();
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!super.equals(obj)) {
-            return false;
-        }
-        if (!(obj instanceof HttpCrawlData)) {
-            return false;
-        }
-        HttpCrawlData other = (HttpCrawlData) obj;
-        if (depth != other.depth) {
-            return false;
-        }
-        if (sitemapChangeFreq == null) {
-            if (other.sitemapChangeFreq != null) {
-                return false;
-            }
-        } else if (!sitemapChangeFreq.equals(other.sitemapChangeFreq)) {
-            return false;
-        }
-        if (sitemapLastMod == null) {
-            if (other.sitemapLastMod != null) {
-                return false;
-            }
-        } else if (!sitemapLastMod.equals(other.sitemapLastMod)) {
-            return false;
-        }
-        if (sitemapPriority == null) {
-            if (other.sitemapPriority != null) {
-                return false;
-            }
-        } else if (!sitemapPriority.equals(other.sitemapPriority)) {
-            return false;
-        }
-        if (urlRoot == null) {
-            if (other.urlRoot != null) {
-                return false;
-            }
-        } else if (!urlRoot.equals(other.urlRoot)) {
-            return false;
-        }
-        return true;
+    public int hashCode() {
+        return new HashCodeBuilder().appendSuper(super.hashCode())
+                .append(depth).append(urlRoot).append(sitemapLastMod)
+                .append(sitemapChangeFreq).append(sitemapPriority)
+                .append(originalReference).append(referrerLinkText)
+                .append(referrerReference).append(referrerLinkTag)
+                .append(referrerLinkTitle)
+                .toHashCode();
     }
 
     @Override
     public String toString() {
-        ToStringBuilder builder = new ToStringBuilder(this);
-        builder.appendSuper(super.toString());
-        builder.append("depth", depth);
-        builder.append("urlRoot", urlRoot);
-        builder.append("sitemapLastMod", sitemapLastMod);
-        builder.append("sitemapChangeFreq", sitemapChangeFreq);
-        builder.append("sitemapPriority", sitemapPriority);
-        return builder.toString();
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .appendSuper(super.toString()).append("depth", depth)
+                .append("urlRoot", urlRoot)
+                .append("sitemapLastMod", sitemapLastMod)
+                .append("sitemapChangeFreq", sitemapChangeFreq)
+                .append("sitemapPriority", sitemapPriority)
+                .append("originalReference", originalReference)
+                .append("referrerLinkText", referrerLinkText)
+                .append("referrerReference", referrerReference)
+                .append("referrerLinkTag", referrerLinkTag)
+                .append("referrerLinkTitle", referrerLinkTitle)
+                .toString();
     }
-
-
-    
-
-    
 }

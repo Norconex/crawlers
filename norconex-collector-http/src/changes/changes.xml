@@ -35,6 +35,20 @@
       <action dev="essiembre" type="add">
         New JMX/MBean support added on crawlers.
       </action>
+      <action dev="essiembre" type="add">
+        IUrlExtractor is now ILinkExtractor and both their implementing classes
+        (HtmlLinkExtractor and TikaLinkExtractor) now support also extracting
+        a link title and text (github #23), and they also support the 
+        "nofollow" robot rule.
+      </action>
+      <action dev="essiembre" type="add">
+        It is now possible to configure multiple link extraction classes, 
+        each taking effect on particular URLs and/or content-types.
+      </action>
+      <action dev="essiembre" type="add">
+        IHtmlLinkExtractor can be configured to use specified HTML tags and 
+        attributes to find URLs.
+      </action>
       <action dev="essiembre" type="update">
         Replaced the configuration option "deleteOrphans(true|false)" with
         "orphansStrategy(DELETE|PROCESS|IGNORE)".
@@ -112,7 +126,6 @@
         Ongoing sitemap resolution will now be stopped when a stop request 
         is sent to the crawler.
       </action>
-      
     </release>
   
     <release version="1.3.4" date="2014-08-24" description="Maintenance release.">

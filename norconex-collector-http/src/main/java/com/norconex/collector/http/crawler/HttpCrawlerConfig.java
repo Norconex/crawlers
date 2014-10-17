@@ -49,9 +49,9 @@ import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
 import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.collector.http.sitemap.ISitemapResolverFactory;
 import com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory;
-import com.norconex.collector.http.url.IURLExtractor;
+import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.collector.http.url.impl.GenericURLExtractor;
+import com.norconex.collector.http.url.impl.HtmlLinkExtractor;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -86,8 +86,10 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
     private IHttpMetadataFetcher metadataFetcher;
 
-    private IURLExtractor urlExtractor = new GenericURLExtractor();
-
+    private ILinkExtractor[] linkExtractors = new ILinkExtractor[] {
+            new HtmlLinkExtractor()
+    };
+    
     private IRobotsTxtProvider robotsTxtProvider =
             new StandardRobotsTxtProvider();
     private IRobotsMetaProvider robotsMetaProvider =
@@ -142,11 +144,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setMetadataFetcher(IHttpMetadataFetcher metadataFetcher) {
         this.metadataFetcher = metadataFetcher;
     }
-    public IURLExtractor getUrlExtractor() {
-        return urlExtractor;
+    public ILinkExtractor[] getLinkExtractors() {
+        return linkExtractors;
     }
-    public void setUrlExtractor(IURLExtractor urlExtractor) {
-        this.urlExtractor = urlExtractor;
+    public void setLinkExtractors(ILinkExtractor[] linkExtractors) {
+        this.linkExtractors = linkExtractors;
     }
     public IRobotsTxtProvider getRobotsTxtProvider() {
         return robotsTxtProvider;
@@ -263,7 +265,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writeObject(out, "documentFetcher", getDocumentFetcher());
             writeObject(out, "robotsMeta", 
                     getRobotsMetaProvider(), isIgnoreRobotsMeta());
-            writeObject(out, "urlExtractor", getUrlExtractor());
+            writeArray(out, "linkExtractors", "extractor", getLinkExtractors());
             writeArray(out, "preImportProcessors", 
                     "processor", getPreImportProcessors());
             writeArray(out, "postImportProcessors", 
@@ -313,10 +315,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setIgnoreRobotsMeta(xml.getBoolean("robotsMeta[@ignore]",
                 isIgnoreRobotsMeta()));
 
-        //--- URL Extractor ----------------------------------------------------
-        setUrlExtractor(ConfigurationUtil.newInstance(xml,
-                "urlExtractor", getUrlExtractor()));
-
+        //--- Link Extractors --------------------------------------------------
+        ILinkExtractor[] linkExtractors = loadLinkExtractors(
+                xml, "linkExtractors.extractor");
+        setLinkExtractors(defaultIfEmpty(linkExtractors, getLinkExtractors()));
+        
         //--- HTTP Pre-Processors ----------------------------------------------
         IHttpDocumentProcessor[] preProcFilters = loadProcessors(xml,
                 "preImportProcessors.processor");
@@ -347,8 +350,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setUrlsFiles(defaultIfEmpty(urlsFiles, getUrlsFiles()));
     }
 
-    private IHttpDocumentProcessor[] loadProcessors(XMLConfiguration xml,
-            String xmlPath) {
+    private IHttpDocumentProcessor[] loadProcessors(
+            XMLConfiguration xml, String xmlPath) {
         List<IHttpDocumentProcessor> filters = new ArrayList<>();
         List<HierarchicalConfiguration> filterNodes = xml
                 .configurationsAt(xmlPath);
@@ -360,4 +363,19 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         }
         return filters.toArray(new IHttpDocumentProcessor[] {});
     }
+    
+    private ILinkExtractor[] loadLinkExtractors(
+            XMLConfiguration xml, String xmlPath) {
+        List<ILinkExtractor> extractors = new ArrayList<>();
+        List<HierarchicalConfiguration> extractorNodes = xml
+                .configurationsAt(xmlPath);
+        for (HierarchicalConfiguration extractorNode : extractorNodes) {
+            ILinkExtractor extractor = ConfigurationUtil
+                    .newInstance(extractorNode);
+            extractors.add(extractor);
+            LOG.info("Link extractor loaded: " + extractor);
+        }
+        return extractors.toArray(new ILinkExtractor[] {});
+    }
+    
 }

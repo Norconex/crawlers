@@ -176,10 +176,8 @@ public class HttpCrawler extends AbstractCrawler {
         HttpMetadata metadata = doc.getMetadata();
         
         metadata.addInt(HttpMetadata.COLLECTOR_DEPTH, httpData.getDepth());
-        if (StringUtils.isNotBlank(httpData.getSitemapChangeFreq())) {
-            metadata.addString(HttpMetadata.COLLECTOR_SM_CHANGE_FREQ, 
-                    httpData.getSitemapChangeFreq());
-        }
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_SM_CHANGE_FREQ, 
+                httpData.getSitemapChangeFreq());
         if (httpData.getSitemapLastMod() != null) {
             metadata.addLong(HttpMetadata.COLLECTOR_SM_LASTMOD, 
                     httpData.getSitemapLastMod());
@@ -187,7 +185,16 @@ public class HttpCrawler extends AbstractCrawler {
         if (httpData.getSitemapPriority() != null) {
             metadata.addFloat(HttpMetadata.COLLECTOR_SM_PRORITY, 
                     httpData.getSitemapPriority());
-        }    
+        }
+        // Referrer data
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_REFERENCE, 
+                httpData.getReferrerReference());
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TAG, 
+                httpData.getReferrerLinkTag());
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TEXT, 
+                httpData.getReferrerLinkText());
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TITLE, 
+                httpData.getReferrerLinkTitle());
         return doc;
     }
     
@@ -242,6 +249,12 @@ public class HttpCrawler extends AbstractCrawler {
     protected void cleanupExecution(JobStatusUpdater statusUpdater,
             JobSuite suite, ICrawlDataStore refStore) {
         closeHttpClient();
+    }
+    
+    private void metadataAddString(HttpMetadata metadata, String key, String value) {
+        if (value != null) {
+            metadata.addString(key, value); 
+        }
     }
     
     private void initializeHTTPClient() {

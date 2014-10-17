@@ -32,6 +32,10 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
     private static final String FIELD_SITEMAP_CHANGE_FREQ = 
             "sitemapChangeFreq";
     private static final String FIELD_SITEMAP_PRIORITY = "sitemapPriority";
+    private static final String FIELD_REFERRER_REFERENCE = "referrerReference";
+    private static final String FIELD_REFERRER_LINK_TAG = "referrerLinkTag";
+    private static final String FIELD_REFERRER_LINK_TEXT = "referrerLinkText";
+    private static final String FIELD_REFERRER_LINK_TITLE = "referrerLinkTitle";
     
     @Override
     public BasicDBObject toDBObject(Stage stage, ICrawlData crawlData) {
@@ -41,6 +45,10 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         doc.put(FIELD_SITEMAP_LAST_MOD, data.getSitemapLastMod());
         doc.put(FIELD_SITEMAP_CHANGE_FREQ, data.getSitemapChangeFreq());
         doc.put(FIELD_SITEMAP_PRIORITY, data.getSitemapPriority());
+        doc.put(FIELD_REFERRER_REFERENCE, data.getReferrerReference());
+        doc.put(FIELD_REFERRER_LINK_TAG, data.getReferrerLinkTag());
+        doc.put(FIELD_REFERRER_LINK_TEXT, data.getReferrerLinkTag());
+        doc.put(FIELD_REFERRER_LINK_TITLE, data.getReferrerLinkTitle());
         return doc;
     }
 
@@ -69,6 +77,14 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         if (val != null) {
             data.setSitemapPriority(val.floatValue());
         }
+        data.setReferrerReference(
+                (String) dbObject.get(FIELD_REFERRER_REFERENCE));
+        data.setReferrerLinkTag(
+                (String) dbObject.get(FIELD_REFERRER_LINK_TAG));
+        data.setReferrerLinkText(
+                (String) dbObject.get(FIELD_REFERRER_LINK_TEXT));
+        data.setReferrerLinkTitle(
+                (String) dbObject.get(FIELD_REFERRER_LINK_TITLE));
         return data;
     }
     

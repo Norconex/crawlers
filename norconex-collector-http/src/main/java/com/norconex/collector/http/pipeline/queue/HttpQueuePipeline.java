@@ -55,7 +55,7 @@ public final class HttpQueuePipeline
         addStage(new ReferenceFiltersStage());
         addStage(new RobotsTxtFiltersStage());
         addStage(new URLNormalizerStage());
-        if (!includeSitemapStage) {
+        if (includeSitemapStage) {
             addStage(new SitemapStage());
         }
         addStage(new QueueReferenceStage());

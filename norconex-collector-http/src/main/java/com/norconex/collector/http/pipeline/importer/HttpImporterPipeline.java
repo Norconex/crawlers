@@ -64,7 +64,7 @@ public class HttpImporterPipeline
             addStage(new SaveDocumentStage());
         }
         addStage(new RobotsMetaCreateStage());
-        addStage(new URLExtractorStage());
+        addStage(new LinkExtractorStage());
         addStage(new RobotsMetaNoIndexStage());
         addStage(new HttpMetadataFiltersGETStage());
         addStage(new HttpMetadataChecksumStage(false));
@@ -162,7 +162,7 @@ public class HttpImporterPipeline
             //--- END Fix #17 ---
             
             if (state.isGoodState()) {
-                ctx.getCrawler().fireCrawlerEvent(
+                ctx.fireCrawlerEvent(
                         HttpCrawlerEvent.DOCUMENT_FETCHED, ctx.getCrawlData(), 
                         ctx.getConfig().getDocumentFetcher());
             }
@@ -174,8 +174,7 @@ public class HttpImporterPipeline
                 } else {
                     eventType = HttpCrawlerEvent.REJECTED_BAD_STATUS;
                 }
-                ctx.getCrawler().fireCrawlerEvent(
-                        eventType, ctx.getCrawlData(), 
+                ctx.fireCrawlerEvent(eventType, ctx.getCrawlData(), 
                         ctx.getConfig().getDocumentFetcher());
                 return false;
             }

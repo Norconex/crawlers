@@ -40,6 +40,14 @@ public class HttpMetadata extends CollectorMetadata {
             COLLECTOR_PREFIX + "sitemap-priority";
     public static final String COLLECTOR_REFERNCED_URLS = 
             COLLECTOR_PREFIX + "referenced-urls";
+    public static final String COLLECTOR_REFERRER_REFERENCE = 
+            COLLECTOR_PREFIX + "referrer-reference";
+    public static final String COLLECTOR_REFERRER_LINK_TAG = 
+            COLLECTOR_PREFIX + "referrer-link-tag";
+    public static final String COLLECTOR_REFERRER_LINK_TEXT = 
+            COLLECTOR_PREFIX + "referrer-link-text";
+    public static final String COLLECTOR_REFERRER_LINK_TITLE = 
+            COLLECTOR_PREFIX + "referrer-link-title";
 
 	public HttpMetadata(String documentURL) {
 		super();

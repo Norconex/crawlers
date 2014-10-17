@@ -19,22 +19,22 @@
 package com.norconex.collector.http.pipeline.importer;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
-import com.norconex.collector.http.url.IURLExtractor;
+import com.norconex.collector.http.url.ILinkExtractor;
+import com.norconex.collector.http.url.Link;
+import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.io.CachedInputStream;
 
 /**
  * Extract URLs before sending to importer (because the importer may
@@ -42,13 +42,20 @@ import com.norconex.collector.http.url.IURLExtractor;
  * Plus, any additional urls could be added to Metadata and they will
  * be considered.
  */
-/*default*/ class URLExtractorStage extends AbstractImporterStage {
+/*default*/ class LinkExtractorStage extends AbstractImporterStage {
 
     private static final Logger LOG = LogManager
-            .getLogger(URLExtractorStage.class);
+            .getLogger(LinkExtractorStage.class);
     
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
+        ILinkExtractor[] extractors = ctx.getConfig().getLinkExtractors();
+        if (ArrayUtils.isEmpty(extractors)) {
+            LOG.debug("No configured link extractor.  No links will be "
+                    + "detected.");
+            return true;
+        }
+        
         if (ctx.getRobotsMeta() != null 
                 && ctx.getRobotsMeta().isNofollow()) {
             if (LOG.isDebugEnabled()) {
@@ -58,29 +65,34 @@ import com.norconex.collector.http.url.IURLExtractor;
             return true;
         }
         
-        Set<String> urls = null;
-        try {
-            Reader reader = ctx.getContentReader();
-            
-            IURLExtractor urlExtractor = ctx.getConfig().getUrlExtractor();
-            urls = urlExtractor.extractURLs(
-                    reader, ctx.getCrawlData().getReference(), 
-                    ctx.getDocument().getContentType());
-            IOUtils.closeQuietly(reader);
-        } catch (IOException e) {
-            throw new CollectorException("Cannot extract URLs from: " 
-                    + ctx.getCrawlData().getReference(), e);
+        Set<Link> links = new HashSet<>();
+        CachedInputStream is = ctx.getContent();
+        String reference = ctx.getCrawlData().getReference();
+        ContentType ct = ctx.getDocument().getContentType();
+        for (ILinkExtractor extractor : extractors) {
+            if (extractor.accepts(reference, ct)) {
+                try {
+                    links.addAll(extractor.extractLinks(is, reference, ct));
+                } catch (IOException e) {
+                    LOG.error("Could not extract links from: " + reference, e);
+                } finally {
+                    is.rewind();
+                }
+            }
         }
-
+        
         Set<String> uniqueURLs = new HashSet<String>();
-        if (urls != null) {
-            for (String url : urls) {
+        if (links != null) {
+            for (Link link : links) {
                 HttpCrawlData newURL = new HttpCrawlData(
-                        url, ctx.getCrawlData().getDepth() + 1);
+                        link.getUrl(), ctx.getCrawlData().getDepth() + 1);
+                newURL.setReferrerReference(link.getReferrer());
+                newURL.setReferrerLinkTag(link.getTag());
+                newURL.setReferrerLinkText(link.getText());
+                newURL.setReferrerLinkTitle(link.getTitle());
                 HttpQueuePipelineContext newContext = 
-                        new HttpQueuePipelineContext(
-                                ctx.getCrawler(), ctx.getCrawlDataStore(), 
-                                newURL);
+                        new HttpQueuePipelineContext(ctx.getCrawler(), 
+                                ctx.getCrawlDataStore(), newURL);
                 //TODO do we want to capture them all or just the valid ones?
                 new HttpQueuePipeline().execute(newContext);
                 uniqueURLs.add(newURL.getReference());
@@ -91,8 +103,8 @@ import com.norconex.collector.http.url.IURLExtractor;
                     uniqueURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
         
-        ctx.getCrawler().fireCrawlerEvent(
-                HttpCrawlerEvent.URLS_EXTRACTED, ctx.getCrawlData(), uniqueURLs);
+        ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 
+                ctx.getCrawlData(), uniqueURLs);
         return true;
     }
 }

@@ -20,11 +20,13 @@
  -->
 <html>
 <head>
+  <title>ILinkExtractor tests</title>
+  <meta charset="UTF-8">
   <meta http-equiv="refresh" content="10;URL='/meta-redirect.html'" />
+  <meta name="description" content="a test page">
 </head>
 <body>
 This is a sample document used to test URL extraction.
-
 <a href="//www.example.com/startWithDoubleslash.html">Double Leading Slash</a>
 <a href="?startWith=questionmark">Starting with question mark</a>
 <a href="#startWithHashMark">Starting with hash mark</a>
@@ -34,7 +36,13 @@ This is a sample document used to test URL extraction.
 <a alt="foo"
 href="/onTwoLines.html">HREF is on two lines, starting new line</a>
 <a xhref="/badhref.html">xhref is a bad pattern</a>
-
+<a title="MyTitle" href="titleTarget.html" target="TOP">This title</a>
+<div data-url="/dataURL.html" ></div>
+<img src="/imageSlash.gif" />
+<img src="/imageNoSlash.gif" >
+<object data="/objectData.html"></object>
+<applet archive="/applet1.jar /applet2.jar /applet3.jar">blah</applet>
+<a href = "/nofollow.html" rel = " nofollow ">No follow</a>
 
 </body>
 </html>

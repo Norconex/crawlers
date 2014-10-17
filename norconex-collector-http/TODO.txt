@@ -26,6 +26,10 @@ DONE: Add the option to ignore orphans at the end of a crawl (we only have the
 Any release:
 ============
 
+- Consider adding engine with JavaScript runtime like Selenium (or HtmlUnit,
+  or embedded browser engine) to crawl pages partly generated with JavaScript 
+  (and maybe help with screenshots)?
+
 - Store somewhere whether a committed document is new or modified.
 
 DONE: Cache Importer instance now created each time in ImportModuleStep?
@@ -70,7 +74,8 @@ DONE: Cache Importer instance now created each time in ImportModuleStep?
   to avoid having a counter higher than actual URLs processed in case of 
   failure (minor impact).
 
-- Add optional flag to support gzip transfer (DecompressingHttpClient).
+- DONE (out-of-the-box with 4.3 HttpClientBuilder): Add optional flag to 
+  support gzip transfer (DecompressingHttpClient).
 
 - Rotate/break log files when too big.
 
@@ -95,12 +100,14 @@ DONE: Cache Importer instance now created each time in ImportModuleStep?
   implementation... this means total download time (both for HEAD and GET) 
   should be added as document properties (not a bad idea to do regardless).
 
-- To consider: Interface for Document Store for downloading documents.
+- DONE: To consider: Interface for Document Store for downloading documents.
   File system is used now, but could be others like MongoDB?
 
 - Add option to skip certain http response code (like 500).  Those docs 
   that should not be added nor deleted because they are in a temporary bad 
   state.  Is it really useful?
+
+- Deal with <a rel="noreferrer" ... ??
 
 MAYBE:
 =======
