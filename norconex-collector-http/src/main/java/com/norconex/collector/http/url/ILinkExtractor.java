@@ -31,7 +31,8 @@ import com.norconex.commons.lang.file.ContentType;
  * and text).
  * <p />
  * Implementing classes also implementing {@link IXMLConfigurable} should make
- * sure to name their XML tag "<code>linkExtractor</code>".
+ * sure to name their XML tag "<code>extractor</code>", normally nested
+ * in <code>linkExtractors</code> tags.
  * 
  * @author Pascal Essiembre
  */

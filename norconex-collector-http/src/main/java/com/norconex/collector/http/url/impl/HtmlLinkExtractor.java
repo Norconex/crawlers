@@ -125,7 +125,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * 
  * <h3>XML configuration usage</h3>
  * <pre>
- *  &lt;linkExtractor class="com.norconex.collector.http.url.impl.HtmlLinkExtractor"
+ *  &lt;extractor class="com.norconex.collector.http.url.impl.HtmlLinkExtractor"
  *          maxURLLength="(maximum URL length. Default is 2048)" 
  *          ignoreNofollow="(false|true)" 
  *          keepReferrerData="(false|true)"&gt;
@@ -136,10 +136,10 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      
  *      &lt;!-- Which tags and attributes hold the URLs to extract --&gt;
  *      &lt;tags&gt;
- *          &lt;tag name="(tag name)" attribute="tag attribute)" &gt;
+ *          &lt;tag name="(tag name)" attribute="tag attribute)" /&gt;
  *          &lt;!-- you can have multiple tag entries --&gt;
  *      &lt;/tags&gt;
- *  &lt;/linkExtractor&gt;
+ *  &lt;/extractor&gt;
  * </pre>
  * @author Pascal Essiembre
  */
@@ -483,7 +483,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public void saveToXML(Writer out) throws IOException {
         try {
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
-            writer.writeStartElement("linkExtractor");
+            writer.writeStartElement("extractor");
             writer.writeAttribute("class", getClass().getCanonicalName());
 
             writer.writeAttributeInteger("maxURLLength", getMaxURLLength());

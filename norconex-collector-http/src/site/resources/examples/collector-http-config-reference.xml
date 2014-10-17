@@ -50,7 +50,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   #set($robotsMeta        = "${http}.robot.impl.StandardRobotsMetaProvider")
   #set($metaFetcher       = "${http}.fetch.impl.GenericMetadataFetcher")
   #set($docFetcher        = "${http}.fetch.impl.GenericDocumentFetcher")
-  #set($urlExtractor      = "${http}.url.impl.GenericURLExtractor")
+  #set($linkExtractor     = "${http}.url.impl.HtmlLinkExtractor")
   #set($urlNormalizer     = "${http}.url.impl.GenericURLNormalizer")
   #set($sitemapFactory    = "${http}.sitemap.impl.StandardSitemapResolverFactory")
   #set($metaChecksummer   = "${http}.checksum.impl.HttpMetadataChecksummer")
@@ -253,11 +253,25 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
          -->
     <robotsMeta ignore="false" class="$robotsMeta" />
 
-    <!-- Extract URLs from a document.  Classes must implement
-         com.norconex.collector.http.url.IURLExtractor. 
+    <!-- Extract links from a document.  Classes must implement
+         com.norconex.collector.http.url.ILinkExtractor. 
          Default implementation is the following.
          -->
-    <urlExtractor class="$urlExtractor" />
+    <linkExtractors>
+        <extractor class="${linkExtractor}"  maxURLLength="2048" 
+                ignoreNofollow="false" keepReferrerData="false">
+            <contentTypes>
+                text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
+            </contentTypes>
+            <tags>
+                <tag name="a" attribute="href" />
+                <tag name="frame" attribute="src" />
+                <tag name="iframe" attribute="src" />
+                <tag name="img" attribute="src" />
+                <tag name="meta" attribute="http-equiv" />
+            </tags>
+        </extractor>
+    </linkExtractors>
 
     <!--  Optionally filters a document. Classes must implement 
           com.norconex.collector.core.filter.IDocumentFilter-->
@@ -269,7 +283,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
          implement com.norconex.collector.http.doc.IHttpDocumentProcessor.
          -->
     <preImportProcessors>
-       <processor class="YourClass"></processor>
+        <processor class="YourClass"></processor>
     </preImportProcessors>
       
     <!-- Import a document.  This step calls the Importer module.  The

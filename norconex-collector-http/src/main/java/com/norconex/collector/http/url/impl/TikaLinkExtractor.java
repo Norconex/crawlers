@@ -66,7 +66,7 @@ import org.apache.commons.lang.builder.EqualsBuilder;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;urlExtractor class="com.norconex.collector.http.url.impl.TikeLinkExtractor"
+ *  &lt;extractor class="com.norconex.collector.http.url.impl.TikeLinkExtractor"
  *          ignoreNofollow="(false|true)" 
  *          keepReferrerData="(false|true)"&gt;
  *      &lt;contentTypes&gt;
@@ -232,7 +232,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public void saveToXML(Writer out) throws IOException {
         try {
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
-            writer.writeStartElement("linkExtractor");
+            writer.writeStartElement("extractor");
             writer.writeAttribute("class", getClass().getCanonicalName());
 
             writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());

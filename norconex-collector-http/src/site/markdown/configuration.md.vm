@@ -92,7 +92,9 @@ page for more details on adding your own implementations.
         <metadataChecksummer class="..." />
         <documentFetcher class="..." />
         <robotsMeta ignore="..." class="..."/>
-        <urlExtractor class="..." />
+        <linkExtractors>
+          <extractor class="..." />
+        </linkExtractors>
         <documentFilters>
           <filter class="..." />
           ...
@@ -308,13 +310,14 @@ a "class" attribute, the default implementations is <u>underlined</u>.
      <td><a href="$httpAPI/robot/IRobotsMetaProvider.html">IRobotsMetaProvider</a></td>
     </tr>
     <tr>
-     <td>urlExtractor</td>
-     <td>Extract URLs from a document.</td>
+     <td>linkExtractors</td>
+     <td>One or more &lt;extractor&gt; for extracting URLs and other link data
+         from a document.</td>
      <td>
-       <u><a href="$httpAPI/url/impl/GenericURLExtractor.html">GenericURLExtractor</a></u>,
-       <a href="$httpAPI/url/impl/TikaURLExtractor.html">TikaURLExtractor</a>
+       <u><a href="$httpAPI/url/impl/HtmlLinkExtractor.html">HtmlLinkExtractor</a></u>,
+       <a href="$httpAPI/url/impl/TikaLinkExtractor.html">TikaLinkExtractor.html</a>
      </td>
-     <td><a href="$httpAPI/url/IURLExtractor.html">IURLExtractor</a></td>
+     <td><a href="$httpAPI/url/ILinkExtractor.html">ILinkExtractor</a></td>
     </tr>
     <tr>
      <td>documentFilters</td>
