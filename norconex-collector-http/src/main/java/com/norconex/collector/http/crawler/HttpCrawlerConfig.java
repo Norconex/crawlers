@@ -145,10 +145,10 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         this.metadataFetcher = metadataFetcher;
     }
     public ILinkExtractor[] getLinkExtractors() {
-        return linkExtractors;
+        return ArrayUtils.clone(linkExtractors);
     }
     public void setLinkExtractors(ILinkExtractor[] linkExtractors) {
-        this.linkExtractors = linkExtractors;
+        this.linkExtractors = ArrayUtils.clone(linkExtractors);
     }
     public IRobotsTxtProvider getRobotsTxtProvider() {
         return robotsTxtProvider;

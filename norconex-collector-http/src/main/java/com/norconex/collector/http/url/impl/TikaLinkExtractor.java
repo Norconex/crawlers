@@ -40,6 +40,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.html.HtmlParser;
@@ -51,8 +52,10 @@ import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.EqualsBuilder;
+import org.xml.sax.SAXException;
 
 /**
  * Implementation of {@link ILinkExtractor} using 
@@ -166,7 +169,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 }
             }
             return nxLinks;
-        } catch (Exception e) {
+        } catch (TikaException | SAXException e) {
             throw new IOException("Could not parse to extract URLs: " + url, e);
         }
     }

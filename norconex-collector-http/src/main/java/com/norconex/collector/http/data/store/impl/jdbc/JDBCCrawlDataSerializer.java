@@ -31,8 +31,12 @@ import com.norconex.collector.core.data.store.impl.jdbc.IJDBCSerializer;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 
-class JDBCCrawlDataSerializer implements IJDBCSerializer {
+public class JDBCCrawlDataSerializer implements IJDBCSerializer {
 
+    private static final int TAG_MAX_LENGTH = 1024;
+    private static final int TEXT_MAX_LENGTH = 2048;
+    private static final int TITLE_MAX_LENGTH = 2048;
+    
     protected static final String ALL_FIELDS = 
             // common attributes:
               "reference, "
@@ -115,9 +119,12 @@ class JDBCCrawlDataSerializer implements IJDBCSerializer {
                 data.getSitemapChangeFreq(),
                 data.getSitemapPriority(),
                 data.getReferrerReference(),
-                StringUtils.substring(data.getReferrerLinkTag(), 0, 1024),
-                StringUtils.substring(data.getReferrerLinkText(), 0, 2048),
-                StringUtils.substring(data.getReferrerLinkTitle(), 0, 2048),
+                StringUtils.substring(
+                        data.getReferrerLinkTag(), 0, TAG_MAX_LENGTH),
+                StringUtils.substring(
+                        data.getReferrerLinkText(), 0, TEXT_MAX_LENGTH),
+                StringUtils.substring(
+                        data.getReferrerLinkTitle(), 0, TITLE_MAX_LENGTH),
         };
     }
     

@@ -35,6 +35,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -154,9 +155,9 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     // max url leng is 2048 x 2 bytes + x2 for <a> anchor attributes.
     public static final int OVERLAP_SIZE = 2 * 2 * 2048;
 
-    
     /** Default maximum length a URL can have. */
     public static final int DEFAULT_MAX_URL_LENGTH = 2048;
+
     private static final ContentType[] DEFAULT_CONTENT_TYPES = 
             new ContentType[] {
         ContentType.HTML,
@@ -164,10 +165,10 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         ContentType.valueOf("vnd.wap.xhtml+xml"),
         ContentType.valueOf("x-asp"),
     };
-
+    private static final int INPUT_READ_ARRAY_SIZE = 2048;
+    private static final int PATTERN_URL_GROUP = 4;
     private static final int PATTERN_FLAGS = 
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
-    
     private static final int LOGGING_MAX_URL_LENGTH = 200;
     
     private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
@@ -206,10 +207,10 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         Set<Link> links = new HashSet<>();
         
         StringBuilder sb = new StringBuilder();
-        byte[] buffer = new byte[2048];
+        byte[] buffer = new byte[INPUT_READ_ARRAY_SIZE];
         int length;
         while ((length = input.read(buffer)) != -1) {
-            sb.append(new String(buffer, 0, length));
+            sb.append(new String(buffer, 0, length, CharEncoding.UTF_8));
             if (sb.length() >= MAX_BUFFER_SIZE) {
                 extractLinks(sb.toString(), urlParts, links);
                 sb.delete(0, sb.length() - OVERLAP_SIZE);
@@ -332,7 +333,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             Matcher urlMatcher = p.matcher(restOfTag);
             while (urlMatcher.find()) {
                 String attribName = urlMatcher.group(2);
-                String matchedUrl = urlMatcher.group(4);
+                String matchedUrl = urlMatcher.group(PATTERN_URL_GROUP);
                 if (StringUtils.isBlank(matchedUrl)) {
                     continue;
                 }
@@ -377,7 +378,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         if (!m.find()) {
             return;
         }
-        String url = toAbsoluteURL(referrer, m.group(4));
+        String url = toAbsoluteURL(referrer, m.group(PATTERN_URL_GROUP));
         Link link = new Link(url);
         if (keepReferrerData) {
             link.setReferrer(referrer.url);
