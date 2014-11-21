@@ -36,7 +36,7 @@ import com.norconex.commons.lang.pipeline.Pipeline;
 /**
  * Performs a URL handling logic before actual processing of the document
  * it represents takes place.  That is, before any 
- * document or document header download is
+ * document or document header is downloaded.
  * Instances are only valid for the scope of a single URL.  
  * @author Pascal Essiembre
  */

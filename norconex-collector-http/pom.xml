@@ -102,6 +102,11 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.3.6</version>
+    </dependency>    
+    <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-webapp</artifactId>
         <version>9.2.2.v20140723</version>

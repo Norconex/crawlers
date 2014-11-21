@@ -94,8 +94,9 @@ import com.norconex.commons.lang.io.CachedInputStream;
                         new HttpQueuePipelineContext(ctx.getCrawler(), 
                                 ctx.getCrawlDataStore(), newURL);
                 //TODO do we want to capture them all or just the valid ones?
-                new HttpQueuePipeline().execute(newContext);
-                uniqueURLs.add(newURL.getReference());
+                if (uniqueURLs.add(newURL.getReference())) {
+                    new HttpQueuePipeline().execute(newContext);
+                }
             }
         }
         if (!uniqueURLs.isEmpty()) {
