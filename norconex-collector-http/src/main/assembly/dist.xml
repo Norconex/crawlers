@@ -54,6 +54,17 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <directory>${project.build.directory}/site/apidocs</directory>
       <outputDirectory>apidocs</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/generated-resources</directory>
+      <outputDirectory>third-party</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/generated-sources/license</directory>
+      <includes>
+        <include>THIRD-PARTY.txt</include>
+      </includes>
+      <outputDirectory>third-party</outputDirectory>
+    </fileSet>
   </fileSets>
   <files>
     <file>

@@ -54,6 +54,9 @@
         attributes to find URLs.
       </action>
       <action dev="essiembre" type="update">
+        Now licensed under The Apache License, Version 2.0.
+      </action>
+      <action dev="essiembre" type="update">
         Replaced the configuration option "deleteOrphans(true|false)" with
         "orphansStrategy(DELETE|PROCESS|IGNORE)".
       </action>
