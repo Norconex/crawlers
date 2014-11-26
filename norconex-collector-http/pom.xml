@@ -76,7 +76,7 @@
     <dependency>
         <groupId>com.norconex.jef</groupId>
         <artifactId>norconex-jef</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>4.0.0</version>
     </dependency>
     <dependency>
         <groupId>joda-time</groupId>
@@ -86,7 +86,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
         <groupId>org.apache.httpcomponents</groupId>
