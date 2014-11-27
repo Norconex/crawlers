@@ -22,9 +22,9 @@ import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Datab
 /**
  * JDBC implementation of {@link ICrawlDataStore}.  Defaults to Derby 
  * database.
- * <p />
+ * <br><br>
  * XML configuration usage:
- * <p />
+ * <br><br>
  * <pre>
  *  &lt;crawlDataStoreFactory 
  *          class="com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory"&gt;

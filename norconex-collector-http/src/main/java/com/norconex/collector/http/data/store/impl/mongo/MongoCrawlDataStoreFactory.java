@@ -20,9 +20,9 @@ import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
 
 /**
  * Mongo implementation of {@link ICrawlDataStoreFactory}.
- * <p />
+ * <br><br>
  * XML configuration usage:
- * <p />
+ * <br><br>
  * <pre>
  *  &lt;crawlDataStoreFactory  
  *      class="com.norconex.collector.http.data.store.impl.mongo.MongoCrawlDataStoreFactory"&gt;

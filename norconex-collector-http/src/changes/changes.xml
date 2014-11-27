@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.0.0-SNAPSHOT" date="2014-??-??" description="Major release.">
+    <release version="2.0.0" date="2014-11-26" description="Major release.">
       <action dev="essiembre" type="add">
         Upgraded Norconex Importer to version 2.0.0, which brings to 
         Norconex HTTP Collector a lot of new features, such as: 

@@ -58,7 +58,7 @@ import org.xml.sax.SAXException;
  * <a href="http://tika.apache.org/">Apache Tika</a> to perform URL 
  * extractions from HTML documents.
  * This is an alternative to the {@link HtmlLinkExtractor}.
- * <p />
+ * <br><br>
  * The configuration of content-types and keeping the referrer data is the same
  * as {@link HtmlLinkExtractor}.
  * <p>

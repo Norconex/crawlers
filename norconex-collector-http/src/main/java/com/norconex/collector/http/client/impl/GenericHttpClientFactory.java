@@ -465,7 +465,7 @@ public class GenericHttpClientFactory
     }
     /**
      * Sets the authentication method.
-     * <p/>
+     * <br><br>
      * Valid values are (case insensitive):
      * <ul>
      *   <li>form</li>

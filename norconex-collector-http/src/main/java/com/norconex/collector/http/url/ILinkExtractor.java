@@ -25,7 +25,7 @@ import com.norconex.commons.lang.file.ContentType;
  * Responsible for finding links in documents.  Links are URLs to be followed
  * with possibly contextual information about that URL (the "a" tag attributes,
  * and text).
- * <p />
+ * <br><br>
  * Implementing classes also implementing {@link IXMLConfigurable} should make
  * sure to name their XML tag "<code>extractor</code>", normally nested
  * in <code>linkExtractors</code> tags.

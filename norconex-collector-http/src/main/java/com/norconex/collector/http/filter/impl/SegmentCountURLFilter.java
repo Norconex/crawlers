@@ -48,12 +48,12 @@ import com.norconex.importer.handler.filter.OnMatch;
  * Filters URL based based on the number of URL segments. A URL with
  * a number of segments equal or more than the specified count will either
  * be included or excluded, as specified.
- * <p/>
+ * <br><br>
  * By default
  * segments are obtained by breaking the URL text at each forward slashes
  * (/), starting after the host name.  You can define different or
  * additional segment separator characters.
- * <p/>
+ * <br><br>
  * When <code>duplicate</code> is <code>true</code>, it will count the maximum
  * number of duplicate segments found.
  * <p>

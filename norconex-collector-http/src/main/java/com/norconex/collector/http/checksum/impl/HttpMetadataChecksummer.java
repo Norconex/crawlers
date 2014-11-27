@@ -27,9 +27,11 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
+ * <p>
  * Default implementation of {@link IMetadataChecksummer} which by default
  * returns the exact value of the "Last-Modified" HTTP header field.
- * <p/>
+ * </p>
+ * <p>
  * XML configuration usage:
  * </p>
  * <pre>

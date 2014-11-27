@@ -115,9 +115,9 @@ public class TestServlet extends HttpServlet {
             out.println("<p>Tests: depth, validMetadata</p>");
             if (prevDepth >= 0) {
                 out.println("<a href=\"?case=basic&depth=" + prevDepth
-                        + "\">Previous depth is " + prevDepth + "</a><p />");
+                        + "\">Previous depth is " + prevDepth + "</a><br><br>");
             }
-            out.println("<b>This page is of depth: " + depth + "</b><p />");
+            out.println("<b>This page is of depth: " + depth + "</b><br><br>");
             out.println("<a href=\"?case=basic&depth=" + nextDepth
                     + "\">Next depth is " + nextDepth + "</a>");
         }
@@ -142,7 +142,7 @@ public class TestServlet extends HttpServlet {
             out.println("The URL was redirected."
                     + "The URLs on this page should be relative to "
                     + "/test/redirected/ and not /.  The crawler should "
-                    + "redirect and figure that out.<p />");
+                    + "redirect and figure that out.<br><br>");
             out.println("<a href=\"page1.html\">Page 1 (broken)</a>");
             out.println("<a href=\"page2.html\">Page 2 (broken)</a>");
         }

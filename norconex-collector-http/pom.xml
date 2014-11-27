@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.0.0</version>
   <name>Norconex HTTP Collector</name>
 
   <properties>
@@ -35,36 +35,6 @@
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
-
-  <repositories>
-    <repository>
-      <id>norconex-release-repo</id>
-      <url>http://norconex.s3.amazonaws.com/repo/release</url>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>norconex-snapshot-repo</id>
-      <url>http://norconex.s3.amazonaws.com/repo/snapshot</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>sonatype-snapshots</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </repository>
-  </repositories>
 
   <dependencies>
     <dependency>
@@ -315,7 +285,17 @@
           </execution>
         </executions>
       </plugin>
-
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.3</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+        </configuration>
+      </plugin>    
     </plugins>
   </build>
   
@@ -324,16 +304,14 @@
       <id>norconex-site-deployment</id>
       <url>${site.baseurl}/collector-http/latest</url>
     </site>
-    <repository>  
-      <id>norconex-release-repo</id>
-      <name>Norconex Release Repository</name>  
-      <url>s3://norconex/repo/release</url>  
-    </repository>  
-    <snapshotRepository>  
-      <id>norconex-snapshot-repo</id>  
-      <name>S3 Snapshot Repository</name>  
-      <url>s3://norconex/repo/snapshot/</url>  
-    </snapshotRepository>  
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>    
   </distributionManagement>
   
   <reporting>
