@@ -388,7 +388,7 @@
     <name>Norconex Inc.</name>
     <url>http://www.norconex.com</url>
   </organization>
-  <url>http://www.norconex.com/product/collector-http</url>
+  <url>http://www.norconex.com/collectors/collector-http</url>
   <description>Norconex HTTP Collector is a web spider, or crawler that aims to be very flexible, easy to extend, and portable</description>
   <issueManagement>
     <system>GitHub</system>
