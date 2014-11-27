@@ -2,10 +2,138 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/changes/1.0.0 http://maven.apache.org/xsd/changes-1.0.0.xsd">
   <properties>
-    <title>Norconex HTTP Collector Project</title>
+    <title>Norconex HTTP Collector Release Notes</title>
     <author email="info@norconex.com">Norconex Inc.</author>
   </properties>
   <body>
+
+    <release version="2.0.0" date="2014-11-26" description="Major release.">
+      <action dev="essiembre" type="add">
+        Upgraded Norconex Importer to version 2.0.0, which brings to 
+        Norconex HTTP Collector a lot of new features, such as: 
+        Document content splitting, splitting of embedded documents into 
+        individual documents, new taggers for language detection, changing
+        character case, parsing and formatting dates, providing content 
+        statistics, and more.  Please read the Norconex Importer release notes
+        for a complete list of changes at: 
+        http://www.norconex.com/product/importer/changes-report.html#a2.0.0
+      </action>
+      <action dev="essiembre" type="add">
+        Can now supplied a "pathsFile" as part of the startPaths, 
+        acting as a seed list.
+      </action>
+      <action dev="essiembre" type="add">
+        New fast MVStore database implementation for URL database 
+        (from Norconex Collector Core).
+      </action>
+      <action dev="essiembre" type="add">
+        New H2 database implementation for URL database (crawl data store).
+      </action>
+      <action dev="essiembre" type="add">
+        Now keeps track of parent references (for embedded/split documents).
+      </action>
+      <action dev="essiembre" type="add">
+        More unit tests, with the addition of an embedded Jetty Web server
+        rendering test pages for some unit tests.
+      </action>
+      <action dev="essiembre" type="add">
+        New JMX/MBean support added on crawlers.
+      </action>
+      <action dev="essiembre" type="add">
+        IUrlExtractor is now ILinkExtractor and both their implementing classes
+        (HtmlLinkExtractor and TikaLinkExtractor) now support also extracting
+        a link title and text (github #23), and they also support the 
+        "nofollow" robot rule.
+      </action>
+      <action dev="essiembre" type="add">
+        It is now possible to configure multiple link extraction classes, 
+        each taking effect on particular URLs and/or content-types.
+      </action>
+      <action dev="essiembre" type="add">
+        IHtmlLinkExtractor can be configured to use specified HTML tags and 
+        attributes to find URLs.
+      </action>
+      <action dev="essiembre" type="update">
+        Now licensed under The Apache License, Version 2.0.
+      </action>
+      <action dev="essiembre" type="update">
+        Replaced the configuration option "deleteOrphans(true|false)" with
+        "orphansStrategy(DELETE|PROCESS|IGNORE)".
+      </action>
+      <action dev="essiembre" type="update">
+        The collector now references document content as reusable InputStream
+        with memory caching instead of relying only on files. This saves a great
+        deal of disk I/O and improves performance in most cases.
+      </action>
+      <action dev="essiembre" type="update">
+        Refactored to use the new Norconex Collector Core library.  
+        A significant portion of the Norconex HTTP Collector code has 
+        been moved to that core library.  Some of the moved classes are
+        (base package being com.norconex.collector.*):
+        http.checksum.IHttpDocumentChecksummer 
+          to core.checksum.IDocumentChecksummer,
+        http.checksum.IHttpHeadersChecksummer 
+          to core.checksum.IMetadataChecksummer,
+        http.checksum.DefaultHttpDocumentChecksummer 
+          to core.checksum.impl.MD5DocumentChecksummer,
+        http.filter.IURLFilter to core.filter.IReferenceFilter
+        http.filter.IHttpHeadersFilter to core.filter.IMetadataFilter
+        http.filter.IHttpDocumentFilter to core.filter.IDocumentFilter
+        http.filter.impl.ExtensionURLFilter 
+          to core.filter.impl.ExtensionURLFilter
+        http.filter.impl.RegexHeaderFilter
+          to core.filter.impl.RegexMetadataFilter
+        http.filter.impl.RegexURLFilter
+          to core.filter.impl.RegexReferenceFilter
+      </action>
+      <action dev="essiembre" type="update">
+        Amongst others, the following classes were renamed (within 
+        com.norconex.collector.http.*):
+        checksum.impl.DefaultHttpHeadersChecksummer to 
+          checksum.impl.HttpMetadataChecksummer,
+        client.impl.DefaultHttpClientFactory 
+          to client.impl.GenericHttpClientFactory,
+        delay.impl.DefaultDelayResolver to delay.impl.GenericDelayResolver,
+        fetch.impl.DefaultDocumentFetcher to fetch.impl.GenericDocumentFetcher,
+        fetch.impl.SimpleHttpHeadersFetcher 
+          to fetch.impl.GenericHttpHeadersFetcher,
+        robot.impl.DefaultRobotsMetaProvider 
+          to robot.impl.StandardRobotsMetaProvider,
+        robot.impl.DefaultRobotsTxtProvider
+          to robot.impl.StandardRobotsTxtProvider,
+        sitemap.impl.DefaultSitemapResolver 
+          to sitemap.impl.StandardSitemapResolver,
+        url.impl.DefaultURLExtractor to url.impl.GenericURLExtractor
+      </action>      
+      <action dev="essiembre" type="update">
+        Several references to "url" were changed to "reference".  
+      </action>
+      <action dev="essiembre" type="update">
+        New and more scalable crawler event model along with new listeners.
+      </action>
+      <action dev="essiembre" type="update">
+        Refactored to use JEF 4.0.0 which makes the HTTP Collector easier to
+        monitor.
+      </action>
+      <action dev="essiembre" type="update">
+        Other libray upgrades: Norconex Committer to 2.0.0 and 
+        Norconex Commons Lang to 1.5.0.
+      </action>
+      <action dev="essiembre" type="update">
+        Removed previously deprecated classes.
+      </action>
+      <action dev="essiembre" type="update">
+        Crawled sitemap details now has its own store (no longer mixed with
+        the crawl data store).
+      </action>
+      <action dev="essiembre" type="update">
+        ISiteMapResolver now needs an ISiteMapResolverFactory.
+      </action>
+      <action dev="essiembre" type="fix">
+        Ongoing sitemap resolution will now be stopped when a stop request 
+        is sent to the crawler.
+      </action>
+    </release>
   
     <release version="1.3.4" date="2014-08-24" description="Maintenance release.">
       <action dev="dimassip" type="add">
@@ -18,31 +146,35 @@
         Fixed DefaultRobotsTxtProvider failing to parse some robots.txt
         patterns (github #36).  
       </action>
+      <action dev="essiembre" type="fix">
+        Fixed DefaultRobotsTxtProvider failing to parse some robots.txt
+        patterns (github #36).  
+      </action>
     </release>
 
     <release version="1.3.3" date="2014-08-07" description="Bug fix release.">
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Upgraded JEF to 3.0.1 to fix stop action not working.  
       </action>
-      <action dev="essiembp" type="fix">
+      <action dev="essiembre" type="fix">
         Fixed NullPointerException in robots.txt resolution under some 
         circonstances.  
       </action>
     </release>
 
     <release version="1.3.2" date="2014-06-17" description="Bug fix release.">
-      <action dev="essiembp" type="fix">
+      <action dev="essiembre" type="fix">
         DefaultURLExtractor no longer treat empty href as being a URL ending
         with a double-quote.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Renamed HttpMetadata key "collector.http.dept" to 
         "collector.http.depth" (typo fix).
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Upgraded Norconex Commons Lang to 1.3.2
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         GenericURLNormallizer no longer rejects URLs with spaces in them.
         It now logs a warning instead (thanks to Norconex Commons Lang upgrade).
       </action>
@@ -78,7 +210,7 @@
     </release>
     
     <release version="1.3.1" date="2014-04-10" description="Bug fix release.">
-      <action dev="essiembp" type="fix">
+      <action dev="essiembre" type="fix">
         Header and document checksum value are no longer added by default to
         prevent the issue described in github ticket #24.  Instead, adding
         checksum is now an optional feature of DefaultHttpDocumentChecksummer
@@ -87,224 +219,224 @@
     </release>
 
     <release version="1.3.0" date="2014-03-24" description="Feature release.">
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         Now supports NTLM authentication.  SPNEGO and Kerberos were also 
         added but are experimental (see DefaultHttpClientFactory).
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         Can now specify character set of HTTP connections and authentication
         forms.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         Can now set custom timeout values on HTTP connection-related activities.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         New option to trust all SSL certificates of sites being crawled
         (see DefaultHttpClientFactory).
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         Can now specify a maximum number of HTTP connections for each crawler
         independently of configured number of threads 
         (see DefaultHttpClientFactory).
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         DefaultHttpClientFactory introduces additional configuration options:
         proxy scheme, 'Expect: 100-continue' handshake, maximum HTTP redirects,
         local address, stale connection checks 
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         HTTP header checksum and document checksum are now added to the document
         metadata as HttpMetadata#CHECKSUM_HEADER and HttpMetadata#CHECKSUM_DOC.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         The empty sub-folders contained under the "download" folder are now 
         periodically deleted.  This speeds up directory scanning and increases
         performance on large crawls.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         The userAgent is now a crawler configuration option 
         (previously was an option of DefaultHttpClientInitializer )
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         API change: IRobotsTxtProvider#getRobotsTxt(...) method signature has 
         changed to accept the User-Agent.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         IHttpClientInitializer is now deprecated in favor of IHttpClientFactory,
         giving you more control over HttpClient creation.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         API change: Methods previously accepting DefaultHttpClient instances 
         now have their signature accepting parent interface HttpClient instead.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         More logging to help resolve crawler issues with DEBUG log level.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         HttpCrawler more lenient upon encountering some errors that were 
         previous aborting entire execution.  
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Library upgrades.  Updated default crawl url database (MapDB) to 
         version 0.9.10, Norconex Commons Lang to 1.3.0,
         Norconex Committer to 1.2.0, Norconex Importer to 1.2.0, and 
         Apache HttpClient to 4.3.2.
       </action>
-      <action dev="essiembp" type="fix">
+      <action dev="essiembre" type="fix">
         Now ensures that robots.txt agent matching gives priority to the most 
         specific match (as opposed to the first match).  Sitemaps detected
         in robots.txt are also preserved for sitemap resolving.
       </action>
-      <action dev="essiembp" type="remove">
+      <action dev="essiembre" type="remove">
         Removed classes deprecated since 1.1.
       </action>
     </release>
 
     <release version="1.2.0" date="2014-01-11" description="Feature release.">
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         New optional Mongo URL Database implementation.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         New TikaURLExtractor class providing an alternate IURLExtractor
         implementation based on Apache Tika HTMLParser.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         New SegmentCountURLFilter class for filtering URLs having a specified
         number of segments (can check duplicate segments too).
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         New unit tests.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         MapDB URL Database classes moved to its own "mapdb" package.
         DefaultCrawlURLDatabaseFactory still exists, but is just a pointer
         to MapDBCrawlURLDatabaseFactory.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Example configurations now point to Norconex test pages to ensure
         their stability.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Upgraded dependent libraries: Norconex Committer 1.1.0,
         Norconex Commons Lang 1.2.0, MapDB 0.9.8 and 
         other thrid party libraries.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Improved Javadoc.
       </action>
     </release>
 
     <release version="1.1.1" date="2013-10-03" description="Bug fix release.">
-      <action dev="essiembp" type="fix" issue="18">
+      <action dev="essiembre" type="fix" issue="18">
         Fixed not being able to extract the "href" attribute when it starts
         a new line.
       </action>
-      <action dev="essiembp" type="fix" issue="17">
+      <action dev="essiembre" type="fix" issue="17">
         Fixed HTTP redirects not storing final target URL but the source URL
         instead.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Upgraded dependent libraries to Norconex Importer 1.1.0 and
         Norconex Commons Lang 1.1.0.
       </action>
     </release>
 
     <release version="1.1.0" date="2013-08-21" description="Feature release.">
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         Crawler now fires additional events. Added "documentRobotsMetaRejected"
         and "documentImportRejected" methods to IHttpCrawlerEventListener.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         DefaultCrawlURLDatabase now uses a MapDB-based implementation for
         faster performance.  The derby implementation has been kept for those
         with a preference for it.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         Now support sitemap.xml and sitemap index (plain or gzip).
         URLs from sitemaps will have the sitemap information as metadata.
       </action>
       <action dev="pascaldimassimo" type="add">
         BASIC and DIGEST authentication now supported.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         Now supports in-page robot instructions.  Via "ROBOTS" meta tag first,
         or "X-Robots-Tag" tag if present in HTTP header.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         "ftp" protocol now supported.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         It is now possible to specify the scope of each delay between URL
         download with DefaultDelayResolver (per crawler, site, or thread).
         "crawler" is default.
       </action>
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         Javadoc Jar and Source Jar are now also deployed to Maven repository.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Deprecation of *.handler.* package.  Classes have been moved to
         more intuitive packages.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         IDelayResolver are no longer systematically synchronized
         (i.e. accessible only one thread a a time). This is a decision left
         up to each implementation.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Reduced the number of calls to the crawl database to improve
         performance (URL filtering but be successfully passed for a document
         to get queued for processing).
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Upgraded to Norconex Importer from 1.0.0 to 1.0.2.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Upgraded to Norconex Commons Lang from 1.0.0 to 1.0.1.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         Connection timeout now 30 seconds in DefaultHttpClientInitializer.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         When deleting downloaded files, the text file from the importer
         output is now also deleted as URLs are being processed,
         greatly reducing the number of files on disk during the crawling
         process.
       </action>
-      <action dev="essiembp" type="update">
+      <action dev="essiembre" type="update">
         The application now prints the full path of an error file when
         an error occurs on startup (error-*.log).
       </action>
-      <action dev="essiembp" type="fix" issue="16">
+      <action dev="essiembre" type="fix" issue="16">
         When reprocessed, orphan URLs are processed/filtered in case there has
         been a configuration change.  For instance, if if the maxDepth was
         reduced, former URLs that were once good may now be invalid due to
         their depth being too big.  Only "valid" URLs are now considered
         for detecting orphans (OK or UNMODIFIED statuses).
       </action>
-      <action dev="essiembp" type="fix">
+      <action dev="essiembre" type="fix">
         Fixed java.io.NotSerializableException when cloning HttpCrawlerConfig
         (when &lt;crawlerDefaults&gt; is used).
       </action>
     </release>
 
     <release version="1.0.2" date="2013-07-11" description="Bug fix release.">
-      <action dev="essiembp" type="fix" >
+      <action dev="essiembre" type="fix" >
         DefaultURLExtractor now handle URLs starting with ? properly and
         those prefixed with "URL=" (e.g. meta http-equiv="refresh")
       </action>
     </release>
 
     <release version="1.0.1" date="2013-06-26" description="Bug fix release.">
-      <action dev="essiembp" type="fix" issue="15">
+      <action dev="essiembre" type="fix" issue="15">
         Relative URLs starting with two slashes (//) are now extracted properly.
       </action>
-      <action dev="essiembp" type="fix" issue="15">
+      <action dev="essiembre" type="fix" issue="15">
         Replacements now working for GenericURLNormalizer.
       </action>
     </release>
 
     <release version="1.0.0" date="2013-06-05" description="Open Source release">
-      <action dev="essiembp" type="add">
+      <action dev="essiembre" type="add">
         Starting with this release, Norconex HTTP Collector is open-source under GPL.
       </action>
     </release>

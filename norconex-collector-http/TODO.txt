@@ -1,0 +1,123 @@
+The following are either things to be done, or ideas to consider:
+
+
+For 2.0.0:
+============
+
+- Add a crawler event listener that acts as a link checker, logging/storing
+  every bad (404) URLs encountered.
+
+- Add total execution time, periodic time elapsed and estimated remaining.
+
+- Test that deletion of embedded docs are detected and sent to committer
+
+- Store somewhere whether a committed document is new or modified.
+
+- DONE: Add a more stable fast off-heap key/value database as an alternative
+  to MapDB (which has stability issues).
+
+Any release:
+============
+
+- Introduce "Add-ons" like social media add-ons to crawl social media sites.
+
+- Consider adding engine with JavaScript runtime like Selenium (or HtmlUnit,
+  or embedded browser engine) to crawl pages partly generated with JavaScript 
+  (and maybe help with screenshots)?
+
+- Have an interface for how to optionally store downloaded files
+  (i.e., location, directory structure, file naming).  This could allow
+  usage of the collector to clone a site.  Should the DocumentFetcher do it 
+  instead?
+
+- When issuing a STOP, add an option to specify which crawler to stop,
+  and let others run.
+  
+- Add a startup flag that will generate a batch/sh script for the user which 
+  abstracts the call to the config file 
+  (e.g., abcCollector.sh start|stop|resume)
+
+- Add a command prompt action to flush the committer queue. This can be useful
+  if the collector crashed for some reason, while there were files left in
+  the committer queue.  Shall this be done on an AbstractCommitter class
+  so all future collectors automatically has that?
+
+- Add support for having different HTTPContext for each call and/or each
+  sites.
+  
+- DONE (can specify tag/attribute and can specify more than one link extractor:
+   Add ability to provide custom URL pattern matching for URL Extraction
+   (removing need to subclass).
+
+- Ability to crawl up to a given size.  Absolute number or percentage of 
+  disk capacity?
+
+- Provide some duplicate detection mechanism.  Maybe using existing checksums.
+
+- Add the ability to control how many successive crawls it has to go through
+  before deleting a document because it was not found (404).
+
+- Have configurable the level of verbosity desired when logging exceptions.
+  The options could be:
+     - type: none|all|first|last
+     - stacktrace: false|true
+
+- DONE Make sure maxURL counter saved in progress is in sync with each time we 
+  commit to avoid having a counter higher than actual URLs processed in case of 
+  failure (minor impact).
+
+- Rotate/break log files when too big.
+
+- If a URL filter rule was changed and a document is now rejected (never 
+  processed), it will not be deleted (since it did not get a 404/NOT_FOUND).
+  Maybe check if rejected URL in URLProcessor are in cache and send deletion 
+  if so.
+
+- Integrate with distributed computing frameworks such as hadhoop.
+
+- Test that IPV6 is supported
+
+- DONE: Consider having support for different URLExractors for different content 
+  types.  Maybe also offer to default one ability to define custom patterns
+  for how to identify URLs.
+
+- Detect and follow RSS feeds (related to having multiple url extractors by
+  content types).
+
+- Offer option to have crawling rate adjust itself if a site is slow
+  (in case it is the crawler hammering it).  Probably a change or new delay
+  implementation... this means total download time (both for HEAD and GET) 
+  should be added as document properties (not a bad idea to do regardless).
+
+- To consider: Interface for how to save documents whey they are kept.
+  Same with default committer queue location.
+  File system is used for both now, but could be others like MongoDB?
+
+- Add option to skip certain http response code (like 500).  Those docs 
+  that should not be added nor deleted because they are in a temporary bad 
+  state.  Is it really useful?
+
+- Add a GUI application to help manage collectors and report useful info.
+
+- Deal with <a rel="noreferrer" ... ??
+
+MAYBE:
+=======
+- Create an XML schema/DTD?
+
+- Start offering per-site options?  Like crawl interval and more?
+  (can be achieve with defining different crawlers now).
+
+
+  <!-- TODO: Add JEF Listeners -->
+  <jef>
+      <errorHandlers> 
+         <handler class=""></handler>
+      </errorHandlers>
+      <jobProgressListener> 
+         <listener class=""></listener>
+      </jobProgressListener>
+      <suiteLifeCycleListener> 
+         <listener class=""></listener>
+      </suiteLifeCycleListener>
+  </jef>

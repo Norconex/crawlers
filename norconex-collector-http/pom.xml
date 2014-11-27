@@ -1,20 +1,17 @@
 <!-- 
-Copyright 2010-2013 Norconex Inc.
+   Copyright 2013-2014 Norconex Inc.
 
-This file is part of Norconex HTTP Collector.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-Norconex HTTP Collector is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-Norconex HTTP Collector is distributed in the hope that it will be useful, 
-but WITHOUT ANY WARRANTY; without even the implied warranty of 
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -22,98 +19,34 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
-  <version>1.3.4</version>
+  <version>2.0.0</version>
   <name>Norconex HTTP Collector</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <site.baseurl/>
-    <currentStableVersion>1.3.4</currentStableVersion>
   </properties>
   <inceptionYear>2009</inceptionYear>
 
   <licenses>
     <license>
-      <name>GNU GENERAL PUBLIC LICENSE, Version 3</name>
-      <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
-    </license>
-    <license>
-      <comments>
-        Norconex provides commercial licenses for all its open-source
-        products, designed to meet the development and distribution 
-        needs of commercial distributors
-        (such as OEMs, ISVs and VARs).  Please contact Norconex
-        for a commercial license at sales@norconex.com.
-      </comments>
-      <name>Commercial License</name>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
 
-  <repositories>
-    <repository>
-      <id>norconex-release-repo</id>
-      <url>http://norconex.s3.amazonaws.com/repo/release</url>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>norconex-snapshot-repo</id>
-      <url>http://norconex.s3.amazonaws.com/repo/snapshot</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>sonatype-snapshots</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </repository>
-  </repositories>
-
   <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
         <groupId>com.norconex.jef</groupId>
         <artifactId>norconex-jef</artifactId>
-        <version>3.0.1</version>
-    </dependency>
-    <dependency>
-        <groupId>com.norconex.collectors</groupId>
-        <artifactId>norconex-committer</artifactId>
-        <version>1.2.0</version>
-    </dependency>
-    <dependency>
-        <groupId>com.norconex.collectors</groupId>
-        <artifactId>norconex-importer</artifactId>
-        <version>1.2.0</version>
-    </dependency>
-    <dependency>
-        <groupId>commons-beanutils</groupId>
-        <artifactId>commons-beanutils</artifactId>
-        <version>1.8.3</version>
-    </dependency>
-    <dependency>
-        <groupId>org.apache.derby</groupId>
-        <artifactId>derby</artifactId>
-        <version>10.9.1.0</version>
-    </dependency>
-    <dependency>
-        <groupId>commons-dbcp</groupId>
-        <artifactId>commons-dbcp</artifactId>
-        <version>1.4</version>
-    </dependency>
-    <dependency>
-        <groupId>commons-dbutils</groupId>
-        <artifactId>commons-dbutils</artifactId>
-        <version>1.5</version>
+        <version>4.0.0</version>
     </dependency>
     <dependency>
         <groupId>joda-time</groupId>
@@ -121,26 +54,28 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <version>2.2</version>
     </dependency>
     <dependency>
-        <groupId>com.foursquare</groupId>
-        <artifactId>fongo</artifactId>
-        <version>1.2.0</version>
+      <groupId>com.norconex.collectors</groupId>
+      <artifactId>norconex-collector-core</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.3.6</version>
+    </dependency>    
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+        <version>9.2.2.v20140723</version>
         <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.mongodb</groupId>
-        <artifactId>mongo-java-driver</artifactId>
-        <version>2.11.1</version>
+      <groupId>com.github.fakemongo</groupId>
+      <artifactId>fongo</artifactId>
+      <version>1.5.5</version>
+      <scope>test</scope>
     </dependency>
-    <dependency>
-        <groupId>org.mapdb</groupId>
-        <artifactId>mapdb</artifactId>
-        <version>0.9.10</version>
-    </dependency>
-    <dependency>
-      <groupId>com.norconex.commons</groupId>
-      <artifactId>norconex-commons-lang</artifactId>
-      <version>1.3.2</version>
-    </dependency>
+
   </dependencies>
   
   <build>
@@ -152,10 +87,14 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
             </includes>
         </resource>
         <resource>
+            <filtering>false</filtering>
             <directory>${project.build.sourceDirectory}</directory>
             <includes>
-                <include>**/*.properties</include>
+                <include>**</include>
             </includes>
+            <excludes>
+                <exclude>**/*.java</exclude>
+            </excludes>
         </resource>
     </resources>
     <extensions>
@@ -178,17 +117,13 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
               <version>3.3</version>
               <configuration>
                 <generateReports>true</generateReports>
+                <inputEncoding>UTF-8</inputEncoding>
+                <outputEncoding>UTF-8</outputEncoding>
                 <templateFile>
-                  ${basedir}/src/site/resources/skin/reflow-modified.vm
+                  ${basedir}/src/site/skinless.vm
                 </templateFile>
               </configuration>
               <dependencies>
-                <dependency>
-                  <groupId>lt.velykis.maven.skins</groupId>
-                  <artifactId>reflow-velocity-tools</artifactId>
-                  <version>1.0.0</version>
-                </dependency>
-                <!-- Reflow skin requires Velocity >= 1.7  -->
                 <dependency>
                   <groupId>org.apache.velocity</groupId>
                   <artifactId>velocity</artifactId>
@@ -220,6 +155,26 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         </configuration>
       </plugin> 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>download-licenses</id>
+            <goals>
+              <goal>download-licenses</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>create-license-list</id>
+            <goals>
+              <goal>add-third-party</goal>
+            </goals>
+            <phase>generate-resources</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
@@ -240,7 +195,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9</version>
+        <version>2.9.1</version>
         <configuration>
           <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <show>protected</show>
@@ -250,6 +205,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
             <link>http://db.apache.org/derby/docs/10.9/publishedapi/jdbc4/</link>
             <link>http://api.mongodb.org/java/2.11.1/</link>
           </links>
+          <source>1.7</source>
         </configuration>
         <executions>
           <execution>
@@ -275,42 +231,87 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           <execution>
             <id>attach-sources</id>
             <goals>
-              <goal>jar</goal>
+              <goal>jar-no-fork</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
-      
       <plugin>
-       <groupId>org.apache.maven.plugins</groupId>
-       <artifactId>maven-jar-plugin</artifactId>
-       <version>2.2</version>
-       <executions>
-         <execution>
-           <goals>
-             <goal>test-jar</goal>
-           </goals>
-         </execution>
-       </executions>
-     </plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>id.post-site</id>
+            <phase>post-site</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <echo>Remove useless site files</echo>
+                <delete dir="${project.build.directory}/site/css" />
+                <delete dir="${project.build.directory}/site/images" />
+                <delete file="${project.build.directory}/site/project-reports.html" />
+                <copy file="${basedir}/src/changes/changes.xml" todir="${project.build.directory}/site/"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.3</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+        </configuration>
+      </plugin>    
     </plugins>
   </build>
   
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
-      <url>${site.baseurl}/collector-http</url>
+      <url>${site.baseurl}/collector-http/latest</url>
     </site>
-    <repository>  
-      <id>norconex-release-repo</id>
-      <name>Norconex Release Repository</name>  
-      <url>s3://norconex/repo/release</url>  
-    </repository>  
-    <snapshotRepository>  
-      <id>norconex-snapshot-repo</id>  
-      <name>S3 Snapshot Repository</name>  
-      <url>s3://norconex/repo/snapshot/</url>  
-    </snapshotRepository>  
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>    
   </distributionManagement>
   
   <reporting>
@@ -326,12 +327,6 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
         <reportSets>
           <reportSet>
             <reports>
-              <report>summary</report>
-              <report>dependencies</report>
-              <report>issue-tracking</report>
-              <report>license</report>
-              <report>scm</report>
-              <report>project-team</report>
             </reports>
           </reportSet>
         </reportSets>
@@ -339,13 +334,13 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9</version>
+        <version>2.9.1</version>
         <configuration>
           <overview>${basedir}/src/main/javadoc/overview.html</overview>
           <header><![CDATA[
             <style>div.aboutLanguage .siteLink {font-size: 2em;}</style>
             <span class="siteLink">
-              <a href="http://www.norconex.com/product/collector-http">Norconex HTTP Collector</a>
+              <a href="http://www.norconex.com/collectors/collector-http">Norconex HTTP Collector</a>
             </span>
             ]]>
           </header>
@@ -369,6 +364,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
           <show>protected</show>
           <detectLinks>false</detectLinks>
           <nodeprecated>false</nodeprecated>
+          <source>1.7</source>
           <links>
             <link>http://db.apache.org/derby/docs/10.9/publishedapi/jdbc4/</link>
             <link>http://api.mongodb.org/java/2.11.1/</link>
@@ -381,19 +377,6 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
             </configuration>
             <reports>
               <report>javadoc</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-changes-plugin</artifactId>
-        <version>2.9</version>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>changes-report</report>
-              <!-- report>github-report</report -->
             </reports>
           </reportSet>
         </reportSets>
@@ -419,7 +402,7 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
   <developers>
     <developer>
-        <id>essiembp</id>
+        <id>essiembre</id>
         <name>Pascal Essiembre</name>
         <email>pascal.essiembre@norconex.com</email>
         <organization>Norconex Inc.</organization>

@@ -1,20 +1,16 @@
-/* Copyright 2010-2013 Norconex Inc.
- * 
- * This file is part of Norconex HTTP Collector.
- * 
- * Norconex HTTP Collector is free software: you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Norconex HTTP Collector is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Norconex HTTP Collector. If not, 
- * see <http://www.gnu.org/licenses/>.
+/* Copyright 2010-2014 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.norconex.collector.http.crawler;
 
@@ -29,19 +25,15 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 
-import com.norconex.collector.http.db.ICrawlURLDatabase;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
+import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 
 /**
  * <p>
- * This class is a hot fix for github issue #17 where HTTP redirects does not
- * store target URL but the source instead.  <b>It should be considered 
- * a temporary solution and assume this class will disappear.</b>   
- * A better solution would involve breaking an
- * interface method signature.  A more permanent fix should be put in place
- * in <code>DefaultHttpDocumentFetcher</code> once we are in a position to 
- * make non-backward compatible changes (new minor/major release).
+ * This class handles HTTP redirects which by default ends up not not
+ * storing the final redirect URL but the original one instead.  
  * </p>
  * <p>
  * This class is set in <code>HttpCrawler</code> after invoking the 
@@ -51,8 +43,7 @@ import com.norconex.collector.http.doc.HttpMetadata;
  * <code>RedirectStrategy</code>, please not that it will transparently
  * be wrapped by this class.  If you need to access to your implementation,
  * later down in the processing flow, you can call the method 
- * <code>getOriginalRedirectStrategy</code> to obtain it. Again, be
- * warned this wrapper class will disappear.
+ * <code>getOriginalRedirectStrategy</code> to obtain it. 
  * </p>
  * @author Pascal Essiembre
  * @since 1.1.1
@@ -105,13 +96,17 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
     public static void fixRedirectURL(
             HttpClient httpClient, 
             HttpDocument doc,
-            CrawlURL crawlURL,
-            ICrawlURLDatabase database) {
-        String originalURL = crawlURL.getUrl();
+            HttpCrawlData httpCrawlData,
+            ICrawlDataStore database) {
+        String originalURL = httpCrawlData.getReference();
         String currentURL = getCurrentUrl();
         if (ObjectUtils.notEqual(currentURL, originalURL)) {
-            crawlURL.setUrl(currentURL);
-            doc.getMetadata().setString(HttpMetadata.DOC_URL, currentURL);
+            httpCrawlData.setOriginalReference(originalURL);
+            httpCrawlData.setReference(currentURL);
+            doc.getMetadata().setString(HttpMetadata.COLLECTOR_URL, currentURL);
+            doc.setReference(currentURL);
+//            Unless the DocCrawl is enough to ensure proper storing + sending to committer?
+//                     or... add a setNewURL() instead of storing original URL.
         }
     }
 }

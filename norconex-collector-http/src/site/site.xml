@@ -1,173 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-Copyright 2010-2013 Norconex Inc.
+   Copyright 2010-2014 Norconex Inc.
 
-This file is part of Norconex HTTP Collector.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-Norconex HTTP Collector is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-Norconex HTTP Collector is distributed in the hope that it will be useful, 
-but WITHOUT ANY WARRANTY; without even the implied warranty of 
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 -->
 <project name="Norconex HTTP Collector">
-
-  <skin>
-    <groupId>lt.velykis.maven.skins</groupId>
-    <artifactId>reflow-maven-skin</artifactId>
-    <version>1.0.0</version>
-  </skin>
-  
-  <custom>
-    <reflowSkin>
-      <navbarInverse>false</navbarInverse>
-      <protocolRelativeURLs>false</protocolRelativeURLs>
-      <highlightJs>true</highlightJs>
-      <theme>site</theme>
-      <brand>
-        <name><![CDATA[
-          <span class="color-highlight">Norconex</span> HTTP Collector
-          ]]>
-        </name>
-        <href>http://www.norconex.com/product/collector-http/index.html</href>
-      </brand>
-      <slogan><![CDATA[
-          Open-Source Enterprise Web Crawler
-          ]]>
-      </slogan>
-      <titleTemplate>%2$s | %1$s</titleTemplate>
-      <topNav>Documentation|Contribute</topNav>
-      <bottomNav>
-        <column>Main</column>
-        <column>Maven Documentation</column>
-        <column>Norconex Products</column>
-      </bottomNav>
-      <bottomDescription><![CDATA[
-          <a href="http://www.norconex.com"><img src="./images/norconex_logo.png"></a><br />
-          Norconex HTTP Collector is released and actively maintained by 
-          <a href="http://www.norconex.com">Norconex</a>. 
-          ]]>
-      </bottomDescription>
-      <skinAttribution>false</skinAttribution>
-
-      <breadcrumbs>false</breadcrumbs>
-      <markPageHeader>false</markPageHeader>
-      <toc>none</toc>
-      <smoothScroll>true</smoothScroll>
-
-      <pages>
-
-        <index project="norconex-collector-http">
-          <breadcrumbs>false</breadcrumbs>
-          <sections>
-            <body />
-            <columns>3</columns>
-          </sections>
-        </index>
-
-        <download project="norconex-collector-http">
-          <breadcrumbs>false</breadcrumbs>
-          <sections>
-            <columns>2</columns>
-          </sections>
-        </download>
-
-        <faq project="norconex-collector-http">
-          <toc>top</toc>
-        </faq>
-
-        <contribute project="norconex-collector-http">
-          <sections>
-            <columns>2</columns>
-          </sections>
-        </contribute>
-
-        <support project="norconex-collector-http">
-          <sections>
-            <columns>2</columns>
-          </sections>
-        </support>
-
-        <features project="norconex-collector-http">
-          <sections>
-            <body />
-            <columns>2</columns>
-          </sections>
-        </features>
-
-      </pages>
-    </reflowSkin>
-  </custom>
-  
-  <bannerLeft>
-    <name><![CDATA[
-      <span class="color-highlight">Norconex</span> HTTP Collector
-      ]]>
-    </name>
-    <href>http://www.norconex.com/product/collector-http/index.html</href>
-  </bannerLeft>
-  <bannerRight>
-    <src>images/homepage_303x136.png</src>
-  </bannerRight>
-  <version position="none "/>
-  <publishDate position="navigation-bottom"/>
-  
-  <body>
-    <head>
-
-
-
-    </head>
-    <links>
-      <item name="Download" href="download.html"/>
-      <item name="Support" href="support.html"/>
-    </links>
-
-    <menu name="Documentation">
-      <item name="Usage" href="usage.html"/>
-      <item name="Configuration" href="configuration.html"/>
-      <item name="Javadoc (Latest release)" href="apidocs/index.html"/>
-      <item name="FAQ and HOWTOs" href="faq.html"/>
-      <item name="Features" href="features.html"/>
-      <item name="Release Notes" href="changes-report.html" />
-      
-      <!-- <item name="Road Map" href="roadmap.html" /> -->
-    </menu>
-
-
-    <menu name="Contribute">
-      <item name="Contribute" href="contribute.html"/>
-      <item name="Issues" href="https://github.com/norconex/collector-http/issues"/>
-      <item name="Fork on GitHub"  href="https://github.com/Norconex/collector-http"/>
-    </menu>
-
-    <menu name="Main">
-      <item name="Support" href="support.html"/>
-      <item name="Licensing" href="license.html"/>
-      <item name="Features" href="features.html"/>
-      <item name="Norconex Site"  href="http://www.norconex.com"/>
-    </menu>
-
-    <menu name="Maven Documentation" ref="reports"/>
-
-    <menu name="Norconex Products">
-      <item name="Search Analytics" href="http://www.norconex.com/analytics"/>
-      <item name="Committer" href="http://www.norconex.com/product/committer"/>
-      <item name="Importer"  href="http://www.norconex.com/product/importer"/>
-      <item name="JEF" href="http://www.norconex.com/product/jef"/>
-      <item name="Commons Lang" href="http://www.norconex.com/product/commons-lang"/>
-    </menu>
-
-
-  </body>
-
-  <googleAnalyticsAccountId>UA-23162620-1</googleAnalyticsAccountId>
-
+  <body></body>
 </project>

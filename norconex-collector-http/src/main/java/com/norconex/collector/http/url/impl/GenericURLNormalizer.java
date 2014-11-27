@@ -1,20 +1,16 @@
-/* Copyright 2010-2013 Norconex Inc.
- * 
- * This file is part of Norconex HTTP Collector.
- * 
- * Norconex HTTP Collector is free software: you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Norconex HTTP Collector is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Norconex HTTP Collector. If not, 
- * see <http://www.gnu.org/licenses/>.
+/* Copyright 2010-2014 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.norconex.collector.http.url.impl;
 
@@ -38,7 +34,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.commons.lang.config.ConfigurationLoader;
+import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.URLNormalizer;
 
@@ -123,12 +119,11 @@ import com.norconex.commons.lang.url.URLNormalizer;
  *      &lt;/replace&gt;
  *    &lt;/replacements&gt;
  *  &lt;/urlNormalizer&gt;
+ * </pre>
  * @author Pascal Essiembre
  */
-public class GenericURLNormalizer 
-        implements IURLNormalizer, IXMLConfigurable {
+public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
-    private static final long serialVersionUID = 3847717776792688065L;
     private static final Logger LOG = LogManager.getLogger(
             GenericURLNormalizer.class);
   
@@ -203,7 +198,7 @@ public class GenericURLNormalizer
     @Override
     public void loadFromXML(Reader in) {
         
-        XMLConfiguration xml = ConfigurationLoader.loadXML(in);
+        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         String xmlNorms = xml.getString("normalizations");
         if (StringUtils.isNotBlank(xmlNorms)) {
             normalizations.clear();
@@ -292,7 +287,7 @@ public class GenericURLNormalizer
                 + ", replaces=" + replaces + "]";
     }
 
-    public class Replace {
+    public static class Replace {
         private final String match;
         private final String replacement;
         public Replace(String match) {
