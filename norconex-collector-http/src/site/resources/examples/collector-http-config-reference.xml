@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-Copyright 2010-2013 Norconex Inc.
+   Copyright 2010-2014 Norconex Inc.
 
-This file is part of Norconex HTTP Collector.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-Norconex HTTP Collector is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-Norconex HTTP Collector is distributed in the hope that it will be useful, 
-but WITHOUT ANY WARRANTY; without even the implied warranty of 
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 -->
 
 <!-- This self-documented configuration file is meant to be used as a reference
@@ -29,24 +26,33 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
   <!-- Variables: Optionally define variables in this configuration file
        using the "set" directive, or by using a file of the same name
-       but with the extension ".variables" or ".properties".  Refer 
-       to site documentation to find out what each extension does.
+       but with the filterExtension ".variables" or ".properties".  Refer 
+       to site documentation to find out what each filterExtension does.
        Finally, once can pass an optional properties file when starting the
        crawler.  The following is good practice to reference frequently 
        used classes in a shorter way.
        -->
   #set($workdir = "c:\path\to\your\workdir")
-  #set($basepkg = "com.norconex.collector.http")
-  #set($extension = "${basepkg}.filter.impl.ExtensionURLFilter")
-  #set($urlRegex = "${basepkg}.filter.impl.RegexURLFilter")
-  #set($robotsTxt = "${basepkg}.robot.impl.DefaultRobotsTxtProvider")
-  #set($robotsMeta = "${basepkg}.robot.impl.DefaultRobotsMetaProvider")
-  #set($headersRegex = "${basepkg}.filter.impl.RegexHeaderFilter")
-  #set($docFetcher = "${basepkg}.fetch.impl.DefaultDocumentFetcher")
-  #set($urlExtractor = "${basepkg}.url.impl.DefaultURLExtractor")
-  #set($sitemap = "${basepkg}.sitemap.impl.DefaultSitemapResolver")
-  #set($headersChecksummer = "${basepkg}.checksum.impl.DefaultHttpHeadersChecksummer")
-  #set($docChecksummer = "${basepkg}.checksum.impl.DefaultHttpDocumentChecksummer")
+
+  #set($core      = "com.norconex.collector.core")
+  #set($http      = "com.norconex.collector.http")
+  #set($committer = "com.norconex.committer")
+
+  
+  #set($httpClientFactory = "${http}.client.impl.GenericHttpClientFactory")
+  #set($filterExtension   = "${core}.filter.impl.ExtensionReferenceFilter")
+  #set($filterRegexRef    = "${core}.filter.impl.RegexReferenceFilter")
+  #set($filterRegexMeta   = "${core}.filter.impl.RegexMetadataFilter")
+  #set($robotsTxt         = "${http}.robot.impl.StandardRobotsTxtProvider")
+  #set($robotsMeta        = "${http}.robot.impl.StandardRobotsMetaProvider")
+  #set($metaFetcher       = "${http}.fetch.impl.GenericMetadataFetcher")
+  #set($docFetcher        = "${http}.fetch.impl.GenericDocumentFetcher")
+  #set($linkExtractor     = "${http}.url.impl.HtmlLinkExtractor")
+  #set($urlNormalizer     = "${http}.url.impl.GenericURLNormalizer")
+  #set($sitemapFactory    = "${http}.sitemap.impl.StandardSitemapResolverFactory")
+  #set($metaChecksummer   = "${http}.checksum.impl.HttpMetadataChecksummer")
+  #set($docChecksummer    = "${core}.checksum.impl.MD5DocumentChecksummer")
+  #set($dataStoreFactory  = "${core}.data.store.impl.mapdb.MapDBCrawlDataStoreFactory")
   
   <!-- Location where internal progress files are stored. -->
   <progressDir>$workdir\progress</progressDir>
@@ -57,17 +63,19 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
   <!-- All crawler configuration options can be specified as default 
        (including start URLs).  Settings defined here will be inherited by 
        all individual crawlers defined further down, unless overwritten.
+       If you replace a top level crawler tag from the crawler defaults,
+       all the default tag configuration settings will be replace, no 
+       attempt will be made to merge or append.
        -->
   <crawlerDefaults>
 
-    <!-- === Step 0: General Configuration ================================  -->
-    
     <!-- Mandatory starting URL(s) where crawling begins.  If you put more 
-         than one URL, they will be processed together.  If you are interested
-         in providing a seed list instead, feel free to  -->    
+         than one URL, they will be processed together.  You can also
+         point to one or more URLs files (i.e., seed lists).  -->    
     <startURLs>
       <url>http://www.example.com</url>
       <url>http://www.sample.com</url>
+      <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
     </startURLs>
 
     <!-- Identify yourself to sites you crawl.  It sets the "User-Agent" HTTP 
@@ -75,13 +83,14 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
          instance.  Sometimes required to be certain values for robots.txt 
          files.
       -->
-    <userAgent>My Web Crawler</userAgent>
+    <userAgent>Please identify your Crawler</userAgent>
 
 
     <!-- Optional URL normalization feature. The class must implement
-         *.url.IURLNormalizer, like the following class does.
+         com.norconex.collector.http.url.IURLNormalizer, 
+         like the following class does.
       -->
-    <urlNormalizer class="$basepkg.url.impl.GenericURLNormalizer">
+    <urlNormalizer class="$urlNormalizer">
       <normalizations>
         lowerCaseSchemeHost, upperCaseEscapeSequence 
         decodeUnreservedCharacters, removeDefaultPort 
@@ -96,11 +105,11 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
     <!-- Optional delay resolver defining how polite or aggressive you want
          your crawling to be.  The class must implement 
-         *.delay.IDelayResolver.
+         com.norconex.collector.http.delay.IDelayResolver.
          The following is the default implementation:
       -->
     <delay default="1000" ignoreRobotsCrawlDelay="true"
-           class="$basepkg.delay.impl.DefaultDelayResolver">
+           class="$http.delay.impl.DefaultDelayResolver">
           <schedule dayOfWeek="from Monday to Friday" 
                     time="from 8:00 to 6:30">10000</schedule>
     </delay>
@@ -121,35 +130,36 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
          -->
     <maxDepth>5</maxDepth>
     
-    <!-- Stop crawling after how many successfully processed URLs.  
-         A successful URL is one that is either new or modified, that was 
+    <!-- Stop crawling after how many successfully processed documents.  
+         A successful document is one that is either new or modified, that was 
          not rejected, not deleted, or did not generate any error.  As an
-         example, this is a URL that will end up in your search engine. 
+         example, this is a document that will end up in your search engine. 
          Default is -1 (unlimited)
           -->
-    <maxURLs>-1</maxURLs>
+    <maxDocuments>-1</maxDocuments>
 
-    <!-- Crawler "work" directory.  This is where files dowloaded or created as
+    <!-- Crawler "work" directory.  This is where files downloaded or created as
          part of crawling activities (besides logs and progress) get stored.
          It should be unique to each crawlers.
          -->
     <workDir>/crawler/workdir/path</workDir>
 
-    <!-- Keep downloaded files. Default is false (deletes them after they have
-         been processed).
+    <!-- Keep downloaded files. Default is false.
          -->
     <keepDownloads>false</keepDownloads>
 
-    <!-- Whether to mark orphan pages for deletion.  Orphans are URLs/pages, 
-         which on subsequent crawls can no longer be reached when spidering
-         the site (there are no links pointing to that page anymore).
-         Default behavior is false to keep them as they still exist.
+    <!-- What to do with orphan documents.  Orphans are valid 
+         documents, which on subsequent crawls can no longer be reached when 
+         running the crawler (e.g. there are no links pointing to that page 
+         anymore).  Available options are: 
+         IGNORE (default), DELETE, and PROCESS.
          -->
-    <deleteOrphans>false</deleteOrphans>
+    <orphansStrategy>IGNORE</orphansStrategy>
 
     <!-- One or more optional listeners to be notified on various crawling
          events (e.g. document rejected, document imported, etc). 
-         Class must implement *.crawler.IHttpCrawlerEventListener
+         Class must implement 
+         com.norconex.collector.core.event.ICrawlerEventListener
          -->
     <crawlerListeners>
       <listener class="YourClass"/>
@@ -157,20 +167,17 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
 
     <!-- Factory class creating a database for storing crawl status and
          other information.  Classes must implement 
-         *.db.ICrawlURLDatabaseFactory.  Default implementation is the 
-         following.
+         com.norconex.collector.core.data.store.ICrawlURLDatabaseFactory.  
+         Default implementation is the following.
          -->
-    <crawlURLDatabaseFactory 
-         class="$basepkg.db.impl.DefaultCrawlURLDatabaseFactory" />
-
-    <!-- === Step 1: Initialize HTTP Client ================================ -->
+    <crawlDataStoreFactory class="$dataStoreFactory" />
 
     <!-- Initialize the HTTP client use to make connections.  Classes
-         must implement *.client.IHttpClientInitializer.
+         must implement com.norconex.collector.http.client.IHttpClientFactory.
          Default implementation offers many options. The following shows
          a sample use of the default with credentials.
          -->
-    <httpClientInitializer class="${httpClientInit}">
+    <httpClientFactory class="$httpClientFactory">
       <!-- These apply to any authentication mechanism -->
       <authUsername>myusername</authUsername>
       <authPassword>mypassword</authPassword>
@@ -182,130 +189,148 @@ along with Norconex HTTP Collector. If not, see <http://www.gnu.org/licenses/>.
       <authHostname>www.example.com</authHostname>
       <authPort>80</authPort>
       <authRealm>PRIVATE</authRealm>
-    </httpClientInitializer>
+    </httpClientFactory>
     
-    <!-- === Step 2 (Loop): Process a URL/Document ========================= -->
+    <!-- Optionally filter URL BEFORE any download. Classes must implement 
+         com.norconex.collector.core.filter.IReferenceFilter, 
+         like the following examples.
+         -->
+    <referenceFilters>
+      <filter class="$filterExtension" onMatch="exclude" >
+        jpg,gif,png,ico,css,js</filter>
+      <filter class="$filterRegexRef">https://www.example.com/.*</filter>
+    </referenceFilters>
 
-      <!-- Optionally filter URL BEFORE any download. Classes must
-           implement *.filter.IURLFilter, like the following examples.
-           -->
-      <httpURLFilters>
-        <filter class="$extension" onMatch="exclude" >
-          jpg,gif,png,ico,css,js</filter>
-        <filter class="$urlRegex">https://www.example.com/.*</filter>
-      </httpURLFilters>
+    <!-- Filter BEFORE download with RobotsTxt rules. Classes must
+         implement *.robot.IRobotsTxtProvider.  Default implementation
+         is the following.
+         -->
+    <robotsTxt ignore="false" class="$robotsTxt"/>
+    
+    <!-- Loads sitemap.xml URLs and adds adds them to URLs to process.
+         Default implementation is the following.
+         -->
+    <sitemap ignore="false" lenient="false" class="$sitemapFactory">
+       <location>http://www.example.com/blogs/sitemap.xml</location>
+    </sitemap>
+    
+    <!-- Fetch a URL HTTP Headers.  Classes must implement
+         com.norconex.collector.http.fetch.IHttpMetadataFetcher.  
+         The following is a simple implementation.
+         -->
+    <metadataFetcher class="$metaFetcher" validStatusCodes="200" />
 
-      <!-- Filter BEFORE download with RobotsTxt rules. Classes must
-           implement *.robot.IRobotsTxtProvider.  Default implementation
-           is the following.
-           -->
-      <robotsTxt ignore="false" class="$robotsTxt"/>
+    <!-- Optionally filter AFTER download of HTTP headers.  Classes must 
+         implement com.norconex.collector.core.filter.IMetadataFilter.  
+         -->
+    <metadataFilters>
+      <filter class="$filterRegexMeta" 
+              onMatch="exclude"
+              caseSensitive="false"
+              field="Content-Type">.*css.*</filter>
+    </metadataFilters>        
       
-      <!-- Loads sitemap.xml URLs and adds adds them to URLs to process.
-           Default implementation is the following.
-           -->
-      <sitemap ignore="false" lenient="false" class="$sitemap">
-         <location>http://www.example.com/blogs/sitemap.xml</location>
-      </sitemap>
+    <!-- Generates a checksum value from document headers to find out if 
+         a document has changed. Class must implement
+         com.norconex.collector.core.checksum.IMetadataChecksummer.  
+         Default implementation is the following. 
+         -->
+    <metadataChecksummer class="$metaChecksummer" />
+
+    <!-- Fetches document.  Class must implement 
+         com.norconex.collector.http.fetch.IHttpDocumentFetcher.  
+         Default implementation is the following.
+         -->
+    <documentFetcher class="$docFetcher" validStatusCodes="200" />
+
+    <!-- Establish whether to follow a page URLs or to index a given page
+         based on in-page meta tag robot information. Classes must implement 
+         com.norconex.collector.http.robot.IRobotsMetaProvider.  
+         Default implementation is the following.
+         -->
+    <robotsMeta ignore="false" class="$robotsMeta" />
+
+    <!-- Extract links from a document.  Classes must implement
+         com.norconex.collector.http.url.ILinkExtractor. 
+         Default implementation is the following.
+         -->
+    <linkExtractors>
+        <extractor class="${linkExtractor}"  maxURLLength="2048" 
+                ignoreNofollow="false" keepReferrerData="false">
+            <contentTypes>
+                text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
+            </contentTypes>
+            <tags>
+                <tag name="a" attribute="href" />
+                <tag name="frame" attribute="src" />
+                <tag name="iframe" attribute="src" />
+                <tag name="img" attribute="src" />
+                <tag name="meta" attribute="http-equiv" />
+            </tags>
+        </extractor>
+    </linkExtractors>
+
+    <!--  Optionally filters a document. Classes must implement 
+          com.norconex.collector.core.filter.IDocumentFilter-->
+    <documentFilters>
+        <filter class="YourClass" />
+    </documentFilters>
+
+    <!-- Optionally process a document BEFORE importing it. Classes must
+         implement com.norconex.collector.http.doc.IHttpDocumentProcessor.
+         -->
+    <preImportProcessors>
+        <processor class="YourClass"></processor>
+    </preImportProcessors>
       
-      <!-- Fetch Document HTTP Headers.  Classes must implement
-           *.fetch.IHttpHeadersFetcher.  The following is a simple
-            implementation.
-           -->
-      <httpHeadersFetcher 
-          class="$basepkg.fetch.impl.SimpleHttpHeadersFetcher"
-          validStatusCodes="200" />
+    <!-- Import a document.  This step calls the Importer module.  The
+         importer is a different module with its own set of XML configuration
+         options.  Please refer to Importer for complete documentation.
+         Below gives you an overview of the main importer tags.
+         -->
+    <importer>
+        <preParseHandlers>
+            <tagger class="..."/>
+            <transformer class="..." />
+            <filter class="..." />
+            <splitter class="..." />
+        </preParseHandlers>
+        <documentParserFactory class="..." />
+        <postParseHandlers>
+            <tagger class="..."/>
+            <transformer class="..." />
+            <filter class="..." />
+            <splitter class="..." />
+        </postParseHandlers>
+        <responseProcessors>
+            <responseProcessor class="YourClass" />
+        </responseProcessors>
+    </importer>           
 
-      <!-- Optionally filter AFTER download of HTTP headers.  Classes must 
-           implement *.fetch.IHttpHeadersFetcher.  
-           -->
-      <httpHeadersFilters>
-        <filter class="$headersRegex" 
-                onMatch="exclude"
-                caseSensitive="false"
-                header="Content-Type">.*css.*</filter>
-      </httpHeadersFilters>        
-        
-      <!-- Generates a checksum value from document headers to find out if 
-           a document has changed. Class must implement
-           *.checksum.IHttpHeadersChecksummer.  Default implementation 
-           is the following. 
-           -->
-      <httpHeadersChecksummer class="$headersChecksummer" />
 
-      <!-- Fetches document.  Class must implement 
-           *.fetch.IHttpDocumentFetcher.  Default implementation is the 
-           following.
-           -->
-      <httpDocumentFetcher class="$docFetcher" validStatusCodes="200" />
+    <!-- Create a checksum out of a document to figure out if a document
+         has changed, AFTER it has been imported. Class must implement 
+         com.norconex.collector.core.checksum.IDocumentChecksummer.
+         Default implementation is the following.
+         -->
+    <documentChecksummer class="$docChecksummer" />
 
-      <!-- Establish whether to follow a page URLs or to index a given page
-           based on in-page meta tag robot information. Classes must
-           implement *.robot.IRobotsMetaProvider.  Default implementation
-           is the following.
-           -->
-      <robotsMeta ignore="false" class="$robotsMeta" />
-
-      <!-- Extract URLs from a document.  Classes must implement
-           *.url.IURLExtractor. Default implementation is the following.
-           -->
-      <urlExtractor class="$urlExtractor" />
-
-      <!--  Optionally filters a document. Classes must implement 
-            *.filter.IHttpDocumentFilter-->
-      <httpDocumentFilters>
-          <filter class="YourClass" />
-      </httpDocumentFilters>
-
-      <!-- Optionally process a document BEFORE importing it. Classes must
-           implement *.doc.IHttpDocumentProcessor.
-           -->
-      <preImportProcessors>
-         <processor class="YourClass"></processor>
-      </preImportProcessors>
-        
-      <!-- Import a document.  This step calls the Importer module.  The
-           importer is a different module with its own set of XML configuration
-           options.  Please refer to importer for complete documentation.
-           Below gives you an overview of the main importer tags.
-           -->
-      <importer>
-          <preParseHandlers>
-              <tagger class="..."/>
-              <transformer class="..." />
-              <filter class="..." />
-          </preParseHandlers>
-          <documentParserFactory class="..." />
-          <postParseHandlers>
-              <tagger class="..."/>
-              <transformer class="..." />
-              <filter class="..." />
-          </postParseHandlers>
-      </importer>           
-
-      <!-- Create a checksum out of a document to figure out if a document
-           has changed, AFTER it has been imported.
-           Class must implement *.checksum.IHttpDocumentChecksummer.
-           Default implementation is the following.
-           -->
-      <httpDocumentChecksummer class="$docChecksummer" />
-
-      <!-- Optionally process a document AFTER importing it. Classes must
-           implement *.doc.IHttpDocumentProcessor.
-           -->
-      <postImportProcessors>
-         <processor class="YourClass"></processor>
-      </postImportProcessors>
-        
-      <!-- Commits a document to a data source of your choice.
-           This step calls the Committer module.  The
-           committer is a different module with its own set of XML configuration
-           options.  Please refer to committer for complete documentation.
-           Below is an example using the FileSystemCommitter.
-           -->
-      <committer class="com.norconex.committer.impl.FileSystemCommitter">
-        <directory>$workdir\crawledFiles</directory>
-      </committer>
+    <!-- Optionally process a document AFTER importing it. Classes must
+         implement com.norconex.collector.http.doc.IHttpDocumentProcessor.
+         -->
+    <postImportProcessors>
+       <processor class="YourClass"></processor>
+    </postImportProcessors>
+      
+    <!-- Commits a document to a data source of your choice.
+         This step calls the Committer module.  The
+         committer is a different module with its own set of XML configuration
+         options.  Please refer to committer for complete documentation.
+         Below is an example using the FileSystemCommitter.
+         -->
+    <committer class="$committer.impl.FileSystemCommitter">
+      <directory>$workdir\crawledFiles</directory>
+    </committer>
 
   </crawlerDefaults>
 

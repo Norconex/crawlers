@@ -1,64 +1,57 @@
-/* Copyright 2010-2013 Norconex Inc.
- * 
- * This file is part of Norconex HTTP Collector.
- * 
- * Norconex HTTP Collector is free software: you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Norconex HTTP Collector is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Norconex HTTP Collector. If not, 
- * see <http://www.gnu.org/licenses/>.
+/* Copyright 2010-2014 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.norconex.collector.http.robot;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.http.filter.IURLFilter;
+import com.norconex.collector.core.filter.IReferenceFilter;
 
-public class RobotsTxt implements Serializable {
+public class RobotsTxt {
 
-    private static final long serialVersionUID = -2203572498193869416L;
-    
     public static final float UNSPECIFIED_CRAWL_DELAY = -1;
     
-    private final IURLFilter[] filters;
+    private final IReferenceFilter[] filters;
     private final float crawlDelay;
     private final String[] sitemapLocations;
     
-    public RobotsTxt(IURLFilter[] filters) {
+    public RobotsTxt(IReferenceFilter[] filters) {
         this(filters, UNSPECIFIED_CRAWL_DELAY);
     }
-    public RobotsTxt(IURLFilter[] filters, float crawlDelay) {
+    public RobotsTxt(IReferenceFilter[] filters, float crawlDelay) {
         this(filters, null, crawlDelay);
     }
-    public RobotsTxt(IURLFilter[] filters, String[] sitemapLocations) {
+    public RobotsTxt(IReferenceFilter[] filters, String[] sitemapLocations) {
         this(filters, sitemapLocations, UNSPECIFIED_CRAWL_DELAY);
     }
-    public RobotsTxt(
-            IURLFilter[] filters, String[] sitemapLocations, float crawlDelay) {
+    public RobotsTxt(IReferenceFilter[] filters, String[] sitemapLocations, 
+            float crawlDelay) {
         super();
         this.filters = ArrayUtils.clone(filters);
         this.sitemapLocations = ArrayUtils.clone(sitemapLocations);
         this.crawlDelay = crawlDelay;
     }
 
-    public IURLFilter[] getFilters() {
-        return filters;
+    public IReferenceFilter[] getFilters() {
+        return ArrayUtils.clone(filters);
     }
     public String[] getSitemapLocations() {
-        return sitemapLocations;
+        return ArrayUtils.clone(sitemapLocations);
     }
     public float getCrawlDelay() {
         return crawlDelay;
