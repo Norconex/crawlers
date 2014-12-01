@@ -49,7 +49,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  * </p>
  * <pre>
  *  &lt;robotsTxt ignore="false" 
- *     class="com.norconex.collector.http.robot.DefaultRobotsTxtProvider"/&gt;
+ *     class="com.norconex.collector.http.robot.StandardRobotsTxtProvider"/&gt;
  * </pre>
  * @author Pascal Essiembre
  */

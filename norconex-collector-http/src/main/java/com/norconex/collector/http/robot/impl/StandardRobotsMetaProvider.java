@@ -61,7 +61,7 @@ import com.norconex.commons.lang.map.Properties;
  * </p>
  * <pre>
  *  &lt;robotsMeta ignore="false" 
- *     class="com.norconex.collector.http.robot.DefaultRobotsMetaProvider"&gt;
+ *     class="com.norconex.collector.http.robot.StandardRobotsMetaProvider"&gt;
  *     &lt;headersPrefix&gt;(string prefixing headers)&lt;/headersPrefix&gt;
  *  &lt;/robotsMeta&gt;
  * </pre>
