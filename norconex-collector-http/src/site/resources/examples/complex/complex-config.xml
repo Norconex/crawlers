@@ -31,12 +31,12 @@
     <numThreads>2</numThreads>
     <maxDepth>0</maxDepth>
     <workDir>$workdir</workDir>
-    <deleteOrphans>true</deleteOrphans>
+    <orphansStrategy>DELETE</orphansStrategy>
 
-    <httpURLFilters>
+    <referenceFilters>
       <filter class="$filterExtension" onMatch="exclude">jpg,gif,png,ico,css,js</filter>
       <filter class="$filterRegexRef">http://www\.norconex\.com/product/collector-http-test/.*</filter>
-    </httpURLFilters>
+    </referenceFilters>
 
   </crawlerDefaults>
 
@@ -47,7 +47,7 @@
         <url>http://www.norconex.com/product/collector-http-test/complex1.php</url>
       </startURLs>
       #parse("shared/importer-config.xml")
-      <committer class="com.norconex.committer.impl.FileSystemCommitter">
+      <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
         <directory>${workdir}/crawledFiles1</directory>
       </committer>
     </crawler>
@@ -57,7 +57,7 @@
         <url>http://www.norconex.com/product/collector-http-test/complex2.php</url>
       </startURLs>
       #parse("shared/importer-config.xml")
-      <committer class="com.norconex.committer.impl.FileSystemCommitter">
+      <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
         <directory>${workdir}/crawledFiles2</directory>
       </committer>
     </crawler>

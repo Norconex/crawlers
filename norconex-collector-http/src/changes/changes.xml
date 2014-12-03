@@ -7,6 +7,14 @@
   </properties>
   <body>
 
+    <release version="2.0.1-SNAPSHOT" date="2014-??-??" description="Bug fix release">
+      <action dev="essiembre" type="fix" issue="44">
+        From collector-core-1.0.1: When keepDownloads is true, saved files and 
+        directories are now prefixed with "f." and "d." respectively to avoid 
+        collisions.
+      </action>
+    </release>
+
     <release version="2.0.0" date="2014-11-26" description="Major release.">
       <action dev="essiembre" type="add">
         Upgraded Norconex Importer to version 2.0.0, which brings to 

@@ -45,25 +45,25 @@
       <delay default="5000" />
       
       <!-- At a minimum make sure you stay on your domain. -->
-      <httpURLFilters>
+      <referenceFilters>
         <filter 
             class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
             onMatch="include" >
           http://www\.norconex\.com/product/collector-http-test/.*
         </filter>
-      </httpURLFilters>
+      </referenceFilters>
       
       <importer>
         <postParseHandlers>
           <!-- If your target repository does not support arbitrary fields,
                make sure you only keep the fields you need. -->
-          <tagger class="com.norconex.importer.tagger.impl.KeepOnlyTagger"
+          <tagger class="com.norconex.importer.handler.tagger.impl.KeepOnlyTagger"
                   fields="title,keywords,description,document.reference"/>
         </postParseHandlers>
       </importer> 
       
       <!-- Decide what to do with your files by specifying a Committer. -->
-      <committer class="com.norconex.committer.impl.FileSystemCommitter">
+      <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
         <directory>./examples-output/minimum/crawledFiles</directory>
       </committer>
 
