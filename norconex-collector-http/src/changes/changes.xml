@@ -7,11 +7,14 @@
   </properties>
   <body>
 
-    <release version="2.0.1-SNAPSHOT" date="2014-??-??" description="Bug fix release">
+    <release version="2.0.1" date="2014-12-03" description="Bug fix release">
       <action dev="essiembre" type="fix" issue="44">
         From collector-core-1.0.1: When keepDownloads is true, saved files and 
         directories are now prefixed with "f." and "d." respectively to avoid 
         collisions.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed errors in example configuration files.
       </action>
     </release>
 
