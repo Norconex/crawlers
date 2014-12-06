@@ -297,7 +297,7 @@
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
-      <url>${site.baseurl}/collector-http/latest</url>
+      <url>${site.baseurl}/collectors/collector-http/latest</url>
     </site>
     <snapshotRepository>
       <id>ossrh</id>
