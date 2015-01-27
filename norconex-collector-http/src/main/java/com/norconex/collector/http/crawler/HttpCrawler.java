@@ -90,7 +90,9 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     public void stop(IJobStatus jobStatus, JobSuite suite) {
         super.stop(jobStatus, suite);
-        sitemapResolver.stop();
+        if (sitemapResolver != null) {
+            sitemapResolver.stop();
+        }
     }
     
     @Override
@@ -167,7 +169,12 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     protected ImporterDocument wrapDocument(
             ICrawlData crawlData, ImporterDocument document) {
-        HttpDocument doc = new HttpDocument(document);
+        return new HttpDocument(document);
+    }
+    @Override
+    protected void applyCrawlData(
+            ICrawlData crawlData, ImporterDocument document) {
+        HttpDocument doc = (HttpDocument) document;
         HttpCrawlData httpData = (HttpCrawlData) crawlData;
         HttpMetadata metadata = doc.getMetadata();
         
@@ -191,7 +198,6 @@ public class HttpCrawler extends AbstractCrawler {
                 httpData.getReferrerLinkText());
         metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TITLE, 
                 httpData.getReferrerLinkTitle());
-        return doc;
     }
     
     @Override
@@ -247,7 +253,8 @@ public class HttpCrawler extends AbstractCrawler {
         closeHttpClient();
     }
     
-    private void metadataAddString(HttpMetadata metadata, String key, String value) {
+    private void metadataAddString(
+            HttpMetadata metadata, String key, String value) {
         if (value != null) {
             metadata.addString(key, value); 
         }
