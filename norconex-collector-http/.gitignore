@@ -7,4 +7,6 @@
 /minimunCrawlFiles
 /.classpath
 /.project
-/.myeclipse
+/.myeclipse/examples-output/
+/.myeclipse/
+/examples-output/

@@ -1,23 +1,15 @@
 The following are either things to be done, or ideas to consider:
 
 
-For 2.0.0:
+Any release:
 ============
 
 - Add a crawler event listener that acts as a link checker, logging/storing
-  every bad (404) URLs encountered.
+  every bad (404) URLs encountered.  DONE AS A BLOG... incorporate?
 
 - Add total execution time, periodic time elapsed and estimated remaining.
 
-- Test that deletion of embedded docs are detected and sent to committer
-
 - Store somewhere whether a committed document is new or modified.
-
-- DONE: Add a more stable fast off-heap key/value database as an alternative
-  to MapDB (which has stability issues).
-
-Any release:
-============
 
 - Introduce "Add-ons" like social media add-ons to crawl social media sites.
 

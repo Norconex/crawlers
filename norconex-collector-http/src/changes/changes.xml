@@ -7,6 +7,28 @@
   </properties>
   <body>
 
+    <release version="2.0.2" date="2015-02-04" description="Bug fix release">
+      <action dev="essiembre" type="fix" issue="49">
+        Fixed the collector "stop" action having no effect (github #49).
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed crawl data wrongfully applied as metadata after the import 
+        phase.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed NullPointerException when sitemap support is disabled.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed incorrect deletion behavior for embedded orphan documents.
+      </action>
+      <action dev="essiembre" type="update">
+        Improved log4j.properties logging options for crawler events.
+      </action>
+      <action dev="essiembre" type="update">
+        Upgraded Norconex Collector Core dependency to 1.0.2.
+      </action>
+    </release>
+
     <release version="2.0.1" date="2014-12-03" description="Bug fix release">
       <action dev="essiembre" type="fix" issue="44">
         From collector-core-1.0.1: When keepDownloads is true, saved files and 

@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
-  <version>2.0.1</version>
+  <version>2.0.2</version>
   <name>Norconex HTTP Collector</name>
 
   <properties>
@@ -51,7 +51,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
     <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -297,7 +297,7 @@
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
-      <url>${site.baseurl}/collector-http/latest</url>
+      <url>${site.baseurl}/collectors/collector-http/latest</url>
     </site>
     <snapshotRepository>
       <id>ossrh</id>
