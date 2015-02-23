@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="2.0.3-SNAPSHOT" date="2015-02-22" description="Bug fix release">
+      <action dev="essiembre" type="fix" issue="56">
+        Fixed link extractor not fetching link text properly when
+        keepReferrerData is true on HtmlLinkExtractor (github #56).
+      </action>
+    </release>
+
     <release version="2.0.2" date="2015-02-04" description="Bug fix release">
       <action dev="essiembre" type="fix" issue="49">
         Fixed the collector "stop" action having no effect (github #49).
