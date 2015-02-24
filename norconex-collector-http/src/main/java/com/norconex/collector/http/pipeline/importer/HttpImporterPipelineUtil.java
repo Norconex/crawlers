@@ -49,20 +49,33 @@ import com.norconex.commons.lang.file.ContentType;
             return;
         }
         
-        String contentType = metadata.getString(HttpMetadata.HTTP_CONTENT_TYPE);
-        if (StringUtils.isBlank(contentType)) {
+        // Grab content type from HTTP Header
+        String httpContentType = 
+                metadata.getString(HttpMetadata.HTTP_CONTENT_TYPE);
+        if (StringUtils.isBlank(httpContentType)) {
             for (String key : metadata.keySet()) {
                 if (StringUtils.endsWith(key, HttpMetadata.HTTP_CONTENT_TYPE)) {
-                    contentType = metadata.getString(key);
+                    httpContentType = metadata.getString(key);
                 }
             }
         }
-        if (StringUtils.isNotBlank(contentType)) {
-            String mimeType = contentType.replaceFirst("(.*?)(;.*)", "$1");
-            String charset = contentType.replaceFirst("(.*?)(; )(.*)", "$3");
-            charset = charset.replaceFirst("(charset=)(.*)", "$2");
-            metadata.addString(HttpMetadata.COLLECTOR_CONTENT_TYPE, mimeType);
-            metadata.addString(HttpMetadata.COLLECTOR_CONTENT_ENCODING, charset);
+        String contentType = StringUtils.trimToNull(
+                StringUtils.substringBefore(httpContentType, ";"));
+
+        // Grab charset form HTTP Content-Type
+        String charset = null;
+        if (httpContentType.contains("charset")) {
+            charset = StringUtils.trimToNull(StringUtils.substringAfter(
+                    httpContentType, "charset="));                
+        }
+        
+        if (contentType != null) {
+            metadata.addString(
+                    HttpMetadata.COLLECTOR_CONTENT_TYPE, contentType);
+        }
+        if (charset != null) {
+            metadata.addString(
+                    HttpMetadata.COLLECTOR_CONTENT_ENCODING, charset);
         }
     }
 }

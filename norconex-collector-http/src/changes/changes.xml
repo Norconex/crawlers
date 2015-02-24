@@ -7,11 +7,24 @@
   </properties>
   <body>
 
-    <release version="2.0.3-SNAPSHOT" date="2015-02-22" description="Bug fix release">
+    <release version="2.1.0-SNAPSHOT" date="2015-02-22" description="Feature release">
       <action dev="essiembre" type="fix" issue="56">
         Fixed link extractor not fetching link text properly when
         keepReferrerData is true on HtmlLinkExtractor (github #56).
       </action>
+      <action dev="essiembre" type="update">
+        Upgraded Norconex Collector Core to 1.1.0.
+      </action>
+      <action dev="essiembre" type="update">
+        Added Sonatype repository to pom.xml for snapshot releases.
+      </action>      
+      <action dev="essiembre" type="update">
+        Improvements on character encoding detection from HTTP headers.
+      </action>      
+      <action dev="essiembre" type="update" issue="59">
+        log4j.properties from ./classes/ now properly loaded by
+        collector-http.sh (github #59).
+      </action>      
     </release>
 
     <release version="2.0.2" date="2015-02-04" description="Bug fix release">
