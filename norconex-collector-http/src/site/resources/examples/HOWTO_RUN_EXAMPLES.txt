@@ -33,5 +33,5 @@ Look for a directory called "examples-output".  You will
 find sub-directories matching the test you ran.  In them, you will find
 a directory called "crawledFiles" containing the collected data.
 
-You need Internet access to run the examples.  Modify the exammple files
+You need Internet access to run the examples.  Modify the example files
 if you wish to run them on a private network.
