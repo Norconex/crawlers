@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.1.0-SNAPSHOT" date="2015-02-22" description="Feature release">
+    <release version="2.1.0-SNAPSHOT" date="2015-??-??" description="Feature release">
       <action dev="essiembre" type="fix" issue="56">
         Fixed link extractor not fetching link text properly when
         keepReferrerData is true on HtmlLinkExtractor (github #56).
@@ -24,6 +24,9 @@
       <action dev="essiembre" type="update" issue="59">
         log4j.properties from ./classes/ now properly loaded by
         collector-http.sh (github #59).
+      </action>      
+      <action dev="essiembre" type="update">
+        Improved javadoc.
       </action>      
     </release>
 

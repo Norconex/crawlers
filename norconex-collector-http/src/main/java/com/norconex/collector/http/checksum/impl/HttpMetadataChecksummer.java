@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,15 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </p>
  * <pre>
  *  &lt;metadataChecksummer 
- *      class="com.norconex.collector.http.checksum.impl.HttpMetadataChecksummer"&gt;
+ *      class="com.norconex.collector.http.checksum.impl.HttpMetadataChecksummer"
  *      sourceField="(optional header field used to create checksum)"
  *      keep="[false|true]"
  *      targetField="(field to store checksum)" /&gt;
  * </pre>
+ * <p>
+ * To disable creating a checksum from HTTP Metadata in your config, you can
+ * set the <code>sourceField</code> to an empty string ("").
+ * </p>
  * @author Pascal Essiembre
  */
 public class HttpMetadataChecksummer extends AbstractMetadataChecksummer {
