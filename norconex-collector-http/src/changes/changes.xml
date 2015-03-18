@@ -8,10 +8,10 @@
   <body>
 
     <release version="2.1.0-SNAPSHOT" date="2015-??-??" description="Feature release">
-      <action dev="essiembre" type="fix" issue="56">
-        Fixed link extractor not fetching link text properly when
-        keepReferrerData is true on HtmlLinkExtractor (github #56).
-      </action>
+      <action dev="essiembre" type="update">
+        Sitemap resolving pipeline stage is now always invoked
+        (but won't do anything if disabled).
+      </action>      
       <action dev="essiembre" type="update">
         Upgraded Norconex Collector Core to 1.1.0.
       </action>
@@ -28,6 +28,10 @@
       <action dev="essiembre" type="update">
         Improved javadoc.
       </action>      
+      <action dev="essiembre" type="fix" issue="56">
+        Fixed link extractor not fetching link text properly when
+        keepReferrerData is true on HtmlLinkExtractor (github #56).
+      </action>
     </release>
 
     <release version="2.0.2" date="2015-02-04" description="Bug fix release">

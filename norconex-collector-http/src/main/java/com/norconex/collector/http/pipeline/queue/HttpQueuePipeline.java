@@ -43,17 +43,12 @@ public final class HttpQueuePipeline
             LogManager.getLogger(HttpQueuePipeline.class);
     
     public HttpQueuePipeline() {
-        this(false);
-    }
-    public HttpQueuePipeline(boolean includeSitemapStage) {
         super();
         addStage(new DepthValidationStage());
         addStage(new ReferenceFiltersStage());
         addStage(new RobotsTxtFiltersStage());
         addStage(new URLNormalizerStage());
-        if (includeSitemapStage) {
-            addStage(new SitemapStage());
-        }
+        addStage(new SitemapStage());
         addStage(new QueueReferenceStage());
     }
     
@@ -120,7 +115,7 @@ public final class HttpQueuePipeline
                                     ctx.getCrawler(), 
                                     ctx.getCrawlDataStore(), 
                                     reference);
-                    new HttpQueuePipeline(true).execute(context);
+                    new HttpQueuePipeline().execute(context);
                 }
             };
             sitemapResolver.resolveSitemaps(

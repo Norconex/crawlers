@@ -163,7 +163,7 @@ public class HttpCrawler extends AbstractCrawler {
         HttpCrawlData httpData = (HttpCrawlData) crawlData;
         HttpQueuePipelineContext context = new HttpQueuePipelineContext(
                 this, crawlDataStore, httpData);
-        new HttpQueuePipeline(!getCrawlerConfig().isIgnoreSitemap()).execute(context);
+        new HttpQueuePipeline().execute(context);
     }
 
     @Override
