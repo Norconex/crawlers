@@ -14,7 +14,6 @@
  */
 package com.norconex.collector.http.robot.impl;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -35,6 +34,7 @@ import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 
 /**
@@ -72,15 +72,18 @@ public class StandardRobotsMetaProvider
 
     private static final Logger LOG = LogManager.getLogger(
             StandardRobotsMetaProvider.class);
-    private static final Pattern ROBOTS_PATTERN = Pattern.compile(
-            "(<\\s*META.*?NAME\\s*=\\s*[\"']{0,1})(.+?)([\"'>])",
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    private static final Pattern CONTENT_PATTERN = Pattern.compile(
-            "(<\\s*META.*?CONTENT\\s*=\\s*[\"']{0,1})(.+?)([\"'>])",
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern META_ROBOTS_PATTERN = Pattern.compile(
+            "<\\s*META[^>]*?NAME\\s*=\\s*[\"']{0,1}\\s*robots"
+                    + "\\s*[\"']{0,1}\\s*[^>]*?>",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern META_CONTENT_PATTERN = Pattern.compile(
+            "\\s*CONTENT\\s*=\\s*[\"']{0,1}([\\s\\w,]+)[\"']{0,1}\\s*[^>]*?>",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern HEAD_PATTERN = Pattern.compile(
             "<\\s*/\\s*HEAD\\s*>",
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern COMMENT_PATTERN = Pattern.compile("<!--.*?-->",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     
     private String headersPrefix;
 
@@ -90,20 +93,22 @@ public class StandardRobotsMetaProvider
 
         RobotsMeta robotsMeta = null;
         
-        //--- Find in page ---
+        //--- Find in page content ---
         if (isMetaSupportingContentType(contentType)) {
-            BufferedReader reader = new BufferedReader(document);
-            String line;
-            while ((line = reader.readLine()) != null)   {
-                if (isRobotMeta(line)) {
-                    String content = getRobotRules(line);
-                    robotsMeta = buildMeta(content);
+            TextReader reader = new TextReader(document);
+            String text = null;
+            while ((text = reader.readText()) != null) {
+                // First eliminate comments
+                String clean = COMMENT_PATTERN.matcher(text).replaceAll("");
+                String robotContent = findInContent(clean);
+                if (robotContent != null) {
+                    robotsMeta = buildMeta(robotContent);
                     if (LOG.isDebugEnabled() && robotsMeta != null) {
-                        LOG.debug("Meta robots \"" + content 
+                        LOG.debug("Meta robots \"" + robotContent 
                              + "\" found in HTML meta tag for: " + documentUrl);
                     }
                     break;
-                } else if (isEndOfHead(line)) {
+                } else if (isEndOfHead(clean)) {
                     break;
                 }
             }
@@ -166,23 +171,24 @@ public class StandardRobotsMetaProvider
         return new RobotsMeta(nofollow, noindex);
     }
     
-    private boolean isRobotMeta(String line) {
-        Matcher matcher = ROBOTS_PATTERN.matcher(line);
-        if (matcher.find()) {
-            String name = matcher.group(2);
-            return "robots".equalsIgnoreCase(name);
-        }
-        return false;
-    }
-    private boolean isEndOfHead(String line) {
-        return HEAD_PATTERN.matcher(line).matches();
-    }
-    private String getRobotRules(String line) {
-        Matcher matcher = CONTENT_PATTERN.matcher(line);
-        if (matcher.find()) {
-            return matcher.group(2);
+    
+    private String findInContent(String text) {
+        Matcher rmatcher = META_ROBOTS_PATTERN.matcher(text);
+        while (rmatcher.find()) {
+            String robotTag = rmatcher.group();
+            Matcher cmatcher = META_CONTENT_PATTERN.matcher(robotTag);
+            if (cmatcher.find()) {
+                String content = cmatcher.group(1);
+                if (StringUtils.isNotBlank(content)) {
+                    return content;
+                }
+            }
         }
         return null;
+    }
+    
+    private boolean isEndOfHead(String line) {
+        return HEAD_PATTERN.matcher(line).matches();
     }
 
     @Override

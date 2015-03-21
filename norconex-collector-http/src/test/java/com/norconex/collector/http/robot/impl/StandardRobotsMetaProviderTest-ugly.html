@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2010-2014 Norconex Inc.
+   Copyright 2010-2015 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,7 +15,18 @@
  -->
 <html>
 <head>
-  <meta name="ROBOTS" content="noindex, nofollow" />
+  <!-- This one should be ignored:
+      <meta name="ROBOTS" content="index, follow" />
+    -->
+
+<meta name="NOTROBOTS" content="shouldIgnore" />  <meta 
+        content="  noindex, 
+        
+        
+                 nofollow"
+        name  =
+               "ROBOTS  " 
+   /><meta name="STILLNOTROBOTS" content="shouldStillIgnore" />
 </head>
 <body>
 This is a sample document used to test robot meta data extraction.

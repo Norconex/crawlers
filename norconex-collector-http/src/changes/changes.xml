@@ -8,6 +8,15 @@
   <body>
 
     <release version="2.1.0-SNAPSHOT" date="2015-??-??" description="Feature release">
+      <action dev="essiembre" type="add">
+        Several new features, updates and fixes were added by upgrading
+        Norconex Collector Core 
+        (http://www.norconex.com/collectors/collector-core/)  and 
+        Norconex Importer (http://www.norconex.com/collectors/importer/) 
+        dependencies.  Those include support for ORC, translation, a 
+        title generator, new content type parsing, and more. Refer to dependency
+        release notes for more details.
+      </action>      
       <action dev="essiembre" type="update">
         Sitemap resolving pipeline stage is now always invoked
         (but won't do anything if disabled).
@@ -32,6 +41,11 @@
         Fixed link extractor not fetching link text properly when
         keepReferrerData is true on HtmlLinkExtractor (github #56).
       </action>
+      <action dev="essiembre" type="fix">
+        Robot meta data found in HTML pages will no longer be extracted
+        if found within an HTML comment. Robot metadata detection is also
+        more robust (github #60).
+      </action>      
     </release>
 
     <release version="2.0.2" date="2015-02-04" description="Bug fix release">

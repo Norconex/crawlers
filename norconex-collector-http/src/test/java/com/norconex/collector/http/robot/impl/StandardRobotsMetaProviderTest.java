@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.url.impl;
+package com.norconex.collector.http.robot.impl;
 
 import static org.junit.Assert.assertTrue;
 
@@ -27,13 +27,25 @@ import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
 import com.norconex.commons.lang.file.ContentType;
 
+/**
+ * @author Pascal Essiembre
+ */
 public class StandardRobotsMetaProviderTest {
 
+    
     @Test
-    public void testRobotsMetaProvider() throws IOException {
+    public void testNiceRobotsMeta() throws IOException {
+        testRobotsMeta("nice");
+    }
+    @Test
+    public void testUglyRobotsMeta() throws IOException {
+        testRobotsMeta("ugly");
+    }
+
+    private void testRobotsMeta(String suffix) throws IOException {
         Reader docReader = new InputStreamReader(getClass().getResourceAsStream(
-                "StandardRobotsMetaProviderTest.html"));
-        String docURL = "http://www.example.com/DefaultURLExtractorTest.html";
+                "StandardRobotsMetaProviderTest-" + suffix + ".html"));
+        String docURL = "http://www.example.com/test" + suffix + ".html";
         HttpMetadata metadata = new HttpMetadata(docURL);
         metadata.setString(HttpMetadata.HTTP_CONTENT_TYPE, "text/html");
 
