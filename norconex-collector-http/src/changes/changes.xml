@@ -20,13 +20,18 @@
       <action dev="essiembre" type="update">
         Sitemap resolving pipeline stage is now always invoked
         (but won't do anything if disabled).
-      </action>      
+      </action>
       <action dev="essiembre" type="update">
-        Upgraded Norconex Collector Core to 1.1.0.
+        Library updates: Norconex Collector Core 1.1.0, JUnit 4.12, 
+        Joda-Time 2.7, Apache HTTP Components 4.4, 
+        Jetty Webapp 9.2.10.v20150310, Fongo 1.6.2.
       </action>
       <action dev="essiembre" type="update">
         Added Sonatype repository to pom.xml for snapshot releases.
-      </action>      
+      </action>
+      <action dev="essiembre" type="update">
+        Updated several maven plugins and added SonarQube maven plugin.
+      </action>
       <action dev="essiembre" type="update">
         Improvements on character encoding detection from HTTP headers.
       </action>      

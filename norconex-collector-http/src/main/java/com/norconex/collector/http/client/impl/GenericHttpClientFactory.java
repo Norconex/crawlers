@@ -49,14 +49,16 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.UnsupportedSchemeException;
-import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.Args;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.client.IHttpClientFactory;
@@ -79,7 +81,6 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *      &lt;expectContinueEnabled&gt;[false|true]&lt;/expectContinueEnabled&gt;
  *      &lt;maxRedirects&gt;...&lt;/maxRedirects&gt;
  *      &lt;localAddress&gt;...&lt;/localAddress&gt;
- *      &lt;staleConnectionCheckDisabled&gt;[false|true]&lt;/staleConnectionCheckDisabled&gt;
  *      &lt;maxConnections&gt;...&lt;/maxConnections&gt;
  *
  *      &lt;-- Be warned: trusting all certificates is usually a bad idea. --&gt;
@@ -117,12 +118,19 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *
  *  &lt;/httpClientFactory&gt;
  * </pre>
+ * <p>
+ * As of 2.1.0, "staleConnectionCheckDisabled" is permanently 
+ * <code>false</code> and can no longer be changed.
+ * </p>
  * @author Pascal Essiembre
  * @since 1.3.0
  */
 public class GenericHttpClientFactory 
         implements IHttpClientFactory, IXMLConfigurable {
 
+    private static final Logger LOG = 
+            LogManager.getLogger(GenericHttpClientFactory.class);
+    
     /** Form-based authentication method. */
     public static final String AUTH_METHOD_FORM = "form";
     /** BASIC authentication method. */
@@ -191,7 +199,6 @@ public class GenericHttpClientFactory
     private int maxRedirects = DEFAULT_MAX_REDIRECT;
     private int maxConnections = DEFAULT_MAX_CONNECTIONS;
     private String localAddress;
-    private boolean staleConnectionCheckDisabled;
     
     @Override
     public HttpClient createHTTPClient(String userAgent) {
@@ -204,6 +211,7 @@ public class GenericHttpClientFactory
         builder.setDefaultConnectionConfig(createConnectionConfig());
         builder.setUserAgent(userAgent);
         builder.setMaxConnTotal(maxConnections);
+        
         //builder.setMaxConnPerRoute(maxConnPerRoute)
         buildCustomHttpClient(builder);
         
@@ -263,12 +271,11 @@ public class GenericHttpClientFactory
                 .setSocketTimeout(socketTimeout)
                 .setConnectionRequestTimeout(connectionRequestTimeout)
                 .setMaxRedirects(maxRedirects)
-                .setStaleConnectionCheckEnabled(!staleConnectionCheckDisabled)
                 .setExpectContinueEnabled(expectContinueEnabled);
         if (cookiesDisabled) {
             builder.setCookieSpec(CookieSpecs.IGNORE_COOKIES);
         } else {
-            builder.setCookieSpec(CookieSpecs.BEST_MATCH);
+            builder.setCookieSpec(CookieSpecs.DEFAULT);
         }
         if (maxRedirects <= 0) {
             builder.setRedirectsEnabled(false);
@@ -382,11 +389,12 @@ public class GenericHttpClientFactory
         maxRedirects = xml.getInt("maxRedirects", maxRedirects);
         maxConnections = xml.getInt("maxConnections", maxConnections);
         localAddress = xml.getString("localAddress", localAddress);
-        staleConnectionCheckDisabled = xml.getBoolean(
-                "staleConnectionCheckDisabled", staleConnectionCheckDisabled);
         
-        
-        
+        if (xml.getString("staleConnectionCheckDisabled") != null) {
+            LOG.warn("Since 2.1.0, the configuration option \""
+                    + "staleConnectionCheckDisabled\" is no longer supported. "
+                    + "It is now permanently false.");
+        }
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
@@ -425,8 +433,6 @@ public class GenericHttpClientFactory
                     writer, "expectContinueEnabled", expectContinueEnabled);
             writeIntElement(writer, "maxRedirects", maxRedirects);
             writeStringElement(writer, "localAddress", localAddress);
-            writeBoolElement(writer, "staleConnectionCheckDisabled", 
-                    staleConnectionCheckDisabled);
             writeIntElement(writer, "maxConnections", maxConnections);
             
             writer.flush();
@@ -895,18 +901,23 @@ public class GenericHttpClientFactory
     /**
      * Gets whether stale connection check is disabled.
      * @return <code>true</code> if stale connection check is disabled
+     * @deprecated since 2.1.0, this setting is permanently <code>false</code>.
      */
+    @Deprecated
     public boolean isStaleConnectionCheckDisabled() {
-        return staleConnectionCheckDisabled;
+        return false;
     }
     /**
      * Sets whether stale connection check is disabled.  Disabling stale
      * connection check can slightly improve performance.
      * @param staleConnectionCheckDisabled <code>true</code> if stale 
      *        connection check is disabled
+     * @deprecated since 2.1.0, this setting is permanently <code>false</code>.
      */
-    public void setStaleConnectionCheckDisabled(boolean staleConnectionCheckDisabled) {
-        this.staleConnectionCheckDisabled = staleConnectionCheckDisabled;
+    @Deprecated
+    public void setStaleConnectionCheckDisabled(
+            boolean staleConnectionCheckDisabled) {
+        // do nothing
     }
 
     /**

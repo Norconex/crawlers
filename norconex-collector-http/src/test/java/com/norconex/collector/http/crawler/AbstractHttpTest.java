@@ -126,31 +126,40 @@ public abstract class AbstractHttpTest {
     protected String newUrl(String urlPath) {
         return getBaseUrl() + urlPath;
     }
-//    protected File newTempFolder(String folderName) throws IOException {
-//        return tempFolder.newFolder(folderName);
+////    protected File newTempFolder(String folderName) throws IOException {
+////        return tempFolder.newFolder(folderName);
+////    }
+//    protected File getCommitterAddDir(HttpCrawler crawler) {
+//        FileSystemCommitter committer = (FileSystemCommitter)
+//                crawler.getCrawlerConfig().getCommitter();
+//        File dir = committer.getAddDir();
+////        if (!dir.exists()) {
+////            dir.mkdirs();
+////        }
+//        return dir;
 //    }
-    protected File getCommitterAddDir(HttpCrawler crawler) {
+//    protected File getCommitterRemoveDir(HttpCrawler crawler) {
+//        FileSystemCommitter committer = (FileSystemCommitter)
+//                crawler.getCrawlerConfig().getCommitter();
+//        File dir = committer.getRemoveDir();
+////        if (!dir.exists()) {
+////            dir.mkdirs();
+////        }
+//        return dir;
+//    }
+    protected File getCommitterDir(HttpCrawler crawler) {
         FileSystemCommitter committer = (FileSystemCommitter)
                 crawler.getCrawlerConfig().getCommitter();
-        File dir = committer.getAddDir();
-//        if (!dir.exists()) {
-//            dir.mkdirs();
-//        }
-        return dir;
-    }
-    protected File getCommitterRemoveDir(HttpCrawler crawler) {
-        FileSystemCommitter committer = (FileSystemCommitter)
-                crawler.getCrawlerConfig().getCommitter();
-        File dir = committer.getRemoveDir();
-//        if (!dir.exists()) {
-//            dir.mkdirs();
-//        }
+        File dir = new File(committer.getDirectory());
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
         return dir;
     }
     
     protected List<HttpDocument> getCommitedDocuments(HttpCrawler crawler)
             throws IOException {
-        File addDir = getCommitterAddDir(crawler);
+        File addDir =  getCommitterDir(crawler);
         Collection<File> files = FileUtils.listFiles(addDir, null, true);
         List<HttpDocument> docs = new ArrayList<>();
         for (File file : files) {
