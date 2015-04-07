@@ -25,6 +25,8 @@ import com.norconex.collector.core.crawler.event.ICrawlerEventListener;
  */
 public class JVMCrasher implements ICrawlerEventListener {
 
+    public static final int CRASH_EXIT_VALUE = 13;
+    
     private int count = 0;
     
     /**
@@ -38,7 +40,7 @@ public class JVMCrasher implements ICrawlerEventListener {
         if (CrawlerEvent.DOCUMENT_FETCHED.equals(event.getEventType())) {
             count++;
             if (count % 7 == 0) {
-                Runtime.getRuntime().halt(666);
+                Runtime.getRuntime().halt(13);
             }
         }
     }

@@ -277,7 +277,8 @@ public class ExecutionTest extends AbstractHttpTest {
         //--- Crash start run ---
         System.out.println("\n--- Crash start run ---");
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 666, exitValue);
+        Assert.assertEquals("Wrong exit value.", 
+                JVMCrasher.CRASH_EXIT_VALUE, exitValue);
         // JVMCrasher crashes after 7th *fetch*, so only 6 should have been
         // committed.
         Assert.assertEquals("Wrong number of committed files after JVM crash.",
@@ -394,7 +395,7 @@ public class ExecutionTest extends AbstractHttpTest {
 
         } catch (BuildException e) {
             caught = e;
-            retValue = -13;
+            retValue = -1;
         }
         project.log("Finished");
         project.fireBuildFinished(caught);
