@@ -16,7 +16,11 @@
         dependencies.  Those include support for ORC, translation, a 
         title generator, new content type parsing, and more. Refer to dependency
         release notes for more details.
-      </action>      
+      </action>
+      <action dev="essiembre" type="add">
+        New methods and configuration attribute to disable 
+        checksum creation in HttpMetadataChecksummer.
+      </action>
       <action dev="essiembre" type="update">
         Sitemap resolving pipeline stage is now always invoked
         (but won't do anything if disabled).
