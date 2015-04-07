@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ import com.norconex.commons.lang.file.ContentType;
 
         // Grab charset form HTTP Content-Type
         String charset = null;
-        if (httpContentType.contains("charset")) {
+        if (httpContentType != null && httpContentType.contains("charset")) {
             charset = StringUtils.trimToNull(StringUtils.substringAfter(
                     httpContentType, "charset="));                
         }

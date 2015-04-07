@@ -50,7 +50,11 @@
         Robot meta data found in HTML pages will no longer be extracted
         if found within an HTML comment. Robot metadata detection is also
         more robust (github #60).
-      </action>      
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed NPE in HttpImporterPipelineUtil#enhanceHTTPHeaders when 
+        content type from HTTP header is not defined.
+      </action>
     </release>
 
     <release version="2.0.2" date="2015-02-04" description="Bug fix release">
