@@ -168,7 +168,7 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
         data.setRootParentReference(rs.getBoolean("isRootParentReference"));
         data.setState(HttpCrawlState.valueOf(rs.getString("state")));
         data.setMetaChecksum(rs.getString("metaChecksum"));
-        data.setDocumentChecksum(rs.getString("contentChecksum"));
+        data.setContentChecksum(rs.getString("contentChecksum"));
         data.setDepth(rs.getInt("depth"));
         BigDecimal bigLM = rs.getBigDecimal("sitemapLastMod");
         if (bigLM != null) {
