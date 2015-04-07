@@ -42,7 +42,6 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      targetField="(field to store checksum)" /&gt;
  * </pre>
  * <p>
- * <p>
  * Since 2.1.0, this implementation can be disabled in your 
  * configuration by specifying <code>disabled="true"</code>. When disabled,
  * the checksum returned is always <code>null</code>.  
