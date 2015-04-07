@@ -367,7 +367,7 @@ public class ExecutionTest extends AbstractHttpTest {
         logger.setOutputPrintStream(System.out);
         logger.setErrorPrintStream(System.err);
         // Change to MSG_INFO to get more details on the console
-        logger.setMessageOutputLevel(Project.MSG_INFO);
+        logger.setMessageOutputLevel(Project.MSG_WARN);
 //        System.setOut(new PrintStream(new DemuxOutputStream(project, false)));
 //        System.setErr(new PrintStream(new DemuxOutputStream(project, true)));
         project.fireBuildStarted();
