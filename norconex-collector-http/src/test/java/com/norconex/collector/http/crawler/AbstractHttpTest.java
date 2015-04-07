@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,9 @@ public abstract class AbstractHttpTest {
         FileUtil.delete(tempFolder.getRoot());
     }
 
+    protected static TemporaryFolder getTempFolder() {
+        return tempFolder;
+    }
     
     protected String getBaseUrl() {
         return "http://localhost:" + SERVER.getLocalPort();
@@ -126,27 +129,6 @@ public abstract class AbstractHttpTest {
     protected String newUrl(String urlPath) {
         return getBaseUrl() + urlPath;
     }
-////    protected File newTempFolder(String folderName) throws IOException {
-////        return tempFolder.newFolder(folderName);
-////    }
-//    protected File getCommitterAddDir(HttpCrawler crawler) {
-//        FileSystemCommitter committer = (FileSystemCommitter)
-//                crawler.getCrawlerConfig().getCommitter();
-//        File dir = committer.getAddDir();
-////        if (!dir.exists()) {
-////            dir.mkdirs();
-////        }
-//        return dir;
-//    }
-//    protected File getCommitterRemoveDir(HttpCrawler crawler) {
-//        FileSystemCommitter committer = (FileSystemCommitter)
-//                crawler.getCrawlerConfig().getCommitter();
-//        File dir = committer.getRemoveDir();
-////        if (!dir.exists()) {
-////            dir.mkdirs();
-////        }
-//        return dir;
-//    }
     protected File getCommitterDir(HttpCrawler crawler) {
         FileSystemCommitter committer = (FileSystemCommitter)
                 crawler.getCrawlerConfig().getCommitter();

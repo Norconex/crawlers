@@ -42,9 +42,13 @@
       <action dev="essiembre" type="update" issue="59">
         log4j.properties from ./classes/ now properly loaded by
         collector-http.sh (github #59).
-      </action>      
+      </action>
       <action dev="essiembre" type="update">
         Improved javadoc.
+      </action>      
+      <action dev="essiembre" type="update">
+        Added many unit tests for testing start vs resume vs stop vs
+        deleted vs modified, in different JVM instances.
       </action>      
       <action dev="essiembre" type="fix" issue="56">
         Fixed link extractor not fetching link text properly when

@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class MapDBTest {
 
     private HttpCrawlData buildCrawlURL() {
         HttpCrawlData c = new HttpCrawlData("http://www.example.com", 3);
-        c.setDocumentChecksum("docchecksum1111");
+        c.setContentChecksum("docchecksum1111");
         c.setSitemapPriority(0.8f);
         return c;
     }

@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@ package com.norconex.collector.http.website;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -26,7 +28,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.map.Properties;
 
 /**
@@ -37,7 +41,9 @@ public class TestServlet extends HttpServlet {
 
     private static final long serialVersionUID = -4252570491708918968L;
 
-    private final Map<String, TestCase> testCases = new HashMap<>();
+    private final Map<String, ITestCase> testCases = new HashMap<>();
+    
+    private final List<String> tokens = new ArrayList<String>();
     
     /**
      * Constructor.
@@ -48,6 +54,8 @@ public class TestServlet extends HttpServlet {
         testCases.put("redirect", new RedirectTestCase());
         testCases.put("userAgent", new UserAgentTestCase());
         testCases.put("keepDownloads", new KeepDownloadedFilesTestCase());
+        testCases.put("deletedFiles", new DeletedFilesTestCase());
+        testCases.put("modifiedFiles", new ModifiedFilesTestCase());
     }
     
     @Override
@@ -57,23 +65,23 @@ public class TestServlet extends HttpServlet {
         if (StringUtils.isBlank(testCaseKey)) {
             testCaseKey = "list";
         }
-        TestCase testCase = testCases.get(testCaseKey);
-        if (testCase == null) {
-            testCase = testCases.get("list");
+        ITestCase iTestCase = testCases.get(testCaseKey);
+        if (iTestCase == null) {
+            iTestCase = testCases.get("list");
         }
         try {
-            testCase.doTestCase(req, resp);
+            iTestCase.doTestCase(req, resp);
             resp.flushBuffer();
         } catch (Exception e) {
             e.printStackTrace(resp.getWriter());
         }
     }
 
-    interface TestCase {
+    interface ITestCase {
         void doTestCase(HttpServletRequest req, 
                 HttpServletResponse resp) throws Exception;
     }
-    abstract class HtmlTestCase implements TestCase {
+    abstract class HtmlTestCase implements ITestCase {
         public void doTestCase(HttpServletRequest req, 
                 HttpServletResponse resp) throws Exception {
             resp.setContentType("text/html");
@@ -92,8 +100,7 @@ public class TestServlet extends HttpServlet {
     class ListTestCases extends HtmlTestCase {
         public void doTestCase(HttpServletRequest req, 
                 HttpServletResponse resp, PrintWriter out) throws Exception {
-            out.println("<h1>Invalid or no test case specified.</h1>");
-            out.println("Available test cases are:");
+            out.println("<h1>Available test cases.</h1>");
             out.println("<ul>");
             for (String testCaseKey : testCases.keySet()) {
                 out.println("<li><a href=\"?case=" + testCaseKey 
@@ -112,7 +119,8 @@ public class TestServlet extends HttpServlet {
             int prevDepth = depth - 1;
             int nextDepth = depth + 1;
             out.println("<h1>Basic features test page</h1>");
-            out.println("<p>Tests: depth, validMetadata</p>");
+            out.println("<p>Tests: BasicFeaturesTest (depth, validMetadata), "
+                    + "ExecutionTest</p>");
             if (prevDepth >= 0) {
                 out.println("<a href=\"?case=basic&depth=" + prevDepth
                         + "\">Previous depth is " + prevDepth + "</a><br><br>");
@@ -167,7 +175,106 @@ public class TestServlet extends HttpServlet {
         }
     }
 
-    
+    class DeletedFilesTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            String page = req.getParameter("page");
+            String token = req.getParameter("token");
+
+            if (StringUtils.isNotBlank(page) 
+                    &&  StringUtils.isNotBlank(token)) {
+                String pageToken = "page-" + page + "-" + token;
+                if (tokens.contains(pageToken)) {
+                    tokens.remove(pageToken);
+                    resp.sendError(HttpStatus.SC_NOT_FOUND,
+                            "Not found (so they say)");
+                    return;
+                } else {
+                    tokens.add(pageToken);
+                }
+            }
+            
+            if (StringUtils.isNotBlank(page)) {
+                out.println("<h1>Delete test page " + page + "</h1>");
+                out.println("<p>This page should give a 404 when accessed "
+                        + "a second time with the same token "
+                        + "(and keeps toggling on every requests).</p>");
+            } else {
+                out.println("<h1>Deleted files test main page</h1>");
+                out.println("<p>When accessed with a <b>token</b> parameter "
+                    + "having "
+                    + "an arbitrary value, this page will list links "
+                    + "that are valid the first time they are accessed. "
+                    + "The second time they are accessed with the same token "
+                    + "value, "
+                    + "the links won't be found and the HTTP "
+                    + "response will be a "
+                    + "404 when accessing them. "
+                    + "If you keep accessing the same URLs, the state "
+                    + "will change on each request from this page to 404.</p>"
+                    + "<ul>"
+                    + "<li><a href=\"?case=deletedFiles&token=" + token
+                    + "&page=1\">Delete Test Page 1</a></li>"
+                    + "<li><a href=\"?case=deletedFiles&token=" + token
+                    + "&page=2\">Delete Test Page 2</a></li>"
+                    + "<li><a href=\"?case=deletedFiles&token=" + token
+                    + "&page=3\">Delete Test Page 3</a></li>"
+                    + "</ul>");
+            }
+        }
+    }
+
+    class ModifiedFilesTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            
+            String page = req.getParameter("page");
+            // 2001-01-01T01:01:01 GMT
+            long staticDate = 978310861000l;
+            if (StringUtils.isBlank(page)) {
+                resp.setDateHeader("Last-Modified", staticDate);
+                out.println("<h1>Modified files test main page</h1>");
+                out.println("<p>While this page is never modified, the 3 links "
+                    + "below point to pages that are: "
+                    + "<ul>"
+                    + "<li><a href=\"?case=modifiedFiles&page=1\">"
+                    + "Modified Test Page 1</a>: Ever changing Last-Modified "
+                    + "date in http header.</li>"
+                    + "<li><a href=\"?case=modifiedFiles&page=2\">"
+                    + "Modified Test Page 2</a>: Ever changing body content."
+                    + "</li>"
+                    + "<li><a href=\"?case=modifiedFiles&page=3\">"
+                    + "Modified Test Page 3</a>: Both header and body are "
+                    + "ever changing.</li>"
+                    + "</ul>");
+            } else if ("1".equals(page)) {
+                // Wait 1 second to make sure the date has changed.
+                Sleeper.sleepSeconds(1);
+                resp.setDateHeader("Last-Modified", System.currentTimeMillis());
+                out.println("<h1>Modified test page 1 (meta)</h1>");
+                out.println("<p>This page content is always the same, but "
+                        + "the Last-Modified HTTP response value is always "
+                        + "the current date (so it keeps changing).</p>");
+            } else if ("2".equals(page)) {
+                resp.setDateHeader("Last-Modified", staticDate);
+                out.println("<h1>Modified test page 2 (content)</h1>");
+                out.println("<p>This page content always changes because of "
+                        + "this random number: " + System.currentTimeMillis()
+                        + "</p><p>The Last-Modified HTTP response value is "
+                        + "always the same.</p>");
+            } else if ("3".equals(page)) {
+                // Wait 1 second to make sure the date has changed.
+                Sleeper.sleepSeconds(1);
+                resp.setDateHeader("Last-Modified", System.currentTimeMillis());
+                out.println("<h1>Modified test page 3 (meta + content)</h1>");
+                out.println("<p>This page content always changes because of "
+                        + "this random number: " + System.currentTimeMillis()
+                        + "</p><p>The Last-Modified HTTP response value is "
+                        + "always the current date (so it keeps changing)."
+                        + "</p>");
+            }
+        }
+    }
 //    class InfinitTestCase extends HtmlTestCase {
 //        public void doTestCase(HttpServletRequest req, 
 //                HttpServletResponse resp, PrintWriter out) throws Exception {
