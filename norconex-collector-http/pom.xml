@@ -70,7 +70,7 @@
     <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.4</version>
+        <version>4.4.1</version>
     </dependency>    
     <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -90,6 +90,16 @@
       <version>1.9.4</version>
       <scope>test</scope>
     </dependency>
+    
+    <!-- The following dependencies are only present here to ensure their
+         proper version. They are otherwise provided by 
+         transitive dependencies. They can be removed from here once 
+         transitive versions match and don't cause conflicts. -->
+    <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.10</version>
+    </dependency>    
   </dependencies>
   
   <build>

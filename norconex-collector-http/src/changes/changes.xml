@@ -50,6 +50,10 @@
         Added many unit tests for testing start vs resume vs stop vs
         deleted vs modified, in different JVM instances.
       </action>      
+      <action dev="essiembre" type="update">
+        "minimum" and "complex" configuration examples now ignore sitemap.xml
+        files.
+      </action>      
       <action dev="essiembre" type="fix" issue="56">
         Fixed link extractor not fetching link text properly when
         keepReferrerData is true on HtmlLinkExtractor (github #56).
@@ -62,6 +66,9 @@
       <action dev="essiembre" type="fix">
         Fixed NPE in HttpImporterPipelineUtil#enhanceHTTPHeaders when 
         content type from HTTP header is not defined.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed log4j log levels incorrectly ending with a semi-colon.
       </action>
     </release>
 

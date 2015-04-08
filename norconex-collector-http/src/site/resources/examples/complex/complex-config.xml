@@ -32,6 +32,8 @@
     <maxDepth>0</maxDepth>
     <workDir>$workdir</workDir>
     <orphansStrategy>DELETE</orphansStrategy>
+    <!-- We know we don't want to crawl the entire site, so ignore sitemap. -->
+    <sitemap ignore="true" /> 
 
     <referenceFilters>
       <filter class="$filterExtension" onMatch="exclude">jpg,gif,png,ico,css,js</filter>

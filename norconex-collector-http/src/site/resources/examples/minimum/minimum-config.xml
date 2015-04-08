@@ -41,6 +41,9 @@
       <!-- Put a maximum depth to avoid infinite crawling (e.g. calendars). -->
       <maxDepth>0</maxDepth>
 
+      <!-- We know we don't want to crawl the entire site, so ignore sitemap. -->
+      <sitemap ignore="true" /> 
+
       <!-- Be as nice as you can to sites you crawl. -->
       <delay default="5000" />
       
@@ -57,8 +60,9 @@
         <postParseHandlers>
           <!-- If your target repository does not support arbitrary fields,
                make sure you only keep the fields you need. -->
-          <tagger class="com.norconex.importer.handler.tagger.impl.KeepOnlyTagger"
-                  fields="title,keywords,description,document.reference"/>
+          <tagger class="com.norconex.importer.handler.tagger.impl.KeepOnlyTagger">
+            <fields>title,keywords,description,document.reference</fields>
+          </tagger>
         </postParseHandlers>
       </importer> 
       
