@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.1.0-SNAPSHOT" date="2015-??-??" description="Feature release">
+    <release version="2.1.0" date="2015-04-08" description="Feature release">
       <action dev="essiembre" type="add">
         Several new features, updates and fixes were added by upgrading
         Norconex Collector Core 
