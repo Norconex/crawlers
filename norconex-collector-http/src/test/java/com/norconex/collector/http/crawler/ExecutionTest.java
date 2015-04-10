@@ -172,19 +172,18 @@ public class ExecutionTest extends AbstractHttpTest {
                 0, countDeletedFiles());
     }
 
-
     @Test
     public void testStartAfterStopped()
             throws IOException, XMLStreamException, InterruptedException {
-        testResumeAfterStopped(false);
+        testAfterStopped(false);
     }
 
     @Test
     public void testResumeAfterStopped()
             throws IOException, XMLStreamException, InterruptedException {
-        testResumeAfterStopped(true);
+        testAfterStopped(true);
     }
-    private void testResumeAfterStopped(boolean resume)
+    private void testAfterStopped(boolean resume)
             throws IOException, XMLStreamException, InterruptedException {
         vars.setInt("delay", 5000);
         
@@ -368,7 +367,7 @@ public class ExecutionTest extends AbstractHttpTest {
         logger.setOutputPrintStream(System.out);
         logger.setErrorPrintStream(System.err);
         // Change to MSG_INFO to get more details on the console
-        logger.setMessageOutputLevel(Project.MSG_WARN);
+        logger.setMessageOutputLevel(Project.MSG_DEBUG);
 //        System.setOut(new PrintStream(new DemuxOutputStream(project, false)));
 //        System.setErr(new PrintStream(new DemuxOutputStream(project, true)));
         project.fireBuildStarted();

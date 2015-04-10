@@ -7,6 +7,15 @@
   </properties>
   <body>
 
+    <release version="2.2.0-SNAPSHOT" date="2015-??-??" description="Feature release">
+      <action dev="essiembre" type="add">
+        New CurrentDateTagger introduced by dependency upgrades.
+      </action>
+      <action dev="essiembre" type="update">
+        Library updates: Norconex Collector Core 1.2.0
+      </action>
+    </release>
+
     <release version="2.1.0" date="2015-04-08" description="Feature release">
       <action dev="essiembre" type="add">
         Several new features, updates and fixes were added by upgrading
