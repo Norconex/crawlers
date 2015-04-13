@@ -14,6 +14,11 @@
       <action dev="essiembre" type="update">
         Library updates: Norconex Collector Core 1.2.0
       </action>
+      <action dev="essiembre" type="fix">
+        Fixed MongoCrawlDataSerializer "referrerLinkText" link 
+        attribute/metadata having the same value as "referrerLinkTag" 
+        (github #82).
+      </action>
     </release>
 
     <release version="2.1.0" date="2015-04-08" description="Feature release">

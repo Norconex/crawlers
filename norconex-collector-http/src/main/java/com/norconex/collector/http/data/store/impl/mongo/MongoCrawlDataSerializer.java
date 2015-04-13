@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         doc.put(FIELD_SITEMAP_PRIORITY, data.getSitemapPriority());
         doc.put(FIELD_REFERRER_REFERENCE, data.getReferrerReference());
         doc.put(FIELD_REFERRER_LINK_TAG, data.getReferrerLinkTag());
-        doc.put(FIELD_REFERRER_LINK_TEXT, data.getReferrerLinkTag());
+        doc.put(FIELD_REFERRER_LINK_TEXT, data.getReferrerLinkText());
         doc.put(FIELD_REFERRER_LINK_TITLE, data.getReferrerLinkTitle());
         return doc;
     }
