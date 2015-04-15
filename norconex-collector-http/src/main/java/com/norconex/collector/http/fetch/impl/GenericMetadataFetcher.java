@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,11 +45,11 @@ import com.norconex.commons.lang.map.Properties;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;httpHeadersFetcher 
+ *  &lt;metadataFetcher 
  *      class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" &gt;
  *      &lt;validStatusCodes&gt;200&lt;/validStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
- *  &lt;/httpHeadersFetcher&gt;
+ *  &lt;/metadataFetcher&gt;
  * </pre>
  * <p>
  * The "validStatusCodes" attribute expects a coma-separated list of HTTP

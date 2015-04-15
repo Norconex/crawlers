@@ -14,6 +14,9 @@
       <action dev="essiembre" type="update">
         Library updates: Norconex Collector Core 1.2.0
       </action>
+      <action dev="essiembre" type="update">
+        Improved/fixed javadoc.
+      </action>      
       <action dev="essiembre" type="fix">
         Fixed MongoCrawlDataSerializer "referrerLinkText" link 
         attribute/metadata having the same value as "referrerLinkTag" 
