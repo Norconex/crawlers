@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.norconex.collector.http.url.ILinkExtractor;
@@ -92,6 +93,7 @@ public class LinkExtractorTest {
         String[] unexpectedURLs = {
                 baseURL + "badhref.html",
                 baseURL + "nofollow.html",
+                baseDir // empty href
         };
 
         InputStream is = getClass().getResourceAsStream(
@@ -108,6 +110,10 @@ public class LinkExtractorTest {
             assertFalse("Found unexpected URL: " + unexpectedURL, 
                     contains(links, unexpectedURL));
         }
+
+        Assert.assertEquals(
+                "Invalid number of links extracted.", 11, links.size());
+
         IOUtils.closeQuietly(is);
     }
     

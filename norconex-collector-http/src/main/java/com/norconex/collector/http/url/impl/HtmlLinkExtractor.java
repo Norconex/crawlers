@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -324,7 +324,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
             String attribs = tagAttribs.getString(tagName);
             Pattern p = Pattern.compile(
-                    "(^|\\s)(" + attribs + ")\\s*=\\s*([\"'])([^\\<\\>]+?)\\3",
+                    "(^|\\s)(" + attribs + ")\\s*=\\s*([\"'])([^\\<\\>]*?)\\3",
                     PATTERN_FLAGS);
             Matcher urlMatcher = p.matcher(restOfTag);
             while (urlMatcher.find()) {

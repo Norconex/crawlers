@@ -22,6 +22,11 @@
         attribute/metadata having the same value as "referrerLinkTag" 
         (github #82).
       </action>
+      <action dev="essiembre" type="fix">
+        Both HtmlLinkExtractor and TikaLinkExtractor no longer extract
+        empty href links (github #87). Added this use case to corresponding 
+        unit test. 
+      </action>
     </release>
 
     <release version="2.1.0" date="2015-04-08" description="Feature release">

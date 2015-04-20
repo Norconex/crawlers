@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,9 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     continue;
                 }
                 String extractedURL = tikaLink.getUri();
-                if (extractedURL.startsWith("?")) {
+                if (StringUtils.isBlank(extractedURL)) {
+                    continue;
+                } else if (extractedURL.startsWith("?")) {
                     extractedURL = url + extractedURL;
                 } else if (extractedURL.startsWith("#")) {
                     extractedURL = url;
