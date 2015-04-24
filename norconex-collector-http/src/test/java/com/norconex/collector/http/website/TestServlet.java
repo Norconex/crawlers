@@ -56,6 +56,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("keepDownloads", new KeepDownloadedFilesTestCase());
         testCases.put("deletedFiles", new DeletedFilesTestCase());
         testCases.put("modifiedFiles", new ModifiedFilesTestCase());
+        testCases.put("canonical", new CanonicalTestCase());
     }
     
     @Override
@@ -275,18 +276,41 @@ public class TestServlet extends HttpServlet {
             }
         }
     }
-//    class InfinitTestCase extends HtmlTestCase {
-//        public void doTestCase(HttpServletRequest req, 
-//                HttpServletResponse resp, PrintWriter out) throws Exception {
-//
-//            int count = NumberUtils.toInt(req.getParameter("count"), 0);
-//            count++;
-//            
-//            out.println("<h1>To infinity and beyond!</h1>");
-//            out.println("Useful test case when long-running crawls are"
-//                    + "desired.");
-//            out.println("<a href=\"\">" +  + "</a>");
-//        }
-//    }
+    
+    class CanonicalTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            String type = req.getParameter("type");
+            String canonicalURL = "http://localhost:" + req.getLocalPort() 
+                        + "/test?case=canonical";
+
+            if ("httpheader".equals(type)) {
+                resp.setHeader("Link", "<" + canonicalURL
+                        + ">; rel=\"canonical\"");
+                out.println("<body><p>Canonical URL in HTTP header.</p>");
+            } else if ("linkrel".equals(type)) {
+                out.println("<head>");
+                out.println("<link rel=\"canonical\" ");
+                out.println("href=\"" + canonicalURL + "\" />");
+                out.println("</head>");
+                out.println("<body><p>Canonical URL in HTML &lt;head&gt;.</p>");
+            } else {
+                out.println("<body><p>Canonical page</p>");
+            }
+            out.println(
+                    "<h1>Handling of (non)canonical URLs</h1>"
+                  + "<p>The links below are pointing to pages that should "
+                  + "be considered copies of this page when accessed "
+                  + "without URL parameters.</p>"
+                  + "<ul>"
+                  + "<li><a href=\"?case=canonical&type=httpheader\">"
+                  + "HTTP Header</a></li>"
+                  + "<li><a href=\"?case=canonical&type=linkrel\">"
+                  + "link rel</a></li>"
+                  + "</ul>"
+                  + "</body>"
+            );
+        }
+    }
 
 }

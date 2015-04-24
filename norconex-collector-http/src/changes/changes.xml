@@ -9,10 +9,16 @@
 
     <release version="2.2.0-SNAPSHOT" date="2015-??-??" description="Feature release">
       <action dev="essiembre" type="add">
+        Added support for canonical links defined in both HTTP Headers or
+        as a &lt;link&gt; tag in an HTML document &lt;head&gt; tag (github #79).
+        Canonical links detection is always performed unless explicitly
+        disabled.
+      </action>
+      <action dev="essiembre" type="add">
         New CurrentDateTagger introduced by dependency upgrades.
       </action>
       <action dev="essiembre" type="update">
-        Library updates: Norconex Collector Core 1.2.0
+        Maven dependency updates: Norconex Collector Core 1.2.0
       </action>
       <action dev="essiembre" type="update">
         Improved/fixed javadoc.
@@ -43,7 +49,7 @@
         (but won't do anything if disabled).
       </action>
       <action dev="essiembre" type="update">
-        Library updates: Norconex Collector Core 1.1.0, JUnit 4.12, 
+        Maven dependency updates: Norconex Collector Core 1.1.0, JUnit 4.12, 
         Joda-Time 2.7, Apache HTTP Components 4.4, 
         Jetty Webapp 9.2.10.v20150310, Fongo 1.6.2.
       </action>

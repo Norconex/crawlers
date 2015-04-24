@@ -48,6 +48,7 @@
   #set($metaFetcher       = "${http}.fetch.impl.GenericMetadataFetcher")
   #set($docFetcher        = "${http}.fetch.impl.GenericDocumentFetcher")
   #set($linkExtractor     = "${http}.url.impl.HtmlLinkExtractor")
+  #set($canonLinkDetector = "${http}.url.impl.GenericCanonicalLinkDetector")
   #set($urlNormalizer     = "${http}.url.impl.GenericURLNormalizer")
   #set($sitemapFactory    = "${http}.sitemap.impl.StandardSitemapResolverFactory")
   #set($metaChecksummer   = "${http}.checksum.impl.HttpMetadataChecksummer")
@@ -229,7 +230,17 @@
               caseSensitive="false"
               field="Content-Type">.*css.*</filter>
     </metadataFilters>        
-      
+
+    <!-- Detect canonical links. Classes must implement
+         com.norconex.collector.http.url.ICanonicalLinkDetector.
+         Default implementation is the following.
+         -->
+    <canonicalLinkDetector ignore="false" class="${canonLinkDetector}">
+      <contentTypes>
+          text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
+      </contentTypes>
+    </canonicalLinkDetector>
+
     <!-- Generates a checksum value from document headers to find out if 
          a document has changed. Class must implement
          com.norconex.collector.core.checksum.IMetadataChecksummer.  

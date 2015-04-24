@@ -4,6 +4,9 @@ The following are either things to be done, or ideas to consider:
 Any release:
 ============
 
+- Carry a flag that tells if we are running a full crawl, or an incremental one.
+  Some operations may be relevant only on incremental runs.
+
 - Add a crawler event listener that acts as a link checker, logging/storing
   every bad (404) URLs encountered.  DONE AS A BLOG... incorporate?
 

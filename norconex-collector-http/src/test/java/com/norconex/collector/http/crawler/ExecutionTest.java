@@ -201,7 +201,7 @@ public class ExecutionTest extends AbstractHttpTest {
             }
         };
         newCrawl.start();
-        Sleeper.sleepSeconds(5);
+        Sleeper.sleepSeconds(10);
 
         System.out.println("Requesting collector to stop.");
         int returnValue = runCollector("stop", null);
