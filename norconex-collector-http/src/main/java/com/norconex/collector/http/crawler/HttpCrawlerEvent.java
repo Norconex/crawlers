@@ -29,6 +29,8 @@ public class HttpCrawlerEvent extends CrawlerEvent {
     public static final String REJECTED_ROBOTS_META_NOINDEX = 
             "REJECTED_ROBOTS_META_NOINDEX";
     public static final String REJECTED_TOO_DEEP = "REJECTED_TOO_DEEP";
+    /** @since 2.2.0 */
+    public static final String REJECTED_CANONICAL = "REJECTED_CANONICAL";
     public static final String URLS_EXTRACTED = "URLS_EXTRACTED";
     
     public HttpCrawlerEvent(String eventType, ICrawlData crawlData,
