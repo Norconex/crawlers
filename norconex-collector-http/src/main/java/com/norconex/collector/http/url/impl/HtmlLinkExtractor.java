@@ -343,7 +343,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 }
 
                 for (String url : urls) {
-                    url = toAbsoluteURL(referrer, url);
+                    url = toCleanAbsoluteURL(referrer, url);
                     if (url == null) {
                         continue;
                     }
@@ -374,7 +374,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         if (!m.find()) {
             return;
         }
-        String url = toAbsoluteURL(referrer, m.group(PATTERN_URL_GROUP));
+        String url = toCleanAbsoluteURL(referrer, m.group(PATTERN_URL_GROUP));
         Link link = new Link(url);
         if (keepReferrerData) {
             link.setReferrer(referrer.url);
@@ -395,7 +395,8 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
     
     
-    private String toAbsoluteURL(final Referer urlParts, final String newURL) {
+    private String toCleanAbsoluteURL(
+            final Referer urlParts, final String newURL) {
         if (!isValidNewURL(newURL)) {
             return null;
         }
@@ -430,6 +431,10 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                            url, 0, LOGGING_MAX_URL_LENGTH) + "...");
             return null;
         }
+        
+        // Decode encoded ampersands in URL.
+        url = url.replace("&amp;", "&");
+
         return url;
     }
 

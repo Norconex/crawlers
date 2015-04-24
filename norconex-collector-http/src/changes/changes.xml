@@ -8,9 +8,9 @@
   <body>
 
     <release version="2.2.0-SNAPSHOT" date="2015-??-??" description="Feature release">
-      <action dev="essiembre" type="add">
+      <action dev="essiembre" type="add" issue="79">
         Added support for canonical links defined in both HTTP Headers or
-        as a &lt;link&gt; tag in an HTML document &lt;head&gt; tag (github #79).
+        as a &lt;link&gt; tag in an HTML document &lt;head&gt; tag.
         Canonical links detection is always performed unless explicitly
         disabled.
       </action>
@@ -23,14 +23,17 @@
       <action dev="essiembre" type="update">
         Improved/fixed javadoc.
       </action>      
-      <action dev="essiembre" type="fix">
+      <action dev="essiembre" type="fix" issue="82">
         Fixed MongoCrawlDataSerializer "referrerLinkText" link 
-        attribute/metadata having the same value as "referrerLinkTag" 
-        (github #82).
+        attribute/metadata having the same value as "referrerLinkTag".
       </action>
-      <action dev="essiembre" type="fix">
+      <action dev="essiembre" type="fix" issue="88">
+        HtmlLinkExtractor now decodes encoded ampersands (i.e. &amp;amp;) 
+        present in URLs.
+      </action>
+      <action dev="essiembre" type="fix" issue="87">
         Both HtmlLinkExtractor and TikaLinkExtractor no longer extract
-        empty href links (github #87). Added this use case to corresponding 
+        empty href links. Added this use case to corresponding 
         unit test. 
       </action>
     </release>

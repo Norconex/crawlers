@@ -87,6 +87,8 @@ public class LinkExtractorTest {
                 baseURL + "onTwoLines.html",
                 baseURL + "imageSlash.gif",
                 baseURL + "imageNoSlash.gif",
+                baseDir + "titleTarget.html",
+                baseURL + "?p1=v1&p2=v2&p3=v3",
         };
         
         // All these must NOT be found
@@ -111,8 +113,8 @@ public class LinkExtractorTest {
                     contains(links, unexpectedURL));
         }
 
-        Assert.assertEquals(
-                "Invalid number of links extracted.", 11, links.size());
+        Assert.assertEquals("Invalid number of links extracted.", 
+                expectedURLs.length, links.size());
 
         IOUtils.closeQuietly(is);
     }
