@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ public class HttpImporterPipeline
         // When HTTP headers are fetched (HTTP "HEAD") before document:
         addStage(new HttpMetadataFetcherStage());
         addStage(new HttpMetadataFiltersHEADStage());
+        addStage(new HttpMetadataCanonicalHEADStage());
         addStage(new HttpMetadataChecksumStage(true));
         
         // HTTP "GET" and onward:
@@ -59,6 +60,8 @@ public class HttpImporterPipeline
         if (isKeepDownloads) {
             addStage(new SaveDocumentStage());
         }
+        addStage(new HttpMetadataCanonicalGETStage());
+        addStage(new DocumentCanonicalStage());
         addStage(new RobotsMetaCreateStage());
         addStage(new LinkExtractorStage());
         addStage(new RobotsMetaNoIndexStage());
@@ -135,8 +138,19 @@ public class HttpImporterPipeline
         }
     }
 
+    //--- HTTP Headers Canonical URL handling ----------------------------------
+    private static class HttpMetadataCanonicalHEADStage 
+            extends AbstractImporterStage {
+        @Override
+        public boolean executeStage(HttpImporterPipelineContext ctx) {
+            // Return right away if http headers are not fetched
+            if (!ctx.isHttpHeadFetchEnabled()) {
+                return true;
+            }
+            return HttpImporterPipelineUtil.resolveCanonical(ctx, true);
+        }
+    }
 
-    
     //--- Document Fetcher -----------------------------------------------------            
     private static class DocumentFetcherStage extends AbstractImporterStage {
         @Override
@@ -178,6 +192,24 @@ public class HttpImporterPipeline
         }
     }
 
+    //--- HTTP Headers Canonical URL after fetch -------------------------------
+    private static class HttpMetadataCanonicalGETStage 
+            extends AbstractImporterStage {
+        @Override
+        public boolean executeStage(HttpImporterPipelineContext ctx) {
+            return HttpImporterPipelineUtil.resolveCanonical(ctx, true);
+        }
+    }
+
+    //--- Document Canonical URL from <head> -----------------------------------
+    private static class DocumentCanonicalStage 
+            extends AbstractImporterStage {
+        @Override
+        public boolean executeStage(HttpImporterPipelineContext ctx) {
+            return HttpImporterPipelineUtil.resolveCanonical(ctx, false);
+        }
+    }
+    
     //--- Robots Meta Creation -------------------------------------------------
     private static class RobotsMetaCreateStage extends AbstractImporterStage {
         @Override
@@ -207,9 +239,6 @@ public class HttpImporterPipeline
         }
     }
 
-
-
-    
     //--- Robots Meta NoIndex Check --------------------------------------------
     private static class RobotsMetaNoIndexStage extends AbstractImporterStage {
         @Override
@@ -245,7 +274,6 @@ public class HttpImporterPipeline
         }
     }    
     
-    
     //--- Document Pre-Processing ----------------------------------------------
     private static class DocumentPreProcessingStage 
             extends AbstractImporterStage {
@@ -264,5 +292,5 @@ public class HttpImporterPipeline
             }
             return true;
         }
-    }    
+    }
 }

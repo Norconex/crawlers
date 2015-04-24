@@ -22,10 +22,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.mutable.Mutable;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.norconex.collector.core.crawler.ICrawler;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
+import com.norconex.collector.core.crawler.event.ICrawlerEventListener;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
@@ -149,6 +153,32 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         Assert.assertTrue("Wrong or undetected User-Agent.", IOUtils.toString(
                 doc.getContent()).contains("Super Secret Agent"));
     }
+    
+    @Test
+    public void testCanonicalLink() throws IOException {
+        HttpCollector collector = newHttpCollector1Crawler(
+                "/test?case=canonical");
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        final MutableInt canCount = new MutableInt();
+        crawler.getCrawlerConfig().setCrawlerListeners(
+                new ICrawlerEventListener[] {new ICrawlerEventListener() {
+            @Override
+            public void crawlerEvent(ICrawler crawler, CrawlerEvent event) {
+                if (HttpCrawlerEvent.REJECTED_CANONICAL.equals(
+                        event.getEventType())) {
+                    canCount.increment();
+                }
+            }
+        }});
+        collector.start(false);
+        
+        List<HttpDocument> docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+
+        Assert.assertEquals("Wrong number of canonical link rejection.",
+                2, canCount.intValue());
+    }
+
     
     private void testDepth(List<HttpDocument> docs) {
         // 0-depth + 10 others == 11 expected files

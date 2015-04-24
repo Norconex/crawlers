@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,10 @@ import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
 import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.collector.http.sitemap.ISitemapResolverFactory;
 import com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory;
+import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
+import com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector;
 import com.norconex.collector.http.url.impl.HtmlLinkExtractor;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
@@ -68,6 +70,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private boolean ignoreRobotsMeta;
     private boolean ignoreSitemap;
     private boolean keepDownloads;
+    private boolean ignoreCanonicalLinks;
+    
     private String userAgent;
 
     private IURLNormalizer urlNormalizer;
@@ -80,12 +84,15 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private IHttpDocumentFetcher documentFetcher =
             new GenericDocumentFetcher();
 
+    private ICanonicalLinkDetector canonicalLinkDetector =
+            new GenericCanonicalLinkDetector();
+    
     private IHttpMetadataFetcher metadataFetcher;
 
     private ILinkExtractor[] linkExtractors = new ILinkExtractor[] {
             new HtmlLinkExtractor()
     };
-    
+
     private IRobotsTxtProvider robotsTxtProvider =
             new StandardRobotsTxtProvider();
     private IRobotsMetaProvider robotsMetaProvider =
@@ -139,6 +146,26 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     public void setMetadataFetcher(IHttpMetadataFetcher metadataFetcher) {
         this.metadataFetcher = metadataFetcher;
+    }
+    /**
+     * Gets the canonical link detector.
+     * @return the canonical link detector, or <code>null</code> if none
+     *         are defined.
+     * @since 2.2.0
+     */
+    public ICanonicalLinkDetector getCanonicalLinkDetector() {
+        return canonicalLinkDetector;
+    }
+    /**
+     * Sets the canonical link detector. To disable canonical link detection,
+     * either pass a <code>null</code> argument, or invoke 
+     * {@link #setIgnoreCanonicalLinks(boolean)} with a <code>true</code> value.
+     * @param canonicalLinkDetector the canonical link detector
+     * @since 2.2.0
+     */
+    public void setCanonicalLinkDetector(
+            ICanonicalLinkDetector canonicalLinkDetector) {
+        this.canonicalLinkDetector = canonicalLinkDetector;
     }
     public ILinkExtractor[] getLinkExtractors() {
         return ArrayUtils.clone(linkExtractors);
@@ -229,6 +256,29 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
     }
+    
+    /**
+     * Whether canonical links found in HTTP headers and in HTML files
+     * &lt;head&gt; section should be ignored or processed. When processed
+     * (default), URL pages with a canonical URL pointer in them are not 
+     * processed.
+     * @since 2.2.0
+     * @return <code>true</code> if ignoring canonical links
+     */
+    public boolean isIgnoreCanonicalLinks() {
+        return ignoreCanonicalLinks;
+    }
+    /**
+     * Sets whether canonical links found in HTTP headers and in HTML files
+     * &lt;head&gt; section should be ignored or processed. If <code>true</code>
+     * URL pages with a canonical URL pointer in them are not 
+     * processed.
+     * @since 2.2.0
+     * @param ignoreCanonicalLinks <code>true</code> if ignoring canonical links
+     */
+    public void setIgnoreCanonicalLinks(boolean ignoreCanonicalLinks) {
+        this.ignoreCanonicalLinks = ignoreCanonicalLinks;
+    }
     @Override
     protected void saveCrawlerConfigToXML(Writer out) throws IOException {
         try {
@@ -236,6 +286,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writer.writeElementString("userAgent", getUserAgent());
             writer.writeElementInteger("maxDepth", getMaxDepth());
             writer.writeElementBoolean("keepDownloads", isKeepDownloads());
+            writer.writeElementBoolean(
+                    "ignoreCanonicalLinks", isIgnoreCanonicalLinks());
             writer.writeStartElement("startURLs");
             for (String url : getStartURLs()) {
                 writer.writeStartElement("url");
@@ -256,6 +308,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                     getRobotsTxtProvider(), isIgnoreRobotsTxt());
             writeObject(out, "sitemapResolverFactory", 
                     getSitemapResolverFactory(), isIgnoreSitemap());
+            writeObject(out, "canonicalLinkDetector", 
+                    getCanonicalLinkDetector());
             writeObject(out, "metadataFetcher", getMetadataFetcher());
             writeObject(out, "metadataChecksummer", getMetadataChecksummer());
             writeObject(out, "documentFetcher", getDocumentFetcher());
@@ -292,6 +346,12 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 "sitemap", getSitemapResolverFactory()));
         setIgnoreSitemap(xml.getBoolean("sitemap[@ignore]",
                 isIgnoreSitemap()));
+
+        //--- Canonical Link Detector ------------------------------------------
+        setCanonicalLinkDetector(ConfigurationUtil.newInstance(xml,
+                "canonicalLinkDetector", getCanonicalLinkDetector()));
+        setIgnoreCanonicalLinks(xml.getBoolean("canonicalLinkDetector[@ignore]",
+                isIgnoreCanonicalLinks()));
 
         //--- HTTP Headers Fetcher ---------------------------------------------
         setMetadataFetcher(ConfigurationUtil.newInstance(xml,
@@ -338,7 +398,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 xml, "delay", getDelayResolver()));
         setMaxDepth(xml.getInt("maxDepth", getMaxDepth()));
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
-
+        setIgnoreCanonicalLinks(xml.getBoolean(
+                "ignoreCanonicalLinks", isIgnoreCanonicalLinks()));
+        
         String[] startURLs = xml.getStringArray("startURLs.url");
         setStartURLs(defaultIfEmpty(startURLs, getStartURLs()));
         
