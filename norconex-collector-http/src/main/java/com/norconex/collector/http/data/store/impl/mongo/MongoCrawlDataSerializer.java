@@ -89,6 +89,6 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
             DBCollection cachedCollection) {
         super.createIndices(referenceCollection, cachedCollection);
         ensureIndex(referenceCollection, 
-                false, FIELD_DEPTH, FIELD_CRAWL_STATE);
+                false, FIELD_CRAWL_STATE, FIELD_DEPTH);
     }
 }
