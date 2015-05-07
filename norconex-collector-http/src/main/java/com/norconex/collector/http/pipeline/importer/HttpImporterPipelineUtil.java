@@ -17,6 +17,8 @@ package com.norconex.collector.http.pipeline.importer;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
@@ -36,6 +38,9 @@ import com.norconex.commons.lang.file.ContentType;
  */
 /*default*/ final class HttpImporterPipelineUtil {
 
+    private static final Logger LOG = 
+            LogManager.getLogger(HttpImporterPipelineUtil.class);
+    
     /**
      * Constructor.
      */
@@ -89,6 +94,8 @@ import com.norconex.commons.lang.file.ContentType;
         }
     }
     
+    // return true if we process this doc, false if we don't because we 
+    // will use a canonical URL instead
     public static boolean resolveCanonical(
             HttpImporterPipelineContext ctx, boolean fromMeta) {
         
@@ -117,7 +124,15 @@ import com.norconex.commons.lang.file.ContentType;
                         + ctx.getCrawlData().getReference(), e);
             }
         }
+        
         if (StringUtils.isNotBlank(canURL)) {
+            if (canURL.equals(ctx.getCrawlData().getReference())) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Canonical URL detected is the same as document "
+                          + "URL. Process normally. URL: " + canURL);
+                }
+                return true;
+            }
             // Call Queue pipeline on Canonical URL
             HttpCrawlData newData = (HttpCrawlData) ctx.getCrawlData().clone();
             newData.setReference(canURL);

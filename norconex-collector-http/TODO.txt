@@ -4,6 +4,10 @@ The following are either things to be done, or ideas to consider:
 Any release:
 ============
 
+- Maybe: log version of Collector implementation, plus collector core, as
+  well as Importer and Commiters versions as INFO when collector starts
+  (or DEBUG).  Maybe add a -version flag as well to the command prompt options.
+
 - Carry a flag that tells if we are running a full crawl, or an incremental one.
   Some operations may be relevant only on incremental runs.
 
@@ -40,10 +44,6 @@ Any release:
 - Add support for having different HTTPContext for each call and/or each
   sites.
   
-- DONE (can specify tag/attribute and can specify more than one link extractor:
-   Add ability to provide custom URL pattern matching for URL Extraction
-   (removing need to subclass).
-
 - Ability to crawl up to a given size.  Absolute number or percentage of 
   disk capacity?
 
@@ -57,10 +57,6 @@ Any release:
      - type: none|all|first|last
      - stacktrace: false|true
 
-- DONE Make sure maxURL counter saved in progress is in sync with each time we 
-  commit to avoid having a counter higher than actual URLs processed in case of 
-  failure (minor impact).
-
 - Rotate/break log files when too big.
 
 - If a URL filter rule was changed and a document is now rejected (never 
@@ -71,10 +67,6 @@ Any release:
 - Integrate with distributed computing frameworks such as hadhoop.
 
 - Test that IPV6 is supported
-
-- DONE: Consider having support for different URLExractors for different content 
-  types.  Maybe also offer to default one ability to define custom patterns
-  for how to identify URLs.
 
 - Detect and follow RSS feeds (related to having multiple url extractors by
   content types).

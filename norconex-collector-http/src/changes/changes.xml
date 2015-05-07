@@ -10,7 +10,7 @@
     <release version="2.2.0-SNAPSHOT" date="2015-??-??" description="Feature release">
       <action dev="essiembre" type="add" issue="79">
         Added support for canonical links defined in both HTTP Headers or
-        as a &lt;link&gt; tag in an HTML document &lt;head&gt; tag.
+        as a link tag in an HTML document head tag.
         Canonical links detection is always performed unless explicitly
         disabled.
       </action>
@@ -23,12 +23,15 @@
       <action dev="essiembre" type="update">
         Improved/fixed javadoc.
       </action>      
+      <action dev="pascaldimassimo" type="fix" issue="97">
+        Fixed MongoDB stage/depth compound index.
+      </action>
       <action dev="essiembre" type="fix" issue="82">
         Fixed MongoCrawlDataSerializer "referrerLinkText" link 
         attribute/metadata having the same value as "referrerLinkTag".
       </action>
       <action dev="essiembre" type="fix" issue="88">
-        HtmlLinkExtractor now decodes encoded ampersands (i.e. &amp;amp;) 
+        HtmlLinkExtractor now decodes encoded ampersands 
         present in URLs.
       </action>
       <action dev="essiembre" type="fix" issue="87">
