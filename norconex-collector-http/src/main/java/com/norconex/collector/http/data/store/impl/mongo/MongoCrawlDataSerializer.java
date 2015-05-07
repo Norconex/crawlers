@@ -83,12 +83,4 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
                 (String) dbObject.get(FIELD_REFERRER_LINK_TITLE));
         return data;
     }
-    
-    @Override
-    public void createIndices(DBCollection referenceCollection,
-            DBCollection cachedCollection) {
-        super.createIndices(referenceCollection, cachedCollection);
-        ensureIndex(referenceCollection, 
-                false, FIELD_CRAWL_STATE, FIELD_DEPTH);
-    }
 }
