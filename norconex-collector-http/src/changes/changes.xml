@@ -39,6 +39,10 @@
         empty href links. Added this use case to corresponding 
         unit test. 
       </action>
+      <action dev="essiembre" type="fix" issue="100">
+        Fixed "trustAllSSLCertificates" configuration option on 
+        GenericHttpClientFactory not being recognized in XML config.
+      </action>
     </release>
 
     <release version="2.1.0" date="2015-04-08" description="Feature release">

@@ -388,6 +388,9 @@ public class GenericHttpClientFactory
                 "expectContinueEnabled", expectContinueEnabled);
         maxRedirects = xml.getInt("maxRedirects", maxRedirects);
         maxConnections = xml.getInt("maxConnections", maxConnections);
+        trustAllSSLCertificates = xml.getBoolean(
+                "trustAllSSLCertificates", trustAllSSLCertificates);
+        
         localAddress = xml.getString("localAddress", localAddress);
         
         if (xml.getString("staleConnectionCheckDisabled") != null) {
@@ -434,7 +437,9 @@ public class GenericHttpClientFactory
             writeIntElement(writer, "maxRedirects", maxRedirects);
             writeStringElement(writer, "localAddress", localAddress);
             writeIntElement(writer, "maxConnections", maxConnections);
-            
+            writeBoolElement(
+                    writer, "trustAllSSLCertificates", trustAllSSLCertificates);
+
             writer.flush();
             writer.close();
         } catch (XMLStreamException e) {
