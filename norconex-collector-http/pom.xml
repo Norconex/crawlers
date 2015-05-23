@@ -235,6 +235,7 @@
           <links>
             <link>http://db.apache.org/derby/docs/10.9/publishedapi/jdbc4/</link>
             <link>http://api.mongodb.org/java/2.11.1/</link>
+            <link>http://www.norconex.com/product/commons-lang/apidocs/</link>
           </links>
           <source>1.7</source>
         </configuration>
@@ -399,6 +400,7 @@
           <links>
             <link>http://db.apache.org/derby/docs/10.9/publishedapi/jdbc4/</link>
             <link>http://api.mongodb.org/java/2.11.1/</link>
+            <link>http://www.norconex.com/product/commons-lang/apidocs/</link>
           </links>
         </configuration>
         <reportSets>

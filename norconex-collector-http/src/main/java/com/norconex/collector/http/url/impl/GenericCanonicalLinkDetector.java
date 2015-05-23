@@ -19,22 +19,20 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.httpclient.HttpURL;
-import org.apache.commons.httpclient.URIException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.http.client.utils.URIUtils;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
@@ -91,9 +89,6 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 public class GenericCanonicalLinkDetector 
         implements ICanonicalLinkDetector, IXMLConfigurable {
 
-    private static final Logger LOG = LogManager.getLogger(
-            GenericCanonicalLinkDetector.class);
-    
     private static final ContentType[] DEFAULT_CONTENT_TYPES = 
             new ContentType[] {
         ContentType.HTML,
@@ -123,14 +118,8 @@ public class GenericCanonicalLinkDetector
                 if (link.matches("^https{0,1}://")) {
                     canURL = link;
                 } else {
-                    try {
-                        HttpURL basURL = new HttpURL(reference);
-                        canURL = new HttpURL(basURL, link).toString();
-                    } catch (URIException e) {
-                        LOG.error("Could not resolve canonical URL: "
-                                + link, e);
-                        return null;
-                    }
+                    canURL = URIUtils.resolve(
+                            URI.create(reference), link).toString();
                 }
                 return canURL;
             }

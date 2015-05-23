@@ -58,7 +58,8 @@ import com.norconex.commons.lang.url.URLNormalizer;
  * </ul>
  * <p>
  * To overwrite this default, you have to specify a new list of normalizations
- * to apply, via the XXXXX method, or via XML configuration.  Each 
+ * to apply, via the {@link #setNormalizations(Normalization...)} method, 
+ * or via XML configuration.  Each 
  * normalizations is identified by a code name.  The following is the
  * complete code name list for supported normalizations.  Click on any code
  * name to get a full description from {@link URLNormalizer}:
