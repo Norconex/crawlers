@@ -112,16 +112,9 @@ public class GenericCanonicalLinkDetector
         String link = StringUtils.trimToNull(metadata.getString("Link"));
         if (link != null) {
             if (link.toLowerCase().matches(
-                    ".*rel\\s*=\\s*[\"']canonical[\"']$")) {
+                    ".*rel\\s*=\\s*[\"']canonical[\"'].*")) {
                 link = StringUtils.substringBetween(link, "<", ">");
-                String canURL = null;
-                if (link.matches("^https{0,1}://")) {
-                    canURL = link;
-                } else {
-                    canURL = URIUtils.resolve(
-                            URI.create(reference), link).toString();
-                }
-                return canURL;
+                return toAbsolute(reference, link);
             }
         }
         return null;
@@ -167,7 +160,7 @@ public class GenericCanonicalLinkDetector
                             && PATTERN_REL.matcher(tag).find()) {
                         Matcher urlMatcher = PATTERN_URL.matcher(tag);
                         if (urlMatcher.find()) {
-                            return urlMatcher.group(1);
+                            return toAbsolute(reference, urlMatcher.group(1));
                         }
                         return null;
                     } else if (EqualsUtil.equalsAnyIgnoreCase(
@@ -178,6 +171,16 @@ public class GenericCanonicalLinkDetector
             }
         }
         return null;
+    }
+    
+    private String toAbsolute(String pagerReference, String link) {
+        if (link == null) {
+            return null;
+        }
+        if (link.matches("^https{0,1}://")) {
+            return link;
+        }
+        return URIUtils.resolve(URI.create(pagerReference), link).toString();
     }
 
     @Override
