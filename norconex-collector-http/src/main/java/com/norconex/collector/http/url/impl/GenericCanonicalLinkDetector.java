@@ -164,7 +164,7 @@ public class GenericCanonicalLinkDetector
                         }
                         return null;
                     } else if (EqualsUtil.equalsAnyIgnoreCase(
-                            name, "body", "/head", "div", "p")) {
+                            name, "body", "/head")) {
                         return null;
                     }
                 }
