@@ -18,6 +18,10 @@
         New CurrentDateTagger introduced by dependency upgrades.
       </action>
       <action dev="essiembre" type="update">
+        HtmlLinkExtractor now supports specifying tags without an attribute
+        for detecting URLs.
+      </action>
+      <action dev="essiembre" type="update">
         Maven dependency updates: Norconex Collector Core 1.2.0
       </action>
       <action dev="essiembre" type="update">
@@ -39,9 +43,17 @@
         empty href links. Added this use case to corresponding 
         unit test. 
       </action>
+      <action dev="essiembre" type="fix">
+        HtmlLinkExtractor now strips leading spaces.
+      </action>
       <action dev="essiembre" type="fix" issue="100">
         Fixed "trustAllSSLCertificates" configuration option on 
         GenericHttpClientFactory not being recognized in XML config.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed exceptions thrown in StandardRobotsTxtProvider when robots.txt
+        contained rules ending with ? or when the referrer URL was starting
+        with a space.
       </action>
     </release>
 

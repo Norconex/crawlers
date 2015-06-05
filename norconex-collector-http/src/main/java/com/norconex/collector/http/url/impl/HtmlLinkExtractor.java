@@ -164,7 +164,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private static final int INPUT_READ_ARRAY_SIZE = 2048;
     private static final int PATTERN_URL_GROUP = 4;
     private static final int PATTERN_FLAGS = 
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
     private static final int LOGGING_MAX_URL_LENGTH = 200;
     
     private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
@@ -289,7 +289,13 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
     private void resetTagPattern() {
         String tagNames = StringUtils.join(tagAttribs.keySet(), '|');
-        tagPattern = Pattern.compile("<(" + tagNames + ")\\s([^\\<]*?)>",
+        tagPattern = Pattern.compile(
+                "<(" + tagNames + ")((\\s*>)|(\\s([^\\<]*?)>))", PATTERN_FLAGS);
+    }
+    
+    private Pattern getTagBodyPattern(String name) {
+        return Pattern.compile(
+                "<\\s*" + name + "[^<]*?>([^<]*?)<\\s*/\\s*" + name + "\\s*>", 
                 PATTERN_FLAGS);
     }
     
@@ -302,7 +308,31 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         Matcher matcher = tagPattern.matcher(content);
         while (matcher.find()) {
             String tagName = matcher.group(1);
-            String restOfTag = matcher.group(2);
+            String restOfTag = matcher.group(4);
+            String attribs = tagAttribs.getString(tagName);
+
+            //--- the body value of the tag is taken as URL ---
+            if (StringUtils.isBlank(attribs)) {
+                Pattern bodyPattern = getTagBodyPattern(tagName);
+                Matcher bodyMatcher = bodyPattern.matcher(content);
+                String url = null;
+                if (bodyMatcher.find(matcher.start())) {
+                    url = bodyMatcher.group(1).trim();
+                    url = toCleanAbsoluteURL(referrer, url);
+                    if (url == null) {
+                        continue;
+                    }
+                    Link link = new Link(url);
+                    if (keepReferrerData) {
+                        link.setReferrer(referrer.url);
+                        link.setTag(tagName);
+                    }
+                    links.add(link);                
+                }
+                continue;
+            }
+
+            //--- a tag attribute has the URL ---
             String text = null;
             if (StringUtils.isBlank(restOfTag)) {
                 continue;
@@ -322,7 +352,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     }
                 }
             }
-            String attribs = tagAttribs.getString(tagName);
+
             Pattern p = Pattern.compile(
                     "(^|\\s)(" + attribs + ")\\s*=\\s*([\"'])([^\\<\\>]*?)\\3",
                     PATTERN_FLAGS);
@@ -397,10 +427,10 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     
     private String toCleanAbsoluteURL(
             final Referer urlParts, final String newURL) {
-        if (!isValidNewURL(newURL)) {
+        String url = StringUtils.trimToNull(newURL);
+        if (!isValidNewURL(url)) {
             return null;
         }
-        String url = newURL;
         if (url.startsWith("//")) {
             // this is URL relative to protocol
             url = urlParts.protocol 
@@ -475,7 +505,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             for (HierarchicalConfiguration tagNode : tagNodes) {
                 String name = tagNode.getString("[@name]", null);
                 String attr = tagNode.getString("[@attribute]", null);
-                if (!StringUtils.isAnyBlank(name, attr)) {
+                if (StringUtils.isNotBlank(name)) {
                     addLinkTag(name, attr);
                 }
             }

@@ -65,18 +65,19 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     public synchronized RobotsTxt getRobotsTxt(
             HttpClient httpClient, String url, String userAgent) {
         
-        String baseURL = getBaseURL(url);
+        String trimmedURL = StringUtils.trimToEmpty(url);
+        String baseURL = getBaseURL(trimmedURL);
         RobotsTxt robotsTxt = robotsTxtCache.get(baseURL);
         if (robotsTxt != null) {
             return robotsTxt;
         }
 
         String robotsURL = baseURL + "/robots.txt";
-        HttpGet method = new HttpGet(robotsURL);
         try {
+            HttpGet method = new HttpGet(robotsURL);
             HttpResponse response = httpClient.execute(method);
             InputStream is = response.getEntity().getContent();
-            robotsTxt = parseRobotsTxt(is, url, userAgent);
+            robotsTxt = parseRobotsTxt(is, trimmedURL, userAgent);
         } catch (Exception e) {
             LOG.warn("Not able to obtain robots.txt at: " + robotsURL, e);
             robotsTxt = new RobotsTxt(new IReferenceFilter[]{});
@@ -217,7 +218,10 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             String regex = path;
             regex = regex.replaceAll("\\*", ".*");
             if (!regex.endsWith("$")) {
-                regex += "?.*";
+                if (!regex.endsWith("?")) {
+                    regex += "?";
+                }                
+                regex += ".*";
             }
             regex = baseURL + regex;
             RegexReferenceFilter filter = new RegexReferenceFilter(

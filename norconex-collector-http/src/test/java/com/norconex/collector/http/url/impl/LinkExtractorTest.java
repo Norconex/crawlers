@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,7 +40,9 @@ public class LinkExtractorTest {
 
     @Test
     public void testHtmlLinkExtractor() throws IOException {
-        testLinkExtraction(new HtmlLinkExtractor());
+        HtmlLinkExtractor ex = new HtmlLinkExtractor();
+        ex.addLinkTag("link", null);
+        testLinkExtraction(ex);
     }
     @Test
     public void testTikaLinkExtractor() throws IOException {
@@ -90,6 +93,14 @@ public class LinkExtractorTest {
                 baseDir + "titleTarget.html",
                 baseURL + "?p1=v1&p2=v2&p3=v3",
         };
+        // only HtmlLinkExtractor supports these extra URLs:
+        if (extractor instanceof HtmlLinkExtractor) {
+            String[] additionalURLs = {
+                    baseURL + "addedTagNoAttribUrlInBody.html",
+                    baseURL + "addedTagAttribUrlInBody.html",
+            };
+            expectedURLs = ArrayUtils.addAll(expectedURLs, additionalURLs);
+        }
         
         // All these must NOT be found
         String[] unexpectedURLs = {

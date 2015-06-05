@@ -37,6 +37,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <pre>
  *  &lt;metadataChecksummer 
  *      class="com.norconex.collector.http.checksum.impl.HttpMetadataChecksummer"
+ *      disabled="[false|true]"
  *      sourceField="(optional header field used to create checksum)"
  *      keep="[false|true]"
  *      targetField="(field to store checksum)" /&gt;
