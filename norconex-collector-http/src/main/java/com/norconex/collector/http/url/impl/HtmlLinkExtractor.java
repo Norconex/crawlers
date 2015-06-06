@@ -65,7 +65,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * to try to extract URLs from all files (usually a bad idea).
  * 
  * <h3>Tags attributes</h3>
- * URLs are assumed to be contained within valid tag attributes.  
+ * URLs are assumed to be contained within valid tags or tag attributes.  
  * The default tags and attributes used are (tag.attribute): 
  * <pre>
  * a.href, frame.src, iframe.src, img.src, meta.http-equiv
@@ -85,10 +85,15 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * q.cite,           script.src,       source.src,        video.poster, 
  * video.src
  * </pre>
- * The <code>meta.http-equiv</code> is treated differently.  Only if the
+ * <p>The <code>meta.http-equiv</code> is treated differently.  Only if the
  * "http-equiv" value is refresh and a "content" tag with a URL exist that it
- * will be extracted.  "object" and "applet" can have multiple URLs.
- *
+ * will be extracted.  "object" and "applet" can have multiple URLs.</p>
+ * 
+ * <p>
+ * <b>Since 2.2.0</b>, it is possible to identify a tag only as the holder of 
+ * a URL (without attributes). The tag body value will be used as the URL.
+ * </p>
+ * 
  * <h3>Referrer data</h3>
  * You can optionally set {@link #setKeepReferrerData(boolean)} 
  * to <code>true</code> to 
@@ -133,7 +138,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      
  *      &lt;!-- Which tags and attributes hold the URLs to extract --&gt;
  *      &lt;tags&gt;
- *          &lt;tag name="(tag name)" attribute="tag attribute)" /&gt;
+ *          &lt;tag name="(tag name)" attribute="(tag attribute)" /&gt;
  *          &lt;!-- you can have multiple tag entries --&gt;
  *      &lt;/tags&gt;
  *  &lt;/extractor&gt;
