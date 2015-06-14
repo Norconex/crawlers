@@ -15,7 +15,8 @@
         disabled.
       </action>
       <action dev="essiembre" type="add">
-        New CurrentDateTagger introduced by dependency upgrades.
+        New CurrentDateTagger, DateMetadataFilter, NumericMetadataFilter, and
+        more new features introduced by dependency upgrades.
       </action>
       <action dev="essiembre" type="update">
         HtmlLinkExtractor now supports specifying tags without an attribute
