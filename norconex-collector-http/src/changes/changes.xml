@@ -23,7 +23,9 @@
         for detecting URLs.
       </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.2.0
+        Maven dependency updates: Norconex Collector Core 1.2.0, 
+        Joda Time 2.8.1, Apache HTTP Client 4.5, Jetty Webapp 9.2.11.v20150529,
+        Fake Mongo (fongo) 2.0.1, Apache Ant 1.9.5.
       </action>
       <action dev="essiembre" type="update">
         Improved/fixed javadoc.

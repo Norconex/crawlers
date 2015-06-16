@@ -203,7 +203,7 @@ public class GenericHttpClientFactory
     @Override
     public HttpClient createHTTPClient(String userAgent) {
         HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setSslcontext(createSSLContext());
+        builder.setSSLContext(createSSLContext());
         builder.setSchemePortResolver(createSchemePortResolver());
         builder.setDefaultRequestConfig(createRequestConfig());
         builder.setProxy(createProxy());
