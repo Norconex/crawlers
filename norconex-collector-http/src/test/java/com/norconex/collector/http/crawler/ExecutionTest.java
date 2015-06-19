@@ -41,7 +41,7 @@ import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory;
 import com.norconex.collector.http.HttpCollector;
-import com.norconex.collector.http.checksum.impl.HttpMetadataChecksummer;
+import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory;
 import com.norconex.committer.core.impl.FileSystemCommitter;
 import com.norconex.commons.lang.Sleeper;
@@ -102,7 +102,8 @@ public class ExecutionTest extends AbstractHttpTest {
             throws IOException, XMLStreamException {
         String startURL = newUrl("/test?case=modifiedFiles");
         vars.setString("startURL", startURL);
-        vars.setClass("metadataChecksummer", HttpMetadataChecksummer.class);
+        vars.setClass(
+                "metadataChecksummer", LastModifiedMetadataChecksummer.class);
         vars.setClass("documentChecksummer", MD5DocumentChecksummer.class);
         
         int exitValue = 0;
@@ -136,7 +137,8 @@ public class ExecutionTest extends AbstractHttpTest {
         String startURL = newUrl("/test?case=deletedFiles&amp;token="
                 + System.currentTimeMillis());
         vars.setString("startURL", startURL);
-        vars.setClass("metadataChecksummer", HttpMetadataChecksummer.class);
+        vars.setClass(
+                "metadataChecksummer", LastModifiedMetadataChecksummer.class);
         vars.setClass("documentChecksummer", MD5DocumentChecksummer.class);
         
         int exitValue = 0;

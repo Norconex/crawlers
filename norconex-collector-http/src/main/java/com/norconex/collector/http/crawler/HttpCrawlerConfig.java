@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
 import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
-import com.norconex.collector.http.checksum.impl.HttpMetadataChecksummer;
+import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
@@ -101,7 +101,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             new StandardSitemapResolverFactory();
 
     private IMetadataChecksummer metadataChecksummer = 
-    		new HttpMetadataChecksummer();
+    		new LastModifiedMetadataChecksummer();
 	
     private IHttpDocumentProcessor[] preImportProcessors;
     private IHttpDocumentProcessor[] postImportProcessors;
@@ -218,6 +218,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setKeepDownloads(boolean keepDownloads) {
         this.keepDownloads = keepDownloads;
     }
+    /**
+     * Gets the metadata checksummer. Default implementation is 
+     * {@link LastModifiedMetadataChecksummer} (since 2.2.0).
+     * @return metadata checksummer
+     */
     public IMetadataChecksummer getMetadataChecksummer() {
 		return metadataChecksummer;
 	}

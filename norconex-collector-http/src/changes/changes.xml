@@ -15,8 +15,19 @@
         disabled.
       </action>
       <action dev="essiembre" type="add">
+        New LastModifiedMetadataChecksummer that uses Last-Modified HTTP header
+        value for checksum purposes, replacing HttpMetadataChecksummer as 
+        the default implementation.  For choosing one or more fields of your
+        choice to create a checksum, you can now use the new 
+        GenericMetadataChecksummer from the Collector Core dependency.
+      </action>
+      <action dev="essiembre" type="add">
         New CurrentDateTagger, DateMetadataFilter, NumericMetadataFilter, and
         more new features introduced by dependency upgrades.
+      </action>
+      <action dev="essiembre" type="update">
+        HttpMetadataChecksummer has been deprecated in favor of
+        LastModifiedMetadataChecksummer.
       </action>
       <action dev="essiembre" type="update">
         HtmlLinkExtractor now supports specifying tags without an attribute

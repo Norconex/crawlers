@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,82 +29,52 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * <p>
- * Default implementation of {@link IMetadataChecksummer} which by default
- * returns the exact value of the "Last-Modified" HTTP header field.
+ * Default implementation of {@link IMetadataChecksummer} for the 
+ * Norconex HTTP Collector which simply
+ * returns the exact value of the "Last-Modified" HTTP header field, or
+ * <code>null</code> if not present.
+ * </p>
+ * <p>
+ * To use different fields (one or several) to constitute a checksum,
+ * you can instead use the {@link GenericMetadataChecksummer}.
  * </p>
  * <p>
  * XML configuration usage:
  * </p>
  * <pre>
  *  &lt;metadataChecksummer 
- *      class="com.norconex.collector.http.checksum.impl.HttpMetadataChecksummer"
+ *      class="com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer"
  *      disabled="[false|true]"
- *      sourceField="(optional header field used to create checksum)"
  *      keep="[false|true]"
  *      targetField="(field to store checksum)" /&gt;
  * </pre>
- * <p>
- * Since 2.1.0, this implementation can be disabled in your 
- * configuration by specifying <code>disabled="true"</code>. When disabled,
- * the checksum returned is always <code>null</code>.  
- * </p>
  * @author Pascal Essiembre
- * @deprecated Since 2.2.0, {@link LastModifiedMetadataChecksummer} is used
- * as the default implementation. To specify one or more HTTP header fields
- * of your choice to create a checksum, you can now use 
- * {@link GenericMetadataChecksummer}.
+ * @since 2.2.0
+ * @see GenericMetadataChecksummer
  */
-@Deprecated
-public class HttpMetadataChecksummer extends AbstractMetadataChecksummer {
+public class LastModifiedMetadataChecksummer 
+        extends AbstractMetadataChecksummer {
 
     private static final Logger LOG = LogManager.getLogger(
-            HttpMetadataChecksummer.class);
+            LastModifiedMetadataChecksummer.class);
 
-    /**
-     * Default HTTP header name used to perform checksum.
-     */
-    public static final String DEFAULT_FIELD = "Last-Modified";
-    
-    private String sourceField = DEFAULT_FIELD;
+    /** HTTP header name used to perform checksum. */
+    private static final String LAST_MODIFIED_FIELD = "Last-Modified";
     private boolean disabled;
-
-    public HttpMetadataChecksummer() {
-        super();
-        LOG.warn("HttpMetadataChecksummer is now deprecated. "
-                + "LastModifiedMetadataChecksummer is now used "
-                + "as the default implementation. To specify one or more "
-                + "HTTP header fields of your choice to create a checksum, "
-                + "you can now use GenericMetadataChecksummer."); 
-    }
-
+    
     @Override
     protected String doCreateMetaChecksum(Properties metadata) {
         if (disabled) {
             return null;
         }
-        if (StringUtils.isNotBlank(sourceField)) {
-            String checksum = metadata.getString(sourceField);
-            LOG.debug("Headers checksum: " + checksum);
+        String checksum = metadata.getString(LAST_MODIFIED_FIELD);
+        LOG.debug("HTTP Header \"Last-Modified\" value: " + checksum);
+        if (StringUtils.isNotBlank(checksum)) {
             return checksum;
         }
         return null;
     }
 
-    /**
-     * Gets the HTTP header name used to perform checksum.
-     * @return HTTP header name
-     */
-    public String getSourceField() {
-        return sourceField;
-    }
-    /**
-     * Sets the HTTP header name used to perform checksum.
-     * @param field HTTP header name
-     */
-    public void setSourceField(String field) {
-        this.sourceField = field;
-    }
-    
     /**
      * Whether this checksummer is disabled or not. When disabled, not
      * checksum will be created (the checksum will be <code>null</code>).
@@ -124,14 +94,12 @@ public class HttpMetadataChecksummer extends AbstractMetadataChecksummer {
     
     @Override
     protected void loadChecksummerFromXML(XMLConfiguration xml) {
-        setSourceField(xml.getString("[@sourceField]", sourceField));
         setDisabled(xml.getBoolean("[@disabled]", disabled));
     }
 
     @Override
     protected void saveChecksummerToXML(EnhancedXMLStreamWriter writer)
             throws XMLStreamException {
-        writer.writeAttributeString("sourceField", sourceField);
         writer.writeAttributeBoolean("disabled", isDisabled());
     }
 }
