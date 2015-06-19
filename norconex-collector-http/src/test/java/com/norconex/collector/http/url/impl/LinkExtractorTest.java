@@ -106,6 +106,7 @@ public class LinkExtractorTest {
         String[] unexpectedURLs = {
                 baseURL + "badhref.html",
                 baseURL + "nofollow.html",
+                baseURL + "/dont/process/scripts/'+variable+'",
                 baseDir // empty href
         };
 

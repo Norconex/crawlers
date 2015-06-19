@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
 
 /**
  * Extract URLs before sending to importer (because the importer may
- * strip some "valid" urls in producing content-centric material.
+ * strip some "valid" urls in producing content-centric material).
  * Plus, any additional urls could be added to Metadata and they will
  * be considered.
  */
@@ -80,18 +80,11 @@ import com.norconex.commons.lang.io.CachedInputStream;
         Set<String> uniqueURLs = new HashSet<String>();
         if (links != null) {
             for (Link link : links) {
-                HttpCrawlData newURL = new HttpCrawlData(
-                        link.getUrl(), ctx.getCrawlData().getDepth() + 1);
-                newURL.setReferrerReference(link.getReferrer());
-                newURL.setReferrerLinkTag(link.getTag());
-                newURL.setReferrerLinkText(link.getText());
-                newURL.setReferrerLinkTitle(link.getTitle());
-                HttpQueuePipelineContext newContext = 
-                        new HttpQueuePipelineContext(ctx.getCrawler(), 
-                                ctx.getCrawlDataStore(), newURL);
-                //TODO do we want to capture them all or just the valid ones?
-                if (uniqueURLs.add(newURL.getReference())) {
-                    new HttpQueuePipeline().execute(newContext);
+                try {
+                    queueURL(link, ctx, uniqueURLs);
+                } catch (Exception e) {
+                    LOG.warn("Could not queue extracted URL \""
+                            + link.getUrl() + "\".", e);
                 }
             }
         }
@@ -103,5 +96,26 @@ import com.norconex.commons.lang.io.CachedInputStream;
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 
                 ctx.getCrawlData(), uniqueURLs);
         return true;
+    }
+
+    // Executes HttpQueuePipeline if URL not already processed in that page
+    private void queueURL(Link link, 
+            HttpImporterPipelineContext ctx, Set<String> uniqueURLs) {
+        
+        //TODO do we want to add all URLs in a page, or just the valid ones?
+        // i.e., those properly formatted.  If we do so, can it prevent 
+        // weird/custom URLs that some link extractors may find valid?
+        if (uniqueURLs.add(link.getUrl())) {
+            HttpCrawlData newURL = new HttpCrawlData(
+                    link.getUrl(), ctx.getCrawlData().getDepth() + 1);
+            newURL.setReferrerReference(link.getReferrer());
+            newURL.setReferrerLinkTag(link.getTag());
+            newURL.setReferrerLinkText(link.getText());
+            newURL.setReferrerLinkTitle(link.getTitle());
+            HttpQueuePipelineContext newContext = 
+                    new HttpQueuePipelineContext(ctx.getCrawler(), 
+                            ctx.getCrawlDataStore(), newURL);
+            new HttpQueuePipeline().execute(newContext);
+        }
     }
 }

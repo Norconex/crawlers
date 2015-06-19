@@ -153,7 +153,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     //TODO make buffer size and overlap size configurable
     //1MB: make configurable
     public static final int MAX_BUFFER_SIZE = 1024 * 1024;
-    // max url leng is 2048 x 2 bytes + x2 for <a> anchor attributes.
+    // max url leng is 2048 x 2 bytes x 2 for <a> anchor attributes.
     public static final int OVERLAP_SIZE = 2 * 2 * 2048;
 
     /** Default maximum length a URL can have. */
@@ -307,9 +307,16 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     //--- Extract Links --------------------------------------------------------
     private static final Pattern A_TEXT_PATTERN = Pattern.compile(
             "<a[^<]+?>([^<]+?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
+    private static final Pattern SCRIPT_PATTERN = Pattern.compile(
+            "<\\s*script\\s*?>.*?<\\s*/\\s*script\\s*>", PATTERN_FLAGS);
     private void extractLinks(
-            String content, Referer referrer, Set<Link> links) {
+            String theContent, Referer referrer, Set<Link> links) {
+        String content = theContent;
         
+        // Get rid of <script> tags to eliminate possibly generated URLs.
+        content = SCRIPT_PATTERN.matcher(content).replaceAll("");
+        //TODO eliminate URLs inside <!-- comments --> too?
+
         Matcher matcher = tagPattern.matcher(content);
         while (matcher.find()) {
             String tagName = matcher.group(1);

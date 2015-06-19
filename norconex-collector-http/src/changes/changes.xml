@@ -22,6 +22,10 @@
         HtmlLinkExtractor now supports specifying tags without an attribute
         for detecting URLs.
       </action>
+      <action dev="essiembre" type="update" issue="119">
+        HtmlLinkExtractor now ignores whatever is found between "script" tags
+        so that JavaScript-generated URLs can no longer cause trouble.
+      </action>      
       <action dev="essiembre" type="update">
         Maven dependency updates: Norconex Collector Core 1.2.0, 
         Joda Time 2.8.1, Apache HTTP Client 4.5, Jetty Webapp 9.2.11.v20150529,
@@ -30,6 +34,12 @@
       <action dev="essiembre" type="update">
         Improved/fixed javadoc.
       </action>      
+      <action dev="essiembre" type="fix" issue="119">
+        Fixed HTML documents being skipped when HtmlLinkExtractor found 
+        a URL of invalid format. Now a warning is thrown for each bad URLs
+        instead and the document is processed anyway, and good URLs are 
+        extracted.
+      </action>
       <action dev="pascaldimassimo" type="fix" issue="97">
         Fixed MongoDB stage/depth compound index.
       </action>
