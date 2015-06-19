@@ -104,7 +104,7 @@
       </action>      
       <action dev="essiembre" type="update" issue="59">
         log4j.properties from ./classes/ now properly loaded by
-        collector-http.sh (github #59).
+        collector-http.sh.
       </action>
       <action dev="essiembre" type="update">
         Improved javadoc.
@@ -119,12 +119,12 @@
       </action>      
       <action dev="essiembre" type="fix" issue="56">
         Fixed link extractor not fetching link text properly when
-        keepReferrerData is true on HtmlLinkExtractor (github #56).
+        keepReferrerData is true on HtmlLinkExtractor.
       </action>
-      <action dev="essiembre" type="fix">
+      <action dev="essiembre" type="fix" issue="60">
         Robot meta data found in HTML pages will no longer be extracted
         if found within an HTML comment. Robot metadata detection is also
-        more robust (github #60).
+        more robust.
       </action>
       <action dev="essiembre" type="fix">
         Fixed NPE in HttpImporterPipelineUtil#enhanceHTTPHeaders when 
@@ -137,7 +137,7 @@
 
     <release version="2.0.2" date="2015-02-04" description="Bug fix release">
       <action dev="essiembre" type="fix" issue="49">
-        Fixed the collector "stop" action having no effect (github #49).
+        Fixed the collector "stop" action having no effect.
       </action>
       <action dev="essiembre" type="fix">
         Fixed crawl data wrongfully applied as metadata after the import 
@@ -200,10 +200,10 @@
       <action dev="essiembre" type="add">
         New JMX/MBean support added on crawlers.
       </action>
-      <action dev="essiembre" type="add">
+      <action dev="essiembre" type="add" issue="23">
         IUrlExtractor is now ILinkExtractor and both their implementing classes
         (HtmlLinkExtractor and TikaLinkExtractor) now support also extracting
-        a link title and text (github #23), and they also support the 
+        a link title and text, and they also support the 
         "nofollow" robot rule.
       </action>
       <action dev="essiembre" type="add">
@@ -290,11 +290,11 @@
       <action dev="essiembre" type="update">
         ISiteMapResolver now needs an ISiteMapResolverFactory.
       </action>
-      <action dev="essiembp" type="fix">
-        Sitemap resolution now stops when a stop request is ussued (github #38).
+      <action dev="essiembp" type="fix" issue="38">
+        Sitemap resolution now stops when a stop request is issued.
       </action>      
-      <action dev="dimassip" type="fix">
-        Now checks if crawler is running before attempting to stop it (github #37).
+      <action dev="dimassip" type="fix" issue="37">
+        Now checks if crawler is running before attempting to stop it.
       </action>
     </release>
   
@@ -305,13 +305,13 @@
       <action dev="dimassip" type="update">
         Now requires Java 7 or higher.
       </action>
-      <action dev="leonardsaers" type="fix">
+      <action dev="leonardsaers" type="fix" issue="36">
         Fixed DefaultRobotsTxtProvider failing to parse some robots.txt
-        patterns (github #36).  
+        patterns.  
       </action>
-      <action dev="essiembre" type="fix">
+      <action dev="essiembre" type="fix" issue="36">
         Fixed DefaultRobotsTxtProvider failing to parse some robots.txt
-        patterns (github #36).  
+        patterns.  
       </action>
     </release>
 
@@ -373,7 +373,7 @@
     </release>
     
     <release version="1.3.1" date="2014-04-10" description="Bug fix release.">
-      <action dev="essiembre" type="fix">
+      <action dev="essiembre" type="fix" issue="24">
         Header and document checksum value are no longer added by default to
         prevent the issue described in github ticket #24.  Instead, adding
         checksum is now an optional feature of DefaultHttpDocumentChecksummer
