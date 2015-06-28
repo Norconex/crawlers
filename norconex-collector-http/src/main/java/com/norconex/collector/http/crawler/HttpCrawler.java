@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,6 +155,8 @@ public class HttpCrawler extends AbstractCrawler {
                 + !getCrawlerConfig().isIgnoreRobotsMeta()); 
         LOG.info(getId() +  ": Sitemap support: " 
                 + !getCrawlerConfig().isIgnoreSitemap());
+        LOG.info(getId() +  ": Canonical links support: " 
+                + !getCrawlerConfig().isIgnoreCanonicalLinks());
     }
 
     @Override

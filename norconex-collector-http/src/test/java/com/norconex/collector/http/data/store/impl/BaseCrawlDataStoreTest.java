@@ -167,22 +167,6 @@ public abstract class BaseCrawlDataStoreTest {
         }
     }
 
-    @Test
-    public void testVanished() throws Exception {
-
-        // Cache an url
-        String url = "http://www.norconex.com/";
-        cacheUrl(url);
-
-        // Set it with an invalid state
-        db.queue(new HttpCrawlData(url, 0));
-        HttpCrawlData next = (HttpCrawlData) db.nextQueued();
-        next.setState(HttpCrawlState.NOT_FOUND);
-
-        // Make sure it's considered vanished
-        assertTrue(db.isVanished(next));
-    }
-
 //    @Test
 //    public void test_sitemap() throws Exception {
 //        String url = "http://www.norconex.com/";

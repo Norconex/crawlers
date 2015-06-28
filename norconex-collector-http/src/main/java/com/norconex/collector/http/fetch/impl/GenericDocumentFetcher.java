@@ -42,12 +42,15 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 
 /**
- * Default implementation of {@link IHttpDocumentFetcher}.  
+ * <p>
+ * Default implementation of {@link IHttpDocumentFetcher}.
+ * </p>
  * <p>
  * XML configuration usage:
  * </p>
@@ -55,12 +58,17 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *  &lt;documentFetcher  
  *      class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher"&gt;
  *      &lt;validStatusCodes&gt;200&lt;/validStatusCodes&gt;
+ *      &lt;notFoundStatusCodes&gt;404&lt;/notFoundStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
  *  &lt;/documentFetcher&gt;
  * </pre>
  * <p>
- * The "validStatusCodes" attribute expects a coma-separated list of HTTP
- * response code.
+ * The "validStatusCodes" and "notFoundStatusCodes" elements expect a 
+ * coma-separated list of HTTP response code.  If a code is added in both
+ * elements, the valid list takes precedence.
+ * </p>
+ * <p>
+ * The "notFoundStatusCodes" element was added in 2.2.0.
  * </p>
  * @author Pascal Essiembre
  */
@@ -69,7 +77,13 @@ public class GenericDocumentFetcher
 
     private static final Logger LOG = LogManager.getLogger(
 			GenericDocumentFetcher.class);
+
+    /*default*/ static final int[] DEFAULT_NOT_FOUND_STATUS_CODES = new int[] {
+        HttpStatus.SC_NOT_FOUND,
+    };
+
     private int[] validStatusCodes;
+    private int[] notFoundStatusCodes = DEFAULT_NOT_FOUND_STATUS_CODES;
     private String headersPrefix;
     
     public GenericDocumentFetcher() {
@@ -82,7 +96,7 @@ public class GenericDocumentFetcher
     
     
 	@Override
-	public CrawlState fetchDocument(
+	public HttpFetchResponse fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
 	    //TODO replace signature with Writer class.
 	    LOG.debug("Fetching document: " + doc.getReference());
@@ -93,11 +107,11 @@ public class GenericDocumentFetcher
 	        // Execute the method.
             HttpResponse response = httpClient.execute(method);
             int statusCode = response.getStatusLine().getStatusCode();
-
+            String reason = response.getStatusLine().getReasonPhrase();
 	        
             InputStream is = response.getEntity().getContent();
             
-            
+            // VALID http response
             if (ArrayUtils.contains(validStatusCodes, statusCode)) {
                 //--- Fetch headers ---
                 Header[] headers = response.getAllHeaders();
@@ -117,8 +131,11 @@ public class GenericDocumentFetcher
                 
                 //read a copy to force caching and then close the HTTP stream
                 IOUtils.copy(doc.getContent(), new NullOutputStream());
-                return HttpCrawlState.NEW;
+                return new HttpFetchResponse(
+                        HttpCrawlState.NEW, statusCode, reason);
             }
+
+            // INVALID http response
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Rejected response content: " + IOUtils.toString(is));
                 IOUtils.closeQuietly(is);
@@ -131,12 +148,15 @@ public class GenericDocumentFetcher
                 }        
                 IOUtils.closeQuietly(bis);
             }
-            if (statusCode == HttpStatus.SC_NOT_FOUND) {
-                return HttpCrawlState.NOT_FOUND;
+
+            if (ArrayUtils.contains(notFoundStatusCodes, statusCode)) {
+                return new HttpFetchResponse(
+                        HttpCrawlState.NOT_FOUND, statusCode, reason);
             }
             LOG.debug("Unsupported HTTP Response: "
                     + response.getStatusLine());
-            return CrawlState.BAD_STATUS;
+            return new HttpFetchResponse(
+                    CrawlState.BAD_STATUS, statusCode, reason);
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.error("Cannot fetch document: " + doc.getReference()
@@ -168,8 +188,24 @@ public class GenericDocumentFetcher
     public int[] getValidStatusCodes() {
         return ArrayUtils.clone(validStatusCodes);
     }
-    public final void setValidStatusCodes(int[] validStatusCodes) {
-        this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
+    public final void setValidStatusCodes(int... notFoundStatusCodes) {
+        this.validStatusCodes = ArrayUtils.clone(notFoundStatusCodes);
+    }
+    /**
+     * Gets HTTP status codes to be considered as "Not found" state.
+     * Default is 404.
+     * @return "Not found" codes
+     * @since 2.2.0
+     */
+    public int[] getNotFoundStatusCodes() {
+        return ArrayUtils.clone(notFoundStatusCodes);
+    }
+    /**
+     * Sets HTTP status codes to be considered as "Not found" state.
+     * @param notFoundStatusCodes "Not found" codes
+     */
+    public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
+        this.notFoundStatusCodes = ArrayUtils.clone(notFoundStatusCodes);
     }
     public String getHeadersPrefix() {
         return headersPrefix;
@@ -180,18 +216,32 @@ public class GenericDocumentFetcher
     @Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+
         String validCodes = xml.getString("validStatusCodes");
-        int[] intCodes = GenericMetadataFetcher.DEFAULT_VALID_STATUS_CODES;
+        int[] intValidCodes = GenericMetadataFetcher.DEFAULT_VALID_STATUS_CODES;
         if (StringUtils.isNotBlank(validCodes)) {
             String[] strCodes = validCodes.split(",");
-            intCodes = new int[strCodes.length];
+            intValidCodes = new int[strCodes.length];
             for (int i = 0; i < strCodes.length; i++) {
                 String code = strCodes[i];
-                intCodes[i] = Integer.parseInt(code);
+                intValidCodes[i] = Integer.parseInt(code);
             }
         }
+        setValidStatusCodes(intValidCodes);
+        
+        String notFoundCodes = xml.getString("notFoundStatusCodes");
+        int[] intNFCodes = DEFAULT_NOT_FOUND_STATUS_CODES;
+        if (StringUtils.isNotBlank(notFoundCodes)) {
+            String[] strCodes = notFoundCodes.split(",");
+            intNFCodes = new int[strCodes.length];
+            for (int i = 0; i < strCodes.length; i++) {
+                String code = strCodes[i];
+                intNFCodes[i] = Integer.parseInt(code);
+            }
+        }
+        setNotFoundStatusCodes(intNFCodes);
+        
         setHeadersPrefix(xml.getString("headersPrefix"));
-        setValidStatusCodes(intCodes);
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
@@ -203,6 +253,11 @@ public class GenericDocumentFetcher
             writer.writeStartElement("validStatusCodes");
             if (validStatusCodes != null) {
                 writer.writeCharacters(StringUtils.join(validStatusCodes));
+            }
+            writer.writeEndElement();
+            writer.writeStartElement("notFoundStatusCodes");
+            if (notFoundStatusCodes != null) {
+                writer.writeCharacters(StringUtils.join(notFoundStatusCodes));
             }
             writer.writeEndElement();
             writer.writeStartElement("headersPrefix");

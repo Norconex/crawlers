@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ package com.norconex.collector.http.fetch;
 
 import org.apache.http.client.HttpClient;
 
-import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 
 /**
@@ -33,7 +32,7 @@ public interface IHttpDocumentFetcher {
 	 * @param doc NewHttpDocument the document to fetch and save
 	 * @return URL status
 	 */
-	CrawlState fetchDocument(
+    HttpFetchResponse fetchDocument(
 	        HttpClient httpClient, HttpDocument doc);
 	
 }

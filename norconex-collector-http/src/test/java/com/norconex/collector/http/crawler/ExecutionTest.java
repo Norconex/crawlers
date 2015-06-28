@@ -259,6 +259,8 @@ public class ExecutionTest extends AbstractHttpTest {
     @Test
     public void testResumeAfterJvmCrash_H2() 
             throws IOException, XMLStreamException {
+        //TODO disable this test since it fails inconsistently due to 
+        // fluctuating processing time vs expected processing time????
         testAfterJvmCrash(true, JDBCCrawlDataStoreFactory.class, "h2");
     }
 
@@ -278,7 +280,7 @@ public class ExecutionTest extends AbstractHttpTest {
         //--- Crash start run ---
         System.out.println("\n--- Crash start run ---");
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 
+        Assert.assertEquals("Wrong crash exit value.", 
                 JVMCrasher.CRASH_EXIT_VALUE, exitValue);
         // JVMCrasher crashes after 7th *fetch*, so only 6 should have been
         // committed.
@@ -293,7 +295,7 @@ public class ExecutionTest extends AbstractHttpTest {
             System.out.println("\n--- Resume run ---");
             exitValue = runCollector("resume", vars);
             
-            Assert.assertEquals("Wrong exit value.", 0, exitValue);
+            Assert.assertEquals("Wrong resume exit value.", 0, exitValue);
             Assert.assertEquals("Wrong number of committed files after resume.",
                     10, countAddedFiles());
             ageProgress(progressDir);
@@ -304,7 +306,7 @@ public class ExecutionTest extends AbstractHttpTest {
         System.out.println("\n--- Good start run ---");
         vars.setInt("maxDocuments", 5);
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
+        Assert.assertEquals("Wrong start exit value.", 0, exitValue);
         // Since we are not clearing previous committed files, 5 is added
         // to docs gathered so far.
         int expected = 11;

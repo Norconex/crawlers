@@ -68,6 +68,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  * </pre>
  * @author Pascal Essiembre
  * @since 1.2
+ * @see Pattern
  */
 @SuppressWarnings("nls")
 public class SegmentCountURLFilter extends AbstractOnMatchFilter implements

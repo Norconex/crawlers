@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import com.norconex.collector.core.data.CrawlState;
 /**
  * Represents a URL crawling status.
  * @author Pascal Essiembre
+ * @see CrawlState
  */
 public class HttpCrawlState extends CrawlState { 
 
@@ -26,8 +27,7 @@ public class HttpCrawlState extends CrawlState {
 
     public static final HttpCrawlState TOO_DEEP = 
             new HttpCrawlState("TOO_DEEP");
-    public static final HttpCrawlState NOT_FOUND = 
-            new HttpCrawlState("NOT_FOUND");
+    
     protected HttpCrawlState(String state) {
         super(state);
     }

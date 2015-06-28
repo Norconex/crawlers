@@ -31,6 +31,7 @@ import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
+import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.pipeline.Pipeline;
@@ -157,7 +158,7 @@ public class HttpImporterPipeline
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             //TODO for now we assume the document is downloadable.
             // download as file
-            CrawlState state = 
+            HttpFetchResponse response =
                     ctx.getConfig().getDocumentFetcher().fetchDocument(
                             ctx.getHttpClient(), ctx.getDocument());
 
@@ -171,12 +172,12 @@ public class HttpImporterPipeline
                     ctx.getCrawlData(), ctx.getCrawlDataStore());
             //--- END Fix #17 ---
             
-            if (state.isGoodState()) {
-                ctx.fireCrawlerEvent(
-                        HttpCrawlerEvent.DOCUMENT_FETCHED, ctx.getCrawlData(), 
-                        ctx.getConfig().getDocumentFetcher());
-            }
+            CrawlState state = response.getCrawlState();
             ctx.getCrawlData().setState(state);
+            if (state.isGoodState()) {
+                ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED, 
+                        ctx.getCrawlData(), response);
+            }
             if (!state.isGoodState()) {
                 String eventType = null;
                 if (state.isOneOf(HttpCrawlState.NOT_FOUND)) {
@@ -184,8 +185,7 @@ public class HttpImporterPipeline
                 } else {
                     eventType = HttpCrawlerEvent.REJECTED_BAD_STATUS;
                 }
-                ctx.fireCrawlerEvent(eventType, ctx.getCrawlData(), 
-                        ctx.getConfig().getDocumentFetcher());
+                ctx.fireCrawlerEvent(eventType, ctx.getCrawlData(), response);
                 return false;
             }
             return true;

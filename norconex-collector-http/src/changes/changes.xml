@@ -25,6 +25,16 @@
         New CurrentDateTagger, DateMetadataFilter, NumericMetadataFilter, and
         more new features introduced by dependency upgrades.
       </action>
+      <action dev="essiembre" type="add">
+        New method GenericDocumentFetcher#setNotFoundStatusCodes(int...) 
+        to specify one or several custom "Not Found" HTTP codes. Default is 404.
+      </action>
+      <action dev="essiembre" type="update">
+        New HttpFetchResponse class now passed to crawl event listeners after
+        a document fetch instead of the IHttpDocumentFetcher used. This adds
+        the ability to listen for specific HTTP response status code.
+        As a consequence, IHttpDocumentFetcher now returns a HttpFetchResponse.
+      </action>
       <action dev="essiembre" type="update">
         HttpMetadataChecksummer has been deprecated in favor of
         LastModifiedMetadataChecksummer.
@@ -43,6 +53,10 @@
         Apache Ant 1.9.5.
       </action>
       <action dev="essiembre" type="update">
+        Jar manifest now includes implementation entries and 
+        specifications entries (matching Maven pom.xml).
+      </action>      
+      <action dev="essiembre" type="update">
         Improved/fixed javadoc.
       </action>      
       <action dev="essiembre" type="fix" issue="119">
@@ -51,6 +65,10 @@
         instead and the document is processed anyway, and good URLs are 
         extracted.
       </action>
+      <action dev="essiembre" type="update">
+        HttpCrawlState#NOT_FOUND was migrated to Norconex Collector Core
+        CrawlState#NOT_FOUND.
+      </action>      
       <action dev="pascaldimassimo" type="fix" issue="97">
         Fixed MongoDB stage/depth compound index.
       </action>

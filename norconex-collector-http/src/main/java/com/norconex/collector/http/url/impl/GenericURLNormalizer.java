@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -122,6 +123,7 @@ import com.norconex.commons.lang.url.URLNormalizer;
  *  &lt;/urlNormalizer&gt;
  * </pre>
  * @author Pascal Essiembre
+ * @see Pattern
  */
 public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
