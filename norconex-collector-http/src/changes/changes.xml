@@ -22,8 +22,9 @@
         GenericMetadataChecksummer from the Collector Core dependency.
       </action>
       <action dev="essiembre" type="add">
-        New CurrentDateTagger, DateMetadataFilter, NumericMetadataFilter, and
-        more new features introduced by dependency upgrades.
+        New CurrentDateTagger, DateMetadataFilter, NumericMetadataFilter, 
+        TextPatternTagger, and more new features introduced by 
+        dependency upgrades.
       </action>
       <action dev="essiembre" type="add">
         New method GenericDocumentFetcher#setNotFoundStatusCodes(int...) 
@@ -55,7 +56,7 @@
       <action dev="essiembre" type="update">
         Jar manifest now includes implementation entries and 
         specifications entries (matching Maven pom.xml).
-      </action>      
+      </action>
       <action dev="essiembre" type="update">
         Improved/fixed javadoc.
       </action>      
