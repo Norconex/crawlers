@@ -177,8 +177,7 @@ public class HttpImporterPipeline
             if (state.isGoodState()) {
                 ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED, 
                         ctx.getCrawlData(), response);
-            }
-            if (!state.isGoodState()) {
+            } else {
                 String eventType = null;
                 if (state.isOneOf(HttpCrawlState.NOT_FOUND)) {
                     eventType = HttpCrawlerEvent.REJECTED_NOTFOUND;
