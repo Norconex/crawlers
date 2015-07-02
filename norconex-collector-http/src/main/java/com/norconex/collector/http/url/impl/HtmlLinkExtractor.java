@@ -308,7 +308,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private static final Pattern A_TEXT_PATTERN = Pattern.compile(
             "<a[^<]+?>([^<]+?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
     private static final Pattern SCRIPT_PATTERN = Pattern.compile(
-            "<\\s*script\\s*?>.*?<\\s*/\\s*script\\s*>", PATTERN_FLAGS);
+            "<\\s*script\\b.*?>.*?<\\s*/\\s*script\\s*>", PATTERN_FLAGS);
     private void extractLinks(
             String theContent, Referer referrer, Set<Link> links) {
         String content = theContent;

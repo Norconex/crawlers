@@ -26,6 +26,10 @@ This is a sample document used to test URL extraction.
  document.write('<img src="/dont/process/scripts/'+variable+'"  border="0">');
 // --->
 </script>
+<script language="javascript"><!--- 
+ document.write('<a href="/dont/process/a/'+inscript+'">' + 'blah' + '</a>');
+// --->
+</script>
 <a href="//www.example.com/startWithDoubleslash.html">Double Leading Slash</a>
 <a href="?startWith=questionmark">Starting with question mark</a>
 <a href="#startWithHashMark">Starting with hash mark</a>

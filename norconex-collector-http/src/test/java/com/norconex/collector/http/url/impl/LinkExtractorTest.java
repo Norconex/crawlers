@@ -107,6 +107,7 @@ public class LinkExtractorTest {
                 baseURL + "badhref.html",
                 baseURL + "nofollow.html",
                 baseURL + "/dont/process/scripts/'+variable+'",
+                baseURL + "/dont/process/a/'+inscript+'",
                 baseDir // empty href
         };
 
