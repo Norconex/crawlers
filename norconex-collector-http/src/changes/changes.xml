@@ -15,6 +15,11 @@
         disabled.
       </action>
       <action dev="essiembre" type="add">
+        New URLStatusCrawlerEventListener class for producing reports 
+        of fetched URLs and their status. Useful for finding broken links
+        or else.
+      </action>
+      <action dev="essiembre" type="add">
         New LastModifiedMetadataChecksummer that uses Last-Modified HTTP header
         value for checksum purposes, replacing HttpMetadataChecksummer as 
         the default implementation.  For choosing one or more fields of your

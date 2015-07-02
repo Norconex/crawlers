@@ -14,11 +14,11 @@ Planned for 2.2.0 release:
   well as Importer and Commiters versions as INFO when collector starts
   (or DEBUG).  Maybe add a -version flag as well to the command prompt options.
 
+- DONE: Add a crawler event listener that acts as a link checker, 
+  logging/storing every bad (404) URLs encountered.
+
 - Carry a flag that tells if we are running a full crawl, or an incremental one.
   Some operations may be relevant only on incremental runs.
-
-- Add a crawler event listener that acts as a link checker, logging/storing
-  every bad (404) URLs encountered.  DONE AS A BLOG... incorporate?
 
 - Add total execution time, periodic time elapsed and estimated remaining.
 
@@ -54,6 +54,9 @@ Other future release:
   (i.e., location, directory structure, file naming).  This could allow
   usage of the collector to clone a site.  Should the DocumentFetcher do it 
   instead?
+
+- Have a crawler event listener that generated a tree-like graph of all URLs
+  (i.e. a kind of sitemap).
   
 - To consider: Interface for how to save documents whey they are kept.
   Same with default committer queue location.
