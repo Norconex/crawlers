@@ -58,7 +58,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * 200 (OK) this way:
  * </p>
  * <pre>
- *   100-199,201-599</pre></p>
+ *   100-199,201-599</pre>
  *   
  * <h3>Output location</h3>
  * <p>
