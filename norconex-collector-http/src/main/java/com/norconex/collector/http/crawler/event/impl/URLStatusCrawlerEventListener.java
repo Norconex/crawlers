@@ -77,7 +77,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <h3>XML Configuration Usage</h3>
  * <pre>
  *  &lt;listener  
- *      class="ccom.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener"&gt;
+ *      class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener"&gt;
  *      &lt;statusCodes&gt;(CSV list of status codes)&lt;/statusCodes&gt;
  *      &lt;outputDir&gt;(path to a directory of your choice)&lt;/outputDir&gt;
  *      &lt;fileNamePrefix&gt;(report file name prefix)&lt;/fileNamePrefix&gt;
