@@ -192,8 +192,8 @@ public class GenericDocumentFetcher
 	    // go through a URL first to fix some invalid URL-encoding issues.
 	    URL url = new URL(doc.getReference());
         String nullFragment = null;
-        URI uri = new URI(url.getProtocol(), url.getHost(), 
-                url.getPath(), url.getQuery(), nullFragment);
+        URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), 
+                url.getPort(), url.getPath(), url.getQuery(), nullFragment);
         return new HttpGet(uri);
 	}
 	
