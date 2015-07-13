@@ -19,6 +19,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -180,9 +184,17 @@ public class GenericDocumentFetcher
 	 * add HTTP headers, etc.
 	 * @param doc document to fetch
 	 * @return HTTP request
+	 * @throws MalformedURLException  malformed URL
+	 * @throws URISyntaxException  URL syntax exception
 	 */
-	protected HttpRequestBase createUriRequest(HttpDocument doc) {
-	    return new HttpGet(doc.getReference());
+	protected HttpRequestBase createUriRequest(HttpDocument doc)
+	        throws MalformedURLException, URISyntaxException {
+	    // go through a URL first to fix some invalid URL-encoding issues.
+	    URL url = new URL(doc.getReference());
+        String nullFragment = null;
+        URI uri = new URI(url.getProtocol(), url.getHost(), 
+                url.getPath(), url.getQuery(), nullFragment);
+        return new HttpGet(uri);
 	}
 	
     public int[] getValidStatusCodes() {
