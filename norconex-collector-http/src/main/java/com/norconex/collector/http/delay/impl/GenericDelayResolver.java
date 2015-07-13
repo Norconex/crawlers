@@ -23,9 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -48,6 +46,7 @@ import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * <p>
@@ -91,10 +90,14 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *  &lt;delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
  *          default="(milliseconds)" 
  *          ignoreRobotsCrawlDelay="[false|true]"
- *          scope="[crawler|site|thread] &gt;
- *      &lt;schedule dayOfWeek="from (week day) to (week day)"
+ *          scope="[crawler|site|thread]" &gt;
+ *      &lt;schedule 
+ *          dayOfWeek="from (week day) to (week day)"
  *          dayOfMonth="from [1-31] to [1-31]"
- *          time="from (hh:mm) to (hh:mm)" /&gt;
+ *          time="from (HH:mm) to (HH:mm)"&gt;
+ *        (delay in milliseconds)
+ *      &lt;/schedule&gt;
+ *       
  *      (... repeat schedule tag as needed ...)
  *  &lt;/delay&gt;
  * </pre>
@@ -224,7 +227,7 @@ public class GenericDelayResolver implements IDelayResolver, IXMLConfigurable {
                         node.getString("[@dayOfWeek]", null),
                         node.getString("[@dayOfMonth]", null),
                         node.getString("[@time]", null),
-                        node.getLong("")
+                        node.getLong("", DEFAULT_DELAY)
                 ));
             }
         } catch (ConfigurationException e) {
@@ -234,9 +237,8 @@ public class GenericDelayResolver implements IDelayResolver, IXMLConfigurable {
 
     @Override
     public void saveToXML(Writer out) throws IOException {
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
         try {
-            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
             writer.writeStartElement("delay");
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttribute("default", Long.toString(defaultDelay));
@@ -258,10 +260,11 @@ public class GenericDelayResolver implements IDelayResolver, IXMLConfigurable {
                 }
                 if (schedule.getTimeRange() != null) {
                     writer.writeAttribute("time", "from " 
-                        + schedule.getTimeRange().getLeft().toString("HH:MM")
+                        + schedule.getTimeRange().getLeft().toString("HH:mm")
                         + " to "
-                        + schedule.getTimeRange().getRight().toString("HH:MM"));
+                        + schedule.getTimeRange().getRight().toString("HH:mm"));
                 }
+                writer.writeCharacters(Long.toString(schedule.getDelay()));
                 writer.writeEndElement();
             }
             writer.writeEndElement();
