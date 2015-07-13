@@ -103,6 +103,9 @@
         contained rules ending with ? or when the referrer URL was starting
         with a space.
       </action>
+      <action dev="essiembre" type="fix">
+        Several invalid characters are now supported in URLs (e.g., commas).
+      </action>
     </release>
 
     <release version="2.1.0" date="2015-04-08" description="Feature release">
