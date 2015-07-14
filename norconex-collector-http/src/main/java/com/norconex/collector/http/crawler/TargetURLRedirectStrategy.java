@@ -15,6 +15,7 @@
 package com.norconex.collector.http.crawler;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -32,7 +33,7 @@ import com.norconex.collector.http.doc.HttpMetadata;
 
 /**
  * <p>
- * This class handles HTTP redirects which by default ends up not not
+ * This class handles HTTP redirects which by default ends up not
  * storing the final redirect URL but the original one instead.  
  * </p>
  * <p>
@@ -100,13 +101,12 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
             ICrawlDataStore database) {
         String originalURL = httpCrawlData.getReference();
         String currentURL = getCurrentUrl();
-        if (ObjectUtils.notEqual(currentURL, originalURL)) {
+        if (StringUtils.isNotBlank(currentURL) 
+                && ObjectUtils.notEqual(currentURL, originalURL)) {
             httpCrawlData.setOriginalReference(originalURL);
             httpCrawlData.setReference(currentURL);
             doc.getMetadata().setString(HttpMetadata.COLLECTOR_URL, currentURL);
             doc.setReference(currentURL);
-//            Unless the DocCrawl is enough to ensure proper storing + sending to committer?
-//                     or... add a setNewURL() instead of storing original URL.
         }
     }
 }

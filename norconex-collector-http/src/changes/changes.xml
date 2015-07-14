@@ -111,6 +111,10 @@
         its javadoc as well, which did not mention how to pass the delay
         in XML config.
       </action>
+      <action dev="essiembre" type="fix" issue="124">
+        TargetURLRedirectStrategy no longer throws an exception when redirects
+        are disabled for a request.
+      </action>
     </release>
 
     <release version="2.1.0" date="2015-04-08" description="Feature release">

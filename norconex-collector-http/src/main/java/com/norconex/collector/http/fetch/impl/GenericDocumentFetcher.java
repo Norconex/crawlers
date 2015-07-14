@@ -187,14 +187,17 @@ public class GenericDocumentFetcher
 	 * @throws MalformedURLException  malformed URL
 	 * @throws URISyntaxException  URL syntax exception
 	 */
-	protected HttpRequestBase createUriRequest(HttpDocument doc)
-	        throws MalformedURLException, URISyntaxException {
+	protected HttpRequestBase createUriRequest(HttpDocument doc) {
 	    // go through a URL first to fix some invalid URL-encoding issues.
-	    URL url = new URL(doc.getReference());
-        String nullFragment = null;
-        URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), 
-                url.getPort(), url.getPath(), url.getQuery(), nullFragment);
-        return new HttpGet(uri);
+	    try {
+	        URL url = new URL(doc.getReference());
+	        String nullFragment = null;
+	        URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), 
+	                url.getPort(), url.getPath(), url.getQuery(), nullFragment);
+	        return new HttpGet(uri);
+	    } catch (URISyntaxException | MalformedURLException e) {
+	        throw new CollectorException("Cannot create URI Request.", e);
+	    }
 	}
 	
     public int[] getValidStatusCodes() {
