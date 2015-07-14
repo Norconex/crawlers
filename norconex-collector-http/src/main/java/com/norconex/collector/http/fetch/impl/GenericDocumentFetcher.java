@@ -184,8 +184,6 @@ public class GenericDocumentFetcher
 	 * add HTTP headers, etc.
 	 * @param doc document to fetch
 	 * @return HTTP request
-	 * @throws MalformedURLException  malformed URL
-	 * @throws URISyntaxException  URL syntax exception
 	 */
 	protected HttpRequestBase createUriRequest(HttpDocument doc) {
 	    // go through a URL first to fix some invalid URL-encoding issues.
