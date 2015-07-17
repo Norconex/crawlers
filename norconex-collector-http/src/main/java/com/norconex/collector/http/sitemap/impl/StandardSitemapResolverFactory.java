@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 
 /**
+ * Factory used to created {@link StandardSitemapResolver} instances.
  * @author Pascal Essiembre
  *
  * <p>
@@ -63,7 +64,11 @@ public class StandardSitemapResolverFactory
     @Override
     public ISitemapResolver createSitemapResolver(
             HttpCrawlerConfig config, boolean resume) {
-        return new StandardSitemapResolver(new SitemapStore(config, resume));
+        StandardSitemapResolver sr = 
+                new StandardSitemapResolver(new SitemapStore(config, resume));
+        sr.setLenient(lenient);
+        sr.setSitemapLocations(sitemapLocations);
+        return sr;
     }
 
     public String[] getSitemapLocations() {

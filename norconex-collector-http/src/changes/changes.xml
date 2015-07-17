@@ -76,16 +76,16 @@
       <action dev="essiembre" type="update">
         Improved/fixed javadoc.
       </action>      
+      <action dev="essiembre" type="update">
+        HttpCrawlState#NOT_FOUND was migrated to Norconex Collector Core
+        CrawlState#NOT_FOUND.
+      </action>      
       <action dev="essiembre" type="fix" issue="119">
         Fixed HTML documents being skipped when HtmlLinkExtractor found 
         a URL of invalid format. Now a warning is thrown for each bad URLs
         instead and the document is processed anyway, and good URLs are 
         extracted.
       </action>
-      <action dev="essiembre" type="update">
-        HttpCrawlState#NOT_FOUND was migrated to Norconex Collector Core
-        CrawlState#NOT_FOUND.
-      </action>      
       <action dev="pascaldimassimo" type="fix" issue="97">
         Fixed MongoDB stage/depth compound index.
       </action>
@@ -125,6 +125,10 @@
       <action dev="essiembre" type="fix" issue="124">
         TargetURLRedirectStrategy no longer throws an exception when redirects
         are disabled for a request.
+      </action>
+      <action dev="essiembre" type="fix" issue="120">
+        Fixed "sitemapLocations" and "lenient" not being applied to 
+        StandardSitemapFactory.
       </action>
     </release>
 
