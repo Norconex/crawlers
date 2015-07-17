@@ -1,21 +1,5 @@
 The following are either things to be done, or ideas to consider:
 
-Planned for 2.2.0 release:
-==========================
-
-- DONE: Modify the bad status crawler event subject so that it passes the 
-  http status code and description. This will be useful to incorporate a link 
-  checker. Maybe consider instead to create a generic event for ALL status 
-  codes whenever a document is accessed? This would allow building generic 
-  link reports (as opposed to just broken ones).
-
-- DONE (except for version flag):
-  Maybe: log version of Collector implementation, plus collector core, as
-  well as Importer and Commiters versions as INFO when collector starts
-  (or DEBUG).  Maybe add a -version flag as well to the command prompt options.
-
-- DONE: Add a crawler event listener that acts as a link checker, 
-  logging/storing every bad (404) URLs encountered.
 
 - Carry a flag that tells if we are running a full crawl, or an incremental one.
   Some operations may be relevant only on incremental runs.
@@ -24,10 +8,6 @@ Planned for 2.2.0 release:
 
 - Store somewhere in metadata (and maybe carry in code?) whether a 
   document is new or modified.
-
-
-Maybe for 2.2.0 release:
-========================
 
 - When issuing a STOP, add an option to specify which crawler to stop,
   and let others run.
@@ -40,9 +20,6 @@ Maybe for 2.2.0 release:
   disk capacity? Shall we tie that to checking for remaining space? 
   We could issue warnings and/or stop when threshold is reached to 
   prevent crashing due to lack of space.
-
-Other future release:
-=====================
 
 - Introduce "Add-ons" like social media add-ons to crawl social media sites.
 

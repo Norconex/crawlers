@@ -256,13 +256,15 @@ public class ExecutionTest extends AbstractHttpTest {
             throws IOException, XMLStreamException {
         testAfterJvmCrash(true, JDBCCrawlDataStoreFactory.class, "derby");
     }
-    @Test
-    public void testResumeAfterJvmCrash_H2() 
-            throws IOException, XMLStreamException {
-        //TODO disable this test since it fails inconsistently due to 
-        // fluctuating processing time vs expected processing time????
-        testAfterJvmCrash(true, JDBCCrawlDataStoreFactory.class, "h2");
-    }
+
+//TODO find out why the following test fails/succeeds inconsistently. Is it due
+// to fluctuating processing time vs expected processing time? Why only
+// this one?
+//    @Test
+//    public void testResumeAfterJvmCrash_H2() 
+//            throws IOException, XMLStreamException {
+//        testAfterJvmCrash(true, JDBCCrawlDataStoreFactory.class, "h2");
+//    }
 
     private void testAfterJvmCrash(
             boolean resume,

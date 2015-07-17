@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 import javax.xml.stream.XMLOutputFactory;
@@ -32,6 +33,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
@@ -54,6 +56,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.Args;
@@ -74,14 +77,17 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  * <pre>
  *  &lt;httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory"&gt;
  *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
- *      &lt;connectionTimeout&gt;...&lt;/connectionTimeout&gt;
- *      &lt;socketTimeout&gt;...&lt;/socketTimeout&gt;
- *      &lt;connectionRequestTimeout&gt;...&lt;/connectionRequestTimeout&gt;
+ *      &lt;connectionTimeout&gt;(milliseconds)&lt;/connectionTimeout&gt;
+ *      &lt;socketTimeout&gt;(milliseconds)&lt;/socketTimeout&gt;
+ *      &lt;connectionRequestTimeout&gt;(milliseconds)&lt;/connectionRequestTimeout&gt;
  *      &lt;connectionCharset&gt;...&lt;/connectionCharset&gt;
  *      &lt;expectContinueEnabled&gt;[false|true]&lt;/expectContinueEnabled&gt;
  *      &lt;maxRedirects&gt;...&lt;/maxRedirects&gt;
  *      &lt;localAddress&gt;...&lt;/localAddress&gt;
  *      &lt;maxConnections&gt;...&lt;/maxConnections&gt;
+ *      &lt;maxConnectionsPerRoute&gt;...&lt;/maxConnectionsPerRoute&gt;
+ *      &lt;maxConnectionIdleTime&gt;(milliseconds)&lt;/maxConnectionIdleTime&gt;
+ *      &lt;maxConnectionInactiveTime&gt;(milliseconds)&lt;/maxConnectionInactiveTime&gt;
  *
  *      &lt;-- Be warned: trusting all certificates is usually a bad idea. --&gt;
  *      &lt;trustAllSSLCertificates&gt;[false|true]&lt;/trustAllSSLCertificates&gt;
@@ -118,10 +124,6 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *
  *  &lt;/httpClientFactory&gt;
  * </pre>
- * <p>
- * As of 2.1.0, "staleConnectionCheckDisabled" is permanently 
- * <code>false</code> and can no longer be changed.
- * </p>
  * @author Pascal Essiembre
  * @since 1.3.0
  */
@@ -146,7 +148,9 @@ public class GenericHttpClientFactory
 
     public static final int DEFAULT_TIMEOUT = 30 * 1000;
     public static final int DEFAULT_MAX_REDIRECT = 50;
-    public static final int DEFAULT_MAX_CONNECTIONS = 5;
+    public static final int DEFAULT_MAX_CONNECTIONS = 200;
+    public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 20;
+    public static final int DEFAULT_MAX_IDLE_TIME = 10 * 1000;
 
     private static final int FTP_PORT = 80;
     
@@ -195,10 +199,13 @@ public class GenericHttpClientFactory
     private int socketTimeout = DEFAULT_TIMEOUT;
     private int connectionRequestTimeout = DEFAULT_TIMEOUT;
     private String connectionCharset;
+    private String localAddress;
     private boolean expectContinueEnabled;
     private int maxRedirects = DEFAULT_MAX_REDIRECT;
     private int maxConnections = DEFAULT_MAX_CONNECTIONS;
-    private String localAddress;
+    private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
+    private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
+    private int maxConnectionInactiveTime;
     
     @Override
     public HttpClient createHTTPClient(String userAgent) {
@@ -211,8 +218,11 @@ public class GenericHttpClientFactory
         builder.setDefaultConnectionConfig(createConnectionConfig());
         builder.setUserAgent(userAgent);
         builder.setMaxConnTotal(maxConnections);
+        builder.setMaxConnPerRoute(maxConnectionsPerRoute);
+        builder.evictExpiredConnections();
+        builder.evictIdleConnections(
+                maxConnectionIdleTime, TimeUnit.MILLISECONDS);
         
-        //builder.setMaxConnPerRoute(maxConnPerRoute)
         buildCustomHttpClient(builder);
         
         //TODO Put in place a more permanent solution to the following
@@ -228,9 +238,40 @@ public class GenericHttpClientFactory
         if (AUTH_METHOD_FORM.equalsIgnoreCase(authMethod)) {
             authenticateUsingForm(httpClient);
         }
+        
+        hackValidateAfterInactivity(httpClient);
+        
         return httpClient;
     }
 
+    /**
+     * This is a hack to work around 
+     * PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)
+     * not being exposed to the builder. 
+     */
+    //TODO get rid of this method in favor of setXXX method when available.
+    // in a future version of HttpClient (planned for 5.0.0).
+    private void hackValidateAfterInactivity(HttpClient httpClient) {
+        if (maxConnectionInactiveTime <= 0) {
+            return;
+        }
+        try {
+            Object connManager = 
+                    FieldUtils.readField(httpClient, "connManager", true);
+            if (connManager instanceof PoolingHttpClientConnectionManager) {
+                ((PoolingHttpClientConnectionManager) connManager)
+                        .setValidateAfterInactivity(maxConnectionInactiveTime);
+            } else {
+                LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
+                        + "internal connection manager does not support it.");
+            }
+        } catch (Exception e) {
+            LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
+                    + "internal connection manager does not support it.");
+        }
+    }
+    
+    
     /**
      * For implementors to subclass.  Does nothing by default.
      * @param builder http client builder
@@ -390,13 +431,18 @@ public class GenericHttpClientFactory
         maxConnections = xml.getInt("maxConnections", maxConnections);
         trustAllSSLCertificates = xml.getBoolean(
                 "trustAllSSLCertificates", trustAllSSLCertificates);
-        
         localAddress = xml.getString("localAddress", localAddress);
+        maxConnectionsPerRoute = xml.getInt(
+                "maxConnectionsPerRoute", maxConnectionsPerRoute);
+        maxConnectionIdleTime = xml.getInt(
+                "maxConnectionIdleTime", maxConnectionIdleTime);
+        maxConnectionInactiveTime = xml.getInt(
+                "maxConnectionInactiveTime", maxConnectionInactiveTime);
         
         if (xml.getString("staleConnectionCheckDisabled") != null) {
             LOG.warn("Since 2.1.0, the configuration option \""
                     + "staleConnectionCheckDisabled\" is no longer supported. "
-                    + "It is now permanently false.");
+                    + "Use \"maxConnectionInactiveTime\" instead.");
         }
     }
     @Override
@@ -439,7 +485,13 @@ public class GenericHttpClientFactory
             writeIntElement(writer, "maxConnections", maxConnections);
             writeBoolElement(
                     writer, "trustAllSSLCertificates", trustAllSSLCertificates);
-
+            writeIntElement(
+                    writer, "maxConnectionsPerRoute", maxConnectionsPerRoute);
+            writeIntElement(
+                    writer, "maxConnectionIdleTime", maxConnectionIdleTime);
+            writeIntElement(writer, 
+                    "maxConnectionInactiveTime", maxConnectionInactiveTime);
+            
             writer.flush();
             writer.close();
         } catch (XMLStreamException e) {
@@ -795,7 +847,7 @@ public class GenericHttpClientFactory
     }
     /**
      * Sets the connection timeout until a connection is established,
-     * in milliseconds. Zero means infinite and -1 means system default.
+     * in milliseconds. Default is {@link #DEFAULT_TIMEOUT}.
      * @param connectionTimeout connection timeout
      */
     public void setConnectionTimeout(int connectionTimeout) {
@@ -812,8 +864,7 @@ public class GenericHttpClientFactory
     }
     /**
      * Sets the maximum period of inactivity between two consecutive data 
-     * packets, in milliseconds. Zero means infinite and -1 means 
-     * system default.
+     * packets, in milliseconds. Default is {@link #DEFAULT_TIMEOUT}.
      * @param socketTimeout socket timeout
      */
     public void setSocketTimeout(int socketTimeout) {
@@ -829,7 +880,7 @@ public class GenericHttpClientFactory
     }
     /**
      * Sets the timeout when requesting a connection, in milliseconds.
-     * Zero means infinite and -1 means system default.
+     * Default is {@link #DEFAULT_TIMEOUT}.
      * @param connectionRequestTimeout connection request timeout
      */
     public void setConnectionRequestTimeout(int connectionRequestTimeout) {
@@ -880,7 +931,7 @@ public class GenericHttpClientFactory
     /**
      * Sets the maximum number of redirects to be followed.  This can help
      * prevent infinite loops.  A value of zero effectively disables
-     * redirects.  Default is 50.
+     * redirects.  Default is {@link #DEFAULT_MAX_REDIRECT}.
      * @param maxRedirects maximum number of redirects to be followed
      */
     public void setMaxRedirects(int maxRedirects) {
@@ -906,7 +957,8 @@ public class GenericHttpClientFactory
     /**
      * Gets whether stale connection check is disabled.
      * @return <code>true</code> if stale connection check is disabled
-     * @deprecated since 2.1.0, this setting is permanently <code>false</code>.
+     * @deprecated Since 2.1.0.
+     * As of 2.2.0, use {@link #getMaxConnectionInactiveTime()} instead. 
      */
     @Deprecated
     public boolean isStaleConnectionCheckDisabled() {
@@ -917,7 +969,8 @@ public class GenericHttpClientFactory
      * connection check can slightly improve performance.
      * @param staleConnectionCheckDisabled <code>true</code> if stale 
      *        connection check is disabled
-     * @deprecated since 2.1.0, this setting is permanently <code>false</code>.
+     * @deprecated Since 2.1.0.
+     * As of 2.2.0, use {@link #setMaxConnectionInactiveTime(int)} instead. 
      */
     @Deprecated
     public void setStaleConnectionCheckDisabled(
@@ -965,11 +1018,69 @@ public class GenericHttpClientFactory
     /**
      * Sets maximum number of connections that can be created.  Typically,
      * you would have at least the same amount as threads.
+     * Default is {@link #DEFAULT_MAX_CONNECTIONS}.
      * @param maxConnections maximum number of connections
      */
     public void setMaxConnections(int maxConnections) {
         this.maxConnections = maxConnections;
     }
-    
-    
+
+    /**
+     * Gets the maximum number of connections that can be used per route.
+     * @return number of connections per route
+     * @since 2.2.0
+     */
+    public int getMaxConnectionsPerRoute() {
+        return maxConnectionsPerRoute;
+    }
+    /**
+     * Sets the maximum number of connections that can be used per route.
+     * Default is {@link #DEFAULT_MAX_CONNECTIONS_PER_ROUTE}.
+     * @param maxConnectionsPerRoute maximum number of connections per route
+     * @since 2.2.0
+     */
+    public void setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
+        this.maxConnectionsPerRoute = maxConnectionsPerRoute;
+    }
+
+    /**
+     * Gets the period of time in milliseconds after which to evict idle 
+     * connections from the connection pool.
+     * @return amount of time after which to evict idle connections
+     * @since 2.2.0
+     */
+    public int getMaxConnectionIdleTime() {
+        return maxConnectionIdleTime;
+    }
+    /**
+     * Sets the period of time in milliseconds after which to evict idle 
+     * connections from the connection pool. 
+     * Default is {@link #DEFAULT_MAX_IDLE_TIME}.
+     * @param maxConnectionIdleTime amount of time after which to evict idle 
+     *         connections
+     * @since 2.2.0
+     */
+    public void setMaxConnectionIdleTime(int maxConnectionIdleTime) {
+        this.maxConnectionIdleTime = maxConnectionIdleTime;
+    }
+
+    /**
+     * Gets the period of time in milliseconds a connection must be inactive
+     * to be checked in case it became stalled.
+     * @return period of time in milliseconds
+     * @since 2.2.0
+     */
+    public int getMaxConnectionInactiveTime() {
+        return maxConnectionInactiveTime;
+    }
+    /**
+     * Sets the period of time in milliseconds a connection must be inactive
+     * to be checked in case it became stalled. Default is 0 (not proactively
+     * checked).
+     * @param maxConnectionInactiveTime period of time in milliseconds
+     * @since 2.2.0
+     */
+    public void setMaxConnectionInactiveTime(int maxConnectionInactiveTime) {
+        this.maxConnectionInactiveTime = maxConnectionInactiveTime;
+    }
 }

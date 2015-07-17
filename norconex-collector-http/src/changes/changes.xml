@@ -19,6 +19,12 @@
         of fetched URLs and their status. Useful for finding broken links
         or else.
       </action>
+      <action dev="essiembre" type="add" issue="118">
+        Added three new configuration options to GenericHttpClientFactory
+        to better deal with HTTP connectivity issues (like timeouts): 
+        "maxConnectionsPerRoute", "maxConnectionIdleTime", and 
+        "maxConnectionInactiveTime".
+      </action>
       <action dev="essiembre" type="add">
         New LastModifiedMetadataChecksummer that uses Last-Modified HTTP header
         value for checksum purposes, replacing HttpMetadataChecksummer as 
@@ -34,6 +40,11 @@
       <action dev="essiembre" type="add">
         New method GenericDocumentFetcher#setNotFoundStatusCodes(int...) 
         to specify one or several custom "Not Found" HTTP codes. Default is 404.
+      </action>
+      <action dev="essiembre" type="update" issue="118">
+        GenericHttpClientFactory default maximum connection was increased
+        from 20 to 200 and default maximum connections per route was increased
+        from 2 to 20.
       </action>
       <action dev="essiembre" type="update">
         New HttpFetchResponse class now passed to crawl event listeners after
