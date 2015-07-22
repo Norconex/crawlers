@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.2.0-SNAPSHOT" date="2015-??-??" description="Feature release">
+    <release version="2.2.0" date="2015-07-22" description="Feature release">
       <action dev="essiembre" type="add" issue="79">
         Added support for canonical links defined in both HTTP Headers or
         as a link tag in an HTML document head tag.
@@ -34,8 +34,8 @@
       </action>
       <action dev="essiembre" type="add">
         New CurrentDateTagger, DateMetadataFilter, NumericMetadataFilter, 
-        TextPatternTagger, and more new features introduced by 
-        dependency upgrades.
+        TextPatternTagger, GenericSpoiledReferenceStrategizer and more new 
+        features introduced by dependency upgrades.
       </action>
       <action dev="essiembre" type="add">
         New method GenericDocumentFetcher#setNotFoundStatusCodes(int...) 
