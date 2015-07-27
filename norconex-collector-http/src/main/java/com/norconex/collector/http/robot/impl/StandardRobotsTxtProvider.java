@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.ArrayUtils;
@@ -98,8 +99,9 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         boolean parse = false;
         String line;
         while ((line = br.readLine()) != null) {
-            
-            if (ignoreLine(line))continue;
+            if (ignoreLine(line)) {
+                continue;
+            }
             line = cleanLineFromComments(line);
             
             String key = line.replaceFirst("(.*?)(:.*)", "$1").trim();
@@ -142,8 +144,22 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         return line;
     }
 
+    private static final Pattern PATTERN_COMMENT = Pattern.compile("\\s*#.*");
+    private static final Pattern PATTERN_ALLOW_ALL = Pattern.compile(
+            "\\s*allow\\s*:\\s*/\\s*", Pattern.CASE_INSENSITIVE);
+    private static final Pattern PATTERN_DISALLOW_NONE = Pattern.compile(
+            "\\s*disallow\\s*:\\s*", Pattern.CASE_INSENSITIVE);
     private boolean ignoreLine(String line) {
-        if (line.matches("\\s*#.*") || line.equals("Allow: /")) {
+        if (StringUtils.isBlank(line)) {
+            return true;
+        }
+        if (PATTERN_COMMENT.matcher(line).matches()) {
+            return true;
+        }
+        if (PATTERN_ALLOW_ALL.matcher(line).matches()) {
+            return true;
+        }
+        if (PATTERN_DISALLOW_NONE.matcher(line).matches()) {
             return true;
         }
         return false;
@@ -197,12 +213,12 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
                 if ("disallow".equalsIgnoreCase(rule)) {
                     IReferenceFilter filter;
                     filter = buildURLFilter(baseURL, path, OnMatch.EXCLUDE);
-                    LOG.debug("Add filter from robots.txt: " + filter.toString());
+                    LOG.debug("Add filter from robots.txt: " + filter);
                     filters.add(filter);
                 } else if ("allow".equalsIgnoreCase(rule)) {                    
                     IReferenceFilter filter;
                     filter = buildURLFilter(baseURL, path, OnMatch.INCLUDE);
-                    LOG.debug("Add filter from robots.txt: " + filter.toString());
+                    LOG.debug("Add filter from robots.txt: " + filter);
                     filters.add(filter);
                 } 
             }

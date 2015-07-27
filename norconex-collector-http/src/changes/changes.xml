@@ -7,6 +7,12 @@
   </properties>
   <body>
 
+    <release version="2.2.1-SNAPSHOT" date="2015-??-??" description="Bug fix release">
+      <action dev="essiembre" type="fix" issue="129">
+        StandardRobotsTxtProvider now handles empty "Disallow: " properly."
+      </action>
+    </release>
+
     <release version="2.2.0" date="2015-07-22" description="Feature release">
       <action dev="essiembre" type="add" issue="79">
         Added support for canonical links defined in both HTTP Headers or

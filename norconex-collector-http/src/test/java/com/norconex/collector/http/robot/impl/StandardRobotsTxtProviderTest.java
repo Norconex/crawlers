@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@
 package com.norconex.collector.http.robot.impl;
 
 import com.norconex.collector.core.filter.IReferenceFilter;
+
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,10 +38,10 @@ public class StandardRobotsTxtProviderTest {
               + "User-agent: miss-crawler\n"
               + "Disallow: /tvremote/\n";
         String robotTxt2 = 
-                "User-agent: mister-crawler\n"
-              + "Disallow: /bathroom/\n"
-              + "User-agent: *\n"
-              + "Disallow: /dontgo/there/\n";
+                " User-agent : mister-crawler \n"
+              + "  Disallow : /bathroom/ \n"
+              + "   User-agent : * \n"
+              + "    Disallow : /dontgo/there/ \n";
         String robotTxt3 = 
                 "User-agent: miss-crawler\n"
               + "Disallow: /tvremote/\n"
@@ -58,7 +60,13 @@ public class StandardRobotsTxtProviderTest {
               + "Disallow: /some/fake/ # Spiders, keep out! \n"
               + "Disallow: /spidertrap/\n"
               + "Allow: /open/\n"
-              + "Allow: /\n";
+              + " Allow : / \n";
+        // An empty Disallow means allow all.
+        // Test made for https://github.com/Norconex/collector-http/issues/129
+        // Standard: https://en.wikipedia.org/wiki/Robots_exclusion_standard
+        String robotTxt6 = 
+                "User-agent: *\n\n"
+              + "Disallow: \n\n";
         
         
         Assert.assertEquals("Robots.txt (Disallow:/bathroom/)",
@@ -76,7 +84,12 @@ public class StandardRobotsTxtProviderTest {
                 parseRobotRule("mister-crawler", robotTxt5)[1].toString());
         Assert.assertEquals("Robots.txt (Allow:/open/)", 
                 parseRobotRule("mister-crawler", robotTxt5)[2].toString());
-        
+        Assert.assertEquals(3, 
+                parseRobotRule("mister-crawler", robotTxt5).length);
+
+        Assert.assertTrue(ArrayUtils.isEmpty(
+                parseRobotRule("mister-crawler", robotTxt6)));
+
     }
     
     private IReferenceFilter[] parseRobotRule(String agent, String content, String url) 
