@@ -419,8 +419,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         List<HierarchicalConfiguration> filterNodes = xml
                 .configurationsAt(xmlPath);
         for (HierarchicalConfiguration filterNode : filterNodes) {
-            IHttpDocumentProcessor filter = ConfigurationUtil
-                    .newInstance(filterNode);
+            IHttpDocumentProcessor filter = 
+                    ConfigurationUtil.newInstance(filterNode);
             filters.add(filter);
             LOG.info("HTTP document processor loaded: " + filter);
         }
@@ -433,10 +433,12 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         List<HierarchicalConfiguration> extractorNodes = xml
                 .configurationsAt(xmlPath);
         for (HierarchicalConfiguration extractorNode : extractorNodes) {
-            ILinkExtractor extractor = ConfigurationUtil
-                    .newInstance(extractorNode);
-            extractors.add(extractor);
-            LOG.info("Link extractor loaded: " + extractor);
+            ILinkExtractor extractor = ConfigurationUtil.newInstance(
+                    extractorNode, new HtmlLinkExtractor());
+            if (extractor != null) {
+                extractors.add(extractor);
+                LOG.info("Link extractor loaded: " + extractor);
+            }
         }
         return extractors.toArray(new ILinkExtractor[] {});
     }

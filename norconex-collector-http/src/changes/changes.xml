@@ -11,6 +11,11 @@
       <action dev="essiembre" type="fix" issue="129">
         StandardRobotsTxtProvider now handles empty "Disallow: " properly."
       </action>
+      <action dev="essiembre" type="fix">
+        Fixed NullPointerException when configuring an extractor tag in XML
+        without specifying the class attribute (now defaults to 
+        HtmlLinkExtractor).
+      </action>
     </release>
 
     <release version="2.2.0" date="2015-07-22" description="Feature release">
