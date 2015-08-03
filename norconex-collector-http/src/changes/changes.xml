@@ -7,9 +7,13 @@
   </properties>
   <body>
 
-    <release version="2.2.1-SNAPSHOT" date="2015-??-??" description="Bug fix release">
+    <release version="2.2.1-SNAPSHOT" date="2015-??-??" description="Maintenance release">
       <action dev="essiembre" type="update">
         Maven dependency updates: Norconex Collector Core 1.2.1.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed NullPointerException occurring inconsistently when using
+        "thread" scope in GenericDelayResolver.
       </action>
       <action dev="essiembre" type="fix">
         GenericDocumentFetcher now handles more special characters in URLs.

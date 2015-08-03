@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@ package com.norconex.collector.http.delay.impl;
 
 public class ThreadDelay extends AbstractDelay {
 
-    private ThreadLocal<Long> threadLastHitNanos;
+    private static final ThreadLocal<Long> THREAD_LAST_HIT_NANOS = 
+            new ThreadLocal<Long>() {
+        @Override protected Long initialValue() {
+            return System.nanoTime();
+        }
+    };
     
     public void delay(long expectedDelayNanos, String url) {
-        if (threadLastHitNanos == null) {
-            threadLastHitNanos = new ThreadLocal<Long>();
-            threadLastHitNanos.set(System.nanoTime());
-        }
-        long lastHitNanos = threadLastHitNanos.get();
+        long lastHitNanos = THREAD_LAST_HIT_NANOS.get();
         delay(expectedDelayNanos, lastHitNanos);
-        threadLastHitNanos.set(System.nanoTime());
+        THREAD_LAST_HIT_NANOS.set(System.nanoTime());
     }
 }
