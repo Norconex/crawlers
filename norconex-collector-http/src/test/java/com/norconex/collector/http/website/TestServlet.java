@@ -57,6 +57,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("deletedFiles", new DeletedFilesTestCase());
         testCases.put("modifiedFiles", new ModifiedFilesTestCase());
         testCases.put("canonical", new CanonicalTestCase());
+        testCases.put("specialURLs", new SpecialURLTestCase());
     }
     
     @Override
@@ -312,5 +313,50 @@ public class TestServlet extends HttpServlet {
             );
         }
     }
-
+    
+    class SpecialURLTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            
+            String page = req.getParameter("page");
+            
+            out.println("<h1>Special URLs test page " + page + "</h1>");
+            
+            if (StringUtils.isBlank(page)) {
+                out.println("<p>This page contains URLs with special characters "
+                        + "that may potentially cause issues if not handled "
+                        + "properly.</p>");
+                out.println("<p>"
+                      + "<a href=\"?case=specialURLs&page=1&param=a%2Fb\">"
+                      + "Slashes Already Escaped</a><br>"
+                      + "<a href=\"/test/co,ma.html?case=specialURLs"
+                      + "&page=2&param=a,b&par,am=c,,d\">Comas</a><br>"
+                      + "<a href=\"/test/spa ce.html?case=specialURLs"
+                      + "&page=2&param=a b&par am=c d\">Spaces</a><br>"
+                      + "</p>"
+                );
+            } else if ("1".equals(page)) {
+                out.println("<p>This is a page accessed with a URL that "
+                        + "had slashes already escaped in it.</p>");
+            } else if ("2".equals(page)) {
+                out.println("<p>This is a page accessed with a URL that "
+                        + "had unescaped comas in it.</p>");
+            } else if ("3".equals(page)) {
+                out.println("<p>This is a page accessed with a URL that "
+                        + "had unescaped spaces in it.</p>");
+            }
+            if (StringUtils.isNotBlank(page)) {
+                out.println("<p>URL:<xmp>");
+                StringBuffer requestURL = req.getRequestURL();
+                String queryString = req.getQueryString();
+                if (queryString == null) {
+                    out.println(requestURL.toString());
+                } else {
+                    out.println(requestURL.append(
+                            '?').append(queryString).toString());
+                }
+                out.println("</xmp></p>");
+            }
+        }
+    }
 }

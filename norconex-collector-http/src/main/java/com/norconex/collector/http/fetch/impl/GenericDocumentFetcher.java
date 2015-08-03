@@ -19,14 +19,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.util.Arrays;
 
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
@@ -50,6 +45,8 @@ import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * <p>
@@ -186,16 +183,7 @@ public class GenericDocumentFetcher
 	 * @return HTTP request
 	 */
 	protected HttpRequestBase createUriRequest(HttpDocument doc) {
-	    // go through a URL first to fix some invalid URL-encoding issues.
-	    try {
-	        URL url = new URL(doc.getReference());
-	        String nullFragment = null;
-	        URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), 
-	                url.getPort(), url.getPath(), url.getQuery(), nullFragment);
-	        return new HttpGet(uri);
-	    } catch (URISyntaxException | MalformedURLException e) {
-	        throw new CollectorException("Cannot create URI Request.", e);
-	    }
+	    return new HttpGet(HttpURL.toURI(doc.getReference()));
 	}
 	
     public int[] getValidStatusCodes() {
@@ -258,19 +246,19 @@ public class GenericDocumentFetcher
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
         try {
-            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
             writer.writeStartElement("httpDocumentFetcher");
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeStartElement("validStatusCodes");
             if (validStatusCodes != null) {
-                writer.writeCharacters(StringUtils.join(validStatusCodes));
+                writer.writeCharacters(StringUtils.join(validStatusCodes, ','));
             }
             writer.writeEndElement();
             writer.writeStartElement("notFoundStatusCodes");
             if (notFoundStatusCodes != null) {
-                writer.writeCharacters(StringUtils.join(notFoundStatusCodes));
+                writer.writeCharacters(
+                        StringUtils.join(notFoundStatusCodes, ','));
             }
             writer.writeEndElement();
             writer.writeStartElement("headersPrefix");
@@ -279,12 +267,53 @@ public class GenericDocumentFetcher
             }
             writer.writeEndElement();
             writer.writeEndElement();
-            writer.writeEndElement();
             writer.flush();
-            writer.close();
         } catch (XMLStreamException e) {
             throw new IOException("Cannot save as XML.", e);
         }        
+    }
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((headersPrefix == null) ? 0 : headersPrefix.hashCode());
+        result = prime * result + Arrays.hashCode(notFoundStatusCodes);
+        result = prime * result + Arrays.hashCode(validStatusCodes);
+        return result;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof GenericDocumentFetcher)) {
+            return false;
+        }
+        GenericDocumentFetcher other = (GenericDocumentFetcher) obj;
+        if (headersPrefix == null) {
+            if (other.headersPrefix != null) {
+                return false;
+            }
+        } else if (!headersPrefix.equals(other.headersPrefix)) {
+            return false;
+        }
+        if (!Arrays.equals(notFoundStatusCodes, other.notFoundStatusCodes)) {
+            return false;
+        }
+        if (!Arrays.equals(validStatusCodes, other.validStatusCodes)) {
+            return false;
+        }
+        return true;
+    }
+    @Override
+    public String toString() {
+        return "GenericDocumentFetcher [validStatusCodes=" + validStatusCodes
+                + ", notFoundStatusCodes=" + notFoundStatusCodes
+                + ", headersPrefix=" + headersPrefix + "]";
     }
 }
 

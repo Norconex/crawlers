@@ -180,6 +180,17 @@ public class BasicFeaturesTest extends AbstractHttpTest {
     }
 
     
+    @Test
+    public void testSpecialURLs() throws IOException {
+        HttpCollector collector = newHttpCollector1Crawler(
+                "/test?case=specialURLs");
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        collector.start(false);
+        
+        List<HttpDocument> docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 4);
+    }
+    
     private void testDepth(List<HttpDocument> docs) {
         // 0-depth + 10 others == 11 expected files
         Assert.assertEquals("Did not crawl the right depth.", 11, docs.size()); 

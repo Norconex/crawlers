@@ -65,7 +65,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.2.0</version>
+      <version>1.2.1-SNAPSHOT</version>
     </dependency>
     <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -90,17 +90,22 @@
       <version>1.9.5</version>
       <scope>test</scope>
     </dependency>
-    
-    <!-- The following dependencies are only present here to ensure their
-         proper version. They are otherwise provided by 
-         transitive dependencies. They can be removed from here once 
-         transitive versions match and don't cause conflicts. -->
-    <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>1.10</version>
-    </dependency>    
   </dependencies>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.norconex.commons</groupId>
+        <artifactId>norconex-commons-lang</artifactId>
+        <version>1.7.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+          <version>1.10</version>
+      </dependency>    
+    </dependencies>
+  </dependencyManagement>
   
   <build>
     <resources>
