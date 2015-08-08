@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2010-2014 Norconex Inc.
+   Copyright 2010-2015 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -47,14 +47,12 @@
       <!-- Be as nice as you can to sites you crawl. -->
       <delay default="5000" />
       
-      <!-- At a minimum make sure you stay on your domain. -->
-      <referenceFilters>
-        <filter 
-            class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
-            onMatch="include" >
-          http://www\.norconex\.com/product/collector-http-test/.*
-        </filter>
-      </referenceFilters>
+      <!-- You may want to limit crawling to sites matching your start URLs,
+           by ignoring external links in pages (this can also be accomplished
+           with more flexibility using "referenceFilters"). -->
+      <linkExtractors>
+        <extractor ignoreExternalLinks="true" />
+      </linkExtractors>
       
       <importer>
         <postParseHandlers>

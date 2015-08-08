@@ -39,8 +39,8 @@ import com.norconex.commons.lang.file.ContentType;
 public class LinkExtractorTest {
 
     @Test
-    public void testHtmlLinkExtractor() throws IOException {
-        HtmlLinkExtractor ex = new HtmlLinkExtractor();
+    public void testGenericLinkExtractor() throws IOException {
+        GenericLinkExtractor ex = new GenericLinkExtractor();
         ex.addLinkTag("link", null);
         testLinkExtraction(ex);
     }
@@ -50,10 +50,11 @@ public class LinkExtractorTest {
     }
 
     @Test
-    public void testHtmlWriteRead() throws IOException {
-        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
+    public void testGenericWriteRead() throws IOException {
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
         extractor.setContentTypes(ContentType.HTML, ContentType.XML);
         extractor.setIgnoreNofollow(true);
+        extractor.setIgnoreExternalLinks(true);
         extractor.setKeepReferrerData(true);
         extractor.addLinkTag("food", "chocolate");
         extractor.addLinkTag("friend", "Thor");
@@ -70,6 +71,35 @@ public class LinkExtractorTest {
         extractor.setKeepReferrerData(true);
         System.out.println("Writing/Reading this: " + extractor);
         ConfigurationUtil.assertWriteRead(extractor);
+    }
+
+    @Test
+    public void testGenericExternalLinkExtraction() throws IOException {
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        extractor.setIgnoreExternalLinks(false);
+        testExternalLinkExtraction(extractor, 8);
+        extractor.setIgnoreExternalLinks(true);
+        testExternalLinkExtraction(extractor, 4);
+    }
+    @Test
+    public void testTikaExternalLinkExtraction() throws IOException {
+        TikaLinkExtractor extractor = new TikaLinkExtractor();
+        extractor.setIgnoreExternalLinks(false);
+        testExternalLinkExtraction(extractor, 8);
+        extractor.setIgnoreExternalLinks(true);
+        testExternalLinkExtraction(extractor, 4);
+    }
+
+    private void testExternalLinkExtraction(
+            ILinkExtractor extractor, int qtyExpected)
+            throws IOException {
+        String url = "http://www.example.com/test/"
+                + "LinkExtractorExternalLinkTest.html";
+        InputStream is = getClass().getResourceAsStream(
+                "LinkExtractorExternalLinkTest.html");
+        Set<Link> links = extractor.extractLinks(is, url, ContentType.HTML);
+        IOUtils.closeQuietly(is);
+        Assert.assertEquals(qtyExpected, links.size());
     }
     
     private void testLinkExtraction(ILinkExtractor extractor) 
@@ -93,8 +123,8 @@ public class LinkExtractorTest {
                 baseDir + "titleTarget.html",
                 baseURL + "?p1=v1&p2=v2&p3=v3",
         };
-        // only HtmlLinkExtractor supports these extra URLs:
-        if (extractor instanceof HtmlLinkExtractor) {
+        // only GenericLinkExtractor supports these extra URLs:
+        if (extractor instanceof GenericLinkExtractor) {
             String[] additionalURLs = {
                     baseURL + "addedTagNoAttribUrlInBody.html",
                     baseURL + "addedTagAttribUrlInBody.html",
@@ -116,6 +146,7 @@ public class LinkExtractorTest {
 
         Set<Link> links = extractor.extractLinks(
                 is, docURL, ContentType.HTML);
+        IOUtils.closeQuietly(is);
 
         for (String expectedURL : expectedURLs) {
             assertTrue("Could not find expected URL: " + expectedURL, 
@@ -128,8 +159,6 @@ public class LinkExtractorTest {
 
         Assert.assertEquals("Invalid number of links extracted.", 
                 expectedURLs.length, links.size());
-
-        IOUtils.closeQuietly(is);
     }
     
     private boolean contains(Set<Link> links, String url) {

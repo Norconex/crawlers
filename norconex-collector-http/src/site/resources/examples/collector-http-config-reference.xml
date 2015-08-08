@@ -47,7 +47,7 @@
   #set($robotsMeta        = "${http}.robot.impl.StandardRobotsMetaProvider")
   #set($metaFetcher       = "${http}.fetch.impl.GenericMetadataFetcher")
   #set($docFetcher        = "${http}.fetch.impl.GenericDocumentFetcher")
-  #set($linkExtractor     = "${http}.url.impl.HtmlLinkExtractor")
+  #set($linkExtractor     = "${http}.url.impl.GenericLinkExtractor")
   #set($canonLinkDetector = "${http}.url.impl.GenericCanonicalLinkDetector")
   #set($urlNormalizer     = "${http}.url.impl.GenericURLNormalizer")
   #set($sitemapFactory    = "${http}.sitemap.impl.StandardSitemapResolverFactory")
@@ -269,7 +269,8 @@
          -->
     <linkExtractors>
         <extractor class="${linkExtractor}"  maxURLLength="2048" 
-                ignoreNofollow="false" keepReferrerData="false">
+                ignoreNofollow="false" keepReferrerData="false"
+                ignoreExternalLinks="false">
             <contentTypes>
                 text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
             </contentTypes>

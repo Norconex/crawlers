@@ -155,13 +155,11 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;/extractor&gt;
  * </pre>
  * @author Pascal Essiembre
- * @deprecated Since 2.3.0, use {@link GenericLinkExtractor} instead.
  */
-@Deprecated
-public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
+public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
     private static final Logger LOG = LogManager.getLogger(
-            HtmlLinkExtractor.class);
+            GenericLinkExtractor.class);
 
     //TODO make buffer size and overlap size configurable
     //1MB: make configurable
@@ -193,7 +191,7 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private final Properties tagAttribs = new Properties();
     private Pattern tagPattern;
     
-    public HtmlLinkExtractor() {
+    public GenericLinkExtractor() {
         super();
         // default tags/attributes used to extract data. 
         addLinkTag("a", "href");
@@ -663,11 +661,11 @@ public class HtmlLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof HtmlLinkExtractor)) {
+        if (!(other instanceof GenericLinkExtractor)) {
             return false;
         }
         
-        HtmlLinkExtractor castOther = (HtmlLinkExtractor) other;
+        GenericLinkExtractor castOther = (GenericLinkExtractor) other;
         return new EqualsBuilder().append(contentTypes, castOther.contentTypes)
                 .append(maxURLLength, castOther.maxURLLength)
                 .append(ignoreNofollow, castOther.ignoreNofollow)

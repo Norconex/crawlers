@@ -20,7 +20,9 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -57,17 +59,19 @@ import org.xml.sax.SAXException;
  * Implementation of {@link ILinkExtractor} using 
  * <a href="http://tika.apache.org/">Apache Tika</a> to perform URL 
  * extractions from HTML documents.
- * This is an alternative to the {@link HtmlLinkExtractor}.
+ * This is an alternative to the {@link GenericLinkExtractor}.
  * <br><br>
- * The configuration of content-types and keeping the referrer data is the same
- * as {@link HtmlLinkExtractor}.
+ * The configuration of content-types, keeping the referrer data, ignoring 
+ * "nofollow", and ignoring external links is the same
+ * as {@link GenericLinkExtractor}.
  * <p>
  * XML configuration usage:
  * </p>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.TikeLinkExtractor"
  *          ignoreNofollow="(false|true)" 
- *          keepReferrerData="(false|true)"&gt;
+ *          keepReferrerData="(false|true)"
+ *          ignoreExternalLinks="(false|true)"&gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
@@ -98,6 +102,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     // pops up again.
     private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
     private boolean ignoreNofollow;
+    private boolean ignoreExternalLinks;
     private boolean keepReferrerData;
 
     @Override
@@ -166,6 +171,21 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     nxLinks.add(nxLink);
                 }
             }
+            
+            // Remove URLs not matching protocol + domain of referrer
+            if (isIgnoreExternalLinks()) {
+                Iterator<com.norconex.collector.http.url.Link> it = 
+                        nxLinks.iterator();
+                URL theURL = new URL(url);
+                String site = theURL.getProtocol() + "://" + theURL.getHost();
+                while (it.hasNext()) {
+                    com.norconex.collector.http.url.Link link = it.next();
+                    if (!link.getUrl().startsWith(site)) {
+                        it.remove();
+                    }
+                }
+            }
+            
             return nxLinks;
         } catch (TikaException | SAXException e) {
             throw new IOException("Could not parse to extract URLs: " + url, e);
@@ -185,6 +205,24 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public void setIgnoreNofollow(boolean ignoreNofollow) {
         this.ignoreNofollow = ignoreNofollow;
     }
+    
+    /**
+     * Whether to ignore links pointing to a different domain and/or scheme.
+     * @return <code>true</code> if ignoring external links
+     * @since 2.3.0
+     */
+    public boolean isIgnoreExternalLinks() {
+        return ignoreExternalLinks;
+    }
+    /**
+     * Sets whether to ignore links pointing to a different domain and/or 
+     * scheme.
+     * @param ignoreExternalLinks <code>true</code> if ignoring external links
+     * @since 2.3.0
+     */
+    public void setIgnoreExternalLinks(boolean ignoreExternalLinks) {
+        this.ignoreExternalLinks = ignoreExternalLinks;
+    }    
     
     public boolean isKeepReferrerData() {
         return keepReferrerData;
@@ -218,10 +256,12 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     @Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
-        setIgnoreNofollow(
-                xml.getBoolean("[@ignoreNofollow]", isIgnoreNofollow()));
-        setKeepReferrerData(
-                xml.getBoolean("[@keepReferrerData]", isKeepReferrerData()));
+        setIgnoreNofollow(xml.getBoolean(
+                "[@ignoreNofollow]", isIgnoreNofollow()));
+        setIgnoreExternalLinks(xml.getBoolean(
+                "[@ignoreExternalLinks]", isIgnoreExternalLinks()));
+        setKeepReferrerData(xml.getBoolean(
+                "[@keepReferrerData]", isKeepReferrerData()));
         // Content Types
         ContentType[] cts = ContentType.valuesOf(StringUtils.split(
                 StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
@@ -237,6 +277,8 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             writer.writeAttribute("class", getClass().getCanonicalName());
 
             writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
+            writer.writeAttributeBoolean(
+                    "ignoreExternalLinks", isIgnoreExternalLinks());
             writer.writeAttributeBoolean(
                     "keepReferrerData", isKeepReferrerData());
             // Content Types
@@ -261,6 +303,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .append("contentTypes", contentTypes)
                 .append("ignoreNofollow", ignoreNofollow)
+                .append("ignoreExternalLinks", ignoreExternalLinks)
                 .append("keepReferrerData", keepReferrerData).toString();
     }
 
@@ -272,6 +315,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         TikaLinkExtractor castOther = (TikaLinkExtractor) other;
         return new EqualsBuilder().append(contentTypes, castOther.contentTypes)
                 .append(ignoreNofollow, castOther.ignoreNofollow)
+                .append(ignoreExternalLinks, castOther.ignoreExternalLinks)
                 .append(keepReferrerData, castOther.keepReferrerData)
                 .isEquals();
     }
@@ -279,6 +323,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     @Override
     public int hashCode() {
         return new HashCodeBuilder().append(contentTypes)
-                .append(ignoreNofollow).append(keepReferrerData).toHashCode();
+                .append(ignoreNofollow).append(ignoreExternalLinks)
+                .append(keepReferrerData).toHashCode();
     }
 }

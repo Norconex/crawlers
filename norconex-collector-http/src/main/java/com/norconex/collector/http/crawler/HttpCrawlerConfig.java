@@ -49,7 +49,7 @@ import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector;
-import com.norconex.collector.http.url.impl.HtmlLinkExtractor;
+import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -90,7 +90,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private IHttpMetadataFetcher metadataFetcher;
 
     private ILinkExtractor[] linkExtractors = new ILinkExtractor[] {
-            new HtmlLinkExtractor()
+            new GenericLinkExtractor()
     };
 
     private IRobotsTxtProvider robotsTxtProvider =
@@ -434,7 +434,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .configurationsAt(xmlPath);
         for (HierarchicalConfiguration extractorNode : extractorNodes) {
             ILinkExtractor extractor = ConfigurationUtil.newInstance(
-                    extractorNode, new HtmlLinkExtractor());
+                    extractorNode, new GenericLinkExtractor());
             if (extractor != null) {
                 extractors.add(extractor);
                 LOG.info("Link extractor loaded: " + extractor);
