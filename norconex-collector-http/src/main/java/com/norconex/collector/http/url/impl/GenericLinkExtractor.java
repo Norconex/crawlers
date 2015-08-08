@@ -52,7 +52,9 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
- * Generic link extractor for URLs found in HTML files.   
+ * Generic link extractor for URLs found in HTML and possibly other text files.
+ * As of 2.3.0, this class replaces the now deprecated 
+ * {@link HtmlLinkExtractor}.
  * 
  * <h3>Content-types</h3>
  * By default, this extractor will look for URLs only in documents matching
@@ -155,6 +157,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;/extractor&gt;
  * </pre>
  * @author Pascal Essiembre
+ * @since 2.3.0
  */
 public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
