@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.data.HttpCrawlData;
@@ -50,6 +52,10 @@ import com.norconex.collector.http.doc.HttpMetadata;
  * @since 1.1.1
  */
 public class TargetURLRedirectStrategy implements RedirectStrategy {
+    
+    private static final Logger LOG = 
+            LogManager.getLogger(TargetURLRedirectStrategy.class);
+    
     private static final ThreadLocal<String> CURRENT_URL = 
             new ThreadLocal<String>();
     private final RedirectStrategy nested;
@@ -107,6 +113,11 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
             httpCrawlData.setReference(currentURL);
             doc.getMetadata().setString(HttpMetadata.COLLECTOR_URL, currentURL);
             doc.setReference(currentURL);
+            if (LOG.isInfoEnabled()) {
+                LOG.info("URL Redirect: " + originalURL + " -> " + currentURL);
+            }
         }
+        
+        
     }
 }

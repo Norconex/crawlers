@@ -22,13 +22,13 @@
      to site documentation for more options and complete description of 
      each features.
      -->
-<httpcollector id="httpcollector-template">
+<httpcollector id="My Collector Name">
 
   <!-- Variables: Optionally define variables in this configuration file
        using the "set" directive, or by using a file of the same name
-       but with the filterExtension ".variables" or ".properties".  Refer 
-       to site documentation to find out what each filterExtension does.
-       Finally, once can pass an optional properties file when starting the
+       but with the extension ".variables" or ".properties".  Refer 
+       to site documentation to find out what each extension does.
+       Also, one can pass an optional properties file when starting the
        crawler.  The following is good practice to reference frequently 
        used classes in a shorter way.
        -->
@@ -67,7 +67,7 @@
        (including start URLs).  Settings defined here will be inherited by 
        all individual crawlers defined further down, unless overwritten.
        If you replace a top level crawler tag from the crawler defaults,
-       all the default tag configuration settings will be replace, no 
+       all the default tag configuration settings will be replaced, no 
        attempt will be made to merge or append.
        -->
   <crawlerDefaults>
@@ -109,7 +109,8 @@
     <!-- Optional delay resolver defining how polite or aggressive you want
          your crawling to be.  The class must implement 
          com.norconex.collector.http.delay.IDelayResolver.
-         The following is the default implementation:
+         The following class is the default implementation 
+         (but the schedule sample is not):
       -->
     <delay default="1000" ignoreRobotsCrawlDelay="true"
            class="$http.delay.impl.DefaultDelayResolver">
@@ -371,11 +372,11 @@
        Since the options are the same as the defaults above, the documentation 
        is not repeated here.
        The only difference from "crawlerDefaults" is the addition of the "id"
-       attribute on the crawler tag.  The "id" attribute uniquelly identifies
+       attribute on the crawler tag.  The "id" attribute uniquely identifies
        each of your crawlers.  
        -->
   <crawlers>
-    <crawler id="Test Web Site">
+    <crawler id="My Crawler Name">
        <!-- Overwrite any defaults here. -->
     </crawler>
   </crawlers>

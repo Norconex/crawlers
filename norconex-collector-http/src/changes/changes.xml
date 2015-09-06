@@ -15,10 +15,17 @@
         domain will be extracted.
       </action>
       <action dev="essiembre" type="update">
+       URL redirects are now logged (log level INFO).
+      </action>
+      <action dev="essiembre" type="update">
         HtmlLinkExtractor has been deprecated in favor of GenericLinkExtractor.
       </action>
       <action dev="essiembre" type="update">
         Maven dependency updates: Norconex Collector Core 1.3.0.
+      </action>      
+      <action dev="essiembre" type="update">
+        Fixed typos and improved documentation in 
+        collector-http-config-reference.xml.
       </action>      
     </release>
 
