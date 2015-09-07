@@ -88,6 +88,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
  *      &lt;maxConnectionsPerRoute&gt;...&lt;/maxConnectionsPerRoute&gt;
  *      &lt;maxConnectionIdleTime&gt;(milliseconds)&lt;/maxConnectionIdleTime&gt;
  *      &lt;maxConnectionInactiveTime&gt;(milliseconds)&lt;/maxConnectionInactiveTime&gt;
+ *      &lt;ignoreExternalRedirects&gt;[false|true]&lt;/ignoreExternalRedirects&gt;
  *
  *      &lt;-- Be warned: trusting all certificates is usually a bad idea. --&gt;
  *      &lt;trustAllSSLCertificates&gt;[false|true]&lt;/trustAllSSLCertificates&gt;
@@ -206,6 +207,7 @@ public class GenericHttpClientFactory
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
     private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
     private int maxConnectionInactiveTime;
+    private boolean ignoreExternalRedirects;
     
     @Override
     public HttpClient createHTTPClient(String userAgent) {
@@ -231,7 +233,8 @@ public class GenericHttpClientFactory
         if (strategy == null) {
             strategy = LaxRedirectStrategy.INSTANCE;
         }
-        builder.setRedirectStrategy(new TargetURLRedirectStrategy(strategy));
+        builder.setRedirectStrategy(new TargetURLRedirectStrategy(
+                strategy, ignoreExternalRedirects));
         //Fix end
 
         HttpClient httpClient = builder.build();
@@ -438,6 +441,8 @@ public class GenericHttpClientFactory
                 "maxConnectionIdleTime", maxConnectionIdleTime);
         maxConnectionInactiveTime = xml.getInt(
                 "maxConnectionInactiveTime", maxConnectionInactiveTime);
+        ignoreExternalRedirects = xml.getBoolean(
+                "ignoreExternalRedirects", ignoreExternalRedirects);
         
         if (xml.getString("staleConnectionCheckDisabled") != null) {
             LOG.warn("Since 2.1.0, the configuration option \""
@@ -491,6 +496,8 @@ public class GenericHttpClientFactory
                     writer, "maxConnectionIdleTime", maxConnectionIdleTime);
             writeIntElement(writer, 
                     "maxConnectionInactiveTime", maxConnectionInactiveTime);
+            writeBoolElement(
+                    writer, "ignoreExternalRedirects", ignoreExternalRedirects);
             
             writer.flush();
             writer.close();
@@ -1082,5 +1089,27 @@ public class GenericHttpClientFactory
      */
     public void setMaxConnectionInactiveTime(int maxConnectionInactiveTime) {
         this.maxConnectionInactiveTime = maxConnectionInactiveTime;
+    }
+
+    /**
+     * Gets whether URL redirects pointing to a location on a different
+     * host, port, or scheme should be ignored (i.e., not followed). 
+     * This setting has no effect when {@link #getMaxRedirects()} returns 0.
+     * @return <code>true</code> when ignoring external redirects
+     * @since 2.3.0
+     */
+    public boolean isIgnoreExternalRedirects() {
+        return ignoreExternalRedirects;
+    }
+    /**
+     * Sets whether URL redirects pointing to a location on a different
+     * host, port, or scheme should be ignored (i.e., not followed). 
+     * This setting has no effect when {@link #getMaxRedirects()} returns 0.
+     * @param ignoreExternalRedirects 
+     *        <code>true</code> when ignoring external redirects
+     * @since 2.3.0
+     */
+    public void setIgnoreExternalRedirects(boolean ignoreExternalRedirects) {
+        this.ignoreExternalRedirects = ignoreExternalRedirects;
     }
 }

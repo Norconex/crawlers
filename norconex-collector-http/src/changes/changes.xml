@@ -8,6 +8,11 @@
   <body>
 
     <release version="2.3.0-SNAPSHOT" date="2015-??-??" description="Feature release">
+      <action dev="essiembre" type="add" issue="138">
+        GenericHttpClientFactory has a new configurable setting called 
+        "ignoreExternalRedirects". When sent to true, it will ignore redirects
+        to a different scheme, host, or port.
+      </action>
       <action dev="essiembre" type="add" issue="131">
         New method GenericLinkExtractor#setIgnoreExternalLinks(boolean) 
         offering the ability to exclude external URLs.
@@ -24,8 +29,7 @@
         Maven dependency updates: Norconex Collector Core 1.3.0.
       </action>      
       <action dev="essiembre" type="update">
-        Fixed typos and improved documentation in 
-        collector-http-config-reference.xml.
+        Fixed typos and improved documentation.
       </action>      
     </release>
 

@@ -14,7 +14,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<httpcollector id="Complex Crawl">
+<httpcollector id="Norconex Complex Collector">
 
   #set($http = "com.norconex.collector.http")
   #set($core = "com.norconex.collector.core")

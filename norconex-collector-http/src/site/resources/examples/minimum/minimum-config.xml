@@ -14,8 +14,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<!-- This configuration shows the minimum required and minimum recommended to 
-     run a crawler.  
+<!-- This configuration shows the minimum required and basic recommendations
+     to run a crawler.  
      -->
 <httpcollector id="Minimum Config HTTP Collector">
 
@@ -33,7 +33,7 @@
         <url>http://www.norconex.com/product/collector-http-test/minimum.php</url>
       </startURLs>
 
-      <!-- === Minimum recommended: ======================================== -->
+      <!-- === Basic recommendations: ====================================== -->
 
       <!-- Where the crawler default directory to generate files is. -->
       <workDir>./examples-output/minimum</workDir>
@@ -48,12 +48,16 @@
       <delay default="5000" />
       
       <!-- You may want to limit crawling to sites matching your start URLs,
-           by ignoring external links in pages (this can also be accomplished
-           with more flexibility using "referenceFilters"). -->
+           by ignoring external links in pages and external redirects. 
+           The next two settings will ensure that. -->
+      <httpClientFactory>
+        <ignoreExternalRedirects>true</ignoreExternalRedirects>
+      </httpClientFactory>
       <linkExtractors>
         <extractor ignoreExternalLinks="true" />
       </linkExtractors>
-      
+
+      <!-- Document importing -->
       <importer>
         <postParseHandlers>
           <!-- If your target repository does not support arbitrary fields,
