@@ -1,9 +1,6 @@
 The following are either things to be done, or ideas to consider:
 
 
-- Since HtmlLinkExtractor can be configured to be used for RSS/Atom and 
-  other text-based files, deprecate it and copy it to GenericLinkExtractor.
-
 - Carry a flag that tells if we are running a full crawl, or an incremental one.
   Some operations may be relevant only on incremental runs.
 
