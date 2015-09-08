@@ -97,6 +97,7 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
         HttpHost currentHost = (HttpHost)  context.getAttribute( 
                 HttpCoreContext.HTTP_TARGET_HOST);
         
+        //TODO If redirect target URL already processed/active, do not follow it
         // If ignoring external redirects, prevent redirecting to one
         if (ignoreExternalRedirects && isRedirected) {
             String location = null;
@@ -165,7 +166,7 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
         return ignoreExternalRedirects;
     }
     
-    public static void fixRedirectURL(
+    public static boolean fixRedirectURL(
             HttpClient httpClient, 
             HttpDocument doc,
             HttpCrawlData httpCrawlData,
@@ -174,8 +175,9 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
         //and perform this fix in isRedirected(), then drop this method?
         String originalURL = httpCrawlData.getReference();
         String currentURL = getCurrentUrl();
-        if (StringUtils.isNotBlank(currentURL) 
-                && ObjectUtils.notEqual(currentURL, originalURL)) {
+        boolean redirected = StringUtils.isNotBlank(currentURL) 
+                && ObjectUtils.notEqual(currentURL, originalURL);
+        if (redirected) {
             httpCrawlData.setOriginalReference(originalURL);
             httpCrawlData.setReference(currentURL);
             doc.getMetadata().setString(HttpMetadata.COLLECTOR_URL, currentURL);
@@ -184,5 +186,6 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
                 LOG.info("URL Redirect: " + originalURL + " -> " + currentURL);
             }
         }
+        return redirected;
     }
 }

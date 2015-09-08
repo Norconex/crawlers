@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,12 @@ public class HttpCrawlerEvent extends CrawlerEvent {
     public static final String REJECTED_ROBOTS_META_NOINDEX = 
             "REJECTED_ROBOTS_META_NOINDEX";
     public static final String REJECTED_TOO_DEEP = "REJECTED_TOO_DEEP";
+    public static final String URLS_EXTRACTED = "URLS_EXTRACTED";
     /** @since 2.2.0 */
     public static final String REJECTED_CANONICAL = "REJECTED_CANONICAL";
-    public static final String URLS_EXTRACTED = "URLS_EXTRACTED";
-    
+    /** @since 2.3.0 */
+    public static final String REJECTED_DUPLICATE = "REJECTED_DUPLICATE";
+
     public HttpCrawlerEvent(String eventType, ICrawlData crawlData,
             Object subject) {
         super(eventType, crawlData, subject);

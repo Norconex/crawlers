@@ -16,9 +16,14 @@ package com.norconex.collector.http.pipeline.importer;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Set;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.importer.DocumentFiltersStage;
 import com.norconex.collector.core.pipeline.importer.ImportModuleStage;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
@@ -43,6 +48,10 @@ import com.norconex.commons.lang.pipeline.Pipeline;
 public class HttpImporterPipeline 
         extends Pipeline<ImporterPipelineContext> {
 
+    
+    private static final Logger LOG = 
+            LogManager.getLogger(HttpImporterPipeline.class);
+    
     //TODO create a DocumentPipelinePrototype to generate prototypes
     //sharing all thread safe/common information, 
     //just changing what is url/doc specific.
@@ -152,10 +161,13 @@ public class HttpImporterPipeline
         }
     }
 
-    //--- Document Fetcher -----------------------------------------------------            
+    //--- Document Fetcher -----------------------------------------------------
+    //TODO getting big: move to its own class.
     private static class DocumentFetcherStage extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
+            HttpCrawlData crawlData = ctx.getCrawlData();
+            
             //TODO for now we assume the document is downloadable.
             // download as file
             HttpFetchResponse response =
@@ -167,16 +179,45 @@ public class HttpImporterPipeline
             HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
             
             //TODO Fix #17. Put in place a more permanent solution to this line
-            TargetURLRedirectStrategy.fixRedirectURL(
+            boolean redirected = TargetURLRedirectStrategy.fixRedirectURL(
                     ctx.getHttpClient(), ctx.getDocument(), 
-                    ctx.getCrawlData(), ctx.getCrawlDataStore());
+                    crawlData, ctx.getCrawlDataStore());
             //--- END Fix #17 ---
+
+            //--- Fix #135. Make sure redirect is not already handled. ---
+            Set<String> activeRefs = 
+                    ctx.getCrawler().getTransientActiveReferences();
+            String ref = crawlData.getReference();
+            synchronized (activeRefs) {
+                if (activeRefs.contains(ref)) {
+                    rejectRedirectDup("being processed", ctx, response);
+                    return false;
+                }
+                if (redirected) {
+                    ICrawlDataStore store = ctx.getCrawlDataStore();
+                    //TODO throw an event if already active/processed(ing)?
+                    if (store.isActive(ref)) {
+                        rejectRedirectDup("being processed", ctx, response);
+                        return false;
+                    } else if (store.isQueued(ref)) {
+                        rejectRedirectDup("queued", ctx, response);
+                        return false;
+                    } else if (store.isProcessed(ref)) {
+                        rejectRedirectDup("processed", ctx, response);
+                        return false;
+                    } else {
+                        LOG.debug("Adding transient active reference: " + ref);
+                        activeRefs.add(ref);
+                    }
+                }
+            }
+            //--- End Fix #135 ---
             
             CrawlState state = response.getCrawlState();
-            ctx.getCrawlData().setState(state);
+            crawlData.setState(state);
             if (state.isGoodState()) {
                 ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED, 
-                        ctx.getCrawlData(), response);
+                        crawlData, response);
             } else {
                 String eventType = null;
                 if (state.isOneOf(HttpCrawlState.NOT_FOUND)) {
@@ -184,13 +225,26 @@ public class HttpImporterPipeline
                 } else {
                     eventType = HttpCrawlerEvent.REJECTED_BAD_STATUS;
                 }
-                ctx.fireCrawlerEvent(eventType, ctx.getCrawlData(), response);
+                ctx.fireCrawlerEvent(eventType, crawlData, response);
                 return false;
             }
             return true;
         }
     }
 
+    private static void rejectRedirectDup(String action, 
+            HttpImporterPipelineContext ctx, HttpFetchResponse response) {
+        HttpCrawlData crawlData = ctx.getCrawlData();
+        crawlData.setState(HttpCrawlState.DUPLICATE);
+        String eventType = HttpCrawlerEvent.REJECTED_DUPLICATE;
+        ctx.fireCrawlerEvent(eventType, crawlData, response);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Redirect target URL is already " + action
+                    + ": " + crawlData.getReference()
+                    + " (from: " + crawlData.getOriginalReference() + ").");
+        }
+    }   
+    
     //--- HTTP Headers Canonical URL after fetch -------------------------------
     private static class HttpMetadataCanonicalGETStage 
             extends AbstractImporterStage {
