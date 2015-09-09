@@ -56,6 +56,7 @@ import com.norconex.commons.lang.url.URLNormalizer;
  *   <li>Capitalizing letters in escape sequences</li>
  *   <li>Decoding percent-encoded unreserved characters</li>
  *   <li>Removing the default port</li>
+ *   <li>Encoding non-URI characters (since 2.3.0)</li>
  * </ul>
  * <p>
  * To overwrite this default, you have to specify a new list of normalizations
@@ -69,6 +70,8 @@ import com.norconex.commons.lang.url.URLNormalizer;
  *   <li>{@link URLNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
  *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
  *   <li>{@link URLNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
+ *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters()} (since 2.3.0)</li>
+ *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces()} (since 2.3.0)</li>
  *   <li>{@link URLNormalizer#removeDefaultPort() removeDefaultPort}</li>
  *   <li>{@link URLNormalizer#addTrailingSlash() addTrailingSlash}</li>
  *   <li>{@link URLNormalizer#removeDotSegments() removeDotSegments}</li>
@@ -134,6 +137,8 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         lowerCaseSchemeHost,
         upperCaseEscapeSequence, 
         decodeUnreservedCharacters, 
+        encodeNonURICharacters,
+        encodeSpaces,
         removeDefaultPort, 
         addTrailingSlash, 
         removeDotSegments, 
@@ -156,6 +161,17 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             new ArrayList<Normalization>();
     private final List<Replace> replaces = new ArrayList<Replace>();
     
+    
+    public GenericURLNormalizer() {
+        super();
+        setNormalizations(
+                Normalization.lowerCaseSchemeHost,
+                Normalization.upperCaseEscapeSequence,
+                Normalization.decodeUnreservedCharacters,
+                Normalization.removeDefaultPort,
+                Normalization.encodeNonURICharacters);
+    }
+
     @Override
     public String normalizeURL(String url) {
         URLNormalizer normalizer = new URLNormalizer(url);
@@ -330,7 +346,8 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             if (!(obj instanceof GenericURLNormalizer.Replace)) {
                 return false;
             }
-            GenericURLNormalizer.Replace other = (GenericURLNormalizer.Replace) obj;
+            GenericURLNormalizer.Replace other = 
+                    (GenericURLNormalizer.Replace) obj;
             return new EqualsBuilder()
                 .append(match, other.match)
                 .append(replacement, other.replacement)
