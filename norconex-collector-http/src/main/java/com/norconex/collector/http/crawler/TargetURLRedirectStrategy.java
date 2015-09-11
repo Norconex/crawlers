@@ -23,6 +23,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
@@ -123,6 +125,16 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
     }
 
     private String toAbsoluteURI(HttpHost host, HttpUriRequest req) {
+        // Check if we can get full URL from a nested request, to keep
+        // the #fragment, if present.
+        if (req instanceof HttpRequestWrapper) {
+            HttpRequest originalReq = ((HttpRequestWrapper) req).getOriginal();
+            if (originalReq instanceof HttpRequestBase) {
+                return ((HttpRequestBase) originalReq).getURI().toString();
+            }
+        }
+        
+        // Else, built it
         if (req.getURI().isAbsolute()) {
             return req.getURI().toString();
         }
@@ -134,12 +146,20 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
             return true;
         }
         HttpURL redirect = new HttpURL(redirectLocation);
-        if (redirect == null || StringUtils.isBlank(redirect.getProtocol())) {
+        if (StringUtils.isBlank(redirect.getProtocol())) {
             return true;
+        }
+        int hostPort = host.getPort();
+        if (hostPort < 0) {
+            hostPort = HttpURL.DEFAULT_HTTP_PORT;
+        }
+        int redirectPort = redirect.getPort();
+        if (redirectPort < 0) {
+            redirectPort = HttpURL.DEFAULT_HTTP_PORT;
         }
         return host.getHostName().equalsIgnoreCase(redirect.getHost())
                 && host.getSchemeName().equalsIgnoreCase(redirect.getProtocol())
-                && host.getPort() == redirect.getPort();
+                && hostPort == redirectPort;
     }
     
     @Override
@@ -175,6 +195,7 @@ public class TargetURLRedirectStrategy implements RedirectStrategy {
         //and perform this fix in isRedirected(), then drop this method?
         String originalURL = httpCrawlData.getReference();
         String currentURL = getCurrentUrl();
+        
         boolean redirected = StringUtils.isNotBlank(currentURL) 
                 && ObjectUtils.notEqual(currentURL, originalURL);
         if (redirected) {
