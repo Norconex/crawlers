@@ -56,6 +56,7 @@ public class LinkExtractorTest {
         extractor.setIgnoreNofollow(true);
         extractor.setIgnoreExternalLinks(true);
         extractor.setKeepReferrerData(true);
+        extractor.setKeepFragment(true);
         extractor.addLinkTag("food", "chocolate");
         extractor.addLinkTag("friend", "Thor");
         System.out.println("Writing/Reading this: " + extractor);

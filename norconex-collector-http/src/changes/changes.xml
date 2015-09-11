@@ -9,6 +9,10 @@
 
     <release version="2.3.0-SNAPSHOT" date="2015-??-??" description="Feature release">
       <action dev="essiembre" type="add">
+        GenericLinkExtractor now has a new flag for keeping URL fragments
+        when extracting URLs.
+      </action>
+      <action dev="essiembre" type="add">
         GenericURLNormalizer now has the few normalizations by default, 
         as described in the Javadoc.
       </action>

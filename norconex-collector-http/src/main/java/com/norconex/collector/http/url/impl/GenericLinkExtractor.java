@@ -137,13 +137,25 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * a convenient way to force a crawler to stay on a site without having
  * to filter external URLs yourself using {@link IReferenceFilter} or else.
  * 
+ * <h3>URL Fragments</h3>
+ * <b>Since 2.4.0</b>, it is possible to preserve hashtag characters (#) found
+ * in URLs and every characters after it. The URL specification says hashtags
+ * are used to represent fragments only. That is, to quickly jump to a specific
+ * section of the page the URL represents. Under normal circonstances,
+ * keeping the URL fragments usually leads to duplicates documents being fetched
+ * (same URL but different fragment) and they should be stripped. Unfortunately,
+ * there are sites not following the URL standard and using hashtags as a 
+ * regular part of a URL (i.e. different hashtags point to different web pages).
+ * It may be essential when crawling these sites to keep the URL fragments.
+ *
  * <h3>XML configuration usage</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.HtmlLinkExtractor"
  *          maxURLLength="(maximum URL length. Default is 2048)" 
- *          ignoreNofollow="(false|true)" 
- *          keepReferrerData="(false|true)"
- *          ignoreExternalLinks="(false|true)"&gt;
+ *          ignoreNofollow="[false|true]" 
+ *          keepReferrerData="[false|true]"
+ *          keepFragment="[false|true]"
+ *          ignoreExternalLinks="[false|true]"&gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
@@ -191,6 +203,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private boolean ignoreNofollow;
     private boolean ignoreExternalLinks;
     private boolean keepReferrerData;
+    private boolean keepFragment;
     private final Properties tagAttribs = new Properties();
     private Pattern tagPattern;
     
@@ -303,6 +316,25 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      */
     public void setIgnoreExternalLinks(boolean ignoreExternalLinks) {
         this.ignoreExternalLinks = ignoreExternalLinks;
+    }
+
+    /**
+     * Whether to keep the URL fragment when present (e.g., 
+     * http://example.com/page.html#fragment).
+     * @return <code>true</code> if keeping the URL fragment
+     * @since 2.4.0
+     */
+    public boolean isKeepFragment() {
+        return keepFragment;
+    }
+    /**
+     * Sets whether to keep the URL fragment when present (e.g., 
+     * http://example.com/page.html#fragment).
+     * @param keepFragment <code>true</code> if keeping fragment
+     * @since 2.4.0
+     */
+    public void setKeepFragment(boolean keepFragment) {
+        this.keepFragment = keepFragment;
     }
 
     public boolean isKeepReferrerData() {
@@ -505,8 +537,10 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 url = urlParts.relativeBase + "/" + url;
             }
         }
-        //TODO have configurable whether to strip anchors.
-        url = StringUtils.substringBefore(url, "#");
+
+        if (!isKeepFragment()) {
+            url = StringUtils.substringBefore(url, "#");
+        }
         
         if (url.length() > maxURLLength) {
             LOG.debug("URL length (" + url.length() + ") exeeding "
@@ -547,6 +581,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 "[@ignoreExternalLinks]", isIgnoreExternalLinks()));
         setKeepReferrerData(xml.getBoolean(
                 "[@keepReferrerData]", isKeepReferrerData()));
+        setKeepFragment(xml.getBoolean("[@keepFragment]", isKeepFragment()));
         
         // Content Types
         ContentType[] cts = ContentType.valuesOf(StringUtils.split(
@@ -582,7 +617,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     "ignoreExternalLinks", isIgnoreExternalLinks());
             writer.writeAttributeBoolean(
                     "keepReferrerData", isKeepReferrerData());
-
+            writer.writeAttributeBoolean("keepFragment", isKeepFragment());
+            
             // Content Types
             if (!ArrayUtils.isEmpty(getContentTypes())) {
                 writer.writeElementString("contentTypes", 
@@ -659,6 +695,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append("ignoreNofollow", ignoreNofollow)
                 .append("ignoreExternalLinks", ignoreExternalLinks)
                 .append("keepReferrerData", keepReferrerData)
+                .append("keepFragment", keepFragment)
                 .append("tagAttribs", tagAttribs).toString();
     }
 
@@ -674,6 +711,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(ignoreNofollow, castOther.ignoreNofollow)
                 .append(ignoreExternalLinks, castOther.ignoreExternalLinks)
                 .append(keepReferrerData, castOther.keepReferrerData)
+                .append(keepFragment, castOther.keepFragment)
                 .isEquals() &&  CollectionUtils.containsAll(
                         tagAttribs.entrySet(), castOther.tagAttribs.entrySet());
     }
@@ -682,6 +720,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public int hashCode() {
         return new HashCodeBuilder().append(contentTypes).append(maxURLLength)
                 .append(ignoreNofollow).append(ignoreExternalLinks)
-                .append(keepReferrerData).append(tagAttribs).toHashCode();
+                .append(keepReferrerData).append(keepFragment)
+                .append(tagAttribs).toHashCode();
     }
 }
