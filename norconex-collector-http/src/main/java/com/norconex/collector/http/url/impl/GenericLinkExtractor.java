@@ -483,7 +483,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             PATTERN_FLAGS);
     private static final Pattern META_CONTENT_URL_PATTERN = Pattern.compile(
             "(^|\\W+)content\\s*=\\s*([\"'])[^a-zA-Z]*url"
-          + "\\s*=\\s*([\"']{0,1})([^\\<\\>]+?)\\3.*?\\2", PATTERN_FLAGS);
+          + "\\s*=\\s*([\"']{0,1})([^\\<\\>\"']+?)[\\<\\>\"'].*?",
+            PATTERN_FLAGS);
     private void extractMetaRefresh(
             String restOfTag, Referer referrer, Set<Link> links) {
         if (!META_EQUIV_REFRESH_PATTERN.matcher(restOfTag).find()) {
