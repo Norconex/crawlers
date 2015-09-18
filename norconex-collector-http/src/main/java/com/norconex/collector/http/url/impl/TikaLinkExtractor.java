@@ -32,6 +32,8 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -44,16 +46,13 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.Link;
 import org.apache.tika.sax.LinkContentHandler;
+import org.xml.sax.SAXException;
 
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
-
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.xml.sax.SAXException;
 
 /**
  * Implementation of {@link ILinkExtractor} using 
@@ -154,7 +153,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
 
             //grab refresh URL from metadata (if present)
-            String refreshURL = metadata.get("refresh");
+            String refreshURL = getCaseInsensitive(metadata, "refresh");
             if (StringUtils.isNotBlank(refreshURL)) {
                 Matcher matcher = META_REFRESH_PATTERN.matcher(refreshURL);
                 if (matcher.find()) {
@@ -192,6 +191,15 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
     }
 
+    private String getCaseInsensitive(Metadata metadata, String key) {
+        for (String name: metadata.names()) {
+            if (StringUtils.equalsIgnoreCase(name, key)) {
+                return metadata.get(name);
+            }
+        }
+        return null;
+    }
+    
     public ContentType[] getContentTypes() {
         return ArrayUtils.clone(contentTypes);
     }

@@ -44,6 +44,11 @@
       <action dev="essiembre" type="update">
         Corrected typos and improved documentation.
       </action>      
+      <action dev="essiembre" type="fix" issue="141">
+        GenericLinkExtractor and TikaLinkExtractor now extract 
+        meta http-equiv refresh properly when "refresh" is without quotes
+        or not lowercase.
+      </action>
       <action dev="essiembre" type="fix" issue="135">
         Fixed duplicate commits when multiple URL redirects are pointing
         to the same target URL.

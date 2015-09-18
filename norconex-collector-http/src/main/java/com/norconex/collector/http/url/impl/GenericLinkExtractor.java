@@ -204,7 +204,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private boolean ignoreExternalLinks;
     private boolean keepReferrerData;
     private boolean keepFragment;
-    private final Properties tagAttribs = new Properties();
+    private final Properties tagAttribs = new Properties(true);
     private Pattern tagPattern;
     
     public GenericLinkExtractor() {
@@ -479,7 +479,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     
     //--- Extract meta refresh -------------------------------------------------
     private static final Pattern META_EQUIV_REFRESH_PATTERN = Pattern.compile(
-            "(^|\\W+)http-equiv\\s*=\\s*[\"']refresh[\"']", PATTERN_FLAGS);
+            "(^|\\W+)http-equiv\\s*=\\s*[\"']{0,1}refresh[\"']{0,1}",
+            PATTERN_FLAGS);
     private static final Pattern META_CONTENT_URL_PATTERN = Pattern.compile(
             "(^|\\W+)content\\s*=\\s*([\"'])[^a-zA-Z]*url"
           + "\\s*=\\s*([\"']{0,1})([^\\<\\>]+?)\\3.*?\\2", PATTERN_FLAGS);
