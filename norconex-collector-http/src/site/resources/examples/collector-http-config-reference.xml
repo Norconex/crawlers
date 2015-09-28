@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2010-2014 Norconex Inc.
+   Copyright 2010-2015 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@
     <!-- Mandatory starting URL(s) where crawling begins.  If you put more 
          than one URL, they will be processed together.  You can also
          point to one or more URLs files (i.e., seed lists).  -->    
-    <startURLs>
+    <startURLs stayOnDomain="false" stayOnPort="false" stayOnProtocol="false">
       <url>http://www.example.com</url>
       <url>http://www.sample.com</url>
       <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
@@ -87,7 +87,6 @@
          files.
       -->
     <userAgent>Please identify your Crawler</userAgent>
-
 
     <!-- Optional URL normalization feature. The class must implement
          com.norconex.collector.http.url.IURLNormalizer, 
@@ -270,8 +269,7 @@
          -->
     <linkExtractors>
         <extractor class="${linkExtractor}"  maxURLLength="2048" 
-                ignoreNofollow="false" keepReferrerData="false"
-                ignoreExternalLinks="false">
+                ignoreNofollow="false" keepReferrerData="false">
             <contentTypes>
                 text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
             </contentTypes>

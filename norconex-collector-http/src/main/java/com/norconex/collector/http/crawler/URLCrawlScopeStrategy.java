@@ -1,0 +1,180 @@
+/* Copyright 2015 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.norconex.collector.http.crawler;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import com.norconex.commons.lang.url.HttpURL;
+
+/**
+ * <p>By default a crawler will try to follow all links it discovers. You can
+ * define your own filters to limit the scope of the pages being crawled.
+ * When you have multiple URLs defined as start URLs, it can be tricky to 
+ * perform global filtering that apply to each URLs without causing 
+ * URL filtering conflicts.  This class offers an easy way to address 
+ * a frequent URL filtering need: to "stay on site". That is, 
+ * when following a page and extracting URLs found in it, make sure to 
+ * only keep URLs that are on the same site as the page URL we are on.
+ * </p>
+ * <p>
+ * By default this class does not request to stay on a site.
+ * </p>
+ * @author Pascal Essiembre
+ * @since 2.3.0
+ */
+//TODO make this an interface so developers can provide their own?
+public class URLCrawlScopeStrategy {
+
+
+    private static final Logger LOG = 
+            LogManager.getLogger(URLCrawlScopeStrategy.class);
+    
+    private boolean stayOnDomain;
+    private boolean stayOnPort;
+    private boolean stayOnProtocol = false;
+    
+    /**
+     * Whether the crawler should always stay on the same domain name as
+     * the domain for each URL specified as a start URL.  By default (false) 
+     * the crawler will try follow any discovered links not otherwise rejected 
+     * by other settings (like regular filtering rules you may have).
+     * @return <code>true</code> if the crawler should stay on a domain
+     */
+    public boolean isStayOnDomain() {
+        return stayOnDomain;
+    }
+    /**
+     * Sets whether the crawler should always stay on the same domain name as
+     * the domain for each URL specified as a start URL.
+     * @param stayOnDomain <code>true</code> for the crawler to stay on domain
+     */
+    public void setStayOnDomain(boolean stayOnDomain) {
+        this.stayOnDomain = stayOnDomain;
+    }
+    
+    /**
+     * Whether the crawler should always stay on the same port as
+     * the port for each URL specified as a start URL.  By default (false) 
+     * the crawler will try follow any discovered links not otherwise rejected 
+     * by other settings (like regular filtering rules you may have).
+     * @return <code>true</code> if the crawler should stay on a port
+     */
+    public boolean isStayOnPort() {
+        return stayOnPort;
+    }
+    /**
+     * Sets whether the crawler should always stay on the same port as
+     * the port for each URL specified as a start URL.
+     * @param stayOnPort <code>true</code> for the crawler to stay on port
+     */
+    public void setStayOnPort(boolean stayOnPort) {
+        this.stayOnPort = stayOnPort;
+    }
+    
+    /**
+     * Whether the crawler should always stay on the same protocol as
+     * the protocol for each URL specified as a start URL.  By default (false) 
+     * the crawler will try follow any discovered links not otherwise rejected 
+     * by other settings (like regular filtering rules you may have).
+     * @return <code>true</code> if the crawler should stay on protocol
+     */
+    public boolean isStayOnProtocol() {
+        return stayOnProtocol;
+    }
+    /**
+     * Sets whether the crawler should always stay on the same protocol as
+     * the protocol for each URL specified as a start URL.
+     * @param stayOnProtocol 
+     *        <code>true</code> for the crawler to stay on protocol
+     */
+    public void setStayOnProtocol(boolean stayOnProtocol) {
+        this.stayOnProtocol = stayOnProtocol;
+    }
+    
+    
+    public boolean isInScope(String inScopeURL, String candidateURL) {
+        // if not specifying any scope, candidate URL is good
+        if (!stayOnProtocol && !stayOnDomain && !stayOnPort) {
+            return true;
+        }
+
+        HttpURL inScope = new HttpURL(inScopeURL);
+        HttpURL candidate = new HttpURL(candidateURL);
+        if (stayOnProtocol && !inScope.getProtocol().equalsIgnoreCase(
+                candidate.getProtocol())) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Rejected protocol for: " + candidateURL);
+            }
+            return false;
+        }
+        if (stayOnDomain && !inScope.getHost().equalsIgnoreCase(
+                candidate.getHost())) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Rejected domain for: " + candidateURL);
+            }
+            return false;
+        }
+        if (stayOnPort && inScope.getPort() != candidate.getPort()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Rejected port for: " + candidateURL);
+            }
+            return false;
+        }
+        return true;
+    }
+    
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (stayOnDomain ? 1231 : 1237);
+        result = prime * result + (stayOnPort ? 1231 : 1237);
+        result = prime * result + (stayOnProtocol ? 1231 : 1237);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof URLCrawlScopeStrategy)) {
+            return false;
+        }
+        URLCrawlScopeStrategy other = (URLCrawlScopeStrategy) obj;
+        if (stayOnDomain != other.stayOnDomain) {
+            return false;
+        }
+        if (stayOnPort != other.stayOnPort) {
+            return false;
+        }
+        if (stayOnProtocol != other.stayOnProtocol) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "URLCrawlScopeStrategy [stayOnDomain=" + stayOnDomain
+                + ", stayOnPort=" + stayOnPort + ", stayOnProtocol="
+                + stayOnProtocol + "]";
+    }
+}

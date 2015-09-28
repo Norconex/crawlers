@@ -40,11 +40,13 @@ import com.norconex.commons.lang.io.CachedInputStream;
  */
 /*default*/ class LinkExtractorStage extends AbstractImporterStage {
 
-    private static final Logger LOG = LogManager
-            .getLogger(LinkExtractorStage.class);
+    private static final Logger LOG = 
+            LogManager.getLogger(LinkExtractorStage.class);
     
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
+        String reference = ctx.getCrawlData().getReference();
+        
         ILinkExtractor[] extractors = ctx.getConfig().getLinkExtractors();
         if (ArrayUtils.isEmpty(extractors)) {
             LOG.debug("No configured link extractor.  No links will be "
@@ -56,14 +58,13 @@ import com.norconex.commons.lang.io.CachedInputStream;
                 && ctx.getRobotsMeta().isNofollow()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("No URLs extracted due to Robots nofollow rule "
-                        + "for URL: " + ctx.getCrawlData().getReference());
+                        + "for URL: " + reference);
             }
             return true;
         }
         
         Set<Link> links = new HashSet<>();
         CachedInputStream is = ctx.getContent();
-        String reference = ctx.getCrawlData().getReference();
         ContentType ct = ctx.getDocument().getContentType();
         for (ILinkExtractor extractor : extractors) {
             if (extractor.accepts(reference, ct)) {
@@ -80,14 +81,20 @@ import com.norconex.commons.lang.io.CachedInputStream;
         Set<String> uniqueURLs = new HashSet<String>();
         if (links != null) {
             for (Link link : links) {
-                try {
-                    queueURL(link, ctx, uniqueURLs);
-                } catch (Exception e) {
-                    LOG.warn("Could not queue extracted URL \""
-                            + link.getUrl() + "\".", e);
+                if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+                        reference, link.getUrl())) {
+                    try {
+                        queueURL(link, ctx, uniqueURLs);
+                    } catch (Exception e) {
+                        LOG.warn("Could not queue extracted URL \""
+                                + link.getUrl() + "\".", e);
+                    }
+                } else if (LOG.isDebugEnabled()) {
+                    LOG.debug("URL not in crawl scope: " + link.getUrl());
                 }
             }
         }
+
         if (!uniqueURLs.isEmpty()) {
             ctx.getMetadata().addString(HttpMetadata.COLLECTOR_REFERNCED_URLS, 
                     uniqueURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));

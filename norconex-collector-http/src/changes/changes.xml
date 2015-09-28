@@ -8,6 +8,14 @@
   <body>
 
     <release version="2.3.0-SNAPSHOT" date="2015-??-??" description="Feature release">
+      <action dev="essiembre" type="add" issue="144">
+        New crawler configuration options: stayOnProtocol, stayOnDomain,
+        and stayOnPort. These new settings can be applied as attributes
+        to the startURLs tag in an XML configuration, or on the object 
+        returned by HttpCrawlerConfig#getURLCrawlScopeStrategy(). 
+        This addition affects or replace previous implementations discussed 
+        in #138, #135, #131, #17, and possibly others. 
+      </action>
       <action dev="essiembre" type="add">
         GenericLinkExtractor now has a new flag for keeping URL fragments
         when extracting URLs.
@@ -16,23 +24,8 @@
         GenericURLNormalizer now has the few normalizations by default, 
         as described in the Javadoc.
       </action>
-      <action dev="essiembre" type="add" issue="138">
-        GenericHttpClientFactory has a new configurable setting called 
-        "ignoreExternalRedirects". When sent to true, it will ignore redirects
-        to a different scheme, host, or port.
-      </action>
-      <action dev="essiembre" type="add" issue="131">
-        New method GenericLinkExtractor#setIgnoreExternalLinks(boolean) 
-        offering the ability to exclude external URLs.
-        When enabled, only URLs a page matching that page URL scheme and
-        domain will be extracted.
-      </action>
-      <action dev="essiembre" type="add">
-        New HttpCrawlerEvent: REJECTED_DUPLICATE. For now it only occurs when
-        a URL redirects to another one already encountered.
-      </action>
       <action dev="essiembre" type="update">
-        URL redirects are now logged (log level INFO).
+        URL redirects are now logged as REJECTED_REDIRECTED (log level INFO).
       </action>
       <action dev="essiembre" type="update">
         HtmlLinkExtractor has been deprecated in favor of GenericLinkExtractor.
@@ -44,6 +37,12 @@
       <action dev="essiembre" type="update">
         Corrected typos and improved documentation.
       </action>      
+      <action dev="essiembre" type="update">
+        Added new event types loggers to log4j.properties.
+      </action>      
+      <action dev="essiembre" type="fix" issue="146">
+        Fixed circular redirect exception.
+      </action>
       <action dev="essiembre" type="fix" issue="141">
         GenericLinkExtractor and TikaLinkExtractor now extract 
         meta http-equiv refresh properly when "refresh" is without quotes

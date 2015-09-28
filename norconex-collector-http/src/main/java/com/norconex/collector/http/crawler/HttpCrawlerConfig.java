@@ -74,6 +74,10 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     
     private String userAgent;
 
+    //TODO make configurable via interface instead?
+    private final URLCrawlScopeStrategy uRLCrawlScopeStrategy = 
+            new URLCrawlScopeStrategy();
+    
     private IURLNormalizer urlNormalizer;
 
     private IDelayResolver delayResolver = new GenericDelayResolver();
@@ -284,6 +288,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setIgnoreCanonicalLinks(boolean ignoreCanonicalLinks) {
         this.ignoreCanonicalLinks = ignoreCanonicalLinks;
     }
+
+    public URLCrawlScopeStrategy getURLCrawlScopeStrategy() {
+        return uRLCrawlScopeStrategy;
+    }
+    
     @Override
     protected void saveCrawlerConfigToXML(Writer out) throws IOException {
         try {
@@ -294,6 +303,12 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writer.writeElementBoolean(
                     "ignoreCanonicalLinks", isIgnoreCanonicalLinks());
             writer.writeStartElement("startURLs");
+            writer.writeAttributeBoolean("stayOnProtocol", 
+                    uRLCrawlScopeStrategy.isStayOnProtocol());
+            writer.writeAttributeBoolean("stayOnDomain", 
+                    uRLCrawlScopeStrategy.isStayOnDomain());
+            writer.writeAttributeBoolean("stayOnPort", 
+                    uRLCrawlScopeStrategy.isStayOnPort());
             for (String url : getStartURLs()) {
                 writer.writeStartElement("url");
                 writer.writeCharacters(url);
@@ -405,6 +420,15 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "ignoreCanonicalLinks", isIgnoreCanonicalLinks()));
+        uRLCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
+                "startURLs[@stayOnProtocol]", 
+                uRLCrawlScopeStrategy.isStayOnProtocol()));
+        uRLCrawlScopeStrategy.setStayOnDomain(xml.getBoolean(
+                "startURLs[@stayOnDomain]", 
+                uRLCrawlScopeStrategy.isStayOnDomain()));
+        uRLCrawlScopeStrategy.setStayOnPort(xml.getBoolean(
+                "startURLs[@stayOnPort]", 
+                uRLCrawlScopeStrategy.isStayOnPort()));
         
         String[] startURLs = xml.getStringArray("startURLs.url");
         setStartURLs(defaultIfEmpty(startURLs, getStartURLs()));

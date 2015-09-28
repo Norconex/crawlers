@@ -33,8 +33,9 @@ public class HttpCrawlerEvent extends CrawlerEvent {
     /** @since 2.2.0 */
     public static final String REJECTED_CANONICAL = "REJECTED_CANONICAL";
     /** @since 2.3.0 */
-    public static final String REJECTED_DUPLICATE = "REJECTED_DUPLICATE";
+    public static final String REJECTED_REDIRECTED = "REJECTED_REDIRECTED";
 
+    
     public HttpCrawlerEvent(String eventType, ICrawlData crawlData,
             Object subject) {
         super(eventType, crawlData, subject);

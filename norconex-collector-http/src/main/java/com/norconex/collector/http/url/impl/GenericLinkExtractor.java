@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,7 +40,6 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.Link;
@@ -129,14 +127,6 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * To force its extraction (and ensure it followed) you can set 
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * 
- * <h3>External links</h3>
- * <b>Since 2.3.0</b>, external links can optionally be ignored. 
- * When {@link #setIgnoreExternalLinks(boolean)}
- * is set to <code>true</code>, only URLs with the same domain name and 
- * scheme as the URL of the page being analyzed are considered. This is 
- * a convenient way to force a crawler to stay on a site without having
- * to filter external URLs yourself using {@link IReferenceFilter} or else.
- * 
  * <h3>URL Fragments</h3>
  * <b>Since 2.4.0</b>, it is possible to preserve hashtag characters (#) found
  * in URLs and every characters after it. The URL specification says hashtags
@@ -154,8 +144,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *          maxURLLength="(maximum URL length. Default is 2048)" 
  *          ignoreNofollow="[false|true]" 
  *          keepReferrerData="[false|true]"
- *          keepFragment="[false|true]"
- *          ignoreExternalLinks="[false|true]"&gt;
+ *          keepFragment="[false|true]"&gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
@@ -201,7 +190,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     private boolean ignoreNofollow;
-    private boolean ignoreExternalLinks;
     private boolean keepReferrerData;
     private boolean keepFragment;
     private final Properties tagAttribs = new Properties(true);
@@ -248,17 +236,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         extractLinks(sb.toString(), urlParts, links);
         sb.setLength(0);
         
-        // Remove URLs not matching protocol + domain of referrer
-        if (isIgnoreExternalLinks()) {
-            Iterator<Link> it = links.iterator();
-            while (it.hasNext()) {
-                Link link = it.next();
-                if (!link.getUrl().startsWith(urlParts.absoluteBase)) {
-                    it.remove();
-                }
-            }
-        }
-        
         return links;
     }
     
@@ -298,24 +275,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
     public void setIgnoreNofollow(boolean ignoreNofollow) {
         this.ignoreNofollow = ignoreNofollow;
-    }
-
-    /**
-     * Whether to ignore links pointing to a different domain and/or scheme.
-     * @return <code>true</code> if ignoring external links
-     * @since 2.3.0
-     */
-    public boolean isIgnoreExternalLinks() {
-        return ignoreExternalLinks;
-    }
-    /**
-     * Sets whether to ignore links pointing to a different domain and/or 
-     * scheme.
-     * @param ignoreExternalLinks <code>true</code> if ignoring external links
-     * @since 2.3.0
-     */
-    public void setIgnoreExternalLinks(boolean ignoreExternalLinks) {
-        this.ignoreExternalLinks = ignoreExternalLinks;
     }
 
     /**
@@ -579,8 +538,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         setMaxURLLength(xml.getInt("[@maxURLLength]", getMaxURLLength()));
         setIgnoreNofollow(xml.getBoolean(
                 "[@ignoreNofollow]", isIgnoreNofollow()));
-        setIgnoreExternalLinks(xml.getBoolean(
-                "[@ignoreExternalLinks]", isIgnoreExternalLinks()));
         setKeepReferrerData(xml.getBoolean(
                 "[@keepReferrerData]", isKeepReferrerData()));
         setKeepFragment(xml.getBoolean("[@keepFragment]", isKeepFragment()));
@@ -615,8 +572,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
             writer.writeAttributeInteger("maxURLLength", getMaxURLLength());
             writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
-            writer.writeAttributeBoolean(
-                    "ignoreExternalLinks", isIgnoreExternalLinks());
             writer.writeAttributeBoolean(
                     "keepReferrerData", isKeepReferrerData());
             writer.writeAttributeBoolean("keepFragment", isKeepFragment());
@@ -695,7 +650,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append("contentTypes", contentTypes)
                 .append("maxURLLength", maxURLLength)
                 .append("ignoreNofollow", ignoreNofollow)
-                .append("ignoreExternalLinks", ignoreExternalLinks)
                 .append("keepReferrerData", keepReferrerData)
                 .append("keepFragment", keepFragment)
                 .append("tagAttribs", tagAttribs).toString();
@@ -711,7 +665,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return new EqualsBuilder().append(contentTypes, castOther.contentTypes)
                 .append(maxURLLength, castOther.maxURLLength)
                 .append(ignoreNofollow, castOther.ignoreNofollow)
-                .append(ignoreExternalLinks, castOther.ignoreExternalLinks)
                 .append(keepReferrerData, castOther.keepReferrerData)
                 .append(keepFragment, castOther.keepFragment)
                 .isEquals() &&  CollectionUtils.containsAll(
@@ -721,7 +674,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     @Override
     public int hashCode() {
         return new HashCodeBuilder().append(contentTypes).append(maxURLLength)
-                .append(ignoreNofollow).append(ignoreExternalLinks)
                 .append(keepReferrerData).append(keepFragment)
                 .append(tagAttribs).toHashCode();
     }

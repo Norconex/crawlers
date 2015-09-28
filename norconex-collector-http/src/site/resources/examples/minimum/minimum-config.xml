@@ -26,16 +26,16 @@
   <crawlers>
     <crawler id="Norconex Minimum Test Page">
 
-      <!-- === Minimum required: =========================================== -->
-
-      <!-- Requires at least one start URL. -->
-      <startURLs>
+      <!-- Requires at least one start URL (or urlsFile). 
+           Optionally limit crawling to same protocol/domain/port as 
+           start URLs. -->
+      <startURLs stayOnDomain="true" stayOnPort="true" stayOnProtocol="true">
         <url>http://www.norconex.com/product/collector-http-test/minimum.php</url>
       </startURLs>
 
-      <!-- === Basic recommendations: ====================================== -->
+      <!-- === Recommendations: ============================================ -->
 
-      <!-- Where the crawler default directory to generate files is. -->
+      <!-- Specify a crawler default directory where to generate files. -->
       <workDir>./examples-output/minimum</workDir>
 
       <!-- Put a maximum depth to avoid infinite crawling (e.g. calendars). -->
@@ -47,16 +47,6 @@
       <!-- Be as nice as you can to sites you crawl. -->
       <delay default="5000" />
       
-      <!-- You may want to limit crawling to sites matching your start URLs,
-           by ignoring external links in pages and external redirects. 
-           The next two settings will ensure that. -->
-      <httpClientFactory>
-        <ignoreExternalRedirects>true</ignoreExternalRedirects>
-      </httpClientFactory>
-      <linkExtractors>
-        <extractor ignoreExternalLinks="true" />
-      </linkExtractors>
-
       <!-- Document importing -->
       <importer>
         <postParseHandlers>

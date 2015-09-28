@@ -54,7 +54,6 @@ public class LinkExtractorTest {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         extractor.setContentTypes(ContentType.HTML, ContentType.XML);
         extractor.setIgnoreNofollow(true);
-        extractor.setIgnoreExternalLinks(true);
         extractor.setKeepReferrerData(true);
         extractor.setKeepFragment(true);
         extractor.addLinkTag("food", "chocolate");
@@ -74,35 +73,6 @@ public class LinkExtractorTest {
         ConfigurationUtil.assertWriteRead(extractor);
     }
 
-    @Test
-    public void testGenericExternalLinkExtraction() throws IOException {
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
-        extractor.setIgnoreExternalLinks(false);
-        testExternalLinkExtraction(extractor, 8);
-        extractor.setIgnoreExternalLinks(true);
-        testExternalLinkExtraction(extractor, 4);
-    }
-    @Test
-    public void testTikaExternalLinkExtraction() throws IOException {
-        TikaLinkExtractor extractor = new TikaLinkExtractor();
-        extractor.setIgnoreExternalLinks(false);
-        testExternalLinkExtraction(extractor, 8);
-        extractor.setIgnoreExternalLinks(true);
-        testExternalLinkExtraction(extractor, 4);
-    }
-
-    private void testExternalLinkExtraction(
-            ILinkExtractor extractor, int qtyExpected)
-            throws IOException {
-        String url = "http://www.example.com/test/"
-                + "LinkExtractorExternalLinkTest.html";
-        InputStream is = getClass().getResourceAsStream(
-                "LinkExtractorExternalLinkTest.html");
-        Set<Link> links = extractor.extractLinks(is, url, ContentType.HTML);
-        IOUtils.closeQuietly(is);
-        Assert.assertEquals(qtyExpected, links.size());
-    }
-    
     private void testLinkExtraction(ILinkExtractor extractor) 
             throws IOException {
         String baseURL = "http://www.example.com/";

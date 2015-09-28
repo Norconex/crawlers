@@ -28,6 +28,12 @@ public class HttpCrawlState extends CrawlState {
     public static final HttpCrawlState TOO_DEEP = 
             new HttpCrawlState("TOO_DEEP");
     
+    /**
+     * @since 2.3.0
+     */
+    public static final HttpCrawlState REDIRECT = 
+            new HttpCrawlState("REDIRECT");
+
     protected HttpCrawlState(String state) {
         super(state);
     }

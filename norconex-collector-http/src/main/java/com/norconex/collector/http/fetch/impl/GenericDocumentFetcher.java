@@ -137,8 +137,8 @@ public class GenericDocumentFetcher
             }
 
             // INVALID http response
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Rejected response content: " + IOUtils.toString(is));
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Rejected response content: " + IOUtils.toString(is));
                 IOUtils.closeQuietly(is);
             } else {
                 // read response anyway to be safer, but ignore content

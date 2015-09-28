@@ -16,16 +16,15 @@ package com.norconex.collector.http.crawler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -63,20 +62,6 @@ public class HttpCrawler extends AbstractCrawler {
 	private HttpClient httpClient;
 	private ISitemapResolver sitemapResolver;
 	
-	/* Set used to store URLs that are discovered/created in mid-process,
-	 * so they were never queued but we still need to track them to prevent
-	 * processing the same ones multiple times. This set was created
-	 * to handle the case of multiple URLs processed at once having
-	 * the same target redirect URLs.
-	 * More info: https://github.com/Norconex/collector-http/issues/135
-	 * At some point, we may want to revisit this approach by giving
-	 * the crawler framework a chance to react to URLs discovered while
-	 * fetching (both HEAD and GET request?), as they are being discovered 
-	 * (before streaming content).
-	 */
-	private final Set<String> transientActiveReferences = 
-	        Collections.synchronizedSet(new HashSet<String>()); 
-	
     /**
      * Constructor.
      * @param crawlerConfig HTTP crawler configuration
@@ -112,19 +97,6 @@ public class HttpCrawler extends AbstractCrawler {
         }
     }
     
-    /**
-     * Gets the references currently being processed that is not found in
-     * the crawl store for some reason (e.g. was never queued).
-     * Adding a transient reference should "help" in making sure they are
-     * not processed again. Once marked as "processed", a transient 
-     * reference is removed. 
-     * @return the transientActiveReferences
-     * @since 2.3.0
-     */
-    public Set<String> getTransientActiveReferences() {
-        return transientActiveReferences;
-    }
-    
     @Override
     protected void prepareExecution(
             JobStatusUpdater statusUpdater, JobSuite suite, 
@@ -132,6 +104,7 @@ public class HttpCrawler extends AbstractCrawler {
         
         logInitializationInformation();
         initializeHTTPClient();
+        initializeRedirectionStrategy(crawlDataStore);
 
         if (!getCrawlerConfig().isIgnoreSitemap()) {
             this.sitemapResolver = 
@@ -278,18 +251,6 @@ public class HttpCrawler extends AbstractCrawler {
             originalData.setOriginalReference(null);
             crawlDataStore.processed(originalData);
         }
-        // clear possible transient active references
-        if (StringUtils.isNotBlank(originalRef)) {
-            if (transientActiveReferences.remove(originalRef)
-                    && LOG.isDebugEnabled()) {
-                LOG.debug("Transient active reference processed (original): "
-                        + originalRef);
-            };
-        }
-        if (transientActiveReferences.remove(finalRef)
-                && LOG.isDebugEnabled()) {
-            LOG.debug("Transient active reference processed: " + originalRef);
-        }
     }
     
     @Override
@@ -309,6 +270,29 @@ public class HttpCrawler extends AbstractCrawler {
         httpClient = getCrawlerConfig().getHttpClientFactory().createHTTPClient(
                 getCrawlerConfig().getUserAgent());
 	}
+
+    // Wraps redirection strategy to consider URLs as new documents to 
+    // queue for processing, if they meet the "stayOnSite" requirements and 
+    // the regex filters
+    private void initializeRedirectionStrategy(ICrawlDataStore crawlDataStore) {
+        try {
+            Object chain = FieldUtils.readField(httpClient, "execChain", true);
+            Object redir = FieldUtils.readField(chain, "redirectStrategy", true);
+            if (redir instanceof RedirectStrategy) {
+                RedirectStrategy originalStrategy = (RedirectStrategy) redir; 
+                HttpCrawlerRedirectStrategy strategyWrapper = 
+                        new HttpCrawlerRedirectStrategy(originalStrategy);
+                FieldUtils.writeField(
+                        chain, "redirectStrategy", strategyWrapper, true);
+            } else {
+                LOG.warn("Could not wrap RedirectStrategy to properly handle"
+                        + "redirects.");
+            }
+        } catch (Exception e) {
+            LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
+                    + "internal connection manager does not support it.");
+        }
+    }
     
     private void closeHttpClient() {
         if (httpClient instanceof CloseableHttpClient) {
