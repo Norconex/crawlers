@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URI;
 import java.util.Arrays;
 
 import javax.xml.stream.XMLStreamException;
@@ -183,7 +184,11 @@ public class GenericDocumentFetcher
 	 * @return HTTP request
 	 */
 	protected HttpRequestBase createUriRequest(HttpDocument doc) {
-	    return new HttpGet(HttpURL.toURI(doc.getReference()));
+	    URI uri = HttpURL.toURI(doc.getReference());
+	    if (LOG.isDebugEnabled()) {
+	        LOG.debug("Encoded URI: " + uri);
+	    }
+	    return new HttpGet(uri);
 	}
 	
     public int[] getValidStatusCodes() {
