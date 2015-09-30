@@ -128,7 +128,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * 
  * <h3>URL Fragments</h3>
- * <b>Since 2.4.0</b>, it is possible to preserve hashtag characters (#) found
+ * <b>Since 2.3.0</b>, it is possible to preserve hashtag characters (#) found
  * in URLs and every characters after it. The URL specification says hashtags
  * are used to represent fragments only. That is, to quickly jump to a specific
  * section of the page the URL represents. Under normal circonstances,

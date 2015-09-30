@@ -117,9 +117,9 @@ import com.norconex.commons.lang.url.URLNormalizer;
  *      removeDotSegments, removeDirectoryIndex, removeFragment, addWWW 
  *    &lt;/normalizations&gt;
  *    &lt;replacements&gt;
- *      &lt;replace&gt;&lt;match&gt;&amp;view=print&lt;/match&gt;&lt;/replace&gt;
+ *      &lt;replace&gt;&lt;match&gt;&amp;amp;view=print&lt;/match&gt;&lt;/replace&gt;
  *      &lt;replace&gt;
- *         &lt;match&gt;(&amp;type=)(summary)&lt;/match&gt;
+ *         &lt;match&gt;(&amp;amp;type=)(summary)&lt;/match&gt;
  *         &lt;replacement&gt;$1full&lt;/replacement&gt;
  *      &lt;/replace&gt;
  *    &lt;/replacements&gt;
