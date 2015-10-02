@@ -140,7 +140,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *
  * <h3>XML configuration usage</h3>
  * <pre>
- *  &lt;extractor class="com.norconex.collector.http.url.impl.HtmlLinkExtractor"
+ *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
  *          maxURLLength="(maximum URL length. Default is 2048)" 
  *          ignoreNofollow="[false|true]" 
  *          keepReferrerData="[false|true]"

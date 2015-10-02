@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.http.sitemap.impl;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
@@ -26,6 +27,7 @@ public class StandardSitemapResolverTest {
     public void testWriteRead() throws IOException {
         StandardSitemapResolverFactory r = new StandardSitemapResolverFactory();
         r.setLenient(true);
+        r.setTempDir(new File("C:\\temp\\sitemap"));
         r.setSitemapLocations(
                 "http://www.example.com/sitemap.xml",
                 "http://www.example.com/subdir/sitemap.xml");

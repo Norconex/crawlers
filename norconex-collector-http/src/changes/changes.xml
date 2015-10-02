@@ -39,7 +39,14 @@
       </action>      
       <action dev="essiembre" type="update">
         Added new event types loggers to log4j.properties.
+      </action>
+      <action dev="essiembre" type="update">
+        Improved/fixed javadoc.
       </action>      
+      <action dev="essiembre" type="fix" issue="150">
+        Sitemaps are now saved on file before being parsed to avoid
+        connection/socket timeout errors.
+      </action>
       <action dev="essiembre" type="fix" issue="146">
         Fixed circular redirect exception.
       </action>
@@ -55,8 +62,6 @@
       <action dev="essiembre" type="fix" issue="132">
         Fixed possible URISyntaxException in GenericURLNormalizer (fixed
         by updated Norconex Commons Lang URLNormalizer dependency).
-        Upon creation, GenericURLNormalizer now has the default normalizations 
-        described in the Javadoc.
       </action>
     </release>
 
