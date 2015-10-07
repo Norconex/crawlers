@@ -16,6 +16,10 @@
         This addition affects or replace previous implementations discussed 
         in #138, #135, #131, #17, and possibly others. 
       </action>
+      <action dev="essiembre" type="add" issue="128">
+        It is now possible to specify one or more sitemap URLs as "start URLs".
+        New HttpCrawlerConfig#[set|get]StartSitemapURLs(...) methods.
+      </action>
       <action dev="essiembre" type="add">
         GenericLinkExtractor now has a new flag for keeping URL fragments
         when extracting URLs.
@@ -24,6 +28,10 @@
         GenericURLNormalizer now has the few normalizations by default, 
         as described in the Javadoc.
       </action>
+      <action dev="essiembre" type="add">
+        New StandardSitemapFactory#setPaths(...) method to specify where to 
+        look for sitemap files for each URLs processed (relative to URL root).
+      </action>
       <action dev="essiembre" type="update">
         URL redirects are now logged as REJECTED_REDIRECTED (log level INFO).
       </action>
@@ -31,17 +39,30 @@
         HtmlLinkExtractor has been deprecated in favor of GenericLinkExtractor.
       </action>
       <action dev="essiembre" type="update">
+        HttpCrawlerConfig#[set|get]UrlsFiles(...) has been deprecated in favor 
+        of HttpCrawlerConfig#[set|get]StartUrlsFiles(...)
+      </action>
+      <action dev="essiembre" type="update">
+        StandardSitemapFactory#setLocations(...) now deprecated in favor
+        of being able to specify sitemaps as start URLs.
+      </action>
+      <action dev="essiembre" type="update">
+        ISitemapResolver#resolveSitemaps(...) as a new argument to specify
+        whether the sitemap locations provided were defined as "start URLs"
+        or not.
+      </action>
+      <action dev="essiembre" type="update">
+        Now logs User-Agent upon startup (log level INFO).
+      </action>
+      <action dev="essiembre" type="update">
         Maven dependency updates: Norconex Collector Core 1.3.0,
         Norconex Commons Lang 1.8.0.
-      </action>      
-      <action dev="essiembre" type="update">
-        Corrected typos and improved documentation.
       </action>      
       <action dev="essiembre" type="update">
         Added new event types loggers to log4j.properties.
       </action>
       <action dev="essiembre" type="update">
-        Improved/fixed javadoc.
+        Corrected typos and improved documentation.
       </action>      
       <action dev="essiembre" type="fix" issue="150">
         Sitemaps are now saved on file before being parsed to avoid

@@ -64,7 +64,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     
     private int maxDepth = -1;
     private String[] startURLs;
-    private String[] urlsFiles;
+    private String[] startURLsFiles;
+    private String[] startSitemapURLs;
     
     private boolean ignoreRobotsTxt;
     private boolean ignoreRobotsMeta;
@@ -75,7 +76,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private String userAgent;
 
     //TODO make configurable via interface instead?
-    private final URLCrawlScopeStrategy uRLCrawlScopeStrategy = 
+    private final URLCrawlScopeStrategy urlCrawlScopeStrategy = 
             new URLCrawlScopeStrategy();
     
     private IURLNormalizer urlNormalizer;
@@ -117,14 +118,63 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public String[] getStartURLs() {
         return ArrayUtils.clone(startURLs);
     }
-    public void setStartURLs(String[] startURLs) {
+    public void setStartURLs(String... startURLs) {
         this.startURLs = ArrayUtils.clone(startURLs);
     }
+    /**
+     * Gets the file paths of seed files containing URLs to be used as
+     * "start URLs".
+     * @deprecated Since 2.3.0, use {@link #getStartURLsFiles()} instead.
+     * @return file paths of seed files containing URLs
+     */
+    @Deprecated
     public String[] getUrlsFiles() {
-        return ArrayUtils.clone(urlsFiles);
+        return getStartURLsFiles();
     }
-    public void setUrlsFiles(String[] urlsFiles) {
-        this.urlsFiles = ArrayUtils.clone(urlsFiles);
+    /**
+     * Sets the file paths of seed files containing URLs to be used as
+     * "start URLs".
+     * @deprecated Since 2.3.0, use {@link #setStartURLsFiles(String...)} 
+     *             instead.
+     * @param urlsFiles file paths of seed files containing URLs
+     */
+    @Deprecated
+    public void setUrlsFiles(String... urlsFiles) {
+        setStartURLsFiles(urlsFiles);
+    }
+    /**
+     * Gets the file paths of seed files containing URLs to be used as
+     * "start URLs".
+     * @return file paths of seed files containing URLs
+     * @since 2.3.0
+     */
+    public String[] getStartURLsFiles() {
+        return startURLsFiles;
+    }
+    /**
+     * Sets the file paths of seed files containing URLs to be used as
+     * "start URLs".
+     * @param startURLsFiles file paths of seed files containing URLs
+     * @since 2.3.0
+     */
+    public void setStartURLsFiles(String... startURLsFiles) {
+        this.startURLsFiles = ArrayUtils.clone(startURLsFiles);
+    }
+    /**
+     * Gets sitemap URLs to be used as starting points for crawling.
+     * @return sitemap URLs
+     * @since 2.3.0
+     */
+    public String[] getStartSitemapURLs() {
+        return startSitemapURLs;
+    }
+    /**
+     * Sets the sitemap URLs used as starting points for crawling.
+     * @param startSitemapURLs sitemap URLs
+     * @since 2.3.0
+     */
+    public void setStartSitemapURLs(String... startSitemapURLs) {
+        this.startSitemapURLs = ArrayUtils.clone(startSitemapURLs);
     }
     public void setMaxDepth(int depth) {
         this.maxDepth = depth;
@@ -200,14 +250,14 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return ArrayUtils.clone(preImportProcessors);
     }
     public void setPreImportProcessors(
-    		IHttpDocumentProcessor[] httpPreProcessors) {
+    		IHttpDocumentProcessor... httpPreProcessors) {
         this.preImportProcessors = ArrayUtils.clone(httpPreProcessors);
     }
     public IHttpDocumentProcessor[] getPostImportProcessors() {
         return ArrayUtils.clone(postImportProcessors);
     }
     public void setPostImportProcessors(
-    		IHttpDocumentProcessor[] httpPostProcessors) {
+    		IHttpDocumentProcessor... httpPostProcessors) {
         this.postImportProcessors = ArrayUtils.clone(httpPostProcessors);
     }
     public boolean isIgnoreRobotsTxt() {
@@ -246,9 +296,21 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setRobotsMetaProvider(IRobotsMetaProvider robotsMetaProvider) {
         this.robotsMetaProvider = robotsMetaProvider;
     }
+    /**
+     * Whether to ignore sitemap detection and resolving for URLs processed.
+     * Sitemaps specified as start URLs 
+     * ({@link #getStartSitemapURLs()}) are never ignored.
+     * @return <code>true</code> to ignore sitemaps
+     */
     public boolean isIgnoreSitemap() {
         return ignoreSitemap;
     }
+    /**
+     * Sets whether to ignore sitemap detection and resolving for URLs 
+     * processed. Sitemaps specified as start URLs 
+     * ({@link #getStartSitemapURLs()}) are never ignored.
+     * @param ignoreSitemap <code>true</code> to ignore sitemaps
+     */
     public void setIgnoreSitemap(boolean ignoreSitemap) {
         this.ignoreSitemap = ignoreSitemap;
     }
@@ -290,7 +352,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
 
     public URLCrawlScopeStrategy getURLCrawlScopeStrategy() {
-        return uRLCrawlScopeStrategy;
+        return urlCrawlScopeStrategy;
     }
     
     @Override
@@ -304,19 +366,24 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                     "ignoreCanonicalLinks", isIgnoreCanonicalLinks());
             writer.writeStartElement("startURLs");
             writer.writeAttributeBoolean("stayOnProtocol", 
-                    uRLCrawlScopeStrategy.isStayOnProtocol());
+                    urlCrawlScopeStrategy.isStayOnProtocol());
             writer.writeAttributeBoolean("stayOnDomain", 
-                    uRLCrawlScopeStrategy.isStayOnDomain());
+                    urlCrawlScopeStrategy.isStayOnDomain());
             writer.writeAttributeBoolean("stayOnPort", 
-                    uRLCrawlScopeStrategy.isStayOnPort());
+                    urlCrawlScopeStrategy.isStayOnPort());
             for (String url : getStartURLs()) {
                 writer.writeStartElement("url");
                 writer.writeCharacters(url);
                 writer.writeEndElement();
             }
-            for (String path : getUrlsFiles()) {
+            for (String path : getStartURLsFiles()) {
                 writer.writeStartElement("urlsFile");
                 writer.writeCharacters(path);
+                writer.writeEndElement();
+            }
+            for (String sitemapURL : getStartSitemapURLs()) {
+                writer.writeStartElement("sitemap");
+                writer.writeCharacters(sitemapURL);
                 writer.writeEndElement();
             }
             writer.writeEndElement();
@@ -420,21 +487,24 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "ignoreCanonicalLinks", isIgnoreCanonicalLinks()));
-        uRLCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
+        urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
                 "startURLs[@stayOnProtocol]", 
-                uRLCrawlScopeStrategy.isStayOnProtocol()));
-        uRLCrawlScopeStrategy.setStayOnDomain(xml.getBoolean(
+                urlCrawlScopeStrategy.isStayOnProtocol()));
+        urlCrawlScopeStrategy.setStayOnDomain(xml.getBoolean(
                 "startURLs[@stayOnDomain]", 
-                uRLCrawlScopeStrategy.isStayOnDomain()));
-        uRLCrawlScopeStrategy.setStayOnPort(xml.getBoolean(
+                urlCrawlScopeStrategy.isStayOnDomain()));
+        urlCrawlScopeStrategy.setStayOnPort(xml.getBoolean(
                 "startURLs[@stayOnPort]", 
-                uRLCrawlScopeStrategy.isStayOnPort()));
+                urlCrawlScopeStrategy.isStayOnPort()));
         
         String[] startURLs = xml.getStringArray("startURLs.url");
         setStartURLs(defaultIfEmpty(startURLs, getStartURLs()));
         
         String[] urlsFiles = xml.getStringArray("startURLs.urlsFile");
-        setUrlsFiles(defaultIfEmpty(urlsFiles, getUrlsFiles()));
+        setStartURLsFiles(defaultIfEmpty(urlsFiles, getStartURLsFiles()));
+
+        String[] sitemapURLs = xml.getStringArray("startURLs.sitemap");
+        setStartSitemapURLs(defaultIfEmpty(sitemapURLs, getStartSitemapURLs()));
     }
 
     private IHttpDocumentProcessor[] loadProcessors(

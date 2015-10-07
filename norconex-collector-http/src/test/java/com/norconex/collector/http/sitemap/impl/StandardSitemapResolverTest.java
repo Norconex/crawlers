@@ -28,9 +28,7 @@ public class StandardSitemapResolverTest {
         StandardSitemapResolverFactory r = new StandardSitemapResolverFactory();
         r.setLenient(true);
         r.setTempDir(new File("C:\\temp\\sitemap"));
-        r.setSitemapLocations(
-                "http://www.example.com/sitemap.xml",
-                "http://www.example.com/subdir/sitemap.xml");
+        r.setSitemapPaths("/sitemap.xml", "/subdir/sitemap.xml");
         System.out.println("Writing/Reading this: " + r);
         ConfigurationUtil.assertWriteRead(r);
     }

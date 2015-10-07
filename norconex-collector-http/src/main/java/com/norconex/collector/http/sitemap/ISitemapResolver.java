@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,38 @@ package com.norconex.collector.http.sitemap;
 
 import org.apache.http.client.HttpClient;
 
+import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.sitemap.impl.StandardSitemapResolver;
+
 
 /**
+ * <p>
  * Given a URL root, resolve the corresponding sitemap(s), if any, and 
- * only if it has not yet been resolved for a crawling session.
+ * only if it has not yet been resolved for a crawling session. 
+ * </p>
+ * <p>
+ * Sitemaps URLs can be specified as "start URLs" (defined in 
+ * {@link HttpCrawlerConfig#getStartSitemapURLs()}). It is up to the selected 
+ * implementation to decide whether to treat sitemaps specified as start URLs
+ * any differently.
+ * </p>
+ * <p>
+ * When ignoring sitemap ({@link HttpCrawlerConfig#isIgnoreSitemap()}), 
+ * the selected sitemap 
+ * resolver implementation will still be invoked for sitemaps specified as 
+ * start URLs.
+ * </p>
+ * <p>
+ * Sitemaps locations to resolved may also come from a site 
+ * <code>robots.txt</code> (provided robots.txt files are not ignored).
+ * </p>
+ * <p>
+ * Is it possible for implementations to not attempt to resolve sitemaps
+ * for some URLs.  Refer to specific implementation for more details.
+ * </p>
  * 
  * @author Pascal Essiembre
+ * @see StandardSitemapResolver
  */
 public interface ISitemapResolver {
 
@@ -31,12 +57,14 @@ public interface ISitemapResolver {
      * @param httpClient the http client to use to stream Internet 
      *        files if needed
      * @param urlRoot the URL root for which to resolve the sitemap
-     * @param robotsTxtLocations sitemap locations specified in robots.txt
-     *        (provided robots are not ignored)
+     * @param sitemapLocations sitemap locations to resolve
      * @param sitemapURLAdder where to store retrieved site map URLs
+     * @param startURLs whether the sitemapLocations provided (if any) are 
+     *        start URLs (defined in {@link HttpCrawlerConfig#getStartSitemapURLs()})
      */
     void resolveSitemaps(HttpClient httpClient, String urlRoot, 
-            String[] robotsTxtLocations, SitemapURLAdder sitemapURLAdder);
+            String[] sitemapLocations, SitemapURLAdder sitemapURLAdder,
+            boolean startURLs);
     
     /**
      * Stops any ongoing sitemap resolution.  Some sitemaps can be huge, 

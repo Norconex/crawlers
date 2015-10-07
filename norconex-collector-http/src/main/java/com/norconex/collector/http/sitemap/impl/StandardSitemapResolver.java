@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
+import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
@@ -54,25 +55,34 @@ import com.norconex.commons.lang.file.FileUtil;
  * <p>
  * Implementation of {@link ISitemapResolver} as per sitemap.xml standard
  * defined at <a href="http://www.sitemaps.org/protocol.html">
- * http://www.sitemaps.org/protocol.html</a>.  For any given URL
- * this class will look in three different places to locate sitemaps:
+ * http://www.sitemaps.org/protocol.html</a>.
  * </p>
- * <ul>
- *   <li>Sitemap locations explicitly provided via configuration (or setter
- *       method on this class).</li>
- *   <li>The root-level of a URL (e.g. http://example.com/sitemap.xml)</li>
- *   <li>Any sitemaps defined in robots.txt
- *       (automatically passed as arguments to this class if robots.txt are
- *        not ignored)</li>
- * </ul>
+ * <p>
+ * Sitemaps are only resolved if they have not been
+ * resolved already for the same URL "root" (the protocol, host and 
+ * possible port).
+ * </p>  
  * <p>
  * The Sitemap specifications dictates that a sitemap.xml file defined
  * in a sub-directory applies only to URLs found in that sub-directory and 
- * its children.   This behavior is respected by default.  Setting lenient 
+ * its children. This behavior is respected by default.  Setting lenient 
  * to <code>true</code> no longer honors this restriction.
  * </p>
+ * <h3>Since 2.3.0</h3>
  * <p>
- * As of 2.3.0, sitemaps are first stored in a local temporary file before
+ * Paths relative to URL roots can be specified and an attempt will be made
+ * to load and parse any sitemap found at those locations for each root URLs
+ * encountered (except for "start URLs" sitemaps, see below). Default paths
+ * are <code>/sitemap.xml</code> and <code>/sitemap_index.xml</code>.
+ * </p>
+ * <p>
+ * Sitemaps can be specified as "start URLs" (defined in 
+ * {@link HttpCrawlerConfig#getStartSitemapURLs()}). Sitemaps defined
+ * that way will be the only ones resolved for the root URL they represent
+ * (sitemap paths or sitemaps defined in robots.txt won't apply).
+ * </p>
+ * <p>
+ * Sitemaps are first stored in a local temporary file before
  * being parsed. The <code>tempDir</code> constructor argument is used as the
  * location where to store those files. When <code>null</code>, the system
  * temporary directory is used, as returned by 
@@ -85,29 +95,61 @@ public class StandardSitemapResolver implements ISitemapResolver {
     private static final Logger LOG = LogManager.getLogger(
             StandardSitemapResolver.class);
 
+    public String[] DEFAULT_SITEMAP_PATHS = 
+            new String[] { "/sitemap.xml", "/sitemap_index.xml" };
+    
     private final SitemapStore sitemapStore;
     private final Set<String> activeURLRoots = 
             Collections.synchronizedSet(new HashSet<String>());
     
-    private String[] sitemapLocations;
     private boolean lenient;
     private boolean stopped;
     private File tempDir;
-
-    public StandardSitemapResolver(File tempDir, SitemapStore sitemapStore) {
+    private String[] sitemapPaths = DEFAULT_SITEMAP_PATHS;
+    
+    public StandardSitemapResolver(
+            File tempDir, 
+            SitemapStore sitemapStore) {
         super();
         this.tempDir = tempDir;
         this.sitemapStore = sitemapStore;
     }
+    
+    /**
+     * Gets the URL paths, relative to the URL root, from which to try 
+     * locate and resolve sitemaps. Default paths are 
+     * "/sitemap.xml" and "/sitemap-index.xml".
+     * @return sitemap paths.
+     * @since 2.3.0
+     */
+    public String[] getSitemapPaths() {
+        return sitemapPaths;
+    }
+    /**
+     * Sets the URL paths, relative to the URL root, from which to try 
+     * locate and resolve sitemaps.
+     * @param sitemapPaths sitemap paths.
+     * @since 2.3.0
+     */
+    public void setSitemapPaths(String[] sitemapPaths) {
+        this.sitemapPaths = sitemapPaths;
+    }
 
     @Override
-    public void resolveSitemaps(HttpClient httpClient, String urlRoot,
-            String[] robotsTxtLocations, SitemapURLAdder sitemapURLAdder) {
+    public void resolveSitemaps(
+            HttpClient httpClient, String urlRoot,
+            String[] sitemapLocations, SitemapURLAdder sitemapURLAdder,
+            boolean startURLs) {
 
         if (isResolutionRequired(urlRoot)) {
             final Set<String> resolvedLocations = new HashSet<String>();
-            Set<String> uniqueLocations = 
-                    combineLocations(robotsTxtLocations, urlRoot);
+            Set<String> uniqueLocations = null;
+            if (startURLs) {
+                uniqueLocations = new HashSet<>();
+                uniqueLocations.addAll(Arrays.asList(sitemapLocations));
+            } else {
+                uniqueLocations = combineLocations(sitemapLocations, urlRoot);
+            }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Sitemap locations: " + uniqueLocations);
             }
@@ -131,12 +173,30 @@ public class StandardSitemapResolver implements ISitemapResolver {
         return true;
     }
     
+    /**
+     * Get sitemap locations.
+     * @return sitemap locations
+     * @deprecated Since 2.3.0, use {@link HttpCrawlerConfig#getStartSitemapURLs()}
+     */
+    @Deprecated
     public String[] getSitemapLocations() {
-        return ArrayUtils.clone(sitemapLocations);
+        LOG.warn("Since 2.3.0, calling StandardSitemapResolver"
+                + "#getSitemapLocation() has no effect. "
+                + "Use HttpCrawlerConfig#getSitemaps() instead.");
+        return null;
     }
+    /**
+     * Set sitemap locations.
+     * @param sitemapLocations sitemap locations
+     * @deprecated Since 2.3.0, use 
+     *             {@link HttpCrawlerConfig#setStartSitemapURLs(String[])}
+     */
     public void setSitemapLocations(String... sitemapLocations) {
-        this.sitemapLocations = sitemapLocations;
+        LOG.warn("Since 2.3.0, calling StandardSitemapResolver"
+                + "#setSitemapLocation(String...) has no effect. "
+                + "Use HttpCrawlerConfig#setSitemaps(String[] ...) instead.");
     }
+
     public boolean isLenient() {
         return lenient;
     }
@@ -169,13 +229,13 @@ public class StandardSitemapResolver implements ISitemapResolver {
     private void resolveLocation(String location, HttpClient httpClient,
             SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations) {
 
+        if (resolvedLocations.contains(location)) {
+            return;
+        }
+
         if (stopped) {
             LOG.debug("Skipping resolution of sitemap "
                     + "location (stop requested): " + location);
-            return;
-        }
-        
-        if (resolvedLocations.contains(location)) {
             return;
         }
         
@@ -253,6 +313,11 @@ public class StandardSitemapResolver implements ISitemapResolver {
             String locationDir = StringUtils.substringBeforeLast(location, "/");
             int event = xmlReader.getEventType();
             while(true){
+                if (stopped) {
+                    LOG.debug("Sitemap not entirely parsed due to "
+                            + "crawler being stopped.");
+                    break;
+                }
                 switch(event) {
                 case XMLStreamConstants.START_ELEMENT:
                     String tag = xmlReader.getLocalName();
@@ -347,16 +412,27 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
     private Set<String> combineLocations(
-            String[] robotsTxtLocations, String urlRoot) {
+            String[] sitemapLocations, String urlRoot) {
         Set<String> uniqueLocations = new HashSet<String>();
-        uniqueLocations.add(urlRoot + "/sitemap_index.xml");
-        uniqueLocations.add(urlRoot + "/sitemap.xml");
-        if (ArrayUtils.isNotEmpty(robotsTxtLocations)) {
-            uniqueLocations.addAll(Arrays.asList(robotsTxtLocations));
-        }
+
+        // collector-supplied locations (e.g. from robots.txt or startURLs)
         if (ArrayUtils.isNotEmpty(sitemapLocations)) {
             uniqueLocations.addAll(Arrays.asList(sitemapLocations));
         }
+
+        // derived locations from sitemap paths
+        String[] paths = sitemapPaths;
+        if (ArrayUtils.isEmpty(paths)) {
+            paths = DEFAULT_SITEMAP_PATHS;
+        }
+        for (String path : paths) {
+            String safePath = path;
+            if (!safePath.startsWith("/")) {
+                safePath = "/" + safePath;
+            }
+            uniqueLocations.add(urlRoot + safePath);
+        }
+        
         return uniqueLocations;
     }
     
@@ -367,27 +443,27 @@ public class StandardSitemapResolver implements ISitemapResolver {
         }
         StandardSitemapResolver castOther = (StandardSitemapResolver) other;
         return new EqualsBuilder()
-                .append(sitemapLocations, castOther.sitemapLocations)
                 .append(lenient, castOther.lenient)
                 .append(tempDir, castOther.tempDir)
+                .append(sitemapPaths, castOther.sitemapPaths)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-                .append(sitemapLocations)
                 .append(lenient)
                 .append(tempDir)
+                .append(sitemapPaths)
                 .toHashCode();
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("sitemapLocations", sitemapLocations)
                 .append("lenient", lenient)
                 .append("tempDir", tempDir)
+                .append("sitemapPaths", sitemapPaths)
                 .toString();
     }
 

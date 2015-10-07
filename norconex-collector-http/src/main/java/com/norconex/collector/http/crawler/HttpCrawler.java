@@ -16,9 +16,13 @@ package com.norconex.collector.http.crawler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.NumberFormat;
 
+import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +49,7 @@ import com.norconex.collector.http.pipeline.importer.HttpImporterPipelineContext
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
+import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.importer.doc.ImporterDocument;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.jef4.status.IJobStatus;
@@ -117,38 +122,89 @@ public class HttpCrawler extends AbstractCrawler {
         }
     }
     
-    private void queueStartURLs(ICrawlDataStore crawlDataStore) {
-        // Queue regular start urls
+    private void queueStartURLs(final ICrawlDataStore crawlDataStore) {
+        int urlCount = 0;
+        // Sitemaps must be first, since we favor explicit sitemap
+        // referencing as oppose to let other methods guess for it.
+        urlCount += queueStartURLsSitemaps(crawlDataStore);
+        urlCount += queueStartURLsRegular(crawlDataStore);
+        urlCount += queueStartURLsSeedFiles(crawlDataStore);
+        LOG.info(NumberFormat.getNumberInstance().format(urlCount)
+                + " start URLs identified.");
+    }
+    
+    private int queueStartURLsRegular(final ICrawlDataStore crawlDataStore) {
         String[] startURLs = getCrawlerConfig().getStartURLs();
-        if (startURLs != null) {
-            for (int i = 0; i < startURLs.length; i++) {
-                String startURL = startURLs[i];
-                executeQueuePipeline(
-                        new HttpCrawlData(startURL, 0), crawlDataStore);
-            }
+        if (startURLs == null) {
+            return 0;
         }
-        // Queue start urls define in one or more seed files
-        String[] urlsFiles = getCrawlerConfig().getUrlsFiles();
-        if (urlsFiles != null) {
-            for (int i = 0; i < urlsFiles.length; i++) {
-                String urlsFile = urlsFiles[i];
-                LineIterator it = null;
-                try {
-                    it = IOUtils.lineIterator(
-                            new FileInputStream(urlsFile), CharEncoding.UTF_8);
-                    while (it.hasNext()) {
-                        String startURL = it.nextLine();
-                        executeQueuePipeline(new HttpCrawlData(
-                                startURL, 0), crawlDataStore);
-                    }
-                } catch (IOException e) {
-                    throw new CollectorException(
-                            "Could not process URLs file: " + urlsFile, e);
-                } finally {
-                    LineIterator.closeQuietly(it);;
+
+        for (int i = 0; i < startURLs.length; i++) {
+            String startURL = startURLs[i];
+            executeQueuePipeline(
+                    new HttpCrawlData(startURL, 0), crawlDataStore);
+        }
+        return startURLs.length;
+    }
+    private int queueStartURLsSeedFiles(final ICrawlDataStore crawlDataStore) {
+        String[] urlsFiles = getCrawlerConfig().getStartURLsFiles();
+        if (urlsFiles == null) {
+            return 0;
+        }
+
+        int urlCount = 0;
+        for (int i = 0; i < urlsFiles.length; i++) {
+            String urlsFile = urlsFiles[i];
+            LineIterator it = null;
+            try {
+                it = IOUtils.lineIterator(
+                        new FileInputStream(urlsFile), CharEncoding.UTF_8);
+                while (it.hasNext()) {
+                    String startURL = it.nextLine();
+                    executeQueuePipeline(new HttpCrawlData(
+                            startURL, 0), crawlDataStore);
+                    urlCount++;
                 }
+            } catch (IOException e) {
+                throw new CollectorException(
+                        "Could not process URLs file: " + urlsFile, e);
+            } finally {
+                LineIterator.closeQuietly(it);;
             }
         }
+        return urlCount;
+    }
+    private int queueStartURLsSitemaps(final ICrawlDataStore crawlDataStore) {
+        String[] sitemapURLs = getCrawlerConfig().getStartSitemapURLs();
+        
+        // If no sitemap URLs, leave now
+        if (sitemapURLs == null) {
+            return 0;
+        }
+        
+        // There are sitemaps, process them. First group them by URL root
+        MultiValueMap<String, String> sitemapsPerRoots = new MultiValueMap<>();
+        for (String sitemapURL : sitemapURLs) {
+            String urlRoot = sitemapURL.replaceFirst("(.*?://.*?)(/.*)", "$1");
+            sitemapsPerRoots.put(urlRoot, sitemapURL);
+        }
+
+        final MutableInt urlCount = new MutableInt();
+        SitemapURLAdder urlAdder = new SitemapURLAdder() {
+            @Override
+            public void add(HttpCrawlData reference) {
+                executeQueuePipeline(reference, crawlDataStore);
+                urlCount.increment();
+            }
+        };
+        // Process each URL root group separately
+        for (String  urlRoot : sitemapsPerRoots.keySet()) {
+            String[] locations = sitemapsPerRoots.getCollection(
+                    urlRoot).toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+            sitemapResolver.resolveSitemaps(
+                    httpClient, urlRoot, locations, urlAdder, true);
+        }
+        return urlCount.intValue();
     }
     
     private void logInitializationInformation() {
@@ -160,6 +216,16 @@ public class HttpCrawler extends AbstractCrawler {
                 + !getCrawlerConfig().isIgnoreSitemap());
         LOG.info(getId() +  ": Canonical links support: " 
                 + !getCrawlerConfig().isIgnoreCanonicalLinks());
+        
+        String userAgent = getCrawlerConfig().getUserAgent();
+        if (StringUtils.isBlank(userAgent)) {
+            LOG.info(getId() +  ": User-Agent: <None specified>");
+            LOG.debug("It is recommended you identify yourself to web sites "
+                    + "by specifying a user agent "
+                    + "(https://en.wikipedia.org/wiki/User_agent)");
+        } else {
+            LOG.info(getId() +  ": User-Agent: " + userAgent);
+        }
     }
 
     @Override
@@ -222,8 +288,8 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     protected BaseCrawlData createEmbeddedCrawlData(
             String embeddedReference, ICrawlData parentCrawlData) {
-        return new HttpCrawlData(
-                embeddedReference, ((HttpCrawlData) parentCrawlData).getDepth());
+        return new HttpCrawlData(embeddedReference, 
+                ((HttpCrawlData) parentCrawlData).getDepth());
     }
 
     @Override
@@ -277,7 +343,8 @@ public class HttpCrawler extends AbstractCrawler {
     private void initializeRedirectionStrategy(ICrawlDataStore crawlDataStore) {
         try {
             Object chain = FieldUtils.readField(httpClient, "execChain", true);
-            Object redir = FieldUtils.readField(chain, "redirectStrategy", true);
+            Object redir = FieldUtils.readField(
+                    chain, "redirectStrategy", true);
             if (redir instanceof RedirectStrategy) {
                 RedirectStrategy originalStrategy = (RedirectStrategy) redir; 
                 HttpCrawlerRedirectStrategy strategyWrapper = 

@@ -79,6 +79,7 @@
       <url>http://www.example.com</url>
       <url>http://www.sample.com</url>
       <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
+      <sitemap>http://www.somewhere.com/sitemap.xml</sitemap>
     </startURLs>
 
     <!-- Identify yourself to sites you crawl.  It sets the "User-Agent" HTTP 

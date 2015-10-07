@@ -28,6 +28,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
@@ -38,6 +40,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * Factory used to created {@link StandardSitemapResolver} instances.
+ * Refer to {@link StandardSitemapResolver} for resolution logic.
  * @author Pascal Essiembre
  *
  * <p>
@@ -47,24 +50,22 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;sitemap ignore="(false|true)" lenient="(false|true)" 
  *        tempDir="(where to store temp files)"
  *     class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory"&gt;
- *     &lt;location&gt;(optional location of sitemap.xml)&lt;/location&gt;
- *     (... repeat location tag as needed ...)
+ *     &lt;path&gt;(optional path relative to URL root for a sitemap)&lt;/path&gt;
+ *     (... repeat path tag as needed ...)
  *  &lt;/sitemap&gt;
  * </pre>
+ * @see StandardSitemapResolver
  */
 public class StandardSitemapResolverFactory 
         implements ISitemapResolverFactory, IXMLConfigurable {
 
+    private static final Logger LOG = LogManager.getLogger(
+            StandardSitemapResolverFactory.class);
+
     private File tempDir;
-    private String[] sitemapLocations;
+    private String[] sitemapPaths;
     private boolean lenient;
     
-    /**
-     * Constructor.
-     */
-    public StandardSitemapResolverFactory() {
-    }
-
     @Override
     public ISitemapResolver createSitemapResolver(
             HttpCrawlerConfig config, boolean resume) {
@@ -79,17 +80,54 @@ public class StandardSitemapResolverFactory
         StandardSitemapResolver sr = new StandardSitemapResolver(
                 resolvedTempDir, new SitemapStore(config, resume));
         sr.setLenient(lenient);
-        sr.setSitemapLocations(sitemapLocations);
+        sr.setSitemapPaths(sitemapPaths);
         return sr;
     }
 
+    /**
+     * Gets the URL paths, relative to the URL root, from which to try 
+     * locate and resolve sitemaps. Default paths are 
+     * "/sitemap.xml" and "/sitemap-index.xml".
+     * @return sitemap paths.
+     * @since 2.3.0
+     */
+    public String[] getSitemapPaths() {
+        return sitemapPaths;
+    }
+    /**
+     * Sets the URL paths, relative to the URL root, from which to try 
+     * locate and resolve sitemaps.
+     * @param sitemapPaths sitemap paths.
+     * @since 2.3.0
+     */
+    public void setSitemapPaths(String... sitemapPaths) {
+        this.sitemapPaths = sitemapPaths;
+    }
+    
+    /**
+     * Get sitemap locations.
+     * @return sitemap locations
+     * @deprecated Since 2.3.0, use {@link HttpCrawlerConfig#getStartSitemapURLs()}
+     */
+    @Deprecated
     public String[] getSitemapLocations() {
-        return ArrayUtils.clone(sitemapLocations);
+        LOG.warn("Since 2.3.0, calling StandardSitemapResolver"
+                + "#getSitemapLocation() has no effect. "
+                + "Use HttpCrawlerConfig#getSitemaps() instead.");
+        return null;
     }
+    /**
+     * Set sitemap locations.
+     * @param sitemapLocations sitemap locations
+     * @deprecated Since 2.3.0, use 
+     *             {@link HttpCrawlerConfig#setStartSitemapURLs(String[])}
+     */
     public void setSitemapLocations(String... sitemapLocations) {
-        this.sitemapLocations = sitemapLocations;
+        LOG.warn("Since 2.3.0, calling StandardSitemapResolver"
+                + "#setSitemapLocation(String...) has no effect. "
+                + "Use HttpCrawlerConfig#setSitemaps(String[] ...) instead.");
     }
-
+    
     public boolean isLenient() {
         return lenient;
     }
@@ -129,8 +167,13 @@ public class StandardSitemapResolverFactory
             setTempDir(new File(tempPath));
         }
         setLenient(xml.getBoolean("[@lenient]", false));
-        setSitemapLocations(xml.getList(
-                "location").toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+        setSitemapPaths(xml.getList(
+                "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+        
+        if (!xml.getList("location").isEmpty()) {
+            LOG.warn("Since 2.3.0, the location tag is no longer supported. "
+                    + "Use <sitemap> under <startURLs> for an equivalent.");
+        }
     }
 
     @Override
@@ -141,10 +184,10 @@ public class StandardSitemapResolverFactory
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttribute("lenient", Boolean.toString(lenient));
             writer.writeElementString("tempDir", getTempDir().toString());
-            if (sitemapLocations != null) {
-                for (String location : sitemapLocations) {
-                    writer.writeStartElement("location");
-                    writer.writeCharacters(location);
+            if (sitemapPaths != null) {
+                for (String path : sitemapPaths) {
+                    writer.writeStartElement("path");
+                    writer.writeCharacters(path);
                     writer.writeEndElement();
                 }
             }
@@ -159,7 +202,7 @@ public class StandardSitemapResolverFactory
     @Override
     public String toString() {
         ToStringBuilder builder = new ToStringBuilder(this);
-        builder.append("sitemapLocations", sitemapLocations);
+        builder.append("sitemapPaths", sitemapPaths);
         builder.append("lenient", lenient);
         builder.append("tempDir", tempDir);
         return builder.toString();
@@ -173,7 +216,7 @@ public class StandardSitemapResolverFactory
         StandardSitemapResolverFactory castOther = 
                 (StandardSitemapResolverFactory) other;
         return new EqualsBuilder()
-                .append(sitemapLocations, castOther.sitemapLocations)
+                .append(sitemapPaths, castOther.sitemapPaths)
                 .append(lenient, castOther.lenient)
                 .append(tempDir, castOther.tempDir)
                 .isEquals();
@@ -182,7 +225,7 @@ public class StandardSitemapResolverFactory
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-                .append(sitemapLocations)
+                .append(sitemapPaths)
                 .append(lenient)
                 .append(tempDir)
                 .toHashCode();
