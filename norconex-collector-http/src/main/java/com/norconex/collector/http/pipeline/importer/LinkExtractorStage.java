@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -78,13 +79,18 @@ import com.norconex.commons.lang.io.CachedInputStream;
             }
         }
         
-        Set<String> uniqueURLs = new HashSet<String>();
+        Set<String> uniqueExtractedURLs = new HashSet<String>();
+        Set<String> uniqueQueuedURLs = new HashSet<String>();
         if (links != null) {
             for (Link link : links) {
                 if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
                         reference, link.getUrl())) {
                     try {
-                        queueURL(link, ctx, uniqueURLs);
+                        String queuedURL = queueURL(
+                                link, ctx, uniqueExtractedURLs);
+                        if (StringUtils.isNotBlank(queuedURL)) {
+                            uniqueQueuedURLs.add(queuedURL);
+                        }
                     } catch (Exception e) {
                         LOG.warn("Could not queue extracted URL \""
                                 + link.getUrl() + "\".", e);
@@ -94,25 +100,26 @@ import com.norconex.commons.lang.io.CachedInputStream;
                 }
             }
         }
-
-        if (!uniqueURLs.isEmpty()) {
+        
+        if (!uniqueQueuedURLs.isEmpty()) {
             ctx.getMetadata().addString(HttpMetadata.COLLECTOR_REFERNCED_URLS, 
-                    uniqueURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+                    uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
         
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 
-                ctx.getCrawlData(), uniqueURLs);
+                ctx.getCrawlData(), uniqueQueuedURLs);
         return true;
     }
 
     // Executes HttpQueuePipeline if URL not already processed in that page
-    private void queueURL(Link link, 
-            HttpImporterPipelineContext ctx, Set<String> uniqueURLs) {
+    // Returns a URL that was not already processed
+    private String queueURL(Link link, 
+            HttpImporterPipelineContext ctx, Set<String> uniqueExtractedURLs) {
         
         //TODO do we want to add all URLs in a page, or just the valid ones?
         // i.e., those properly formatted.  If we do so, can it prevent 
         // weird/custom URLs that some link extractors may find valid?
-        if (uniqueURLs.add(link.getUrl())) {
+        if (uniqueExtractedURLs.add(link.getUrl())) {
             HttpCrawlData newURL = new HttpCrawlData(
                     link.getUrl(), ctx.getCrawlData().getDepth() + 1);
             newURL.setReferrerReference(link.getReferrer());
@@ -123,6 +130,14 @@ import com.norconex.commons.lang.io.CachedInputStream;
                     new HttpQueuePipelineContext(ctx.getCrawler(), 
                             ctx.getCrawlDataStore(), newURL);
             new HttpQueuePipeline().execute(newContext);
+            String afterQueueURL = newURL.getReference();
+            if (LOG.isDebugEnabled() 
+                    && !link.getUrl().equals(afterQueueURL)) {
+                LOG.debug("URL modified from \"" + link.getUrl()
+                        + "\" to \"" + afterQueueURL);
+            }
+            return afterQueueURL;
         }
+        return null;
     }
 }

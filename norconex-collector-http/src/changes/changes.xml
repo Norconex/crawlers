@@ -32,6 +32,10 @@
         New StandardSitemapFactory#setPaths(...) method to specify where to 
         look for sitemap files for each URLs processed (relative to URL root).
       </action>
+      <action dev="essiembre" type="update" issue="145">
+        URLs extracted from a document are now stored in 
+        "collector.referenced-urls" after they have been normalized.
+      </action>
       <action dev="essiembre" type="update">
         URL redirects are now logged as REJECTED_REDIRECTED (log level INFO).
       </action>
