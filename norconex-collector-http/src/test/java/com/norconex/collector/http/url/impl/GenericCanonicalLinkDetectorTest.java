@@ -77,6 +77,24 @@ public class GenericCanonicalLinkDetectorTest {
     }
     
     @Test
+    public void testEscapedCanonicalUrl() throws IOException {
+        String reference = "http://www.test.te.com/web";
+        GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
+        String escapedCanonicalUrl = "https&#x3a;&#x2f;&#x2f;test&#x2e;kaffe&#x2e;se&#x2f;web";
+        String unescapedCanonicalUrl = "https://test.kaffe.se/web";
+        String url = null;
+        
+        // Valid link tag
+        String contentValid = "<html><head><title>Test</title>\n"
+                + "<link rel=\"canonical\"\n href=\"\n" + escapedCanonicalUrl 
+                + "\" />\n"
+                + "</head><body>Nothing of interest in body</body></html>";
+        url = d.detectFromContent(reference,  new ByteArrayInputStream(
+                contentValid.getBytes()), ContentType.HTML);
+        Assert.assertEquals(unescapedCanonicalUrl, url);
+    }
+    
+    @Test
     public void testWriteRead() throws IOException {
         GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
         d.setContentTypes(ContentType.HTML, ContentType.TEXT);
