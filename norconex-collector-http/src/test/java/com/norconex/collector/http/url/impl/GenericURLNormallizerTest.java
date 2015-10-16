@@ -56,7 +56,29 @@ public class GenericURLNormallizerTest {
         t = "http://www.example.com/record?id=1&view=print";
         assertEquals(t, n.normalizeURL(s));
 	}
-	
+
+    @Test
+    public void testGithubIssue160() throws IOException {
+        // Github issue #160
+        GenericURLNormalizer n = new GenericURLNormalizer();
+        n.setNormalizations(
+                Normalization.lowerCaseSchemeHost,
+                Normalization.upperCaseEscapeSequence,
+                Normalization.decodeUnreservedCharacters,
+                Normalization.removeDefaultPort,
+                Normalization.removeFragment,
+                Normalization.removeDotSegments,
+                Normalization.addTrailingSlash,
+                Normalization.removeDuplicateSlashes,
+                Normalization.removeSessionIds,
+                Normalization.upperCaseEscapeSequence
+                );
+        
+        s = "http://www.etools.ch/sitemap_index.xml";
+        t = "http://www.etools.ch/sitemap_index.xml";
+        assertEquals(t, n.normalizeURL(s));
+    }
+    
     @Test
     public void testGithubIssue29() throws IOException {
         // Github issue #29

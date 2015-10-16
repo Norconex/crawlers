@@ -45,6 +45,14 @@ public class HttpImporterPipeline
     //just changing what is url/doc specific.
     
     public HttpImporterPipeline(boolean isKeepDownloads) {
+        
+        //TODO add here recrawl delay feature: 
+        // https://github.com/Norconex/collector-http/issues/127
+        // Call that ElapsedTimeDocFilter???  LastCrawledFilter
+        // Make it part of collector-core???
+        // Offer as feature what's in ticket plus... have a random delay?
+        
+        
         addStage(new DelayResolverStage());
 
         // When HTTP headers are fetched (HTTP "HEAD") before document:

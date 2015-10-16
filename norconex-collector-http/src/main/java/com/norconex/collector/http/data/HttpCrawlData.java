@@ -25,6 +25,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.ICrawlData;
+import com.norconex.commons.lang.url.HttpURL;
 
 
 /**
@@ -171,7 +172,7 @@ public class HttpCrawlData extends BaseCrawlData {
     public final void setReference(String url) {
         super.setReference(url);
         if (url != null) {
-            this.urlRoot = url.replaceFirst("(.*?://.*?)(/.*)", "$1");
+            this.urlRoot = HttpURL.getRoot(url);
         } else {
             this.urlRoot = null;
         }

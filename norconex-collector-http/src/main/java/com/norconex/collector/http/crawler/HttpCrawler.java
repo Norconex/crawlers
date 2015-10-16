@@ -50,6 +50,7 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.doc.ImporterDocument;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.jef4.status.IJobStatus;
@@ -185,7 +186,7 @@ public class HttpCrawler extends AbstractCrawler {
         // There are sitemaps, process them. First group them by URL root
         MultiValueMap<String, String> sitemapsPerRoots = new MultiValueMap<>();
         for (String sitemapURL : sitemapURLs) {
-            String urlRoot = sitemapURL.replaceFirst("(.*?://.*?)(/.*)", "$1");
+            String urlRoot = HttpURL.getRoot(sitemapURL);
             sitemapsPerRoots.put(urlRoot, sitemapURL);
         }
 

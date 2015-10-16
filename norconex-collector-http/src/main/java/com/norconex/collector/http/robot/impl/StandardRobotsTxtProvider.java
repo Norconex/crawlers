@@ -39,6 +39,7 @@ import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.RobotsTxt;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.handler.filter.OnMatch;
 
 /**
@@ -186,7 +187,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     }
     
     private String getBaseURL(String url) {
-        String baseURL = url.replaceFirst("(.*?://.*?/)(.*)", "$1");
+        String baseURL = HttpURL.getRoot(url);
         if (baseURL.endsWith("/")) {
             baseURL = StringUtils.removeEnd(baseURL, "/");
         }
