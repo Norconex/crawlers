@@ -27,6 +27,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -35,7 +36,6 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.client.utils.URIUtils;
 
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.pipeline.committer.HttpCommitterPipeline;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.config.ConfigurationUtil;
@@ -44,9 +44,6 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 /**
  * <p>Generic canonical link detector. It detects links from the HTTP headers
@@ -93,9 +90,6 @@ import org.apache.log4j.Logger;
 public class GenericCanonicalLinkDetector 
         implements ICanonicalLinkDetector, IXMLConfigurable {
 
-    private static final Logger LOG = 
-        LogManager.getLogger(HttpCommitterPipeline.class);
-    
     private static final ContentType[] DEFAULT_CONTENT_TYPES = 
             new ContentType[] {
         ContentType.HTML,

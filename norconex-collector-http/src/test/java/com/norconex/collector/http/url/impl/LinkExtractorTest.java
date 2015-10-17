@@ -92,6 +92,7 @@ public class LinkExtractorTest {
                 baseURL + "imageSlash.gif",
                 baseURL + "imageNoSlash.gif",
                 baseDir + "titleTarget.html",
+                baseURL + "htmlEntities",
                 baseURL + "?p1=v1&p2=v2&p3=v3",
         };
         // only GenericLinkExtractor supports these extra URLs:

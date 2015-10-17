@@ -68,9 +68,12 @@
       <action dev="essiembre" type="update">
         Corrected typos and improved documentation.
       </action>      
-      <action dev="essiembre" type="fix" issue="150">
-        Sitemaps are now saved on file before being parsed to avoid
-        connection/socket timeout errors.
+      <action dev="essiembre" type="fix">
+        GenericLinkExtractor now unescapes HTML entities in URLs.
+      </action>
+      <action dev="leonardsaers" type="fix" issue="164">
+        GenericCanonicalLinkDetector now supports links that are escaped 
+        (HTML-entities). They are now unescaped before they are processed.
       </action>
       <action dev="essiembre" type="fix" issue="146">
         Fixed circular redirect exception.

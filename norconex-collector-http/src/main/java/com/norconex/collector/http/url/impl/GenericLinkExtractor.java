@@ -32,6 +32,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.CharEncoding;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -480,6 +481,10 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         if (!isValidNewURL(url)) {
             return null;
         }
+        
+        // Decode HTML entities.
+        url = StringEscapeUtils.unescapeHtml4(url);
+        
         if (url.startsWith("//")) {
             // this is URL relative to protocol
             url = urlParts.protocol 
@@ -513,9 +518,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             return null;
         }
         
-        // Decode encoded ampersands in URL.
-        url = url.replace("&amp;", "&");
-
         return url;
     }
 
