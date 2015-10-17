@@ -71,6 +71,10 @@
       <action dev="essiembre" type="fix">
         GenericLinkExtractor now unescapes HTML entities in URLs.
       </action>
+      <action dev="essiembre" type="fix" issue="167">
+        Fixed ClassCastException in HttpCrawlerRedirectStrategy when
+        using an HTTP Proxy.
+      </action>
       <action dev="leonardsaers" type="fix" issue="164">
         GenericCanonicalLinkDetector now supports links that are escaped 
         (HTML-entities). They are now unescaped before they are processed.

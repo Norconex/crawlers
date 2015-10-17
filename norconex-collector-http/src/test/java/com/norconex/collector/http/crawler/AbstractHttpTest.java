@@ -111,6 +111,8 @@ public abstract class AbstractHttpTest {
         while (SERVER.getLocalPort() <= 0) {
             Sleeper.sleepSeconds(1);
         }
+        // Give it a bit of time to warm up.
+        Sleeper.sleepSeconds(5);
     }
 
     @AfterClass

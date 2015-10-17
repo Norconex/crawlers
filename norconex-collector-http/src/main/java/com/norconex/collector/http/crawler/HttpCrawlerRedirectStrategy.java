@@ -19,6 +19,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
+import org.apache.http.RequestLine;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -62,7 +63,7 @@ public class HttpCrawlerRedirectStrategy implements RedirectStrategy {
         REDIRECT_REF.set(null);
         boolean isRedirected = nested.isRedirected(
                 request, response, context);
-        HttpUriRequest currentReq = (HttpUriRequest) context.getAttribute( 
+        HttpRequest currentReq = (HttpRequest) context.getAttribute( 
                 HttpCoreContext.HTTP_REQUEST);
         HttpHost currentHost = (HttpHost)  context.getAttribute( 
                 HttpCoreContext.HTTP_TARGET_HOST);
@@ -89,21 +90,33 @@ public class HttpCrawlerRedirectStrategy implements RedirectStrategy {
         return isRedirected;
     }
 
-    private String toAbsoluteURI(HttpHost host, HttpUriRequest req) {
+    private String toAbsoluteURI(HttpHost host, HttpRequest req) {
+        HttpRequest originalReq = req;
+        
         // Check if we can get full URL from a nested request, to keep
         // the #fragment, if present.
         if (req instanceof HttpRequestWrapper) {
-            HttpRequest originalReq = ((HttpRequestWrapper) req).getOriginal();
-            if (originalReq instanceof HttpRequestBase) {
-                return ((HttpRequestBase) originalReq).getURI().toString();
+            originalReq = ((HttpRequestWrapper) req).getOriginal();
+        }
+        if (originalReq instanceof HttpRequestBase) {
+            return ((HttpRequestBase) originalReq).getURI().toString();
+        }
+
+        // Else, built it
+        if (originalReq instanceof HttpUriRequest) {
+            HttpUriRequest httpReq = (HttpUriRequest) originalReq;
+            if (httpReq.getURI().isAbsolute()) {
+                return httpReq.getURI().toString();
             }
+            return host.toURI() + httpReq.getURI();
         }
         
-        // Else, built it
-        if (req.getURI().isAbsolute()) {
-            return req.getURI().toString();
+        // if not a friendly type, doing in a more generic way
+        RequestLine reqLine = originalReq.getRequestLine();
+        if (reqLine != null) {
+            return reqLine.getUri();
         }
-        return host.toURI() + req.getURI();
+        return null;
     }
     
     @Override
