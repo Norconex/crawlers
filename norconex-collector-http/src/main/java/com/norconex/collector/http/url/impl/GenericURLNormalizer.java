@@ -98,9 +98,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   In addition, this class allows you to specify any number of URL 
  *   value replacements using regular expressions.
  * </p>
- * <p>
+ * 
  * <h3>XML configuration usage:</h3>
- * </p>
  * <pre>
  *  &lt;urlNormalizer
  *      class="com.norconex.collector.http.url.impl.GenericURLNormalizer"
