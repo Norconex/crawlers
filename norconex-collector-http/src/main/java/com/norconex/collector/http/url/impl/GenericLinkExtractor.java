@@ -43,6 +43,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ILinkExtractor;
+import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.collector.http.url.Link;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
@@ -129,23 +130,30 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * 
  * <h3>URL Fragments</h3>
- * <b>Since 2.3.0</b>, it is possible to preserve hashtag characters (#) found
- * in URLs and every characters after it. The URL specification says hashtags
+ * <p>This extractor preserves hashtag characters (#) found
+ * in URLs and every characters after it. It relies on the implementation
+ * of {@link IURLNormalizer} to strip it if need be.  Since 2.3.0,
+ * {@link GenericURLNormalizer} is now always invoked by default, and the 
+ * default set of rules defined for it will remove fragments. 
+ * </p>
+ * <p>
+ * The URL specification says hashtags
  * are used to represent fragments only. That is, to quickly jump to a specific
- * section of the page the URL represents. Under normal circonstances,
+ * section of the page the URL represents. Under normal circumstances,
  * keeping the URL fragments usually leads to duplicates documents being fetched
  * (same URL but different fragment) and they should be stripped. Unfortunately,
  * there are sites not following the URL standard and using hashtags as a 
  * regular part of a URL (i.e. different hashtags point to different web pages).
  * It may be essential when crawling these sites to keep the URL fragments.
+ * This can be done by making sure the URL normalizer does not strip them.
+ * </p>
  *
  * <h3>XML configuration usage</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
  *          maxURLLength="(maximum URL length. Default is 2048)" 
  *          ignoreNofollow="[false|true]" 
- *          keepReferrerData="[false|true]"
- *          keepFragment="[false|true]"&gt;
+ *          keepReferrerData="[false|true]" &gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)

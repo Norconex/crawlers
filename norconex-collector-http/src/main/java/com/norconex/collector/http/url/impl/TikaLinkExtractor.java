@@ -47,13 +47,14 @@ import org.apache.tika.sax.LinkContentHandler;
 import org.xml.sax.SAXException;
 
 import com.norconex.collector.http.url.ILinkExtractor;
+import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
- * Implementation of {@link ILinkExtractor} using 
+ * <p>Implementation of {@link ILinkExtractor} using 
  * <a href="http://tika.apache.org/">Apache Tika</a> to perform URL 
  * extractions from HTML documents.
  * This is an alternative to the {@link GenericLinkExtractor}.
@@ -61,9 +62,17 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * The configuration of content-types, keeping the referrer data, and ignoring 
  * "nofollow" are the same
  * as in {@link GenericLinkExtractor}.
- * <p>
- * XML configuration usage:
  * </p>
+ * 
+ * <h3>URL Fragments</h3>
+ * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
+ * in URLs and every characters after it. It relies on the implementation
+ * of {@link IURLNormalizer} to strip it if need be.  Still since 2.3.0,
+ * {@link GenericURLNormalizer} is now always invoked by default, and the 
+ * default set of rules defined for it will remove fragments. 
+ * </p>
+ * 
+ * <h3>XML configuration usage</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.TikeLinkExtractor"
  *          ignoreNofollow="(false|true)" 
