@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,26 +38,36 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     
     public HttpImporterPipelineContext(
             HttpCrawler crawler, ICrawlDataStore crawlDataStore, 
-            HttpCrawlData crawlData, HttpDocument doc) {
-        super(crawler, crawlDataStore, crawlData, doc);
+            HttpCrawlData crawlData, HttpCrawlData cachedCrawlData, 
+            HttpDocument doc) {
+        super(crawler, crawlDataStore, crawlData, cachedCrawlData, doc);
     }
 
+    @Override
     public HttpCrawler getCrawler() {
         return (HttpCrawler) super.getCrawler();
     }
 
+    @Override
     public HttpCrawlerConfig getConfig() {
         return getCrawler().getCrawlerConfig();
     }
     
+    @Override
     public HttpCrawlData getCrawlData() {
         return (HttpCrawlData) super.getCrawlData();
+    }
+    
+    @Override
+    public HttpCrawlData getCachedCrawlData() {
+        return (HttpCrawlData) super.getCachedCrawlData();
     }
     
     public HttpClient getHttpClient() {
         return getCrawler().getHttpClient();
     }
 
+    @Override
     public HttpDocument getDocument() {
         return (HttpDocument) super.getDocument();
     }

@@ -42,7 +42,7 @@ public class HttpImporterPipelineTest {
                         new ByteArrayInputStream(contentValid.getBytes())));
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig()), 
-                null, new HttpCrawlData(reference, 0), doc);
+                null, new HttpCrawlData(reference, 0), null, doc);
         Assert.assertTrue(HttpImporterPipelineUtil.resolveCanonical(
                 ctx, false));
     }
@@ -56,7 +56,7 @@ public class HttpImporterPipelineTest {
                 "Link", "<" + reference + "> rel=\"canonical\"");
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig()), 
-                null, new HttpCrawlData(reference, 0), doc);
+                null, new HttpCrawlData(reference, 0), null, doc);
         Assert.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
     }
 

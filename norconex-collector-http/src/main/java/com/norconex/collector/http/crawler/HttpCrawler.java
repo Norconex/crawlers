@@ -274,13 +274,18 @@ public class HttpCrawler extends AbstractCrawler {
     
     @Override
     protected ImporterResponse executeImporterPipeline(
-            ICrawler crawler, ImporterDocument doc, 
-            ICrawlDataStore crawlDataStore, BaseCrawlData crawlData) {
+            ICrawler crawler, 
+            ImporterDocument doc, 
+            ICrawlDataStore crawlDataStore, 
+            BaseCrawlData crawlData,
+            BaseCrawlData cachedCrawlData) {
         //TODO create pipeline context prototype
         //TODO cache the pipeline object?
         HttpImporterPipelineContext context = new HttpImporterPipelineContext(
                 (HttpCrawler) crawler, crawlDataStore, 
-                (HttpCrawlData) crawlData, (HttpDocument) doc);
+                (HttpCrawlData) crawlData, 
+                (HttpCrawlData) cachedCrawlData, 
+                (HttpDocument) doc);
         new HttpImporterPipeline(
                 getCrawlerConfig().isKeepDownloads()).execute(context);
         return context.getImporterResponse();
@@ -296,11 +301,11 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     protected void executeCommitterPipeline(ICrawler crawler,
             ImporterDocument doc, ICrawlDataStore crawlDataStore,
-            BaseCrawlData crawlData) {
+            BaseCrawlData crawlData, BaseCrawlData cachedCrawlData) {
 
         HttpCommitterPipelineContext context = new HttpCommitterPipelineContext(
                 (HttpCrawler) crawler, crawlDataStore, (HttpDocument) doc, 
-                (HttpCrawlData) crawlData);
+                (HttpCrawlData) crawlData, (HttpCrawlData) cachedCrawlData);
         new HttpCommitterPipeline().execute(context);
     }
     

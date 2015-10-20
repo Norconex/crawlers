@@ -35,7 +35,7 @@ public class HttpQueuePipelineContext extends BasePipelineContext {
     public HttpQueuePipelineContext(
             HttpCrawler crawler, ICrawlDataStore refStore, 
             HttpCrawlData crawlData) {
-        super(crawler, refStore, crawlData);
+        super(crawler, refStore, crawlData, null);
         HttpCrawlerConfig config = crawler.getCrawlerConfig();
         if (!config.isIgnoreRobotsTxt()) {
             this.robotsTxt = config.getRobotsTxtProvider().getRobotsTxt(
