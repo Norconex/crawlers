@@ -21,16 +21,18 @@
         New HttpCrawlerConfig#[set|get]StartSitemapURLs(...) methods.
       </action>
       <action dev="essiembre" type="add">
-        GenericLinkExtractor now has a new flag for keeping URL fragments
-        when extracting URLs.
-      </action>
-      <action dev="essiembre" type="add">
         GenericURLNormalizer now has the few normalizations by default, 
-        as described in the Javadoc.
+        as described in its Javadoc.
       </action>
       <action dev="essiembre" type="add">
         New StandardSitemapFactory#setPaths(...) method to specify where to 
         look for sitemap files for each URLs processed (relative to URL root).
+      </action>
+      <action dev="essiembre" type="update" issue="145">
+        URL normalization now always takes place by default,
+        using GenericURLNormalizer. Can be turned off by either
+        setting it to null in the crawler configuration, or invoking
+        GenericURLNormalizer#setDisabled(true).
       </action>
       <action dev="essiembre" type="update" issue="145">
         URLs extracted from a document are now stored in 

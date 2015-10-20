@@ -192,7 +192,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     private boolean ignoreNofollow;
     private boolean keepReferrerData;
-    private boolean keepFragment;
     private final Properties tagAttribs = new Properties(true);
     private Pattern tagPattern;
     
@@ -276,25 +275,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
     public void setIgnoreNofollow(boolean ignoreNofollow) {
         this.ignoreNofollow = ignoreNofollow;
-    }
-
-    /**
-     * Whether to keep the URL fragment when present (e.g., 
-     * http://example.com/page.html#fragment).
-     * @return <code>true</code> if keeping the URL fragment
-     * @since 2.4.0
-     */
-    public boolean isKeepFragment() {
-        return keepFragment;
-    }
-    /**
-     * Sets whether to keep the URL fragment when present (e.g., 
-     * http://example.com/page.html#fragment).
-     * @param keepFragment <code>true</code> if keeping fragment
-     * @since 2.4.0
-     */
-    public void setKeepFragment(boolean keepFragment) {
-        this.keepFragment = keepFragment;
     }
 
     public boolean isKeepReferrerData() {
@@ -504,10 +484,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
         }
 
-        if (!isKeepFragment()) {
-            url = StringUtils.substringBefore(url, "#");
-        }
-        
         if (url.length() > maxURLLength) {
             LOG.debug("URL length (" + url.length() + ") exeeding "
                    + "maximum length allowed (" + maxURLLength
@@ -542,7 +518,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 "[@ignoreNofollow]", isIgnoreNofollow()));
         setKeepReferrerData(xml.getBoolean(
                 "[@keepReferrerData]", isKeepReferrerData()));
-        setKeepFragment(xml.getBoolean("[@keepFragment]", isKeepFragment()));
+        if (xml.getBoolean("[@keepFragment]", false)) {
+            LOG.warn("'keepFragment' on GenericLinkExtractor was removed. "
+                   + "Instead, URL normalization now always takes place by "
+                   + "default unless disabled, and removeFragment is part of "
+                   + "the default normalization rules.");
+        }
         
         // Content Types
         ContentType[] cts = ContentType.valuesOf(StringUtils.split(
@@ -576,7 +557,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
             writer.writeAttributeBoolean(
                     "keepReferrerData", isKeepReferrerData());
-            writer.writeAttributeBoolean("keepFragment", isKeepFragment());
             
             // Content Types
             if (!ArrayUtils.isEmpty(getContentTypes())) {
@@ -653,7 +633,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append("maxURLLength", maxURLLength)
                 .append("ignoreNofollow", ignoreNofollow)
                 .append("keepReferrerData", keepReferrerData)
-                .append("keepFragment", keepFragment)
                 .append("tagAttribs", tagAttribs).toString();
     }
 
@@ -668,7 +647,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(maxURLLength, castOther.maxURLLength)
                 .append(ignoreNofollow, castOther.ignoreNofollow)
                 .append(keepReferrerData, castOther.keepReferrerData)
-                .append(keepFragment, castOther.keepFragment)
                 .isEquals() &&  CollectionUtils.containsAll(
                         tagAttribs.entrySet(), castOther.tagAttribs.entrySet());
     }
@@ -676,7 +654,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     @Override
     public int hashCode() {
         return new HashCodeBuilder().append(contentTypes).append(maxURLLength)
-                .append(keepReferrerData).append(keepFragment)
                 .append(tagAttribs).toHashCode();
     }
 }

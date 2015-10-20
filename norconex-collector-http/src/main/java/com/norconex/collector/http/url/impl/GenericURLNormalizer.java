@@ -22,9 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -34,10 +32,12 @@ import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.URLNormalizer;
+import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * <p>
@@ -47,8 +47,14 @@ import com.norconex.commons.lang.url.URLNormalizer;
  * examples. 
  * </p>
  * <p>
- * By default, this class
- * applies these <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a>
+ * Since 2.3.0, this class is in effect by default. To skip its usage, you
+ * can explicitly set the URL Normalizer to <code>null</code> in the 
+ * {@link HttpCrawlerConfig}, or you can disable it using 
+ * {@link #setDisabled(boolean)}.
+ * </p>
+ * <p>
+ * By default, this class removes the URL fragment and applies these 
+ * <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a>
  * normalizations: 
  * </p>
  * <ul>
@@ -93,10 +99,12 @@ import com.norconex.commons.lang.url.URLNormalizer;
  *   value replacements using regular expressions.
  * </p>
  * <p>
- * XML configuration usage:
+ * <h3>XML configuration usage:</h3>
  * </p>
  * <pre>
- *  &lt;urlNormalizer class="com.norconex.collector.http.url.impl.GenericURLNormalizer"&gt;
+ *  &lt;urlNormalizer
+ *      class="com.norconex.collector.http.url.impl.GenericURLNormalizer"
+ *      disabled="[false|true]"&gt;
  *    &lt;normalizations&gt;
  *      (normalization code names, coma separated) 
  *    &lt;/normalizations&gt;
@@ -160,11 +168,12 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
     private final List<Normalization> normalizations = 
             new ArrayList<Normalization>();
     private final List<Replace> replaces = new ArrayList<Replace>();
-    
+    private boolean disabled;
     
     public GenericURLNormalizer() {
         super();
         setNormalizations(
+                Normalization.removeFragment,
                 Normalization.lowerCaseSchemeHost,
                 Normalization.upperCaseEscapeSequence,
                 Normalization.decodeUnreservedCharacters,
@@ -174,6 +183,10 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
     @Override
     public String normalizeURL(String url) {
+        if (disabled) {
+            return url;
+        }
+        
         URLNormalizer normalizer = new URLNormalizer(url);
         for (Normalization n : normalizations) {
             try {
@@ -213,11 +226,30 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         this.replaces.addAll(Arrays.asList(replaces));
     }
     
+    /**
+     * Whether this URL Normalizer is disabled or not.
+     * @return <code>true</code> if disabled
+     * @since 2.3.0
+     */
+    public boolean isDisabled() {
+        return disabled;
+    }
+    /**
+     * Sets whether this URL Normalizer is disabled or not.
+     * @param disabled <code>true</code> if disabled
+     * @since 2.3.0
+     */
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+    }
 
     @Override
     public void loadFromXML(Reader in) {
         
         XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        
+        setDisabled(xml.getBoolean("[@disabled]", disabled));
+        
         String xmlNorms = xml.getString("normalizations");
         if (StringUtils.isNotBlank(xmlNorms)) {
             normalizations.clear();
@@ -243,11 +275,11 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
     @Override
     public void saveToXML(Writer out) throws IOException {
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
         try {
-            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out); 
             writer.writeStartElement("urlNormalizer");
             writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeAttributeBoolean("disabled", isDisabled());
             writer.writeStartElement("normalizations");
             writer.writeCharacters(StringUtils.join(normalizations, ","));
             writer.writeEndElement();
@@ -271,17 +303,20 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         }
     }
 
+
+    
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + (disabled ? 1231 : 1237);
         result = prime * result
                 + ((normalizations == null) ? 0 : normalizations.hashCode());
         result = prime * result
                 + ((replaces == null) ? 0 : replaces.hashCode());
         return result;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -294,16 +329,30 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             return false;
         }
         GenericURLNormalizer other = (GenericURLNormalizer) obj;
-        return new EqualsBuilder()
-            .append(normalizations, other.normalizations)
-            .append(replaces, other.replaces)
-            .isEquals();
+        if (disabled != other.disabled) {
+            return false;
+        }
+        if (normalizations == null) {
+            if (other.normalizations != null) {
+                return false;
+            }
+        } else if (!normalizations.equals(other.normalizations)) {
+            return false;
+        }
+        if (replaces == null) {
+            if (other.replaces != null) {
+                return false;
+            }
+        } else if (!replaces.equals(other.replaces)) {
+            return false;
+        }
+        return true;
     }
-    
+
     @Override
     public String toString() {
         return "GenericURLNormalizer [normalizations=" + normalizations
-                + ", replaces=" + replaces + "]";
+                + ", replaces=" + replaces + ", disabled=" + disabled + "]";
     }
 
     public static class Replace {

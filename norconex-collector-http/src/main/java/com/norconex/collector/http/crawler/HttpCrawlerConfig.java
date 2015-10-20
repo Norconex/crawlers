@@ -50,6 +50,7 @@ import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector;
 import com.norconex.collector.http.url.impl.GenericLinkExtractor;
+import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -79,7 +80,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private final URLCrawlScopeStrategy urlCrawlScopeStrategy = 
             new URLCrawlScopeStrategy();
     
-    private IURLNormalizer urlNormalizer;
+    private IURLNormalizer urlNormalizer = new GenericURLNormalizer();
 
     private IDelayResolver delayResolver = new GenericDelayResolver();
     

@@ -126,7 +126,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 } else if (extractedURL.startsWith("?")) {
                     extractedURL = url + extractedURL;
                 } else if (extractedURL.startsWith("#")) {
-                    extractedURL = url;
+                    extractedURL = url + extractedURL;
                 } else {
                     extractedURL = resolve(url, extractedURL);
                 }

@@ -55,7 +55,6 @@ public class LinkExtractorTest {
         extractor.setContentTypes(ContentType.HTML, ContentType.XML);
         extractor.setIgnoreNofollow(true);
         extractor.setKeepReferrerData(true);
-        extractor.setKeepFragment(true);
         extractor.addLinkTag("food", "chocolate");
         extractor.addLinkTag("friend", "Thor");
         System.out.println("Writing/Reading this: " + extractor);
@@ -84,7 +83,7 @@ public class LinkExtractorTest {
                 baseURL + "meta-redirect.html",
                 baseURL + "startWithDoubleslash.html",
                 docURL + "?startWith=questionmark",
-                docURL, // <-- "#startWithHashMark" (hash is stripped)
+                docURL + "#startWithHashMark",
                 baseURL + "startWithSlash.html",
                 baseDir + "relativeToLastSegment.html",
                 "http://www.sample.com/blah.html",
