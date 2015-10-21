@@ -595,6 +595,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         
     }
     
+    //TODO delete this class and use HttpURL#toAbsolute() instead?
     private static class Referer {
         private final String protocol;
         private final String path;

@@ -29,6 +29,8 @@ import org.apache.http.protocol.HttpCoreContext;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.norconex.commons.lang.url.HttpURL;
+
 /**
  * <p>This class is used by each crawler instance to wraps the original redirect
  * strategy set on the HttpClient to make sure redirect
@@ -79,8 +81,7 @@ public class HttpCrawlerRedirectStrategy implements RedirectStrategy {
                 return false;
             }
 
-            targetURL = h.getValue();
-
+            targetURL = HttpURL.toAbsolute(originalURL, h.getValue());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("URL redirect: " + originalURL + " -> " + targetURL);
             }

@@ -70,6 +70,9 @@
       <action dev="essiembre" type="update">
         Corrected typos and improved documentation.
       </action>      
+      <action dev="essiembre" type="fix" issue="169">
+        Relative redirect URLs are now converted to absolute.
+      </action>
       <action dev="essiembre" type="fix">
         GenericLinkExtractor now unescapes HTML entities in URLs.
       </action>

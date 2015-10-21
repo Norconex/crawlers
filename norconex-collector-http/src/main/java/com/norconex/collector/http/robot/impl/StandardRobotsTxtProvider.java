@@ -80,6 +80,9 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             HttpResponse response = httpClient.execute(method);
             InputStream is = response.getEntity().getContent();
             robotsTxt = parseRobotsTxt(is, trimmedURL, userAgent);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Fetched and parsed robots.txt: " + robotsURL);
+            }
         } catch (Exception e) {
             LOG.warn("Not able to obtain robots.txt at: " + robotsURL, e);
             robotsTxt = new RobotsTxt(new IReferenceFilter[]{});

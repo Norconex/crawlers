@@ -174,14 +174,14 @@ public class GenericCanonicalLinkDetector
         return null;
     }
     
-    private String toAbsolute(String pagerReference, String link) {
+    private String toAbsolute(String pageReference, String link) {
         if (link == null) {
             return null;
         }
         if (link.matches("^https{0,1}://")) {
             return link;
         }
-        return URIUtils.resolve(URI.create(pagerReference), 
+        return URIUtils.resolve(URI.create(pageReference), 
                 StringEscapeUtils.unescapeHtml4(link)).toString();
     }
 
