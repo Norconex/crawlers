@@ -212,6 +212,9 @@
     <robotsTxt ignore="false" class="$robotsTxt"/>
     
     <!-- Loads sitemap.xml URLs and adds adds them to URLs to process.
+
+         BEFORE 2.3.0, USE <sitemap>.
+
          Default implementation is the following.
          -->
     <sitemapResolverFactory 
