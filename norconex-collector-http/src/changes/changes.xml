@@ -28,6 +28,11 @@
         New StandardSitemapFactory#setPaths(...) method to specify where to 
         look for sitemap files for each URLs processed (relative to URL root).
       </action>
+      <action dev="essiembre" type="update">
+        The "sitemap" tag used to set the ISitemapResolverFactory implementation
+        has been renamed to "sitemapResolverFactory" to avoid confusion with
+        the "sitemap" tag that can now be set as a start URL.
+      </action>
       <action dev="essiembre" type="update" issue="145">
         URL normalization now always takes place by default,
         using GenericURLNormalizer. Can be turned off by either
@@ -69,6 +74,15 @@
       </action>
       <action dev="essiembre" type="update">
         Corrected typos and improved documentation.
+      </action>
+      <action dev="essiembre" type="update">
+        Saved and loaded configuration-related classes are now equal.
+        Methods equals/hashCode/toString for those classes are now implemented
+        uniformly and where added where missing.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed some configuration classes not always being saved to XML 
+        properly or giving errors.
       </action>      
       <action dev="essiembre" type="fix" issue="169">
         Relative redirect URLs are now converted to absolute.

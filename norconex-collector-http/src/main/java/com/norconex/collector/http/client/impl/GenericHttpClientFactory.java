@@ -26,13 +26,15 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpHost;
@@ -67,6 +69,7 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * Default implementation of {@link IHttpClientFactory}.  
@@ -437,49 +440,48 @@ public class GenericHttpClientFactory
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
         try {
-            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
             writer.writeStartElement("httpClientFactory");
             writer.writeAttribute("class", getClass().getCanonicalName());
 
-            writeBoolElement(writer, "cookiesDisabled", cookiesDisabled);
-            writeStringElement(writer, "authMethod", authMethod);
-            writeStringElement(writer, "authUsername", authUsername);
-            writeStringElement(writer, "authPassword", authPassword);
-            writeStringElement(writer, "authUsernameField", authUsernameField);
-            writeStringElement(writer, "authPasswordField", authPasswordField);
-            writeStringElement(writer, "authURL", authURL);
-            writeStringElement(writer, "authHostname", authHostname);
-            writeIntElement(writer, "authPort", authPort);
-            writeStringElement(writer, "authFormCharset", authFormCharset);
-            writeStringElement(writer, "authWorkstation", authWorkstation);
-            writeStringElement(writer, "authDomain", authDomain);
-            writeStringElement(writer, "authRealm", authRealm);
-            writeStringElement(writer, "proxyHost", proxyHost);
-            writeIntElement(writer, "proxyPort", proxyPort);
-            writeStringElement(writer, "proxyScheme", proxyScheme);
-            writeStringElement(writer, "proxyUsername", proxyUsername);
-            writeStringElement(writer, "proxyPassword", proxyPassword);
-            writeStringElement(writer, "proxyRealm", proxyRealm);
+            writer.writeElementBoolean("cookiesDisabled", cookiesDisabled);
+            writer.writeElementString("authMethod", authMethod);
+            writer.writeElementString("authUsername", authUsername);
+            writer.writeElementString("authPassword", authPassword);
+            writer.writeElementString("authUsernameField", authUsernameField);
+            writer.writeElementString("authPasswordField", authPasswordField);
+            writer.writeElementString("authURL", authURL);
+            writer.writeElementString("authHostname", authHostname);
+            writer.writeElementInteger("authPort", authPort);
+            writer.writeElementString("authFormCharset", authFormCharset);
+            writer.writeElementString("authWorkstation", authWorkstation);
+            writer.writeElementString("authDomain", authDomain);
+            writer.writeElementString("authRealm", authRealm);
+            writer.writeElementString("proxyHost", proxyHost);
+            writer.writeElementInteger("proxyPort", proxyPort);
+            writer.writeElementString("proxyScheme", proxyScheme);
+            writer.writeElementString("proxyUsername", proxyUsername);
+            writer.writeElementString("proxyPassword", proxyPassword);
+            writer.writeElementString("proxyRealm", proxyRealm);
             writer.writeEndElement();
-            writeIntElement(writer, "connectionTimeout", connectionTimeout);
-            writeIntElement(writer, "socketTimeout", socketTimeout);
-            writeIntElement(writer, "connectionRequestTimeout",
+            writer.writeElementInteger("connectionTimeout", connectionTimeout);
+            writer.writeElementInteger("socketTimeout", socketTimeout);
+            writer.writeElementInteger("connectionRequestTimeout",
                     connectionRequestTimeout);
-            writeStringElement(writer, "connectionCharset", connectionCharset);
-            writeBoolElement(
-                    writer, "expectContinueEnabled", expectContinueEnabled);
-            writeIntElement(writer, "maxRedirects", maxRedirects);
-            writeStringElement(writer, "localAddress", localAddress);
-            writeIntElement(writer, "maxConnections", maxConnections);
-            writeBoolElement(
-                    writer, "trustAllSSLCertificates", trustAllSSLCertificates);
-            writeIntElement(
-                    writer, "maxConnectionsPerRoute", maxConnectionsPerRoute);
-            writeIntElement(
-                    writer, "maxConnectionIdleTime", maxConnectionIdleTime);
-            writeIntElement(writer, 
+            writer.writeElementString("connectionCharset", connectionCharset);
+            writer.writeElementBoolean(
+                    "expectContinueEnabled", expectContinueEnabled);
+            writer.writeElementInteger("maxRedirects", maxRedirects);
+            writer.writeElementString("localAddress", localAddress);
+            writer.writeElementInteger("maxConnections", maxConnections);
+            writer.writeElementBoolean(
+                    "trustAllSSLCertificates", trustAllSSLCertificates);
+            writer.writeElementInteger(
+                    "maxConnectionsPerRoute", maxConnectionsPerRoute);
+            writer.writeElementInteger(
+                    "maxConnectionIdleTime", maxConnectionIdleTime);
+            writer.writeElementInteger(
                     "maxConnectionInactiveTime", maxConnectionInactiveTime);
             
             writer.flush();
@@ -489,23 +491,6 @@ public class GenericHttpClientFactory
         }        
     }
     
-    private void writeStringElement(
-            XMLStreamWriter writer, String name, String value)
-                    throws XMLStreamException {
-        writer.writeStartElement(name);
-        writer.writeCharacters(value);
-        writer.writeEndElement();
-    }
-    private void writeIntElement(
-            XMLStreamWriter writer, String name, int value)
-                    throws XMLStreamException {
-        writeStringElement(writer, name, Integer.toString(value));
-    }
-    private void writeBoolElement(
-            XMLStreamWriter writer, String name, boolean value)
-                    throws XMLStreamException {
-        writeStringElement(writer, name, Boolean.toString(value));
-    }
 
     //--- Getters/Setters ------------------------------------------------------
     
@@ -1072,5 +1057,124 @@ public class GenericHttpClientFactory
      */
     public void setMaxConnectionInactiveTime(int maxConnectionInactiveTime) {
         this.maxConnectionInactiveTime = maxConnectionInactiveTime;
+    }
+    
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof GenericHttpClientFactory)) {
+            return false;
+        }
+        GenericHttpClientFactory castOther = (GenericHttpClientFactory) other;
+        return new EqualsBuilder()
+                .append(authMethod, castOther.authMethod)
+                .append(authURL, castOther.authURL)
+                .append(authUsernameField, castOther.authUsernameField)
+                .append(authUsername, castOther.authUsername)
+                .append(authPasswordField, castOther.authPasswordField)
+                .append(authPassword, castOther.authPassword)
+                .append(authHostname, castOther.authHostname)
+                .append(authPort, castOther.authPort)
+                .append(authRealm, castOther.authRealm)
+                .append(authFormCharset, castOther.authFormCharset)
+                .append(authWorkstation, castOther.authWorkstation)
+                .append(authDomain, castOther.authDomain)
+                .append(cookiesDisabled, castOther.cookiesDisabled)
+                .append(trustAllSSLCertificates, 
+                        castOther.trustAllSSLCertificates)
+                .append(proxyHost, castOther.proxyHost)
+                .append(proxyPort, castOther.proxyPort)
+                .append(proxyScheme, castOther.proxyScheme)
+                .append(proxyUsername, castOther.proxyUsername)
+                .append(proxyPassword, castOther.proxyPassword)
+                .append(proxyRealm, castOther.proxyRealm)
+                .append(connectionTimeout, castOther.connectionTimeout)
+                .append(socketTimeout, castOther.socketTimeout)
+                .append(connectionRequestTimeout, 
+                        castOther.connectionRequestTimeout)
+                .append(connectionCharset, castOther.connectionCharset)
+                .append(localAddress, castOther.localAddress)
+                .append(expectContinueEnabled, castOther.expectContinueEnabled)
+                .append(maxRedirects, castOther.maxRedirects)
+                .append(maxConnections, castOther.maxConnections)
+                .append(maxConnectionsPerRoute, 
+                        castOther.maxConnectionsPerRoute)
+                .append(maxConnectionIdleTime, castOther.maxConnectionIdleTime)
+                .append(maxConnectionInactiveTime, 
+                        castOther.maxConnectionInactiveTime)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(authMethod)
+                .append(authURL)
+                .append(authUsernameField)
+                .append(authUsername)
+                .append(authPasswordField)
+                .append(authPassword)
+                .append(authHostname)
+                .append(authPort)
+                .append(authRealm)
+                .append(authFormCharset)
+                .append(authWorkstation)
+                .append(authDomain)
+                .append(cookiesDisabled)
+                .append(trustAllSSLCertificates)
+                .append(proxyHost)
+                .append(proxyPort)
+                .append(proxyScheme)
+                .append(proxyUsername)
+                .append(proxyPassword)
+                .append(proxyRealm)
+                .append(connectionTimeout)
+                .append(socketTimeout)
+                .append(connectionRequestTimeout)
+                .append(connectionCharset)
+                .append(localAddress)
+                .append(expectContinueEnabled)
+                .append(maxRedirects)
+                .append(maxConnections)
+                .append(maxConnectionsPerRoute)
+                .append(maxConnectionIdleTime)
+                .append(maxConnectionInactiveTime)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("authMethod", authMethod)
+                .append("authURL", authURL)
+                .append("authUsernameField", authUsernameField)
+                .append("authUsername", authUsername)
+                .append("authPasswordField", authPasswordField)
+                .append("authPassword", authPassword)
+                .append("authHostname", authHostname)
+                .append("authPort", authPort)
+                .append("authRealm", authRealm)
+                .append("authFormCharset", authFormCharset)
+                .append("authWorkstation", authWorkstation)
+                .append("authDomain", authDomain)
+                .append("cookiesDisabled", cookiesDisabled)
+                .append("trustAllSSLCertificates", trustAllSSLCertificates)
+                .append("proxyHost", proxyHost)
+                .append("proxyPort", proxyPort)
+                .append("proxyScheme", proxyScheme)
+                .append("proxyUsername", proxyUsername)
+                .append("proxyPassword", proxyPassword)
+                .append("proxyRealm", proxyRealm)
+                .append("connectionTimeout", connectionTimeout)
+                .append("socketTimeout", socketTimeout)
+                .append("connectionRequestTimeout", connectionRequestTimeout)
+                .append("connectionCharset", connectionCharset)
+                .append("localAddress", localAddress)
+                .append("expectContinueEnabled", expectContinueEnabled)
+                .append("maxRedirects", maxRedirects)
+                .append("maxConnections", maxConnections)
+                .append("maxConnectionsPerRoute", maxConnectionsPerRoute)
+                .append("maxConnectionIdleTime", maxConnectionIdleTime)
+                .append("maxConnectionInactiveTime", maxConnectionInactiveTime)
+                .toString();
     }
 }

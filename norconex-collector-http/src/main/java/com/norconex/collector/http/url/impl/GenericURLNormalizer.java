@@ -28,6 +28,9 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -302,57 +305,34 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         }
     }
 
-
-    
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof GenericURLNormalizer)) {
+            return false;
+        }
+        GenericURLNormalizer castOther = (GenericURLNormalizer) other;
+        return new EqualsBuilder()
+                .append(disabled, castOther.disabled)
+                .append(normalizations, castOther.normalizations)
+                .append(replaces, castOther.replaces)
+                .isEquals();
+    }
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (disabled ? 1231 : 1237);
-        result = prime * result
-                + ((normalizations == null) ? 0 : normalizations.hashCode());
-        result = prime * result
-                + ((replaces == null) ? 0 : replaces.hashCode());
-        return result;
+        return new HashCodeBuilder()
+                .append(disabled)
+                .append(normalizations)
+                .append(replaces)
+                .toHashCode();
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof GenericURLNormalizer)) {
-            return false;
-        }
-        GenericURLNormalizer other = (GenericURLNormalizer) obj;
-        if (disabled != other.disabled) {
-            return false;
-        }
-        if (normalizations == null) {
-            if (other.normalizations != null) {
-                return false;
-            }
-        } else if (!normalizations.equals(other.normalizations)) {
-            return false;
-        }
-        if (replaces == null) {
-            if (other.replaces != null) {
-                return false;
-            }
-        } else if (!replaces.equals(other.replaces)) {
-            return false;
-        }
-        return true;
-    }
-
     @Override
     public String toString() {
-        return "GenericURLNormalizer [normalizations=" + normalizations
-                + ", replaces=" + replaces + ", disabled=" + disabled + "]";
-    }
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("disabled", disabled)
+                .append("normalizations", normalizations)
+                .append("replaces", replaces)
+                .toString();
+    }        
 
     public static class Replace {
         private final String match;
@@ -374,38 +354,29 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             return replacement;
         }
         @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((match == null) ? 0 : match.hashCode());
-            result = prime * result
-                    + ((replacement == null) ? 0 : replacement.hashCode());
-            return result;
-        }
-        
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
+        public boolean equals(final Object other) {
+            if (!(other instanceof Replace)) {
                 return false;
             }
-            if (!(obj instanceof GenericURLNormalizer.Replace)) {
-                return false;
-            }
-            GenericURLNormalizer.Replace other = 
-                    (GenericURLNormalizer.Replace) obj;
+            Replace castOther = (Replace) other;
             return new EqualsBuilder()
-                .append(match, other.match)
-                .append(replacement, other.replacement)
-                .isEquals();
+                    .append(match, castOther.match)
+                    .append(replacement, castOther.replacement)
+                    .isEquals();
         }
-        
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder()
+                    .append(match)
+                    .append(replacement)
+                    .toHashCode();
+        }
         @Override
         public String toString() {
-            return "Replace [match=" + match + ", replacement=" + replacement
-                    + "]";
-        }
+            return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                    .append("match", match)
+                    .append("replacement", replacement)
+                    .toString();
+        }        
     }
 }

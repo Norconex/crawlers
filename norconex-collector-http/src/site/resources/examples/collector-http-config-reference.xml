@@ -214,9 +214,10 @@
     <!-- Loads sitemap.xml URLs and adds adds them to URLs to process.
          Default implementation is the following.
          -->
-    <sitemap ignore="false" lenient="false" class="$sitemapFactory">
-       <location>http://www.example.com/blogs/sitemap.xml</location>
-    </sitemap>
+    <sitemapResolverFactory 
+          ignore="false" lenient="false" class="$sitemapFactory">
+      <location>http://www.example.com/blogs/sitemap.xml</location>
+    </sitemapResolverFactory>
     
     <!-- Fetch a URL HTTP Headers.  Classes must implement
          com.norconex.collector.http.fetch.IHttpMetadataFetcher.  

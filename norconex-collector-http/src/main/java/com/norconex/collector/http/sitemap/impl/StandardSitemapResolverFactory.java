@@ -28,6 +28,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -47,12 +48,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * XML configuration usage:
  * </p>
  * <pre>
- *  &lt;sitemap ignore="(false|true)" lenient="(false|true)" 
+ *  &lt;sitemapResolverFactory ignore="[false|true]" lenient="[false|true]" 
  *        tempDir="(where to store temp files)"
  *     class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory"&gt;
  *     &lt;path&gt;(optional path relative to URL root for a sitemap)&lt;/path&gt;
  *     (... repeat path tag as needed ...)
- *  &lt;/sitemap&gt;
+ *  &lt;/sitemapResolverFactory&gt;
  * </pre>
  * @see StandardSitemapResolver
  */
@@ -183,7 +184,8 @@ public class StandardSitemapResolverFactory
             writer.writeStartElement("sitemapResolverFactory");
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttribute("lenient", Boolean.toString(lenient));
-            writer.writeElementString("tempDir", getTempDir().toString());
+            writer.writeElementString(
+                    "tempDir", Objects.toString(getTempDir(), null));
             if (sitemapPaths != null) {
                 for (String path : sitemapPaths) {
                     writer.writeStartElement("path");
@@ -201,11 +203,11 @@ public class StandardSitemapResolverFactory
 
     @Override
     public String toString() {
-        ToStringBuilder builder = new ToStringBuilder(this);
-        builder.append("sitemapPaths", sitemapPaths);
-        builder.append("lenient", lenient);
-        builder.append("tempDir", tempDir);
-        return builder.toString();
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("sitemapPaths", sitemapPaths)
+                .append("lenient", lenient)
+                .append("tempDir", tempDir)
+                .toString();
     }
 
     @Override

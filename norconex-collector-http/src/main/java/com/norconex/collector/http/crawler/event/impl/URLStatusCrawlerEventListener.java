@@ -26,6 +26,10 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.ICrawler;
@@ -269,4 +273,41 @@ public class URLStatusCrawlerEventListener
     }
 
 
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof URLStatusCrawlerEventListener)) {
+            return false;
+        }
+        URLStatusCrawlerEventListener castOther = 
+                (URLStatusCrawlerEventListener) other;
+        return new EqualsBuilder()
+                .append(statusCodes, castOther.statusCodes)
+                .append(outputDir, castOther.outputDir)
+                .append(fileNamePrefix, castOther.fileNamePrefix)
+                .append(outputFile, castOther.outputFile)
+                .append(parsedCodes, castOther.parsedCodes)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(statusCodes)
+                .append(outputDir)
+                .append(fileNamePrefix)
+                .append(outputFile)
+                .append(parsedCodes)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("statusCodes", statusCodes)
+                .append("outputDir", outputDir)
+                .append("fileNamePrefix", fileNamePrefix)
+                .append("outputFile", outputFile)
+                .append("parsedCodes", parsedCodes)
+                .toString();
+    }
 }

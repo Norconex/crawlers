@@ -14,6 +14,10 @@
  */
 package com.norconex.collector.http.crawler;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -138,43 +142,33 @@ public class URLCrawlScopeStrategy {
     
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (stayOnDomain ? 1231 : 1237);
-        result = prime * result + (stayOnPort ? 1231 : 1237);
-        result = prime * result + (stayOnProtocol ? 1231 : 1237);
-        return result;
+    public boolean equals(final Object other) {
+        if (!(other instanceof URLCrawlScopeStrategy)) {
+            return false;
+        }
+        URLCrawlScopeStrategy castOther = (URLCrawlScopeStrategy) other;
+        return new EqualsBuilder()
+                .append(stayOnProtocol, castOther.stayOnProtocol)
+                .append(stayOnDomain, castOther.stayOnDomain)
+                .append(stayOnPort, castOther.stayOnPort)
+                .isEquals();
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof URLCrawlScopeStrategy)) {
-            return false;
-        }
-        URLCrawlScopeStrategy other = (URLCrawlScopeStrategy) obj;
-        if (stayOnDomain != other.stayOnDomain) {
-            return false;
-        }
-        if (stayOnPort != other.stayOnPort) {
-            return false;
-        }
-        if (stayOnProtocol != other.stayOnProtocol) {
-            return false;
-        }
-        return true;
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(stayOnProtocol)
+                .append(stayOnDomain)
+                .append(stayOnPort)
+                .toHashCode();
     }
 
     @Override
     public String toString() {
-        return "URLCrawlScopeStrategy [stayOnDomain=" + stayOnDomain
-                + ", stayOnPort=" + stayOnPort + ", stayOnProtocol="
-                + stayOnProtocol + "]";
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("stayOnProtocol", stayOnProtocol)
+                .append("stayOnDomain", stayOnDomain)
+                .append("stayOnPort", stayOnPort)
+                .toString();
     }
 }

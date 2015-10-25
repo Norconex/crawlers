@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -235,7 +235,7 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.DEFAULT_STYLE)
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
             .appendSuper(super.toString())
             .append("count", count)
             .append("separator", separator)

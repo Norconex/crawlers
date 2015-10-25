@@ -24,6 +24,10 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -359,12 +363,12 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     @Override
     protected void saveCrawlerConfigToXML(Writer out) throws IOException {
         try {
+            out.flush();
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
             writer.writeElementString("userAgent", getUserAgent());
             writer.writeElementInteger("maxDepth", getMaxDepth());
             writer.writeElementBoolean("keepDownloads", isKeepDownloads());
-            writer.writeElementBoolean(
-                    "ignoreCanonicalLinks", isIgnoreCanonicalLinks());
+
             writer.writeStartElement("startURLs");
             writer.writeAttributeBoolean("stayOnProtocol", 
                     urlCrawlScopeStrategy.isStayOnProtocol());
@@ -372,22 +376,26 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                     urlCrawlScopeStrategy.isStayOnDomain());
             writer.writeAttributeBoolean("stayOnPort", 
                     urlCrawlScopeStrategy.isStayOnPort());
-            for (String url : getStartURLs()) {
-                writer.writeStartElement("url");
-                writer.writeCharacters(url);
-                writer.writeEndElement();
+            String[] urls = getStartURLs();
+            if (urls != null) {
+                for (String url : urls) {
+                    writer.writeElementString("url", url);
+                }
             }
-            for (String path : getStartURLsFiles()) {
-                writer.writeStartElement("urlsFile");
-                writer.writeCharacters(path);
-                writer.writeEndElement();
+            String[] urlsFiles = getStartURLsFiles();
+            if (urlsFiles != null) {
+                for (String path : urlsFiles) {
+                    writer.writeElementString("urlsFile", path);
+                }
             }
-            for (String sitemapURL : getStartSitemapURLs()) {
-                writer.writeStartElement("sitemap");
-                writer.writeCharacters(sitemapURL);
-                writer.writeEndElement();
+            String[] sitemapURLs = getStartSitemapURLs();
+            if (sitemapURLs != null) {
+                for (String sitemapURL : sitemapURLs) {
+                    writer.writeElementString("sitemap", sitemapURL);
+                }
             }
             writer.writeEndElement();
+            writer.flush();
             
             writeObject(out, "urlNormalizer", getUrlNormalizer());
             writeObject(out, "delay", getDelayResolver());
@@ -430,10 +438,23 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 isIgnoreRobotsTxt()));
 
         //--- Sitemap Resolver -------------------------------------------------
-        setSitemapResolverFactory(ConfigurationUtil.newInstance(xml,
-                "sitemap", getSitemapResolverFactory()));
-        setIgnoreSitemap(xml.getBoolean("sitemap[@ignore]",
-                isIgnoreSitemap()));
+        ISitemapResolverFactory sitemapFactory = 
+                ConfigurationUtil.newInstance(xml, "sitemapResolverFactory");
+        setIgnoreSitemap(xml.getBoolean(
+                "sitemapResolverFactory[@ignore]", isIgnoreSitemap()));
+        if (sitemapFactory == null) {
+            sitemapFactory = ConfigurationUtil.newInstance(xml, "sitemap");
+            if (sitemapFactory != null) {
+                setIgnoreSitemap(
+                        xml.getBoolean("sitemap[@ignore]", isIgnoreSitemap()));
+                LOG.warn("The <sitemap ...> tag used as a crawler setting "
+                        + "is deprecated, use <sitemapResolverFactory...> instead. "
+                        + "The <sitemap> tag can now be used as a start URL.");
+            }
+        }
+        if (sitemapFactory == null) {
+            sitemapFactory = getSitemapResolverFactory();
+        }
 
         //--- Canonical Link Detector ------------------------------------------
         setCanonicalLinkDetector(ConfigurationUtil.newInstance(xml,
@@ -538,4 +559,101 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return extractors.toArray(new ILinkExtractor[] {});
     }
     
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof HttpCrawlerConfig)) {
+            return false;
+        }
+        HttpCrawlerConfig castOther = (HttpCrawlerConfig) other;
+        return new EqualsBuilder()
+                .appendSuper(super.equals(castOther))
+                .append(maxDepth, castOther.maxDepth)
+                .append(startURLs, castOther.startURLs)
+                .append(startURLsFiles, castOther.startURLsFiles)
+                .append(startSitemapURLs, castOther.startSitemapURLs)
+                .append(ignoreRobotsTxt, castOther.ignoreRobotsTxt)
+                .append(ignoreRobotsMeta, castOther.ignoreRobotsMeta)
+                .append(ignoreSitemap, castOther.ignoreSitemap)
+                .append(keepDownloads, castOther.keepDownloads)
+                .append(ignoreCanonicalLinks, castOther.ignoreCanonicalLinks)
+                .append(userAgent, castOther.userAgent)
+                .append(urlCrawlScopeStrategy, castOther.urlCrawlScopeStrategy)
+                .append(urlNormalizer, castOther.urlNormalizer)
+                .append(delayResolver, castOther.delayResolver)
+                .append(httpClientFactory, castOther.httpClientFactory)
+                .append(documentFetcher, castOther.documentFetcher)
+                .append(canonicalLinkDetector, castOther.canonicalLinkDetector)
+                .append(metadataFetcher, castOther.metadataFetcher)
+                .append(linkExtractors, castOther.linkExtractors)
+                .append(robotsTxtProvider, castOther.robotsTxtProvider)
+                .append(robotsMetaProvider, castOther.robotsMetaProvider)
+                .append(sitemapResolverFactory, 
+                        castOther.sitemapResolverFactory)
+                .append(metadataChecksummer, castOther.metadataChecksummer)
+                .append(preImportProcessors, castOther.preImportProcessors)
+                .append(postImportProcessors, castOther.postImportProcessors)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .appendSuper(super.hashCode())
+                .append(maxDepth)
+                .append(startURLs)
+                .append(startURLsFiles)
+                .append(startSitemapURLs)
+                .append(ignoreRobotsTxt)
+                .append(ignoreRobotsMeta)
+                .append(ignoreSitemap)
+                .append(keepDownloads)
+                .append(ignoreCanonicalLinks)
+                .append(userAgent)
+                .append(urlCrawlScopeStrategy)
+                .append(urlNormalizer)
+                .append(delayResolver)
+                .append(httpClientFactory)
+                .append(documentFetcher)
+                .append(canonicalLinkDetector)
+                .append(metadataFetcher)
+                .append(linkExtractors)
+                .append(robotsTxtProvider)
+                .append(robotsMetaProvider)
+                .append(sitemapResolverFactory)
+                .append(metadataChecksummer)
+                .append(preImportProcessors)
+                .append(postImportProcessors)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .appendSuper(super.toString())
+                .append("maxDepth", maxDepth)
+                .append("startURLs", startURLs)
+                .append("startURLsFiles", startURLsFiles)
+                .append("startSitemapURLs", startSitemapURLs)
+                .append("ignoreRobotsTxt", ignoreRobotsTxt)
+                .append("ignoreRobotsMeta", ignoreRobotsMeta)
+                .append("ignoreSitemap", ignoreSitemap)
+                .append("keepDownloads", keepDownloads)
+                .append("ignoreCanonicalLinks", ignoreCanonicalLinks)
+                .append("userAgent", userAgent)
+                .append("urlCrawlScopeStrategy", urlCrawlScopeStrategy)
+                .append("urlNormalizer", urlNormalizer)
+                .append("delayResolver", delayResolver)
+                .append("httpClientFactory", httpClientFactory)
+                .append("documentFetcher", documentFetcher)
+                .append("canonicalLinkDetector", canonicalLinkDetector)
+                .append("metadataFetcher", metadataFetcher)
+                .append("linkExtractors", linkExtractors)
+                .append("robotsTxtProvider", robotsTxtProvider)
+                .append("robotsMetaProvider", robotsMetaProvider)
+                .append("sitemapResolverFactory", sitemapResolverFactory)
+                .append("metadataChecksummer", metadataChecksummer)
+                .append("preImportProcessors", preImportProcessors)
+                .append("postImportProcessors", postImportProcessors)
+                .toString();
+    }  
 }

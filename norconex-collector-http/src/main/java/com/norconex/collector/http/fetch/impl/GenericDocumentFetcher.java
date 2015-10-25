@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
-import java.util.Arrays;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -29,6 +28,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -277,48 +280,35 @@ public class GenericDocumentFetcher
             throw new IOException("Cannot save as XML.", e);
         }        
     }
+    
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof GenericDocumentFetcher)) {
+            return false;
+        }
+        GenericDocumentFetcher castOther = (GenericDocumentFetcher) other;
+        return new EqualsBuilder()
+                .append(validStatusCodes, castOther.validStatusCodes)
+                .append(notFoundStatusCodes, castOther.notFoundStatusCodes)
+                .append(headersPrefix, castOther.headersPrefix)
+                .isEquals();
+    }
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((headersPrefix == null) ? 0 : headersPrefix.hashCode());
-        result = prime * result + Arrays.hashCode(notFoundStatusCodes);
-        result = prime * result + Arrays.hashCode(validStatusCodes);
-        return result;
+        return new HashCodeBuilder()
+                .append(validStatusCodes)
+                .append(notFoundStatusCodes)
+                .append(headersPrefix)
+                .toHashCode();
     }
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof GenericDocumentFetcher)) {
-            return false;
-        }
-        GenericDocumentFetcher other = (GenericDocumentFetcher) obj;
-        if (headersPrefix == null) {
-            if (other.headersPrefix != null) {
-                return false;
-            }
-        } else if (!headersPrefix.equals(other.headersPrefix)) {
-            return false;
-        }
-        if (!Arrays.equals(notFoundStatusCodes, other.notFoundStatusCodes)) {
-            return false;
-        }
-        if (!Arrays.equals(validStatusCodes, other.validStatusCodes)) {
-            return false;
-        }
-        return true;
-    }
+
     @Override
     public String toString() {
-        return "GenericDocumentFetcher [validStatusCodes=" + validStatusCodes
-                + ", notFoundStatusCodes=" + notFoundStatusCodes
-                + ", headersPrefix=" + headersPrefix + "]";
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("validStatusCodes", validStatusCodes)
+                .append("notFoundStatusCodes", notFoundStatusCodes)
+                .append("headersPrefix", headersPrefix)
+                .toString();
     }
 }
-

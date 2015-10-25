@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,10 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -194,7 +198,7 @@ public class StandardRobotsMetaProvider
     @Override
     public void loadFromXML(Reader in) throws IOException {
         XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
-        setHeadersPrefix(xml.getString("headersPrefix"));
+        setHeadersPrefix(xml.getString("headersPrefix", null));
     }
 
     @Override
@@ -204,11 +208,11 @@ public class StandardRobotsMetaProvider
             XMLStreamWriter writer = factory.createXMLStreamWriter(out);
             writer.writeStartElement("robotsMeta");
             writer.writeAttribute("class", getClass().getCanonicalName());
-            writer.writeStartElement("headersPrefix");
             if (headersPrefix != null) {
+                writer.writeStartElement("headersPrefix");
                 writer.writeCharacters(headersPrefix);
+                writer.writeEndElement();
             }
-            writer.writeEndElement();
             writer.writeEndElement();
             writer.flush();
             writer.close();
@@ -216,4 +220,30 @@ public class StandardRobotsMetaProvider
             throw new IOException("Cannot save as XML.", e);
         }
     }
+    
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof StandardRobotsMetaProvider)) {
+            return false;
+        }
+        StandardRobotsMetaProvider castOther = 
+                (StandardRobotsMetaProvider) other;
+        return new EqualsBuilder()
+                .append(headersPrefix, castOther.headersPrefix)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(headersPrefix)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("headersPrefix", headersPrefix)
+                .toString();
+    }    
 }

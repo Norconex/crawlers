@@ -292,13 +292,16 @@ public class GenericDelayResolver implements IDelayResolver, IXMLConfigurable {
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-                .append(defaultDelay).append(schedules)
-                .append(ignoreRobotsCrawlDelay).append(scope).toHashCode();
+                .append(defaultDelay)
+                .append(schedules)
+                .append(ignoreRobotsCrawlDelay)
+                .append(scope)
+                .toHashCode();
     }
     
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SIMPLE_STYLE)
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .append("defaultDelay", defaultDelay)
                 .append("schedules", schedules)
                 .append("ignoreRobotsCrawlDelay", ignoreRobotsCrawlDelay)
@@ -404,43 +407,37 @@ public class GenericDelayResolver implements IDelayResolver, IXMLConfigurable {
             }
             return out;
         }
+
         @Override
-        public String toString() {
-            return "DelaySchedule [dayOfWeekRange=" + dayOfWeekRange
-                    + ", dayOfMonthRange=" + dayOfMonthRange + ", timeRange="
-                    + timeRange + "]";
+        public boolean equals(final Object other) {
+            if (!(other instanceof DelaySchedule)) {
+                return false;
+            }
+            DelaySchedule castOther = (DelaySchedule) other;
+            return new EqualsBuilder()
+                    .append(dayOfMonthRange, castOther.dayOfMonthRange)
+                    .append(dayOfWeekRange, castOther.dayOfWeekRange)
+                    .append(timeRange, castOther.timeRange)
+                    .append(delay, castOther.delay)
+                    .isEquals();
         }
-        
         @Override
         public int hashCode() {
             return new HashCodeBuilder()
                 .append(dayOfMonthRange)
                 .append(dayOfWeekRange)
                 .append(timeRange)
+                .append(delay)
                 .toHashCode();
         }
-        
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (!(obj instanceof GenericDelayResolver.DelaySchedule)) {
-                return false;
-            }
-            GenericDelayResolver.DelaySchedule other = 
-                    (GenericDelayResolver.DelaySchedule) obj;
-            return new EqualsBuilder()
-                .append(dayOfMonthRange, other.dayOfMonthRange)
-                .append(dayOfWeekRange, other.dayOfWeekRange)
-                .append(timeRange, other.timeRange)
-                .isEquals();
+        public String toString() {
+            return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                    .append("dayOfMonthRange", dayOfMonthRange)
+                    .append("dayOfWeekRange", dayOfWeekRange)
+                    .append("timeRange", timeRange)
+                    .append("delay", delay)
+                    .toString();
         }
     }
-
-
-
 }

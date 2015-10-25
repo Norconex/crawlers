@@ -28,6 +28,9 @@ import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -256,5 +259,25 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             return filter;
         }
     }
+    
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof StandardRobotsTxtProvider)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .toString();
+    }    
 }
 

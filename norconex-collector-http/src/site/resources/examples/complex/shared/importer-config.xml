@@ -19,7 +19,8 @@
      <tagger class="com.norconex.importer.handler.tagger.impl.ConstantTagger">
        <constant name="SITE">Norconex Test Site</constant>
      </tagger>
-     <tagger class="com.norconex.importer.handler.tagger.impl.DeleteTagger" 
-            fields="$fieldsToDelete"/>
+     <tagger class="com.norconex.importer.handler.tagger.impl.DeleteTagger">
+       <fields>${fieldsToDelete}</fields>
+     </tagger>
   </postParseHandlers>
 </importer>           

@@ -18,13 +18,15 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -38,6 +40,7 @@ import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * Basic implementation of {@link IHttpMetadataFetcher}.  
@@ -145,22 +148,46 @@ public class GenericMetadataFetcher
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
         try {
-            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
-            writer.writeStartElement("httpHeadersFetcher");
+            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);         
+            writer.writeStartElement("metadataFetcher");
             writer.writeAttribute("class", getClass().getCanonicalName());
-            writer.writeStartElement("validStatusCodes");
-            writer.writeCharacters(StringUtils.join(validStatusCodes, ","));
-            writer.writeEndElement();
-            writer.writeStartElement("headersPrefix");
-            writer.writeCharacters(headersPrefix);
-            writer.writeEndElement();
+            writer.writeElementString("validStatusCodes", 
+                    StringUtils.join(validStatusCodes, ','));
+            writer.writeElementString("headersPrefix", headersPrefix);
             writer.writeEndElement();
             writer.flush();
             writer.close();
         } catch (XMLStreamException e) {
             throw new IOException("Cannot save as XML.", e);
         }
+    }
+    
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof GenericMetadataFetcher)) {
+            return false;
+        }
+        GenericMetadataFetcher castOther = (GenericMetadataFetcher) other;
+        return new EqualsBuilder()
+                .append(validStatusCodes, castOther.validStatusCodes)
+                .append(headersPrefix, castOther.headersPrefix)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(validStatusCodes)
+                .append(headersPrefix)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("validStatusCodes", validStatusCodes)
+                .append("headersPrefix", headersPrefix)
+                .toString();
     }
 }

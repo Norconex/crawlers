@@ -42,7 +42,7 @@
       <maxDepth>0</maxDepth>
 
       <!-- We know we don't want to crawl the entire site, so ignore sitemap. -->
-      <sitemap ignore="true" /> 
+      <sitemapResolverFactory ignore="true" /> 
 
       <!-- Be as nice as you can to sites you crawl. -->
       <delay default="5000" />

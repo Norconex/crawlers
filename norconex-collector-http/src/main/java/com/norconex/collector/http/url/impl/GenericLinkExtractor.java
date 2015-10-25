@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
@@ -652,17 +651,23 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
         
         GenericLinkExtractor castOther = (GenericLinkExtractor) other;
-        return new EqualsBuilder().append(contentTypes, castOther.contentTypes)
+        return new EqualsBuilder()
+                .append(contentTypes, castOther.contentTypes)
                 .append(maxURLLength, castOther.maxURLLength)
                 .append(ignoreNofollow, castOther.ignoreNofollow)
                 .append(keepReferrerData, castOther.keepReferrerData)
-                .isEquals() &&  CollectionUtils.containsAll(
-                        tagAttribs.entrySet(), castOther.tagAttribs.entrySet());
+                .append(tagAttribs.entrySet(), castOther.tagAttribs.entrySet())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(contentTypes).append(maxURLLength)
-                .append(tagAttribs).toHashCode();
+        return new HashCodeBuilder()
+                .append(contentTypes)
+                .append(maxURLLength)
+                .append(ignoreNofollow)
+                .append(keepReferrerData)
+                .append(tagAttribs)
+                .toHashCode();
     }
 }
