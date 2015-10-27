@@ -83,9 +83,13 @@
       <action dev="essiembre" type="fix">
         Fixed some configuration classes not always being saved to XML 
         properly or giving errors.
-      </action>      
+      </action>
       <action dev="essiembre" type="fix" issue="169">
         Relative redirect URLs are now converted to absolute.
+      </action>
+      <action dev="essiembre" type="fix" issue="168">
+        Fixed robots.txt being fetched before reference filters were executed.
+        Robots.txt are no longer fetched for rejected reference.
       </action>
       <action dev="essiembre" type="fix">
         GenericLinkExtractor now unescapes HTML entities in URLs.

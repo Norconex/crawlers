@@ -79,9 +79,10 @@ public final class HttpQueuePipeline
         @Override
         public boolean executeStage(HttpQueuePipelineContext ctx) {
             if (!ctx.getConfig().isIgnoreRobotsTxt()) {
-                RobotsTxt robotsTxt = ctx.getRobotsTxt();
-                if (ReferenceFiltersStageUtil.resolveReferenceFilters(
-                        robotsTxt.getFilters(), ctx, "robots.txt")) {
+                RobotsTxt robotsTxt = getRobotsTxt(ctx);// ctx.getRobotsTxt();
+                if (robotsTxt != null 
+                        && ReferenceFiltersStageUtil.resolveReferenceFilters(
+                                robotsTxt.getFilters(), ctx, "robots.txt")) {
                     ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
                     ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_ROBOTS_TXT, 
                             ctx.getCrawlData(), robotsTxt);
@@ -92,6 +93,16 @@ public final class HttpQueuePipeline
         }
     }
 
+    private static RobotsTxt getRobotsTxt(HttpQueuePipelineContext ctx) {
+        if (!ctx.getConfig().isIgnoreRobotsTxt()) {
+            return ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
+                    ctx.getHttpClient(), ctx.getCrawlData().getReference(), 
+                    ctx.getConfig().getUserAgent());
+        } else {
+            return null;
+        }
+    }
+    
     //--- Sitemap URL Extraction -----------------------------------------------
     private static class SitemapStage extends AbstractQueueStage {
         @Override
@@ -102,8 +113,9 @@ public final class HttpQueuePipeline
             }
             String urlRoot = ctx.getCrawlData().getUrlRoot();
             String[] robotsTxtLocations = null;
-            if (ctx.getRobotsTxt() != null) {
-                robotsTxtLocations = ctx.getRobotsTxt().getSitemapLocations();
+            RobotsTxt robotsTxt = getRobotsTxt(ctx);
+            if (robotsTxt != null) {
+                robotsTxtLocations = robotsTxt.getSitemapLocations();
             }
             final ISitemapResolver sitemapResolver = ctx.getSitemapResolver();
             
