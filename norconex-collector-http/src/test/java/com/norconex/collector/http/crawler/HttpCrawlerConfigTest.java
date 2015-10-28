@@ -20,8 +20,8 @@ import java.io.IOException;
 import org.junit.Test;
 
 import com.norconex.collector.core.CollectorConfigLoader;
-import com.norconex.collector.core.ICollectorConfig;
 import com.norconex.collector.http.HttpCollectorConfig;
+import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 
 /**
@@ -35,8 +35,16 @@ public class HttpCrawlerConfigTest {
         File configFile = new File(
 //                "src/site/resources/examples/minimum/minimum-config.xml");
                 "src/site/resources/examples/complex/complex-config.xml");
-        ICollectorConfig config = new CollectorConfigLoader(
-                HttpCollectorConfig.class).loadCollectorConfig(configFile);
+        HttpCollectorConfig config = (HttpCollectorConfig) 
+                new CollectorConfigLoader(HttpCollectorConfig.class)
+                        .loadCollectorConfig(configFile);
+        HttpCrawlerConfig crawlerConfig = 
+                (HttpCrawlerConfig) config.getCrawlerConfigs()[0];
+        GenericHttpClientFactory clientFactory = 
+                (GenericHttpClientFactory) crawlerConfig.getHttpClientFactory();
+        clientFactory.setRequestHeader("header1", "value1");
+        clientFactory.setRequestHeader("header2", "value2");
+        
         System.out.println("Writing/Reading this: " + config);
         ConfigurationUtil.assertWriteRead(config);
 //        assertWriteRead(config);

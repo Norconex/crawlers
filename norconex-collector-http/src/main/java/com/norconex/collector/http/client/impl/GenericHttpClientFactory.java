@@ -22,13 +22,18 @@ import java.net.UnknownHostException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -37,6 +42,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
@@ -59,6 +65,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.Args;
@@ -100,6 +107,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;proxyPassword&gt;...&lt;/proxyPassword&gt;
  *      &lt;proxyRealm&gt;...&lt;/proxyRealm&gt;
  *      &lt;proxyScheme&gt;...&lt;/proxyScheme&gt;
+ *      
+ *      &lt;!-- Since 2.3.0, you can set HTTP request headers --&gt;
+ *      &lt;headers&gt;
+ *          &lt;header name="(header name)"&gt;(header value)&lt;/header&gt;
+ *          &lt;!-- You can repeat this header tag as needed. --&gt;
+ *      &lt;/headers&gt;
  *      
  *      &lt;authMethod&gt;[form|basic|digest|ntlm|spnego|kerberos]&lt;/authMethod&gt;
  *      
@@ -208,6 +221,7 @@ public class GenericHttpClientFactory
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
     private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
     private int maxConnectionInactiveTime;
+    private final Map<String, String> requestHeaders = new HashMap<>();
     
     @Override
     public HttpClient createHTTPClient(String userAgent) {
@@ -224,6 +238,7 @@ public class GenericHttpClientFactory
         builder.evictExpiredConnections();
         builder.evictIdleConnections(
                 maxConnectionIdleTime, TimeUnit.MILLISECONDS);
+        builder.setDefaultHeaders(createDefaultRequestHeaders());
         
         buildCustomHttpClient(builder);
         
@@ -292,6 +307,20 @@ public class GenericHttpClientFactory
         post.releaseConnection();
     }
 
+    /**
+     * Creates a list of HTTP headers previously set by 
+     * {@link #setRequestHeader(String, String)}.
+     * @return a list of HTTP request headers
+     * @since 2.3.0
+     */
+    protected List<Header> createDefaultRequestHeaders() {
+        List<Header> headers = new ArrayList<>();
+        for (Entry<String, String> entry : requestHeaders.entrySet()) {
+            headers.add(new BasicHeader(entry.getKey(), entry.getValue()));
+        }
+        return headers;
+    }
+    
     protected RedirectStrategy createRedirectStrategy() {
         return LaxRedirectStrategy.INSTANCE;
     }
@@ -431,7 +460,19 @@ public class GenericHttpClientFactory
                 "maxConnectionIdleTime", maxConnectionIdleTime);
         maxConnectionInactiveTime = xml.getInt(
                 "maxConnectionInactiveTime", maxConnectionInactiveTime);
-        
+     
+        // request headers
+        List<HierarchicalConfiguration> xmlHeaders = 
+                xml.configurationsAt("headers.header");
+        if (!xmlHeaders.isEmpty()) {
+            requestHeaders.clear();
+            for (HierarchicalConfiguration xmlHeader : xmlHeaders) {
+                requestHeaders.put(
+                        xmlHeader.getString("[@name]"), 
+                        xmlHeader.getString(""));
+            }
+        }
+
         if (xml.getString("staleConnectionCheckDisabled") != null) {
             LOG.warn("Since 2.1.0, the configuration option \""
                     + "staleConnectionCheckDisabled\" is no longer supported. "
@@ -482,6 +523,18 @@ public class GenericHttpClientFactory
                     "maxConnectionIdleTime", maxConnectionIdleTime);
             writer.writeElementInteger(
                     "maxConnectionInactiveTime", maxConnectionInactiveTime);
+            
+            if (!requestHeaders.isEmpty()) {
+                writer.writeStartElement("headers");
+                for (Entry<String, String> entry : requestHeaders.entrySet()) {
+                    writer.writeStartElement("header");
+                    writer.writeAttributeString("name", entry.getKey());
+                    writer.writeCharacters(entry.getValue());
+                    writer.writeEndElement();
+                }
+                writer.writeEndElement();
+            }
+            
             writer.writeEndElement();
             
             writer.flush();
@@ -493,6 +546,39 @@ public class GenericHttpClientFactory
     
 
     //--- Getters/Setters ------------------------------------------------------
+    
+    /**
+     * Sets a default HTTP request header every HTTP connection should have.
+     * Those are in addition to any default request headers Apache HttpClient 
+     * may already provide.
+     * @param name HTTP request header name
+     * @param value HTTP request header value
+     * @since 2.3.0
+     */
+    public void setRequestHeader(String name, String value) {
+        requestHeaders.put(name, value);
+    }
+    /**
+     * Gets the HTTP request header value matching the given name, previously
+     * set with {@link #setRequestHeader(String, String)}.
+     * @param name HTTP request header name
+     * @return HTTP request header value or <code>null</code> if 
+     *         no match is found
+     * @since 2.3.0
+     */
+    public String getRequestHeader(String name) {
+        return requestHeaders.get(name);
+    }
+    /**
+     * Gets all HTTP request header names for headers previously set
+     * with {@link #setRequestHeader(String, String)}. If no request headers
+     * are set, it returns an empty array.
+     * @return HTTP request header names
+     * @since 2.3.0
+     */
+    public String[] getRequestHeaders() {
+        return requestHeaders.keySet().toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+    }
     
     /**
      * Gets the authentication method.
