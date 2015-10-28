@@ -464,7 +464,6 @@ public class GenericHttpClientFactory
             writer.writeElementString("proxyUsername", proxyUsername);
             writer.writeElementString("proxyPassword", proxyPassword);
             writer.writeElementString("proxyRealm", proxyRealm);
-            writer.writeEndElement();
             writer.writeElementInteger("connectionTimeout", connectionTimeout);
             writer.writeElementInteger("socketTimeout", socketTimeout);
             writer.writeElementInteger("connectionRequestTimeout",
@@ -483,6 +482,7 @@ public class GenericHttpClientFactory
                     "maxConnectionIdleTime", maxConnectionIdleTime);
             writer.writeElementInteger(
                     "maxConnectionInactiveTime", maxConnectionInactiveTime);
+            writer.writeEndElement();
             
             writer.flush();
             writer.close();
