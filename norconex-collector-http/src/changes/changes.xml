@@ -8,6 +8,10 @@
   <body>
 
     <release version="2.3.0-SNAPSHOT" date="2015-??-??" description="Feature release">
+      <action dev="essiembre" type="add" issue="175">
+        GenericHttpClientFactory now allows you to set HTTP request headers on 
+        every HTTP calls a crawler will make.
+      </action>
       <action dev="essiembre" type="add" issue="144">
         New crawler configuration options: stayOnProtocol, stayOnDomain,
         and stayOnPort. These new settings can be applied as attributes
