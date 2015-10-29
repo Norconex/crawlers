@@ -443,8 +443,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 ConfigurationUtil.newInstance(xml, "sitemapResolverFactory");
         setIgnoreSitemap(xml.getBoolean(
                 "sitemapResolverFactory[@ignore]", isIgnoreSitemap()));
-        if (sitemapFactory == null) {
-            SubnodeConfiguration xmlSitemap = xml.configurationAt("sitemap");
+        if (sitemapFactory == null && xml.containsKey("sitemap")) {
+            SubnodeConfiguration xmlSitemap = 
+                    xml.configurationAt("sitemap");
             if (xmlSitemap != null) {
                 LOG.warn("The <sitemap ...> tag used as a crawler setting "
                         + "is deprecated, use <sitemapResolverFactory...> "
