@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -443,13 +444,15 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setIgnoreSitemap(xml.getBoolean(
                 "sitemapResolverFactory[@ignore]", isIgnoreSitemap()));
         if (sitemapFactory == null) {
-            sitemapFactory = ConfigurationUtil.newInstance(xml, "sitemap");
-            if (sitemapFactory != null) {
+            SubnodeConfiguration xmlSitemap = xml.configurationAt("sitemap");
+            if (xmlSitemap != null) {
+                LOG.warn("The <sitemap ...> tag used as a crawler setting "
+                        + "is deprecated, use <sitemapResolverFactory...> "
+                        + "instead. The <sitemap> tag can now be used as a "
+                        + "start URL.");
+                sitemapFactory = ConfigurationUtil.newInstance(xml, "sitemap");
                 setIgnoreSitemap(
                         xml.getBoolean("sitemap[@ignore]", isIgnoreSitemap()));
-                LOG.warn("The <sitemap ...> tag used as a crawler setting "
-                        + "is deprecated, use <sitemapResolverFactory...> instead. "
-                        + "The <sitemap> tag can now be used as a start URL.");
             }
         }
         if (sitemapFactory == null) {
