@@ -443,7 +443,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 ConfigurationUtil.newInstance(xml, "sitemapResolverFactory");
         setIgnoreSitemap(xml.getBoolean(
                 "sitemapResolverFactory[@ignore]", isIgnoreSitemap()));
-        if (sitemapFactory == null && xml.containsKey("sitemap")) {
+        
+        List<HierarchicalConfiguration> maps = xml.configurationsAt("sitemap");
+        if (sitemapFactory == null && maps != null && !maps.isEmpty()) {
             SubnodeConfiguration xmlSitemap = 
                     xml.configurationAt("sitemap");
             if (xmlSitemap != null) {
