@@ -79,7 +79,7 @@ public final class HttpQueuePipeline
         @Override
         public boolean executeStage(HttpQueuePipelineContext ctx) {
             if (!ctx.getConfig().isIgnoreRobotsTxt()) {
-                RobotsTxt robotsTxt = getRobotsTxt(ctx);// ctx.getRobotsTxt();
+                RobotsTxt robotsTxt = getRobotsTxt(ctx);
                 if (robotsTxt != null 
                         && ReferenceFiltersStageUtil.resolveReferenceFilters(
                                 robotsTxt.getFilters(), ctx, "robots.txt")) {

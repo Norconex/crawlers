@@ -121,14 +121,14 @@ public class GenericCanonicalLinkDetector
         return null;
     }
 
-    private static Pattern PATTERN_TAG = 
+    private static final Pattern PATTERN_TAG = 
             Pattern.compile("<\\s*(\\w+.*?)[/\\s]*>", Pattern.DOTALL);
-    private static Pattern PATTERN_NAME = 
+    private static final Pattern PATTERN_NAME = 
             Pattern.compile("^(\\w+)", Pattern.DOTALL);
-    private static Pattern PATTERN_REL = 
+    private static final Pattern PATTERN_REL = 
             Pattern.compile("\\srel\\s*=\\s*[\"']\\s*canonical\\s*[\"']", 
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-    private static Pattern PATTERN_URL = 
+    private static final Pattern PATTERN_URL = 
             Pattern.compile("\\shref\\s*=\\s*[\"']\\s*(.*?)\\s*[\"']", 
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
     @Override

@@ -131,8 +131,8 @@ public class StandardSitemapResolver implements ISitemapResolver {
      * @param sitemapPaths sitemap paths.
      * @since 2.3.0
      */
-    public void setSitemapPaths(String[] sitemapPaths) {
-        this.sitemapPaths = sitemapPaths;
+    public void setSitemapPaths(String... sitemapPaths) {
+        this.sitemapPaths = ArrayUtils.clone(sitemapPaths);
     }
 
     @Override

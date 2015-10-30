@@ -110,7 +110,7 @@ public class HttpCrawler extends AbstractCrawler {
         
         logInitializationInformation();
         initializeHTTPClient();
-        initializeRedirectionStrategy(crawlDataStore);
+        initializeRedirectionStrategy();
 
         if (!getCrawlerConfig().isIgnoreSitemap()) {
             this.sitemapResolver = 
@@ -346,7 +346,7 @@ public class HttpCrawler extends AbstractCrawler {
     // Wraps redirection strategy to consider URLs as new documents to 
     // queue for processing, if they meet the "stayOnSite" requirements and 
     // the regex filters
-    private void initializeRedirectionStrategy(ICrawlDataStore crawlDataStore) {
+    private void initializeRedirectionStrategy() {
         try {
             Object chain = FieldUtils.readField(httpClient, "execChain", true);
             Object redir = FieldUtils.readField(
