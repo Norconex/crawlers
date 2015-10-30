@@ -78,7 +78,7 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
         return true;
     }
 
-    // Keep this method static so multi-threads tread this method as one
+    // Keep this method static so multi-threads treat this method as one
     // instance.
     private static synchronized void queueRedirectURL(
             HttpImporterPipelineContext ctx, 
