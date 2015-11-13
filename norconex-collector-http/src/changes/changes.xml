@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="2.4.0-SNAPSHOT" date="201?-??-??" description="Feature release">
+      <action dev="essiembre" type="add" issue="178">
+        HTTP authentication password and proxy password can now be encrypted
+        when using GenericHttpClientFactory.
+      </action>
+    </release>
+
     <release version="2.3.0" date="2015-11-06" description="Feature release">
       <action dev="essiembre" type="add" issue="175">
         GenericHttpClientFactory now allows you to set HTTP request headers on 
