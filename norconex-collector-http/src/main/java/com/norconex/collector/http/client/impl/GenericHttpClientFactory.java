@@ -95,7 +95,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * and <code>[auth|proxy]PasswordKeySource</code> must be specified to properly
  * locate the key. The supported sources are:
  * </p> 
- * <table border="1">
+ * <table border="1" summary="">
  *   <tr>
  *     <th><code>[...]PasswordKeySource</code></th>
  *     <th><code>[...]PasswordKey</code></th>
@@ -117,8 +117,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     <td>Name of a JVM system property containing the key.</td>
  *   </tr>
  * </table>
+ * 
  * <h3>XML configuration usage:</h3>
- * </p>
  * <pre>
  *  &lt;httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory"&gt;
  *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
