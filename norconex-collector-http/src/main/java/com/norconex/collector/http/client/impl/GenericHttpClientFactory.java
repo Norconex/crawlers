@@ -19,6 +19,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -59,6 +60,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.UnsupportedSchemeException;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -270,7 +274,9 @@ public class GenericHttpClientFactory
     @Override
     public HttpClient createHTTPClient(String userAgent) {
         HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setSSLContext(createSSLContext());
+        SSLContext sslContext = createSSLContext();
+        builder.setSSLContext(sslContext);
+        builder.setSSLSocketFactory(createSSLSocketFactory(sslContext));
         builder.setSchemePortResolver(createSchemePortResolver());
         builder.setDefaultRequestConfig(createRequestConfig());
         builder.setProxy(createProxy());
@@ -444,10 +450,46 @@ public class GenericHttpClientFactory
         }
         return null;
     }
+    
+    
+    protected LayeredConnectionSocketFactory createSSLSocketFactory(
+            SSLContext sslcontext) {
+        if (!trustAllSSLCertificates) {
+            return null;
+        }
+        LOG.debug("SSL: Turning off host name verification.");
+        return new SSLConnectionSocketFactory(
+                sslcontext, new NoopHostnameVerifier()) {
+        };
+    }
+    
     protected SSLContext createSSLContext() {
         if (!trustAllSSLCertificates) {
             return null;
         }
+        LOG.info("SSL: Trusting all certificates.");
+        
+        //TODO consider moving some of the below settings at the collector
+        //level since they affect the whole JVM.
+        
+        // Disabling SNI extension introduced in Java 7 is necessary 
+        // to avoid SSLProtocolException: handshake alert:  unrecognized_name
+        // Described here: 
+        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7127374
+        LOG.debug("SSL: Disabling SNI Extension using system property.");
+        System.setProperty("jsse.enableSNIExtension", "false");
+
+        // This is required to support old/unsafe algorithms. It is an
+        // alternative to edit the JDK_HOME/jre/lib/security/java.security
+        // and set blank this property: jdk.certpath.disabledAlgorithms=MD2
+        // More info: 
+        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7113275        
+        
+        LOG.debug("SSL: Enabling unsafe cert algorithms available using "
+                + "security property.");
+        Security.setProperty("jdk.certpath.disabledAlgorithms", "");
+        
+        // Use a trust strategy that always returns true
         SSLContext sslcontext;
         try {
             sslcontext = SSLContexts.custom().loadTrustMaterial(

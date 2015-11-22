@@ -12,6 +12,16 @@
         HTTP authentication password and proxy password can now be encrypted
         when using GenericHttpClientFactory.
       </action>
+      <action dev="essiembre" type="update">
+        Derby unit tests are now much faster after settings its system
+        durability for testing to "test".
+      </action>
+      <action dev="essiembre" type="fix" issue="181">
+        GenericHttpClientFactory#trustAllSSLCertificates will now
+        disable hostname verification, disable SSL SNI Extension, and
+        unable unsafe cert algorithms available (disabled by default
+        since Java 7).
+      </action>      
     </release>
 
     <release version="2.3.0" date="2015-11-06" description="Feature release">
