@@ -171,7 +171,7 @@ public class StandardSitemapResolverFactory
         String[] paths = xml.getList(
                 "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY); 
         if (!ArrayUtils.isEmpty(paths)) {
-            setSitemapPaths();
+            setSitemapPaths(paths);
         }
         
         if (!xml.getList("location").isEmpty()) {
