@@ -439,8 +439,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 isIgnoreRobotsTxt()));
 
         //--- Sitemap Resolver -------------------------------------------------
-        ISitemapResolverFactory sitemapFactory = 
-                ConfigurationUtil.newInstance(xml, "sitemapResolverFactory");
+        ISitemapResolverFactory sitemapFactory = ConfigurationUtil.newInstance(
+                xml, "sitemapResolverFactory", getSitemapResolverFactory());
         setIgnoreSitemap(xml.getBoolean(
                 "sitemapResolverFactory[@ignore]", isIgnoreSitemap()));
         

@@ -16,6 +16,12 @@
         Derby unit tests are now much faster after settings its system
         durability for testing to "test".
       </action>
+      <action dev="essiembre" type="fix" issue="187">
+        When the "class" attribute is not specified in "sitemapResolverFactory"
+        for XML config, the default resolver instance is now used 
+        (as opposed to null, which was causing some configs not to be loaded
+        properly).
+      </action>      
       <action dev="essiembre" type="fix" issue="181">
         GenericHttpClientFactory#trustAllSSLCertificates will now
         disable hostname verification, disable SSL SNI Extension, and
