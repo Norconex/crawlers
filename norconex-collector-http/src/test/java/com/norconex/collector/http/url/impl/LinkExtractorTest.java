@@ -17,6 +17,7 @@ package com.norconex.collector.http.url.impl;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
@@ -131,6 +132,24 @@ public class LinkExtractorTest {
         Assert.assertEquals("Invalid number of links extracted.", 
                 expectedURLs.length, links.size());
     }
+    
+    
+    @Test
+    public void testIssue188() throws IOException {
+        String ref = "http://www.site.com/en/articles/articles.html"
+                + "?param1=value1&param2=value2";
+        String html = "<html><body>"
+                + "<a href=\"/en/articles/detail/article-x.html\">test link</a>"
+                + "</body></html>";
+        ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
+        for (Link link : links) {
+            System.out.println("LINK: " + link.getUrl());
+        }
+        input.close();
+    }
+    
     
     private boolean contains(Set<Link> links, String url) {
         for (Link link : links) {

@@ -19,9 +19,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.Security;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -60,10 +59,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.UnsupportedSchemeException;
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -274,9 +269,7 @@ public class GenericHttpClientFactory
     @Override
     public HttpClient createHTTPClient(String userAgent) {
         HttpClientBuilder builder = HttpClientBuilder.create();
-        SSLContext sslContext = createSSLContext();
-        builder.setSSLContext(sslContext);
-        builder.setSSLSocketFactory(createSSLSocketFactory(sslContext));
+        builder.setSSLContext(createSSLContext());
         builder.setSchemePortResolver(createSchemePortResolver());
         builder.setDefaultRequestConfig(createRequestConfig());
         builder.setProxy(createProxy());
@@ -307,7 +300,7 @@ public class GenericHttpClientFactory
      * PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)
      * not being exposed to the builder. 
      */
-    //TODO get rid of this method in favor of setXXX method when available.
+    //TODO get rid of this method in favor of setXXX method when available
     // in a future version of HttpClient (planned for 5.0.0).
     private void hackValidateAfterInactivity(HttpClient httpClient) {
         if (maxConnectionInactiveTime <= 0) {
@@ -451,18 +444,6 @@ public class GenericHttpClientFactory
         return null;
     }
     
-    
-    protected LayeredConnectionSocketFactory createSSLSocketFactory(
-            SSLContext sslcontext) {
-        if (!trustAllSSLCertificates) {
-            return null;
-        }
-        LOG.debug("SSL: Turning off host name verification.");
-        return new SSLConnectionSocketFactory(
-                sslcontext, new NoopHostnameVerifier()) {
-        };
-    }
-    
     protected SSLContext createSSLContext() {
         if (!trustAllSSLCertificates) {
             return null;
@@ -479,27 +460,12 @@ public class GenericHttpClientFactory
         LOG.debug("SSL: Disabling SNI Extension using system property.");
         System.setProperty("jsse.enableSNIExtension", "false");
 
-        // This is required to support old/unsafe algorithms. It is an
-        // alternative to edit the JDK_HOME/jre/lib/security/java.security
-        // and set blank this property: jdk.certpath.disabledAlgorithms=MD2
-        // More info: 
-        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7113275        
-        
-        LOG.debug("SSL: Enabling unsafe cert algorithms available using "
-                + "security property.");
-        Security.setProperty("jdk.certpath.disabledAlgorithms", "");
-        
         // Use a trust strategy that always returns true
         SSLContext sslcontext;
         try {
-            sslcontext = SSLContexts.custom().loadTrustMaterial(
-                null, new TrustStrategy() {
-                    @Override
-                    public boolean isTrusted(final X509Certificate[] chain,
-                            final String authType) throws CertificateException {
-                        return true;
-                    }
-                }).build();
+            sslcontext = SSLContexts.custom().build();
+            sslcontext.init(null, new TrustManager[] {
+                    new TrustAllX509TrustManager()}, new SecureRandom());
         } catch (Exception e) {
             throw new CollectorException(
                     "Cannot create SSL context trusting all certificates.", e);
