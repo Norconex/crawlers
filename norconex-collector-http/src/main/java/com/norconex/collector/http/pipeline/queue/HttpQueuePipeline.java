@@ -108,7 +108,7 @@ public final class HttpQueuePipeline
         @Override
         public boolean executeStage(final HttpQueuePipelineContext ctx) {
             if (ctx.getConfig().isIgnoreSitemap() 
-                    || ctx.getCrawler().getSitemapResolver() == null) {
+                    || ctx.getSitemapResolver() == null) {
                 return true;
             }
             String urlRoot = ctx.getCrawlData().getUrlRoot();

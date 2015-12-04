@@ -112,7 +112,9 @@ public class HttpCrawler extends AbstractCrawler {
         initializeHTTPClient();
         initializeRedirectionStrategy();
 
-        if (!getCrawlerConfig().isIgnoreSitemap()) {
+        // We always initialize the sitemap resolver even if ignored 
+        // because sitemaps can not be specified as start URLs.
+        if (getCrawlerConfig().getSitemapResolverFactory() != null) {
             this.sitemapResolver = 
                     getCrawlerConfig().getSitemapResolverFactory()
                             .createSitemapResolver(getCrawlerConfig(), resume);
@@ -202,8 +204,13 @@ public class HttpCrawler extends AbstractCrawler {
         for (String  urlRoot : sitemapsPerRoots.keySet()) {
             String[] locations = sitemapsPerRoots.getCollection(
                     urlRoot).toArray(ArrayUtils.EMPTY_STRING_ARRAY);
-            sitemapResolver.resolveSitemaps(
-                    httpClient, urlRoot, locations, urlAdder, true);
+            if (sitemapResolver != null) {
+                sitemapResolver.resolveSitemaps(
+                        httpClient, urlRoot, locations, urlAdder, true);
+            } else {
+                LOG.error("Sitemap resolver is null. Sitemaps defined as "
+                        + "start URLs cannot be resolved.");
+            }
         }
         return urlCount.intValue();
     }

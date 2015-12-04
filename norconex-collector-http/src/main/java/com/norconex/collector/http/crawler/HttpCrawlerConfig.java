@@ -461,6 +461,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         if (sitemapFactory == null) {
             sitemapFactory = getSitemapResolverFactory();
         }
+        setSitemapResolverFactory(sitemapFactory);
 
         //--- Canonical Link Detector ------------------------------------------
         setCanonicalLinkDetector(ConfigurationUtil.newInstance(xml,
