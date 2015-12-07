@@ -74,14 +74,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * 
  * <h3>XML configuration usage</h3>
  * <pre>
- *  &lt;extractor class="com.norconex.collector.http.url.impl.TikeLinkExtractor"
+ *  &lt;extractor class="com.norconex.collector.http.url.impl.TikaLinkExtractor"
  *          ignoreNofollow="(false|true)" 
  *          keepReferrerData="(false|true)"&gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
  *      &lt;/contentTypes&gt;
- *  &lt;/linkExtractor&gt;  
+ *  &lt;/extractor&gt;  
  * </pre>
  * @author Pascal Essiembre
  * @see HtmlLinkExtractor
