@@ -18,7 +18,11 @@
       </action>
       <action dev="essiembre" type="fix" issue="193">
         Fixed "lenient" flag having no effect on "sitemapResolverFactory".
-      </action>      
+      </action>
+      <action dev="essiembre" type="fix" issue="188">
+        Fixed "base href" HTML tag not being recognized when resolving 
+        relative URLs in HTML pages.
+      </action>
       <action dev="essiembre" type="fix" issue="187">
         When the "class" attribute is not specified in "sitemapResolverFactory"
         for XML config, the default resolver instance is now used 

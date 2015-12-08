@@ -51,6 +51,16 @@ public class LinkExtractorTest {
     }
 
     @Test
+    public void testGenericBaseHrefLinkExtractor() throws IOException {
+        GenericLinkExtractor ex = new GenericLinkExtractor();
+        testBaseHrefLinkExtraction(ex);
+    }
+    @Test
+    public void testTikaBaseHrefLinkExtractor() throws IOException {
+        testBaseHrefLinkExtraction(new TikaLinkExtractor());
+    }
+
+    @Test
     public void testGenericWriteRead() throws IOException {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         extractor.setContentTypes(ContentType.HTML, ContentType.XML);
@@ -73,6 +83,42 @@ public class LinkExtractorTest {
         ConfigurationUtil.assertWriteRead(extractor);
     }
 
+    
+    private void testBaseHrefLinkExtraction(ILinkExtractor extractor) 
+            throws IOException {
+        String docURL = "http://www.example.com/test/absolute/"
+                + "LinkBaseHrefTest.html";
+
+
+        String host = "http://www.sample.com";
+        String baseURL = host + "/blah/";
+
+        // All these must be found
+        String[] expectedURLs = {
+                baseURL + "a/b/c.html",
+                host + "/d/e/f.html",
+                "http://www.sample.com/g/h/i.html",
+                "http://www.anotherhost.com/k/l/m.html",
+        };
+        
+        InputStream is = getClass().getResourceAsStream(
+                "LinkBaseHrefTest.html");
+
+        Set<Link> links = extractor.extractLinks(
+                is, docURL, ContentType.HTML);
+        IOUtils.closeQuietly(is);
+
+        for (String expectedURL : expectedURLs) {
+            assertTrue("Could not find expected URL: " + expectedURL, 
+                    contains(links, expectedURL));
+        }
+
+        Assert.assertEquals("Invalid number of links extracted.", 
+                expectedURLs.length, links.size());
+        
+    }
+
+    
     private void testLinkExtraction(ILinkExtractor extractor) 
             throws IOException {
         String baseURL = "http://www.example.com/";

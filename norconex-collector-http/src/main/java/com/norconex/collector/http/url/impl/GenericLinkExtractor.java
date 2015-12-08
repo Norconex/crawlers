@@ -212,6 +212,9 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         addLinkTag("meta", "http-equiv");
     }
 
+    
+    private static final Pattern BASE_HREF_PATTERN = Pattern.compile(
+            "<base[^<]+?href\\s*=\\s*([\"']{0,1})(.*?)\\1", PATTERN_FLAGS);
     @Override
     public Set<Link> extractLinks(InputStream input, String reference,
             ContentType contentType) throws IOException {
@@ -227,24 +230,47 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
 
         // Do it, extract Links
-        Referer urlParts = new Referer(reference);
+        Referer referer = new Referer(reference);
         Set<Link> links = new HashSet<>();
         
         StringBuilder sb = new StringBuilder();
         byte[] buffer = new byte[INPUT_READ_ARRAY_SIZE];
         int length;
+        boolean firstChunk = true;
         while ((length = input.read(buffer)) != -1) {
             sb.append(new String(buffer, 0, length, CharEncoding.UTF_8));
             if (sb.length() >= MAX_BUFFER_SIZE) {
-                extractLinks(sb.toString(), urlParts, links);
+                String content = sb.toString();
+                referer = adjustReferer(content, referer, firstChunk);
+                firstChunk = false;
+                extractLinks(content, referer, links);
                 sb.delete(0, sb.length() - OVERLAP_SIZE);
             }
         }
-        extractLinks(sb.toString(), urlParts, links);
+        String content = sb.toString();
+        referer = adjustReferer(content, referer, firstChunk);
+        extractLinks(content, referer, links);
         sb.setLength(0);
-        
         return links;
     }
+
+    
+    private Referer adjustReferer(
+            final String content, final Referer referer, 
+            final boolean firstChunk) {
+        String txt = content;
+        Referer ref = referer;
+        
+        if (firstChunk) {
+            Matcher matcher = BASE_HREF_PATTERN.matcher(txt);
+            if (matcher.find()) {
+                String reference = matcher.group(2);
+                ref = new Referer(reference);
+            }
+        }
+        return ref;
+    }
+    
     
     @Override
     public boolean accepts(String url, ContentType contentType) {
