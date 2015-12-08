@@ -19,15 +19,22 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.AlgorithmConstraints;
+import java.security.AlgorithmParameters;
+import java.security.CryptoPrimitive;
+import java.security.Key;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.xml.stream.XMLStreamException;
 
@@ -59,6 +66,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.UnsupportedSchemeException;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -269,7 +279,9 @@ public class GenericHttpClientFactory
     @Override
     public HttpClient createHTTPClient(String userAgent) {
         HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setSSLContext(createSSLContext());
+        SSLContext sslContext = createSSLContext();
+        builder.setSSLContext(sslContext);
+        builder.setSSLSocketFactory(createSSLSocketFactory(sslContext));
         builder.setSchemePortResolver(createSchemePortResolver());
         builder.setDefaultRequestConfig(createRequestConfig());
         builder.setProxy(createProxy());
@@ -443,6 +455,46 @@ public class GenericHttpClientFactory
         }
         return null;
     }
+    
+    protected LayeredConnectionSocketFactory createSSLSocketFactory(
+            SSLContext sslContext) {
+        if (!trustAllSSLCertificates) {
+            return null;
+        }
+        LOG.debug("SSL: Turning off host name verification.");
+
+        // Turn off host name verification and remove all algorithm constraints.
+        LayeredConnectionSocketFactory socketFactory = 
+                new SSLConnectionSocketFactory(
+                        sslContext, new NoopHostnameVerifier()) {
+            @Override
+            protected void prepareSocket(SSLSocket socket)
+                    throws IOException {
+                SSLParameters sslParams = new SSLParameters();
+                sslParams.setAlgorithmConstraints(new AlgorithmConstraints() {
+                    @Override
+                    public boolean permits(Set<CryptoPrimitive> primitives,
+                            Key key) {
+                        return true;
+                    }
+                    @Override
+                    public boolean permits(Set<CryptoPrimitive> primitives,
+                            String algorithm, AlgorithmParameters parameters) {
+                        return true;
+                    }
+                    @Override
+                    public boolean permits(Set<CryptoPrimitive> primitives,
+                            String algorithm, Key key,
+                            AlgorithmParameters parameters) {
+                        return true;
+                    }
+                });
+                sslParams.setEndpointIdentificationAlgorithm("HTTPS");
+                socket.setSSLParameters(sslParams);
+            }
+        };
+        return socketFactory;
+    }    
     
     protected SSLContext createSSLContext() {
         if (!trustAllSSLCertificates) {

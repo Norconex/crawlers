@@ -32,8 +32,8 @@
       <action dev="essiembre" type="fix" issue="181">
         GenericHttpClientFactory#trustAllSSLCertificates will now
         disable hostname verification, disable SSL SNI Extension, and
-        unable unsafe cert algorithms available (disabled by default
-        since Java 7).
+        unable unsafe cert algorithms that are now disabled by default
+        since Java 7.
       </action>      
     </release>
 
