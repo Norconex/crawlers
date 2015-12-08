@@ -16,6 +16,10 @@
         Derby unit tests are now much faster after settings its system
         durability for testing to "test".
       </action>
+      <action dev="essiembre" type="fix" issue="196">
+        GenericHttpClientFactory#trustAllSSLCertificates now
+        disables hostname verification and algorithm constraints. 
+      </action>
       <action dev="essiembre" type="fix" issue="193">
         Fixed "lenient" flag having no effect on "sitemapResolverFactory".
       </action>
@@ -31,9 +35,8 @@
       </action>      
       <action dev="essiembre" type="fix" issue="181">
         GenericHttpClientFactory#trustAllSSLCertificates will now
-        disable hostname verification, disable SSL SNI Extension, and
-        unable unsafe cert algorithms that are now disabled by default
-        since Java 7.
+        disable SSL SNI Extension, and unable unsafe cert algorithms that are 
+        now disabled by default since Java 7.
       </action>      
     </release>
 
