@@ -21,12 +21,12 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.crawler.HttpCrawlerRedirectStrategy;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
+import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 
 /**
  * <p>Fetches (i.e. download for processing) a document.</p>
@@ -53,8 +53,7 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
 
         //-- Start dealing with redirects ---
-        String redirectURL = 
-                HttpCrawlerRedirectStrategy.getRedirectTargetReference();
+        String redirectURL = RedirectStrategyWrapper.getRedirectURL();
         if (StringUtils.isNotBlank(redirectURL)) {
             queueRedirectURL(ctx, response, redirectURL);
             return false;

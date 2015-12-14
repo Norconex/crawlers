@@ -8,6 +8,11 @@
   <body>
 
     <release version="2.4.0-SNAPSHOT" date="201?-??-??" description="Feature release">
+      <action dev="essiembre" type="add" issue="199">
+        New configurable IRedirectURLProvider with default implementation
+        GenericRedirectURLProvider now better handling redirect character
+        encoding and offering encoding options.
+      </action>
       <action dev="essiembre" type="add" issue="178">
         HTTP authentication password and proxy password can now be encrypted
         when using GenericHttpClientFactory.

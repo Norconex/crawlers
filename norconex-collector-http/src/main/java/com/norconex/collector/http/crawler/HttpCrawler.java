@@ -48,6 +48,7 @@ import com.norconex.collector.http.pipeline.importer.HttpImporterPipeline;
 import com.norconex.collector.http.pipeline.importer.HttpImporterPipelineContext;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
+import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.commons.lang.url.HttpURL;
@@ -351,8 +352,7 @@ public class HttpCrawler extends AbstractCrawler {
 	}
 
     // Wraps redirection strategy to consider URLs as new documents to 
-    // queue for processing, if they meet the "stayOnSite" requirements and 
-    // the regex filters
+    // queue for processing.
     private void initializeRedirectionStrategy() {
         try {
             Object chain = FieldUtils.readField(httpClient, "execChain", true);
@@ -360,8 +360,9 @@ public class HttpCrawler extends AbstractCrawler {
                     chain, "redirectStrategy", true);
             if (redir instanceof RedirectStrategy) {
                 RedirectStrategy originalStrategy = (RedirectStrategy) redir; 
-                HttpCrawlerRedirectStrategy strategyWrapper = 
-                        new HttpCrawlerRedirectStrategy(originalStrategy);
+                RedirectStrategyWrapper strategyWrapper = 
+                        new RedirectStrategyWrapper(originalStrategy, 
+                                getCrawlerConfig().getRedirectURLProvider());
                 FieldUtils.writeField(
                         chain, "redirectStrategy", strategyWrapper, true);
             } else {

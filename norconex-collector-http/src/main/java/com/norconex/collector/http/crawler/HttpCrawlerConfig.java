@@ -44,6 +44,8 @@ import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
+import com.norconex.collector.http.redirect.IRedirectURLProvider;
+import com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider;
 import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
@@ -97,6 +99,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
     private ICanonicalLinkDetector canonicalLinkDetector =
             new GenericCanonicalLinkDetector();
+    
+    private IRedirectURLProvider redirectURLProvider = 
+            new GenericRedirectURLProvider();
     
     private IHttpMetadataFetcher metadataFetcher;
 
@@ -317,6 +322,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
      * ({@link #getStartSitemapURLs()}) are never ignored.
      * @param ignoreSitemap <code>true</code> to ignore sitemaps
      */
+    //TODO rename this to something like: disableSitemapDiscovery ?
     public void setIgnoreSitemap(boolean ignoreSitemap) {
         this.ignoreSitemap = ignoreSitemap;
     }
@@ -359,6 +365,24 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
     public URLCrawlScopeStrategy getURLCrawlScopeStrategy() {
         return urlCrawlScopeStrategy;
+    }
+    
+    /**
+     * Gets the redirect URL provider.
+     * @return the redirect URL provider
+     * @since 2.4.0
+     */
+    public IRedirectURLProvider getRedirectURLProvider() {
+        return redirectURLProvider;
+    }
+    /**
+     * Sets the redirect URL provider
+     * @param redirectURLProvider redirect URL provider
+     * @since 2.4.0
+     */
+    public void setRedirectURLProvider(
+            IRedirectURLProvider redirectURLProvider) {
+        this.redirectURLProvider = redirectURLProvider;
     }
     
     @Override
@@ -407,6 +431,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                     getSitemapResolverFactory(), isIgnoreSitemap());
             writeObject(out, "canonicalLinkDetector", 
                     getCanonicalLinkDetector());
+            writeObject(out, "redirectURLProvider", getRedirectURLProvider());
             writeObject(out, "metadataFetcher", getMetadataFetcher());
             writeObject(out, "metadataChecksummer", getMetadataChecksummer());
             writeObject(out, "documentFetcher", getDocumentFetcher());
@@ -469,6 +494,10 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setIgnoreCanonicalLinks(xml.getBoolean("canonicalLinkDetector[@ignore]",
                 isIgnoreCanonicalLinks()));
 
+        //--- Redirect URL Provider --------------------------------------------
+        setRedirectURLProvider(ConfigurationUtil.newInstance(xml,
+                "redirectURLProvider", getRedirectURLProvider()));
+        
         //--- HTTP Headers Fetcher ---------------------------------------------
         setMetadataFetcher(ConfigurationUtil.newInstance(xml,
                 "metadataFetcher", getMetadataFetcher()));
@@ -590,6 +619,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(httpClientFactory, castOther.httpClientFactory)
                 .append(documentFetcher, castOther.documentFetcher)
                 .append(canonicalLinkDetector, castOther.canonicalLinkDetector)
+                .append(redirectURLProvider, castOther.redirectURLProvider)
                 .append(metadataFetcher, castOther.metadataFetcher)
                 .append(linkExtractors, castOther.linkExtractors)
                 .append(robotsTxtProvider, castOther.robotsTxtProvider)
@@ -622,6 +652,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(httpClientFactory)
                 .append(documentFetcher)
                 .append(canonicalLinkDetector)
+                .append(redirectURLProvider)
                 .append(metadataFetcher)
                 .append(linkExtractors)
                 .append(robotsTxtProvider)
@@ -653,6 +684,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("httpClientFactory", httpClientFactory)
                 .append("documentFetcher", documentFetcher)
                 .append("canonicalLinkDetector", canonicalLinkDetector)
+                .append("redirectURLProvider", redirectURLProvider)
                 .append("metadataFetcher", metadataFetcher)
                 .append("linkExtractors", linkExtractors)
                 .append("robotsTxtProvider", robotsTxtProvider)
