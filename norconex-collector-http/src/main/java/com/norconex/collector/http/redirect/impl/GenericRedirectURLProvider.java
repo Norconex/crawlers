@@ -52,7 +52,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 /**
  * <p>Provide redirect URLs by grabbing them from the HTTP Response 
  * <code>Location</code> header value. The URL is made absolute and
- * an attempt is made to fix possible character encoding issues.<p>
+ * an attempt is made to fix possible character encoding issues.</p>
  * 
  * <p>
  * The <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC 2616</a> 
