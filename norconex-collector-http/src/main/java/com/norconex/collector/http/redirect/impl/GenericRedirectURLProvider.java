@@ -66,7 +66,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </p>
  * <ul>
  *   <li>
- *     Does the URL contains only ASCII characters (code points <= 128)?
+ *     Does the URL contains only ASCII characters (code points &lt;= 128)?
  *     <ul>
  *       <li>
  *         Yes: No attempt to fix it is made.
