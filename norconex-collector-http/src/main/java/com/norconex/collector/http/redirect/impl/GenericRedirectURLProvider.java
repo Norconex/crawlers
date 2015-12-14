@@ -298,7 +298,6 @@ public class GenericRedirectURLProvider
         }
         GenericRedirectURLProvider other = (GenericRedirectURLProvider) obj;
         return new EqualsBuilder()
-            .appendSuper(super.equals(obj))
             .append(fallbackCharset, other.fallbackCharset)
             .isEquals();
     }
