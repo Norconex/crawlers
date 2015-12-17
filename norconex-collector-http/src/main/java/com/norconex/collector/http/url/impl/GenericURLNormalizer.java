@@ -79,8 +79,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
  *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
  *   <li>{@link URLNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
- *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters()} (since 2.3.0)</li>
- *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces()} (since 2.3.0)</li>
+ *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters} (since 2.3.0)</li>
+ *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces} (since 2.3.0)</li>
  *   <li>{@link URLNormalizer#removeDefaultPort() removeDefaultPort}</li>
  *   <li>{@link URLNormalizer#addTrailingSlash() addTrailingSlash}</li>
  *   <li>{@link URLNormalizer#removeDotSegments() removeDotSegments}</li>
