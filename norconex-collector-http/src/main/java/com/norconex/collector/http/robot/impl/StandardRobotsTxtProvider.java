@@ -239,21 +239,37 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         private IReferenceFilter buildURLFilter(
                 String baseURL, final String path, final OnMatch onMatch) {
             String regex = path;
-            regex = regex.replaceAll("\\*", ".*");
+            regex = regex.replace("\\", "\\\\");
+            regex = regex.replace(".", "\\.");
+            regex = regex.replace("*", ".*");
+            regex = regex.replace("?", "\\?");
+            regex = regex.replace("^", "\\^");
+            regex = regex.replace("$", "\\$");
+            regex = regex.replace("|", "\\|");
+            regex = regex.replace("+", "\\+");
+            regex = regex.replace("(", "\\(");
+            regex = regex.replace(")", "\\)");
+            regex = regex.replace("[", "\\[");
+            regex = regex.replace("]", "\\]");
+            regex = regex.replace("{", "\\{");
+            regex = regex.replace("}", "\\}");
+            if (regex.endsWith("\\$")) {
+                regex = StringUtils.removeEnd(regex, "\\$");
+                regex += "$";
+            }
             if (!regex.endsWith("$")) {
-                if (!regex.endsWith("?")) {
-                    regex += "?";
-                }                
                 regex += ".*";
             }
             regex = baseURL + regex;
-            RegexReferenceFilter filter = new RegexReferenceFilter(
-                    regex, onMatch, false) {
+            final String finalRegex = regex;
+            RegexReferenceFilter filter = 
+                    new RegexReferenceFilter(regex, onMatch, false) {
                 @Override
                 public String toString() {
-                    return "Robots.txt ("
+                    return "Robots.txt -> "
                             + (onMatch == OnMatch.INCLUDE 
-                            ? "Allow:" : "Disallow:") + path + ")";
+                            ? "Allow: " : "Disallow: ") + path
+                                    + " (" + finalRegex + ")";
                 }
             };
             return filter;
