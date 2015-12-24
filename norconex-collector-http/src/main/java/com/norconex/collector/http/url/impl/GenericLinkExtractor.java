@@ -39,6 +39,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ILinkExtractor;
@@ -49,6 +50,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.importer.util.CharsetUtil;
 
 /**
  * Generic link extractor for URLs found in HTML and possibly other text files.
@@ -122,6 +124,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   {@link HttpMetadata#COLLECTOR_REFERRER_LINK_TITLE}.</li>
  * </ul>
  * 
+ * <h3>Character encoding</h3>
+ * <p><b>Since 2.4.0</b>, this extractor will by default <i>attempt</i> to 
+ * detect the encoding of the a page when extracting links and 
+ * referrer information. If no charset could be detected, it falls back to 
+ * UTF-8. It is also possible to dictate which encoding to use with 
+ * {@link #setCharset(String)}. 
+ * </p>
+ * 
  * <h3>"nofollow"</h3>
  * By default, a regular HTML link having the "rel" attribute set to "nofollow"
  * won't be extracted (e.g. <code>&lt;a href="x.html" rel="nofollow" ...</code>.  
@@ -129,9 +139,9 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * 
  * <h3>URL Fragments</h3>
- * <p>This extractor preserves hashtag characters (#) found
+ * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
  * in URLs and every characters after it. It relies on the implementation
- * of {@link IURLNormalizer} to strip it if need be.  Since 2.3.0,
+ * of {@link IURLNormalizer} to strip it if need be.  
  * {@link GenericURLNormalizer} is now always invoked by default, and the 
  * default set of rules defined for it will remove fragments. 
  * </p>
@@ -146,13 +156,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * It may be essential when crawling these sites to keep the URL fragments.
  * This can be done by making sure the URL normalizer does not strip them.
  * </p>
- *
+ * 
  * <h3>XML configuration usage</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
  *          maxURLLength="(maximum URL length. Default is 2048)" 
  *          ignoreNofollow="[false|true]" 
- *          keepReferrerData="[false|true]" &gt;
+ *          keepReferrerData="[false|true]"
+ *          charset="(supported character encoding)" &gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
@@ -201,6 +212,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private boolean keepReferrerData;
     private final Properties tagAttribs = new Properties(true);
     private Pattern tagPattern;
+    private String charset;
     
     public GenericLinkExtractor() {
         super();
@@ -230,6 +242,15 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
 
         // Do it, extract Links
+        String sourceCharset = getCharset();
+        if (StringUtils.isBlank(sourceCharset)) {
+            sourceCharset = CharsetUtil.detectCharset(input);
+        } else {
+            sourceCharset = CharsetUtils.clean(sourceCharset);
+        }
+        sourceCharset = 
+                StringUtils.defaultIfBlank(sourceCharset, CharEncoding.UTF_8);
+        
         Referer referer = new Referer(reference);
         Set<Link> links = new HashSet<>();
         
@@ -238,7 +259,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         int length;
         boolean firstChunk = true;
         while ((length = input.read(buffer)) != -1) {
-            sb.append(new String(buffer, 0, length, CharEncoding.UTF_8));
+            sb.append(new String(buffer, 0, length, sourceCharset));
             if (sb.length() >= MAX_BUFFER_SIZE) {
                 String content = sb.toString();
                 referer = adjustReferer(content, referer, firstChunk);
@@ -315,6 +336,25 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
     public void setKeepReferrerData(boolean keepReferrerData) {
         this.keepReferrerData = keepReferrerData;
+    }
+
+    /**
+     * Gets the character set of pages on which link extraction is performed.
+     * Default is <code>null</code> (charset detection will be attempted).
+     * @return character set to use, or <code>null</code>
+     * @since 2.4.0
+     */
+    public String getCharset() {
+        return charset;
+    }
+    /**
+     * Sets the character set of pages on which link extraction is performed.
+     * Not specifying any (<code>null</code>) will attempt charset detection.
+     * @param charset character set to use, or <code>null</code>
+     * @since 2.4.0
+     */
+    public void setCharset(String charset) {
+        this.charset = charset;
     }
 
     public synchronized void addLinkTag(String tagName, String attribute) {
@@ -551,6 +591,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 "[@ignoreNofollow]", isIgnoreNofollow()));
         setKeepReferrerData(xml.getBoolean(
                 "[@keepReferrerData]", isKeepReferrerData()));
+        setCharset(xml.getString("[@charset]", getCharset()));
         if (xml.getBoolean("[@keepFragment]", false)) {
             LOG.warn("'keepFragment' on GenericLinkExtractor was removed. "
                    + "Instead, URL normalization now always takes place by "
@@ -590,6 +631,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
             writer.writeAttributeBoolean(
                     "keepReferrerData", isKeepReferrerData());
+            writer.writeAttributeString("charset", getCharset());
             
             // Content Types
             if (!ArrayUtils.isEmpty(getContentTypes())) {
@@ -667,7 +709,9 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append("maxURLLength", maxURLLength)
                 .append("ignoreNofollow", ignoreNofollow)
                 .append("keepReferrerData", keepReferrerData)
-                .append("tagAttribs", tagAttribs).toString();
+                .append("tagAttribs", tagAttribs)
+                .append("charset", charset)
+                .toString();
     }
 
     @Override
@@ -683,6 +727,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(ignoreNofollow, castOther.ignoreNofollow)
                 .append(keepReferrerData, castOther.keepReferrerData)
                 .append(tagAttribs.entrySet(), castOther.tagAttribs.entrySet())
+                .append(charset, castOther.charset)
                 .isEquals();
     }
 
@@ -694,6 +739,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(ignoreNofollow)
                 .append(keepReferrerData)
                 .append(tagAttribs)
+                .append(charset)
                 .toHashCode();
     }
 }

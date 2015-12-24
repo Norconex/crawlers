@@ -17,11 +17,17 @@
         HTTP authentication password and proxy password can now be encrypted
         when using GenericHttpClientFactory.
       </action>
+      <action dev="essiembre" type="update" issue="194">
+        GenericLinkExtractor now attempts by default to detect the character 
+        encoding of documents before extracting links and referrer information.
+        In addition, it is now possible to explicitly set which charset
+        to use via the #setCharset(String) method.
+      </action>
       <action dev="essiembre" type="update">
         Derby unit tests are now much faster after settings its system
         durability for testing to "test".
       </action>
-      <action dev="essiembre" type="add" issue="200">
+      <action dev="essiembre" type="update" issue="200">
         Robot rules now escapes dots and other character having special
         meaning in regex, before converting robot rules to regex.
       </action>
