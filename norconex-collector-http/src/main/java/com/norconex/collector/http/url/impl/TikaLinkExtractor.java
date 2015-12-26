@@ -22,6 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,11 +37,14 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.html.DefaultHtmlMapper;
+import org.apache.tika.parser.html.HtmlMapper;
 import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.Link;
 import org.apache.tika.sax.LinkContentHandler;
@@ -109,6 +113,32 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private boolean ignoreNofollow;
     private boolean keepReferrerData;
 
+    public TikaLinkExtractor() {
+        super();
+        fixTikaAnchorSafeAttributes();
+    }
+    
+    // This is a hack to Tika not considering anchor "title" attributes
+    // as a safe attribute.
+    // This results in not being able to extract those title attributes
+    // when keepReferrerData is true.
+    private void fixTikaAnchorSafeAttributes() {
+        HtmlMapper htmlMapper = DefaultHtmlMapper.INSTANCE;
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Set<String>> safeAttributes = (Map<String, Set<String>>)
+                    FieldUtils.readField(htmlMapper, "SAFE_ATTRIBUTES", true);
+            Set<String> attribs = safeAttributes.get("a");
+            attribs.add("title");
+            LOG.debug("Fixed Tika DefaultHtmlMapper not recognizing anchor "
+                    + "title attributes (needed when using keepReferrerData."); 
+        } catch (Exception e) {
+            LOG.warn("Could not set \"title\" as a safe attribute on "
+                    + "Tika DefaultHtmlMapper. Link title attributes won't be "
+                    + "extracted if keepReferrerData is true.");
+        }
+    }
+
     @Override
     public Set<com.norconex.collector.http.url.Link> extractLinks(
             InputStream is, String url, ContentType contentType)
@@ -145,13 +175,17 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                                     extractedURL);
                     if (keepReferrerData) {
                         nxLink.setReferrer(url);
-                        nxLink.setText(tikaLink.getText());
+                        if (StringUtils.isNotBlank(tikaLink.getText())) {
+                            nxLink.setText(tikaLink.getText());
+                        }
                         if (tikaLink.isAnchor()) {
                             nxLink.setTag("a.href");
                         } else if (tikaLink.isImage()) {
                             nxLink.setTag("img.src");
                         }
-                        nxLink.setTitle(tikaLink.getTitle());
+                        if (StringUtils.isNotBlank(tikaLink.getTitle())) {
+                            nxLink.setTitle(tikaLink.getTitle());
+                        }
                     }
                     nxLinks.add(nxLink);
                 }

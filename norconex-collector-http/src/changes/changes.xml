@@ -31,6 +31,10 @@
         Robot rules now escapes dots and other character having special
         meaning in regex, before converting robot rules to regex.
       </action>
+      <action dev="essiembre" type="fix" issue="204">
+        Fixed both GenericLinkExtractor and TikaLinkExtractor which were
+        not able to extract link titles when keepReferrerData was true.
+      </action>
       <action dev="essiembre" type="fix" issue="196">
         GenericHttpClientFactory#trustAllSSLCertificates now
         disables hostname verification and algorithm constraints. 

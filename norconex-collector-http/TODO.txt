@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- Offer a flag to merge frame/iframe elements on HTML pages as opposed to
+  crawl them as separate documents.
+
 - Add a command-line flag that saves the constructed config back to disk 
   for easy sharing (XML-write).
 

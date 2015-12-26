@@ -179,7 +179,6 @@ public class LinkExtractorTest {
                 expectedURLs.length, links.size());
     }
     
-    
     @Test
     public void testIssue188() throws IOException {
         String ref = "http://www.site.com/en/articles/articles.html"
@@ -196,10 +195,65 @@ public class LinkExtractorTest {
         input.close();
     }
     
+    @Test
+    public void testGenericLinkKeepReferrer() throws IOException {
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        extractor.setContentTypes(ContentType.HTML);
+        extractor.setKeepReferrerData(true);
+        testLinkKeepReferrer(extractor);
+    }
+    @Test
+    public void testTikaLinkKeepReferrer() throws IOException {
+        TikaLinkExtractor extractor = new TikaLinkExtractor();
+        extractor.setContentTypes(ContentType.HTML);
+        extractor.setKeepReferrerData(true);
+        testLinkKeepReferrer(extractor);
+    }
+    private void testLinkKeepReferrer(ILinkExtractor extractor)
+            throws IOException {
+        // All these must be found
+        Link[] expectedLinks = {
+            keepReferrerLink("1-notitle-notext.html", null, null),
+            keepReferrerLink("2-notitle-yestext.html", "2 Yes Text", null),
+            keepReferrerLink(
+                    "3-yestitle-yestext.html", "3 Yes Text", "3 Yes Title"),
+            keepReferrerLink("4-yestitle-notext.html", null, "4 Yes Title"),
+            // Link 5 should not be there (no href).
+        };        
+        
+        InputStream is = 
+                getClass().getResourceAsStream("LinkKeepReferrerTest.html");
+        Set<Link> links = extractor.extractLinks(
+                is, "http://www.site.com/parent.html", ContentType.HTML);
+        IOUtils.closeQuietly(is);
+        
+        Assert.assertEquals(expectedLinks.length, links.size());
+        for (Link expectedLink : expectedLinks) {
+            assertTrue("Could not find expected link: " + expectedLink, 
+                    contains(links, expectedLink));
+        }
+    }
+    private Link keepReferrerLink(
+            String relURL, String text, String title) {
+        Link link = new Link("http://www.site.com/" + relURL);
+        link.setReferrer("http://www.site.com/parent.html");
+        link.setTag("a.href");
+        link.setText(text);
+        link.setTitle(title);
+        return link;
+    }
     
     private boolean contains(Set<Link> links, String url) {
         for (Link link : links) {
             if (url.equals(link.getUrl())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    private boolean contains(Set<Link> links, Link link) {
+        for (Link l : links) {
+            if (link.equals(l)) {
                 return true;
             }
         }

@@ -77,26 +77,34 @@ public class Link implements Comparable<Link> {
         if (!(other instanceof Link))
             return false;
         Link castOther = (Link) other;
-        return new EqualsBuilder().append(url, castOther.url)
+        return new EqualsBuilder()
+                .append(url, castOther.url)
                 .append(tag, castOther.tag)
                 .append(text, castOther.text)
                 .append(title, castOther.title)
-                .append(referrer, castOther.referrer).isEquals();
+                .append(referrer, castOther.referrer)
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(url).append(tag)
-                .append(text).append(title).append(referrer).toHashCode();
+        return new HashCodeBuilder()
+                .append(url)
+                .append(tag)
+                .append(text)
+                .append(title)
+                .append(referrer)
+                .toHashCode();
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("url", url).append("text", text)
+                .append("url", url)
+                .append("tag", tag)
+                .append("text", text)
                 .append("title", title)
                 .append("referrer", referrer)
-                .append("tag", tag)
                 .toString();
     }
 

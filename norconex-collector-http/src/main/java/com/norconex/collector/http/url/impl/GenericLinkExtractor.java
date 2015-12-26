@@ -395,7 +395,9 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     
     //--- Extract Links --------------------------------------------------------
     private static final Pattern A_TEXT_PATTERN = Pattern.compile(
-            "<a[^<]+?>([^<]+?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
+            "<a[^<]+?>([^<]*?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
+    private static final Pattern A_TITLE_PATTERN = Pattern.compile(
+            "\\s*title\\s*=\\s*([\"'])(.*?)\\1", PATTERN_FLAGS);
     private static final Pattern SCRIPT_PATTERN = Pattern.compile(
             "<\\s*script\\b.*?>.*?<\\s*/\\s*script\\s*>", PATTERN_FLAGS);
     private void extractLinks(
@@ -435,6 +437,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
             //--- a tag attribute has the URL ---
             String text = null;
+            String title = null;
             if (StringUtils.isBlank(restOfTag)) {
                 continue;
             }
@@ -450,6 +453,10 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     Matcher textMatcher = A_TEXT_PATTERN.matcher(content);
                     if (textMatcher.find(matcher.start())) {
                         text = textMatcher.group(1).trim();
+                    }
+                    Matcher titleMatcher = A_TITLE_PATTERN.matcher(restOfTag);
+                    if (titleMatcher.find()) {
+                        title = titleMatcher.group(2).trim();
                     }
                 }
             }
@@ -482,7 +489,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     if (keepReferrerData) {
                         link.setReferrer(referrer.url);
                         link.setTag(tagName + "." + attribName);
-                        link.setText(text);
+                        if (StringUtils.isNotBlank(text)) {
+                            link.setText(text);
+                        }
+                        if (StringUtils.isNotBlank(title)) {
+                            link.setTitle(title);
+                        }
                     }
                     links.add(link);
                 }
