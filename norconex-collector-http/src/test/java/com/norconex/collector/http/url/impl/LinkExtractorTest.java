@@ -219,6 +219,8 @@ public class LinkExtractorTest {
                     "3-yestitle-yestext.html", "3 Yes Text", "3 Yes Title"),
             keepReferrerLink("4-yestitle-notext.html", null, "4 Yes Title"),
             // Link 5 should not be there (no href).
+            keepReferrerLink("6-yestitle-yestexthtml.html", 
+                    "[6]Yes Text", "6 Yes Title"),
         };        
         
         InputStream is = 
@@ -226,7 +228,7 @@ public class LinkExtractorTest {
         Set<Link> links = extractor.extractLinks(
                 is, "http://www.site.com/parent.html", ContentType.HTML);
         IOUtils.closeQuietly(is);
-        
+
         Assert.assertEquals(expectedLinks.length, links.size());
         for (Link expectedLink : expectedLinks) {
             assertTrue("Could not find expected link: " + expectedLink, 

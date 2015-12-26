@@ -395,7 +395,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     
     //--- Extract Links --------------------------------------------------------
     private static final Pattern A_TEXT_PATTERN = Pattern.compile(
-            "<a[^<]+?>([^<]*?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
+            "<a[^<]+?>(.*?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
     private static final Pattern A_TITLE_PATTERN = Pattern.compile(
             "\\s*title\\s*=\\s*([\"'])(.*?)\\1", PATTERN_FLAGS);
     private static final Pattern SCRIPT_PATTERN = Pattern.compile(
@@ -453,6 +453,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     Matcher textMatcher = A_TEXT_PATTERN.matcher(content);
                     if (textMatcher.find(matcher.start())) {
                         text = textMatcher.group(1).trim();
+                        // Strip markup to only extract the text
+                        text = text.replaceAll("<[^>]*>", "");
                     }
                     Matcher titleMatcher = A_TITLE_PATTERN.matcher(restOfTag);
                     if (titleMatcher.find()) {

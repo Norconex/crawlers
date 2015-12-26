@@ -35,6 +35,10 @@
         Fixed both GenericLinkExtractor and TikaLinkExtractor which were
         not able to extract link titles when keepReferrerData was true.
       </action>
+      <action dev="essiembre" type="fix" issue="204">
+        Text is now extracted when HTML is found in an anchor body
+        (when keepReferrerData is true).
+      </action>
       <action dev="essiembre" type="fix" issue="196">
         GenericHttpClientFactory#trustAllSSLCertificates now
         disables hostname verification and algorithm constraints. 
