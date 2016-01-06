@@ -27,6 +27,13 @@
         Derby unit tests are now much faster after settings its system
         durability for testing to "test".
       </action>
+      <action dev="essiembre" type="update">
+        Added more logging to FORM-based authentication to help troubleshoot
+        authentication issues.
+      </action>
+      <action dev="essiembre" type="update">
+        Maven dependency updates: Apache HttpClient 4.5.1.
+      </action>      
       <action dev="essiembre" type="update" issue="200">
         Robot rules now escapes dots and other character having special
         meaning in regex, before converting robot rules to regex.

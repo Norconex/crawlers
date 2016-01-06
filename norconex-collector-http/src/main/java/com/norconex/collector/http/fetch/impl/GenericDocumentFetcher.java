@@ -113,7 +113,7 @@ public class GenericDocumentFetcher
             HttpResponse response = httpClient.execute(method);
             int statusCode = response.getStatusLine().getStatusCode();
             String reason = response.getStatusLine().getReasonPhrase();
-	        
+            
             InputStream is = response.getEntity().getContent();
             
             // VALID http response

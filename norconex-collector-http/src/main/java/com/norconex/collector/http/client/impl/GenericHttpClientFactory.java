@@ -40,6 +40,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
@@ -51,11 +52,14 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.RedirectStrategy;
@@ -69,6 +73,7 @@ import org.apache.http.conn.UnsupportedSchemeException;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -294,6 +299,7 @@ public class GenericHttpClientFactory
         builder.evictIdleConnections(
                 maxConnectionIdleTime, TimeUnit.MILLISECONDS);
         builder.setDefaultHeaders(createDefaultRequestHeaders());
+        builder.setDefaultCookieStore(createDefaultCookieStore());
         
         buildCustomHttpClient(builder);
         
@@ -351,17 +357,36 @@ public class GenericHttpClientFactory
                 getAuthUsernameField(), getAuthUsername()));
         formparams.add(new BasicNameValuePair(
                 getAuthPasswordField(), getAuthPassword()));
+        LOG.info("Performing FORM authentication at \"" + getAuthURL()
+                + "\" (username=" + getAuthUsername() + "; password=*****)");
         try {
             UrlEncodedFormEntity entity = 
                     new UrlEncodedFormEntity(formparams, authFormCharset);
             post.setEntity(entity);
-            httpClient.execute(post);
+            HttpResponse response = httpClient.execute(post);
+            StatusLine statusLine = response.getStatusLine();
+            LOG.info("Authentication status: " + statusLine);
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Authentication response:\n"
+                        + IOUtils.toString(response.getEntity().getContent()));
+            }
         } catch (Exception e) {
             throw new CollectorException(e);
         }
         post.releaseConnection();
+        
     }
 
+    /**
+     * Creates the default cookie store to be added to each request context.
+     * @return a cookie store
+     * @since 2.4.0
+     */
+    protected CookieStore createDefaultCookieStore() {
+        return new BasicCookieStore();
+    }
+    
     /**
      * Creates a list of HTTP headers previously set by 
      * {@link #setRequestHeader(String, String)}.
