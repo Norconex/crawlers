@@ -179,7 +179,8 @@ public class URLStatusCrawlerEventListener
         }
 
         // Create new file on crawler start/resume
-        outputFile = new File(outputDir, fileNamePrefix
+        String prefix = StringUtils.defaultString(fileNamePrefix);
+        outputFile = new File(outputDir, prefix
                 + FileUtil.toSafeFileName(crawlerId)
                 + "-" + System.currentTimeMillis() + ".tsv");
         try {
