@@ -238,38 +238,48 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         }
         private IReferenceFilter buildURLFilter(
                 String baseURL, final String path, final OnMatch onMatch) {
-            String regex = path;
-            regex = regex.replace("\\", "\\\\");
-            regex = regex.replace(".", "\\.");
-            regex = regex.replace("*", ".*");
-            regex = regex.replace("?", "\\?");
-            regex = regex.replace("^", "\\^");
-            regex = regex.replace("$", "\\$");
-            regex = regex.replace("|", "\\|");
-            regex = regex.replace("+", "\\+");
-            regex = regex.replace("(", "\\(");
-            regex = regex.replace(")", "\\)");
-            regex = regex.replace("[", "\\[");
-            regex = regex.replace("]", "\\]");
-            regex = regex.replace("{", "\\{");
-            regex = regex.replace("}", "\\}");
-            if (regex.endsWith("\\$")) {
-                regex = StringUtils.removeEnd(regex, "\\$");
-                regex += "$";
+            // Take the robots.txt pattern literally as it may include
+            // characters (or character sequences) that would have special
+            // meaning in a regular expression.
+            String regex = Pattern.quote(path);
+
+            // An asterisk within a robots.txt pattern should match any string.
+            // Thus we transform it into the regular expression `.*`. As we
+            // previously enclosed the pattern in \Q and \E in order for it to
+            // be interpreted literally, we must also explicitly exclude the
+            // `.*` from quoting.
+            regex = regex.replace("*", "\\E.*\\Q");
+
+            // A dollar sign at the end a robots.txt pattern means the same as
+            // in a regular expression. That is, it matches the end of the
+            // string. (Again, we take into account previous quoting).
+            //
+            // Note that the presence or absence of trailing slashes is ignored
+            // (e.g. a path with a trailing slash also matches an anchored
+            // pattern without a trailing slash).
+            if (regex.endsWith("$\\E")) {
+                regex = regex.replaceFirst("\\$\\\\E\\z", "\\\\E/?");
             }
-            if (!regex.endsWith("$")) {
+
+            // If the robots.txt pattern was *not* anchored, we explicitly allow
+            // any trailing character.
+            else {
                 regex += ".*";
             }
-            regex = baseURL + regex;
+
+            // Last, we assemble the final regex by explicitly anchoring and
+            // prepending the (quoted) baseUrl.
+            regex = "\\A" + Pattern.quote(baseURL) + regex + "\\z";
             final String finalRegex = regex;
-            RegexReferenceFilter filter = 
+
+            RegexReferenceFilter filter =
                     new RegexReferenceFilter(regex, onMatch, false) {
                 @Override
                 public String toString() {
                     return "Robots.txt -> "
                             + (onMatch == OnMatch.INCLUDE 
                             ? "Allow: " : "Disallow: ") + path
-                                    + " (" + finalRegex + ")";
+                                    + " (" + finalRegex.toString() + ")";
                 }
             };
             return filter;

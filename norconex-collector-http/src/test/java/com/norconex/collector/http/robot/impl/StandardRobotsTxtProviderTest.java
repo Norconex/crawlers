@@ -23,6 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.norconex.collector.core.filter.IReferenceFilter;
+import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
 
 /**
  * @author Pascal Essiembre
@@ -92,15 +93,77 @@ public class StandardRobotsTxtProviderTest {
                 parseRobotRule("mister-crawler", robotTxt6)));
 
     }
-    
+
+    @Test
+    public void testWildcardPattern() throws IOException {
+        String robotTxt =
+                "User-agent: *\n\n"
+              + "Disallow: /testing/*/wildcards\n";
+        IReferenceFilter robotRule = parseRobotRule("mister-crawler", robotTxt)[0];
+
+        assertMatch("http://www.test.com/testing/some/random/path/wildcards", robotRule);
+        assertMatch("http://www.test.com/testing/some/random/path/wildcards/test", robotRule);
+
+        assertNoMatch("http://www.test.com/testing/wildcards", robotRule);
+        assertNoMatch("http://www.test.com/wildcards", robotRule);
+    }
+
+    @Test
+    public void testStringEndPattern() throws IOException {
+        String robotTxt =
+                "User-agent: *\n\n"
+              + "Disallow: /testing/anchors$\n";
+        IReferenceFilter robotRule = parseRobotRule("mister-crawler", robotTxt)[0];
+
+        assertMatch("http://www.test.com/testing/anchors", robotRule);
+        assertMatch("http://www.test.com/testing/anchors/", robotRule);
+
+        assertNoMatch("http://www.test.com/testing/anchors/test", robotRule);
+        assertNoMatch("http://www.test.com/randomly/testing/anchors", robotRule);
+    }
+
+    @Test
+    public void testRegexEscape() throws IOException {
+        String robotTxt =
+                "User-agent: *\n\n"
+              + "Disallow: /testing/reg.ex/escape?\n";
+        IReferenceFilter robotRule = parseRobotRule("mister-crawler", robotTxt)[0];
+
+        assertMatch("http://www.test.com/testing/reg.ex/escape?", robotRule);
+        assertMatch("http://www.test.com/testing/reg.ex/escape?test", robotRule);
+
+        assertNoMatch("http://www.test.com/testing/reggex/escape?", robotRule);
+        assertNoMatch("http://www.test.com/testing/reggex/escape?test", robotRule);
+        assertNoMatch("http://www.test.com/testing/reg*ex/escape?", robotRule);
+        assertNoMatch("http://www.test.com/testing/reg*ex/escape?test", robotRule);
+    }
+
     private void assertStartsWith(
             String startsWith, IReferenceFilter robotRule) {
         String rule = StringUtils.substring(
                 robotRule.toString(), 0, startsWith.length());
         Assert.assertEquals(startsWith, rule); 
     }
-    
-    private IReferenceFilter[] parseRobotRule(String agent, String content, String url) 
+
+    private void assertMatch(
+            String url, IReferenceFilter robotRule, Boolean match) {
+        RegexReferenceFilter regexFilter = (RegexReferenceFilter) robotRule;
+        Assert.assertEquals(
+                match,
+                url.matches(regexFilter.getRegex()));
+    }
+
+    private void assertMatch(
+            String url, IReferenceFilter robotRule) {
+        assertMatch(url, robotRule, true);
+    }
+
+    private void assertNoMatch(
+            String url, IReferenceFilter robotRule) {
+        assertMatch(url, robotRule, false);
+    }
+
+    private IReferenceFilter[] parseRobotRule(String agent, String content, String url)
             throws IOException {
         StandardRobotsTxtProvider robotProvider = new StandardRobotsTxtProvider();
         return robotProvider.parseRobotsTxt(
