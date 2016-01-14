@@ -72,6 +72,24 @@ public class LinkExtractorTest {
         ConfigurationUtil.assertWriteRead(extractor);
     }
 
+    @Test
+    public void testGenericEquivRefreshIssue210() throws IOException {
+        String html = "<html><head><meta http-equiv=\"refresh\" "
+                + "content=\"0; URL=en/91/index.html\">"
+                + "</head><body></body></html>";
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+
+        String docURL = "http://db-artmag.com/index_enhtml";
+        Set<Link> links = extractor.extractLinks(
+                new ByteArrayInputStream(html.getBytes()),
+                docURL, ContentType.HTML);
+        
+        Assert.assertEquals(
+                "Invalid number of links extracted.", 1, links.size());
+        Assert.assertEquals(
+                "http://db-artmag.com/en/91/index.html",
+                links.iterator().next().getUrl());
+    }
     
     @Test
     public void testTikaWriteRead() throws IOException {
@@ -88,8 +106,6 @@ public class LinkExtractorTest {
             throws IOException {
         String docURL = "http://www.example.com/test/absolute/"
                 + "LinkBaseHrefTest.html";
-
-
         String host = "http://www.sample.com";
         String baseURL = host + "/blah/";
 
@@ -101,21 +117,17 @@ public class LinkExtractorTest {
                 "http://www.anotherhost.com/k/l/m.html",
         };
         
-        InputStream is = getClass().getResourceAsStream(
-                "LinkBaseHrefTest.html");
-
+        InputStream is = 
+                getClass().getResourceAsStream("LinkBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
                 is, docURL, ContentType.HTML);
         IOUtils.closeQuietly(is);
-
         for (String expectedURL : expectedURLs) {
             assertTrue("Could not find expected URL: " + expectedURL, 
                     contains(links, expectedURL));
         }
-
         Assert.assertEquals("Invalid number of links extracted.", 
                 expectedURLs.length, links.size());
-        
     }
 
     
