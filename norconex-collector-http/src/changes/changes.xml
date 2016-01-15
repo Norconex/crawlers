@@ -17,6 +17,11 @@
         HTTP authentication password and proxy password can now be encrypted
         when using GenericHttpClientFactory.
       </action>
+      <action dev="essiembre" type="update" issue="212">
+        GenericLinkExtractor now only supports these URI schemes:
+        http, https, ftp. It is possible to overwrite these default with
+        #setSchemes(String[]).
+      </action>
       <action dev="essiembre" type="update" issue="194">
         GenericLinkExtractor now attempts by default to detect the character 
         encoding of documents before extracting links and referrer information.
