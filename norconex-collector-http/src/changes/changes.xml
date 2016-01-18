@@ -43,6 +43,10 @@
         Robot rules now escapes dots and other character having special
         meaning in regex, before converting robot rules to regex.
       </action>
+      <action dev="essiembre" type="fix" issue="213">
+        Robots.txt "Allow" directive is now supported properly as 
+        defined by Google bot usage.
+      </action>
       <action dev="essiembre" type="fix" issue="206">
         URLStatusCrawlerEventListener no longer prefixes file names
         with "null" when no file name prefix is explicitly set.

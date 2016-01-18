@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -40,15 +41,18 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
+import com.norconex.collector.http.robot.IRobotsTxtFilter;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.handler.filter.OnMatch;
 
 /**
+ * <p>
  * Implementation of {@link IRobotsTxtProvider} as per the robots.txt standard
  * described at <a href="http://www.robotstxt.org/robotstxt.html">
  * http://www.robotstxt.org/robotstxt.html</a>.
+ * </p>
  * <p>
  * XML configuration usage:
  * </p>
@@ -88,14 +92,14 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             }
         } catch (Exception e) {
             LOG.warn("Not able to obtain robots.txt at: " + robotsURL, e);
-            robotsTxt = new RobotsTxt(new IReferenceFilter[]{});
+            robotsTxt = new RobotsTxt(new IRobotsTxtFilter[]{});
         }
         robotsTxtCache.put(baseURL, robotsTxt);
         return robotsTxt;
     }
 
     
-    /*default*/ RobotsTxt parseRobotsTxt(
+    protected RobotsTxt parseRobotsTxt(
             InputStream is, String url, String userAgent) throws IOException {
         String baseURL = getBaseURL(url);
         
@@ -200,6 +204,26 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         return baseURL;
     }
     
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof StandardRobotsTxtProvider)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .toString();
+    }    
+
     private static class RobotData {
         private enum Precision { 
             NOMATCH, WILD, PARTIAL, EXACT;
@@ -223,7 +247,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
                     LOG.debug("Add filter from robots.txt: " + filter);
                     filters.add(filter);
                 } else if ("allow".equalsIgnoreCase(rule)) {                    
-                    IReferenceFilter filter;
+                    IRobotsTxtFilter filter;
                     filter = buildURLFilter(baseURL, path, OnMatch.INCLUDE);
                     LOG.debug("Add filter from robots.txt: " + filter);
                     filters.add(filter);
@@ -232,11 +256,11 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             float delay = NumberUtils.toFloat(
                     crawlDelay, RobotsTxt.UNSPECIFIED_CRAWL_DELAY);
             return new RobotsTxt(
-                    filters.toArray(new IReferenceFilter[]{}),
+                    filters.toArray(new IRobotsTxtFilter[]{}),
                     sitemaps.toArray(ArrayUtils.EMPTY_STRING_ARRAY),
                     delay);
         }
-        private IReferenceFilter buildURLFilter(
+        private IRobotsTxtFilter buildURLFilter(
                 String baseURL, final String path, final OnMatch onMatch) {
             // Take the robots.txt pattern literally as it may include
             // characters (or character sequences) that would have special
@@ -270,40 +294,53 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             // Last, we assemble the final regex by explicitly anchoring and
             // prepending the (quoted) baseUrl.
             regex = "\\A" + Pattern.quote(baseURL) + regex + "\\z";
-            final String finalRegex = regex;
-
-            RegexReferenceFilter filter =
-                    new RegexReferenceFilter(regex, onMatch, false) {
-                @Override
-                public String toString() {
-                    return "Robots.txt -> "
-                            + (onMatch == OnMatch.INCLUDE 
-                            ? "Allow: " : "Disallow: ") + path
-                                    + " (" + finalRegex.toString() + ")";
-                }
-            };
+            RobotsTxtFilter filter = new RobotsTxtFilter(path, regex, onMatch);
             return filter;
         }
     }
-    
-    @Override
-    public boolean equals(final Object other) {
-        if (!(other instanceof StandardRobotsTxtProvider)) {
-            return false;
+
+    private static class RobotsTxtFilter extends RegexReferenceFilter 
+            implements IRobotsTxtFilter {
+        private final String path;
+        public RobotsTxtFilter(
+                String path, String regex, OnMatch onMatch) {
+            super(regex, onMatch, false);
+            this.path = path;
         }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder()
+        public String getPath() {
+            return path;
+        }
+        @Override
+        public String toString() {
+            return "Robots.txt -> " + (getOnMatch() == OnMatch.INCLUDE 
+                    ? "Allow: " : "Disallow: ") + path
+                            + " (" + getRegex().toString() + ")";            
+        }
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder()
+                .appendSuper(super.hashCode())
+                .append(path)
                 .toHashCode();
+        }
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (!(obj instanceof RobotsTxtFilter)) {
+                return false;
+            }
+            RobotsTxtFilter other = (RobotsTxtFilter) obj;
+            return new EqualsBuilder()
+                .appendSuper(super.equals(obj))
+                .append(path, other.path)
+                .isEquals();
+        }        
     }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .toString();
-    }    
+    
 }
 

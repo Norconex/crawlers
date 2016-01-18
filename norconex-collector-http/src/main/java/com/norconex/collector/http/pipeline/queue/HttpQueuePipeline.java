@@ -20,7 +20,6 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.core.pipeline.BasePipelineContext;
 import com.norconex.collector.core.pipeline.queue.QueueReferenceStage;
 import com.norconex.collector.core.pipeline.queue.ReferenceFiltersStage;
-import com.norconex.collector.core.pipeline.queue.ReferenceFiltersStageUtil;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
@@ -74,26 +73,7 @@ public final class HttpQueuePipeline
         }
     }
     
-    //--- Robots.txt Filters ---------------------------------------------------
-    private static class RobotsTxtFiltersStage extends AbstractQueueStage {
-        @Override
-        public boolean executeStage(HttpQueuePipelineContext ctx) {
-            if (!ctx.getConfig().isIgnoreRobotsTxt()) {
-                RobotsTxt robotsTxt = getRobotsTxt(ctx);
-                if (robotsTxt != null 
-                        && ReferenceFiltersStageUtil.resolveReferenceFilters(
-                                robotsTxt.getFilters(), ctx, "robots.txt")) {
-                    ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
-                    ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_ROBOTS_TXT, 
-                            ctx.getCrawlData(), robotsTxt);
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
-    private static RobotsTxt getRobotsTxt(HttpQueuePipelineContext ctx) {
+    /*default*/ static RobotsTxt getRobotsTxt(HttpQueuePipelineContext ctx) {
         if (!ctx.getConfig().isIgnoreRobotsTxt()) {
             return ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
                     ctx.getHttpClient(), ctx.getCrawlData().getReference(), 

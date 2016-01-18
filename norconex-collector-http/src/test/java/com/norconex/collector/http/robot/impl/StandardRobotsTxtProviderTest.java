@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
+import com.norconex.collector.http.robot.IRobotsTxtFilter;
 
 /**
  * @author Pascal Essiembre
@@ -99,13 +100,16 @@ public class StandardRobotsTxtProviderTest {
         String robotTxt =
                 "User-agent: *\n\n"
               + "Disallow: /testing/*/wildcards\n";
-        IReferenceFilter robotRule = parseRobotRule("mister-crawler", robotTxt)[0];
+        IReferenceFilter rule = parseRobotRule("mister-crawler", robotTxt)[0];
 
-        assertMatch("http://www.test.com/testing/some/random/path/wildcards", robotRule);
-        assertMatch("http://www.test.com/testing/some/random/path/wildcards/test", robotRule);
+        assertMatch(
+                "http://www.test.com/testing/some/random/path/wildcards", rule);
+        assertMatch(
+                "http://www.test.com/testing/some/random/path/wildcards/test",
+                rule);
 
-        assertNoMatch("http://www.test.com/testing/wildcards", robotRule);
-        assertNoMatch("http://www.test.com/wildcards", robotRule);
+        assertNoMatch("http://www.test.com/testing/wildcards", rule);
+        assertNoMatch("http://www.test.com/wildcards", rule);
     }
 
     @Test
@@ -113,13 +117,13 @@ public class StandardRobotsTxtProviderTest {
         String robotTxt =
                 "User-agent: *\n\n"
               + "Disallow: /testing/anchors$\n";
-        IReferenceFilter robotRule = parseRobotRule("mister-crawler", robotTxt)[0];
+        IReferenceFilter rule = parseRobotRule("mister-crawler", robotTxt)[0];
 
-        assertMatch("http://www.test.com/testing/anchors", robotRule);
-        assertMatch("http://www.test.com/testing/anchors/", robotRule);
+        assertMatch("http://www.test.com/testing/anchors", rule);
+        assertMatch("http://www.test.com/testing/anchors/", rule);
 
-        assertNoMatch("http://www.test.com/testing/anchors/test", robotRule);
-        assertNoMatch("http://www.test.com/randomly/testing/anchors", robotRule);
+        assertNoMatch("http://www.test.com/testing/anchors/test", rule);
+        assertNoMatch("http://www.test.com/randomly/testing/anchors", rule);
     }
 
     @Test
@@ -127,15 +131,15 @@ public class StandardRobotsTxtProviderTest {
         String robotTxt =
                 "User-agent: *\n\n"
               + "Disallow: /testing/reg.ex/escape?\n";
-        IReferenceFilter robotRule = parseRobotRule("mister-crawler", robotTxt)[0];
+        IReferenceFilter rule = parseRobotRule("mister-crawler", robotTxt)[0];
 
-        assertMatch("http://www.test.com/testing/reg.ex/escape?", robotRule);
-        assertMatch("http://www.test.com/testing/reg.ex/escape?test", robotRule);
+        assertMatch("http://www.test.com/testing/reg.ex/escape?", rule);
+        assertMatch("http://www.test.com/testing/reg.ex/escape?test", rule);
 
-        assertNoMatch("http://www.test.com/testing/reggex/escape?", robotRule);
-        assertNoMatch("http://www.test.com/testing/reggex/escape?test", robotRule);
-        assertNoMatch("http://www.test.com/testing/reg*ex/escape?", robotRule);
-        assertNoMatch("http://www.test.com/testing/reg*ex/escape?test", robotRule);
+        assertNoMatch("http://www.test.com/testing/reggex/escape?", rule);
+        assertNoMatch("http://www.test.com/testing/reggex/escape?test", rule);
+        assertNoMatch("http://www.test.com/testing/reg*ex/escape?", rule);
+        assertNoMatch("http://www.test.com/testing/reg*ex/escape?test", rule);
     }
 
     private void assertStartsWith(
@@ -163,16 +167,17 @@ public class StandardRobotsTxtProviderTest {
         assertMatch(url, robotRule, false);
     }
 
-    private IReferenceFilter[] parseRobotRule(String agent, String content, String url)
-            throws IOException {
-        StandardRobotsTxtProvider robotProvider = new StandardRobotsTxtProvider();
+    private IRobotsTxtFilter[] parseRobotRule(
+            String agent, String content, String url) throws IOException {
+        StandardRobotsTxtProvider robotProvider = 
+                new StandardRobotsTxtProvider();
         return robotProvider.parseRobotsTxt(
                 IOUtils.toInputStream(content), 
                 url,
                 "mister-crawler").getFilters();
     }
     
-    private IReferenceFilter[] parseRobotRule(String agent, String content) 
+    private IRobotsTxtFilter[] parseRobotRule(String agent, String content) 
             throws IOException {
         return parseRobotRule(agent, content, 
                 "http://www.test.com/some/fake/url.html");

@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,41 +14,87 @@
  */
 package com.norconex.collector.http.robot;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.core.filter.IReferenceFilter;
+import com.norconex.importer.handler.filter.OnMatch;
 
 public class RobotsTxt {
 
     public static final float UNSPECIFIED_CRAWL_DELAY = -1;
+
+    private static final IRobotsTxtFilter[] EMPTY_ROBOTSTXT_FILTERS =
+            new IRobotsTxtFilter[] {};
     
-    private final IReferenceFilter[] filters;
+    //TODO delete this variable that contains all of them?
+    private final IRobotsTxtFilter[] filters;
+    private final IRobotsTxtFilter[] disallowFilters;
+    private final IRobotsTxtFilter[] allowFilters;
     private final float crawlDelay;
     private final String[] sitemapLocations;
     
-    public RobotsTxt(IReferenceFilter[] filters) {
+    public RobotsTxt(IRobotsTxtFilter[] filters) {
         this(filters, UNSPECIFIED_CRAWL_DELAY);
     }
-    public RobotsTxt(IReferenceFilter[] filters, float crawlDelay) {
+    public RobotsTxt(IRobotsTxtFilter[] filters, float crawlDelay) {
         this(filters, null, crawlDelay);
     }
-    public RobotsTxt(IReferenceFilter[] filters, String[] sitemapLocations) {
+    public RobotsTxt(IRobotsTxtFilter[] filters, String[] sitemapLocations) {
         this(filters, sitemapLocations, UNSPECIFIED_CRAWL_DELAY);
     }
-    public RobotsTxt(IReferenceFilter[] filters, String[] sitemapLocations, 
+    public RobotsTxt(IRobotsTxtFilter[] filters, String[] sitemapLocations, 
             float crawlDelay) {
         super();
         this.filters = ArrayUtils.clone(filters);
         this.sitemapLocations = ArrayUtils.clone(sitemapLocations);
         this.crawlDelay = crawlDelay;
+        
+        if (filters == null) {
+            this.disallowFilters = null;
+            this.allowFilters = null;
+        } else {
+            List<IRobotsTxtFilter> disallows = new ArrayList<>();
+            List<IRobotsTxtFilter> allows = new ArrayList<>();
+            for (IRobotsTxtFilter filter : this.filters) {
+                if (filter.getOnMatch() == OnMatch.EXCLUDE) {
+                    disallows.add(filter);
+                } else {
+                    allows.add(filter);
+                }
+            }
+            this.disallowFilters = disallows.toArray(EMPTY_ROBOTSTXT_FILTERS);
+            this.allowFilters = allows.toArray(EMPTY_ROBOTSTXT_FILTERS);
+        }
     }
 
-    public IReferenceFilter[] getFilters() {
+    //TODO deprecate?
+    /**
+     * Gets all filters.
+     * @return filters
+     */
+    public IRobotsTxtFilter[] getFilters() {
         return ArrayUtils.clone(filters);
+    }
+    /**
+     * Gets "Disallow" filters.
+     * @return disallow filters
+     * @since 2.4.0
+     */
+    public IRobotsTxtFilter[] getDisallowFilters() {
+        return ArrayUtils.clone(disallowFilters);
+    }
+    /**
+     * Gets "Allow" filters.
+     * @return allow filters
+     * @since 2.4.0
+     */
+    public IRobotsTxtFilter[] getAllowFilters() {
+        return ArrayUtils.clone(allowFilters);
     }
     public String[] getSitemapLocations() {
         return ArrayUtils.clone(sitemapLocations);
