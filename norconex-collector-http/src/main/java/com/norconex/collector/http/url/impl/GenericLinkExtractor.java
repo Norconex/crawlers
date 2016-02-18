@@ -14,8 +14,10 @@
  */
 package com.norconex.collector.http.url.impl;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.HashSet;
@@ -217,7 +219,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private static final String[] DEFAULT_SCHEMES = 
             new String[] { "http", "https", "ftp" };
     
-    private static final int INPUT_READ_ARRAY_SIZE = 2048;
     private static final int PATTERN_URL_GROUP = 4;
     private static final int PATTERN_FLAGS = 
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
@@ -248,7 +249,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     @Override
     public Set<Link> extractLinks(InputStream input, String reference,
             ContentType contentType) throws IOException {
-        
+
         ContentType[] cTypes = contentTypes;
         if (ArrayUtils.isEmpty(cTypes)) {
             cTypes = DEFAULT_CONTENT_TYPES;
@@ -273,11 +274,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         Set<Link> links = new HashSet<>();
         
         StringBuilder sb = new StringBuilder();
-        byte[] buffer = new byte[INPUT_READ_ARRAY_SIZE];
-        int length;
+        Reader r = 
+                new BufferedReader(new InputStreamReader(input, sourceCharset));
+        int ch;
         boolean firstChunk = true;
-        while ((length = input.read(buffer)) != -1) {
-            sb.append(new String(buffer, 0, length, sourceCharset));
+        while ((ch = r.read()) != -1) {
+            sb.append((char) ch);
             if (sb.length() >= MAX_BUFFER_SIZE) {
                 String content = sb.toString();
                 referer = adjustReferer(content, referer, firstChunk);
@@ -438,7 +440,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private void extractLinks(
             String theContent, Referer referrer, Set<Link> links) {
         String content = theContent;
-        
+
         // Get rid of <script> tags to eliminate possibly generated URLs.
         content = SCRIPT_PATTERN.matcher(content).replaceAll("");
         //TODO eliminate URLs inside <!-- comments --> too?
