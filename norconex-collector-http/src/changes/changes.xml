@@ -17,6 +17,10 @@
         HTTP authentication password and proxy password can now be encrypted
         when using GenericHttpClientFactory.
       </action>
+      <action dev="essiembre" type="update">
+        The "log4j.properties" file has been moved from classes to the 
+        installation root directory.
+      </action>
       <action dev="essiembre" type="update" issue="212">
         GenericLinkExtractor now only supports these URI schemes:
         http, https, ftp. It is possible to overwrite these default with
