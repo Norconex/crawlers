@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -235,7 +235,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public ILinkExtractor[] getLinkExtractors() {
         return ArrayUtils.clone(linkExtractors);
     }
-    public void setLinkExtractors(ILinkExtractor[] linkExtractors) {
+    public void setLinkExtractors(ILinkExtractor... linkExtractors) {
         this.linkExtractors = ArrayUtils.clone(linkExtractors);
     }
     public IRobotsTxtProvider getRobotsTxtProvider() {

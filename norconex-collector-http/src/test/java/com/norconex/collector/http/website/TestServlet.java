@@ -1,4 +1,4 @@
-/* Copyright 2014-2015 Norconex Inc.
+/* Copyright 2014-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("modifiedFiles", new ModifiedFilesTestCase());
         testCases.put("canonical", new CanonicalTestCase());
         testCases.put("specialURLs", new SpecialURLTestCase());
+        testCases.put("script", new ScriptTestCase());
     }
     
     @Override
@@ -359,4 +360,24 @@ public class TestServlet extends HttpServlet {
             }
         }
     }
+    
+    // Test case for https://github.com/Norconex/collector-http/issues/232
+    class ScriptTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            boolean isScript = Boolean.valueOf(req.getParameter("script"));
+            if (!isScript) {
+                out.println("<h1>Page with a script tag</h1>");
+                out.println("<script src=\"/test?case=script&script=true\">"
+                    + "THIS_MUST_BE_STRIPPED, but src URL must be crawled"
+                    + "</script>");
+                out.println("<script>THIS_MUST_BE_STRIPPED</script>");
+                out.println("View the source to see &lt;script&gt; tags");
+            } else {
+                out.println("<h1>The Script page</h1>");
+                out.println("This must be crawled.");
+            }
+        }
+    }
+    
 }

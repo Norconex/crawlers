@@ -436,13 +436,14 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private static final Pattern A_TITLE_PATTERN = Pattern.compile(
             "\\s*title\\s*=\\s*([\"'])(.*?)\\1", PATTERN_FLAGS);
     private static final Pattern SCRIPT_PATTERN = Pattern.compile(
-            "<\\s*script\\b.*?>.*?<\\s*/\\s*script\\s*>", PATTERN_FLAGS);
+            "(<\\s*script\\b.*?>)(.*?)(<\\s*/\\s*script\\s*>)", PATTERN_FLAGS);
     private void extractLinks(
             String theContent, Referer referrer, Set<Link> links) {
         String content = theContent;
 
-        // Get rid of <script> tags to eliminate possibly generated URLs.
-        content = SCRIPT_PATTERN.matcher(content).replaceAll("");
+        // Get rid of <script> tags content to eliminate possibly 
+        // generated URLs.
+        content = SCRIPT_PATTERN.matcher(content).replaceAll("$1$3");
         //TODO eliminate URLs inside <!-- comments --> too?
 
         Matcher matcher = tagPattern.matcher(content);

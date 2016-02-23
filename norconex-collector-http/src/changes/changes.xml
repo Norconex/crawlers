@@ -48,6 +48,11 @@
         Robot rules now escapes dots and other character having special
         meaning in regex, before converting robot rules to regex.
       </action>
+      <action dev="essiembre" type="update" issue="232">
+        GenericLinkExtractor now only strips the inside of script tags in HTML
+        pages before extracting links, so that the src links can be followed 
+        if configured to do so.
+      </action>
       <action dev="essiembre" type="fix" issue="219">
         GenericLinkExtractor is now reading characters as opposed to bytes
         to fix breaking some characters.

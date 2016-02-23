@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- To consider: when re-processing orphans, check the depth in case the 
+  max depth changed.
+
 - Offer a flag to merge frame/iframe elements on HTML pages as opposed to
   crawl them as separate documents.
 
