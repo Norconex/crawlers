@@ -6,10 +6,6 @@ The following are either things to be done, or ideas to consider:
 - Add a command-line flag that saves the constructed config back to disk 
   for easy sharing (XML-write).
 
-- Somehow have a flag that says whether to keep URL fragments or not that 
-  applied to both URL extractors and redirects.  Idea: maybe have the
-  URLNormalizer used by default and have that rule in?
-
 - Carry a flag that tells if we are running a full crawl, or an incremental one.
   Some operations may be relevant only on incremental runs.
 
