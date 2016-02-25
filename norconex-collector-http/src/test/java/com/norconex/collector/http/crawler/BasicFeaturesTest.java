@@ -209,15 +209,20 @@ public class BasicFeaturesTest extends AbstractHttpTest {
 
         assertListSize("document", docs, 2);
 
-        String content1 = IOUtils.toString(docs.get(0).getContent());
-        String content2 = IOUtils.toString(docs.get(1).getContent());
-        
-        Assert.assertTrue("First page not crawled properly",
-                content1.contains("View the source"));
-        Assert.assertTrue("Did not strip inside of <script>",
-                !content1.contains("THIS_MUST_BE_STRIPPED"));
-        Assert.assertTrue("Script page not crawled properly",
-                content2.contains("This must be crawled"));
+        for (HttpDocument doc : docs) {
+            String content = IOUtils.toString(doc.getContent());
+            if (!doc.getReference().contains("script=true")) {
+                // first page
+                Assert.assertTrue("First page not crawled properly",
+                        content.contains("View the source"));
+                Assert.assertTrue("Did not strip inside of <script>",
+                        !content.contains("THIS_MUST_BE_STRIPPED"));
+            } else {
+                // second page
+                Assert.assertTrue("Script page not crawled properly",
+                        content.contains("This must be crawled"));
+            }
+        }
     }    
     
     
