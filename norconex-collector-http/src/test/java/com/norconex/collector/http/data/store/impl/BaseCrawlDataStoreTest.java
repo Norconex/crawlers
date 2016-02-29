@@ -37,6 +37,11 @@ import com.norconex.collector.http.data.HttpCrawlState;
  */
 public abstract class BaseCrawlDataStoreTest {
 
+    static {
+        // Disabling durability increases test performance by a HUGE factor.
+        System.setProperty("derby.system.durability", "test");
+    }
+    
     /**
      * Actual implementation will be provided by the concrete class.
      */

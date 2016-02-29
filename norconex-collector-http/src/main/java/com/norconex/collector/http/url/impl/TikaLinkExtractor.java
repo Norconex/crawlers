@@ -41,6 +41,8 @@ import org.apache.log4j.Logger;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.html.DefaultHtmlMapper;
+import org.apache.tika.parser.html.HtmlMapper;
 import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.Link;
 import org.apache.tika.sax.LinkContentHandler;
@@ -74,14 +76,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * 
  * <h3>XML configuration usage</h3>
  * <pre>
- *  &lt;extractor class="com.norconex.collector.http.url.impl.TikeLinkExtractor"
+ *  &lt;extractor class="com.norconex.collector.http.url.impl.TikaLinkExtractor"
  *          ignoreNofollow="(false|true)" 
  *          keepReferrerData="(false|true)"&gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
  *      &lt;/contentTypes&gt;
- *  &lt;/linkExtractor&gt;  
+ *  &lt;/extractor&gt;  
  * </pre>
  * @author Pascal Essiembre
  * @see HtmlLinkExtractor
@@ -108,7 +110,12 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
     private boolean ignoreNofollow;
     private boolean keepReferrerData;
+    private static final HtmlMapper fixedHtmlMapper = new FixedHtmlParserMapper();
 
+    public TikaLinkExtractor() {
+        super();
+    }
+    
     @Override
     public Set<com.norconex.collector.http.url.Link> extractLinks(
             InputStream is, String url, ContentType contentType)
@@ -116,6 +123,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         LinkContentHandler linkHandler = new LinkContentHandler();
         Metadata metadata = new Metadata();
         ParseContext parseContext = new ParseContext();
+        parseContext.set(HtmlMapper.class, fixedHtmlMapper);
         HtmlParser parser = new HtmlParser();
         try {
             parser.parse(is, linkHandler, metadata, parseContext);
@@ -145,13 +153,17 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                                     extractedURL);
                     if (keepReferrerData) {
                         nxLink.setReferrer(url);
-                        nxLink.setText(tikaLink.getText());
+                        if (StringUtils.isNotBlank(tikaLink.getText())) {
+                            nxLink.setText(tikaLink.getText());
+                        }
                         if (tikaLink.isAnchor()) {
                             nxLink.setTag("a.href");
                         } else if (tikaLink.isImage()) {
                             nxLink.setTag("img.src");
                         }
-                        nxLink.setTitle(tikaLink.getTitle());
+                        if (StringUtils.isNotBlank(tikaLink.getTitle())) {
+                            nxLink.setTitle(tikaLink.getTitle());
+                        }
                     }
                     nxLinks.add(nxLink);
                 }
@@ -300,5 +312,20 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return new HashCodeBuilder().append(contentTypes)
                 .append(ignoreNofollow)
                 .append(keepReferrerData).toHashCode();
+    }
+    
+
+    // Custom HTML Mapper that adds "title" to the supported anchor
+    // attributes, in order to be able to extract the title out of 
+    // anchors when keepReferrerData is true.
+    private static class FixedHtmlParserMapper extends DefaultHtmlMapper {
+        @Override
+        public String mapSafeAttribute(
+                String elementName, String attributeName) {
+            if ("a".equals(elementName) && "title".equals(attributeName)) {
+                return "title";
+            }
+            return super.mapSafeAttribute(elementName, attributeName);
+        }
     }
 }

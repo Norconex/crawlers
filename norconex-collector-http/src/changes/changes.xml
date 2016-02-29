@@ -7,6 +7,96 @@
   </properties>
   <body>
 
+    <release version="2.4.0" date="2016-02-28" description="Feature release">
+      <action dev="essiembre" type="add" issue="199">
+        New configurable IRedirectURLProvider with default implementation
+        GenericRedirectURLProvider now better handling redirect character
+        encoding and offering encoding options.
+      </action>
+      <action dev="essiembre" type="add" issue="178">
+        HTTP authentication password and proxy password can now be encrypted
+        when using GenericHttpClientFactory.
+      </action>
+      <action dev="essiembre" type="update">
+        The "log4j.properties" file has been moved from classes to the 
+        installation root directory.
+      </action>
+      <action dev="essiembre" type="update" issue="212">
+        GenericLinkExtractor now only supports these URI schemes:
+        http, https, ftp. It is possible to overwrite these default with
+        #setSchemes(String[]).
+      </action>
+      <action dev="essiembre" type="update" issue="194">
+        GenericLinkExtractor now attempts by default to detect the character 
+        encoding of documents before extracting links and referrer information.
+        In addition, it is now possible to explicitly set which charset
+        to use via the #setCharset(String) method.
+      </action>
+      <action dev="essiembre" type="update">
+        Derby unit tests are now much faster after settings its system
+        durability for testing to "test".
+      </action>
+      <action dev="essiembre" type="update">
+        Added more logging to FORM-based authentication to help troubleshoot
+        authentication issues.
+      </action>
+      <action dev="essiembre" type="update">
+        Maven dependency updates: Apache HttpClient 4.5.1, 
+        Norconex Collector Core 1.4.0, Joda Time 2.9.2.
+      </action>      
+      <action dev="essiembre" type="update" issue="200">
+        Robot rules now escapes dots and other character having special
+        meaning in regex, before converting robot rules to regex.
+      </action>
+      <action dev="essiembre" type="update" issue="232">
+        GenericLinkExtractor now only strips the inside of script tags in HTML
+        pages before extracting links, so that the src links can be followed 
+        if configured to do so.
+      </action>
+      <action dev="essiembre" type="fix" issue="219">
+        GenericLinkExtractor is now reading characters as opposed to bytes
+        to fix breaking some characters.
+      </action>
+      <action dev="essiembre" type="fix" issue="213">
+        Robots.txt "Allow" directive is now supported properly as 
+        defined by Google bot usage.
+      </action>
+      <action dev="essiembre" type="fix" issue="206">
+        URLStatusCrawlerEventListener no longer prefixes file names
+        with "null" when no file name prefix is explicitly set.
+      </action>
+      <action dev="essiembre" type="fix" issue="204">
+        Fixed both GenericLinkExtractor and TikaLinkExtractor which were
+        not able to extract link titles when keepReferrerData was true.
+      </action>
+      <action dev="essiembre" type="fix" issue="204">
+        Text is now extracted when HTML is found in an anchor body
+        (when keepReferrerData is true).
+      </action>
+      <action dev="essiembre" type="fix" issue="196">
+        GenericHttpClientFactory#trustAllSSLCertificates now
+        disables hostname verification and algorithm constraints. 
+      </action>
+      <action dev="essiembre" type="fix" issue="193">
+        Fixed "lenient" flag having no effect on "sitemapResolverFactory".
+      </action>
+      <action dev="essiembre" type="fix" issue="188">
+        Fixed "base href" HTML tag not being recognized when resolving 
+        relative URLs in HTML pages.
+      </action>
+      <action dev="essiembre" type="fix" issue="187">
+        When the "class" attribute is not specified in "sitemapResolverFactory"
+        for XML config, the default resolver instance is now used 
+        (as opposed to null, which was causing some configs not to be loaded
+        properly).
+      </action>      
+      <action dev="essiembre" type="fix" issue="181">
+        GenericHttpClientFactory#trustAllSSLCertificates will now
+        disable SSL SNI Extension, and unable unsafe cert algorithms that are 
+        now disabled by default since Java 7.
+      </action>      
+    </release>
+
     <release version="2.3.0" date="2015-11-06" description="Feature release">
       <action dev="essiembre" type="add" issue="175">
         GenericHttpClientFactory now allows you to set HTTP request headers on 

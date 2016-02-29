@@ -168,8 +168,11 @@ public class StandardSitemapResolverFactory
             setTempDir(new File(tempPath));
         }
         setLenient(xml.getBoolean("[@lenient]", false));
-        setSitemapPaths(xml.getList(
-                "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+        String[] paths = xml.getList(
+                "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY); 
+        if (!ArrayUtils.isEmpty(paths)) {
+            setSitemapPaths(paths);
+        }
         
         if (!xml.getList("location").isEmpty()) {
             LOG.warn("Since 2.3.0, the location tag is no longer supported. "

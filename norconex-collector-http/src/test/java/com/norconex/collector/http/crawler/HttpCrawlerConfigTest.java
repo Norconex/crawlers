@@ -23,6 +23,7 @@ import com.norconex.collector.core.CollectorConfigLoader;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.encrypt.EncryptionKey;
 
 /**
  * @author Pascal Essiembre
@@ -44,6 +45,9 @@ public class HttpCrawlerConfigTest {
                 (GenericHttpClientFactory) crawlerConfig.getHttpClientFactory();
         clientFactory.setRequestHeader("header1", "value1");
         clientFactory.setRequestHeader("header2", "value2");
+        clientFactory.setProxyPasswordKey(new EncryptionKey(
+                "C:\\keys\\myEncryptionKey.txt", EncryptionKey.Source.FILE));
+        clientFactory.setAuthPasswordKey(new EncryptionKey("my key"));
         
         System.out.println("Writing/Reading this: " + config);
         ConfigurationUtil.assertWriteRead(config);

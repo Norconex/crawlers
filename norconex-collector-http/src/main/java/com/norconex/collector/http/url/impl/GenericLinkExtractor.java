@@ -1,4 +1,4 @@
-/* Copyright 2014-2015 Norconex Inc.
+/* Copyright 2014-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
  */
 package com.norconex.collector.http.url.impl;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.HashSet;
@@ -39,6 +41,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ILinkExtractor;
@@ -49,6 +52,7 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.importer.util.CharsetUtil;
 
 /**
  * Generic link extractor for URLs found in HTML and possibly other text files.
@@ -122,6 +126,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   {@link HttpMetadata#COLLECTOR_REFERRER_LINK_TITLE}.</li>
  * </ul>
  * 
+ * <h3>Character encoding</h3>
+ * <p><b>Since 2.4.0</b>, this extractor will by default <i>attempt</i> to 
+ * detect the encoding of the a page when extracting links and 
+ * referrer information. If no charset could be detected, it falls back to 
+ * UTF-8. It is also possible to dictate which encoding to use with 
+ * {@link #setCharset(String)}. 
+ * </p>
+ * 
  * <h3>"nofollow"</h3>
  * By default, a regular HTML link having the "rel" attribute set to "nofollow"
  * won't be extracted (e.g. <code>&lt;a href="x.html" rel="nofollow" ...</code>.  
@@ -129,12 +141,13 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * 
  * <h3>URL Fragments</h3>
- * <p>This extractor preserves hashtag characters (#) found
+ * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
  * in URLs and every characters after it. It relies on the implementation
- * of {@link IURLNormalizer} to strip it if need be.  Since 2.3.0,
+ * of {@link IURLNormalizer} to strip it if need be.  
  * {@link GenericURLNormalizer} is now always invoked by default, and the 
  * default set of rules defined for it will remove fragments. 
  * </p>
+ * 
  * <p>
  * The URL specification says hashtags
  * are used to represent fragments only. That is, to quickly jump to a specific
@@ -146,17 +159,31 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * It may be essential when crawling these sites to keep the URL fragments.
  * This can be done by making sure the URL normalizer does not strip them.
  * </p>
- *
+ * 
+ * <h3>URL Schemes</h3>
+ * <p><b>Since 2.4.0</b>, only valid 
+ * <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax">
+ * schemes</a> are extracted for absolute URLs. By default, those are 
+ * <code>http</code>, <code>https</code>, and <code>ftp</code>. You can 
+ * specify your own list of supported protocols with 
+ * {@link #setSchemes(String[])}.
+ * </p>
+ * 
  * <h3>XML configuration usage</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
  *          maxURLLength="(maximum URL length. Default is 2048)" 
  *          ignoreNofollow="[false|true]" 
- *          keepReferrerData="[false|true]" &gt;
+ *          keepReferrerData="[false|true]"
+ *          charset="(supported character encoding)" &gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
  *      &lt;/contentTypes&gt;
+ *      &lt;schemes&gt;
+ *          (CSV list of URI scheme for which to perform link extraction.
+ *           leave blank or remove tag to use defaults.)
+ *      &lt;/schemes&gt;
  *      
  *      &lt;!-- Which tags and attributes hold the URLs to extract --&gt;
  *      &lt;tags&gt;
@@ -189,18 +216,22 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         ContentType.valueOf("vnd.wap.xhtml+xml"),
         ContentType.valueOf("x-asp"),
     };
-    private static final int INPUT_READ_ARRAY_SIZE = 2048;
+    private static final String[] DEFAULT_SCHEMES = 
+            new String[] { "http", "https", "ftp" };
+    
     private static final int PATTERN_URL_GROUP = 4;
     private static final int PATTERN_FLAGS = 
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
     private static final int LOGGING_MAX_URL_LENGTH = 200;
     
     private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
+    private String[] schemes = DEFAULT_SCHEMES;
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     private boolean ignoreNofollow;
     private boolean keepReferrerData;
     private final Properties tagAttribs = new Properties(true);
     private Pattern tagPattern;
+    private String charset;
     
     public GenericLinkExtractor() {
         super();
@@ -212,10 +243,13 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         addLinkTag("meta", "http-equiv");
     }
 
+    
+    private static final Pattern BASE_HREF_PATTERN = Pattern.compile(
+            "<base[^<]+?href\\s*=\\s*([\"']{0,1})(.*?)\\1", PATTERN_FLAGS);
     @Override
     public Set<Link> extractLinks(InputStream input, String reference,
             ContentType contentType) throws IOException {
-        
+
         ContentType[] cTypes = contentTypes;
         if (ArrayUtils.isEmpty(cTypes)) {
             cTypes = DEFAULT_CONTENT_TYPES;
@@ -227,24 +261,57 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
 
         // Do it, extract Links
-        Referer urlParts = new Referer(reference);
+        String sourceCharset = getCharset();
+        if (StringUtils.isBlank(sourceCharset)) {
+            sourceCharset = CharsetUtil.detectCharset(input);
+        } else {
+            sourceCharset = CharsetUtils.clean(sourceCharset);
+        }
+        sourceCharset = 
+                StringUtils.defaultIfBlank(sourceCharset, CharEncoding.UTF_8);
+        
+        Referer referer = new Referer(reference);
         Set<Link> links = new HashSet<>();
         
         StringBuilder sb = new StringBuilder();
-        byte[] buffer = new byte[INPUT_READ_ARRAY_SIZE];
-        int length;
-        while ((length = input.read(buffer)) != -1) {
-            sb.append(new String(buffer, 0, length, CharEncoding.UTF_8));
+        Reader r = 
+                new BufferedReader(new InputStreamReader(input, sourceCharset));
+        int ch;
+        boolean firstChunk = true;
+        while ((ch = r.read()) != -1) {
+            sb.append((char) ch);
             if (sb.length() >= MAX_BUFFER_SIZE) {
-                extractLinks(sb.toString(), urlParts, links);
+                String content = sb.toString();
+                referer = adjustReferer(content, referer, firstChunk);
+                firstChunk = false;
+                extractLinks(content, referer, links);
                 sb.delete(0, sb.length() - OVERLAP_SIZE);
             }
         }
-        extractLinks(sb.toString(), urlParts, links);
+        String content = sb.toString();
+        referer = adjustReferer(content, referer, firstChunk);
+        extractLinks(content, referer, links);
         sb.setLength(0);
-        
         return links;
     }
+
+    
+    private Referer adjustReferer(
+            final String content, final Referer referer, 
+            final boolean firstChunk) {
+        String txt = content;
+        Referer ref = referer;
+        
+        if (firstChunk) {
+            Matcher matcher = BASE_HREF_PATTERN.matcher(txt);
+            if (matcher.find()) {
+                String reference = matcher.group(2);
+                ref = new Referer(reference);
+            }
+        }
+        return ref;
+    }
+    
     
     @Override
     public boolean accepts(String url, ContentType contentType) {
@@ -277,6 +344,23 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         this.contentTypes = ArrayUtils.clone(contentTypes);
     }
 
+    /**
+     * Gets the schemes to be extracted.
+     * @return schemes to be extracted
+     * @since 2.4.0
+     */
+    public String[] getSchemes() {
+        return schemes;
+    }
+    /**
+     * Sets the schemes to be extracted.
+     * @param schemes schemes to be extracted
+     * @since 2.4.0
+     */
+    public void setSchemes(String... schemes) {
+        this.schemes = schemes;
+    }
+
     public boolean isIgnoreNofollow() {
         return ignoreNofollow;
     }
@@ -289,6 +373,25 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
     public void setKeepReferrerData(boolean keepReferrerData) {
         this.keepReferrerData = keepReferrerData;
+    }
+
+    /**
+     * Gets the character set of pages on which link extraction is performed.
+     * Default is <code>null</code> (charset detection will be attempted).
+     * @return character set to use, or <code>null</code>
+     * @since 2.4.0
+     */
+    public String getCharset() {
+        return charset;
+    }
+    /**
+     * Sets the character set of pages on which link extraction is performed.
+     * Not specifying any (<code>null</code>) will attempt charset detection.
+     * @param charset character set to use, or <code>null</code>
+     * @since 2.4.0
+     */
+    public void setCharset(String charset) {
+        this.charset = charset;
     }
 
     public synchronized void addLinkTag(String tagName, String attribute) {
@@ -329,15 +432,18 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     
     //--- Extract Links --------------------------------------------------------
     private static final Pattern A_TEXT_PATTERN = Pattern.compile(
-            "<a[^<]+?>([^<]+?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
+            "<a[^<]+?>(.*?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
+    private static final Pattern A_TITLE_PATTERN = Pattern.compile(
+            "\\s*title\\s*=\\s*([\"'])(.*?)\\1", PATTERN_FLAGS);
     private static final Pattern SCRIPT_PATTERN = Pattern.compile(
-            "<\\s*script\\b.*?>.*?<\\s*/\\s*script\\s*>", PATTERN_FLAGS);
+            "(<\\s*script\\b.*?>)(.*?)(<\\s*/\\s*script\\s*>)", PATTERN_FLAGS);
     private void extractLinks(
             String theContent, Referer referrer, Set<Link> links) {
         String content = theContent;
-        
-        // Get rid of <script> tags to eliminate possibly generated URLs.
-        content = SCRIPT_PATTERN.matcher(content).replaceAll("");
+
+        // Get rid of <script> tags content to eliminate possibly 
+        // generated URLs.
+        content = SCRIPT_PATTERN.matcher(content).replaceAll("$1$3");
         //TODO eliminate URLs inside <!-- comments --> too?
 
         Matcher matcher = tagPattern.matcher(content);
@@ -369,6 +475,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
             //--- a tag attribute has the URL ---
             String text = null;
+            String title = null;
             if (StringUtils.isBlank(restOfTag)) {
                 continue;
             }
@@ -384,6 +491,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     Matcher textMatcher = A_TEXT_PATTERN.matcher(content);
                     if (textMatcher.find(matcher.start())) {
                         text = textMatcher.group(1).trim();
+                        // Strip markup to only extract the text
+                        text = text.replaceAll("<[^>]*>", "");
+                    }
+                    Matcher titleMatcher = A_TITLE_PATTERN.matcher(restOfTag);
+                    if (titleMatcher.find()) {
+                        title = titleMatcher.group(2).trim();
                     }
                 }
             }
@@ -416,7 +529,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     if (keepReferrerData) {
                         link.setReferrer(referrer.url);
                         link.setTag(tagName + "." + attribName);
-                        link.setText(text);
+                        if (StringUtils.isNotBlank(text)) {
+                            link.setText(text);
+                        }
+                        if (StringUtils.isNotBlank(title)) {
+                            link.setTitle(title);
+                        }
                     }
                     links.add(link);
                 }
@@ -474,7 +592,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         
         if (url.startsWith("//")) {
             // this is URL relative to protocol
-            url = urlParts.protocol 
+            url = urlParts.scheme 
                     + StringUtils.substringAfter(url, "//");
         } else if (url.startsWith("/")) {
             // this is a URL relative to domain name
@@ -482,7 +600,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         } else if (url.startsWith("?") || url.startsWith("#")) {
             // this is a relative url and should have the full page base
             url = urlParts.documentBase + url;
-        } else if (!url.contains("://")) {
+        } else if (!url.contains(":")) {
             if (urlParts.relativeBase.endsWith("/")) {
                 // This is a URL relative to the last URL segment
                 url = urlParts.relativeBase + url;
@@ -492,7 +610,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
 
         if (url.length() > maxURLLength) {
-            LOG.debug("URL length (" + url.length() + ") exeeding "
+            LOG.debug("URL length (" + url.length() + ") exceeding "
                    + "maximum length allowed (" + maxURLLength
                    + ") to be extracted. URL (showing first "
                    + LOGGING_MAX_URL_LENGTH + " chars): " 
@@ -504,14 +622,24 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return url;
     }
 
+    private static final Pattern SCHEME_PATTERN = Pattern.compile(
+            "^[a-z][a-z0-9\\+\\.\\-]*:.*$", Pattern.CASE_INSENSITIVE);
     private boolean isValidNewURL(String newURL) {
         if (StringUtils.isBlank(newURL)) {
             return false;
         }
-        if (StringUtils.startsWithIgnoreCase(newURL, "mailto:")) {
-            return false;
-        }
-        if (StringUtils.startsWithIgnoreCase(newURL, "javascript:")) {
+
+        // if scheme is specified, make sure it is valid
+        if (SCHEME_PATTERN.matcher(newURL).matches()) {
+            String[] supportedSchemes = getSchemes();
+            if (ArrayUtils.isEmpty(supportedSchemes)) {
+                supportedSchemes = DEFAULT_SCHEMES;
+            }
+            for (String scheme : supportedSchemes) {
+                if (StringUtils.startsWithIgnoreCase(newURL, scheme + ":")) {
+                    return true;
+                }
+            }        
             return false;
         }
         return true;
@@ -525,6 +653,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 "[@ignoreNofollow]", isIgnoreNofollow()));
         setKeepReferrerData(xml.getBoolean(
                 "[@keepReferrerData]", isKeepReferrerData()));
+        setCharset(xml.getString("[@charset]", getCharset()));
         if (xml.getBoolean("[@keepFragment]", false)) {
             LOG.warn("'keepFragment' on GenericLinkExtractor was removed. "
                    + "Instead, URL normalization now always takes place by "
@@ -538,7 +667,14 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         if (!ArrayUtils.isEmpty(cts)) {
             setContentTypes(cts);
         }
-        
+
+        // Schemes
+        String[] supportedSchemes = StringUtils.split(
+                StringUtils.trimToNull(xml.getString("schemes")), ", ");
+        if (!ArrayUtils.isEmpty(supportedSchemes)) {
+            setSchemes(supportedSchemes);
+        }
+
         // tag & attributes
         List<HierarchicalConfiguration> tagNodes = 
                 xml.configurationsAt("tags.tag");
@@ -564,11 +700,18 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
             writer.writeAttributeBoolean(
                     "keepReferrerData", isKeepReferrerData());
+            writer.writeAttributeString("charset", getCharset());
             
             // Content Types
             if (!ArrayUtils.isEmpty(getContentTypes())) {
                 writer.writeElementString("contentTypes", 
                         StringUtils.join(getContentTypes(), ','));
+            }
+
+            // Schemes
+            if (!ArrayUtils.isEmpty(getSchemes())) {
+                writer.writeElementString("schemes", 
+                        StringUtils.join(getSchemes(), ','));
             }
 
             // Tags
@@ -596,7 +739,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     
     //TODO delete this class and use HttpURL#toAbsolute() instead?
     private static class Referer {
-        private final String protocol;
+        private final String scheme;
         private final String path;
         private final String relativeBase;
         private final String absoluteBase;
@@ -605,25 +748,24 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         public Referer(String documentUrl) {
             super();
             this.url = documentUrl;
-            //TODO SHOULD WE/HOW TO HANDLE <BASE> tag?
-            
+
             // URL Protocol/scheme, up to double slash (included)
-            protocol = documentUrl.replaceFirst("(.*?://)(.*)", "$1");
+            scheme = documentUrl.replaceFirst("(.*?:(//){0,1})(.*)", "$1");
 
             // URL Path (anything after double slash)
-            path = documentUrl.replaceFirst("(.*?://)(.*)", "$2");
+            path = documentUrl.replaceFirst("(.*?:(//){0,1})(.*)", "$3");
             
             // URL Relative Base: truncate to last / before a ? or #
             String relBase = path.replaceFirst(
                     "(.*?)([\\?\\#])(.*)", "$1");
-            relativeBase = protocol +  relBase.replaceFirst("(.*/)(.*)", "$1");
+            relativeBase = scheme +  relBase.replaceFirst("(.*/)(.*)", "$1");
 
             // URL Absolute Base: truncate to first / if present, after protocol
-            absoluteBase = protocol + path.replaceFirst("(.*?)(/.*)", "$1");
+            absoluteBase = scheme + path.replaceFirst("(.*?)(/.*)", "$1");
             
             // URL Document Base: truncate from first ? or # 
             documentBase = 
-                    protocol + path.replaceFirst("(.*?)([\\?\\#])(.*)", "$1");
+                    scheme + path.replaceFirst("(.*?)([\\?\\#])(.*)", "$1");
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DOCUMENT URL ----> " + documentUrl);
                 LOG.debug("  BASE RELATIVE -> " + relativeBase);
@@ -638,10 +780,13 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .append("contentTypes", contentTypes)
+                .append("schemes", schemes)
                 .append("maxURLLength", maxURLLength)
                 .append("ignoreNofollow", ignoreNofollow)
                 .append("keepReferrerData", keepReferrerData)
-                .append("tagAttribs", tagAttribs).toString();
+                .append("tagAttribs", tagAttribs)
+                .append("charset", charset)
+                .toString();
     }
 
     @Override
@@ -653,10 +798,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         GenericLinkExtractor castOther = (GenericLinkExtractor) other;
         return new EqualsBuilder()
                 .append(contentTypes, castOther.contentTypes)
+                .append(schemes, castOther.schemes)
                 .append(maxURLLength, castOther.maxURLLength)
                 .append(ignoreNofollow, castOther.ignoreNofollow)
                 .append(keepReferrerData, castOther.keepReferrerData)
                 .append(tagAttribs.entrySet(), castOther.tagAttribs.entrySet())
+                .append(charset, castOther.charset)
                 .isEquals();
     }
 
@@ -664,10 +811,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public int hashCode() {
         return new HashCodeBuilder()
                 .append(contentTypes)
+                .append(schemes)
                 .append(maxURLLength)
                 .append(ignoreNofollow)
                 .append(keepReferrerData)
                 .append(tagAttribs)
+                .append(charset)
                 .toHashCode();
     }
 }

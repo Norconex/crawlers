@@ -145,8 +145,7 @@ public class GenericCanonicalLinkDetector
         if (!ArrayUtils.contains(cTypes, contentType)) {
             return null;
         }
-        try (   @SuppressWarnings("resource")
-                InputStreamReader isr = new InputStreamReader(is);
+        try (   InputStreamReader isr = new InputStreamReader(is);
                 TextReader r = new TextReader(
                         isr, (int) DataUnit.KB.toBytes(16))) {
             String text = null;

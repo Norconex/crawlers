@@ -45,6 +45,7 @@
   #set($filterRegexMeta   = "${core}.filter.impl.RegexMetadataFilter")
   #set($robotsTxt         = "${http}.robot.impl.StandardRobotsTxtProvider")
   #set($robotsMeta        = "${http}.robot.impl.StandardRobotsMetaProvider")
+  #set($redirectProvider  = "${http}.redirect.impl.GenericRedirectURLProvider")
   #set($metaFetcher       = "${http}.fetch.impl.GenericMetadataFetcher")
   #set($docFetcher        = "${http}.fetch.impl.GenericDocumentFetcher")
   #set($linkExtractor     = "${http}.url.impl.GenericLinkExtractor")
@@ -221,6 +222,13 @@
           ignore="false" lenient="false" class="$sitemapFactory">
       <location>http://www.example.com/blogs/sitemap.xml</location>
     </sitemapResolverFactory>
+    
+    <!-- Provides the target URL to use when a redirect is encountered.
+         Classes must implement *.redirect.IRedirectURLProvider.
+         Default implementation is the following.
+         -->
+    <redirectURLProvider class="redirectProvider" fallbackCharset="" />
+    
     
     <!-- Fetch a URL HTTP Headers.  Classes must implement
          com.norconex.collector.http.fetch.IHttpMetadataFetcher.  

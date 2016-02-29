@@ -19,20 +19,28 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.security.AlgorithmConstraints;
+import java.security.AlgorithmParameters;
+import java.security.CryptoPrimitive;
+import java.security.Key;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
@@ -44,11 +52,14 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.RedirectStrategy;
@@ -59,7 +70,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.UnsupportedSchemeException;
-import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -76,13 +90,49 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.encrypt.EncryptionKey;
+import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
- * Default implementation of {@link IHttpClientFactory}.  
  * <p>
- * XML configuration usage:
- * </p>
+ * Default implementation of {@link IHttpClientFactory}.
+ * </p> 
+ * <h3>Password encryption in XML configuration:</h3>
+ * <p>
+ * As of 2.4.0, <code>proxyPassword</code> and <code>authPassword</code> 
+ * can take a password that has been encrypted using {@link EncryptionUtil}. 
+ * In order for the password to be decrypted properly by the crawler, you need
+ * to specify the encryption key used to encrypt it. The key can be stored
+ * in a few supported locations and a combination of 
+ * <code>[auth|proxy]PasswordKey</code>
+ * and <code>[auth|proxy]PasswordKeySource</code> must be specified to properly
+ * locate the key. The supported sources are:
+ * </p> 
+ * <table border="1" summary="">
+ *   <tr>
+ *     <th><code>[...]PasswordKeySource</code></th>
+ *     <th><code>[...]PasswordKey</code></th>
+ *   </tr>
+ *   <tr>
+ *     <td><code>key</code></td>
+ *     <td>The actual encryption key.</td>
+ *   </tr>
+ *   <tr>
+ *     <td><code>file</code></td>
+ *     <td>Path to a file containing the encryption key.</td>
+ *   </tr>
+ *   <tr>
+ *     <td><code>environment</code></td>
+ *     <td>Name of an environment variable containing the key.</td>
+ *   </tr>
+ *   <tr>
+ *     <td><code>property</code></td>
+ *     <td>Name of a JVM system property containing the key.</td>
+ *   </tr>
+ * </table>
+ * 
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory"&gt;
  *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
@@ -103,10 +153,13 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *
  *      &lt;proxyHost&gt;...&lt;/proxyHost&gt;
  *      &lt;proxyPort&gt;...&lt;/proxyPort&gt;
- *      &lt;proxyUsername&gt;...&lt;/proxyUsername&gt;
- *      &lt;proxyPassword&gt;...&lt;/proxyPassword&gt;
  *      &lt;proxyRealm&gt;...&lt;/proxyRealm&gt;
  *      &lt;proxyScheme&gt;...&lt;/proxyScheme&gt;
+ *      &lt;proxyUsername&gt;...&lt;/proxyUsername&gt;
+ *      &lt;proxyPassword&gt;...&lt;/proxyPassword&gt;
+ *      &lt;-- Use the following if password is encrypted. --&gt;
+ *      &lt;proxyPasswordKey&gt;(the encryption key or a reference to it)&lt;/proxyPasswordKey&gt;
+ *      &lt;proxyPasswordKeySource&gt;[key|file|environment|property]&lt;/proxyPasswordKeySource&gt;
  *      
  *      &lt;!-- Since 2.3.0, you can set HTTP request headers --&gt;
  *      &lt;headers&gt;
@@ -119,6 +172,9 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;!-- These apply to any authentication mechanism --&gt;
  *      &lt;authUsername&gt;...&lt;/authUsername&gt;
  *      &lt;authPassword&gt;...&lt;/authPassword&gt;
+ *      &lt;-- Use the following if password is encrypted. --&gt;
+ *      &lt;authPasswordKey&gt;(the encryption key or a reference to it)&lt;/authPasswordKey&gt;
+ *      &lt;authPasswordKeySource&gt;[key|file|environment|property]&lt;/authPasswordKeySource&gt;
  *      
  *      &lt;!-- These apply to FORM authentication --&gt;
  *      &lt;authUsernameField&gt;...&lt;/authUsernameField&gt;
@@ -196,6 +252,7 @@ public class GenericHttpClientFactory
     private String authUsername;
     private String authPasswordField;
     private String authPassword;
+    private EncryptionKey authPasswordKey;
     private String authHostname;
     private int authPort = -1;
     private String authRealm;
@@ -209,6 +266,7 @@ public class GenericHttpClientFactory
     private String proxyScheme;
     private String proxyUsername;
     private String proxyPassword;
+    private EncryptionKey proxyPasswordKey;
     private String proxyRealm;
     private int connectionTimeout = DEFAULT_TIMEOUT;
     private int socketTimeout = DEFAULT_TIMEOUT;
@@ -226,7 +284,9 @@ public class GenericHttpClientFactory
     @Override
     public HttpClient createHTTPClient(String userAgent) {
         HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setSSLContext(createSSLContext());
+        SSLContext sslContext = createSSLContext();
+        builder.setSSLContext(sslContext);
+        builder.setSSLSocketFactory(createSSLSocketFactory(sslContext));
         builder.setSchemePortResolver(createSchemePortResolver());
         builder.setDefaultRequestConfig(createRequestConfig());
         builder.setProxy(createProxy());
@@ -239,6 +299,7 @@ public class GenericHttpClientFactory
         builder.evictIdleConnections(
                 maxConnectionIdleTime, TimeUnit.MILLISECONDS);
         builder.setDefaultHeaders(createDefaultRequestHeaders());
+        builder.setDefaultCookieStore(createDefaultCookieStore());
         
         buildCustomHttpClient(builder);
         
@@ -257,7 +318,7 @@ public class GenericHttpClientFactory
      * PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)
      * not being exposed to the builder. 
      */
-    //TODO get rid of this method in favor of setXXX method when available.
+    //TODO get rid of this method in favor of setXXX method when available
     // in a future version of HttpClient (planned for 5.0.0).
     private void hackValidateAfterInactivity(HttpClient httpClient) {
         if (maxConnectionInactiveTime <= 0) {
@@ -296,17 +357,36 @@ public class GenericHttpClientFactory
                 getAuthUsernameField(), getAuthUsername()));
         formparams.add(new BasicNameValuePair(
                 getAuthPasswordField(), getAuthPassword()));
+        LOG.info("Performing FORM authentication at \"" + getAuthURL()
+                + "\" (username=" + getAuthUsername() + "; password=*****)");
         try {
             UrlEncodedFormEntity entity = 
                     new UrlEncodedFormEntity(formparams, authFormCharset);
             post.setEntity(entity);
-            httpClient.execute(post);
+            HttpResponse response = httpClient.execute(post);
+            StatusLine statusLine = response.getStatusLine();
+            LOG.info("Authentication status: " + statusLine);
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Authentication response:\n"
+                        + IOUtils.toString(response.getEntity().getContent()));
+            }
         } catch (Exception e) {
             throw new CollectorException(e);
         }
         post.releaseConnection();
+        
     }
 
+    /**
+     * Creates the default cookie store to be added to each request context.
+     * @return a cookie store
+     * @since 2.4.0
+     */
+    protected CookieStore createDefaultCookieStore() {
+        return new BasicCookieStore();
+    }
+    
     /**
      * Creates a list of HTTP headers previously set by 
      * {@link #setRequestHeader(String, String)}.
@@ -363,11 +443,13 @@ public class GenericHttpClientFactory
         CredentialsProvider credsProvider = null;
         //--- Proxy ---
         if (StringUtils.isNotBlank(proxyUsername)) {
+            String password = 
+                    EncryptionUtil.decrypt(proxyPassword, proxyPasswordKey);
             credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(
                     new AuthScope(proxyHost, proxyPort),
                     new UsernamePasswordCredentials(
-                            proxyUsername, proxyPassword));
+                            proxyUsername, password));
         }
         //--- Auth ---
         if (StringUtils.isNotBlank(authUsername)
@@ -376,12 +458,14 @@ public class GenericHttpClientFactory
                 credsProvider = new BasicCredentialsProvider();
             }
             Credentials creds = null;
+            String password = 
+                    EncryptionUtil.decrypt(authPassword, authPasswordKey);
             if (AUTH_METHOD_NTLM.equalsIgnoreCase(authMethod)) {
-                creds = new NTCredentials(authUsername, authPassword, 
+                creds = new NTCredentials(authUsername, password, 
                         authWorkstation, authDomain);
             } else {
                 creds = new UsernamePasswordCredentials(
-                        authUsername, authPassword);
+                        authUsername, password);
             }
             credsProvider.setCredentials(new AuthScope(
                     authHostname, authPort, authRealm, authMethod), creds);
@@ -396,20 +480,69 @@ public class GenericHttpClientFactory
         }
         return null;
     }
+    
+    protected LayeredConnectionSocketFactory createSSLSocketFactory(
+            SSLContext sslContext) {
+        if (!trustAllSSLCertificates) {
+            return null;
+        }
+        LOG.debug("SSL: Turning off host name verification.");
+
+        // Turn off host name verification and remove all algorithm constraints.
+        LayeredConnectionSocketFactory socketFactory = 
+                new SSLConnectionSocketFactory(
+                        sslContext, new NoopHostnameVerifier()) {
+            @Override
+            protected void prepareSocket(SSLSocket socket)
+                    throws IOException {
+                SSLParameters sslParams = new SSLParameters();
+                sslParams.setAlgorithmConstraints(new AlgorithmConstraints() {
+                    @Override
+                    public boolean permits(Set<CryptoPrimitive> primitives,
+                            Key key) {
+                        return true;
+                    }
+                    @Override
+                    public boolean permits(Set<CryptoPrimitive> primitives,
+                            String algorithm, AlgorithmParameters parameters) {
+                        return true;
+                    }
+                    @Override
+                    public boolean permits(Set<CryptoPrimitive> primitives,
+                            String algorithm, Key key,
+                            AlgorithmParameters parameters) {
+                        return true;
+                    }
+                });
+                sslParams.setEndpointIdentificationAlgorithm("HTTPS");
+                socket.setSSLParameters(sslParams);
+            }
+        };
+        return socketFactory;
+    }    
+    
     protected SSLContext createSSLContext() {
         if (!trustAllSSLCertificates) {
             return null;
         }
+        LOG.info("SSL: Trusting all certificates.");
+        
+        //TODO consider moving some of the below settings at the collector
+        //level since they affect the whole JVM.
+        
+        // Disabling SNI extension introduced in Java 7 is necessary 
+        // to avoid SSLProtocolException: handshake alert:  unrecognized_name
+        // Described here: 
+        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7127374
+        LOG.debug("SSL: Disabling SNI Extension using system property.");
+        System.setProperty("jsse.enableSNIExtension", "false");
+
+        // Use a trust strategy that always returns true
         SSLContext sslcontext;
         try {
-            sslcontext = SSLContexts.custom().loadTrustMaterial(
-                null, new TrustStrategy() {
-                    @Override
-                    public boolean isTrusted(final X509Certificate[] chain,
-                            final String authType) throws CertificateException {
-                        return true;
-                    }
-                }).build();
+            sslcontext = SSLContexts.custom().build();
+            sslcontext.init(null, new TrustManager[] {
+                    new TrustAllX509TrustManager()}, new SecureRandom());
         } catch (Exception e) {
             throw new CollectorException(
                     "Cannot create SSL context trusting all certificates.", e);
@@ -428,6 +561,8 @@ public class GenericHttpClientFactory
         authPasswordField = 
                 xml.getString("authPasswordField", authPasswordField);
         authPassword = xml.getString("authPassword", authPassword);
+        authPasswordKey = 
+                loadXMLPasswordKey(xml, "authPasswordKey", authPasswordKey);
         authURL = xml.getString("authURL", authURL);
         authHostname = xml.getString("authHostname", authHostname);
         authPort = xml.getInt("authPort", authPort);
@@ -440,6 +575,8 @@ public class GenericHttpClientFactory
         proxyScheme = xml.getString("proxyScheme", proxyScheme);
         proxyUsername = xml.getString("proxyUsername", proxyUsername);
         proxyPassword = xml.getString("proxyPassword", proxyPassword);
+        proxyPasswordKey = 
+                loadXMLPasswordKey(xml, "proxyPasswordKey", proxyPasswordKey);
         proxyRealm = xml.getString("proxyRealm", proxyRealm);
         connectionTimeout = xml.getInt("connectionTimeout", connectionTimeout);
         socketTimeout = xml.getInt("socketTimeout", socketTimeout);
@@ -479,6 +616,21 @@ public class GenericHttpClientFactory
                     + "Use \"maxConnectionInactiveTime\" instead.");
         }
     }
+
+    private EncryptionKey loadXMLPasswordKey(
+            XMLConfiguration xml, String field, EncryptionKey defaultKey) {
+        String xmlKey = xml.getString(field, null);
+        String xmlSource = xml.getString(field + "Source", null);
+        if (StringUtils.isBlank(xmlKey)) {
+            return defaultKey;
+        }
+        EncryptionKey.Source source = null;
+        if (StringUtils.isNotBlank(xmlSource)) {
+            source = EncryptionKey.Source.valueOf(xmlSource.toUpperCase());
+        }
+        return new EncryptionKey(xmlKey, source);
+    }
+    
     @Override
     public void saveToXML(Writer out) throws IOException {
         try {
@@ -490,6 +642,7 @@ public class GenericHttpClientFactory
             writer.writeElementString("authMethod", authMethod);
             writer.writeElementString("authUsername", authUsername);
             writer.writeElementString("authPassword", authPassword);
+            saveXMLPasswordKey(writer, "authPasswordKey", authPasswordKey);
             writer.writeElementString("authUsernameField", authUsernameField);
             writer.writeElementString("authPasswordField", authPasswordField);
             writer.writeElementString("authURL", authURL);
@@ -504,6 +657,7 @@ public class GenericHttpClientFactory
             writer.writeElementString("proxyScheme", proxyScheme);
             writer.writeElementString("proxyUsername", proxyUsername);
             writer.writeElementString("proxyPassword", proxyPassword);
+            saveXMLPasswordKey(writer, "proxyPasswordKey", proxyPasswordKey);
             writer.writeElementString("proxyRealm", proxyRealm);
             writer.writeElementInteger("connectionTimeout", connectionTimeout);
             writer.writeElementInteger("socketTimeout", socketTimeout);
@@ -543,7 +697,17 @@ public class GenericHttpClientFactory
             throw new IOException("Cannot save as XML.", e);
         }        
     }
-    
+    private void saveXMLPasswordKey(EnhancedXMLStreamWriter writer, 
+            String field, EncryptionKey key) throws XMLStreamException {
+        if (key == null) {
+            return;
+        }
+        writer.writeElementString(field, key.getValue());
+        if (key.getSource() != null) {
+            writer.writeElementString(
+                    field + "Source", key.getSource().name().toLowerCase());
+        }
+    }
 
     //--- Getters/Setters ------------------------------------------------------
     
@@ -660,7 +824,7 @@ public class GenericHttpClientFactory
     }
 
     /**
-     * Gets the password.
+     * Gets the authentication password.
      * Used for all authentication methods.
      * @return the password
      */
@@ -668,7 +832,7 @@ public class GenericHttpClientFactory
         return authPassword;
     }
     /**
-     * Sets the password.
+     * Sets the authentication password.
      * Used for all authentication methods.
      * @param authPassword password
      */
@@ -676,6 +840,27 @@ public class GenericHttpClientFactory
         this.authPassword = authPassword;
     }
 
+    /**
+     * Gets the authentication password encryption key.
+     * @return the password key or <code>null</code> if the password is not
+     * encrypted.
+     * @see EncryptionUtil
+     * @since 2.4.0
+     */
+    public EncryptionKey getAuthPasswordKey() {
+        return authPasswordKey;
+    }
+    /**
+     * Sets the authentication password encryption key. Only required when 
+     * the password is encrypted.
+     * @param authPasswordKey password key
+     * @see EncryptionUtil
+     * @since 2.4.0
+     */
+    public void setAuthPasswordKey(EncryptionKey authPasswordKey) {
+        this.authPasswordKey = authPasswordKey;
+    }
+    
     /**
      * Whether cookie support is disabled.
      * @return <code>true</code> if disabled
@@ -881,6 +1066,27 @@ public class GenericHttpClientFactory
      */
     public void setProxyPassword(String proxyPassword) {
         this.proxyPassword = proxyPassword;
+    }
+    
+    /**
+     * Gets the proxy password encryption key.
+     * @return the password key or <code>null</code> if the password is not
+     * encrypted.
+     * @see EncryptionUtil
+     * @since 2.4.0
+     */
+    public EncryptionKey getProxyPasswordKey() {
+        return proxyPasswordKey;
+    }
+    /**
+     * Sets the proxy password encryption key. Only required when 
+     * the password is encrypted.
+     * @param proxyPasswordKey password key
+     * @see EncryptionUtil
+     * @since 2.4.0
+     */
+    public void setProxyPasswordKey(EncryptionKey proxyPasswordKey) {
+        this.proxyPasswordKey = proxyPasswordKey;
     }
 
     /**
@@ -1158,6 +1364,7 @@ public class GenericHttpClientFactory
                 .append(authUsername, castOther.authUsername)
                 .append(authPasswordField, castOther.authPasswordField)
                 .append(authPassword, castOther.authPassword)
+                .append(authPasswordKey, castOther.authPasswordKey)
                 .append(authHostname, castOther.authHostname)
                 .append(authPort, castOther.authPort)
                 .append(authRealm, castOther.authRealm)
@@ -1172,6 +1379,7 @@ public class GenericHttpClientFactory
                 .append(proxyScheme, castOther.proxyScheme)
                 .append(proxyUsername, castOther.proxyUsername)
                 .append(proxyPassword, castOther.proxyPassword)
+                .append(proxyPasswordKey, castOther.proxyPasswordKey)
                 .append(proxyRealm, castOther.proxyRealm)
                 .append(connectionTimeout, castOther.connectionTimeout)
                 .append(socketTimeout, castOther.socketTimeout)
@@ -1199,6 +1407,7 @@ public class GenericHttpClientFactory
                 .append(authUsername)
                 .append(authPasswordField)
                 .append(authPassword)
+                .append(authPasswordKey)
                 .append(authHostname)
                 .append(authPort)
                 .append(authRealm)
@@ -1212,6 +1421,7 @@ public class GenericHttpClientFactory
                 .append(proxyScheme)
                 .append(proxyUsername)
                 .append(proxyPassword)
+                .append(proxyPasswordKey)
                 .append(proxyRealm)
                 .append(connectionTimeout)
                 .append(socketTimeout)
@@ -1236,6 +1446,7 @@ public class GenericHttpClientFactory
                 .append("authUsername", authUsername)
                 .append("authPasswordField", authPasswordField)
                 .append("authPassword", authPassword)
+                .append("authPasswordKey", authPasswordKey)
                 .append("authHostname", authHostname)
                 .append("authPort", authPort)
                 .append("authRealm", authRealm)
@@ -1249,6 +1460,7 @@ public class GenericHttpClientFactory
                 .append("proxyScheme", proxyScheme)
                 .append("proxyUsername", proxyUsername)
                 .append("proxyPassword", proxyPassword)
+                .append("proxyPasswordKey", proxyPasswordKey)
                 .append("proxyRealm", proxyRealm)
                 .append("connectionTimeout", connectionTimeout)
                 .append("socketTimeout", socketTimeout)

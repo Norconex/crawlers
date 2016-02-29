@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.norconex.collector.core.crawler.event.ICrawlerEventListener;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.file.IFileVisitor;
 
@@ -190,6 +191,40 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 4);
     }
+    
+    
+    @Test
+    public void testScriptTags() throws IOException {
+        // Content of <script> tags must be stripped by GenericLinkExtractor
+        // but src must be followed.
+        HttpCollector collector = newHttpCollector1Crawler(
+                "/test?case=script");
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        GenericLinkExtractor le = new GenericLinkExtractor();
+        le.addLinkTag("script", "src");
+        crawler.getCrawlerConfig().setLinkExtractors(le);
+        collector.start(false);
+
+        List<HttpDocument> docs = getCommitedDocuments(crawler);
+
+        assertListSize("document", docs, 2);
+
+        for (HttpDocument doc : docs) {
+            String content = IOUtils.toString(doc.getContent());
+            if (!doc.getReference().contains("script=true")) {
+                // first page
+                Assert.assertTrue("First page not crawled properly",
+                        content.contains("View the source"));
+                Assert.assertTrue("Did not strip inside of <script>",
+                        !content.contains("THIS_MUST_BE_STRIPPED"));
+            } else {
+                // second page
+                Assert.assertTrue("Script page not crawled properly",
+                        content.contains("This must be crawled"));
+            }
+        }
+    }    
+    
     
     private void testDepth(List<HttpDocument> docs) {
         // 0-depth + 10 others == 11 expected files
