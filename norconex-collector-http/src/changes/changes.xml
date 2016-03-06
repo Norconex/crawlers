@@ -7,6 +7,12 @@
   </properties>
   <body>
 
+    <release version="2.4.1-SNAPSHOT" date="2016-??-??" description="Bug fix release">
+      <action dev="essiembre" type="update">
+        Maven dependency updates: Norconex Collector Core 1.4.1.
+      </action>      
+    </release>
+
     <release version="2.4.0" date="2016-02-28" description="Feature release">
       <action dev="essiembre" type="add" issue="199">
         New configurable IRedirectURLProvider with default implementation
