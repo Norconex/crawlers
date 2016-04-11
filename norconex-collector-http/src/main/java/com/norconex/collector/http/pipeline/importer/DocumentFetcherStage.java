@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import java.util.Date;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -48,10 +50,14 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
                 ctx.getConfig().getDocumentFetcher().fetchDocument(
                         ctx.getHttpClient(), ctx.getDocument());
 
+        crawlData.setCrawlDate(new Date());
+        
         HttpImporterPipelineUtil.enhanceHTTPHeaders(
                 ctx.getDocument().getMetadata());
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
 
+        crawlData.setContentType(ctx.getDocument().getContentType());
+        
         //-- Start dealing with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();
         if (StringUtils.isNotBlank(redirectURL)) {

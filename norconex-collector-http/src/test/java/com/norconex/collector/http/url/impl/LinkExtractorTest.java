@@ -261,16 +261,30 @@ public class LinkExtractorTest {
     public void testIssue188() throws IOException {
         String ref = "http://www.site.com/en/articles/articles.html"
                 + "?param1=value1&param2=value2";
+        String url = "http://www.site.com/en/articles/detail/article-x.html";
         String html = "<html><body>"
                 + "<a href=\"/en/articles/detail/article-x.html\">test link</a>"
                 + "</body></html>";
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
-        for (Link link : links) {
-            System.out.println("LINK: " + link.getUrl());
-        }
         input.close();
+        Assert.assertTrue("URL not extracted: " + url, contains(links, url));
+    }
+    
+    @Test
+    public void testIssue236() throws IOException {
+        String url = "javascript:__doPostBack('MoreInfoList1$Pager','2')";
+        String html = "<html><body>"
+                + "<a href=\"" + url + "\">JavaScript link</a>"
+                + "</body></html>";
+        ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        extractor.setSchemes("javascript");
+        Set<Link> links = extractor.extractLinks(
+                input, "N/A", ContentType.HTML);
+        input.close();
+        Assert.assertTrue("URL not extracted: " + url, contains(links, url));
     }
     
     private boolean contains(Set<Link> links, String url) {

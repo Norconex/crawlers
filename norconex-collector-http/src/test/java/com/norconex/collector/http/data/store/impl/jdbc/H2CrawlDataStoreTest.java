@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,19 @@
  */
 package com.norconex.collector.http.data.store.impl.jdbc;
 
+import org.junit.rules.TemporaryFolder;
+
+import com.norconex.collector.core.crawler.ICrawlerConfig;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Database;
+import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTest;
 
-public class H2CrawlDataStoreTest extends DerbyCrawlDataStoreTest {
+public class H2CrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 	
-	protected ICrawlDataStore createCrawlDataStore(boolean resume) {
+    @Override
+    protected ICrawlDataStore createCrawlDataStore(
+            ICrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
         return new JDBCCrawlDataStoreFactory(
-                Database.H2).createCrawlDataStore(getConfig(), resume);
-	}
-
+                Database.H2).createCrawlDataStore(config, resume);
+    }
 }

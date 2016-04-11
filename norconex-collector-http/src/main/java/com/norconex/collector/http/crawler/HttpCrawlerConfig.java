@@ -34,7 +34,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
-import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
+import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
@@ -44,6 +44,8 @@ import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
+import com.norconex.collector.http.recrawl.IRecrawlableResolver;
+import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver;
 import com.norconex.collector.http.redirect.IRedirectURLProvider;
 import com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider;
 import com.norconex.collector.http.robot.IRobotsMetaProvider;
@@ -122,10 +124,14 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private IHttpDocumentProcessor[] preImportProcessors;
     private IHttpDocumentProcessor[] postImportProcessors;
 
+    private IRecrawlableResolver recrawlableResolver = 
+            new GenericRecrawlableResolver(); 
+    
     public HttpCrawlerConfig() {
         super();
-        setCrawlDataStoreFactory(new MapDBCrawlDataStoreFactory());
+        setCrawlDataStoreFactory(new MVStoreCrawlDataStoreFactory());
     }
+
     public String[] getStartURLs() {
         return ArrayUtils.clone(startURLs);
     }
@@ -384,7 +390,25 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             IRedirectURLProvider redirectURLProvider) {
         this.redirectURLProvider = redirectURLProvider;
     }
-    
+
+    /**
+     * Gets the recrawlable resolver. 
+     * @return recrawlable resolver
+     * @since 2.6.0
+     */
+    public IRecrawlableResolver getRecrawlableResolver() {
+        return recrawlableResolver;
+    }
+    /**
+     * Sets the recrawlable resolver.
+     * @param recrawlableResolver the recrawlable resolver
+     * @since 2.6.0
+     */
+    public void setRecrawlableResolver(
+            IRecrawlableResolver recrawlableResolver) {
+        this.recrawlableResolver = recrawlableResolver;
+    }
+
     @Override
     protected void saveCrawlerConfigToXML(Writer out) throws IOException {
         try {
@@ -432,6 +456,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writeObject(out, "canonicalLinkDetector", 
                     getCanonicalLinkDetector());
             writeObject(out, "redirectURLProvider", getRedirectURLProvider());
+            writeObject(out, "recrawlableResolver", getRecrawlableResolver());
             writeObject(out, "metadataFetcher", getMetadataFetcher());
             writeObject(out, "metadataChecksummer", getMetadataChecksummer());
             writeObject(out, "documentFetcher", getDocumentFetcher());
@@ -498,11 +523,15 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setRedirectURLProvider(ConfigurationUtil.newInstance(xml,
                 "redirectURLProvider", getRedirectURLProvider()));
         
+        //--- Recrawlable resolver ---------------------------------------------
+        setRecrawlableResolver(ConfigurationUtil.newInstance(xml,
+                "recrawlableResolver", getRecrawlableResolver()));
+        
         //--- HTTP Headers Fetcher ---------------------------------------------
         setMetadataFetcher(ConfigurationUtil.newInstance(xml,
                 "metadataFetcher", getMetadataFetcher()));
 
-        //--- Metadata Checksummer -----------------------------------------
+        //--- Metadata Checksummer ---------------------------------------------
         setMetadataChecksummer(ConfigurationUtil.newInstance(xml,
                 "metadataChecksummer", getMetadataChecksummer()));
 
@@ -620,6 +649,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(documentFetcher, castOther.documentFetcher)
                 .append(canonicalLinkDetector, castOther.canonicalLinkDetector)
                 .append(redirectURLProvider, castOther.redirectURLProvider)
+                .append(recrawlableResolver, castOther.recrawlableResolver)
                 .append(metadataFetcher, castOther.metadataFetcher)
                 .append(linkExtractors, castOther.linkExtractors)
                 .append(robotsTxtProvider, castOther.robotsTxtProvider)
@@ -653,6 +683,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(documentFetcher)
                 .append(canonicalLinkDetector)
                 .append(redirectURLProvider)
+                .append(recrawlableResolver)
                 .append(metadataFetcher)
                 .append(linkExtractors)
                 .append(robotsTxtProvider)
@@ -685,6 +716,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("documentFetcher", documentFetcher)
                 .append("canonicalLinkDetector", canonicalLinkDetector)
                 .append("redirectURLProvider", redirectURLProvider)
+                .append("recrawlableResolver", recrawlableResolver)
                 .append("metadataFetcher", metadataFetcher)
                 .append("linkExtractors", linkExtractors)
                 .append("robotsTxtProvider", robotsTxtProvider)

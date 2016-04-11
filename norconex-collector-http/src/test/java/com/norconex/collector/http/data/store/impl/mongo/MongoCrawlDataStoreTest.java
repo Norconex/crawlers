@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2013-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,56 +17,39 @@ package com.norconex.collector.http.data.store.impl.mongo;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.github.fakemongo.Fongo;
 import com.mongodb.DB;
+import com.norconex.collector.core.crawler.ICrawlerConfig;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.data.store.impl.mongo.MongoCrawlDataStore;
-import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.data.store.impl.BaseCrawlDataStoreTest;
+import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTest;
 
-public class MongoCrawlDataStoreTest extends BaseCrawlDataStoreTest {
+public class MongoCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
-    
     private DB mongoDB;
-    private HttpCrawlerConfig config;
     
-    @Override
-    protected void createImpl(boolean resume) {
-        db = new MongoCrawlDataStore(
-                resume, mongoDB, new MongoCrawlDataSerializer());
-        // To test against a real Mongo, use:
-        // db = new MongoCrawlURLDatabase(config, resume, 27017, "localhost",
-        // "unit-tests-001");
-    }
-
-    @Override
-    protected void processedToCache() {
-        // Instantiate a new DB with the "resume" option disabled will
-        // transfer all the processed urls to the cache.
-        createImpl(false);
-    }
-
     @Before
-    public void setup() {
-        config = new HttpCrawlerConfig();
-        config.setId("MapDBTest");
-        // the tempFolder is re-created at each test
-        config.setWorkDir(tempFolder.getRoot());
-        
+    public void setup() throws Exception {
         Fongo fongo = new Fongo("mongo server 1");
         mongoDB = fongo.getDB("crawl-001");
-
-        // The DB is brand-new, so no resume
-        createImpl(false);
+        super.setup();
     }
 
     @Test
     public void testNoNext() throws Exception {
-        assertNull(db.nextQueued());
+        assertNull(getCrawlDataStore().nextQueued());
+    }
+
+    @Override
+    protected ICrawlDataStore createCrawlDataStore(
+            ICrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
+        return new MongoCrawlDataStore(
+                resume, mongoDB, new MongoCrawlDataSerializer());
+        // To test against a real Mongo, use:
+        // db = new MongoCrawlURLDatabase(config, resume, 27017, "localhost",
+        // "unit-tests-001");        
     }
 }

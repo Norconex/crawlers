@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.norconex.collector.http.data.store.impl.jdbc;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,7 @@ import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore;
 import com.norconex.collector.core.data.store.impl.jdbc.IJDBCSerializer;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
+import com.norconex.commons.lang.file.ContentType;
 
 public class JDBCCrawlDataSerializer implements IJDBCSerializer {
 
@@ -41,11 +43,15 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
             + "state, "
             + "metaChecksum, "
             + "contentChecksum, "
+            + "contentType, "
+            + "crawlDate, "
+            
             // http-specific:
             + "depth, "
             + "sitemapLastMod, "
             + "sitemapChangeFreq, "
             + "sitemapPriority, "
+            + "originalReference, "
             + "referrerReference, "
             + "referrerLinkTag, "
             + "referrerLinkText, "
@@ -61,11 +67,15 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
                 + "state VARCHAR(256), "
                 + "metaChecksum VARCHAR(32672), "
                 + "contentChecksum VARCHAR(32672), "
+                + "contentType VARCHAR(256), "
+                + "crawlDate BIGINT, "
+                
                 // http-specific:
                 + "depth INTEGER NOT NULL, "
                 + "sitemapLastMod BIGINT, "
                 + "sitemapChangeFreq VARCHAR(7), "
                 + "sitemapPriority FLOAT, "
+                + "originalReference VARCHAR(32672), "
                 + "referrerReference VARCHAR(32672), "
                 + "referrerLinkTag VARCHAR(1024), "
                 + "referrerLinkText VARCHAR(2048), "
@@ -97,11 +107,19 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
     @Override
     public String getInsertCrawlDataSQL(String table) {
         return "INSERT INTO " + table + "(" + ALL_FIELDS 
-                + ") values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + ") values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     }
     @Override
     public Object[] getInsertCrawlDataValues(
             String table, ICrawlData crawlData) {
+        String contentType = null;
+        if (crawlData.getContentType() != null) {
+            contentType = crawlData.getContentType().toString();
+        }
+        long crawlDate = 0;
+        if (crawlData.getCrawlDate() != null) {
+            crawlDate = crawlData.getCrawlDate().getTime();
+        }        
         HttpCrawlData data = (HttpCrawlData) crawlData;
         return new Object[] { 
                 data.getReference(),
@@ -110,10 +128,14 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
                 data.getState().toString(),
                 data.getMetaChecksum(),
                 data.getContentChecksum(),
+                contentType,
+                crawlDate,
+                
                 data.getDepth(),
                 data.getSitemapLastMod(),
                 data.getSitemapChangeFreq(),
                 data.getSitemapPriority(),
+                data.getOriginalReference(),
                 data.getReferrerReference(),
                 StringUtils.substring(
                         data.getReferrerLinkTag(), 0, TAG_MAX_LENGTH),
@@ -169,6 +191,15 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
         data.setState(HttpCrawlState.valueOf(rs.getString("state")));
         data.setMetaChecksum(rs.getString("metaChecksum"));
         data.setContentChecksum(rs.getString("contentChecksum"));
+        String contentType = rs.getString("contentType");
+        if (StringUtils.isNoneBlank(contentType)) {
+            data.setContentType(ContentType.valueOf(contentType));
+        }
+        long crawlDate = rs.getLong("crawlDate");
+        if (crawlDate > 0) {
+            data.setCrawlDate(new Date(crawlDate));
+        }        
+        
         data.setDepth(rs.getInt("depth"));
         BigDecimal bigLM = rs.getBigDecimal("sitemapLastMod");
         if (bigLM != null) {
@@ -179,6 +210,7 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
             data.setSitemapPriority(bigP.floatValue());
         }
         data.setSitemapChangeFreq(rs.getString("sitemapChangeFreq"));
+        data.setOriginalReference(rs.getString("originalReference"));
         data.setReferrerReference(rs.getString("referrerReference"));
         data.setReferrerLinkTag(rs.getString("referrerLinkTag"));
         data.setReferrerLinkText(rs.getString("referrerLinkText"));

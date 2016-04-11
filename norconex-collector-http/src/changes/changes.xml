@@ -7,9 +7,27 @@
   </properties>
   <body>
 
-    <release version="2.4.1-SNAPSHOT" date="2016-??-??" description="Bug fix release">
+    <release version="2.5.0-SNAPSHOT" date="2016-??-??" description="Feature release">
+      <action dev="essiembre" type="add">
+        Now supports sitemap "lastmod" and "changefreq", and also
+        allows for specifying custom minimum recrawl frequency for documents.
+        Default implementation is GenericRecrawlableResolver
+        (implements new IRecrawlableResolver).
+      </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.4.1.
+        Document "crawl date" and content type can be added to the crawl 
+        data and will be stored in the crawl data store 
+        (affects all ICrawlDataStoreFactory implementations).
+      </action>      
+      <action dev="essiembre" type="update">
+        MVStore is now the default URL crawl store.
+      </action>
+      <action dev="essiembre" type="update">
+        Maven dependency updates: Norconex Collector Core 1.5.0.
+      </action>      
+      <action dev="essiembre" type="update">
+        StandardSitemapResolver now parses sitemaps with content type 
+        application/gzip (in addition to application/x-gzip).
       </action>      
     </release>
 

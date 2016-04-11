@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,35 +17,25 @@ package com.norconex.collector.http.data.store.impl.mvstore;
 import java.io.File;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import com.norconex.collector.core.crawler.ICrawlerConfig;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStore;
-import com.norconex.collector.http.data.store.impl.BaseCrawlDataStoreTest;
+import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTest;
 
-public class MVStoreCrawlDataStoreTest extends BaseCrawlDataStoreTest {
+public class MVStoreCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 
-    @Rule
-    public TemporaryFolder tempDir = new TemporaryFolder();
-    
     private File store;
     
     @Before
     public void setup() throws Exception {
-        store = tempDir.newFolder();
-        createImpl(false);
+        store = getTempfolder().newFolder();
+        super.setup();
     }
-
     @Override
-    protected void processedToCache() {
-        createImpl(false);
-    }
-
-    @Override
-    protected void createImpl(boolean resume) {
-        if (db != null) {
-            db.close();
-        }
-        db = new MVStoreCrawlDataStore(store.getPath(), resume);
+    protected ICrawlDataStore createCrawlDataStore(
+            ICrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
+        return new MVStoreCrawlDataStore(store.getPath(), resume);
     }
 }

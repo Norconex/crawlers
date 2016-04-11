@@ -249,8 +249,10 @@ public class StandardSitemapResolver implements ISitemapResolver {
             if (statusCode == HttpStatus.SC_OK) {
                 LOG.info("Resolving sitemap: " + location);
                 InputStream is = response.getEntity().getContent();
-                if ("application/x-gzip".equals(
-                        response.getFirstHeader("Content-Type").getValue())) {
+                String contentType = 
+                        response.getFirstHeader("Content-Type").getValue();
+                if ("application/x-gzip".equals(contentType)
+                        || "application/gzip".equals(contentType)) {
                     is = new GZIPInputStream(is);
                 }
                 File sitemapFile = inputStreamToTempFile(is);
