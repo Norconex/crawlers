@@ -26,7 +26,7 @@ import com.norconex.collector.http.recrawl.PreviousCrawlData;
 /**
  * <p>Determines whether to recrawl a document or not.</p>
  * @author Pascal Essiembre
- * @since 2.6.0
+ * @since 2.5.0
  */
 /*default*/ class RecrawlableResolverStage extends AbstractImporterStage {
     

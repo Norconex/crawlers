@@ -394,7 +394,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     /**
      * Gets the recrawlable resolver. 
      * @return recrawlable resolver
-     * @since 2.6.0
+     * @since 2.5.0
      */
     public IRecrawlableResolver getRecrawlableResolver() {
         return recrawlableResolver;
@@ -402,7 +402,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     /**
      * Sets the recrawlable resolver.
      * @param recrawlableResolver the recrawlable resolver
-     * @since 2.6.0
+     * @since 2.5.0
      */
     public void setRecrawlableResolver(
             IRecrawlableResolver recrawlableResolver) {

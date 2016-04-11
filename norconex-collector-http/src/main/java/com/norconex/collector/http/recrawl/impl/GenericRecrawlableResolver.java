@@ -239,7 +239,7 @@ public class GenericRecrawlableResolver
             if (minCrawlDate.isBeforeNow()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Recrawl suggested according to custom "
-                            + " directive (change frequency < elapsed "
+                            + "directive (min frequency < elapsed "
                             + "time since "
                             + prevData.getCrawlDate() + ") for: "
                             + prevData.getReference());
@@ -248,7 +248,7 @@ public class GenericRecrawlableResolver
             }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("No recrawl suggested according to custom "
-                        + " directive (change frequency >= elapsed time since "
+                        + "directive (min frequency >= elapsed time since "
                         + prevData.getCrawlDate() + ") for: "
                         + prevData.getReference());
             }
