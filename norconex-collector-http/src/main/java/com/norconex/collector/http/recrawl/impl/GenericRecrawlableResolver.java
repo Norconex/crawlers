@@ -102,7 +102,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *         class="com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver"
  *         sitemapSupport="last" &gt;
  *     &lt;minFrequency applyTo="contentType" value="monthly"&gt;application/pdf&lt;/minFrequency&gt;
- *     &lt;minFrequency applyTo="reference" value="1090"&gt;.*latest-news.*\.html&lt;/minFrequency&gt;
+ *     &lt;minFrequency applyTo="reference" value="1800000"&gt;.*latest-news.*\.html&lt;/minFrequency&gt;
  *  &lt;/recrawlableResolver&gt;
  * </pre>
  * 
