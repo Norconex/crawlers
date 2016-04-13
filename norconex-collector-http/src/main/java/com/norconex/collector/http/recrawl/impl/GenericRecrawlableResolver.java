@@ -190,7 +190,8 @@ public class GenericRecrawlableResolver
             return isRecrawlableFromSitemap(prevData);
         }
 
-        return false;
+        // if we have not found a reason not to recrawl, then recrawl
+        return true;
     }
 
     
