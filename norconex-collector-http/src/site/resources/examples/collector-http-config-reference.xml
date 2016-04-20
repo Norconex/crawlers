@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2010-2015 Norconex Inc.
+   Copyright 2010-2016 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@
   #set($http      = "com.norconex.collector.http")
   #set($committer = "com.norconex.committer")
 
-  
+
   #set($httpClientFactory = "${http}.client.impl.GenericHttpClientFactory")
   #set($filterExtension   = "${core}.filter.impl.ExtensionReferenceFilter")
   #set($filterRegexRef    = "${core}.filter.impl.RegexReferenceFilter")
@@ -57,6 +57,7 @@
   #set($docChecksummer    = "${core}.checksum.impl.MD5DocumentChecksummer")
   #set($dataStoreFactory  = "${core}.data.store.impl.mapdb.MapDBCrawlDataStoreFactory")
   #set($spoiledStrategy   = "${core}.spoil.impl.GenericSpoiledReferenceStrategizer")
+  #set($fsCommitter       = "${committer}.core.impl.FileSystemCommitter")
   
   
   <!-- Location where internal progress files are stored. -->
@@ -97,7 +98,7 @@
       -->
     <urlNormalizer class="$urlNormalizer">
       <normalizations>
-        lowerCaseSchemeHost, upperCaseEscapeSequence 
+        lowerCaseSchemeHost, upperCaseEscapeSequence, 
         decodeUnreservedCharacters, removeDefaultPort 
       </normalizations>
       <replacements>
@@ -373,7 +374,7 @@
          options.  Please refer to committer for complete documentation.
          Below is an example using the FileSystemCommitter.
          -->
-    <committer class="$committer.impl.FileSystemCommitter">
+    <committer class="$fsCommitter">
       <directory>$workdir\crawledFiles</directory>
     </committer>
 
