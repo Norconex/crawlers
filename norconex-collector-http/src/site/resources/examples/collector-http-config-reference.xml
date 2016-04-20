@@ -118,7 +118,7 @@
     <delay default="1000" ignoreRobotsCrawlDelay="true"
            class="$http.delay.impl.DefaultDelayResolver">
           <schedule dayOfWeek="from Monday to Friday" 
-                    time="from 8:00 to 6:30">10000</schedule>
+                    time="from 8:00 to 16:30">10000</schedule>
     </delay>
 
     <!-- How many threads you want a crawler to use.  Regardless of how many
