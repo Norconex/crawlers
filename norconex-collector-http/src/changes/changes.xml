@@ -29,6 +29,10 @@
         StandardSitemapResolver now parses sitemaps with content type 
         application/gzip (in addition to application/x-gzip).
       </action>      
+      <action dev="essiembre" type="fix" issue="243">
+        Fixed "stayOnDomain" being true not being honored for extracted URLs
+        with no scheme (//www.example.com).
+      </action>      
     </release>
 
     <release version="2.4.0" date="2016-02-28" description="Feature release">

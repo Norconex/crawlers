@@ -116,7 +116,12 @@ public class URLCrawlScopeStrategy {
         }
 
         HttpURL inScope = new HttpURL(inScopeURL);
-        HttpURL candidate = new HttpURL(candidateURL);
+        HttpURL candidate;
+        if (candidateURL.startsWith("//")) {
+            candidate = new HttpURL(inScope.getProtocol() + ':' + candidateURL);
+        } else {
+            candidate = new HttpURL(candidateURL);
+        }
         if (stayOnProtocol && !inScope.getProtocol().equalsIgnoreCase(
                 candidate.getProtocol())) {
             if (LOG.isDebugEnabled()) {

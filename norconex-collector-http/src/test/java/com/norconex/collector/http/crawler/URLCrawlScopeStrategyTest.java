@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ public class URLCrawlScopeStrategyTest {
         String diffDomain = "http://www.example.com/diff/domain.html";
         String diffPort = "http://example.com:81/diff/port.html";
         String sameSite = "http://example.com:80/diff/same.html";
+        String noSchemeDiffDomain = "//server1.elsewhere.com";
     
         URLCrawlScopeStrategy s = null;
 
@@ -37,6 +38,7 @@ public class URLCrawlScopeStrategyTest {
         Assert.assertTrue(s.isInScope(url, diffDomain));
         Assert.assertTrue(s.isInScope(url, diffPort));
         Assert.assertTrue(s.isInScope(url, sameSite));
+        Assert.assertTrue(s.isInScope(url, noSchemeDiffDomain));
         
         // Protocol
         s = new URLCrawlScopeStrategy();
@@ -45,6 +47,7 @@ public class URLCrawlScopeStrategyTest {
         Assert.assertTrue(s.isInScope(url, diffDomain));
         Assert.assertTrue(s.isInScope(url, diffPort));
         Assert.assertTrue(s.isInScope(url, sameSite));
+        Assert.assertTrue(s.isInScope(url, noSchemeDiffDomain));
 
         // Domain
         s = new URLCrawlScopeStrategy();
@@ -53,6 +56,7 @@ public class URLCrawlScopeStrategyTest {
         Assert.assertFalse(s.isInScope(url, diffDomain));
         Assert.assertTrue(s.isInScope(url, diffPort));
         Assert.assertTrue(s.isInScope(url, sameSite));
+        Assert.assertFalse(s.isInScope(url, noSchemeDiffDomain));
         
         // Port
         s = new URLCrawlScopeStrategy();
@@ -61,7 +65,9 @@ public class URLCrawlScopeStrategyTest {
         Assert.assertTrue(s.isInScope(url, diffDomain));
         Assert.assertFalse(s.isInScope(url, diffPort));
         Assert.assertTrue(s.isInScope(url, sameSite));
+        Assert.assertTrue(s.isInScope(url, noSchemeDiffDomain));
 
+        
         // Protocol + Domain + Port
         s = new URLCrawlScopeStrategy();
         s.setStayOnProtocol(true);
@@ -71,6 +77,7 @@ public class URLCrawlScopeStrategyTest {
         Assert.assertFalse(s.isInScope(url, diffDomain));
         Assert.assertFalse(s.isInScope(url, diffPort));
         Assert.assertTrue(s.isInScope(url, sameSite));
+        Assert.assertFalse(s.isInScope(url, noSchemeDiffDomain));
     }
 
 }
