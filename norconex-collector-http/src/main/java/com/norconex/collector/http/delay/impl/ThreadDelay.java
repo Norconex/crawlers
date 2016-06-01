@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ public class ThreadDelay extends AbstractDelay {
         }
     };
     
+    @Override
     public void delay(long expectedDelayNanos, String url) {
         long lastHitNanos = THREAD_LAST_HIT_NANOS.get();
         delay(expectedDelayNanos, lastHitNanos);
