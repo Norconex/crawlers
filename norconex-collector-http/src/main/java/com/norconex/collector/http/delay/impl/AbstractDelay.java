@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.http.delay.impl;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -28,7 +30,7 @@ public abstract class AbstractDelay {
     private static final Logger LOG = LogManager.getLogger(AbstractDelay.class);
 
     protected static final int TINY_SLEEP_MS = 10;
-    private static final float THOUSAND_NANOS = 1000f;
+    private static final float THOUSAND_MILLIS = 1000f;
     
     public abstract void delay(long expectedDelayNanos, String url);
 
@@ -45,9 +47,10 @@ public abstract class AbstractDelay {
         if (elapsedTimeNanos < expectedDelayNanos) {
             long timeToSleepNanos = expectedDelayNanos - elapsedTimeNanos;
             if (LOG.isDebugEnabled()) {
+                long millis = TimeUnit.NANOSECONDS.toMillis(timeToSleepNanos);
                 LOG.debug("Thread " + Thread.currentThread().getName()
                         + " sleeping for "
-                        + ((float) timeToSleepNanos * THOUSAND_NANOS)
+                        + ((float) millis / THOUSAND_MILLIS)
                         + " seconds.");
             }
             Sleeper.sleepNanos(timeToSleepNanos);

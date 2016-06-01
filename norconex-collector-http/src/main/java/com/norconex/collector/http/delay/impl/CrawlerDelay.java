@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ public class CrawlerDelay extends AbstractDelay {
     private MutableLong lastHitEpochNanos = new MutableLong(-1);
     private boolean sleeping = false;
 
+    @Override
     public void delay(long expectedDelayNanos, String url) {
         if (expectedDelayNanos <= 0) {
             return;
