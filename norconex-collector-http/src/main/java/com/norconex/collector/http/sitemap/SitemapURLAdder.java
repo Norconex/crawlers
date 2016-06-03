@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,23 +33,15 @@ import com.norconex.collector.http.data.HttpCrawlData;
  */
 public abstract class SitemapURLAdder {
 
-    public enum ChangeFrequency {
-        ALWAYS,
-        HOURLY,
-        DAILY,
-        WEEKLY,
-        MONTHLY,
-        YEARLY,
-        NEVER
-    }
     public static final Float DEFAULT_PRIORITY = 0.5f;
     
     public SitemapURLAdder() {
         super();
     }
 
+    //TODO This method is not used, it is really convenient? Keep it around?
     public void add(String url, Long lastmod, 
-            ChangeFrequency changefreq, Float priority) {
+            SitemapChangeFrequency changefreq, Float priority) {
         Float setPriority = priority;
         if (setPriority == null) {
             setPriority = DEFAULT_PRIORITY;

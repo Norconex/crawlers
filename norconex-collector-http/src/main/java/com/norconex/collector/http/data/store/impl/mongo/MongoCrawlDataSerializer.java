@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
     private static final String FIELD_SITEMAP_CHANGE_FREQ = 
             "sitemapChangeFreq";
     private static final String FIELD_SITEMAP_PRIORITY = "sitemapPriority";
+    
+    private static final String FIELD_ORIGINAL_REFERENCE = "originalReference";
     private static final String FIELD_REFERRER_REFERENCE = "referrerReference";
     private static final String FIELD_REFERRER_LINK_TAG = "referrerLinkTag";
     private static final String FIELD_REFERRER_LINK_TEXT = "referrerLinkText";
@@ -41,6 +43,7 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         doc.put(FIELD_SITEMAP_LAST_MOD, data.getSitemapLastMod());
         doc.put(FIELD_SITEMAP_CHANGE_FREQ, data.getSitemapChangeFreq());
         doc.put(FIELD_SITEMAP_PRIORITY, data.getSitemapPriority());
+        doc.put(FIELD_ORIGINAL_REFERENCE, data.getOriginalReference());
         doc.put(FIELD_REFERRER_REFERENCE, data.getReferrerReference());
         doc.put(FIELD_REFERRER_LINK_TAG, data.getReferrerLinkTag());
         doc.put(FIELD_REFERRER_LINK_TEXT, data.getReferrerLinkText());
@@ -73,6 +76,8 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         if (val != null) {
             data.setSitemapPriority(val.floatValue());
         }
+        data.setOriginalReference(
+                (String) dbObject.get(FIELD_ORIGINAL_REFERENCE));
         data.setReferrerReference(
                 (String) dbObject.get(FIELD_REFERRER_REFERENCE));
         data.setReferrerLinkTag(

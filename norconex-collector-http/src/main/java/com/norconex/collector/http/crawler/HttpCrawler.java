@@ -18,7 +18,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
 
-import org.apache.commons.collections4.map.MultiValueMap;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -187,7 +188,8 @@ public class HttpCrawler extends AbstractCrawler {
         }
         
         // There are sitemaps, process them. First group them by URL root
-        MultiValueMap<String, String> sitemapsPerRoots = new MultiValueMap<>();
+        MultiValuedMap<String, String> sitemapsPerRoots = 
+                new ArrayListValuedHashMap<>();
         for (String sitemapURL : sitemapURLs) {
             String urlRoot = HttpURL.getRoot(sitemapURL);
             sitemapsPerRoots.put(urlRoot, sitemapURL);
@@ -203,7 +205,7 @@ public class HttpCrawler extends AbstractCrawler {
         };
         // Process each URL root group separately
         for (String  urlRoot : sitemapsPerRoots.keySet()) {
-            String[] locations = sitemapsPerRoots.getCollection(
+            String[] locations = sitemapsPerRoots.get(
                     urlRoot).toArray(ArrayUtils.EMPTY_STRING_ARRAY);
             if (sitemapResolver != null) {
                 sitemapResolver.resolveSitemaps(

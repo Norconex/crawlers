@@ -7,6 +7,42 @@
   </properties>
   <body>
 
+    <release version="2.5.0" date="2016-06-03" description="Feature release">
+      <action dev="essiembre" type="add">
+        Now supports sitemap "lastmod" and "changefreq", and also
+        allows for specifying custom minimum recrawl frequency for documents.
+        Default implementation is GenericRecrawlableResolver
+        (implements new IRecrawlableResolver).
+      </action>
+      <action dev="essiembre" type="add" issue="246">
+        New ReferenceDelayResolver that introduces delays between downloads
+        based on matching document reference (URL) patterns.
+      </action>
+      <action dev="essiembre" type="update">
+        Document "crawl date" and content type can be added to the crawl 
+        data and will be stored in the crawl data store 
+        (affects all ICrawlDataStoreFactory implementations).
+      </action>      
+      <action dev="essiembre" type="update">
+        MVStore is now the default URL crawl store.
+      </action>
+      <action dev="essiembre" type="update">
+        Maven dependency updates: Norconex Collector Core 1.5.0.
+      </action>      
+      <action dev="essiembre" type="update">
+        StandardSitemapResolver now parses sitemaps with content type 
+        application/gzip (in addition to application/x-gzip).
+      </action>      
+      <action dev="essiembre" type="fix" issue="243">
+        Fixed "stayOnDomain" being true not being honored for extracted URLs
+        with no scheme (//www.example.com).
+      </action>      
+      <action dev="essiembre" type="fix">
+        Fixed AbstractDelay wrongfully computing seconds when logging debug 
+        statement.
+      </action>      
+    </release>
+
     <release version="2.4.0" date="2016-02-28" description="Feature release">
       <action dev="essiembre" type="add" issue="199">
         New configurable IRedirectURLProvider with default implementation

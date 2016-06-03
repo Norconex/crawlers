@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,43 +14,19 @@
  */
 package com.norconex.collector.http.data.store.impl.mapdb;
 
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import com.norconex.collector.core.crawler.ICrawlerConfig;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
-import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.data.store.impl.BaseCrawlDataStoreTest;
+import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTest;
 
-public class MapDBCrawlDataStoreTest extends BaseCrawlDataStoreTest {
-
-    private HttpCrawlerConfig config;
-
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+public class MapDBCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 
     @Override
-    protected void processedToCache() {
-        // Recreating a MapDB will transfer all the processed urls to the cache.
-        createImpl(false);
-    }
-
-    @Override
-    protected void createImpl(boolean resume) {
-        if (db != null) {
-            db.close();
-        }
-        db = new MapDBCrawlDataStoreFactory().createCrawlDataStore(
+    protected ICrawlDataStore createCrawlDataStore(
+            ICrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
+        return new MapDBCrawlDataStoreFactory().createCrawlDataStore(
                 config, resume);
-    }
-
-    @Before
-    public void setup() {
-        config = new HttpCrawlerConfig();
-        config.setId("MapDBTest");
-        // the tempFolder is re-created at each test
-        config.setWorkDir(tempFolder.getRoot());
-        db = new MapDBCrawlDataStoreFactory().createCrawlDataStore(
-                config, false);
     }
 }
