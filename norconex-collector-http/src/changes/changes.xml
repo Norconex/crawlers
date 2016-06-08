@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="2.5.1-SNAPSHOT" date="2016-??-??" description="Maintenance release">
+      <action dev="essiembre" type="update" issue="252">
+        Updated references to test pages URLs to now be "https" in 
+        "minimum" and "complex" example configurations.
+      </action>      
+    </release>
+
     <release version="2.5.0" date="2016-06-03" description="Feature release">
       <action dev="essiembre" type="add">
         Now supports sitemap "lastmod" and "changefreq", and also
@@ -36,7 +43,7 @@
       <action dev="essiembre" type="fix" issue="243">
         Fixed "stayOnDomain" being true not being honored for extracted URLs
         with no scheme (//www.example.com).
-      </action>      
+      </action>
       <action dev="essiembre" type="fix">
         Fixed AbstractDelay wrongfully computing seconds when logging debug 
         statement.
