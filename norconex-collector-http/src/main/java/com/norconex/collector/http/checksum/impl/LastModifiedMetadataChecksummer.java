@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.core.checksum.AbstractMetadataChecksummer;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.checksum.impl.GenericMetadataChecksummer;
+import com.norconex.collector.core.doc.CollectorMetadata;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -37,6 +38,13 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * Norconex HTTP Collector which simply
  * returns the exact value of the "Last-Modified" HTTP header field, or
  * <code>null</code> if not present.
+ * </p>
+ * <p>
+ * You have the option to keep the checksum as a document metadata field. 
+ * When {@link #setKeep(boolean)} is <code>true</code>, the checksum will be
+ * stored in the target field name specified. If you do not specify any,
+ * it stores it under the metadata field name 
+ * {@link CollectorMetadata#COLLECTOR_CHECKSUM_METADATA}. 
  * </p>
  * <p>
  * To use different fields (one or several) to constitute a checksum,
