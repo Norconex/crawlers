@@ -14,7 +14,7 @@
       </action>
       <action dev="essiembre" type="update">
         Maven dependency updates: Norconex Collector Core 1.5.1, 
-        Joda Time 2.9.4, Apache HttpClient 4.5.2.
+        Joda Time 2.9.4, Apache HttpClient 4.5.2, JSoup 1.8.3.
       </action>      
     </release>
 
