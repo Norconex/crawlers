@@ -37,6 +37,8 @@ import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.core.crawler.event.ICrawlerEventListener;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
+import com.norconex.collector.http.url.impl.GenericLinkExtractor;
+import com.norconex.collector.http.url.impl.TikaLinkExtractor;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.FileUtil;
@@ -49,6 +51,23 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * summary of all HTTP status codes can be found 
  * <a href="http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">here</a>.
  * </p>
+ * 
+ * <h3>How to include referring/parent URLs</h3>
+ * <p>
+ * In some cases you may want to capture the referring page.  
+ * For instance, this is necessary to find out which pages contain broken 
+ * links. By default this information is not captured.  To capture this
+ * information, you have to set the <code>keepReferrerData</code> attribute
+ * to <code>true</code> on either {@link GenericLinkExtractor} or 
+ * {@link TikaLinkExtractor}.  XML configuration example:
+ * </p>
+ * <pre>
+ *  &lt;linkExtractors&gt;
+ *      &lt;extractor 
+ *          class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
+ *          keepReferrerData="true" /&gt;
+ *  &lt;/linkExtractors&gt;</pre>
+ * 
  * <h3>Filter by status codes</h3>
  * <p>
  * By default, the status of all fetched URLs are stored by this listener,
