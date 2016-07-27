@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- Have a Regex-based link extractor that could be used with virtually any
+  text-file? 
+
 - To consider: when re-processing orphans, check the depth in case the 
   max depth changed.
 
