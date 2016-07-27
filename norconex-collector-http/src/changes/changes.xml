@@ -7,13 +7,13 @@
   </properties>
   <body>
 
-    <release version="2.5.1-SNAPSHOT" date="2016-??-??" description="Maintenance release">
+    <release version="2.5.1" date="2016-07-27" description="Maintenance release">
       <action dev="essiembre" type="update" issue="252">
         Updated references to test pages URLs to now be "https" in 
         "minimum" and "complex" example configurations.
       </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.5.1, 
+        Maven dependency updates: 
         Joda Time 2.9.4, Apache HttpClient 4.5.2, JSoup 1.8.3.
       </action>      
     </release>
