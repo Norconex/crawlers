@@ -381,8 +381,9 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return true;
     }
     /**
-     * 
-     * @param keepReferrerData
+     * Sets whether to keep the referrer data. 
+     * <b>Since 2.6.0, this method has no effect.</b>  
+     * @param keepReferrerData referrer data
      * @deprecated Since 2.6.0, referrer data is always kept
      */
     @Deprecated
