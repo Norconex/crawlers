@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ public interface IHttpDocumentFetcher {
 	/**
 	 * Fetches HTTP document and saves it to a local file
 	 * @param httpClient the HTTP client
-	 * @param doc NewHttpDocument the document to fetch and save
-	 * @return URL status
+	 * @param doc the document to fetch and save
+	 * @return fetch response
 	 */
     HttpFetchResponse fetchDocument(
 	        HttpClient httpClient, HttpDocument doc);

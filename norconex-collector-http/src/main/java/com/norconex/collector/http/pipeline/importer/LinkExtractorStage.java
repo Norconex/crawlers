@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
         
         if (!uniqueQueuedURLs.isEmpty()) {
-            ctx.getMetadata().addString(HttpMetadata.COLLECTOR_REFERNCED_URLS, 
+            ctx.getMetadata().addString(HttpMetadata.COLLECTOR_REFERENCED_URLS, 
                     uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
         

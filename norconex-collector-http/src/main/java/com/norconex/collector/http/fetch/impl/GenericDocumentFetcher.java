@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -62,8 +61,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <pre>
  *  &lt;documentFetcher  
  *      class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher"&gt;
- *      &lt;validStatusCodes&gt;200&lt;/validStatusCodes&gt;
- *      &lt;notFoundStatusCodes&gt;404&lt;/notFoundStatusCodes&gt;
+ *      &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
+ *      &lt;notFoundStatusCodes&gt;(defaults to 404)&lt;/notFoundStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
  *  &lt;/documentFetcher&gt;
  * </pre>
@@ -83,12 +82,9 @@ public class GenericDocumentFetcher
     private static final Logger LOG = LogManager.getLogger(
 			GenericDocumentFetcher.class);
 
-    /*default*/ static final int[] DEFAULT_NOT_FOUND_STATUS_CODES = new int[] {
-        HttpStatus.SC_NOT_FOUND,
-    };
-
     private int[] validStatusCodes;
-    private int[] notFoundStatusCodes = DEFAULT_NOT_FOUND_STATUS_CODES;
+    private int[] notFoundStatusCodes = 
+            GenericMetadataFetcher.DEFAULT_NOT_FOUND_STATUS_CODES;
     private String headersPrefix;
     
     public GenericDocumentFetcher() {
@@ -197,8 +193,8 @@ public class GenericDocumentFetcher
     public int[] getValidStatusCodes() {
         return ArrayUtils.clone(validStatusCodes);
     }
-    public final void setValidStatusCodes(int... notFoundStatusCodes) {
-        this.validStatusCodes = ArrayUtils.clone(notFoundStatusCodes);
+    public final void setValidStatusCodes(int... validStatusCodes) {
+        this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
     }
     /**
      * Gets HTTP status codes to be considered as "Not found" state.
@@ -212,6 +208,7 @@ public class GenericDocumentFetcher
     /**
      * Sets HTTP status codes to be considered as "Not found" state.
      * @param notFoundStatusCodes "Not found" codes
+     * @since 2.2.0
      */
     public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
         this.notFoundStatusCodes = ArrayUtils.clone(notFoundStatusCodes);
@@ -227,7 +224,7 @@ public class GenericDocumentFetcher
         XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
 
         String validCodes = xml.getString("validStatusCodes");
-        int[] intValidCodes = GenericMetadataFetcher.DEFAULT_VALID_STATUS_CODES;
+        int[] intValidCodes = validStatusCodes;
         if (StringUtils.isNotBlank(validCodes)) {
             String[] strCodes = validCodes.split(",");
             intValidCodes = new int[strCodes.length];
@@ -239,7 +236,7 @@ public class GenericDocumentFetcher
         setValidStatusCodes(intValidCodes);
         
         String notFoundCodes = xml.getString("notFoundStatusCodes");
-        int[] intNFCodes = DEFAULT_NOT_FOUND_STATUS_CODES;
+        int[] intNFCodes = notFoundStatusCodes;
         if (StringUtils.isNotBlank(notFoundCodes)) {
             String[] strCodes = notFoundCodes.split(",");
             intNFCodes = new int[strCodes.length];
@@ -258,22 +255,13 @@ public class GenericDocumentFetcher
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
             writer.writeStartElement("httpDocumentFetcher");
             writer.writeAttribute("class", getClass().getCanonicalName());
-            writer.writeStartElement("validStatusCodes");
-            if (validStatusCodes != null) {
-                writer.writeCharacters(StringUtils.join(validStatusCodes, ','));
-            }
-            writer.writeEndElement();
-            writer.writeStartElement("notFoundStatusCodes");
-            if (notFoundStatusCodes != null) {
-                writer.writeCharacters(
-                        StringUtils.join(notFoundStatusCodes, ','));
-            }
-            writer.writeEndElement();
-            writer.writeStartElement("headersPrefix");
-            if (headersPrefix != null) {
-                writer.writeCharacters(headersPrefix);
-            }
-            writer.writeEndElement();
+
+            writer.writeElementString("validStatusCodes", 
+                    StringUtils.join(validStatusCodes, ','));
+            writer.writeElementString("notFoundStatusCodes", 
+                    StringUtils.join(notFoundStatusCodes, ','));
+            writer.writeElementString("headersPrefix", headersPrefix);
+
             writer.writeEndElement();
             writer.flush();
         } catch (XMLStreamException e) {

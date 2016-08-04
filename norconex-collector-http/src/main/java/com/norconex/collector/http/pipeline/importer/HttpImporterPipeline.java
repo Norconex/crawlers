@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,9 @@ import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineUtil;
 import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.delay.IDelayResolver;
-import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
-import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
@@ -52,23 +48,23 @@ public class HttpImporterPipeline
         addStage(new DelayResolverStage());
 
         // When HTTP headers are fetched (HTTP "HEAD") before document:
-        addStage(new HttpMetadataFetcherStage());
-        addStage(new HttpMetadataFiltersHEADStage());
-        addStage(new HttpMetadataCanonicalHEADStage());
-        addStage(new HttpMetadataChecksumStage(true));
+        addStage(new MetadataFetcherStage());
+        addStage(new MetadataFiltersHEADStage());
+        addStage(new MetadataCanonicalHEADStage());
+        addStage(new MetadataChecksumStage(true));
         
         // HTTP "GET" and onward:
         addStage(new DocumentFetcherStage());
         if (isKeepDownloads) {
             addStage(new SaveDocumentStage());
         }
-        addStage(new HttpMetadataCanonicalGETStage());
+        addStage(new MetadataCanonicalGETStage());
         addStage(new DocumentCanonicalStage());
         addStage(new RobotsMetaCreateStage());
         addStage(new LinkExtractorStage());
         addStage(new RobotsMetaNoIndexStage());
-        addStage(new HttpMetadataFiltersGETStage());
-        addStage(new HttpMetadataChecksumStage(false));
+        addStage(new MetadataFiltersGETStage());
+        addStage(new MetadataChecksumStage(false));
         addStage(new DocumentFiltersStage());
         addStage(new DocumentPreProcessingStage());        
         addStage(new ImportModuleStage());        
@@ -96,38 +92,9 @@ public class HttpImporterPipeline
         }
     }
 
-    //--- HTTP Headers Fetcher -------------------------------------------------
-    private static class HttpMetadataFetcherStage 
-            extends AbstractImporterStage {
-        @Override
-        public boolean executeStage(HttpImporterPipelineContext ctx) {
-            if (!ctx.isHttpHeadFetchEnabled()) {
-                return true;
-            }
-
-            HttpMetadata metadata = ctx.getMetadata();
-            IHttpMetadataFetcher headersFetcher = ctx.getHttpHeadersFetcher();
-            HttpCrawlData crawlData = ctx.getCrawlData();
-            Properties headers = headersFetcher.fetchHTTPHeaders(
-                    ctx.getHttpClient(), crawlData.getReference());
-            if (headers == null) {
-                crawlData.setState(HttpCrawlState.REJECTED);
-                return false;
-            }
-            metadata.putAll(headers);
-            
-            HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
-            HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
-            
-            ctx.getCrawler().fireCrawlerEvent(
-                    HttpCrawlerEvent.DOCUMENT_METADATA_FETCHED, 
-                    ctx.getCrawlData(), headersFetcher);
-            return true;
-        }
-    }
     
     //--- HTTP Headers Filters -------------------------------------------------
-    private static class HttpMetadataFiltersHEADStage 
+    private static class MetadataFiltersHEADStage 
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
@@ -141,7 +108,7 @@ public class HttpImporterPipeline
     }
 
     //--- HTTP Headers Canonical URL handling ----------------------------------
-    private static class HttpMetadataCanonicalHEADStage 
+    private static class MetadataCanonicalHEADStage 
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
@@ -154,7 +121,7 @@ public class HttpImporterPipeline
     }
 
     //--- HTTP Headers Canonical URL after fetch -------------------------------
-    private static class HttpMetadataCanonicalGETStage 
+    private static class MetadataCanonicalGETStage 
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
@@ -221,7 +188,7 @@ public class HttpImporterPipeline
     }
     
     //--- Headers filters if not done already ----------------------------------
-    private static class HttpMetadataFiltersGETStage 
+    private static class MetadataFiltersGETStage 
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {

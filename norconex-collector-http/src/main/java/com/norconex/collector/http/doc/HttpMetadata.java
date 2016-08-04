@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class HttpMetadata extends CollectorMetadata {
             COLLECTOR_PREFIX + "sitemap-changefreq";
     public static final String COLLECTOR_SM_PRORITY = 
             COLLECTOR_PREFIX + "sitemap-priority";
-    public static final String COLLECTOR_REFERNCED_URLS = 
+    public static final String COLLECTOR_REFERENCED_URLS = 
             COLLECTOR_PREFIX + "referenced-urls";
     public static final String COLLECTOR_REFERRER_REFERENCE = 
             COLLECTOR_PREFIX + "referrer-reference";
@@ -58,7 +58,7 @@ public class HttpMetadata extends CollectorMetadata {
 	    return getString(COLLECTOR_URL);
 	}
 	public Collection<String> getDocumentUrls() {
-	    return getStrings(COLLECTOR_REFERNCED_URLS);
+	    return getStrings(COLLECTOR_REFERENCED_URLS);
 	}
 	
 }

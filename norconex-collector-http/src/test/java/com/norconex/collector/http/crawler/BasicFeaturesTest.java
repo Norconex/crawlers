@@ -72,7 +72,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
                 ref.contains("/test/redirected/page.html?case=redirect"));
 
         List<String> inPageUrls = doc.getMetadata().getStrings(
-                HttpMetadata.COLLECTOR_REFERNCED_URLS);
+                HttpMetadata.COLLECTOR_REFERENCED_URLS);
         assertListSize("referenced URLs", inPageUrls, 2);
 
         Assert.assertTrue("Invalid relative URL: " + inPageUrls.get(0),

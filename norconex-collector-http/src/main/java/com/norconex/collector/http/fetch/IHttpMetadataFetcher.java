@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ import com.norconex.commons.lang.map.Properties;
 public interface IHttpMetadataFetcher {
 
     /**
-     * Returning <code>null</code> means the headers could not be fetched
-     * and the associated document will be skipped (treated as rejected).
+     * Fetches the HTTP headers for a URL and stores it in the 
+     * provided {@link Properties}.
      * @param httpClient the HTTP Client
      * @param url the url from which to fetch the headers
-     * @return  HTTP headers as metadata
+     * @param metadata recipient for storing HTTP headers as metadata
+     * @return fetch response
      */
-    Properties fetchHTTPHeaders(HttpClient httpClient, String url);
+    HttpFetchResponse fetchHTTPHeaders(
+            HttpClient httpClient, String url, Properties metadata);
 	
 }

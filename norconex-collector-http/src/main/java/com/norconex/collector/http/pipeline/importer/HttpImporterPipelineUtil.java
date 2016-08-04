@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
@@ -146,5 +148,68 @@ import com.norconex.commons.lang.file.ContentType;
             return false;                
         }
         return true;            
+    }
+    
+    // Keep this method static so multi-threads treat this method as one
+    // instance (to avoid redirect dups).
+    public static synchronized void queueRedirectURL(
+            HttpImporterPipelineContext ctx, 
+            HttpFetchResponse response,
+            String redirectURL) {
+        ICrawlDataStore store = ctx.getCrawlDataStore();
+        HttpCrawlData crawlData = ctx.getCrawlData();            
+        String originalURL =  crawlData.getReference();
+        
+        //--- Do not queue if previously handled ---
+        //TODO throw an event if already active/processed(ing)?
+        if (store.isActive(redirectURL)) {
+            rejectRedirectDup("being processed", originalURL, redirectURL);
+            return;
+        } else if (store.isQueued(redirectURL)) {
+            rejectRedirectDup("queued", originalURL, redirectURL);
+            return;
+        } else if (store.isProcessed(redirectURL)) {
+            rejectRedirectDup("processed", originalURL, redirectURL);
+            return;
+        }
+
+        //--- Fresh URL, queue it! ---
+        crawlData.setState(HttpCrawlState.REDIRECT);
+        HttpFetchResponse newResponse = new HttpFetchResponse(
+                HttpCrawlState.REDIRECT, 
+                response.getStatusCode(),
+                response.getReasonPhrase() + " (" + redirectURL + ")");
+        ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED, 
+                crawlData, newResponse);
+        
+        HttpCrawlData newData = new HttpCrawlData(
+                redirectURL, crawlData.getDepth());
+        newData.setReferrerReference(crawlData.getReferrerReference());
+        newData.setReferrerLinkTag(crawlData.getReferrerLinkTag());
+        newData.setReferrerLinkText(crawlData.getReferrerLinkText());
+        newData.setReferrerLinkTitle(crawlData.getReferrerLinkTitle());
+        if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+                crawlData.getReference(), redirectURL)) {
+            HttpQueuePipelineContext newContext = 
+                    new HttpQueuePipelineContext(
+                            ctx.getCrawler(), store, newData);
+            new HttpQueuePipeline().execute(newContext);
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("URL redirect target not in scope: " + redirectURL);
+            }
+            newData.setState(HttpCrawlState.REJECTED);
+            ctx.fireCrawlerEvent(
+                    HttpCrawlerEvent.REJECTED_FILTER, newData, 
+                    ctx.getConfig().getURLCrawlScopeStrategy());
+        }
+    }
+    
+    private static void rejectRedirectDup(String action, 
+            String originalURL, String redirectURL) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Redirect target URL is already " + action
+                    + ": " + redirectURL + " (from: " + originalURL + ").");
+        }
     }
 }

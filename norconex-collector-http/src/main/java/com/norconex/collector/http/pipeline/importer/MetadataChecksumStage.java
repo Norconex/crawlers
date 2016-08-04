@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import com.norconex.collector.http.doc.HttpMetadata;
  * @author Pascal Essiembre
  *
  */
-/*default*/ class HttpMetadataChecksumStage extends AbstractImporterStage {
+/*default*/ class MetadataChecksumStage extends AbstractImporterStage {
 
     private final boolean useHttpHEADFetchHeaders;
     
-    public HttpMetadataChecksumStage(boolean useHttpHEADFetchHeaders) {
+    public MetadataChecksumStage(boolean useHttpHEADFetchHeaders) {
         super();
         this.useHttpHEADFetchHeaders = useHttpHEADFetchHeaders;
     }

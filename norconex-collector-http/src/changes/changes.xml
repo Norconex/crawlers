@@ -7,9 +7,31 @@
   </properties>
   <body>
 
-    <release version="2.5.2-SNAPSHOT" date="2016-??-??" description="Maintenance release">
+    <release version="2.6.0-SNAPSHOT" date="2016-??-??" description="Feature release">
+      <action dev="essiembre" type="add">
+        Can now specify "notFoundStatusCodes" on GenericMetadataFetcher.
+      </action>      
       <action dev="essiembre" type="update">
         Maven dependency updates: Norconex Collector Core 1.5.1.
+      </action>      
+      <action dev="essiembre" type="update">
+        Renamed constant HttpMetadata.COLLECTOR_REFERNCED_URLS to
+        HttpMetadata.COLLECTOR_REFERENCED_URLS (was misspelled). 
+      </action>      
+      <action dev="essiembre" type="update">
+        API break: method signature changed for IHttpMetadataFetcher from
+        Properties fetchHTTPHeaders(HttpClient httpClient, String url) to
+        HttpFetchResponse fetchHTTPHeaders(
+        HttpClient httpClient, String url, Properties headers)
+      </action>
+      <action dev="essiembre" type="update">
+        The subject for the crawler event 
+        HttpCrawlerEvent.DOCUMENT_METADATA_FETCHED is now an instance of
+        HttpFetchResponse. 
+      </action>      
+      <action dev="essiembre" type="update" issue="281">
+        Redirects encountered by IHttpMetadataFetcher implementations are
+        now followed by default.
       </action>      
     </release>
 
