@@ -61,7 +61,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * extractions from HTML documents.
  * This is an alternative to the {@link GenericLinkExtractor}.
  * <br><br>
- * The configuration of content-types, keeping the referrer data, and ignoring 
+ * The configuration of content-types, storing the referrer data, and ignoring 
  * "nofollow" are the same
  * as in {@link GenericLinkExtractor}.
  * </p>
@@ -77,8 +77,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <h3>XML configuration usage</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.TikaLinkExtractor"
- *          ignoreNofollow="(false|true)" 
- *          keepReferrerData="(false|true)"&gt;
+ *          ignoreNofollow="(false|true)" &gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
@@ -109,7 +108,6 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     // pops up again.
     private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
     private boolean ignoreNofollow;
-    private boolean keepReferrerData;
     private static final HtmlMapper fixedHtmlMapper = new FixedHtmlParserMapper();
 
     public TikaLinkExtractor() {
@@ -151,19 +149,17 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     com.norconex.collector.http.url.Link nxLink = 
                             new com.norconex.collector.http.url.Link(
                                     extractedURL);
-                    if (keepReferrerData) {
-                        nxLink.setReferrer(url);
-                        if (StringUtils.isNotBlank(tikaLink.getText())) {
-                            nxLink.setText(tikaLink.getText());
-                        }
-                        if (tikaLink.isAnchor()) {
-                            nxLink.setTag("a.href");
-                        } else if (tikaLink.isImage()) {
-                            nxLink.setTag("img.src");
-                        }
-                        if (StringUtils.isNotBlank(tikaLink.getTitle())) {
-                            nxLink.setTitle(tikaLink.getTitle());
-                        }
+                    nxLink.setReferrer(url);
+                    if (StringUtils.isNotBlank(tikaLink.getText())) {
+                        nxLink.setText(tikaLink.getText());
+                    }
+                    if (tikaLink.isAnchor()) {
+                        nxLink.setTag("a.href");
+                    } else if (tikaLink.isImage()) {
+                        nxLink.setTag("img.src");
+                    }
+                    if (StringUtils.isNotBlank(tikaLink.getTitle())) {
+                        nxLink.setTitle(tikaLink.getTitle());
                     }
                     nxLinks.add(nxLink);
                 }
@@ -181,9 +177,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     com.norconex.collector.http.url.Link nxLink = 
                             new com.norconex.collector.http.url.Link(
                                     refreshURL);
-                    if (keepReferrerData) {
-                        nxLink.setReferrer(url);
-                    }
+                    nxLink.setReferrer(url);
                     nxLinks.add(nxLink);
                 }
             }
@@ -217,11 +211,25 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         this.ignoreNofollow = ignoreNofollow;
     }
     
+    /**
+     * Gets whether to keep referrer data. 
+     * <b>Since 2.6.0, always return true</b>.
+     * @return <code>true</code>
+     * @deprecated Since 2.6.0, referrer data is always kept
+     */
+    @Deprecated
     public boolean isKeepReferrerData() {
-        return keepReferrerData;
+        return true;
     }
+    /**
+     * 
+     * @param keepReferrerData
+     * @deprecated Since 2.6.0, referrer data is always kept
+     */
+    @Deprecated
     public void setKeepReferrerData(boolean keepReferrerData) {
-        this.keepReferrerData = keepReferrerData;
+        LOG.warn("Since 2.6.0, referrer data is always kept. "
+               + "Setting \"keepReferrerData\" has no effect.");
     }
 
     @Override
@@ -251,8 +259,6 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
         setIgnoreNofollow(xml.getBoolean(
                 "[@ignoreNofollow]", isIgnoreNofollow()));
-        setKeepReferrerData(xml.getBoolean(
-                "[@keepReferrerData]", isKeepReferrerData()));
         // Content Types
         ContentType[] cts = ContentType.valuesOf(StringUtils.split(
                 StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
@@ -268,8 +274,6 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             writer.writeAttribute("class", getClass().getCanonicalName());
 
             writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
-            writer.writeAttributeBoolean(
-                    "keepReferrerData", isKeepReferrerData());
             // Content Types
             if (!ArrayUtils.isEmpty(getContentTypes())) {
                 writer.writeElementString("contentTypes", 
@@ -292,7 +296,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .append("contentTypes", contentTypes)
                 .append("ignoreNofollow", ignoreNofollow)
-                .append("keepReferrerData", keepReferrerData).toString();
+                .toString();
     }
 
     @Override
@@ -303,7 +307,6 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         TikaLinkExtractor castOther = (TikaLinkExtractor) other;
         return new EqualsBuilder().append(contentTypes, castOther.contentTypes)
                 .append(ignoreNofollow, castOther.ignoreNofollow)
-                .append(keepReferrerData, castOther.keepReferrerData)
                 .isEquals();
     }
 
@@ -311,7 +314,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public int hashCode() {
         return new HashCodeBuilder().append(contentTypes)
                 .append(ignoreNofollow)
-                .append(keepReferrerData).toHashCode();
+                .toHashCode();
     }
     
 

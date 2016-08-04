@@ -167,14 +167,12 @@ public class LinkExtractorTest {
     public void testGenericLinkKeepReferrer() throws IOException {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         extractor.setContentTypes(ContentType.HTML);
-        extractor.setKeepReferrerData(true);
         testLinkKeepReferrer(extractor);
     }
     @Test
     public void testTikaLinkKeepReferrer() throws IOException {
         TikaLinkExtractor extractor = new TikaLinkExtractor();
         extractor.setContentTypes(ContentType.HTML);
-        extractor.setKeepReferrerData(true);
         testLinkKeepReferrer(extractor);
     }
     private void testLinkKeepReferrer(ILinkExtractor extractor)
@@ -220,7 +218,6 @@ public class LinkExtractorTest {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         extractor.setContentTypes(ContentType.HTML, ContentType.XML);
         extractor.setIgnoreNofollow(true);
-        extractor.setKeepReferrerData(true);
         extractor.addLinkTag("food", "chocolate");
         extractor.addLinkTag("friend", "Thor");
         System.out.println("Writing/Reading this: " + extractor);
@@ -251,7 +248,6 @@ public class LinkExtractorTest {
         TikaLinkExtractor extractor = new TikaLinkExtractor();
         extractor.setContentTypes(ContentType.HTML, ContentType.XML);
         extractor.setIgnoreNofollow(true);
-        extractor.setKeepReferrerData(true);
         System.out.println("Writing/Reading this: " + extractor);
         ConfigurationUtil.assertWriteRead(extractor);
     }

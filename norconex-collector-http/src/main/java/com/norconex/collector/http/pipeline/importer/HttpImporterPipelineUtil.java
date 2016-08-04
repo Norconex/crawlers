@@ -31,6 +31,7 @@ import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
+import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.file.ContentType;
 
 
@@ -128,16 +129,44 @@ import com.norconex.commons.lang.file.ContentType;
         }
         
         if (StringUtils.isNotBlank(canURL)) {
-            if (canURL.equals(ctx.getCrawlData().getReference())) {
+            String referrerURL = ctx.getCrawlData().getReference();
+            
+            // Since the current/containing page URL has already been 
+            // normalized, make sure we normalize this one for the purpose
+            // of comparing it.  It will them be sent un-normalized to 
+            // the queue pipeline, since that pipeline performs the 
+            // normalization after a few other steps.
+            String normalizedCanURL = canURL;
+            IURLNormalizer normalizer = ctx.getConfig().getUrlNormalizer();
+            if (normalizer != null) {
+                normalizedCanURL = normalizer.normalizeURL(normalizedCanURL);
+            }
+            if (normalizedCanURL == null) {
+                LOG.info("Canonical URL detected is null after "
+                      + "normalization so it will be ignored and its referrer "
+                      + "will be processed instead.  Canonical URL: \""
+                      +  canURL + "\" Rererrer URL: " + referrerURL);
+                return false;
+            }
+            
+            if (normalizedCanURL.equals(referrerURL)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Canonical URL detected is the same as document "
-                          + "URL. Process normally. URL: " + canURL);
+                          + "URL. Process normally. URL: " + referrerURL);
                 }
                 return true;
             }
+
             // Call Queue pipeline on Canonical URL
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Canonical URL detected is different than document "
+                      + "URL. Document will be rejected while canonical URL "
+                      + "will be queued for processing: " + canURL);
+            }
             HttpCrawlData newData = (HttpCrawlData) ctx.getCrawlData().clone();
             newData.setReference(canURL);
+            newData.setReferrerReference(referrerURL);
+            
             HttpQueuePipelineContext newContext = new HttpQueuePipelineContext(
                     ctx.getCrawler(), ctx.getCrawlDataStore(), newData);
             new HttpQueuePipeline().execute(newContext);

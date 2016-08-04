@@ -12,6 +12,14 @@
         Can now specify "notFoundStatusCodes" on GenericMetadataFetcher.
       </action>      
       <action dev="essiembre" type="update">
+        Referrer data is now always stored for GenericLinkExtractor (default)
+        and TikaLinkExtractor.
+      </action>      
+      <action dev="essiembre" type="update" issue="281">
+        Redirects encountered by IHttpMetadataFetcher implementations are
+        now followed by default.
+      </action>      
+      <action dev="essiembre" type="update">
         Maven dependency updates: Norconex Collector Core 1.5.1.
       </action>      
       <action dev="essiembre" type="update">
@@ -28,11 +36,15 @@
         The subject for the crawler event 
         HttpCrawlerEvent.DOCUMENT_METADATA_FETCHED is now an instance of
         HttpFetchResponse. 
-      </action>      
-      <action dev="essiembre" type="update" issue="281">
-        Redirects encountered by IHttpMetadataFetcher implementations are
-        now followed by default.
-      </action>      
+      </action>
+      <action dev="essiembre" type="update">
+        Extracted canonical URLs now have their referrer reference stored with
+        them.
+      </action>
+      <action dev="essiembre" type="fix">
+        Canonical URLs extracted are now normalized before being compared
+        to their containing page URL, which were already normalized.
+      </action>
     </release>
 
     <release version="2.5.1" date="2016-07-27" description="Maintenance release">
