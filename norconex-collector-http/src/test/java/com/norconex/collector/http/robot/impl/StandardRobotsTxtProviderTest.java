@@ -18,6 +18,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -172,7 +173,7 @@ public class StandardRobotsTxtProviderTest {
         StandardRobotsTxtProvider robotProvider = 
                 new StandardRobotsTxtProvider();
         return robotProvider.parseRobotsTxt(
-                IOUtils.toInputStream(content), 
+                IOUtils.toInputStream(content, CharEncoding.UTF_8), 
                 url,
                 "mister-crawler").getFilters();
     }

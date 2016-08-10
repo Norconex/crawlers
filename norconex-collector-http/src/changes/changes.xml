@@ -20,7 +20,7 @@
         now followed by default.
       </action>      
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.5.1.
+        Dependency updates: Norconex Collector Core 1.5.1.
       </action>      
       <action dev="essiembre" type="update">
         Renamed constant HttpMetadata.COLLECTOR_REFERNCED_URLS to
@@ -53,7 +53,7 @@
         "minimum" and "complex" example configurations.
       </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: 
+        Dependency updates: 
         Joda Time 2.9.4, Apache HttpClient 4.5.2, JSoup 1.8.3.
       </action>      
     </release>
@@ -78,7 +78,7 @@
         MVStore is now the default URL crawl store.
       </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.5.0.
+        Dependency updates: Norconex Collector Core 1.5.0.
       </action>      
       <action dev="essiembre" type="update">
         StandardSitemapResolver now parses sitemaps with content type 
@@ -128,7 +128,7 @@
         authentication issues.
       </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: Apache HttpClient 4.5.1, 
+        Dependency updates: Apache HttpClient 4.5.1, 
         Norconex Collector Core 1.4.0, Joda Time 2.9.2.
       </action>      
       <action dev="essiembre" type="update" issue="200">
@@ -247,7 +247,7 @@
         Now logs User-Agent upon startup (log level INFO).
       </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.3.0,
+        Dependency updates: Norconex Collector Core 1.3.0,
         Norconex Commons Lang 1.8.0.
       </action>      
       <action dev="essiembre" type="update">
@@ -303,7 +303,7 @@
 
     <release version="2.2.1" date="2015-08-07" description="Bug fix release">
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.2.1.
+        Dependency updates: Norconex Collector Core 1.2.1.
       </action>
       <action dev="essiembre" type="fix">
         Fixed NullPointerException occurring inconsistently when using
@@ -382,7 +382,7 @@
         so that JavaScript-generated URLs can no longer cause trouble.
       </action>      
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.2.0, 
+        Dependency updates: Norconex Collector Core 1.2.0, 
         Joda Time 2.8.1, Apache HTTP Client 4.5, Jetty Webapp 9.2.11.v20150529,
         Apache Ant 1.9.5.
       </action>
@@ -468,7 +468,7 @@
         (but won't do anything if disabled).
       </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: Norconex Collector Core 1.1.0, JUnit 4.12, 
+        Dependency updates: Norconex Collector Core 1.1.0, JUnit 4.12, 
         Joda-Time 2.7, Apache HTTP Components 4.4, 
         Jetty Webapp 9.2.10.v20150310, Fongo 1.6.2.
       </action>

@@ -368,8 +368,8 @@ public class GenericHttpClientFactory
             LOG.info("Authentication status: " + statusLine);
             
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Authentication response:\n"
-                        + IOUtils.toString(response.getEntity().getContent()));
+                LOG.debug("Authentication response:\n" + IOUtils.toString(
+                        response.getEntity().getContent(), CharEncoding.UTF_8));
             }
         } catch (Exception e) {
             throw new CollectorException(e);

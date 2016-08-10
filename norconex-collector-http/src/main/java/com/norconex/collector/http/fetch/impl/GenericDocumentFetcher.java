@@ -27,6 +27,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -138,7 +139,8 @@ public class GenericDocumentFetcher
 
             // INVALID http response
             if (LOG.isTraceEnabled()) {
-                LOG.trace("Rejected response content: " + IOUtils.toString(is));
+                LOG.trace("Rejected response content: "
+                        + IOUtils.toString(is, CharEncoding.UTF_8));
                 IOUtils.closeQuietly(is);
             } else {
                 // read response anyway to be safer, but ignore content

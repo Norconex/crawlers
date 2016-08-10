@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
@@ -158,7 +159,7 @@ public abstract class AbstractHttpTest {
             meta.load(FileUtils.openInputStream(
                     new File(basePath + ".meta")));
             String reference = FileUtils.readFileToString(
-                    new File(basePath + ".ref"));
+                    new File(basePath + ".ref"), CharEncoding.UTF_8);
             
             HttpDocument doc = new HttpDocument(
                     reference, crawler.getStreamFactory().newInputStream(file));

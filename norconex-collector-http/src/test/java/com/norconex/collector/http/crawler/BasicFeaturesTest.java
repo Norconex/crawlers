@@ -120,7 +120,8 @@ public class BasicFeaturesTest extends AbstractHttpTest {
                 }
             }
         });
-        String content = FileUtils.readFileToString(downloadedFile.getValue());
+        String content = FileUtils.readFileToString(
+                downloadedFile.getValue(), CharEncoding.UTF_8);
         Assert.assertTrue("Invalid or missing download file.",
                 content.contains("<b>This</b> file <i>must</i> be saved as is, "
                         + "with this <span>formatting</span>"));
@@ -151,8 +152,9 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         assertListSize("document", docs, 1);
 
         HttpDocument doc = docs.get(0);
-        Assert.assertTrue("Wrong or undetected User-Agent.", IOUtils.toString(
-                doc.getContent()).contains("Super Secret Agent"));
+        Assert.assertTrue("Wrong or undetected User-Agent.", 
+                IOUtils.toString(doc.getContent(), CharEncoding.UTF_8).contains(
+                        "Super Secret Agent"));
     }
     
     @Test
@@ -210,7 +212,8 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         assertListSize("document", docs, 2);
 
         for (HttpDocument doc : docs) {
-            String content = IOUtils.toString(doc.getContent());
+            String content = IOUtils.toString(
+                    doc.getContent(), CharEncoding.UTF_8);
             if (!doc.getReference().contains("script=true")) {
                 // first page
                 Assert.assertTrue("First page not crawled properly",
