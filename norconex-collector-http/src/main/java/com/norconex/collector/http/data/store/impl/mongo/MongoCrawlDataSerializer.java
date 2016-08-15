@@ -14,6 +14,9 @@
  */
 package com.norconex.collector.http.data.store.impl.mongo;
 
+import org.apache.commons.lang3.ArrayUtils;
+
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -34,6 +37,9 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
     private static final String FIELD_REFERRER_LINK_TAG = "referrerLinkTag";
     private static final String FIELD_REFERRER_LINK_TEXT = "referrerLinkText";
     private static final String FIELD_REFERRER_LINK_TITLE = "referrerLinkTitle";
+
+    /** @since 2.6.0 */
+    private static final String FIELD_REFERENCED_URLS = "referencedUrls";
     
     @Override
     public BasicDBObject toDBObject(Stage stage, ICrawlData crawlData) {
@@ -48,6 +54,7 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         doc.put(FIELD_REFERRER_LINK_TAG, data.getReferrerLinkTag());
         doc.put(FIELD_REFERRER_LINK_TEXT, data.getReferrerLinkText());
         doc.put(FIELD_REFERRER_LINK_TITLE, data.getReferrerLinkTitle());
+        doc.put(FIELD_REFERENCED_URLS, data.getReferencedUrls());
         return doc;
     }
 
@@ -86,6 +93,13 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
                 (String) dbObject.get(FIELD_REFERRER_LINK_TEXT));
         data.setReferrerLinkTitle(
                 (String) dbObject.get(FIELD_REFERRER_LINK_TITLE));
+        
+        BasicDBList dbRefUrls = 
+                (BasicDBList) dbObject.get(FIELD_REFERENCED_URLS);
+        if (dbRefUrls != null) {
+            data.setReferencedUrls(
+                    dbRefUrls.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+        }
         return data;
     }
 }

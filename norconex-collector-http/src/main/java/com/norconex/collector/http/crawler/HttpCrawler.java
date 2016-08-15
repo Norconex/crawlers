@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Objects;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.AbstractCrawler;
 import com.norconex.collector.core.crawler.ICrawler;
 import com.norconex.collector.core.data.BaseCrawlData;
+import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.data.HttpCrawlData;
@@ -254,10 +256,11 @@ public class HttpCrawler extends AbstractCrawler {
         return new HttpDocument(document);
     }
     @Override
-    protected void applyCrawlData(
-            ICrawlData crawlData, ImporterDocument document) {
+    protected void initCrawlData(ICrawlData crawlData, 
+            ICrawlData cachedCrawlData, ImporterDocument document) {
         HttpDocument doc = (HttpDocument) document;
         HttpCrawlData httpData = (HttpCrawlData) crawlData;
+        HttpCrawlData cachedHttpData = (HttpCrawlData) cachedCrawlData;
         HttpMetadata metadata = doc.getMetadata();
         
         metadata.addInt(HttpMetadata.COLLECTOR_DEPTH, httpData.getDepth());
@@ -271,7 +274,37 @@ public class HttpCrawler extends AbstractCrawler {
             metadata.addFloat(HttpMetadata.COLLECTOR_SM_PRORITY, 
                     httpData.getSitemapPriority());
         }
-        // Referrer data
+
+        // In case the crawl data supplied is from a URL was pulled from cache
+        // since the parent was skipped and could not be extracted normally
+        // with link information, we attach referrer data here if null 
+        // (but only if referrer reference is not null, which should never
+        // be in this case as it is set by beforeFinalizeDocumentProcessing()
+        // below.
+        // We do not need to do this for sitemap information since the queue
+        // pipeline takes care of (re)adding it.
+        //TODO consider having a flag on CrawlData that says where it came
+        //from so we know to initialize it properly.  Or... always
+        //initialize some new crawl data from cache higher up?
+        if (cachedHttpData != null && httpData.getReferrerReference() != null
+                && Objects.equal(
+                        httpData.getReferrerReference(), 
+                        cachedHttpData.getReferrerReference())) {
+            if (httpData.getReferrerLinkTag() == null) {
+                httpData.setReferrerLinkTag(
+                        cachedHttpData.getReferrerLinkTag());
+            }
+            if (httpData.getReferrerLinkText() == null) {
+                httpData.setReferrerLinkText(
+                        cachedHttpData.getReferrerLinkText());
+            }
+            if (httpData.getReferrerLinkTitle() == null) {
+                httpData.setReferrerLinkTitle(
+                        cachedHttpData.getReferrerLinkTitle());
+            }
+        }
+        
+        // Add referrer data to metadata
         metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_REFERENCE, 
                 httpData.getReferrerReference());
         metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TAG, 
@@ -280,6 +313,8 @@ public class HttpCrawler extends AbstractCrawler {
                 httpData.getReferrerLinkText());
         metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TITLE, 
                 httpData.getReferrerLinkTitle());
+        
+        
     }
     
     @Override
@@ -318,7 +353,62 @@ public class HttpCrawler extends AbstractCrawler {
                 (HttpCrawlData) crawlData, (HttpCrawlData) cachedCrawlData);
         new HttpCommitterPipeline().execute(context);
     }
+
+    @Override
+    protected void beforeFinalizeDocumentProcessing(
+            BaseCrawlData crawlData, ICrawlDataStore store,
+            ImporterDocument doc, ICrawlData cachedData) {
+
+        // If URLs were not yet extracted, it means no links will be followed.
+        // In case the referring document was skipped or has a bad status
+        // (which can always be temporary), we should queue for processing any 
+        // referenced links from cache to make sure an attempt will be made to 
+        // re-crawl these "child" links and they will not be considered orphans.
+        // Else, as orphans they could wrongfully be deleted, ignored, or 
+        // be re-assigned the wrong depth if linked from another, deeper, page.
+        // See: https://github.com/Norconex/collector-http/issues/278
+        
+        
+        HttpCrawlData httpData = (HttpCrawlData) crawlData;
+        HttpCrawlData httpCachedData = (HttpCrawlData) cachedData;
+
+        // If never crawled before, URLs were extracted already, or cached
+        // version has no extracted, URLs, abort now.
+        if (cachedData == null 
+                || !ArrayUtils.isEmpty(httpData.getReferencedUrls())
+                || ArrayUtils.isEmpty(httpCachedData.getReferencedUrls())) {
+            return;
+        }
+
+        // Only continue if the document could not have extracted URLs because
+        // it was skipped, or in a temporary invalid state that prevents
+        // accessing child links normally.
+        CrawlState state = crawlData.getState();
+        if (!state.isSkipped() && !state.isOneOf(
+                CrawlState.BAD_STATUS, CrawlState.ERROR)) {
+            return;
+        }
+
+        // OK, let's do this
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Queuing referenced URLs of " + crawlData.getReference());
+        }
+        
+        int childDepth = httpData.getDepth() + 1;
+        String[] referencedUrls = httpCachedData.getReferencedUrls();
+        for (String url : referencedUrls) {
+            
+            HttpCrawlData childData = new HttpCrawlData(url, childDepth);
+            childData.setReferrerReference(httpData.getReference());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Queuing skipped document's child: "
+                        + childData.getReference());
+            }
+            executeQueuePipeline(childData, store);
+        }
+    }
     
+    @Override
     protected void markReferenceVariationsAsProcessed(
             BaseCrawlData crawlData, ICrawlDataStore crawlDataStore) {
         
@@ -340,7 +430,7 @@ public class HttpCrawler extends AbstractCrawler {
             JobSuite suite, ICrawlDataStore refStore) {
         closeHttpClient();
     }
-    
+
     private void metadataAddString(
             HttpMetadata metadata, String key, String value) {
         if (value != null) {

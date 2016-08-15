@@ -59,8 +59,8 @@ import com.norconex.collector.http.recrawl.PreviousCrawlData;
         
         boolean isRecrawlable = rr.isRecrawlable(prevData);
         if (!isRecrawlable) {
-            if (LOG.isInfoEnabled()) {
-                LOG.info(cachedData.getReference()
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(cachedData.getReference()
                         + " is not ready to be recrawled, skipping it.");
             }
             ctx.fireCrawlerEvent(

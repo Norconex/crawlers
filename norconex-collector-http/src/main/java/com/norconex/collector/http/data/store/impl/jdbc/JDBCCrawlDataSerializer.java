@@ -14,11 +14,14 @@
  */
 package com.norconex.collector.http.data.store.impl.jdbc;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,7 +58,8 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
             + "referrerReference, "
             + "referrerLinkTag, "
             + "referrerLinkText, "
-            + "referrerLinkTitle ";
+            + "referrerLinkTitle, "
+            + "referencedUrls ";
     
     @Override
     public String[] getCreateTableSQLs(String table) {
@@ -80,6 +84,8 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
                 + "referrerLinkTag VARCHAR(1024), "
                 + "referrerLinkText VARCHAR(2048), "
                 + "referrerLinkTitle VARCHAR(2048), "
+                + "referencedUrls CLOB, "
+                
                 + "PRIMARY KEY (reference))";
 
         String[] sqls = new String[] { sql };
@@ -107,7 +113,7 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
     @Override
     public String getInsertCrawlDataSQL(String table) {
         return "INSERT INTO " + table + "(" + ALL_FIELDS 
-                + ") values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + ") values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     }
     @Override
     public Object[] getInsertCrawlDataValues(
@@ -143,6 +149,7 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
                         data.getReferrerLinkText(), 0, TEXT_MAX_LENGTH),
                 StringUtils.substring(
                         data.getReferrerLinkTitle(), 0, TITLE_MAX_LENGTH),
+                StringUtils.join(data.getReferencedUrls(), (char) 007)
         };
     }
     
@@ -216,6 +223,16 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
         data.setReferrerLinkText(rs.getString("referrerLinkText"));
         data.setReferrerLinkTitle(rs.getString("referrerLinkTitle"));
         
+        try {
+            Reader refUrlsReader = rs.getCharacterStream("referencedUrls");
+            if (refUrlsReader != null) {
+                data.setReferencedUrls(StringUtils.split(
+                        IOUtils.toString(refUrlsReader), (char) 007));
+            }
+        } catch (IOException e) {
+            throw new SQLException(
+                    "Could not read referencedUrls character stream.", e);
+        }
         return data;
     }
 }

@@ -102,8 +102,11 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
         
         if (!uniqueQueuedURLs.isEmpty()) {
-            ctx.getMetadata().addString(HttpMetadata.COLLECTOR_REFERENCED_URLS, 
-                    uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+            String[] referencedUrls = 
+                    uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+            ctx.getMetadata().addString(
+                    HttpMetadata.COLLECTOR_REFERENCED_URLS, referencedUrls);
+            ctx.getCrawlData().setReferencedUrls(referencedUrls);
         }
         
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 

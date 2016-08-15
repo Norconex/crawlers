@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ public class RedirectStrategyWrapper implements RedirectStrategy {
         return redirectURLProvider;
     }
     
+    @Override
     public boolean isRedirected(
             final HttpRequest request,
             final HttpResponse response,
