@@ -119,12 +119,19 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *    &lt;/replacements&gt;
  *  &lt;/urlNormalizer&gt;
  * </pre>
- * <p>Example:</p>
+ * <h3>Example:</h3>
+ * <p>
+ * The following adds a normalization to add "www." to URL domains when
+ * missing, to the default set of normalizations. It also add custom
+ * URL "search-and-replace" to remove any "&amp;view=print" strings from URLs
+ * as well as replace "&amp;type=summary" with "&amp;type=full". 
+ * </p>
  * <pre>
  *  &lt;urlNormalizer class="com.norconex.collector.http.url.impl.GenericURLNormalizer"&gt;
  *    &lt;normalizations&gt;
- *      lowerCaseSchemeHost, upperCaseEscapeSequence, removeDefaultPort, 
- *      removeDotSegments, removeDirectoryIndex, removeFragment, addWWW 
+ *        removeFragment, lowerCaseSchemeHost, upperCaseEscapeSequence,
+ *        decodeUnreservedCharacters, removeDefaultPort, 
+ *        encodeNonURICharacters, addWWW 
  *    &lt;/normalizations&gt;
  *    &lt;replacements&gt;
  *      &lt;replace&gt;&lt;match&gt;&amp;amp;view=print&lt;/match&gt;&lt;/replace&gt;

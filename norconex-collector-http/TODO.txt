@@ -63,7 +63,9 @@ The following are either things to be done, or ideas to consider:
   sites.
   
 - Provide some duplicate content detection mechanism.  Maybe using existing 
-  checksums.
+  checksums, or create a distinction between a "modified" checksum (to find out
+  if a document was modified) and a "duplicate" checksum (to find out if 
+  documents are identical).
 
 - Add the ability to control how many successive crawls it has to go through
   before deleting a document because it was not found (404).
