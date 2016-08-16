@@ -203,7 +203,7 @@ public class HttpCrawlData extends BaseCrawlData {
     }
     /**
      * Sets URLs referenced by this one.
-     * @param referencedUrls
+     * @param referencedUrls referenced URLs
      * @since 2.6.0 URLs referenced by this one.
      */
     public void setReferencedUrls(String... referencedUrls) {

@@ -21,6 +21,7 @@ import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
 import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTest;
 
+@Deprecated
 public class MapDBCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 
     @Override
