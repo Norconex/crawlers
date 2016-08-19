@@ -44,6 +44,10 @@
       <action dev="essiembre" type="update">
         Extracted URLs are now stored in crawl store.
       </action>
+      <action dev="essiembre" type="fix" issue="289">
+        Fixed GenericRecrawlableResolver#MinFrequency() constructor with 
+        arguments not setting patterns correctly.
+      </action>
       <action dev="essiembre" type="fix" issue="278">
         Fixed documents wrongfully being considered orphans when referrer was 
         skipped for being unmodified or premature, or was in temporary error,

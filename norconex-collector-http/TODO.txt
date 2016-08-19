@@ -1,5 +1,14 @@
 The following are either things to be done, or ideas to consider:
 
+- Add global solution for jar version-checking (maybe should be in 
+  Norconex Commons Lang?).  Either return an error if different jar versions
+  or warning, or leave it to -chckcfg.
+
+- Offer a separate process to run on the crawl store and produce some kind of 
+  flat file with referring URL counts so people can decide to use this
+  to create some form of relevancy in their search engine (e.g. using 
+  inboud links as a popularity indicator).
+
 - Have a global settings for making Properties (HttpMetadata, 
   ImporterMetadata, etc) case sensitive or not.
 
