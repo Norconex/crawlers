@@ -14,6 +14,11 @@
       <action dev="essiembre" type="add">
         Can now specify "notFoundStatusCodes" on GenericMetadataFetcher.
       </action>      
+      <action dev="essiembre" type="update" issue="291">
+        GenericLinkExtractor no longer extracts URL from HTML/XML comments
+        by default. To re-enable this behavior a new 
+        "setCommentsEnabled(boolean)" method has been added.
+      </action>      
       <action dev="essiembre" type="update" issue="290">
         Normalization rule "addTrailingSlash" in GenericURLNormalizer
         has been renamed "addDirectoryTrailingSlash".

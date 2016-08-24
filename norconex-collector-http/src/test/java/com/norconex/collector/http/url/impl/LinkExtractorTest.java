@@ -78,6 +78,7 @@ public class LinkExtractorTest {
                 baseURL + "nofollow.html",
                 baseURL + "/dont/process/scripts/'+variable+'",
                 baseURL + "/dont/process/a/'+inscript+'",
+                baseURL + "comment.html",
                 baseDir, // empty href
         };
 

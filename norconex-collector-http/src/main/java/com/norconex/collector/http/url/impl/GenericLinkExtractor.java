@@ -172,12 +172,18 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link #setSchemes(String[])}.
  * </p>
  * 
+ * <h3>HTML/XML Comments</h3>
+ * <p><b>Since 2.6.0</b>, URLs found in &lt;!-- comments --&gt; are no longer 
+ * extracted by default. To enable URL extraction from comments, use 
+ * {@link #setCommentsEnabled(boolean)}
+ * </p>
+ * 
  * <h3>XML configuration usage</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
  *          maxURLLength="(maximum URL length. Default is 2048)" 
  *          ignoreNofollow="[false|true]" 
- *          keepReferrerData="[false|true]"
+ *          commentsEnabled="[false|true]"
  *          charset="(supported character encoding)" &gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
@@ -234,6 +240,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private final Properties tagAttribs = new Properties(true);
     private Pattern tagPattern;
     private String charset;
+    private boolean commentsEnabled;
     
     public GenericLinkExtractor() {
         super();
@@ -347,6 +354,24 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
 
     /**
+     * Gets whether links should be extracted from HTML/XML comments. 
+     * @return <code>true</code> if links should be extracted from comments.
+     * @since 2.6.0
+     */
+    public boolean isCommentsEnabled() {
+        return commentsEnabled;
+    }
+    /**
+     * Sets whether links should be extracted from HTML/XML comments. 
+     * @param commentsEnabled <code>true</code> if links 
+     *        should be extracted from comments.
+     * @since 2.6.0
+     */
+    public void setCommentsEnabled(boolean commentsEnabled) {
+        this.commentsEnabled = commentsEnabled;
+    }
+
+    /**
      * Gets the schemes to be extracted.
      * @return schemes to be extracted
      * @since 2.4.0
@@ -454,6 +479,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             "\\s*title\\s*=\\s*([\"'])(.*?)\\1", PATTERN_FLAGS);
     private static final Pattern SCRIPT_PATTERN = Pattern.compile(
             "(<\\s*script\\b.*?>)(.*?)(<\\s*/\\s*script\\s*>)", PATTERN_FLAGS);
+    private static final Pattern COMMENT_PATTERN = Pattern.compile(
+            "<!--.*?-->", PATTERN_FLAGS);
     private void extractLinks(
             String theContent, Referer referrer, Set<Link> links) {
         String content = theContent;
@@ -461,7 +488,9 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         // Get rid of <script> tags content to eliminate possibly 
         // generated URLs.
         content = SCRIPT_PATTERN.matcher(content).replaceAll("$1$3");
-        //TODO eliminate URLs inside <!-- comments --> too?
+        if (!isCommentsEnabled()) {
+            content = COMMENT_PATTERN.matcher(content).replaceAll("");
+        }
 
         Matcher matcher = tagPattern.matcher(content);
         while (matcher.find()) {
@@ -660,6 +689,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         setMaxURLLength(xml.getInt("[@maxURLLength]", getMaxURLLength()));
         setIgnoreNofollow(xml.getBoolean(
                 "[@ignoreNofollow]", isIgnoreNofollow()));
+        setCommentsEnabled(xml.getBoolean(
+                "[@commentsEnabled]", isCommentsEnabled()));
         setCharset(xml.getString("[@charset]", getCharset()));
         if (xml.getBoolean("[@keepFragment]", false)) {
             LOG.warn("'keepFragment' on GenericLinkExtractor was removed. "
@@ -705,6 +736,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
             writer.writeAttributeInteger("maxURLLength", getMaxURLLength());
             writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
+            writer.writeAttributeBoolean(
+                    "commentsEnabled", isCommentsEnabled());
             writer.writeAttributeString("charset", getCharset());
             
             // Content Types
@@ -788,6 +821,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append("schemes", schemes)
                 .append("maxURLLength", maxURLLength)
                 .append("ignoreNofollow", ignoreNofollow)
+                .append("commentsEnabled", commentsEnabled)
                 .append("tagAttribs", tagAttribs)
                 .append("charset", charset)
                 .toString();
@@ -805,6 +839,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(schemes, castOther.schemes)
                 .append(maxURLLength, castOther.maxURLLength)
                 .append(ignoreNofollow, castOther.ignoreNofollow)
+                .append(commentsEnabled, castOther.commentsEnabled)
                 .append(tagAttribs.entrySet(), castOther.tagAttribs.entrySet())
                 .append(charset, castOther.charset)
                 .isEquals();
@@ -817,6 +852,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(schemes)
                 .append(maxURLLength)
                 .append(ignoreNofollow)
+                .append(commentsEnabled)
                 .append(tagAttribs)
                 .append(charset)
                 .toHashCode();
