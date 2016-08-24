@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,26 +76,27 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * name to get a full description from {@link URLNormalizer}:
  * </p>
  * <ul>
- *   <li>{@link URLNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
- *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
+ *   <li>{@link URLNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash}</li>
+ *   <li>{@link URLNormalizer#addWWW() addWWW}</li>
  *   <li>{@link URLNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
  *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters} (since 2.3.0)</li>
  *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces} (since 2.3.0)</li>
+ *   <li>{@link URLNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
  *   <li>{@link URLNormalizer#removeDefaultPort() removeDefaultPort}</li>
- *   <li>{@link URLNormalizer#addTrailingSlash() addTrailingSlash}</li>
- *   <li>{@link URLNormalizer#removeDotSegments() removeDotSegments}</li>
  *   <li>{@link URLNormalizer#removeDirectoryIndex() removeDirectoryIndex}</li>
- *   <li>{@link URLNormalizer#removeFragment() removeFragment}</li>
- *   <li>{@link URLNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
- *   <li>{@link URLNormalizer#unsecureScheme() unsecureScheme}</li>
- *   <li>{@link URLNormalizer#secureScheme() secureScheme}</li>
+ *   <li>{@link URLNormalizer#removeDotSegments() removeDotSegments}</li>
  *   <li>{@link URLNormalizer#removeDuplicateSlashes() removeDuplicateSlashes}</li>
- *   <li>{@link URLNormalizer#removeWWW() removeWWW}</li>
- *   <li>{@link URLNormalizer#addWWW() addWWW}</li>
- *   <li>{@link URLNormalizer#sortQueryParameters() sortQueryParameters}</li>
  *   <li>{@link URLNormalizer#removeEmptyParameters() removeEmptyParameters}</li>
- *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
+ *   <li>{@link URLNormalizer#removeFragment() removeFragment}</li>
  *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li> 
+ *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
+ *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
+ *   <li>{@link URLNormalizer#removeWWW() removeWWW}</li>
+ *   <li>{@link URLNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
+ *   <li>{@link URLNormalizer#secureScheme() secureScheme}</li>
+ *   <li>{@link URLNormalizer#sortQueryParameters() sortQueryParameters}</li>
+ *   <li>{@link URLNormalizer#unsecureScheme() unsecureScheme}</li>
+ *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
  * </ul>
  * <p>
  *   In addition, this class allows you to specify any number of URL 
@@ -151,26 +152,32 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             GenericURLNormalizer.class);
   
     public enum Normalization {
-        lowerCaseSchemeHost,
-        upperCaseEscapeSequence, 
+        addDirectoryTrailingSlash,
+        /**
+         * @deprecated Since 1.11.0, use {@link #addDirectoryTrailingSlash}
+         */
+        @Deprecated
+        addTrailingSlash, 
+        addWWW, 
         decodeUnreservedCharacters, 
         encodeNonURICharacters,
         encodeSpaces,
+        lowerCaseSchemeHost,
         removeDefaultPort, 
-        addTrailingSlash, 
-        removeDotSegments, 
         removeDirectoryIndex, 
-        removeFragment, 
-        replaceIPWithDomainName, 
-        unsecureScheme, 
-        secureScheme, 
+        removeDotSegments, 
         removeDuplicateSlashes, 
-        removeWWW, 
-        addWWW, 
-        sortQueryParameters, 
         removeEmptyParameters, 
+        removeFragment, 
+        removeSessionIds,
         removeTrailingQuestionMark, 
-        removeSessionIds 
+        removeTrailingSlash, 
+        removeWWW, 
+        replaceIPWithDomainName, 
+        secureScheme, 
+        sortQueryParameters, 
+        unsecureScheme, 
+        upperCaseEscapeSequence, 
     }
     
     
