@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,12 @@ public class StandardSitemapResolverTest {
         r.setSitemapPaths("/sitemap.xml", "/subdir/sitemap.xml");
         System.out.println("Writing/Reading this: " + r);
         ConfigurationUtil.assertWriteRead(r);
+
+        // try with empty paths
+        r.setSitemapPaths(new String[] {});
+        System.out.println("Writing/Reading this: " + r);
+        ConfigurationUtil.assertWriteRead(r);
+
     }
 
 }

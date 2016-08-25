@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import javax.xml.stream.XMLStreamException;
@@ -25,6 +27,7 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -51,7 +54,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;sitemapResolverFactory ignore="[false|true]" lenient="[false|true]" 
  *        tempDir="(where to store temp files)"
  *     class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory"&gt;
- *     &lt;path&gt;(optional path relative to URL root for a sitemap)&lt;/path&gt;
+ *     &lt;path&gt;
+ *       (Optional path relative to URL root for a sitemap. Use a single empty
+ *        "path" tag to rely instead on any sitemaps specified as start URLs or
+ *        defined in robots.txt, if enabled.  Not specifying any path tags
+ *        falls back to trying to locate sitemaps using default paths.)
+ *     &lt;/path&gt;
  *     (... repeat path tag as needed ...)
  *  &lt;/sitemapResolverFactory&gt;
  * </pre>
@@ -64,7 +72,8 @@ public class StandardSitemapResolverFactory
             StandardSitemapResolverFactory.class);
 
     private File tempDir;
-    private String[] sitemapPaths;
+    private String[] sitemapPaths = 
+            StandardSitemapResolver.DEFAULT_SITEMAP_PATHS;
     private boolean lenient;
     
     @Override
@@ -171,7 +180,20 @@ public class StandardSitemapResolverFactory
         String[] paths = xml.getList(
                 "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY); 
         if (!ArrayUtils.isEmpty(paths)) {
-            setSitemapPaths(paths);
+            // not empty but if empty after removing blank ones, consider
+            // empty (we want no path)
+            List<String> cleanPaths = new ArrayList<String>(paths.length);
+            for (String path : paths) {
+                if (StringUtils.isNotBlank(path)) {
+                    cleanPaths.add(path);
+                }
+            }
+            if (cleanPaths.isEmpty()) {
+                setSitemapPaths(ArrayUtils.EMPTY_STRING_ARRAY);
+            } else {
+                setSitemapPaths(
+                        cleanPaths.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+            }
         }
         
         if (!xml.getList("location").isEmpty()) {
@@ -189,7 +211,11 @@ public class StandardSitemapResolverFactory
             writer.writeAttribute("lenient", Boolean.toString(lenient));
             writer.writeElementString(
                     "tempDir", Objects.toString(getTempDir(), null));
-            if (sitemapPaths != null) {
+            if (ArrayUtils.isEmpty(sitemapPaths)) {
+                writer.writeStartElement("path");
+                writer.writeCharacters("");
+                writer.writeEndElement();
+            } else {
                 for (String path : sitemapPaths) {
                     writer.writeStartElement("path");
                     writer.writeCharacters(path);

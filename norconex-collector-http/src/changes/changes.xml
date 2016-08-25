@@ -13,6 +13,14 @@
       </action>
       <action dev="essiembre" type="add">
         Can now specify "notFoundStatusCodes" on GenericMetadataFetcher.
+      </action>
+      <action dev="essiembre" type="update" issue="292">
+        Specifying an empty "path" tag in XML config or, setting a null or
+        empty string array on 
+        StandardSitemapResolverFactory#setSitemapPaths(...)
+        method will now prevent trying to locate sitemaps using default 
+        locations and will strictly rely on sitemap URLs specified as start 
+        URLs or found in robots.txt (if enabled).
       </action>      
       <action dev="essiembre" type="update" issue="291">
         GenericLinkExtractor no longer extracts URL from HTML/XML comments
@@ -23,6 +31,10 @@
         Normalization rule "addTrailingSlash" in GenericURLNormalizer
         has been renamed "addDirectoryTrailingSlash".
       </action>
+      <action dev="essiembre" type="update">
+        SitemapStore now uses MVStore instead of MapDB for storing the list
+        of processed sitemaps.
+      </action>      
       <action dev="essiembre" type="update">
         Referrer data is now always stored for GenericLinkExtractor (default)
         and TikaLinkExtractor.
@@ -55,6 +67,9 @@
       </action>
       <action dev="essiembre" type="update">
         Extracted URLs are now stored in crawl store.
+      </action>
+      <action dev="essiembre" type="update">
+        Now using MVStore for sitemap store (instead of MapDB).
       </action>
       <action dev="essiembre" type="fix" issue="289">
         Fixed GenericRecrawlableResolver#MinFrequency() constructor with 

@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,10 @@ import com.norconex.commons.lang.file.FileUtil;
  * to load and parse any sitemap found at those locations for each root URLs
  * encountered (except for "start URLs" sitemaps, see below). Default paths
  * are <code>/sitemap.xml</code> and <code>/sitemap_index.xml</code>.
+ * Setting <code>null</code> or an empty path array on 
+ * {@link #setSitemapPaths(String...)} will prevent attempts to locate
+ * sitemaps and only sitemaps found in robots.txt or defined as start 
+ * URLs will be considered. 
  * </p>
  * <p>
  * Sitemaps can be specified as "start URLs" (defined in 
@@ -95,7 +99,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
     private static final Logger LOG = LogManager.getLogger(
             StandardSitemapResolver.class);
 
-    public String[] DEFAULT_SITEMAP_PATHS = 
+    public static final String[] DEFAULT_SITEMAP_PATHS = 
             new String[] { "/sitemap.xml", "/sitemap_index.xml" };
     
     private final SitemapStore sitemapStore;
@@ -176,7 +180,8 @@ public class StandardSitemapResolver implements ISitemapResolver {
     /**
      * Get sitemap locations.
      * @return sitemap locations
-     * @deprecated Since 2.3.0, use {@link HttpCrawlerConfig#getStartSitemapURLs()}
+     * @deprecated Since 2.3.0, use
+     *             {@link HttpCrawlerConfig#getStartSitemapURLs()}
      */
     @Deprecated
     public String[] getSitemapLocations() {
@@ -368,7 +373,8 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
     private boolean isRelaxed(ParseState parseState, String locationDir) {
-        return lenient || parseState.baseURL.getReference().startsWith(locationDir);
+        return lenient 
+                || parseState.baseURL.getReference().startsWith(locationDir);
     }
     
     private void parseCharacters(ParseState parseState, String value) {
@@ -423,10 +429,12 @@ public class StandardSitemapResolver implements ISitemapResolver {
         }
 
         // derived locations from sitemap paths
-        String[] paths = sitemapPaths;
+        String[] paths = getSitemapPaths();
         if (ArrayUtils.isEmpty(paths)) {
-            paths = DEFAULT_SITEMAP_PATHS;
+            LOG.debug("No sitemap paths specified.");
+            return uniqueLocations;
         }
+
         for (String path : paths) {
             String safePath = path;
             if (!safePath.startsWith("/")) {
@@ -434,7 +442,6 @@ public class StandardSitemapResolver implements ISitemapResolver {
             }
             uniqueLocations.add(urlRoot + safePath);
         }
-        
         return uniqueLocations;
     }
     

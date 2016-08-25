@@ -55,7 +55,7 @@
   #set($sitemapFactory    = "${http}.sitemap.impl.StandardSitemapResolverFactory")
   #set($metaChecksummer   = "${http}.checksum.impl.HttpMetadataChecksummer")
   #set($docChecksummer    = "${core}.checksum.impl.MD5DocumentChecksummer")
-  #set($dataStoreFactory  = "${core}.data.store.impl.mapdb.MapDBCrawlDataStoreFactory")
+  #set($dataStoreFactory  = "${core}.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory")
   #set($spoiledStrategy   = "${core}.spoil.impl.GenericSpoiledReferenceStrategizer")
   #set($fsCommitter       = "${committer}.core.impl.FileSystemCommitter")
   
