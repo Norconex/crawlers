@@ -38,7 +38,6 @@ import org.junit.Test;
 
 import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
-import com.norconex.collector.core.data.store.impl.mapdb.MapDBCrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
@@ -238,14 +237,9 @@ public class ExecutionTest extends AbstractHttpTest {
     @Test
     public void testStartAfterJvmCrash()
             throws IOException, XMLStreamException {
-        testAfterJvmCrash(false, MapDBCrawlDataStoreFactory.class, null);
+        testAfterJvmCrash(false, MVStoreCrawlDataStoreFactory.class, null);
     }
 
-    @Test
-    public void testResumeAfterJvmCrash_MapDB() 
-            throws IOException, XMLStreamException {
-        testAfterJvmCrash(true, MapDBCrawlDataStoreFactory.class, null);
-    }
     @Test
     public void testResumeAfterJvmCrash_MVStore() 
             throws IOException, XMLStreamException {

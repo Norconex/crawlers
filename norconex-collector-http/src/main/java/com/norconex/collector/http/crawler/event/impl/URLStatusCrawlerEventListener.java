@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,22 +52,6 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <a href="http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml">here</a>.
  * </p>
  * 
- * <h3>How to include referring/parent URLs</h3>
- * <p>
- * In some cases you may want to capture the referring page.  
- * For instance, this is necessary to find out which pages contain broken 
- * links. By default this information is not captured.  To capture this
- * information, you have to set the <code>keepReferrerData</code> attribute
- * to <code>true</code> on either {@link GenericLinkExtractor} or 
- * {@link TikaLinkExtractor}.  XML configuration example:
- * </p>
- * <pre>
- *  &lt;linkExtractors&gt;
- *      &lt;extractor 
- *          class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
- *          keepReferrerData="true" /&gt;
- *  &lt;/linkExtractors&gt;</pre>
- * 
  * <h3>Filter by status codes</h3>
  * <p>
  * By default, the status of all fetched URLs are stored by this listener,
@@ -95,6 +79,15 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <p>
  * The filename prefix can be changed from "urlstatuses-" to anything else
  * using {@link #setFileNamePrefix(String)}.
+ * </p>
+ * 
+ * <h3>Referring/parent URLs and custom link extractor</h3>
+ * <p>
+ * To capture the referring pages you have to use a link extractor that 
+ * extracts referrer information.  The default link extractor  
+ * {@link GenericLinkExtractor} properly extracts this information.  Same with 
+ * {@link TikaLinkExtractor}.  This is only a consideration when
+ * using a custom link extractor. 
  * </p>
  * 
  * <h3>XML Configuration Usage</h3>

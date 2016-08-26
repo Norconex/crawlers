@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,10 +47,18 @@ public class HttpCrawlData extends BaseCrawlData {
     private String referrerLinkTag;
     private String referrerLinkTitle;
     
+    private String[] referencedUrls;
+    
+    /**
+     * Constructor.
+     */
     public HttpCrawlData() {
         super();
     }
-
+    /**
+     * Constructor
+     * @param crawlData initialized this instance this data
+     */
     public HttpCrawlData(ICrawlData crawlData) {
         if (crawlData != null) {
             try {
@@ -185,6 +193,23 @@ public class HttpCrawlData extends BaseCrawlData {
         return urlRoot;
     }
 
+    /**
+     * Gets URLs referenced by this one.
+     * @return URLs referenced by this one.
+     * @since 2.6.0
+     */
+    public String[] getReferencedUrls() {
+        return referencedUrls;
+    }
+    /**
+     * Sets URLs referenced by this one.
+     * @param referencedUrls referenced URLs
+     * @since 2.6.0 URLs referenced by this one.
+     */
+    public void setReferencedUrls(String... referencedUrls) {
+        this.referencedUrls = referencedUrls;
+    }
+    
     @Override
     public boolean equals(final Object other) {
         if (!(other instanceof HttpCrawlData)) {
@@ -202,17 +227,24 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append(referrerReference, castOther.referrerReference)
                 .append(referrerLinkTag, castOther.referrerLinkTag)
                 .append(referrerLinkTitle, castOther.referrerLinkTitle)
+                .append(referencedUrls, castOther.referencedUrls)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder().appendSuper(super.hashCode())
-                .append(depth).append(urlRoot).append(sitemapLastMod)
-                .append(sitemapChangeFreq).append(sitemapPriority)
-                .append(originalReference).append(referrerLinkText)
-                .append(referrerReference).append(referrerLinkTag)
+                .append(depth)
+                .append(urlRoot)
+                .append(sitemapLastMod)
+                .append(sitemapChangeFreq)
+                .append(sitemapPriority)
+                .append(originalReference)
+                .append(referrerLinkText)
+                .append(referrerReference)
+                .append(referrerLinkTag)
                 .append(referrerLinkTitle)
+                .append(referencedUrls)
                 .toHashCode();
     }
 
@@ -229,6 +261,7 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append("referrerReference", referrerReference)
                 .append("referrerLinkTag", referrerLinkTag)
                 .append("referrerLinkTitle", referrerLinkTitle)
+                .append("referencedUrls", referencedUrls)
                 .toString();
     }
 }

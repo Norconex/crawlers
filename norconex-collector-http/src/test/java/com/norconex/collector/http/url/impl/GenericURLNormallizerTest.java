@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,18 @@ public class GenericURLNormallizerTest {
         s = null;
         t = null;
     }
+
+    // Test for https://github.com/Norconex/collector-http/issues/290
+    @Test
+    public void testRemoveTrailingSlashWithOnlyHostname() {
+        GenericURLNormalizer n = new GenericURLNormalizer();
+        n.setNormalizations(
+                Normalization.removeTrailingSlash
+                );
+        s = "http://bot.nerus.com/";
+        t = "http://bot.nerus.com";
+        assertEquals(t, n.normalizeURL(s));
+    }
     
     @Test
 	public void testReplacements() {
@@ -68,7 +80,7 @@ public class GenericURLNormallizerTest {
                 Normalization.removeDefaultPort,
                 Normalization.removeFragment,
                 Normalization.removeDotSegments,
-                Normalization.addTrailingSlash,
+                Normalization.addDirectoryTrailingSlash,
                 Normalization.removeDuplicateSlashes,
                 Normalization.removeSessionIds,
                 Normalization.upperCaseEscapeSequence
@@ -101,7 +113,7 @@ public class GenericURLNormallizerTest {
         GenericURLNormalizer n = new GenericURLNormalizer();
         n.setNormalizations(
                 Normalization.lowerCaseSchemeHost,
-                Normalization.addTrailingSlash,
+                Normalization.addDirectoryTrailingSlash,
                 Normalization.decodeUnreservedCharacters,
                 Normalization.removeDotSegments,
                 Normalization.removeDuplicateSlashes,

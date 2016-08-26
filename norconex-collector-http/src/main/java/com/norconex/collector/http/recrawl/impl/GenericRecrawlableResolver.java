@@ -360,7 +360,7 @@ public class GenericRecrawlableResolver
             super();
             this.applyTo = applyTo;
             this.value = value;
-            this.pattern = pattern;
+            setPattern(pattern);
         }
         public String getApplyTo() {
             return applyTo;

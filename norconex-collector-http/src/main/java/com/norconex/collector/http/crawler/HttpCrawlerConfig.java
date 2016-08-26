@@ -34,7 +34,6 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
-import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
@@ -129,7 +128,6 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     
     public HttpCrawlerConfig() {
         super();
-        setCrawlDataStoreFactory(new MVStoreCrawlDataStoreFactory());
     }
 
     public String[] getStartURLs() {

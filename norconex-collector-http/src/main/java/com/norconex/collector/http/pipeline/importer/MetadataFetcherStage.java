@@ -1,4 +1,4 @@
-/* Copyright 2015-2016 Norconex Inc.
+/* Copyright 2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,41 +14,47 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import java.util.Date;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
+import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
+import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
+import com.norconex.commons.lang.map.Properties;
 
 /**
- * <p>Fetches (i.e. download for processing) a document.</p>
- * <p>Prior to 2.3.0, the code for this class was part of 
+ * <p>Fetches a document metadata (i.e. HTTP headers).</p>
+ * <p>Prior to 2.6.0, the code for this class was part of 
  * {@link HttpImporterPipeline}.
  * @author Pascal Essiembre
- * @since 2.3.0
+ * @since 2.6.0
  */
-/*default*/ class DocumentFetcherStage extends AbstractImporterStage {
+/*default*/ class MetadataFetcherStage extends AbstractImporterStage {
     
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
+        if (!ctx.isHttpHeadFetchEnabled()) {
+            return true;
+        }
+
         HttpCrawlData crawlData = ctx.getCrawlData();
-        
-        HttpFetchResponse response =
-                ctx.getConfig().getDocumentFetcher().fetchDocument(
-                        ctx.getHttpClient(), ctx.getDocument());
 
-        crawlData.setCrawlDate(new Date());
+        IHttpMetadataFetcher headersFetcher = ctx.getHttpHeadersFetcher();
+
+        HttpMetadata metadata = ctx.getMetadata();
+        Properties headers = new Properties(metadata.isCaseInsensitiveKeys());
+
+        HttpFetchResponse response = headersFetcher.fetchHTTPHeaders(
+                ctx.getHttpClient(), crawlData.getReference(), headers);
+
+        metadata.putAll(headers);
         
-        HttpImporterPipelineUtil.enhanceHTTPHeaders(
-                ctx.getDocument().getMetadata());
+        HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
-
-        crawlData.setContentType(ctx.getDocument().getContentType());
         
         //-- Deal with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();
@@ -57,11 +63,11 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
                     ctx, response, redirectURL);
             return false;
         }
-        
+
         CrawlState state = response.getCrawlState();
         crawlData.setState(state);
         if (state.isGoodState()) {
-            ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED, 
+            ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_METADATA_FETCHED, 
                     crawlData, response);
         } else {
             String eventType = null;

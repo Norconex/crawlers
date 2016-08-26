@@ -17,6 +17,7 @@ package com.norconex.collector.http.pipeline.queue;
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.http.client.HttpClient;
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,7 +58,7 @@ public class RobotsTxtFiltersStageTest {
                     HttpClient httpClient, String url, String userAgent) {
                 try {
                     return parseRobotsTxt(
-                            IOUtils.toInputStream(robotTxt), 
+                            IOUtils.toInputStream(robotTxt, CharEncoding.UTF_8), 
                             url, "test-crawler");
                 } catch (IOException e) {
                     throw new RuntimeException(e);

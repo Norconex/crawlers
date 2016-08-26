@@ -157,6 +157,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         dataIn.setSitemapChangeFreq("weekly");
         dataIn.setSitemapLastMod(123L);
         dataIn.setSitemapPriority(0.5f);
+        dataIn.setReferencedUrls("url1", "url2", "url3", "url4", "url5");
         getCrawlDataStore().processed(dataIn);
         moveProcessedToCache();
         HttpCrawlData dataOut = 

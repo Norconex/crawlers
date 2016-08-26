@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@ package com.norconex.collector.http.sitemap.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
@@ -39,8 +39,9 @@ public class SitemapStore {
     
     
     private final HttpCrawlerConfig config;
-    private final DB db;
-    private Set<String> sitemaps;
+    private final MVStore store;
+    // MVStore does not offer Set, so we use a map for its keys only
+    private MVMap<String, String> sitemaps;
     
     private long commitCounter;
     
@@ -57,23 +58,20 @@ public class SitemapStore {
             throw new CollectorException(
                     "Cannot create sitemap directory: " + dbDir, e);
         }
-        File dbFile = new File(dbDir + "mapdb");
+        File dbFile = new File(dbDir + "mvstore");
         boolean create = !dbFile.exists() || !dbFile.isFile();
         
         // Configure and open database
-        this.db = DBMaker.newFileDB(dbFile)
-                .asyncWriteEnable()
-                .cacheSoftRefEnable()
-                .closeOnJvmShutdown()
-                .make();
-    
-        sitemaps = db.getHashSet(STORE_SITEMAP);
+        this.store = MVStore.open(dbFile.getAbsolutePath());
+        
+        sitemaps = this.store.openMap(STORE_SITEMAP);
+        
         if (resume) {
             LOG.debug(config.getId() + ": Re-using sitemap store.");
         } else if (!create) {
             LOG.debug(config.getId() + ": Cleaning sitemap store...");
             sitemaps.clear();
-            db.commit();
+            store.commit();
         } else {
             LOG.debug(config.getId() + ": Sitemap store created.");
         }
@@ -81,23 +79,23 @@ public class SitemapStore {
     }
     
     public void markResolved(String urlRoot) {
-        sitemaps.add(urlRoot);
+        sitemaps.put(urlRoot, StringUtils.EMPTY);
         commitCounter++;
         if (commitCounter % COMMIT_SIZE == 0) {
             LOG.debug(config.getId() + ": Committing sitemaps disk...");
-            db.commit();
+            store.commit();
         }
     }
 
     public boolean isResolved(String urlRoot) {
-        return sitemaps.contains(urlRoot);
+        return sitemaps.containsKey(urlRoot);
     }
     
     public synchronized void close() {
-        if (!db.isClosed()) {
+        if (!store.isClosed()) {
             LOG.info(config.getId() + ": Closing sitemap store...");
-            db.commit();
-            db.close();
+            store.commit();
+            store.close();
         }
     }
     

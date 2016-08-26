@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2010-2015 Norconex Inc.
+   Copyright 2010-2016 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -42,9 +42,6 @@
       <maxDepth>0</maxDepth>
 
       <!-- We know we don't want to crawl the entire site, so ignore sitemap. -->
-      <!-- Before 2.3.0: -->
-      <sitemap ignore="true" />
-      <!-- Since 2.3.0: -->
       <sitemapResolverFactory ignore="true" />
 
       <!-- Be as nice as you can to sites you crawl. -->

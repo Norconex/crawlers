@@ -102,10 +102,10 @@ import com.norconex.importer.util.CharsetUtil;
  * </p>
  * 
  * <h3>Referrer data</h3>
- * You can optionally set {@link #setKeepReferrerData(boolean)} 
- * to <code>true</code> to 
- * have the following referrer information stored as metadata in each document
+ * <p>
+ * The following referrer information is stored as metadata in each document
  * represented by the extracted URLs:
+ * </p>
  * <ul>
  *   <li><b>Referrer reference:</b> The reference (URL) of the page where the 
  *   link to a document was found.  Metadata value is 
@@ -125,6 +125,9 @@ import com.norconex.importer.util.CharsetUtil;
  *   Metadata value is 
  *   {@link HttpMetadata#COLLECTOR_REFERRER_LINK_TITLE}.</li>
  * </ul>
+ * <p>
+ * <b>Since 2.6.0</b>, the referrer data is always stored (was optional before).
+ * </p> 
  * 
  * <h3>Character encoding</h3>
  * <p><b>Since 2.4.0</b>, this extractor will by default <i>attempt</i> to 
@@ -169,12 +172,18 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link #setSchemes(String[])}.
  * </p>
  * 
+ * <h3>HTML/XML Comments</h3>
+ * <p><b>Since 2.6.0</b>, URLs found in &lt;!-- comments --&gt; are no longer 
+ * extracted by default. To enable URL extraction from comments, use 
+ * {@link #setCommentsEnabled(boolean)}
+ * </p>
+ * 
  * <h3>XML configuration usage</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
  *          maxURLLength="(maximum URL length. Default is 2048)" 
  *          ignoreNofollow="[false|true]" 
- *          keepReferrerData="[false|true]"
+ *          commentsEnabled="[false|true]"
  *          charset="(supported character encoding)" &gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform link extraction.
@@ -228,10 +237,10 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private String[] schemes = DEFAULT_SCHEMES;
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     private boolean ignoreNofollow;
-    private boolean keepReferrerData;
     private final Properties tagAttribs = new Properties(true);
     private Pattern tagPattern;
     private String charset;
+    private boolean commentsEnabled;
     
     public GenericLinkExtractor() {
         super();
@@ -345,6 +354,24 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
 
     /**
+     * Gets whether links should be extracted from HTML/XML comments. 
+     * @return <code>true</code> if links should be extracted from comments.
+     * @since 2.6.0
+     */
+    public boolean isCommentsEnabled() {
+        return commentsEnabled;
+    }
+    /**
+     * Sets whether links should be extracted from HTML/XML comments. 
+     * @param commentsEnabled <code>true</code> if links 
+     *        should be extracted from comments.
+     * @since 2.6.0
+     */
+    public void setCommentsEnabled(boolean commentsEnabled) {
+        this.commentsEnabled = commentsEnabled;
+    }
+
+    /**
      * Gets the schemes to be extracted.
      * @return schemes to be extracted
      * @since 2.4.0
@@ -368,11 +395,26 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         this.ignoreNofollow = ignoreNofollow;
     }
 
+    /**
+     * Gets whether to keep referrer data. 
+     * <b>Since 2.6.0, always return true</b>.
+     * @return <code>true</code>
+     * @deprecated Since 2.6.0, referrer data is always kept
+     */
+    @Deprecated
     public boolean isKeepReferrerData() {
-        return keepReferrerData;
+        return true;
     }
+    /**
+     * Sets whether to keep the referrer data. 
+     * <b>Since 2.6.0, this method has no effect.</b>  
+     * @param keepReferrerData referrer data
+     * @deprecated Since 2.6.0, referrer data is always kept
+     */
+    @Deprecated
     public void setKeepReferrerData(boolean keepReferrerData) {
-        this.keepReferrerData = keepReferrerData;
+        LOG.warn("Since 2.6.0, referrer data is always kept. "
+               + "Setting \"keepReferrerData\" has no effect.");
     }
 
     /**
@@ -437,6 +479,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             "\\s*title\\s*=\\s*([\"'])(.*?)\\1", PATTERN_FLAGS);
     private static final Pattern SCRIPT_PATTERN = Pattern.compile(
             "(<\\s*script\\b.*?>)(.*?)(<\\s*/\\s*script\\s*>)", PATTERN_FLAGS);
+    private static final Pattern COMMENT_PATTERN = Pattern.compile(
+            "<!--.*?-->", PATTERN_FLAGS);
     private void extractLinks(
             String theContent, Referer referrer, Set<Link> links) {
         String content = theContent;
@@ -444,7 +488,9 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         // Get rid of <script> tags content to eliminate possibly 
         // generated URLs.
         content = SCRIPT_PATTERN.matcher(content).replaceAll("$1$3");
-        //TODO eliminate URLs inside <!-- comments --> too?
+        if (!isCommentsEnabled()) {
+            content = COMMENT_PATTERN.matcher(content).replaceAll("");
+        }
 
         Matcher matcher = tagPattern.matcher(content);
         while (matcher.find()) {
@@ -464,10 +510,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                         continue;
                     }
                     Link link = new Link(url);
-                    if (keepReferrerData) {
-                        link.setReferrer(referrer.url);
-                        link.setTag(tagName);
-                    }
+                    link.setReferrer(referrer.url);
+                    link.setTag(tagName);
                     links.add(link);                
                 }
                 continue;
@@ -487,17 +531,15 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 if (!ignoreNofollow && isNofollow(restOfTag)) {
                     continue;
                 }
-                if (keepReferrerData) {
-                    Matcher textMatcher = A_TEXT_PATTERN.matcher(content);
-                    if (textMatcher.find(matcher.start())) {
-                        text = textMatcher.group(1).trim();
-                        // Strip markup to only extract the text
-                        text = text.replaceAll("<[^>]*>", "");
-                    }
-                    Matcher titleMatcher = A_TITLE_PATTERN.matcher(restOfTag);
-                    if (titleMatcher.find()) {
-                        title = titleMatcher.group(2).trim();
-                    }
+                Matcher textMatcher = A_TEXT_PATTERN.matcher(content);
+                if (textMatcher.find(matcher.start())) {
+                    text = textMatcher.group(1).trim();
+                    // Strip markup to only extract the text
+                    text = text.replaceAll("<[^>]*>", "");
+                }
+                Matcher titleMatcher = A_TITLE_PATTERN.matcher(restOfTag);
+                if (titleMatcher.find()) {
+                    title = titleMatcher.group(2).trim();
                 }
             }
 
@@ -526,15 +568,13 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                         continue;
                     }
                     Link link = new Link(url);
-                    if (keepReferrerData) {
-                        link.setReferrer(referrer.url);
-                        link.setTag(tagName + "." + attribName);
-                        if (StringUtils.isNotBlank(text)) {
-                            link.setText(text);
-                        }
-                        if (StringUtils.isNotBlank(title)) {
-                            link.setTitle(title);
-                        }
+                    link.setReferrer(referrer.url);
+                    link.setTag(tagName + "." + attribName);
+                    if (StringUtils.isNotBlank(text)) {
+                        link.setText(text);
+                    }
+                    if (StringUtils.isNotBlank(title)) {
+                        link.setTitle(title);
                     }
                     links.add(link);
                 }
@@ -561,10 +601,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
         String url = toCleanAbsoluteURL(referrer, m.group(PATTERN_URL_GROUP));
         Link link = new Link(url);
-        if (keepReferrerData) {
-            link.setReferrer(referrer.url);
-            link.setTag("meta.http-equiv.refresh");
-        }
+        link.setReferrer(referrer.url);
+        link.setTag("meta.http-equiv.refresh");
         links.add(link);
     }
     
@@ -651,8 +689,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         setMaxURLLength(xml.getInt("[@maxURLLength]", getMaxURLLength()));
         setIgnoreNofollow(xml.getBoolean(
                 "[@ignoreNofollow]", isIgnoreNofollow()));
-        setKeepReferrerData(xml.getBoolean(
-                "[@keepReferrerData]", isKeepReferrerData()));
+        setCommentsEnabled(xml.getBoolean(
+                "[@commentsEnabled]", isCommentsEnabled()));
         setCharset(xml.getString("[@charset]", getCharset()));
         if (xml.getBoolean("[@keepFragment]", false)) {
             LOG.warn("'keepFragment' on GenericLinkExtractor was removed. "
@@ -699,7 +737,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             writer.writeAttributeInteger("maxURLLength", getMaxURLLength());
             writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
             writer.writeAttributeBoolean(
-                    "keepReferrerData", isKeepReferrerData());
+                    "commentsEnabled", isCommentsEnabled());
             writer.writeAttributeString("charset", getCharset());
             
             // Content Types
@@ -783,7 +821,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append("schemes", schemes)
                 .append("maxURLLength", maxURLLength)
                 .append("ignoreNofollow", ignoreNofollow)
-                .append("keepReferrerData", keepReferrerData)
+                .append("commentsEnabled", commentsEnabled)
                 .append("tagAttribs", tagAttribs)
                 .append("charset", charset)
                 .toString();
@@ -801,7 +839,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(schemes, castOther.schemes)
                 .append(maxURLLength, castOther.maxURLLength)
                 .append(ignoreNofollow, castOther.ignoreNofollow)
-                .append(keepReferrerData, castOther.keepReferrerData)
+                .append(commentsEnabled, castOther.commentsEnabled)
                 .append(tagAttribs.entrySet(), castOther.tagAttribs.entrySet())
                 .append(charset, castOther.charset)
                 .isEquals();
@@ -814,7 +852,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(schemes)
                 .append(maxURLLength)
                 .append(ignoreNofollow)
-                .append(keepReferrerData)
+                .append(commentsEnabled)
                 .append(tagAttribs)
                 .append(charset)
                 .toHashCode();

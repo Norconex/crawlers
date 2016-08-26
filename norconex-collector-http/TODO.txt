@@ -1,5 +1,15 @@
 The following are either things to be done, or ideas to consider:
 
+- Have -chckcfg action verify for Jar duplicates?
+
+- Offer a separate process to run on the crawl store and produce some kind of 
+  flat file with referring URL counts so people can decide to use this
+  to create some form of relevancy in their search engine (e.g. using 
+  inboud links as a popularity indicator).
+
+- Have a global settings for making Properties (HttpMetadata, 
+  ImporterMetadata, etc) case sensitive or not.
+
 - Have a Regex-based link extractor that could be used with virtually any
   text-file? 
 
@@ -60,7 +70,9 @@ The following are either things to be done, or ideas to consider:
   sites.
   
 - Provide some duplicate content detection mechanism.  Maybe using existing 
-  checksums.
+  checksums, or create a distinction between a "modified" checksum (to find out
+  if a document was modified) and a "duplicate" checksum (to find out if 
+  documents are identical).
 
 - Add the ability to control how many successive crawls it has to go through
   before deleting a document because it was not found (404).
