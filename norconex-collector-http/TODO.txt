@@ -1,8 +1,6 @@
 The following are either things to be done, or ideas to consider:
 
-- Add global solution for jar version-checking (maybe should be in 
-  Norconex Commons Lang?).  Either return an error if different jar versions
-  or warning, or leave it to -chckcfg.
+- Have -chckcfg action verify for Jar duplicates?
 
 - Offer a separate process to run on the crawl store and produce some kind of 
   flat file with referring URL counts so people can decide to use this

@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.6.0-SNAPSHOT" date="2016-??-??" description="Feature release">
+    <release version="2.6.0" date="2016-08-25" description="Feature release">
       <action dev="essiembre" type="add" issue="290">
         New normalization rule for GenericURLNormalizer: removeTrailingSlash. 
       </action>
