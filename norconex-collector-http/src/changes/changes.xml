@@ -7,6 +7,17 @@
   </properties>
   <body>
 
+    <release version="2.6.1-SNAPSHOT" date="2016-??-??" description="Bugfix release">
+      <action dev="essiembre" type="add">
+        New "addDomainTrailingSlash" normalization rule for 
+        GenericURLNormalizer.
+      </action>
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Commons Lang 1.12.0,
+        Norconex Collection Core 1.6.1.
+      </action>      
+    </release>
+
     <release version="2.6.0" date="2016-08-25" description="Feature release">
       <action dev="essiembre" type="add" issue="290">
         New normalization rule for GenericURLNormalizer: removeTrailingSlash. 
