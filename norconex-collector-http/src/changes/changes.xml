@@ -16,6 +16,10 @@
         Dependency updates: Norconex Commons Lang 1.12.2, JJ2000 5.3,
         Norconex Collection Core 1.7.0.
       </action>      
+      <action dev="essiembre" type="fix">
+        Fixed StandardRobotsTxtProivder wrongfully rejecting documents
+        when encountering a blank "Disallow:" directive.
+      </action>      
     </release>
 
     <release version="2.6.0" date="2016-08-25" description="Feature release">

@@ -138,7 +138,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             } else if (parse) {
                 if ("crawl-delay".equalsIgnoreCase(key)) {
                     data.crawlDelay = value;
-                } else {
+                } else if (StringUtils.isNotBlank(value)) {
                     data.rules.put(value, key);
                 }
             }
