@@ -13,7 +13,7 @@
         GenericURLNormalizer.
       </action>
       <action dev="essiembre" type="update">
-        Dependency updates: Norconex Commons Lang 1.12.2, JJ2000 5.3,
+        Dependency updates: Norconex Commons Lang 1.12.3, JJ2000 5.3,
         Norconex Collection Core 1.7.0.
       </action>      
       <action dev="essiembre" type="fix">
