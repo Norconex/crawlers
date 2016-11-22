@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -314,8 +316,14 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         if (firstChunk) {
             Matcher matcher = BASE_HREF_PATTERN.matcher(txt);
             if (matcher.find()) {
-                String reference = matcher.group(2);
-                ref = new Referer(reference);
+                try {
+                    String reference = matcher.group(2);
+                    URI oldRefererURI = new URI(referer.url);
+                    URI baseHrefURI = new URI(reference);
+                    ref = new Referer(oldRefererURI.resolve(baseHrefURI).toString());
+                } catch (URISyntaxException ex) {
+                    LOG.warn("Could not parse and resolve <base href='…'> ("+ matcher.group(2) +"): "+ ex);
+                }
             }
         }
         return ref;

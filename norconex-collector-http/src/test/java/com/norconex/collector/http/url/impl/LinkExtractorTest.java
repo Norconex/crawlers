@@ -130,6 +130,7 @@ public class LinkExtractorTest {
     public void testGenericBaseHrefLinkExtractor() throws IOException {
         GenericLinkExtractor ex = new GenericLinkExtractor();
         testBaseHrefLinkExtraction(ex);
+        testRelativeBaseHrefLinkExtraction(ex);
     }
     @Test
     public void testTikaBaseHrefLinkExtractor() throws IOException {
@@ -152,6 +153,30 @@ public class LinkExtractorTest {
         
         InputStream is = 
                 getClass().getResourceAsStream("LinkBaseHrefTest.html");
+        Set<Link> links = extractor.extractLinks(
+                is, docURL, ContentType.HTML);
+        IOUtils.closeQuietly(is);
+        for (String expectedURL : expectedURLs) {
+            assertTrue("Could not find expected URL: " + expectedURL, 
+                    contains(links, expectedURL));
+        }
+        Assert.assertEquals("Invalid number of links extracted.", 
+                expectedURLs.length, links.size());
+    }
+    private void testRelativeBaseHrefLinkExtraction(ILinkExtractor extractor) 
+            throws IOException {
+        String docURL = "http://www.example.com/test/relative/"
+                + "LinkRelativeBaseHrefTest.html";
+
+        // All these must be found
+        String[] expectedURLs = {
+                "http://www.example.com/test/relative/blah.html?param=value",
+                "http://www.example.com/d/e/f.html",
+                "http://www.anotherhost.com/k/l/m.html",
+        };
+        
+        InputStream is = 
+                getClass().getResourceAsStream("LinkRelativeBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
                 is, docURL, ContentType.HTML);
         IOUtils.closeQuietly(is);
