@@ -123,17 +123,21 @@ public class LinkExtractorTest {
 
         Assert.assertEquals("Invalid number of links extracted.", 
                 expectedURLs.length, links.size());
-    }    
-
+    }
+    
+    
     //--- BASE HREF Tests ------------------------------------------------------
     @Test
     public void testGenericBaseHrefLinkExtractor() throws IOException {
         GenericLinkExtractor ex = new GenericLinkExtractor();
         testBaseHrefLinkExtraction(ex);
+        testRelativeBaseHrefLinkExtraction(ex);
     }
     @Test
     public void testTikaBaseHrefLinkExtractor() throws IOException {
-        testBaseHrefLinkExtraction(new TikaLinkExtractor());
+        TikaLinkExtractor ex = new TikaLinkExtractor();
+        testBaseHrefLinkExtraction(ex);
+        testBaseHrefLinkExtraction(ex);
     }
     private void testBaseHrefLinkExtraction(ILinkExtractor extractor) 
             throws IOException {
@@ -162,6 +166,31 @@ public class LinkExtractorTest {
         Assert.assertEquals("Invalid number of links extracted.", 
                 expectedURLs.length, links.size());
     }
+    private void testRelativeBaseHrefLinkExtraction(ILinkExtractor extractor) 
+            throws IOException {
+        String docURL = "http://www.example.com/test/relative/"
+                + "LinkRelativeBaseHrefTest.html";
+
+        // All these must be found
+        String[] expectedURLs = {
+                "http://www.example.com/test/relative/blah.html?param=value",
+                "http://www.example.com/d/e/f.html",
+                "http://www.example.com/test/relative/path^blah.html",
+                "http://www.anotherhost.com/k/l/m.html",
+        };
+        
+        InputStream is = 
+                getClass().getResourceAsStream("LinkRelativeBaseHrefTest.html");
+        Set<Link> links = extractor.extractLinks(
+                is, docURL, ContentType.HTML);
+        IOUtils.closeQuietly(is);
+        for (String expectedURL : expectedURLs) {
+            assertTrue("Could not find expected URL: " + expectedURL, 
+                    contains(links, expectedURL));
+        }
+        Assert.assertEquals("Invalid number of links extracted.", 
+                expectedURLs.length, links.size());
+    }    
     
     //--- Referrer Data Tests --------------------------------------------------    
     @Test
@@ -280,6 +309,21 @@ public class LinkExtractorTest {
         extractor.setSchemes("javascript");
         Set<Link> links = extractor.extractLinks(
                 input, "N/A", ContentType.HTML);
+        input.close();
+        Assert.assertTrue("URL not extracted: " + url, contains(links, url));
+    }
+
+    // Related to https://github.com/Norconex/collector-http/pull/312
+    @Test
+    public void testGenericBadlyFormedURL() throws IOException {
+        String ref = "http://www.example.com/index.html";
+        String url = "http://www.example.com/invalid^path^.html";
+        String html = "<html><body>"
+                + "<a href=\"/invalid^path^.html\">test link</a>"
+                + "</body></html>";
+        ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
         input.close();
         Assert.assertTrue("URL not extracted: " + url, contains(links, url));
     }

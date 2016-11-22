@@ -1,5 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
+- On GenericLinkExtractor, offer a flag to convert \ to /.  Cannot be done
+  at normalization time since relative URLs will not be converted to full
+  URLs properly without that.
+
 - Have -chckcfg action verify for Jar duplicates?
 
 - Offer a separate process to run on the crawl store and produce some kind of 

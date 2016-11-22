@@ -308,13 +308,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private Referer adjustReferer(
             final String content, final Referer referer, 
             final boolean firstChunk) {
-        String txt = content;
         Referer ref = referer;
-        
         if (firstChunk) {
-            Matcher matcher = BASE_HREF_PATTERN.matcher(txt);
+            Matcher matcher = BASE_HREF_PATTERN.matcher(content);
             if (matcher.find()) {
                 String reference = matcher.group(2);
+                reference = toCleanAbsoluteURL(referer, reference);
                 ref = new Referer(reference);
             }
         }
