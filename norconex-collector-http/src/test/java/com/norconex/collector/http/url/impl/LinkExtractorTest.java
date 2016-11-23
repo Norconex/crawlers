@@ -137,7 +137,9 @@ public class LinkExtractorTest {
     public void testTikaBaseHrefLinkExtractor() throws IOException {
         TikaLinkExtractor ex = new TikaLinkExtractor();
         testBaseHrefLinkExtraction(ex);
-        testBaseHrefLinkExtraction(ex);
+        //TODO TikaLinkExtractor does not support all the same test cases
+        // as the generic one.  Consider either updating it or deprecating it. 
+        //testRelativeBaseHrefLinkExtraction(ex);
     }
     private void testBaseHrefLinkExtraction(ILinkExtractor extractor) 
             throws IOException {
