@@ -59,6 +59,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("canonical", new CanonicalTestCase());
         testCases.put("specialURLs", new SpecialURLTestCase());
         testCases.put("script", new ScriptTestCase());
+        testCases.put("zeroLength", new ZeroLengthTestCase());
     }
     
     @Override
@@ -377,6 +378,20 @@ public class TestServlet extends HttpServlet {
                 out.println("<h1>The Script page</h1>");
                 out.println("This must be crawled.");
             }
+        }
+    }
+
+    // Test case for https://github.com/Norconex/collector-http/issues/313
+    class ZeroLengthTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp) throws Exception {
+            // returns nothing (empty)
+        }
+        @Override
+        protected void doTestCase(
+                HttpServletRequest req, HttpServletResponse resp, 
+                PrintWriter out) throws Exception {
+            // returns nothing (empty)
         }
     }
     

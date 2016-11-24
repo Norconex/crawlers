@@ -228,6 +228,18 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         }
     }    
     
+    // related to https://github.com/Norconex/collector-http/issues/313
+    @Test
+    public void testZeroLength() throws IOException {
+        HttpCollector collector = newHttpCollector1Crawler(
+                "/test?case=zeroLength");
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        collector.start(false);
+        
+        List<HttpDocument> docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+    }
+    
     
     private void testDepth(List<HttpDocument> docs) {
         // 0-depth + 10 others == 11 expected files
