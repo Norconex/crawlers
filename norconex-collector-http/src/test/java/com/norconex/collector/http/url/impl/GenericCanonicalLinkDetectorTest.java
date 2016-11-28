@@ -93,6 +93,27 @@ public class GenericCanonicalLinkDetectorTest {
                 contentValid.getBytes()), ContentType.HTML);
         Assert.assertEquals(unescapedCanonicalUrl, url);
     }
+
+    // Testing that single quotes within double quotes do no break extraction
+    // https://github.com/Norconex/collector-http/issues/111
+    @Test
+    public void testMixedQuoteCanonicalUrl() throws IOException {
+        String reference = "http://www.test.te.com/web";
+        GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
+        String sourceUrl = "http://www.example.com/blah'blah.html";
+        String targetUrl = "http://www.example.com/blah'blah.html";
+        String extractedUrl = null;
+        
+        // Valid link tag
+        String contentValid = "<html><head><title>Test</title>\n"
+                + "<link rel=\"canonical\"\n href=\"\n" + sourceUrl 
+                + "\" />\n"
+                + "</head><body>Nothing of interest in body</body></html>";
+        extractedUrl = d.detectFromContent(reference,  new ByteArrayInputStream(
+                contentValid.getBytes()), ContentType.HTML);
+        Assert.assertEquals(targetUrl, extractedUrl);
+    }
+
     
     @Test
     public void testWriteRead() throws IOException {
