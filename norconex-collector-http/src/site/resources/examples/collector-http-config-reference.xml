@@ -398,4 +398,29 @@
     </crawler>
   </crawlers>
 
+
+  <!-- === FOR ADVANCED USE ONLY ===============================================
+       The following listeners are made to work with the JEF API
+       (https://www.norconex.com/jef/api/). Usage is recommended only 
+       to programmers familiar with the JEF API.
+       Most users should ignore these.   -->
+       
+  <!-- Listen for JEF job events. The class must implement
+         com.norconex.jef4.job.IJobLifeCycleListener  -->
+  <jobLifeCycleListeners>
+      <listener class="YourClass" />
+  </jobLifeCycleListeners>
+
+  <!-- Listen for JEF errors. The class must implement
+         com.norconex.jef4.job.IJobErrorListener  -->
+  <jobErrorListeners>
+      <listener class="YourClass" />
+  </jobErrorListeners>
+
+  <!-- Listen for JEF job events. The class must implement
+         com.norconex.jef4.suite.ISuiteLifeCycleListener  -->
+  <suiteLifeCycleListeners>
+      <listener class="YourClass" />
+  </suiteLifeCycleListeners>
+
 </httpcollector>

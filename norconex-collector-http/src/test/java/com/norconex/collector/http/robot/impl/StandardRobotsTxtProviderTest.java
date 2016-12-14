@@ -71,7 +71,12 @@ public class StandardRobotsTxtProviderTest {
         String robotTxt6 = 
                 "User-agent: *\n\n"
               + "Disallow: \n\n";
-        
+
+        // Make sure trailing comments do not throw it off.
+        String robotTxt7 = 
+                "User-agent: *\n\n"
+              + "Disallow: # allow all\n\n";
+
         
         assertStartsWith("Robots.txt -> Disallow: /bathroom/",
                 parseRobotRule("mister-crawler", robotTxt1)[1]);
@@ -93,6 +98,8 @@ public class StandardRobotsTxtProviderTest {
 
         Assert.assertTrue(ArrayUtils.isEmpty(
                 parseRobotRule("mister-crawler", robotTxt6)));
+        Assert.assertTrue(ArrayUtils.isEmpty(
+                parseRobotRule("mister-crawler", robotTxt7)));
 
     }
 

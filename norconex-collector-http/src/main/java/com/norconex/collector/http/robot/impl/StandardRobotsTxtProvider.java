@@ -110,10 +110,10 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         boolean parse = false;
         String line;
         while ((line = br.readLine()) != null) {
+            line = cleanLineFromTrailingComments(line);
             if (ignoreLine(line)) {
                 continue;
             }
-            line = cleanLineFromComments(line);
             
             String key = line.replaceFirst("(.*?)(:.*)", "$1").trim();
             String value = line.replaceFirst("(.*?:)(.*)", "$2").trim();
@@ -138,7 +138,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             } else if (parse) {
                 if ("crawl-delay".equalsIgnoreCase(key)) {
                     data.crawlDelay = value;
-                } else {
+                } else if (StringUtils.isNotBlank(value)) {
                     data.rules.put(value, key);
                 }
             }
@@ -148,7 +148,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         return data.toRobotsTxt(baseURL);
     }
 
-    private String cleanLineFromComments(String line) {
+    private String cleanLineFromTrailingComments(String line) {
         if (line.matches(".*\\s+#.*")){
             line = line.replaceFirst("\\s+#.*", "");
         }

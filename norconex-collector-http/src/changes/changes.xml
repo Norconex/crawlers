@@ -7,6 +7,29 @@
   </properties>
   <body>
 
+    <release version="2.6.1" date="2016-12-14" description="Maintenance release">
+      <action dev="essiembre" type="add">
+        New "addDomainTrailingSlash" normalization rule for 
+        GenericURLNormalizer.
+      </action>
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Commons Lang 1.12.3, JJ2000 5.3,
+        Norconex Collection Core 1.7.0.
+      </action>      
+      <action dev="essiembre" type="fix" issue="111">
+        Fixed canonical URLs defined in content with single quote in them
+        being truncated.
+      </action>      
+      <action dev="essiembre" type="fix">
+        Fixed StandardRobotsTxtProivder wrongfully rejecting documents
+        when encountering a blank "Disallow:" directive.
+      </action>      
+      <action dev="essiembre" type="fix">
+        Fixed GenericLinkExtractor wrongfully resolving relative URLs
+        when an HTML page had a "base href" being a relative page. 
+      </action>      
+    </release>
+
     <release version="2.6.0" date="2016-08-25" description="Feature release">
       <action dev="essiembre" type="add" issue="290">
         New normalization rule for GenericURLNormalizer: removeTrailingSlash. 

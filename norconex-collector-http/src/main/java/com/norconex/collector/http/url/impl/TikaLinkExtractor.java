@@ -85,7 +85,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;/extractor&gt;  
  * </pre>
  * @author Pascal Essiembre
- * @see HtmlLinkExtractor
+ * @see GenericLinkExtractor
  */
 public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 

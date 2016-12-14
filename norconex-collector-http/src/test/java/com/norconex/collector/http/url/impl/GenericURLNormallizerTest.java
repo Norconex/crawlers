@@ -36,6 +36,29 @@ public class GenericURLNormallizerTest {
         t = null;
     }
 
+    @Test
+    public void testAddDomainTrailingSlash() {
+        GenericURLNormalizer n = new GenericURLNormalizer();
+        n.setNormalizations(
+                Normalization.addDomainTrailingSlash
+                );
+        s = "http://example.com";
+        t = "http://example.com/";
+        assertEquals(t, n.normalizeURL(s));
+    }
+    
+    // Test for https://github.com/Norconex/collector-http/issues/2904
+    @Test
+    public void testUppercaseProtocol() {
+        GenericURLNormalizer n = new GenericURLNormalizer();
+        n.setNormalizations(
+                Normalization.encodeNonURICharacters
+                );
+        s = "HTTP://example.com/";
+        t = "HTTP://example.com/";
+        assertEquals(t, n.normalizeURL(s));
+    }
+    
     // Test for https://github.com/Norconex/collector-http/issues/290
     @Test
     public void testRemoveTrailingSlashWithOnlyHostname() {

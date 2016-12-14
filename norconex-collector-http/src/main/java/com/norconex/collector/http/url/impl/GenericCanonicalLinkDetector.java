@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2016 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ public class GenericCanonicalLinkDetector
         String link = StringUtils.trimToNull(metadata.getString("Link"));
         if (link != null) {
             if (link.toLowerCase().matches(
-                    ".*rel\\s*=\\s*[\"']canonical[\"'].*")) {
+                    ".*rel\\s*=\\s*([\"'])canonical\\1.*")) {
                 link = StringUtils.substringBetween(link, "<", ">");
                 return toAbsolute(reference, link);
             }
@@ -123,14 +123,18 @@ public class GenericCanonicalLinkDetector
 
     private static final Pattern PATTERN_TAG = 
             Pattern.compile("<\\s*(\\w+.*?)[/\\s]*>", Pattern.DOTALL);
+    private static final int PATTERN_TAG_GROUP = 1;
     private static final Pattern PATTERN_NAME = 
             Pattern.compile("^(\\w+)", Pattern.DOTALL);
+    private static final int PATTERN_NAME_GROUP = 1;
     private static final Pattern PATTERN_REL = 
-            Pattern.compile("\\srel\\s*=\\s*[\"']\\s*canonical\\s*[\"']", 
+            Pattern.compile("\\srel\\s*=\\s*([\"'])\\s*canonical\\s*\\1", 
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_URL = 
-            Pattern.compile("\\shref\\s*=\\s*[\"']\\s*(.*?)\\s*[\"']", 
+            Pattern.compile("\\shref\\s*=\\s*([\"'])\\s*(.*?)\\s*\\1", 
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+    private static final int PATTERN_URL_GROUP = 2;
+    
     @Override
     public String detectFromContent(
             String reference, InputStream is, ContentType contentType)
@@ -152,15 +156,17 @@ public class GenericCanonicalLinkDetector
             while ((text = r.readText()) != null) {
                 Matcher matcher = PATTERN_TAG.matcher(text);
                 while (matcher.find()) {
-                    String tag = matcher.group(1);
+                    String tag = matcher.group(PATTERN_TAG_GROUP);
                     Matcher nameMatcher = PATTERN_NAME.matcher(tag);
                     nameMatcher.find();
-                    String name = nameMatcher.group(1).toLowerCase();
+                    String name = nameMatcher.group(
+                            PATTERN_NAME_GROUP).toLowerCase();
                     if ("link".equalsIgnoreCase(name)
                             && PATTERN_REL.matcher(tag).find()) {
                         Matcher urlMatcher = PATTERN_URL.matcher(tag);
                         if (urlMatcher.find()) {
-                            return toAbsolute(reference, urlMatcher.group(1));
+                            return toAbsolute(reference, 
+                                    urlMatcher.group(PATTERN_URL_GROUP));
                         }
                         return null;
                     } else if (EqualsUtil.equalsAnyIgnoreCase(
