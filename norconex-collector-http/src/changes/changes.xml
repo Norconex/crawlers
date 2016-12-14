@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.6.1-SNAPSHOT" date="2016-??-??" description="Bugfix release">
+    <release version="2.6.1" date="2016-12-14" description="Maintenance release">
       <action dev="essiembre" type="add">
         New "addDomainTrailingSlash" normalization rule for 
         GenericURLNormalizer.
