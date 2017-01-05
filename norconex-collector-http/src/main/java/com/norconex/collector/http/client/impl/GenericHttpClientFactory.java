@@ -23,6 +23,8 @@ import java.security.AlgorithmConstraints;
 import java.security.AlgorithmParameters;
 import java.security.CryptoPrimitive;
 import java.security.Key;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -150,6 +152,9 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *
  *      &lt;-- Be warned: trusting all certificates is usually a bad idea. --&gt;
  *      &lt;trustAllSSLCertificates&gt;[false|true]&lt;/trustAllSSLCertificates&gt;
+ *      
+ *      &lt;!-- Since 2.6.2, you can specify SSL/TLS protocols to use --&gt;
+ *      &lt;sslProtocols&gt;(coma-separated list)&lt;/sslProtocols&gt;
  *
  *      &lt;proxyHost&gt;...&lt;/proxyHost&gt;
  *      &lt;proxyPort&gt;...&lt;/proxyPort&gt;
@@ -279,6 +284,7 @@ public class GenericHttpClientFactory
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
     private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
     private int maxConnectionInactiveTime;
+    private String[] sslProtocols;
     private final Map<String, String> requestHeaders = new HashMap<>();
     
     @Override
@@ -483,42 +489,65 @@ public class GenericHttpClientFactory
     
     protected LayeredConnectionSocketFactory createSSLSocketFactory(
             SSLContext sslContext) {
-        if (!trustAllSSLCertificates) {
+        if (!trustAllSSLCertificates && ArrayUtils.isEmpty(sslProtocols)) {
             return null;
         }
-        LOG.debug("SSL: Turning off host name verification.");
 
+        SSLContext context = sslContext;
+        if (context == null) {
+            try {
+                context = SSLContexts.custom().build();
+            } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                throw new CollectorException(
+                        "Cannot create SSL context.", e);
+            }
+        }
+        
         // Turn off host name verification and remove all algorithm constraints.
-        LayeredConnectionSocketFactory socketFactory = 
-                new SSLConnectionSocketFactory(
-                        sslContext, new NoopHostnameVerifier()) {
+        return new SSLConnectionSocketFactory(
+                        context, new NoopHostnameVerifier()) {
             @Override
             protected void prepareSocket(SSLSocket socket)
                     throws IOException {
                 SSLParameters sslParams = new SSLParameters();
-                sslParams.setAlgorithmConstraints(new AlgorithmConstraints() {
-                    @Override
-                    public boolean permits(Set<CryptoPrimitive> primitives,
-                            Key key) {
-                        return true;
-                    }
-                    @Override
-                    public boolean permits(Set<CryptoPrimitive> primitives,
-                            String algorithm, AlgorithmParameters parameters) {
-                        return true;
-                    }
-                    @Override
-                    public boolean permits(Set<CryptoPrimitive> primitives,
-                            String algorithm, Key key,
-                            AlgorithmParameters parameters) {
-                        return true;
-                    }
-                });
+                
+                // Trust all certificates
+                if (trustAllSSLCertificates) {
+                    LOG.debug("SSL: Turning off host name verification.");
+                    sslParams.setAlgorithmConstraints(
+                            new AlgorithmConstraints() {
+                        @Override
+                        public boolean permits(
+                                Set<CryptoPrimitive> primitives, Key key) {
+                            return true;
+                        }
+                        @Override
+                        public boolean permits(Set<CryptoPrimitive> primitives,
+                                String algorithm, 
+                                AlgorithmParameters parameters) {
+                            return true;
+                        }
+                        @Override
+                        public boolean permits(
+                                Set<CryptoPrimitive> primitives,
+                                String algorithm, Key key,
+                                AlgorithmParameters parameters) {
+                            return true;
+                        }
+                    });
+                }
+                
+                // Specify protocols
+                if (ArrayUtils.isNotEmpty(sslProtocols)) {
+                    LOG.debug("SSL: Protocols=" 
+                            + StringUtils.join(sslProtocols, ","));
+                    sslParams.setProtocols(sslProtocols);
+                }
+                
                 sslParams.setEndpointIdentificationAlgorithm("HTTPS");
                 socket.setSSLParameters(sslParams);
             }
         };
-        return socketFactory;
     }    
     
     protected SSLContext createSSLContext() {
@@ -597,7 +626,11 @@ public class GenericHttpClientFactory
                 "maxConnectionIdleTime", maxConnectionIdleTime);
         maxConnectionInactiveTime = xml.getInt(
                 "maxConnectionInactiveTime", maxConnectionInactiveTime);
-     
+        String sslProtocolsCSV = xml.getString("sslProtocols", null);
+        if (StringUtils.isNotBlank(sslProtocolsCSV)) {
+            setSSLProtocols(sslProtocolsCSV.trim().split("(\\s*,\\s*)+"));
+        }
+        
         // request headers
         List<HierarchicalConfiguration> xmlHeaders = 
                 xml.configurationsAt("headers.header");
@@ -677,7 +710,10 @@ public class GenericHttpClientFactory
                     "maxConnectionIdleTime", maxConnectionIdleTime);
             writer.writeElementInteger(
                     "maxConnectionInactiveTime", maxConnectionInactiveTime);
-            
+            if (ArrayUtils.isNotEmpty(sslProtocols)) {
+                writer.writeElementString(
+                        "sslProtocols", StringUtils.join(sslProtocols, ","));
+            }
             if (!requestHeaders.isEmpty()) {
                 writer.writeStartElement("headers");
                 for (Entry<String, String> entry : requestHeaders.entrySet()) {
@@ -1350,7 +1386,28 @@ public class GenericHttpClientFactory
     public void setMaxConnectionInactiveTime(int maxConnectionInactiveTime) {
         this.maxConnectionInactiveTime = maxConnectionInactiveTime;
     }
-    
+
+    /**
+     * Gets the supported SSL/TLS protocols.  Default is <code>null</code>,
+     * which means it will use those provided/configured by your Java 
+     * platform. 
+     * @return SSL/TLS protocols
+     * @since 2.6.2
+     */
+    public String[] getSSLProtocols() {
+        return sslProtocols;
+    }
+    /**
+     * Sets the supported SSL/TLS protocols, such as SSLv3, TLSv1, TLSv1.1, 
+     * and TLSv1.2.  Note that specifying a protocol not supported by 
+     * your underlying Java platform will not work. 
+     * @param sslProtocols SSL/TLS protocols supported
+     * @since 2.6.2
+     */
+    public void setSSLProtocols(String... sslProtocols) {
+        this.sslProtocols = sslProtocols;
+    }
+
     @Override
     public boolean equals(final Object other) {
         if (!(other instanceof GenericHttpClientFactory)) {
@@ -1395,6 +1452,7 @@ public class GenericHttpClientFactory
                 .append(maxConnectionIdleTime, castOther.maxConnectionIdleTime)
                 .append(maxConnectionInactiveTime, 
                         castOther.maxConnectionInactiveTime)
+                .append(sslProtocols, castOther.sslProtocols)
                 .isEquals();
     }
 
@@ -1434,6 +1492,7 @@ public class GenericHttpClientFactory
                 .append(maxConnectionsPerRoute)
                 .append(maxConnectionIdleTime)
                 .append(maxConnectionInactiveTime)
+                .append(sslProtocols)
                 .toHashCode();
     }
 
@@ -1473,6 +1532,7 @@ public class GenericHttpClientFactory
                 .append("maxConnectionsPerRoute", maxConnectionsPerRoute)
                 .append("maxConnectionIdleTime", maxConnectionIdleTime)
                 .append("maxConnectionInactiveTime", maxConnectionInactiveTime)
+                .append("sslProtocols", sslProtocols)
                 .toString();
     }
 }

@@ -60,6 +60,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("specialURLs", new SpecialURLTestCase());
         testCases.put("script", new ScriptTestCase());
         testCases.put("zeroLength", new ZeroLengthTestCase());
+        testCases.put("timeout", new TimeoutTestCase());
     }
     
     @Override
@@ -394,5 +395,43 @@ public class TestServlet extends HttpServlet {
             // returns nothing (empty)
         }
     }
-    
+
+    // child pages return after 1 minute when accessed for second time 
+    class TimeoutTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            String page = req.getParameter("page");
+            String token = req.getParameter("token");
+
+            if (StringUtils.isBlank(page)) {
+                if (StringUtils.isNotBlank(token)) {
+                    String pageToken = "page-" + page + "-" + token;
+                    if (tokens.contains(pageToken)) {
+                        tokens.remove(pageToken);
+                        Sleeper.sleepSeconds(10);
+                    } else {
+                        tokens.add(pageToken);
+                    }
+                }
+                out.println("<h1>Timeout test main page</h1>");
+                out.println("<p>If provided with a 'token' parameter, this "
+                    + "page takes 10 seconds to return to test "
+                    + "timeouts, the 2 links below should return right away "
+                    + "and have a modified content each time accessed : "
+                    + "<ul>"
+                    + "<li><a href=\"?case=timeout&page=1\">"
+                    + "Timeout child page 1</a></li>"
+                    + "<li><a href=\"?case=timeout&page=2\">"
+                    + "Timeout child page 2</a></li>"
+                    + "</ul>");
+            } else {
+                Sleeper.sleepMillis(10);
+                out.println("<h1>Timeout test child page " + page + "</h1>");
+                out.println("<p>This page content is never the same.</p>"
+                        + "<p>Salt: " + System.currentTimeMillis() + "</p><p>"
+                        + "Contrary to main page, it should return right "
+                        + "away</p>");
+            }
+        }
+    }
 }
