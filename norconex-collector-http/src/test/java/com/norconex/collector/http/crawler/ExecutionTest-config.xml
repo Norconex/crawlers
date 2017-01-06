@@ -58,6 +58,10 @@
       <documentChecksummer disabled="true" />
     #end
 
+    #if ($extraCrawlerConfig)
+      $extraCrawlerConfig
+    #end
+
       <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
         <directory>${workDir}/committed</directory>
       </committer>

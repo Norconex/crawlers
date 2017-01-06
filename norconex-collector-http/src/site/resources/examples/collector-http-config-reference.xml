@@ -159,9 +159,9 @@
          documents, which on subsequent crawls can no longer be reached when 
          running the crawler (e.g. there are no links pointing to that page 
          anymore).  Available options are: 
-         IGNORE (default), DELETE, and PROCESS.
+         IGNORE, DELETE, and PROCESS (default).
          -->
-    <orphansStrategy>IGNORE</orphansStrategy>
+    <orphansStrategy>PROCESS</orphansStrategy>
 
     <!-- One or more optional listeners to be notified on various crawling
          events (e.g. document rejected, document imported, etc). 
@@ -288,7 +288,7 @@
          -->
     <linkExtractors>
         <extractor class="${linkExtractor}"  maxURLLength="2048" 
-                ignoreNofollow="false" keepReferrerData="false">
+                ignoreNofollow="false" commentsEnabled="false">
             <contentTypes>
                 text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
             </contentTypes>

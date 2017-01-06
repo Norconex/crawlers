@@ -173,6 +173,43 @@ public class ExecutionTest extends AbstractHttpTest {
                 0, countDeletedFiles());
     }
 
+    //Test for https://github.com/Norconex/collector-http/issues/316
+    @Test
+    public void testWebPageTimeout() 
+            throws IOException, XMLStreamException {
+        String startURL = newUrl("/test?case=timeout&amp;token="
+                + System.currentTimeMillis());
+        vars.setString("startURL", startURL);
+        vars.setClass("documentChecksummer", MD5DocumentChecksummer.class);
+        vars.setString("extraCrawlerConfig", 
+                "<httpClientFactory>"
+              + "<connectionTimeout>2000</connectionTimeout>"
+              + "<socketTimeout>2000</socketTimeout>"
+              + "<connectionRequestTimeout>2000</connectionRequestTimeout>"
+              + "</httpClientFactory>"
+        );
+        
+        int exitValue = 0;
+
+        // Test once and make sure we get 3 additions in total.
+        exitValue = runCollector("start", vars);
+        Assert.assertEquals("Wrong exit value.", 0, exitValue);
+        Assert.assertEquals("Wrong number of added files.",
+                3, countAddedFiles());
+        ageProgress(progressDir);
+        FileUtil.delete(committedDir);
+        
+        // Test twice and make sure we get 2 modified child docs even if
+        // master times out (as opposed to consider child as orphans to be
+        // deleted.
+        exitValue = runCollector("start", vars);
+        Assert.assertEquals("Wrong exit value.", 0, exitValue);
+        Assert.assertEquals("Wrong number of modified files.",
+                2, countAddedFiles());
+        ageProgress(progressDir);
+        FileUtil.delete(committedDir);
+    } 
+    
     @Test
     public void testStartAfterStopped()
             throws IOException, XMLStreamException, InterruptedException {

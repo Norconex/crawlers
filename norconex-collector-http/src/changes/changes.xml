@@ -7,6 +7,19 @@
   </properties>
   <body>
 
+    <release version="2.6.2" date="2017-01-06" description="Maintenance release">
+      <action dev="essiembre" type="add">
+        New "sslProtocols" configuration option on GenericHttpClientFactory 
+        to specify which SSL/TLS protocols are supported (e.g., SSLv3, TLSv1, 
+        TLSv1.1, TLSv1.2). Useful to enable TLSv1.2 on Java 7 when encountering
+        SSL handshake problems on site supporting TLSv1.2 only. 
+      </action>
+      <action dev="essiembre" type="fix">
+        Corrected documentation in collector-http-config-reference.xml to 
+        indicate default orphan strategy is now PROCESS.
+      </action>      
+    </release>
+
     <release version="2.6.1" date="2016-12-14" description="Maintenance release">
       <action dev="essiembre" type="add">
         New "addDomainTrailingSlash" normalization rule for 
