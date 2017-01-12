@@ -23,7 +23,7 @@
       </action>
       <action dev="essiembre" type="update">
         Crawler events REJECTED_FILTER, REJECTED_BAD_STATUS, REJECTED_IMPORT,
-        and REJECTED_ERROR, REJECTED_ROBOTS_TXT, REJECTED_CANONICAL, 
+        REJECTED_ERROR, REJECTED_ROBOTS_TXT, and REJECTED_CANONICAL, 
         REJECTED_REDIRECTED are now DEBUG in log4j.properties.
       </action>      
     </release>

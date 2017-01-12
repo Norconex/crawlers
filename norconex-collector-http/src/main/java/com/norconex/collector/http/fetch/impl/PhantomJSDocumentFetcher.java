@@ -73,7 +73,8 @@ import com.norconex.jef4.exec.SystemCommand;
  * <p>
  * Relying on an external software to fetch pages is slower and not as 
  * scalable and may be less stable. The use of {@link GenericDocumentFetcher}
- * should be preferred whenever possible. Use at your own risk.
+ * should be preferred whenever possible. Use at your own risk. 
+ * Use PhantomJS 2.1 (or possibly higher).
  * </p>
  * 
  * <h3>How to maintain HTTP sessions</h3>
@@ -169,6 +170,7 @@ import com.norconex.jef4.exec.SystemCommand;
  *      &lt;/crawler&gt;
  *    &lt;/crawlers&gt;
  *    ...
+ *    &lt;!-- Only if you need to use the HttpClient proxy (see documentation): --&gt;
  *    &lt;collectorListeners&gt;
  *      &lt;listener class="com.norconex.collector.http.fetch.impl.HttpClientProxyCollectorListener" /&gt;
  *    &lt;/collectorListeners&gt;
@@ -177,6 +179,7 @@ import com.norconex.jef4.exec.SystemCommand;
  * 
  * 
  * @author Pascal Essiembre
+ * @see HttpClientProxyCollectorListener
  * @since 2.7.0
  */
 public class PhantomJSDocumentFetcher 
