@@ -43,6 +43,7 @@
         <exclude>CLASSES_README.txt</exclude>        
       </excludes>
       <includes>
+        <include>extra/**</include>
         <include>third-party/**</include>
         <include>*.txt</include>
       </includes>

@@ -7,6 +7,27 @@
   </properties>
   <body>
 
+    <release version="2.7.0-SNAPSHOT" date="2017-??-??" description="Feature release">
+      <action dev="essiembre" type="add" issue="95">
+        New PhantomJSDocumentFetcher which relies on an external installation
+        of PhantomJS to fetch documents. This provides a way to crawl
+        web pages with JavaScript-generated content. 
+      </action>
+      <action dev="essiembre" type="add">
+        New features from dependency updates. Collector Core: 
+        ICollectorLifeCycleListener.  Importer: MergeTagger.
+      </action>
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Collection Core 1.8.0, 
+        Norconex Commons Lang 1.13.0, Jetty 9.2.20.
+      </action>
+      <action dev="essiembre" type="update">
+        Crawler events REJECTED_FILTER, REJECTED_BAD_STATUS, REJECTED_IMPORT,
+        and REJECTED_ERROR, REJECTED_ROBOTS_TXT, REJECTED_CANONICAL, 
+        REJECTED_REDIRECTED are now DEBUG in log4j.properties.
+      </action>      
+    </release>
+    
     <release version="2.6.2" date="2017-01-06" description="Maintenance release">
       <action dev="essiembre" type="add">
         New "sslProtocols" configuration option on GenericHttpClientFactory 
@@ -17,7 +38,7 @@
       <action dev="essiembre" type="fix">
         Corrected documentation in collector-http-config-reference.xml to 
         indicate default orphan strategy is now PROCESS.
-      </action>      
+      </action>
     </release>
 
     <release version="2.6.1" date="2016-12-14" description="Maintenance release">

@@ -66,6 +66,14 @@
   <!-- Location where logs are stored. -->
   <logsDir>$workdir\logs</logsDir>
 
+  <!-- One or more optional listeners to be notified when the collector
+       starts or finishes.  Class must implement 
+       com.norconex.collector.core.ICollectorLifeCycleListener
+       -->
+  <collectorListeners>
+    <listener class="YourClass"/>
+  </collectorListeners>
+
   <!-- All crawler configuration options can be specified as default 
        (including start URLs).  Settings defined here will be inherited by 
        all individual crawlers defined further down, unless overwritten.
