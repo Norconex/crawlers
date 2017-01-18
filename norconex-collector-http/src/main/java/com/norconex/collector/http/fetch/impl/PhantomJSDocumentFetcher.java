@@ -87,6 +87,7 @@ import com.norconex.jef4.exec.SystemCommand;
  * <pre>
  * html, htm, shtml, asp, pl, cgi, php
  * </pre>
+ * <p>
  * If there are no matches, it then relies on the document content type. To help
  * it do so, it is recommended you configure a metadata fetcher (such as 
  * {@link GenericMetadataFetcher}).  
