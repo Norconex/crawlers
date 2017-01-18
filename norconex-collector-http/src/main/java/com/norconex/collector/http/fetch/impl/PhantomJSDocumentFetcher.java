@@ -52,6 +52,7 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.IStreamListener;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
@@ -64,8 +65,8 @@ import com.norconex.jef4.exec.SystemCommand;
  * external <a href="http://phantomjs.org/">PhantomJS</a> installation
  * to fetch web pages.  While less efficient, this implementation is meant
  * to provide some way to crawl sites making heavy use of JavaScript to render
- * their pages. This class tells the headless browser to wait a certain amount 
- * of time for the page to load extra content via Ajax requests before
+ * their pages. This class tells the PhantomJS headless browser to wait a certain 
+ * amount of time for the page to load extra content via Ajax requests before
  * grabbing all loaded HTML. 
  * </p>
  * 
@@ -75,6 +76,32 @@ import com.norconex.jef4.exec.SystemCommand;
  * scalable and may be less stable. The use of {@link GenericDocumentFetcher}
  * should be preferred whenever possible. Use at your own risk. 
  * Use PhantomJS 2.1 (or possibly higher).
+ * </p>
+ * 
+ * <h3>Handling of non-HTML Pages</h3>
+ * <p>
+ * With this document fetcher, PhantomJS is only used to fetch HTML documents.
+ * Other types of documents are fetched using an instance of 
+ * {@link GenericDocumentFetcher}. To find out if we are dealing with HTML
+ * documents, it first looks for a URL extension matching one of (case-insensitive):  
+ * <pre>
+ * html, htm, shtml, asp, pl, cgi, php
+ * </pre>
+ * If there are no matches, it then relies on the document content type. To help
+ * it do so, it is recommended you configure a metadata fetcher (such as 
+ * {@link GenericMetadataFetcher}).  
+ * Otherwise, the content type will be available only after the document will 
+ * have been downloaded by PhantomJS.  If not an HTML document at that point,
+ * it will be re-downloaded again with the generic document fetcher. 
+ * By default, these content-types are considered HTML:
+ * </p>
+ * <pre>
+ * text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
+ * </pre>
+ * <p>
+ * Both extensions and content types can be overwritten with
+ * {@link #setExtensions(String...)} and {@link #setContentTypes(ContentType...)}
+ * respectively.
  * </p>
  * 
  * <h3>How to maintain HTTP sessions</h3>
@@ -96,7 +123,7 @@ import com.norconex.jef4.exec.SystemCommand;
  * This will start an HTTP proxy and force PhantomJS to use it.  That proxy 
  * will use {@link HttpClient} to fetch documents as you would normally expect
  * and you can full advantage of {@link GenericHttpClientFactory} (or
- * your own implementation of {@link IHttpClientFactory}. Using a proxy
+ * your own implementation of {@link IHttpClientFactory}). Using a proxy
  * with secure (<code>https</code>) requests may not always give expected 
  * results either (e.g., screenshots maybe broken). If you run into issues
  * with a given site, try both approaches and pick the one that works best for
@@ -125,6 +152,16 @@ import com.norconex.jef4.exec.SystemCommand;
  *        &lt;opt&gt;(optional extra PhantomJS command-line option)&lt;/opt&gt;
  *        &lt;!-- You have have multiple opt tags --&gt;
  *      &lt;/options&gt;
+ *      &lt;extensions&gt;
+ *          (CSV list of file extensions found in URLs, if any, for which to use 
+ *           PhantomJS browser. Non-matching content types will use the 
+ *           GenericDocumentFetcher Leave blank or remove this tag to use defaults.)
+ *      &lt;/extensions&gt;      
+ *      &lt;contentTypes&gt;
+ *          (CSV list of content types for which to use PhantomJS browser.
+ *           Non-matching content types will use the GenericDocumentFetcher
+ *           Leave blank or remove this tag to use defaults.)
+ *      &lt;/contentTypes&gt;      
  *      &lt;screenshotDir&gt;
  *          (optional path where to save screenshots)
  *      &lt;/screenshotDir&gt;
@@ -198,6 +235,15 @@ public class PhantomJSDocumentFetcher
     /*default*/ static final int[] DEFAULT_NOT_FOUND_STATUS_CODES = new int[] {
             HttpStatus.SC_NOT_FOUND,
     };
+    private static final ContentType[] DEFAULT_CONTENT_TYPES = 
+            new ContentType[] {
+        ContentType.HTML,
+        ContentType.valueOf("application/xhtml+xml"),
+        ContentType.valueOf("vnd.wap.xhtml+xml"),
+        ContentType.valueOf("x-asp"),
+    };
+    private static final String[] DEFAULT_EXTENSIONS = 
+            new String[] { "html", "htm", "shtml", "asp", "pl", "cgi", "php" };
         
     private String exePath;
     private String scriptPath = DEFAULT_SCRIPT_PATH;
@@ -211,6 +257,12 @@ public class PhantomJSDocumentFetcher
     private int[] notFoundStatusCodes = 
             PhantomJSDocumentFetcher.DEFAULT_NOT_FOUND_STATUS_CODES;
     private String headersPrefix;
+    
+    private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
+    private String[] extensions = DEFAULT_EXTENSIONS;
+    
+    private final GenericDocumentFetcher genericFetcher = 
+            new GenericDocumentFetcher();
     
     public PhantomJSDocumentFetcher() {
         this(PhantomJSDocumentFetcher.DEFAULT_VALID_STATUS_CODES);
@@ -267,26 +319,45 @@ public class PhantomJSDocumentFetcher
     }
     public final void setValidStatusCodes(int... validStatusCodes) {
         this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
+        genericFetcher.setValidStatusCodes(validStatusCodes);
     }
     public int[] getNotFoundStatusCodes() {
         return ArrayUtils.clone(notFoundStatusCodes);
     }
     public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
         this.notFoundStatusCodes = ArrayUtils.clone(notFoundStatusCodes);
+        genericFetcher.setNotFoundStatusCodes(notFoundStatusCodes);
     }
     public String getHeadersPrefix() {
         return headersPrefix;
     }
     public void setHeadersPrefix(String headersPrefix) {
         this.headersPrefix = headersPrefix;
+        genericFetcher.setHeadersPrefix(headersPrefix);
+    }
+    public ContentType[] getContentTypes() {
+        return contentTypes;
+    }
+    public void setContentTypes(ContentType... contentTypes) {
+        this.contentTypes = contentTypes;
+    }
+	public String[] getExtensions() {
+        return extensions;
+    }
+    public void setExtensions(String... extensions) {
+        this.extensions = extensions;
     }
     
-	@Override
+    @Override
 	public HttpFetchResponse fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
 
         validate();
         
+        if (!isHTMLByExtension(doc.getReference()) && !isHTMLByContentType(doc)) {
+            return genericFetcher.fetchDocument(httpClient, doc);
+        }
+
         String fileId = Long.toString(TimeIdGenerator.next());
         
         String url = doc.getReference();
@@ -377,6 +448,10 @@ public class PhantomJSDocumentFetcher
                     && StringUtils.isNotBlank(output.getContentType())) {
                 doc.getMetadata().setString(HttpMetadata.HTTP_CONTENT_TYPE, 
                         output.getContentType());
+            }
+
+            if (!isHTMLByContentType(doc)) {
+                return genericFetcher.fetchDocument(httpClient, doc);
             }
             
             if (StringUtils.isNotBlank(output.getError())) {
@@ -473,6 +548,37 @@ public class PhantomJSDocumentFetcher
     private String argQuote(String arg) {
 	    return "\"" + Objects.toString(arg, "") + "\"";
 	}
+    
+    private boolean isHTMLByExtension(String url) {
+        if (ArrayUtils.isEmpty(extensions)) {
+            return true;
+        }
+        String urlExt = url.replaceFirst(".*?://.*?/.*\\.(.+?)$", "$1");
+        if (!url.equals(urlExt)) {
+            for (String htmlExt : extensions) {
+                if (StringUtils.removeStart(htmlExt, ".").equalsIgnoreCase(urlExt)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    private boolean isHTMLByContentType(HttpDocument doc) {
+        if (doc.getContentType() != null) {
+            return ArrayUtils.contains(contentTypes, doc.getContentType());
+        }
+        String ct = doc.getMetadata().getString(Objects.toString(headersPrefix, "")
+                + HttpMetadata.HTTP_CONTENT_TYPE);
+        if (StringUtils.isNotBlank(ct)) {
+            ct = ct.replaceFirst("(.*);.*", "$1").trim();
+        }
+        if (StringUtils.isNotBlank(ct)) {
+            return ArrayUtils.contains(contentTypes, ContentType.valueOf(ct));
+        }
+        // there are no content-type, consider it HTML
+        return true;
+    }    
+    
 
     @Override
     public void loadFromXML(Reader in) {
@@ -494,6 +600,16 @@ public class PhantomJSDocumentFetcher
         String[] opts = xml.getStringArray("options.opt");
         if (ArrayUtils.isNotEmpty(opts)) {
             setOptions(opts);
+        }
+        ContentType[] cts = ContentType.valuesOf(StringUtils.split(
+                StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
+        if (!ArrayUtils.isEmpty(cts)) {
+            setContentTypes(cts);
+        }
+        String[] exts = StringUtils.split(
+                StringUtils.trimToNull(xml.getString("extensions")), ", ");
+        if (!ArrayUtils.isEmpty(exts)) {
+            setExtensions(exts);
         }
     }
     @Override
@@ -522,6 +638,14 @@ public class PhantomJSDocumentFetcher
                     writer.writeElementString("opt", arg);
                 }
                 writer.writeEndElement();
+            }
+            if (!ArrayUtils.isEmpty(getContentTypes())) {
+                writer.writeElementString(
+                        "contentTypes", StringUtils.join(getContentTypes(), ','));
+            }
+            if (!ArrayUtils.isEmpty(getExtensions())) {
+                writer.writeElementString(
+                        "extensions", StringUtils.join(getExtensions(), ','));
             }
             writer.writeEndElement();
             writer.flush();
