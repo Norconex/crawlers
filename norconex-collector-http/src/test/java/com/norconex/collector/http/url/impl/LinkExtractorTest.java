@@ -29,7 +29,7 @@ import org.junit.Test;
 
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.Link;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.file.ContentType;
 
 
@@ -253,7 +253,7 @@ public class LinkExtractorTest {
         extractor.addLinkTag("food", "chocolate");
         extractor.addLinkTag("friend", "Thor");
         System.out.println("Writing/Reading this: " + extractor);
-        ConfigurationUtil.assertWriteRead(extractor);
+        XMLConfigurationUtil.assertWriteRead(extractor);
     }
 
     @Test
@@ -281,7 +281,7 @@ public class LinkExtractorTest {
         extractor.setContentTypes(ContentType.HTML, ContentType.XML);
         extractor.setIgnoreNofollow(true);
         System.out.println("Writing/Reading this: " + extractor);
-        ConfigurationUtil.assertWriteRead(extractor);
+        XMLConfigurationUtil.assertWriteRead(extractor);
     }
 
     

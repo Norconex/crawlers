@@ -37,7 +37,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.URLNormalizer;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
@@ -264,7 +264,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
     @Override
     public void loadFromXML(Reader in) {
         
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         
         setDisabled(xml.getBoolean("[@disabled]", disabled));
         

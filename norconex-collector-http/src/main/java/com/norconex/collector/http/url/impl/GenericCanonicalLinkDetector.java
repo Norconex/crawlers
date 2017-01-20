@@ -38,7 +38,7 @@ import org.apache.http.client.utils.URIUtils;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.commons.lang.EqualsUtil;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
@@ -192,7 +192,7 @@ public class GenericCanonicalLinkDetector
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         ContentType[] cts = ContentType.valuesOf(StringUtils.split(
                 StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
         if (!ArrayUtils.isEmpty(cts)) {

@@ -39,7 +39,7 @@ import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.collector.http.url.impl.TikaLinkExtractor;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
@@ -263,7 +263,7 @@ public class URLStatusCrawlerEventListener
     
     @Override
     public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         setStatusCodes(xml.getString("statusCodes", getStatusCodes()));
         setOutputDir(xml.getString("outputDir", getOutputDir()));
         setFileNamePrefix(xml.getString("fileNamePrefix", getFileNamePrefix()));

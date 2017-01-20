@@ -25,7 +25,7 @@ import org.apache.http.client.HttpClient;
 
 import com.norconex.collector.core.ICollector;
 import com.norconex.collector.core.ICollectorLifeCycleListener;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -79,7 +79,7 @@ public class HttpClientProxyCollectorListener
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         setPort(xml.getInt("[@port]", getPort()));
     }
     @Override

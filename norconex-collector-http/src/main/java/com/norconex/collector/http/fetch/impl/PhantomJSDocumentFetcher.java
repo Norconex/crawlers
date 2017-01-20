@@ -50,7 +50,7 @@ import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
@@ -583,7 +583,7 @@ public class PhantomJSDocumentFetcher
 
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         setExePath(xml.getString("exePath", getExePath()));
         setScriptPath(xml.getString("scriptPath", getScriptPath()));
         setRenderWaitTime(xml.getInt("renderWaitTime", getRenderWaitTime()));
@@ -592,9 +592,9 @@ public class PhantomJSDocumentFetcher
                 "screenshotDimensions", getScreenshotDimensions()));
         setScreenshotZoomFactor(xml.getFloat(
                 "screenshotZoomFactor", getScreenshotZoomFactor()));
-        setValidStatusCodes(ConfigurationUtil.getCSVIntArray(
+        setValidStatusCodes(XMLConfigurationUtil.getCSVIntArray(
                 xml, "validStatusCodes", getValidStatusCodes()));
-        setNotFoundStatusCodes(ConfigurationUtil.getCSVIntArray(
+        setNotFoundStatusCodes(XMLConfigurationUtil.getCSVIntArray(
                 xml, "notFoundStatusCodes", getNotFoundStatusCodes()));
         setHeadersPrefix(xml.getString("headersPrefix", getHeadersPrefix()));
         

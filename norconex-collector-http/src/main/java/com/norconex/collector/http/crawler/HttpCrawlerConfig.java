@@ -59,7 +59,7 @@ import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector;
 import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.collector.http.url.impl.GenericURLNormalizer;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
@@ -477,17 +477,17 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         loadSimpleSettings(xml);
 
         //--- HTTP Client Factory ----------------------------------------------
-        setHttpClientFactory(ConfigurationUtil.newInstance(xml,
+        setHttpClientFactory(XMLConfigurationUtil.newInstance(xml,
                 "httpClientFactory", getHttpClientFactory()));
 
         //--- RobotsTxt provider -----------------------------------------------
-        setRobotsTxtProvider(ConfigurationUtil.newInstance(xml,
+        setRobotsTxtProvider(XMLConfigurationUtil.newInstance(xml,
                 "robotsTxt", getRobotsTxtProvider()));
         setIgnoreRobotsTxt(xml.getBoolean("robotsTxt[@ignore]",
                 isIgnoreRobotsTxt()));
 
         //--- Sitemap Resolver -------------------------------------------------
-        ISitemapResolverFactory sitemapFactory = ConfigurationUtil.newInstance(
+        ISitemapResolverFactory sitemapFactory = XMLConfigurationUtil.newInstance(
                 xml, "sitemapResolverFactory", getSitemapResolverFactory());
         setIgnoreSitemap(xml.getBoolean(
                 "sitemapResolverFactory[@ignore]", isIgnoreSitemap()));
@@ -501,7 +501,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                         + "is deprecated, use <sitemapResolverFactory...> "
                         + "instead. The <sitemap> tag can now be used as a "
                         + "start URL.");
-                sitemapFactory = ConfigurationUtil.newInstance(xml, "sitemap");
+                sitemapFactory = XMLConfigurationUtil.newInstance(xml, "sitemap");
                 setIgnoreSitemap(
                         xml.getBoolean("sitemap[@ignore]", isIgnoreSitemap()));
             }
@@ -512,33 +512,33 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setSitemapResolverFactory(sitemapFactory);
 
         //--- Canonical Link Detector ------------------------------------------
-        setCanonicalLinkDetector(ConfigurationUtil.newInstance(xml,
+        setCanonicalLinkDetector(XMLConfigurationUtil.newInstance(xml,
                 "canonicalLinkDetector", getCanonicalLinkDetector()));
         setIgnoreCanonicalLinks(xml.getBoolean("canonicalLinkDetector[@ignore]",
                 isIgnoreCanonicalLinks()));
 
         //--- Redirect URL Provider --------------------------------------------
-        setRedirectURLProvider(ConfigurationUtil.newInstance(xml,
+        setRedirectURLProvider(XMLConfigurationUtil.newInstance(xml,
                 "redirectURLProvider", getRedirectURLProvider()));
         
         //--- Recrawlable resolver ---------------------------------------------
-        setRecrawlableResolver(ConfigurationUtil.newInstance(xml,
+        setRecrawlableResolver(XMLConfigurationUtil.newInstance(xml,
                 "recrawlableResolver", getRecrawlableResolver()));
         
         //--- HTTP Headers Fetcher ---------------------------------------------
-        setMetadataFetcher(ConfigurationUtil.newInstance(xml,
+        setMetadataFetcher(XMLConfigurationUtil.newInstance(xml,
                 "metadataFetcher", getMetadataFetcher()));
 
         //--- Metadata Checksummer ---------------------------------------------
-        setMetadataChecksummer(ConfigurationUtil.newInstance(xml,
+        setMetadataChecksummer(XMLConfigurationUtil.newInstance(xml,
                 "metadataChecksummer", getMetadataChecksummer()));
 
         //--- HTTP Document Fetcher --------------------------------------------
-        setDocumentFetcher(ConfigurationUtil.newInstance(xml,
+        setDocumentFetcher(XMLConfigurationUtil.newInstance(xml,
                 "documentFetcher", getDocumentFetcher()));
 
         //--- RobotsMeta provider ----------------------------------------------
-        setRobotsMetaProvider(ConfigurationUtil.newInstance(xml,
+        setRobotsMetaProvider(XMLConfigurationUtil.newInstance(xml,
                 "robotsMeta", getRobotsMetaProvider()));
         setIgnoreRobotsMeta(xml.getBoolean("robotsMeta[@ignore]",
                 isIgnoreRobotsMeta()));
@@ -564,9 +564,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
     private void loadSimpleSettings(XMLConfiguration xml) {
         setUserAgent(xml.getString("userAgent", getUserAgent()));
-        setUrlNormalizer(ConfigurationUtil.newInstance(
+        setUrlNormalizer(XMLConfigurationUtil.newInstance(
                 xml, "urlNormalizer", getUrlNormalizer()));
-        setDelayResolver(ConfigurationUtil.newInstance(
+        setDelayResolver(XMLConfigurationUtil.newInstance(
                 xml, "delay", getDelayResolver()));
         setMaxDepth(xml.getInt("maxDepth", getMaxDepth()));
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
@@ -599,7 +599,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .configurationsAt(xmlPath);
         for (HierarchicalConfiguration filterNode : filterNodes) {
             IHttpDocumentProcessor filter = 
-                    ConfigurationUtil.newInstance(filterNode);
+                    XMLConfigurationUtil.newInstance(filterNode);
             filters.add(filter);
             LOG.info("HTTP document processor loaded: " + filter);
         }
@@ -612,7 +612,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         List<HierarchicalConfiguration> extractorNodes = xml
                 .configurationsAt(xmlPath);
         for (HierarchicalConfiguration extractorNode : extractorNodes) {
-            ILinkExtractor extractor = ConfigurationUtil.newInstance(
+            ILinkExtractor extractor = XMLConfigurationUtil.newInstance(
                     extractorNode, new GenericLinkExtractor());
             if (extractor != null) {
                 extractors.add(extractor);

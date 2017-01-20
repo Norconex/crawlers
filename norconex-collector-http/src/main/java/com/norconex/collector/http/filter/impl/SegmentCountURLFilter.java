@@ -37,7 +37,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import com.norconex.collector.core.filter.IDocumentFilter;
 import com.norconex.collector.core.filter.IMetadataFilter;
 import com.norconex.collector.core.filter.IReferenceFilter;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
@@ -206,7 +206,7 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         setSeparator(xml.getString(""));
         super.loadFromXML(xml);
         setCount(xml.getInt("[@count]", DEFAULT_SEGMENT_COUNT));

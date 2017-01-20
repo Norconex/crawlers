@@ -18,7 +18,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class GenericDocumentFetcherTest  {
 
@@ -29,7 +29,7 @@ public class GenericDocumentFetcherTest  {
         f.setNotFoundStatusCodes(404, 405);
         f.setHeadersPrefix("blah");
         System.out.println("Writing/Reading this: " + f);
-        ConfigurationUtil.assertWriteRead(f);
+        XMLConfigurationUtil.assertWriteRead(f);
     }
 
 }

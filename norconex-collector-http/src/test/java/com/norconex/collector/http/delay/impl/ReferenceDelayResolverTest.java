@@ -21,7 +21,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.norconex.collector.http.delay.impl.ReferenceDelayResolver.DelayReferencePattern;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class ReferenceDelayResolverTest {
 
@@ -37,7 +37,7 @@ public class ReferenceDelayResolverTest {
         r.setDelayReferencePatterns(delayPatterns);
 
         System.out.println("Writing/Reading this: " + r);
-        ConfigurationUtil.assertWriteRead(r);
+        XMLConfigurationUtil.assertWriteRead(r);
     }
 
 }

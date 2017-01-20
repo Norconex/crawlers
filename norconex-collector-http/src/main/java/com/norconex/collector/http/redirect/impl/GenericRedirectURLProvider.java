@@ -44,7 +44,7 @@ import org.apache.log4j.Logger;
 import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.collector.http.redirect.IRedirectURLProvider;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
@@ -249,7 +249,7 @@ public class GenericRedirectURLProvider
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         setFallbackCharset(
                 xml.getString("[@fallbackCharset]", getFallbackCharset()));
     }
