@@ -33,6 +33,7 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -141,7 +142,7 @@ import com.norconex.jef4.exec.SystemCommand;
  * 
  * <pre>
  *  &lt;documentFetcher  
- *      class="com.norconex.collector.http.fetch.impl.PhantomDocumentFetcher"&gt;
+ *      class="com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher"&gt;
  *      &lt;exePath&gt;(path to PhantomJS executable)&lt;/exePath&gt;
  *      &lt;scriptPath&gt;
  *          (Optional path to a PhantomJS script. Defaults to extra/phantom.js)
@@ -200,7 +201,7 @@ import com.norconex.jef4.exec.SystemCommand;
  *    &lt;crawlers&gt;
  *      &lt;crawler id="MyCrawler"&gt;
  *        ...
- *        &lt;documentFetcher class="com.norconex.collector.http.fetch.impl.PhantomDocumentFetcher"&gt;
+ *        &lt;documentFetcher class="com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher"&gt;
  *          &lt;exePath&gt;/path/to/phantomjs.exe&lt;/exePath&gt;
  *          &lt;renderWaitTime&gt;5000&lt;/renderWaitTime&gt;
  *        &lt;/documentFetcher&gt;
@@ -547,7 +548,12 @@ public class PhantomJSDocumentFetcher
         }
     }
     private String argQuote(String arg) {
-	    return "\"" + Objects.toString(arg, "") + "\"";
+        String safeArg = Objects.toString(arg, "");
+        if (SystemUtils.IS_OS_WINDOWS) {
+            safeArg = StringUtils.strip(safeArg, "\"");
+            return "\"" + safeArg + "\"";
+        }
+        return safeArg;
 	}
     
     private boolean isHTMLByExtension(String url) {
