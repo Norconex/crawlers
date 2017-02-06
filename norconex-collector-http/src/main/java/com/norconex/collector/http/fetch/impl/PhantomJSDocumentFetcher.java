@@ -51,14 +51,15 @@ import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.exec.ExecUtil;
+import com.norconex.commons.lang.exec.SystemCommand;
+import com.norconex.commons.lang.exec.SystemCommandException;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.commons.lang.io.IStreamListener;
+import com.norconex.commons.lang.io.InputStreamLineListener;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
-import com.norconex.jef4.exec.ExecUtils;
-import com.norconex.jef4.exec.SystemCommand;
 
 /**
  * <p>
@@ -190,7 +191,7 @@ import com.norconex.jef4.exec.SystemCommand;
  * elements, the valid list takes precedence.
  * </p>
  * 
- * <h3>Example:</h3>
+ * <h4>Usage example:</h4>
  * <p>
  * The following configures HTTP Collector to use PhantomJS with a 
  * proxy to use HttpClient.
@@ -499,7 +500,7 @@ public class PhantomJSDocumentFetcher
             LOG.debug("Unsupported HTTP Response: " + reason);
             return new HttpFetchResponse(
                     CrawlState.BAD_STATUS, statusCode, reason);
-        } catch (InterruptedException | IOException e) {
+        } catch (SystemCommandException | IOException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.error("Cannot fetch document: " + doc.getReference()
                         + " (" + e.getMessage() + ")", e);
@@ -663,7 +664,7 @@ public class PhantomJSDocumentFetcher
     }
     
     //Metadata is expected to be outputed, starting with HEADER: on each line
-    private static class CmdOutputGrabber implements IStreamListener {
+    private static class CmdOutputGrabber extends InputStreamLineListener {
         private final StringWriter error = new StringWriter();
         private final StringWriter info = new StringWriter();
         private final StringWriter debug = new StringWriter();
@@ -682,8 +683,8 @@ public class PhantomJSDocumentFetcher
             this.headersPrefix = headersPrefix;
         }
         @Override
-        public void lineStreamed(String type, String line) {
-            if (ExecUtils.STDERR.equalsIgnoreCase(type)) {
+        protected void lineStreamed(String type, String line) {
+            if (ExecUtil.STDERR.equalsIgnoreCase(type)) {
                 error.write("\n  " + line);
             } else if (line.startsWith("HEADER:")) {
                 String key = StringUtils.substringBetween(line, "HEADER:", "=");

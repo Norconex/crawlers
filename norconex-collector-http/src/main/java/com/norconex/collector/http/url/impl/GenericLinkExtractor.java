@@ -1,4 +1,4 @@
-/* Copyright 2014-2016 Norconex Inc.
+/* Copyright 2014-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,6 @@ import com.norconex.importer.util.CharsetUtil;
 
 /**
  * Generic link extractor for URLs found in HTML and possibly other text files.
- * As of 2.3.0, this class replaces the now deprecated 
- * {@link HtmlLinkExtractor}.
  * 
  * <h3>Content-types</h3>
  * By default, this extractor will look for URLs only in documents matching
