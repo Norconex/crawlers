@@ -14,6 +14,10 @@
         web pages with JavaScript-generated content. 
       </action>
       <action dev="essiembre" type="add">
+        Added schema-based XML configuration validation which can be trigged
+        on command prompt with this new flag: -k or --checkcfg
+      </action>
+      <action dev="essiembre" type="add">
         New features from dependency updates. Collector Core: 
         ICollectorLifeCycleListener.  Importer: MergeTagger.
       </action>
@@ -25,7 +29,14 @@
         Crawler events REJECTED_FILTER, REJECTED_BAD_STATUS, REJECTED_IMPORT,
         REJECTED_ERROR, REJECTED_ROBOTS_TXT, and REJECTED_CANONICAL, 
         REJECTED_REDIRECTED are now DEBUG in log4j.properties.
+      </action>
+      <action dev="essiembre" type="update">
+        Modified Javadoc to include an XML usage example for all 
+        XML-configurable classes.
       </action>      
+      <action dev="essiembre" type="fix">
+        Fixed minor errors in writing IXMLConfigurable classes to XML.
+      </action>
     </release>
     
     <release version="2.6.2" date="2017-01-06" description="Maintenance release">

@@ -71,9 +71,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *       any given thread.  The more threads you have the less of an 
  *       impact the delay will have.</li>
  * </ul>
- * <p>
- * XML configuration usage:
- * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
  *          default="(milliseconds)" 
@@ -87,6 +85,19 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;/schedule&gt;
  *       
  *      (... repeat schedule tag as needed ...)
+ *  &lt;/delay&gt;
+ * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following set the minimum delay between each document download
+ * on a given site to 5 seconds, no matter what the crawler robots.txt may
+ * say, except on weekend, where it is more agressive (1 second).
+ * </p> 
+ * <pre>
+ *  &lt;delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
+ *          default="5000" ignoreRobotsCrawlDelay="true" scope="site" &gt;
+ *      &lt;schedule dayOfWeek="from Saturday to Sunday"&gt;1000&lt;/schedule&gt;
  *  &lt;/delay&gt;
  * </pre>
  * 

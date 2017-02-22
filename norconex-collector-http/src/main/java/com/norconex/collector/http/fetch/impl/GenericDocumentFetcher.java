@@ -56,9 +56,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <p>
  * Default implementation of {@link IHttpDocumentFetcher}.
  * </p>
- * <p>
- * XML configuration usage:
- * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;documentFetcher  
  *      class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher"&gt;
@@ -75,6 +73,18 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <p>
  * The "notFoundStatusCodes" element was added in 2.2.0.
  * </p>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following configures the document fetcher to prefix the HTTP headers
+ * obtained with "http.".
+ * </p>
+ * <pre>
+ *  &lt;documentFetcher &gt;
+ *      &lt;headersPrefix&gt;http.&lt;/headersPrefix&gt;
+ *  &lt;/documentFetcher&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  */
 public class GenericDocumentFetcher 

@@ -1,4 +1,4 @@
-/* Copyright 2016 Norconex Inc.
+/* Copyright 2016-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;/recrawlableResolver&gt;
  * </pre>
  * 
- * <b>Example:</b>
+ * <h4>Usage example:</h4>
  * <p>
  * The following example ensures PDFs recrawled no more frequently than 
  * once a month, while HTML news can be crawled as fast at every half hour.

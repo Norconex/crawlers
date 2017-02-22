@@ -34,6 +34,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -158,11 +162,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;extensions&gt;
  *          (CSV list of file extensions found in URLs, if any, for which to use 
  *           PhantomJS browser. Non-matching content types will use the 
- *           GenericDocumentFetcher Leave blank or remove this tag to use defaults.)
+ *           GenericDocumentFetcher. Leave blank or remove this tag to use 
+ *           defaults.)
  *      &lt;/extensions&gt;      
  *      &lt;contentTypes&gt;
  *          (CSV list of content types for which to use PhantomJS browser.
- *           Non-matching content types will use the GenericDocumentFetcher
+ *           Non-matching content types will use the GenericDocumentFetcher.
  *           Leave blank or remove this tag to use defaults.)
  *      &lt;/contentTypes&gt;      
  *      &lt;screenshotDir&gt;
@@ -662,6 +667,64 @@ public class PhantomJSDocumentFetcher
             throw new IOException("Cannot save as XML.", e);
         }
     }
+    
+    @Override
+    public boolean equals(final Object other) {
+        if (!(other instanceof PhantomJSDocumentFetcher)) {
+            return false;
+        }
+        PhantomJSDocumentFetcher castOther = (PhantomJSDocumentFetcher) other;
+        return new EqualsBuilder()
+                .append(exePath, castOther.exePath)
+                .append(scriptPath, castOther.scriptPath)
+                .append(renderWaitTime, castOther.renderWaitTime)
+                .append(options, castOther.options)
+                .append(screenshotDir, castOther.screenshotDir)
+                .append(screenshotDimensions, castOther.screenshotDimensions)
+                .append(screenshotZoomFactor, castOther.screenshotZoomFactor)
+                .append(contentTypes, castOther.contentTypes)
+                .append(extensions, castOther.extensions)
+                .append(validStatusCodes, castOther.validStatusCodes)
+                .append(notFoundStatusCodes, castOther.notFoundStatusCodes)
+                .append(headersPrefix, castOther.headersPrefix)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(exePath)
+                .append(scriptPath)
+                .append(renderWaitTime)
+                .append(options)
+                .append(screenshotDir)
+                .append(screenshotDimensions)
+                .append(screenshotZoomFactor)
+                .append(contentTypes)
+                .append(extensions)
+                .append(validStatusCodes)
+                .append(notFoundStatusCodes)
+                .append(headersPrefix)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("exePath", exePath)
+                .append("scriptPath", scriptPath)
+                .append("renderWaitTime", renderWaitTime)
+                .append("options", options)
+                .append("screenshotDir", screenshotDir)
+                .append("screenshotDimensions", screenshotDimensions)
+                .append("screenshotZoomFactor", screenshotZoomFactor)
+                .append("contentTypes", contentTypes)
+                .append("extensions", extensions)
+                .append("validStatusCodes", validStatusCodes)
+                .append("notFoundStatusCodes", notFoundStatusCodes)
+                .append("headersPrefix", headersPrefix)
+                .toString();
+    }    
     
     //Metadata is expected to be outputed, starting with HEADER: on each line
     private static class CmdOutputGrabber extends InputStreamLineListener {

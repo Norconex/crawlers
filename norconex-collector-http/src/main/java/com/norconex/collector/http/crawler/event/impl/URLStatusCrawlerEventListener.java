@@ -1,4 +1,4 @@
-/* Copyright 2015-2016 Norconex Inc.
+/* Copyright 2015-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * using a custom link extractor. 
  * </p>
  * 
- * <h3>XML Configuration Usage</h3>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;listener  
  *      class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener"&gt;
@@ -99,6 +99,21 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;fileNamePrefix&gt;(report file name prefix)&lt;/fileNamePrefix&gt;
  *  &lt;/listener&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following example will generate a broken links report by recording
+ * 404 status codes (from HTTP response).
+ * </p>
+ * <pre>
+ *  &lt;listener  
+ *      class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener"&gt;
+ *      &lt;statusCodes&gt;404&lt;/statusCodes&gt;
+ *      &lt;outputDir&gt;/report/path/&lt;/outputDir&gt;
+ *      &lt;fileNamePrefix&gt;brokenLinks&lt;/fileNamePrefix&gt;
+ *  &lt;/listener&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  * @since 2.2.0
  */

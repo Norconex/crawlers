@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ import com.norconex.collector.core.data.store.impl.mongo.AbstractMongoCrawlDataS
 import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
 
 /**
+ * <p>
  * Mongo implementation of {@link ICrawlDataStoreFactory}.
- * <br><br>
- * XML configuration usage:
- * <br><br>
+ * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;crawlDataStoreFactory  
  *      class="com.norconex.collector.http.data.store.impl.mongo.MongoCrawlDataStoreFactory"&gt;
@@ -38,6 +38,20 @@ import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
  * The "username" must be a valid user that has the "readWrite" role over 
  * the database (set with "dbname").
  * </p>
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following points to a Mongo installation with host name "localhost",
+ * port 1234, and a Mongo database called "MyCrawl".
+ * </p>
+ * <pre>
+ *  &lt;crawlDataStoreFactory  
+ *      class="com.norconex.collector.http.data.store.impl.mongo.MongoCrawlDataStoreFactory"&gt;
+ *      &lt;host&gt;localhost&lt;/host&gt;
+ *      &lt;port&gt;1234&lt;/port&gt;
+ *      &lt;dbname&gt;MyCrawl&lt;/dbname&gt;
+ *  &lt;/crawlDataStoreFactory&gt;
+ * </pre> 
+ * 
  * @author Pascal Essiembre
  */
 public class MongoCrawlDataStoreFactory 

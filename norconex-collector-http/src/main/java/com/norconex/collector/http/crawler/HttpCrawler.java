@@ -117,7 +117,7 @@ public class HttpCrawler extends AbstractCrawler {
         initializeRedirectionStrategy();
 
         // We always initialize the sitemap resolver even if ignored 
-        // because sitemaps can not be specified as start URLs.
+        // because sitemaps can be specified as start URLs.
         if (getCrawlerConfig().getSitemapResolverFactory() != null) {
             this.sitemapResolver = 
                     getCrawlerConfig().getSitemapResolverFactory()

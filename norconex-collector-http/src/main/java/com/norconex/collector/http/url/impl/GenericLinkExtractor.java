@@ -137,8 +137,9 @@ import com.norconex.importer.util.CharsetUtil;
  * 
  * <h3>"nofollow"</h3>
  * By default, a regular HTML link having the "rel" attribute set to "nofollow"
- * won't be extracted (e.g. <code>&lt;a href="x.html" rel="nofollow" ...</code>.  
- * To force its extraction (and ensure it followed) you can set 
+ * won't be extracted (e.g. 
+ * <code>&lt;a href="x.html" rel="nofollow" ...&gt;</code>).  
+ * To force its extraction (and ensure it is followed) you can set 
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * 
  * <h3>URL Fragments</h3>
@@ -176,7 +177,7 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link #setCommentsEnabled(boolean)}
  * </p>
  * 
- * <h3>XML configuration usage</h3>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
  *          maxURLLength="(maximum URL length. Default is 2048)" 
@@ -199,6 +200,25 @@ import com.norconex.importer.util.CharsetUtil;
  *      &lt;/tags&gt;
  *  &lt;/extractor&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following adds URLs to JavaScript files to the list of URLs to be
+ * extracted.
+ * </p>
+ * <pre>
+ *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"&gt;
+ *      &lt;tags&gt;
+ *          &lt;tag name="a" attribute="href" /&gt;
+ *          &lt;tag name="frame" attribute="src" /&gt;
+ *          &lt;tag name="iframe" attribute="src" /&gt;
+ *          &lt;tag name="img" attribute="src" /&gt;
+ *          &lt;tag name="meta" attribute="http-equiv" /&gt;
+ *          &lt;tag name="script" attribute="src" /&gt;
+ *      &lt;/tags&gt;
+ *  &lt;/extractor&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  * @since 2.3.0
  */

@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,6 +102,16 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      class="com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider"
  *      fallbackCharset="(character encoding)" /&gt;
  * </pre> 
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following sets the default character encoding to be "ISO-8859-1" when
+ * it could not be detected.
+ * </p>
+ * <pre>
+ *  &lt;redirectURLProvider fallbackCharset="ISO-8859-1" /&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  * @since 2.4.0
  */

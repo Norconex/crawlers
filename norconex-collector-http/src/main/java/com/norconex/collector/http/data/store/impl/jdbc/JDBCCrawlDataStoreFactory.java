@@ -20,18 +20,28 @@ import com.norconex.collector.core.data.store.impl.jdbc.IJDBCSerializer;
 import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Database;
 
 /**
+ * <p>
  * JDBC implementation of {@link ICrawlDataStore}.  Defaults to Derby 
  * database.
- * <br><br>
- * XML configuration usage:
- * <br><br>
+ * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;crawlDataStoreFactory 
  *          class="com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory"&gt;
  *      &lt;database&gt;[h2|derby]&lt;/database&gt;
  *  &lt;/crawlDataStoreFactory&gt;
  * </pre>
- *
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following changes the default to use an embedded derby database.
+ * </p> 
+ * <pre>
+ *  &lt;crawlDataStoreFactory 
+ *          class="com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory"&gt;
+ *      &lt;database&gt;derby&lt;/database&gt;
+ *  &lt;/crawlDataStoreFactory&gt;;
+ * </pre>
  * @author Pascal Essiembre
  */
 public class JDBCCrawlDataStoreFactory 

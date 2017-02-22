@@ -228,7 +228,7 @@
          -->
     <sitemapResolverFactory 
           ignore="false" lenient="false" class="$sitemapFactory">
-      <location>http://www.example.com/blogs/sitemap.xml</location>
+      <path>/blogs/sitemap.xml</path>
     </sitemapResolverFactory>
     
     <!-- Provides the target URL to use when a redirect is encountered.

@@ -1,4 +1,4 @@
-/* Copyright 2016-2017 Norconex Inc.
+/* Copyright 2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,38 +12,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.delay.impl;
+package com.norconex.collector.http.fetch.impl;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.Test;
 
 import com.norconex.collector.http.TestUtil;
-import com.norconex.collector.http.delay.impl.ReferenceDelayResolver.DelayReferencePattern;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.file.ContentType;
 
-public class ReferenceDelayResolverTest {
+public class PhantomJSDocumentFetcherTest  {
 
     @Test
     public void testWriteRead() throws IOException {
-        ReferenceDelayResolver r = new ReferenceDelayResolver();
-        r.setDefaultDelay(10000);
-        r.setIgnoreRobotsCrawlDelay(true);
-        r.setScope("thread");
-        List<DelayReferencePattern> delayPatterns = new ArrayList<>();
-        delayPatterns.add(new DelayReferencePattern(
-                "http://example\\.com/.*", 1000));
-        r.setDelayReferencePatterns(delayPatterns);
-
-        System.out.println("Writing/Reading this: " + r);
-        XMLConfigurationUtil.assertWriteRead(r);
+        PhantomJSDocumentFetcher f = new PhantomJSDocumentFetcher();
+        f.setValidStatusCodes(200, 201, 202);
+        f.setNotFoundStatusCodes(404, 405);
+        f.setHeadersPrefix("blah");
+        f.setExePath(new File("/path/to/phantomjs.exe").getAbsolutePath());
+        f.setRenderWaitTime(1000);
+        f.setContentTypes(ContentType.HTML, ContentType.CSV);
+        f.setExtensions("pdf", "html");
+        System.out.println("Writing/Reading this: " + f);
+        XMLConfigurationUtil.assertWriteRead(f);
     }
-    
+
     @Test
     public void testValidation() throws IOException {
         TestUtil.testValidation(getClass());
     }
-
 }

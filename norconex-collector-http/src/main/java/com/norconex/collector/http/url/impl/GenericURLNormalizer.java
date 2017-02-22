@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *    &lt;/replacements&gt;
  *  &lt;/urlNormalizer&gt;
  * </pre>
- * <h3>Example:</h3>
+ * <h4>Usage example:</h4>
  * <p>
  * The following adds a normalization to add "www." to URL domains when
  * missing, to the default set of normalizations. It also add custom
@@ -156,7 +156,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         addDirectoryTrailingSlash,
         addDomainTrailingSlash,
         /**
-         * @deprecated Since 1.11.0, use {@link #addDirectoryTrailingSlash}
+         * @deprecated Since 2.6.0, use {@link #addDirectoryTrailingSlash}
          */
         @Deprecated
         addTrailingSlash, 

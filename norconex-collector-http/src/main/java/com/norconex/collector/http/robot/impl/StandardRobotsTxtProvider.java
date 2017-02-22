@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,13 +53,20 @@ import com.norconex.importer.handler.filter.OnMatch;
  * described at <a href="http://www.robotstxt.org/robotstxt.html">
  * http://www.robotstxt.org/robotstxt.html</a>.
  * </p>
- * <p>
- * XML configuration usage:
- * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;robotsTxt ignore="false" 
- *     class="com.norconex.collector.http.robot.StandardRobotsTxtProvider"/&gt;
+ *     class="com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider"/&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following ignores "robots.txt" files present on web sites.
+ * </p>
+ * <pre>
+ *  &lt;robotsTxt ignore="true" /&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  */
 public class StandardRobotsTxtProvider implements IRobotsTxtProvider {

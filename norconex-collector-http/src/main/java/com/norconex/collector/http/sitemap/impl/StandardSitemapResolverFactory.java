@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,12 @@ import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
+ * <p>
  * Factory used to created {@link StandardSitemapResolver} instances.
  * Refer to {@link StandardSitemapResolver} for resolution logic.
- * @author Pascal Essiembre
- *
- * <p>
- * XML configuration usage:
  * </p>
+ *
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;sitemapResolverFactory ignore="[false|true]" lenient="[false|true]" 
  *        tempDir="(where to store temp files)"
@@ -63,6 +62,16 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     (... repeat path tag as needed ...)
  *  &lt;/sitemapResolverFactory&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following ignores sitemap files present on web sites.
+ * </p>
+ * <pre>
+ *  &lt;sitemapResolverFactory ignore="true"/&gt;
+ * </pre>
+ * 
+ * @author Pascal Essiembre
  * @see StandardSitemapResolver
  */
 public class StandardSitemapResolverFactory 

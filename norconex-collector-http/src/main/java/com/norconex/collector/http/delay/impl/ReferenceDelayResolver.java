@@ -1,4 +1,4 @@
-/* Copyright 2016 Norconex Inc.
+/* Copyright 2016-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,9 +61,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *       any given thread.  The more threads you have the less of an 
  *       impact the delay will have.</li>
  * </ul>
- * <p>
- * XML configuration usage:
- * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;delay class="com.norconex.collector.http.delay.impl.ReferenceDelayResolver"
  *          default="(milliseconds)" 
@@ -74,6 +72,18 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;/pattern&gt;
  *       
  *      (... repeat pattern tag as needed ...)
+ *  &lt;/delay&gt;
+ * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following will increase the delay to 10 seconds when encountering PDFs 
+ * from a default of 3 seconds.
+ * </p> 
+ * <pre>
+ *  &lt;delay class="com.norconex.collector.http.delay.impl.ReferenceDelayResolver"
+ *          default="3000" &gt;
+ *      &lt;pattern delay="10000"&gt;.*\.pdf&lt;/pattern&gt;
  *  &lt;/delay&gt;
  * </pre>
  * 
