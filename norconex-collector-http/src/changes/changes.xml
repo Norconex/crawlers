@@ -26,7 +26,8 @@
       </action>
       <action dev="essiembre" type="add">
         New features from dependency updates. Collector Core: 
-        ICollectorLifeCycleListener.  Importer: MergeTagger.
+        ICollectorLifeCycleListener.  Importer: MergeTagger, 
+        ExternalTransformer.
       </action>
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collection Core 1.8.0, 
