@@ -13,6 +13,13 @@
         of PhantomJS to fetch documents. This provides a way to crawl
         web pages with JavaScript-generated content. 
       </action>
+      <action dev="essiembre" type="add" issue="319">
+        New XMLFeedLinkExtractor to extract links out of RSS or Atom feeds.
+      </action>
+      <action dev="essiembre" type="add" issue="236">
+        New RegexLinkExtractor to extract links out of any text file using
+        regular expressions.
+      </action>
       <action dev="essiembre" type="add">
         Added schema-based XML configuration validation which can be trigged
         on command prompt with this new flag: -k or --checkcfg

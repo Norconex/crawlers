@@ -188,6 +188,19 @@
           <tag name="script" attribute="src" />
         </tags>
       </extractor>
+      <extractor class="com.norconex.collector.http.url.impl.RegexLinkExtractor"
+          maxURLLength="1234" charset="asdf">
+        <applyToContentTypePattern>ct.*</applyToContentTypePattern>
+        <applyToReferencePattern>ref.*</applyToReferencePattern>
+        <linkExtractionPatterns>
+          <pattern group="1">\[(.*?)\]</pattern>
+          <pattern>http://.*?\.html</pattern>
+        </linkExtractionPatterns>
+      </extractor>
+      <extractor class="com.norconex.collector.http.url.impl.XMLFeedLinkExtractor">
+          <applyToContentTypePattern>.*</applyToContentTypePattern>
+          <applyToReferencePattern>.*</applyToReferencePattern>
+      </extractor>      
     </linkExtractors>
     <documentFilters>
       <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
