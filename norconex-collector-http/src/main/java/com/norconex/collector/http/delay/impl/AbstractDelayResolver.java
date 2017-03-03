@@ -216,7 +216,8 @@ public abstract class AbstractDelayResolver
     public final void loadFromXML(Reader in) throws IOException {
         try {
             XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-            defaultDelay = xml.getLong("[@default]", defaultDelay);
+            defaultDelay = XMLConfigurationUtil.getDuration(
+                    xml, "[@default]", defaultDelay);
             ignoreRobotsCrawlDelay = xml.getBoolean(
                     "[@ignoreRobotsCrawlDelay]", ignoreRobotsCrawlDelay);
             scope = xml.getString("[@scope]", SCOPE_CRAWLER);

@@ -265,7 +265,7 @@ public class GenericDocumentFetcher
     public void saveToXML(Writer out) throws IOException {
         try {
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
-            writer.writeStartElement("httpDocumentFetcher");
+            writer.writeStartElement("documentFetcher");
             writer.writeAttribute("class", getClass().getCanonicalName());
 
             writer.writeElementString("validStatusCodes", 

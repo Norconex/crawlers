@@ -63,6 +63,7 @@ import com.norconex.commons.lang.exec.SystemCommandException;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.InputStreamLineListener;
+import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
@@ -143,6 +144,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * those rendered with JavaScript!  
  * </p>
  * 
+ * <p>
+ * As of 2.7.0, XML configuration entries expecting millisecond durations
+ * can be provided in human-readable format (English only), as per 
+ * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
+ * </p>
+ *  
  * <h3>XML configuration usage:</h3>
  * 
  * <pre>
@@ -598,7 +605,8 @@ public class PhantomJSDocumentFetcher
         XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         setExePath(xml.getString("exePath", getExePath()));
         setScriptPath(xml.getString("scriptPath", getScriptPath()));
-        setRenderWaitTime(xml.getInt("renderWaitTime", getRenderWaitTime()));
+        setRenderWaitTime((int) XMLConfigurationUtil.getDuration(
+                xml, "renderWaitTime", getRenderWaitTime()));
         setScreenshotDir(xml.getString("screenshotDir", getScreenshotDir()));
         setScreenshotDimensions(xml.getString(
                 "screenshotDimensions", getScreenshotDimensions()));
@@ -629,7 +637,7 @@ public class PhantomJSDocumentFetcher
     public void saveToXML(Writer out) throws IOException {
         try {
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);         
-            writer.writeStartElement("metadataFetcher");
+            writer.writeStartElement("documentFetcher");
             writer.writeAttribute("class", getClass().getCanonicalName());
 
             writer.writeElementString("exePath", exePath);

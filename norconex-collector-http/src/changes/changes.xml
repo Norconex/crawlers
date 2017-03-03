@@ -30,6 +30,11 @@
         ExternalTransformer.
       </action>
       <action dev="essiembre" type="update">
+        XML configuration entries expecting millisecond durations
+        can now be provided in human-readable format 
+        (e.g., "5 minutes and 30 seconds" or "5m30s").
+      </action>
+      <action dev="essiembre" type="update">
         Dependency updates: Norconex Collection Core 1.8.0, 
         Norconex Commons Lang 1.13.0, Jetty 9.2.20.
       </action>

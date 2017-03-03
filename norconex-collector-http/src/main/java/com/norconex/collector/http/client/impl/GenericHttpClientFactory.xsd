@@ -20,17 +20,17 @@
     <xs:complexType>
       <xs:all>
         <xs:element name="cookiesDisabled" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="connectionTimeout" type="xs:int" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="socketTimeout" type="xs:int" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="connectionRequestTimeout" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="connectionTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="socketTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="connectionRequestTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="connectionCharset" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="expectContinueEnabled" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxRedirects" type="xs:int" minOccurs="0" maxOccurs="1"/>
         <xs:element name="localAddress" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxConnections" type="xs:int" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxConnectionsPerRoute" type="xs:int" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="maxConnectionIdleTime" type="xs:int" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="maxConnectionInactiveTime" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="maxConnectionIdleTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="maxConnectionInactiveTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="trustAllSSLCertificates" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="sslProtocols" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="proxyHost" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>

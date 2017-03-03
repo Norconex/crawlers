@@ -22,9 +22,6 @@ The following are either things to be done, or ideas to consider:
 - Have a global settings for making Properties (HttpMetadata, 
   ImporterMetadata, etc) case sensitive or not.
 
-- Have a Regex-based link extractor that could be used with virtually any
-  text-file? 
-
 - To consider: when re-processing orphans, check the depth in case the 
   max depth changed.
 
@@ -123,21 +120,5 @@ The following are either things to be done, or ideas to consider:
 
 MAYBE:
 =======
-- Create an XML schema/DTD?
-
 - Start offering per-site options?  Like crawl interval and more?
   (can be achieve with defining different crawlers now).
-
-
-  <!-- TODO: Add JEF Listeners -->
-  <jef>
-      <errorHandlers> 
-         <handler class=""></handler>
-      </errorHandlers>
-      <jobProgressListener> 
-         <listener class=""></listener>
-      </jobProgressListener>
-      <suiteLifeCycleListener> 
-         <listener class=""></listener>
-      </suiteLifeCycleListener>
-  </jef>

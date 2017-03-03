@@ -22,7 +22,7 @@
         <xs:element name="schedule" minOccurs="0" maxOccurs="unbounded">
           <xs:complexType>
             <xs:simpleContent>
-              <xs:extension base="xs:int">
+              <xs:extension base="xs:string">
                 <xs:attribute name="dayOfWeek" type="xs:string" />
                 <xs:attribute name="dayOfMonth" type="xs:string" />
                 <xs:attribute name="time" type="xs:string" />
@@ -32,7 +32,7 @@
         </xs:element>
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
-      <xs:attribute name="default" type="xs:int"/>
+      <xs:attribute name="default" type="xs:string"/>
       <xs:attribute name="ignoreRobotsCrawlDelay" type="xs:boolean"/>
       <xs:attribute name="scope">
         <xs:simpleType>

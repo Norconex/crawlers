@@ -35,7 +35,7 @@
                 <xs:attribute name="value">
                   <xs:simpleType>
                     <xs:restriction base="xs:string">
-                      <xs:pattern value="always|hourly|daily|weekly|monthly|yearly|never|\d+" />
+                      <xs:pattern value="always|hourly|daily|weekly|monthly|yearly|never|.*\d+.*" />
                     </xs:restriction>
                   </xs:simpleType>
                 </xs:attribute>

@@ -94,6 +94,7 @@ import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
+import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
@@ -133,6 +134,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     <td>Name of a JVM system property containing the key.</td>
  *   </tr>
  * </table>
+ *
+ * <p>
+ * As of 2.7.0, XML configuration entries expecting millisecond durations
+ * can be provided in human-readable format (English only), as per 
+ * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
+ * </p>
  * 
  * <h3>XML configuration usage:</h3>
  * <pre>
@@ -623,10 +630,12 @@ public class GenericHttpClientFactory
         proxyPasswordKey = 
                 loadXMLPasswordKey(xml, "proxyPasswordKey", proxyPasswordKey);
         proxyRealm = xml.getString("proxyRealm", proxyRealm);
-        connectionTimeout = xml.getInt("connectionTimeout", connectionTimeout);
-        socketTimeout = xml.getInt("socketTimeout", socketTimeout);
-        connectionRequestTimeout = xml.getInt(
-                "connectionRequestTimeout", connectionRequestTimeout);
+        connectionTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "connectionTimeout", connectionTimeout);
+        socketTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "socketTimeout", socketTimeout);
+        connectionRequestTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "connectionRequestTimeout", connectionRequestTimeout);
         connectionCharset = xml.getString(
                 "connectionCharset", connectionCharset);
         expectContinueEnabled = xml.getBoolean(
@@ -638,10 +647,10 @@ public class GenericHttpClientFactory
         localAddress = xml.getString("localAddress", localAddress);
         maxConnectionsPerRoute = xml.getInt(
                 "maxConnectionsPerRoute", maxConnectionsPerRoute);
-        maxConnectionIdleTime = xml.getInt(
-                "maxConnectionIdleTime", maxConnectionIdleTime);
-        maxConnectionInactiveTime = xml.getInt(
-                "maxConnectionInactiveTime", maxConnectionInactiveTime);
+        maxConnectionIdleTime = (int) XMLConfigurationUtil.getDuration(
+                xml, "maxConnectionIdleTime", maxConnectionIdleTime);
+        maxConnectionInactiveTime = (int) XMLConfigurationUtil.getDuration(
+                xml, "maxConnectionInactiveTime", maxConnectionInactiveTime);
         String sslProtocolsCSV = xml.getString("sslProtocols", null);
         if (StringUtils.isNotBlank(sslProtocolsCSV)) {
             setSSLProtocols(sslProtocolsCSV.trim().split("(\\s*,\\s*)+"));

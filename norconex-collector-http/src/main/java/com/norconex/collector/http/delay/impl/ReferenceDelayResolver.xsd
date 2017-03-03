@@ -23,14 +23,14 @@
           <xs:complexType>
             <xs:simpleContent>
               <xs:extension base="xs:string">
-                <xs:attribute name="delay" type="xs:int" />
+                <xs:attribute name="delay" type="xs:string" />
               </xs:extension>
             </xs:simpleContent>
           </xs:complexType>
         </xs:element>
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
-      <xs:attribute name="default" type="xs:int"/>
+      <xs:attribute name="default" type="xs:string"/>
       <xs:attribute name="ignoreRobotsCrawlDelay" type="xs:boolean"/>
       <xs:attribute name="scope">
         <xs:simpleType>

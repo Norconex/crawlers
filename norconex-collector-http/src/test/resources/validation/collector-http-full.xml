@@ -45,7 +45,7 @@
       </listener>
     </crawlerListeners>
     <userAgent>Please identify your Crawler</userAgent>
-    <urlNormalizer class="com.norconex.collector.http.url.impl.GenericURLNormalizer">
+    <urlNormalizer disabled="false" class="com.norconex.collector.http.url.impl.GenericURLNormalizer">
       <normalizations>
         lowerCaseSchemeHost, upperCaseEscapeSequence, 
         decodeUnreservedCharacters, removeDefaultPort 
@@ -56,10 +56,9 @@
       </replacements>
     </urlNormalizer>
     <delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
-          default="1000" ignoreRobotsCrawlDelay="true"
-          scope="crawler" >
+          default="1s" ignoreRobotsCrawlDelay="true" scope="crawler" >
       <schedule dayOfWeek="from Monday to Friday"
-          dayOfMonth="from 1 to 10" time="from 8:00 to 16:30">10000</schedule>
+          dayOfMonth="from 1 to 10" time="from 8:00 to 16:30">10s</schedule>
       <schedule dayOfWeek="from Saturday to Sunday"
           dayOfMonth="from 11 to 28" time="from 6:00 to 7:30">20000</schedule>
     </delay>    
@@ -73,8 +72,8 @@
     <httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">
       <cookiesDisabled>true</cookiesDisabled>
       <connectionTimeout>1</connectionTimeout>
-      <socketTimeout>2</socketTimeout>
-      <connectionRequestTimeout>3</connectionRequestTimeout>
+      <socketTimeout>2 minutes</socketTimeout>
+      <connectionRequestTimeout>3 min 30s</connectionRequestTimeout>
       <connectionCharset>asdf</connectionCharset>
       <expectContinueEnabled>true</expectContinueEnabled>
       <maxRedirects>4</maxRedirects>

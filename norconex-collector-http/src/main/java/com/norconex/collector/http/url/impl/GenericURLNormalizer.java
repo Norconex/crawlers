@@ -301,18 +301,20 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             writer.writeStartElement("normalizations");
             writer.writeCharacters(StringUtils.join(normalizations, ","));
             writer.writeEndElement();
-            writer.writeStartElement("replacements");
-            for (Replace replace : replaces) {
-                writer.writeStartElement("replace");
-                writer.writeStartElement("match");
-                writer.writeCharacters(replace.getMatch());
-                writer.writeEndElement();
-                writer.writeStartElement("replacement");
-                writer.writeCharacters(replace.getReplacement());
-                writer.writeEndElement();
+            if (!replaces.isEmpty()) {
+                writer.writeStartElement("replacements");
+                for (Replace replace : replaces) {
+                    writer.writeStartElement("replace");
+                    writer.writeStartElement("match");
+                    writer.writeCharacters(replace.getMatch());
+                    writer.writeEndElement();
+                    writer.writeStartElement("replacement");
+                    writer.writeCharacters(replace.getReplacement());
+                    writer.writeEndElement();
+                    writer.writeEndElement();
+                }
                 writer.writeEndElement();
             }
-            writer.writeEndElement();
             writer.writeEndElement();
             writer.flush();
             writer.close();
