@@ -48,6 +48,10 @@
         XML-configurable classes.
       </action>      
       <action dev="essiembre" type="fix">
+        Fixed NullPointerException from GenericLinkExtractor when encountering
+        HTML files with an empty href in their base tag.
+      </action>
+      <action dev="essiembre" type="fix">
         Fixed minor errors in writing IXMLConfigurable classes to XML.
       </action>
     </release>
