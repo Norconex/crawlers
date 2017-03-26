@@ -53,6 +53,7 @@
   #set($linkExtractor     = "${http}.url.impl.GenericLinkExtractor")
   #set($canonLinkDetector = "${http}.url.impl.GenericCanonicalLinkDetector")
   #set($urlNormalizer     = "${http}.url.impl.GenericURLNormalizer")
+  #set($delayResolver     = "${http}.delay.impl.GenericDelayResolver")
   #set($sitemapFactory    = "${http}.sitemap.impl.StandardSitemapResolverFactory")
   #set($metaChecksummer   = "${http}.checksum.impl.HttpMetadataChecksummer")
   #set($docChecksummer    = "${core}.checksum.impl.MD5DocumentChecksummer")
@@ -125,7 +126,7 @@
          (but the schedule sample is not):
       -->
     <delay default="1000" ignoreRobotsCrawlDelay="true"
-           class="$http.delay.impl.DefaultDelayResolver">
+           class="$delayResolver">
           <schedule dayOfWeek="from Monday to Friday" 
                     time="from 8:00 to 16:30">10000</schedule>
     </delay>

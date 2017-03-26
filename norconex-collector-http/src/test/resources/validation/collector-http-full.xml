@@ -19,7 +19,7 @@
 <!-- This is a config file with as many configuration options being set
      as possible, to test validation as much we can.
      -->
-<collector id="Test Collector HTTP Config">
+<httpcollector id="Test Collector HTTP Config">
 
   <progressDir>/progress</progressDir>
   <logsDir>/logs</logsDir>
@@ -268,4 +268,4 @@
   </crawlers>
 
 
-</collector>
+</httpcollector>

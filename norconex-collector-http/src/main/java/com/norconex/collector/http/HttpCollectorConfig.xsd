@@ -18,7 +18,7 @@
 
   <xs:include schemaLocation="../core/AbstractCollectorConfig.xsd"></xs:include>
   
-  <xs:element name="collector">
+  <xs:element name="httpcollector">
     <xs:complexType>
       <xs:complexContent> 
         <xs:extension base="AbstractCollectorConfig"/> 

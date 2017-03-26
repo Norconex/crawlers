@@ -36,6 +36,22 @@ public final class TestUtil {
     private TestUtil() {
         super();
     }
+
+    // get config of the same name as class, but with .xml extension.
+    public static HttpCollectorConfig loadCollectorConfig(
+            Class<?> clazz) throws IOException {
+        return loadCollectorConfig(clazz, clazz.getSimpleName() + ".xml");
+    }
+    // get config from resource relative to class
+    public static HttpCollectorConfig loadCollectorConfig(
+            Class<?> clazz, String xmlResource) throws IOException {
+        HttpCollectorConfig cfg = new HttpCollectorConfig();
+        try (Reader r = new InputStreamReader(
+                clazz.getResourceAsStream(xmlResource))) {
+            XMLConfigurationUtil.loadFromXML(cfg, r);
+        }
+        return cfg;
+    }
     public static void testValidation(String xmlResource) throws IOException {
         testValidation(TestUtil.class.getResourceAsStream(xmlResource));
         

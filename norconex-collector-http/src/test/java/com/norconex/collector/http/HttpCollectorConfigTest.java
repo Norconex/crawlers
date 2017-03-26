@@ -37,10 +37,10 @@ public class HttpCollectorConfigTest {
     @Test
     public void testWriteRead() throws IOException {
         HttpCollectorConfig config = new HttpCollectorConfig();
-        config.setId("test-fs-collector");
+        config.setId("test-http-collector");
         
         HttpCrawlerConfig crawlerCfg = new HttpCrawlerConfig();
-        crawlerCfg.setId("myCrawler");
+        crawlerCfg.setId("test-http-crawler");
         crawlerCfg.setCommitter(new FileSystemCommitter());
         crawlerCfg.setStartURLs(
                 "http://www.example.com/1/", "http://www.example.com/2/");
@@ -65,5 +65,33 @@ public class HttpCollectorConfigTest {
         }
         Assert.assertEquals("Validation warnings/errors were found.", 
                 0, appender.getCount());
+    }
+    
+    // Test for: https://github.com/Norconex/collector-http/issues/326
+    @Test
+    public void testCrawlerDefaults() throws IOException {
+        HttpCollectorConfig config = TestUtil.loadCollectorConfig(getClass());
+        Assert.assertEquals(2, config.getCrawlerConfigs().length); 
+        
+        // Make sure crawler defaults are applied properly.
+        HttpCrawlerConfig cc1 = 
+                (HttpCrawlerConfig) config.getCrawlerConfigs()[0];
+        Assert.assertFalse("stayOnDomain 1 must be false", 
+                cc1.getURLCrawlScopeStrategy().isStayOnDomain());
+        Assert.assertFalse("stayOnPort 1 must be false", 
+                cc1.getURLCrawlScopeStrategy().isStayOnPort());
+        Assert.assertTrue("stayOnProtocol 1 must be true", 
+                cc1.getURLCrawlScopeStrategy().isStayOnProtocol());
+
+        HttpCrawlerConfig cc2 = 
+                (HttpCrawlerConfig) config.getCrawlerConfigs()[1];
+        Assert.assertTrue("stayOnDomain 2 must be true", 
+                cc2.getURLCrawlScopeStrategy().isStayOnDomain());
+        Assert.assertTrue("stayOnPort 2 must be true", 
+                cc2.getURLCrawlScopeStrategy().isStayOnPort());
+        Assert.assertTrue("stayOnProtocol 2 must be true", 
+                cc2.getURLCrawlScopeStrategy().isStayOnProtocol());
+    
+    
     }
 }
