@@ -24,6 +24,9 @@
         Added schema-based XML configuration validation which can be trigged
         on command prompt with this new flag: -k or --checkcfg
       </action>
+      <action dev="essiembre" type="add" issue="331">
+        Added "removeTrailingHash" to GenericURLNormalizer.
+      </action>
       <action dev="essiembre" type="add">
         New features from dependency updates. Collector Core: 
         ICollectorLifeCycleListener.  Importer: MergeTagger, 

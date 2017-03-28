@@ -92,6 +92,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li> 
  *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
  *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
+ *   <li>{@link URLNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
  *   <li>{@link URLNormalizer#removeWWW() removeWWW}</li>
  *   <li>{@link URLNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
  *   <li>{@link URLNormalizer#secureScheme() secureScheme}</li>
@@ -174,6 +175,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         removeSessionIds,
         removeTrailingQuestionMark, 
         removeTrailingSlash, 
+        removeTrailingHash, 
         removeWWW, 
         replaceIPWithDomainName, 
         secureScheme, 
