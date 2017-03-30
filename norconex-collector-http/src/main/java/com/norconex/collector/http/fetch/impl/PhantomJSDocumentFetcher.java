@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -60,7 +61,6 @@ import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.exec.ExecUtil;
 import com.norconex.commons.lang.exec.SystemCommand;
 import com.norconex.commons.lang.exec.SystemCommandException;
-import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.InputStreamLineListener;
 import com.norconex.commons.lang.time.DurationParser;
@@ -72,9 +72,9 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * external <a href="http://phantomjs.org/">PhantomJS</a> installation
  * to fetch web pages.  While less efficient, this implementation is meant
  * to provide some way to crawl sites making heavy use of JavaScript to render
- * their pages. This class tells the PhantomJS headless browser to wait a certain 
- * amount of time for the page to load extra content via Ajax requests before
- * grabbing all loaded HTML. 
+ * their pages. This class tells the PhantomJS headless browser to wait a 
+ * certain amount of time for the page to load extra content via Ajax requests 
+ * before grabbing all loaded HTML. 
  * </p>
  * 
  * <h3>Experimental</h3>
@@ -87,29 +87,36 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * 
  * <h3>Handling of non-HTML Pages</h3>
  * <p>
- * With this document fetcher, PhantomJS is only used to fetch HTML documents.
+ * It is usually only useful to use PhantomJS for HTML pages with JavaScript.
  * Other types of documents are fetched using an instance of 
- * {@link GenericDocumentFetcher}. To find out if we are dealing with HTML
- * documents, it first looks for a URL extension matching one of (case-insensitive):  
- * <pre>
- * html, htm, shtml, asp, pl, cgi, php
- * </pre>
- * <p>
- * If there are no matches, it then relies on the document content type. To help
- * it do so, it is recommended you configure a metadata fetcher (such as 
- * {@link GenericMetadataFetcher}).  
- * Otherwise, the content type will be available only after the document will 
- * have been downloaded by PhantomJS.  If not an HTML document at that point,
- * it will be re-downloaded again with the generic document fetcher. 
+ * {@link GenericDocumentFetcher}    
+ * To find out if we are dealing with an HTML
+ * documents, this fetcher needs to know the content type first. 
+ * By default, the content type
+ * of a document is not known before a physical copy is obtained. 
+ * This means PhantomJS has to first download the document and if it is not an
+ * HTML document at that point, it will be re-downloaded again with the generic
+ * document fetcher. 
  * By default, these content-types are considered HTML:
  * </p>
  * <pre>
  * text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
  * </pre>
  * <p>
- * Both extensions and content types can be overwritten with
- * {@link #setExtensions(String...)} and {@link #setContentTypes(ContentType...)}
- * respectively.
+ * Those can be overwritten with {@link #setContentTypePattern(String)}.
+ * </p>
+ * <h4>Avoid double-downloads</h4>
+ * <p>
+ * To avoid downloading the document twice as described above, you can
+ * configure a metadata fetcher (such as {@link GenericMetadataFetcher}).  This
+ * will attempt get the content type by first making an HTTP HEAD request.
+ * </p>
+ * <p>
+ * Alternatively, if you have a URL pattern that identifies your HTML pages
+ * (and only HTML pages), you can specify it using 
+ * {@link #setReferencePattern(String)}.  Only URLs matching the provided
+ * regular expression will be fetched by PhantomJS.  By default there is no
+ * pattern for discriminating on URL references.  
  * </p>
  * 
  * <h3>How to maintain HTTP sessions</h3>
@@ -145,7 +152,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </p>
  * 
  * <p>
- * As of 2.7.0, XML configuration entries expecting millisecond durations
+ * XML configuration entries expecting millisecond durations
  * can be provided in human-readable format (English only), as per 
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
@@ -166,17 +173,16 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *        &lt;opt&gt;(optional extra PhantomJS command-line option)&lt;/opt&gt;
  *        &lt;!-- You have have multiple opt tags --&gt;
  *      &lt;/options&gt;
- *      &lt;extensions&gt;
- *          (CSV list of file extensions found in URLs, if any, for which to use 
- *           PhantomJS browser. Non-matching content types will use the 
- *           GenericDocumentFetcher. Leave blank or remove this tag to use 
- *           defaults.)
- *      &lt;/extensions&gt;      
- *      &lt;contentTypes&gt;
- *          (CSV list of content types for which to use PhantomJS browser.
- *           Non-matching content types will use the GenericDocumentFetcher.
- *           Leave blank or remove this tag to use defaults.)
- *      &lt;/contentTypes&gt;      
+ *      &lt;referencePattern&gt;
+ *          (Regular expression matching URLs for which to use the
+ *           PhantomJS browser. Non-matching URLs will fallback
+ *           to using GenericDocumentFetcher.)
+ *      &lt;/referencePattern&gt;      
+ *      &lt;contentTypePattern&gt;
+ *          (Regular expression matching content types for which to use 
+ *           the PhantomJS browser. Non-matching content types will use 
+ *           the GenericDocumentFetcher.)
+ *      &lt;/contentTypePattern&gt;      
  *      &lt;screenshotDir&gt;
  *          (optional path where to save screenshots)
  *      &lt;/screenshotDir&gt;
@@ -243,6 +249,8 @@ public class PhantomJSDocumentFetcher
     public static final String DEFAULT_SCRIPT_PATH = "extra/phantom.js";
     public static final int DEFAULT_RENDER_WAIT_TIME = 3000;
     public static final float DEFAULT_SCREENSHOT_ZOOM_FACTOR = 1.0f;
+    public static final String DEFAULT_CONTENT_TYPE_PATTERN = 
+            "^(text/html|application/xhtml\\+xml|vnd.wap.xhtml\\+xml|x-asp)$";
     
     /*default*/ static final int[] DEFAULT_VALID_STATUS_CODES = new int[] {
             HttpStatus.SC_OK,
@@ -250,16 +258,7 @@ public class PhantomJSDocumentFetcher
     /*default*/ static final int[] DEFAULT_NOT_FOUND_STATUS_CODES = new int[] {
             HttpStatus.SC_NOT_FOUND,
     };
-    private static final ContentType[] DEFAULT_CONTENT_TYPES = 
-            new ContentType[] {
-        ContentType.HTML,
-        ContentType.valueOf("application/xhtml+xml"),
-        ContentType.valueOf("vnd.wap.xhtml+xml"),
-        ContentType.valueOf("x-asp"),
-    };
-    private static final String[] DEFAULT_EXTENSIONS = 
-            new String[] { "html", "htm", "shtml", "asp", "pl", "cgi", "php" };
-        
+    
     private String exePath;
     private String scriptPath = DEFAULT_SCRIPT_PATH;
     private int renderWaitTime = DEFAULT_RENDER_WAIT_TIME;
@@ -273,8 +272,8 @@ public class PhantomJSDocumentFetcher
             PhantomJSDocumentFetcher.DEFAULT_NOT_FOUND_STATUS_CODES;
     private String headersPrefix;
     
-    private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
-    private String[] extensions = DEFAULT_EXTENSIONS;
+    private String contentTypePattern = DEFAULT_CONTENT_TYPE_PATTERN;
+    private String referencePattern;
     
     private final GenericDocumentFetcher genericFetcher = 
             new GenericDocumentFetcher();
@@ -350,26 +349,40 @@ public class PhantomJSDocumentFetcher
         this.headersPrefix = headersPrefix;
         genericFetcher.setHeadersPrefix(headersPrefix);
     }
-    public ContentType[] getContentTypes() {
-        return contentTypes;
+    public String getContentTypePattern() {
+        return contentTypePattern;
     }
-    public void setContentTypes(ContentType... contentTypes) {
-        this.contentTypes = contentTypes;
+    public void setContentTypePattern(String contentTypePattern) {
+        this.contentTypePattern = contentTypePattern;
     }
-	public String[] getExtensions() {
-        return extensions;
+    public String getReferencePattern() {
+        return referencePattern;
     }
-    public void setExtensions(String... extensions) {
-        this.extensions = extensions;
+    public void setReferencePattern(String referencePattern) {
+        this.referencePattern = referencePattern;
     }
+    
     
     @Override
 	public HttpFetchResponse fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
 
         validate();
-        
-        if (!isHTMLByExtension(doc.getReference()) && !isHTMLByContentType(doc)) {
+
+        // If there is a reference pattern and it does not match, use generic
+        if (StringUtils.isNotBlank(referencePattern)
+                && !isHTMLByReference(doc.getReference())) {
+            LOG.debug("URL does not match reference pattern. "
+                    + "Using GenericDocuometnFetcher.");
+            return genericFetcher.fetchDocument(httpClient, doc);
+        }
+        // If content type is known and ct pattern does not match, use generic
+        String contentType = getContentType(doc);
+        if (StringUtils.isNotBlank(contentTypePattern)
+                && StringUtils.isNotBlank(contentType)
+                && !isHTMLByContentType(contentType)) {
+            LOG.debug("Content type known before fetching and does not "
+                    + "match pattern. Using GenericDocumentFetcher.");
             return genericFetcher.fetchDocument(httpClient, doc);
         }
 
@@ -392,8 +405,8 @@ public class PhantomJSDocumentFetcher
                 doc.getMetadata().addString(
                         "phantomjs.screenshotfile", phantomScreenshotFile);
             } catch (IOException e) {
-                throw new CollectorException("Could not create screenshot "
-                        + "directory." + e);
+                throw new CollectorException(
+                        "Could not create screenshot directory." + e);
             }
         }
         boolean loadImages = StringUtils.isNotBlank(phantomScreenshotFile);
@@ -465,7 +478,10 @@ public class PhantomJSDocumentFetcher
                         output.getContentType());
             }
 
-            if (!isHTMLByContentType(doc)) {
+            contentType = getContentType(doc);
+            if (!isHTMLByContentType(contentType)) {
+                LOG.debug("Not a matching content type after download, "
+                        + "re-downloading with GenericDocumentFetcher.");
                 return genericFetcher.fetchDocument(httpClient, doc);
             }
             
@@ -525,8 +541,8 @@ public class PhantomJSDocumentFetcher
             // file is deleted by the framework when done with it.
         }
 	}
-		
-	private void validate() {
+
+    private void validate() {
 	    if (StringUtils.isBlank(exePath)) {
 	        throw new CollectorException(
 	                "PhantomJS execution path is not set.");
@@ -569,35 +585,21 @@ public class PhantomJSDocumentFetcher
         return safeArg;
 	}
     
-    private boolean isHTMLByExtension(String url) {
-        if (ArrayUtils.isEmpty(extensions)) {
-            return true;
-        }
-        String urlExt = url.replaceFirst(".*?://.*?/.*\\.(.+?)$", "$1");
-        if (!url.equals(urlExt)) {
-            for (String htmlExt : extensions) {
-                if (StringUtils.removeStart(htmlExt, ".").equalsIgnoreCase(urlExt)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    private boolean isHTMLByReference(String url) {
+        return Pattern.matches(referencePattern, Objects.toString(url, ""));
     }
-    private boolean isHTMLByContentType(HttpDocument doc) {
-        if (doc.getContentType() != null) {
-            return ArrayUtils.contains(contentTypes, doc.getContentType());
+    private boolean isHTMLByContentType(String contentType) {
+        return Pattern.matches(
+                contentTypePattern, Objects.toString(contentType, ""));
+    }
+    private String getContentType(HttpDocument doc) {
+        String ct = Objects.toString(doc.getContentType(), null);
+        if (StringUtils.isBlank(ct)) {
+            ct = doc.getMetadata().getString(Objects.toString(headersPrefix, "")
+                    + HttpMetadata.HTTP_CONTENT_TYPE);
         }
-        String ct = doc.getMetadata().getString(Objects.toString(headersPrefix, "")
-                + HttpMetadata.HTTP_CONTENT_TYPE);
-        if (StringUtils.isNotBlank(ct)) {
-            ct = ct.replaceFirst("(.*);.*", "$1").trim();
-        }
-        if (StringUtils.isNotBlank(ct)) {
-            return ArrayUtils.contains(contentTypes, ContentType.valueOf(ct));
-        }
-        // there are no content-type, consider it HTML
-        return true;
-    }    
+        return ct;
+    }
     
 
     @Override
@@ -622,16 +624,10 @@ public class PhantomJSDocumentFetcher
         if (ArrayUtils.isNotEmpty(opts)) {
             setOptions(opts);
         }
-        ContentType[] cts = ContentType.valuesOf(StringUtils.split(
-                StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
-        if (!ArrayUtils.isEmpty(cts)) {
-            setContentTypes(cts);
-        }
-        String[] exts = StringUtils.split(
-                StringUtils.trimToNull(xml.getString("extensions")), ", ");
-        if (!ArrayUtils.isEmpty(exts)) {
-            setExtensions(exts);
-        }
+        setReferencePattern(
+                xml.getString("referencePattern", getReferencePattern()));
+        setContentTypePattern(
+                xml.getString("contentTypePattern", getContentTypePattern()));
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
@@ -660,14 +656,9 @@ public class PhantomJSDocumentFetcher
                 }
                 writer.writeEndElement();
             }
-            if (!ArrayUtils.isEmpty(getContentTypes())) {
-                writer.writeElementString(
-                        "contentTypes", StringUtils.join(getContentTypes(), ','));
-            }
-            if (!ArrayUtils.isEmpty(getExtensions())) {
-                writer.writeElementString(
-                        "extensions", StringUtils.join(getExtensions(), ','));
-            }
+            writer.writeElementString("referencePattern", referencePattern);
+            writer.writeElementString("contentTypePattern", contentTypePattern);
+
             writer.writeEndElement();
             writer.flush();
             writer.close();
@@ -690,8 +681,8 @@ public class PhantomJSDocumentFetcher
                 .append(screenshotDir, castOther.screenshotDir)
                 .append(screenshotDimensions, castOther.screenshotDimensions)
                 .append(screenshotZoomFactor, castOther.screenshotZoomFactor)
-                .append(contentTypes, castOther.contentTypes)
-                .append(extensions, castOther.extensions)
+                .append(referencePattern, castOther.referencePattern)
+                .append(contentTypePattern, castOther.contentTypePattern)
                 .append(validStatusCodes, castOther.validStatusCodes)
                 .append(notFoundStatusCodes, castOther.notFoundStatusCodes)
                 .append(headersPrefix, castOther.headersPrefix)
@@ -708,8 +699,8 @@ public class PhantomJSDocumentFetcher
                 .append(screenshotDir)
                 .append(screenshotDimensions)
                 .append(screenshotZoomFactor)
-                .append(contentTypes)
-                .append(extensions)
+                .append(referencePattern)
+                .append(contentTypePattern)
                 .append(validStatusCodes)
                 .append(notFoundStatusCodes)
                 .append(headersPrefix)
@@ -726,8 +717,8 @@ public class PhantomJSDocumentFetcher
                 .append("screenshotDir", screenshotDir)
                 .append("screenshotDimensions", screenshotDimensions)
                 .append("screenshotZoomFactor", screenshotZoomFactor)
-                .append("contentTypes", contentTypes)
-                .append("extensions", extensions)
+                .append("referencePattern", referencePattern)
+                .append("contentTypePattern", contentTypePattern)
                 .append("validStatusCodes", validStatusCodes)
                 .append("notFoundStatusCodes", notFoundStatusCodes)
                 .append("headersPrefix", headersPrefix)
@@ -755,9 +746,7 @@ public class PhantomJSDocumentFetcher
         }
         @Override
         protected void lineStreamed(String type, String line) {
-            if (ExecUtil.STDERR.equalsIgnoreCase(type)) {
-                error.write("\n  " + line);
-            } else if (line.startsWith("HEADER:")) {
+            if (line.startsWith("HEADER:")) {
                 String key = StringUtils.substringBetween(line, "HEADER:", "=");
                 String value = StringUtils.substringAfter(line, "=");
                 
@@ -785,7 +774,9 @@ public class PhantomJSDocumentFetcher
             } else if (line.startsWith("ReferenceError:")) {
                 error.write("\n  " + line);
                 cmd.abort();
-
+            // Log errors not matching above as real errors
+            } else if (ExecUtil.STDERR.equalsIgnoreCase(type)) {
+                    error.write("\n  " + line);
             // consider everythign else as INFO
             } else {
                 info.write("\n  " + line);

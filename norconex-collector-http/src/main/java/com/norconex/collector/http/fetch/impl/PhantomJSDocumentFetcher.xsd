@@ -29,8 +29,8 @@
             </xs:all>
           </xs:complexType>
         </xs:element>
-        <xs:element name="extensions" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="contentTypes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="referencePattern" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="contentTypePattern" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotDir" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotDimensions" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotZoomFactor" type="xs:float" minOccurs="0" maxOccurs="1"/>

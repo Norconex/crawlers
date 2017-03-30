@@ -25,8 +25,8 @@
         <opt>opt1</opt>
         <opt>opt2</opt>
       </options>
-      <extensions>html</extensions>      
-      <contentTypes>text/html</contentTypes>      
+      <referencePattern>.*\.html</referencePattern>      
+      <contentTypePattern>text/html</contentTypePattern>      
       <screenshotDir>/path/screenshots/</screenshotDir>
       <screenshotDimensions>800x600</screenshotDimensions>
       <screenshotZoomFactor>0.25</screenshotZoomFactor>

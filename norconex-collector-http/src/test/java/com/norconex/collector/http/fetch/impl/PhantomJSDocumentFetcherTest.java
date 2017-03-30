@@ -21,7 +21,6 @@ import org.junit.Test;
 
 import com.norconex.collector.http.TestUtil;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
-import com.norconex.commons.lang.file.ContentType;
 
 public class PhantomJSDocumentFetcherTest  {
 
@@ -33,8 +32,8 @@ public class PhantomJSDocumentFetcherTest  {
         f.setHeadersPrefix("blah");
         f.setExePath(new File("/path/to/phantomjs.exe").getAbsolutePath());
         f.setRenderWaitTime(1000);
-        f.setContentTypes(ContentType.HTML, ContentType.CSV);
-        f.setExtensions("pdf", "html");
+        f.setContentTypePattern(".blah.");
+        f.setReferencePattern(".blah.blah");
         System.out.println("Writing/Reading this: " + f);
         XMLConfigurationUtil.assertWriteRead(f);
     }
