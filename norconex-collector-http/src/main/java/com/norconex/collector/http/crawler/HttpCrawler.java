@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -428,6 +428,13 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     protected void cleanupExecution(JobStatusUpdater statusUpdater,
             JobSuite suite, ICrawlDataStore refStore) {
+        try {
+            if (sitemapResolver != null) {
+                sitemapResolver.stop();
+            }
+        } catch (Exception e) {
+            LOG.error("Could not stop sitemap store.");
+        }
         closeHttpClient();
     }
 

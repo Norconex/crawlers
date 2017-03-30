@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,11 @@ import org.h2.mvstore.MVStore;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
+/**
+ * Sitemap store implementation used by {@link StandardSitemapResolver}.
+ * Make sure to call close after usage.
+ * @author Pascal Essiembre
+ */
 public class SitemapStore {
 
     private static final Logger LOG = 
@@ -97,11 +102,5 @@ public class SitemapStore {
             store.commit();
             store.close();
         }
-    }
-    
-    @Override
-    protected void finalize() throws Throwable {
-        close();
-        super.finalize();
     }
 }
