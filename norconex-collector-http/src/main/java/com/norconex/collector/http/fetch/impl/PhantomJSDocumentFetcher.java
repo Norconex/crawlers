@@ -212,7 +212,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <h4>Usage example:</h4>
  * <p>
  * The following configures HTTP Collector to use PhantomJS with a 
- * proxy to use HttpClient.
+ * proxy to use HttpClient, only for URLs ending with ".html".
  * </p>
  * <pre>
  *  &lt;httpcollector id="MyHttpCollector"&gt;
@@ -223,6 +223,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *        &lt;documentFetcher class="com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher"&gt;
  *          &lt;exePath&gt;/path/to/phantomjs.exe&lt;/exePath&gt;
  *          &lt;renderWaitTime&gt;5000&lt;/renderWaitTime&gt;
+ *          &lt;referencePattern&gt;^.*\.html$&lt;/referencePattern&gt;           
  *        &lt;/documentFetcher&gt;
  *        ...
  *      &lt;/crawler&gt;
