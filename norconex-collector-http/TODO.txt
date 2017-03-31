@@ -53,10 +53,6 @@ The following are either things to be done, or ideas to consider:
 
 - Introduce "Add-ons" like social media add-ons to crawl social media sites.
 
-- Consider adding engine with JavaScript runtime like Selenium (or HtmlUnit,
-  or embedded browser engine) to crawl pages partly generated with JavaScript 
-  (and maybe help with screenshots)?
-
 - Have an interface for how to optionally store downloaded files
   (i.e., location, directory structure, file naming).  This could allow
   usage of the collector to clone a site.  Should the DocumentFetcher do it 
@@ -101,9 +97,6 @@ The following are either things to be done, or ideas to consider:
 - Integrate with distributed computing frameworks such as Hadoop.
 
 - Test that IPV6 is supported (as domain names).
-
-- Detect and follow RSS feeds (related to having multiple url extractors by
-  content types).  Check related ticket(s) for a real use case.
 
 - Offer option to have crawling rate adjust itself if a site is slow
   (in case it is the crawler hammering it).  Probably a change or new delay

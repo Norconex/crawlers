@@ -78,6 +78,7 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
+      <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>      
     </dependencySet>
   </dependencySets>
 </assembly>
