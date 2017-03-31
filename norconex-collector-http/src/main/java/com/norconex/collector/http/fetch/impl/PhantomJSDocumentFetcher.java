@@ -374,7 +374,8 @@ public class PhantomJSDocumentFetcher
         if (StringUtils.isNotBlank(referencePattern)
                 && !isHTMLByReference(doc.getReference())) {
             LOG.debug("URL does not match reference pattern. "
-                    + "Using GenericDocuometnFetcher.");
+                    + "Using GenericDocuometnFetcher for: "
+                    + doc.getReference());
             return genericFetcher.fetchDocument(httpClient, doc);
         }
         // If content type is known and ct pattern does not match, use generic
@@ -382,8 +383,10 @@ public class PhantomJSDocumentFetcher
         if (StringUtils.isNotBlank(contentTypePattern)
                 && StringUtils.isNotBlank(contentType)
                 && !isHTMLByContentType(contentType)) {
-            LOG.debug("Content type known before fetching and does not "
-                    + "match pattern. Using GenericDocumentFetcher.");
+            LOG.debug("Content type (" + contentType
+                    + ") known before fetching and does not "
+                    + "match pattern. Using GenericDocumentFetcher for: "
+                    + doc.getReference());
             return genericFetcher.fetchDocument(httpClient, doc);
         }
 
@@ -481,8 +484,9 @@ public class PhantomJSDocumentFetcher
 
             contentType = getContentType(doc);
             if (!isHTMLByContentType(contentType)) {
-                LOG.debug("Not a matching content type after download, "
-                        + "re-downloading with GenericDocumentFetcher.");
+                LOG.debug("Not a matching content type (" + contentType
+                    + ")  after download, re-downloading with "
+                    + "GenericDocumentFetcher for: " + doc.getReference());
                 return genericFetcher.fetchDocument(httpClient, doc);
             }
             
@@ -590,8 +594,10 @@ public class PhantomJSDocumentFetcher
         return Pattern.matches(referencePattern, Objects.toString(url, ""));
     }
     private boolean isHTMLByContentType(String contentType) {
+        String cleanContentType = StringUtils.substringBefore(
+                contentType, ";").trim();
         return Pattern.matches(
-                contentTypePattern, Objects.toString(contentType, ""));
+                contentTypePattern, Objects.toString(cleanContentType, ""));
     }
     private String getContentType(HttpDocument doc) {
         String ct = Objects.toString(doc.getContentType(), null);
