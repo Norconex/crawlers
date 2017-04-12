@@ -21,7 +21,6 @@ import org.junit.rules.TemporaryFolder;
 
 import com.norconex.collector.core.crawler.ICrawlerConfig;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
-import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Database;
 import com.norconex.collector.http.TestUtil;
 import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTest;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
@@ -31,8 +30,8 @@ public class H2CrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
     @Override
     protected ICrawlDataStore createCrawlDataStore(
             ICrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
-        return new JDBCCrawlDataStoreFactory(
-                Database.H2).createCrawlDataStore(config, resume);
+        return new JDBCCrawlDataStoreFactory().createCrawlDataStore(
+                config, resume);
     }
     
     @Test
@@ -43,7 +42,6 @@ public class H2CrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
     @Test
     public void testWriteRead() throws IOException {
         JDBCCrawlDataStoreFactory f = new JDBCCrawlDataStoreFactory();
-        f.setDatabase(Database.H2);
         System.out.println("Writing/Reading this: " + f);
         XMLConfigurationUtil.assertWriteRead(f);
     }

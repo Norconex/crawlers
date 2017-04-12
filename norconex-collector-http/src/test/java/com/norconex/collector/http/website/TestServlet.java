@@ -16,6 +16,7 @@ package com.norconex.collector.http.website;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,6 +63,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("zeroLength", new ZeroLengthTestCase());
         testCases.put("timeout", new TimeoutTestCase());
         testCases.put("iframe", new IFrameTestCase());
+        testCases.put("contentTypeCharset", new ContentTypeCharsetTestCase());
     }
     
     @Override
@@ -468,6 +470,25 @@ public class TestServlet extends HttpServlet {
                 }
                 out.println("</xmp></p>");
             }
+        }
+    }
+    
+    class ContentTypeCharsetTestCase implements ITestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp) throws Exception {
+            resp.setContentType("application/javascript");
+            resp.setCharacterEncoding("Big5");
+            String out = "<html style=\"font-family:Arial, "
+                     + "Helvetica, sans-serif;\">"
+                     + "<head><title>ContentType + Charset ☺☻"
+                     + "</title></head>"
+                     + "<body>This page returns the Content-Type as "
+                     + "\"application/javascript; charset=Big5\" "
+                     + "while in reality it is \"text/html; charset=UTF-8\"."
+                     + "Éléphant à noël. ☺☻"
+                     + "</body>"
+                     + "</html>";
+            resp.getOutputStream().write(out.getBytes(StandardCharsets.UTF_8));
         }
     }
 }

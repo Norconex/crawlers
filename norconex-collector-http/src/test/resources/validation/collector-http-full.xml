@@ -158,7 +158,8 @@
     <metadataChecksummer 
         class="com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer"
         disabled="false" keep="true" targetField="myfield" />    
-    <documentFetcher class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher">
+    <documentFetcher class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher"
+        detectContentType="true" detectCharset="true">
       <validStatusCodes>200,123</validStatusCodes>
       <notFoundStatusCodes>404,456</notFoundStatusCodes>
       <headersPrefix>prefix</headersPrefix>

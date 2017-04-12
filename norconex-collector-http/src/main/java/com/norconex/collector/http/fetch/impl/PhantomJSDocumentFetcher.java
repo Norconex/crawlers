@@ -61,10 +61,13 @@ import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.exec.ExecUtil;
 import com.norconex.commons.lang.exec.SystemCommand;
 import com.norconex.commons.lang.exec.SystemCommandException;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.InputStreamLineListener;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.importer.doc.ContentTypeDetector;
+import com.norconex.importer.util.CharsetUtil;
 
 /**
  * <p>
@@ -161,7 +164,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * 
  * <pre>
  *  &lt;documentFetcher  
- *      class="com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher"&gt;
+ *      class="com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher"
+ *      detectContentType="[false|true]" detectCharset="[false|true]"&gt;
  *      &lt;exePath&gt;(path to PhantomJS executable)&lt;/exePath&gt;
  *      &lt;scriptPath&gt;
  *          (Optional path to a PhantomJS script. Defaults to extra/phantom.js)
@@ -272,6 +276,9 @@ public class PhantomJSDocumentFetcher
     private int[] notFoundStatusCodes = 
             PhantomJSDocumentFetcher.DEFAULT_NOT_FOUND_STATUS_CODES;
     private String headersPrefix;
+    private boolean detectContentType;
+    private boolean detectCharset;
+    private ContentTypeDetector contentTypeDetector = new ContentTypeDetector();    
     
     private String contentTypePattern = DEFAULT_CONTENT_TYPE_PATTERN;
     private String referencePattern;
@@ -350,6 +357,20 @@ public class PhantomJSDocumentFetcher
         this.headersPrefix = headersPrefix;
         genericFetcher.setHeadersPrefix(headersPrefix);
     }
+    public boolean isDetectContentType() {
+        return detectContentType;
+    }
+    public void setDetectContentType(boolean detectContentType) {
+        this.detectContentType = detectContentType;
+        genericFetcher.setDetectContentType(detectContentType);
+    }
+    public boolean isDetectCharset() {
+        return detectCharset;
+    }
+    public void setDetectCharset(boolean detectCharset) {
+        this.detectCharset = detectCharset;
+        genericFetcher.setDetectCharset(detectCharset);
+    }    
     public String getContentTypePattern() {
         return contentTypePattern;
     }
@@ -511,6 +532,8 @@ public class PhantomJSDocumentFetcher
                 doc.setContent(doc.getContent().newInputStream(outFile));
                 //read a copy to force caching
                 IOUtils.copy(doc.getContent(), new NullOutputStream());
+                
+                performDetection(doc);
                 return new HttpFetchResponse(
                         HttpCrawlState.NEW, statusCode, reason);
             }
@@ -547,6 +570,25 @@ public class PhantomJSDocumentFetcher
         }
 	}
 
+    //TODO Copied from GenericDocumentFetcher... should move to util class?
+    private void performDetection(HttpDocument doc) throws IOException {
+        if (detectContentType) {
+            ContentType ct = contentTypeDetector.detect(
+                    doc.getContent(), doc.getReference());
+            if (ct != null) {
+                doc.getMetadata().setString(
+                        HttpMetadata.COLLECTOR_CONTENT_TYPE, ct.toString());
+            }
+        }
+        if (detectCharset) {
+            String charset = CharsetUtil.detectCharset(doc.getContent());
+            if (StringUtils.isNotBlank(charset)) {
+                doc.getMetadata().setString(
+                        HttpMetadata.COLLECTOR_CONTENT_ENCODING, charset);
+            }
+        }
+    }
+    
     private void validate() {
 	    if (StringUtils.isBlank(exePath)) {
 	        throw new CollectorException(
@@ -626,6 +668,9 @@ public class PhantomJSDocumentFetcher
         setNotFoundStatusCodes(XMLConfigurationUtil.getCSVIntArray(
                 xml, "notFoundStatusCodes", getNotFoundStatusCodes()));
         setHeadersPrefix(xml.getString("headersPrefix", getHeadersPrefix()));
+        setDetectContentType(
+                xml.getBoolean("[@detectContentType]", isDetectContentType()));
+        setDetectCharset(xml.getBoolean("[@detectCharset]", isDetectCharset()));        
         
         String[] opts = xml.getStringArray("options.opt");
         if (ArrayUtils.isNotEmpty(opts)) {
@@ -642,7 +687,10 @@ public class PhantomJSDocumentFetcher
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);         
             writer.writeStartElement("documentFetcher");
             writer.writeAttribute("class", getClass().getCanonicalName());
-
+            writer.writeAttributeBoolean(
+                    "detectContentType", isDetectContentType());
+            writer.writeAttributeBoolean("detectCharset", isDetectCharset());
+            
             writer.writeElementString("exePath", exePath);
             writer.writeElementString("scriptPath", scriptPath);
             writer.writeElementInteger("renderWaitTime", renderWaitTime);
@@ -693,6 +741,8 @@ public class PhantomJSDocumentFetcher
                 .append(validStatusCodes, castOther.validStatusCodes)
                 .append(notFoundStatusCodes, castOther.notFoundStatusCodes)
                 .append(headersPrefix, castOther.headersPrefix)
+                .append(detectContentType, castOther.detectContentType)
+                .append(detectCharset, castOther.detectCharset)
                 .isEquals();
     }
 
@@ -711,6 +761,8 @@ public class PhantomJSDocumentFetcher
                 .append(validStatusCodes)
                 .append(notFoundStatusCodes)
                 .append(headersPrefix)
+                .append(detectContentType)
+                .append(detectCharset)                
                 .toHashCode();
     }
 
@@ -729,6 +781,8 @@ public class PhantomJSDocumentFetcher
                 .append("validStatusCodes", validStatusCodes)
                 .append("notFoundStatusCodes", notFoundStatusCodes)
                 .append("headersPrefix", headersPrefix)
+                .append("detectContentType", detectContentType)
+                .append("detectCharset", detectCharset)
                 .toString();
     }    
     

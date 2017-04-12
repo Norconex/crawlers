@@ -18,5 +18,4 @@
   <!-- Validation done here since not in /validation/collector-http-full.xml -->
   <crawlDataStoreFactory 
           class="com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory">
-      <database>h2</database>
   </crawlDataStoreFactory>

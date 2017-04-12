@@ -28,6 +28,12 @@
         Added "removeTrailingHash" to GenericURLNormalizer.
       </action>
       <action dev="essiembre" type="add">
+        New "detectContentType" and "detectCharset" options on 
+        GenericDocumentFetcher for ignoring the content type and character
+        encoding obtained from the HTTP response headers and detect them
+        instead.
+      </action>
+      <action dev="essiembre" type="add">
         New features from dependency updates. Collector Core: 
         ICollectorLifeCycleListener.  Importer: MergeTagger, 
         ExternalTransformer.
@@ -61,6 +67,10 @@
       <action dev="essiembre" type="fix">
         Fixed minor errors in writing IXMLConfigurable classes to XML.
       </action>
+      <action dev="essiembre" type="remove">
+        Removed MapDB and Apache Derby crawlstore dependencies/implementations 
+        which were deprecated in previous versions.
+      </action>      
     </release>
     
     <release version="2.6.2" date="2017-01-06" description="Maintenance release">

@@ -34,6 +34,8 @@ public class PhantomJSDocumentFetcherTest  {
         f.setRenderWaitTime(1000);
         f.setContentTypePattern(".blah.");
         f.setReferencePattern(".blah.blah");
+        f.setDetectContentType(true);
+        f.setDetectCharset(true);
         System.out.println("Writing/Reading this: " + f);
         XMLConfigurationUtil.assertWriteRead(f);
     }

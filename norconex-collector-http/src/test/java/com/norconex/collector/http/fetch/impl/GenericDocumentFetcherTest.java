@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ public class GenericDocumentFetcherTest  {
         f.setValidStatusCodes(200, 201, 202);
         f.setNotFoundStatusCodes(404, 405);
         f.setHeadersPrefix("blah");
+        f.setDetectCharset(true);
+        f.setDetectContentType(true);
         System.out.println("Writing/Reading this: " + f);
         XMLConfigurationUtil.assertWriteRead(f);
     }
