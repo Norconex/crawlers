@@ -168,7 +168,7 @@ import com.norconex.importer.util.CharsetUtil;
  *      detectContentType="[false|true]" detectCharset="[false|true]"&gt;
  *      &lt;exePath&gt;(path to PhantomJS executable)&lt;/exePath&gt;
  *      &lt;scriptPath&gt;
- *          (Optional path to a PhantomJS script. Defaults to extra/phantom.js)
+ *          (Optional path to a PhantomJS script. Defaults to scripts/phantom.js)
  *      &lt;/scriptPath&gt;
  *      &lt;renderWaitTime&gt;
  *          (Milliseconds to wait for a page to load. Defaults to 3000.)
@@ -251,7 +251,7 @@ public class PhantomJSDocumentFetcher
     private static final Logger LOG = LogManager.getLogger(
 			PhantomJSDocumentFetcher.class);
     
-    public static final String DEFAULT_SCRIPT_PATH = "extra/phantom.js";
+    public static final String DEFAULT_SCRIPT_PATH = "scripts/phantom.js";
     public static final int DEFAULT_RENDER_WAIT_TIME = 3000;
     public static final float DEFAULT_SCREENSHOT_ZOOM_FACTOR = 1.0f;
     public static final String DEFAULT_CONTENT_TYPE_PATTERN = 

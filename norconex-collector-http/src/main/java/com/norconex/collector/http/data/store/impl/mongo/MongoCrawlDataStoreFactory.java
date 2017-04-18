@@ -17,10 +17,16 @@ package com.norconex.collector.http.data.store.impl.mongo;
 import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mongo.AbstractMongoCrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
+import com.norconex.commons.lang.encrypt.EncryptionUtil;
 
 /**
  * <p>
  * Mongo implementation of {@link ICrawlDataStoreFactory}.
+ * </p>
+ * <p>
+ * As of 2.7.0, <code>password</code> can take a password that has been 
+ * encrypted using {@link EncryptionUtil} (or command-line encrypt.[bat|sh]). 
+ * See for {@link AbstractMongoCrawlDataStoreFactory} details.
  * </p>
  * <h3>XML configuration usage:</h3>
  * <pre>
@@ -31,6 +37,9 @@ import com.norconex.collector.core.data.store.impl.mongo.IMongoSerializer;
  *      &lt;dbname&gt;(Optional Mongo database name. Default to crawl id)&lt;/dbname&gt;
  *      &lt;username&gt;(Optional user name)&lt;/username&gt;
  *      &lt;password&gt;(Optional user password)&lt;/password&gt;
+ *      &lt;!-- Use the following if password is encrypted. --&gt;
+ *      &lt;passwordKey&gt;(the encryption key or a reference to it)&lt;/passwordKey&gt;
+ *      &lt;passwordKeySource&gt;[key|file|environment|property]&lt;/passwordKeySource&gt;
  *  &lt;/crawlDataStoreFactory&gt;
  * </pre>
  * <p>

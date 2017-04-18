@@ -94,13 +94,12 @@ import com.norconex.importer.util.CharsetUtil;
  * 
  * <h4>Usage example:</h4>
  * <p>
- * The following configures the document fetcher to prefix the HTTP headers
- * obtained with "http.".
+ * The following configures the document fetcher to not trust HTTP response
+ * headers to identify the content type and encoding, but try to detect
+ * them instead.
  * </p>
  * <pre>
- *  &lt;documentFetcher &gt;
- *      &lt;headersPrefix&gt;http.&lt;/headersPrefix&gt;
- *  &lt;/documentFetcher&gt;
+ *  &lt;documentFetcher detectContentType="true" detectCharset="true"/&gt;
  * </pre>
  * 
  * @author Pascal Essiembre
