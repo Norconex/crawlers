@@ -49,6 +49,9 @@ public class HttpCrawlerConfigTest {
                 "C:\\keys\\myEncryptionKey.txt", EncryptionKey.Source.FILE));
         clientFactory.setAuthPasswordKey(new EncryptionKey("my key"));
         
+        crawlerConfig.setStartURLsProviders(new MockStartURLsProvider());
+
+        
         System.out.println("Writing/Reading this: " + config);
         XMLConfigurationUtil.assertWriteRead(config);
 //        assertWriteRead(config);

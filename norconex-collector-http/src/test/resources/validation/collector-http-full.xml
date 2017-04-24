@@ -30,6 +30,7 @@
       <url>http://www.sample.com</url>
       <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
       <sitemap>http://www.somewhere.com/sitemap.xml</sitemap>
+      <provider class="com.norconex.collector.http.crawler.MockStartURLsProvider"/>
     </startURLs>
     <keepDownloads>true</keepDownloads>
     <maxDepth>99</maxDepth>

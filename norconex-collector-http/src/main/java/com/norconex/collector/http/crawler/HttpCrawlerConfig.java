@@ -75,6 +75,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private String[] startURLs;
     private String[] startURLsFiles;
     private String[] startSitemapURLs;
+    private IStartURLsProvider[] startURLsProviders;
     
     private boolean ignoreRobotsTxt;
     private boolean ignoreRobotsMeta;
@@ -190,6 +191,29 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
      */
     public void setStartSitemapURLs(String... startSitemapURLs) {
         this.startSitemapURLs = ArrayUtils.clone(startSitemapURLs);
+    }
+    /**
+     * Gets the providers of URLs used as starting points for crawling.
+     * Use this approach over other methods when URLs need to be provided
+     * dynamicaly at launch time. URLs obtained by a provider are combined
+     * with start URLs provided through other methods.
+     * @return a start URL provider
+     * @since 2.7.0
+     */
+    public IStartURLsProvider[] getStartURLsProviders() {
+        return startURLsProviders;
+    }
+    /**
+     * Sets the providers of URLs used as starting points for crawling.
+     * Use this approach over other methods when URLs need to be provided
+     * dynamicaly at launch time. URLs obtained by a provider are combined
+     * with start URLs provided through other methods.
+     * @param startURLsProviders start URL provider
+     * @since 2.7.0
+     */
+    public void setStartURLsProviders(
+            IStartURLsProvider... startURLsProviders) {
+        this.startURLsProviders = startURLsProviders;
     }
     public void setMaxDepth(int depth) {
         this.maxDepth = depth;
@@ -441,6 +465,14 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                     writer.writeElementString("sitemap", sitemapURL);
                 }
             }
+            writer.flush();
+            IStartURLsProvider[] startURLsProviders = getStartURLsProviders();
+            if (startURLsProviders != null) {
+                for (IStartURLsProvider provider : startURLsProviders) {
+                    writeObject(out, "provider", provider);
+                }
+            }
+            out.flush();
             writer.writeEndElement();
             writer.flush();
             
@@ -590,6 +622,23 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
         String[] sitemapURLs = xml.getStringArray("startURLs.sitemap");
         setStartSitemapURLs(defaultIfEmpty(sitemapURLs, getStartSitemapURLs()));
+        
+        IStartURLsProvider[] startURLsProviders = loadStartURLsProviders(xml);
+        setStartURLsProviders(
+                defaultIfEmpty(startURLsProviders, getStartURLsProviders()));
+    }
+    
+    private IStartURLsProvider[] loadStartURLsProviders(
+            XMLConfiguration xml) {
+        List<IStartURLsProvider> providers = new ArrayList<>();
+        List<HierarchicalConfiguration> nodes = 
+                xml.configurationsAt("startURLs.provider");
+        for (HierarchicalConfiguration node : nodes) {
+            IStartURLsProvider p = XMLConfigurationUtil.newInstance(node);
+            providers.add(p);
+            LOG.info("Start URLs provider loaded: " + p);
+        }
+        return providers.toArray(new IStartURLsProvider[] {});
     }
 
     private IHttpDocumentProcessor[] loadProcessors(
@@ -634,6 +683,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(startURLs, castOther.startURLs)
                 .append(startURLsFiles, castOther.startURLsFiles)
                 .append(startSitemapURLs, castOther.startSitemapURLs)
+                .append(startURLsProviders, castOther.startURLsProviders)
                 .append(ignoreRobotsTxt, castOther.ignoreRobotsTxt)
                 .append(ignoreRobotsMeta, castOther.ignoreRobotsMeta)
                 .append(ignoreSitemap, castOther.ignoreSitemap)
@@ -668,6 +718,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(startURLs)
                 .append(startURLsFiles)
                 .append(startSitemapURLs)
+                .append(startURLsProviders)
                 .append(ignoreRobotsTxt)
                 .append(ignoreRobotsMeta)
                 .append(ignoreSitemap)
@@ -701,6 +752,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("startURLs", startURLs)
                 .append("startURLsFiles", startURLsFiles)
                 .append("startSitemapURLs", startSitemapURLs)
+                .append("startURLsProviders", startURLsProviders)
                 .append("ignoreRobotsTxt", ignoreRobotsTxt)
                 .append("ignoreRobotsMeta", ignoreRobotsMeta)
                 .append("ignoreSitemap", ignoreSitemap)

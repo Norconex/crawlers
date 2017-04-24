@@ -87,12 +87,15 @@
 
     <!-- Mandatory starting URL(s) where crawling begins.  If you put more 
          than one URL, they will be processed together.  You can also
-         point to one or more URLs files (i.e., seed lists).  -->    
+         point to one or more URLs files (i.e., seed lists), or
+         point to a sitemap.xml. If the list of URLs needs to be dynamically
+         built, you can use one or more custom IStartURLsProvider.  -->    
     <startURLs stayOnDomain="false" stayOnPort="false" stayOnProtocol="false">
       <url>http://www.example.com</url>
       <url>http://www.sample.com</url>
       <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
       <sitemap>http://www.somewhere.com/sitemap.xml</sitemap>
+      <provider class="YourClass"/>
     </startURLs>
 
     <!-- Identify yourself to sites you crawl.  It sets the "User-Agent" HTTP 

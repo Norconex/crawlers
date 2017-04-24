@@ -28,11 +28,11 @@
           <xs:element name="startURLs" minOccurs="0" maxOccurs="1">
             <xs:complexType>
               <xs:all>
-                <xs:element ref="urlORurlsFileORsitemap" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element ref="startURLChoice" minOccurs="1" maxOccurs="unbounded"/>
               </xs:all>
-              <xs:attribute name="stayOnDomain" type="xs:boolean"/>              
-              <xs:attribute name="stayOnPort" type="xs:boolean"/>              
-              <xs:attribute name="stayOnProtocol" type="xs:boolean"/>              
+              <xs:attribute name="stayOnDomain" type="xs:boolean"/>
+              <xs:attribute name="stayOnPort" type="xs:boolean"/>
+              <xs:attribute name="stayOnProtocol" type="xs:boolean"/>
             </xs:complexType>
           </xs:element>
           <xs:element name="keepDownloads" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
@@ -111,10 +111,11 @@
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:element name="urlORurlsFileORsitemap" abstract="true"/>
-  <xs:element name="url" substitutionGroup="urlORurlsFileORsitemap" type="nonEmptyString"/>
-  <xs:element name="urlsFile" substitutionGroup="urlORurlsFileORsitemap" type="nonEmptyString"/>
-  <xs:element name="sitemap" substitutionGroup="urlORurlsFileORsitemap" type="nonEmptyString"/>
+  <xs:element name="startURLChoice" abstract="true"/>
+  <xs:element name="url" substitutionGroup="startURLChoice" type="nonEmptyString"/>
+  <xs:element name="urlsFile" substitutionGroup="startURLChoice" type="nonEmptyString"/>
+  <xs:element name="sitemap" substitutionGroup="startURLChoice" type="nonEmptyString"/>
+  <xs:element name="provider" substitutionGroup="startURLChoice" type="anyComplexRequiredClassType" />
 
   <xs:simpleType name="nonEmptyString">
     <xs:restriction base="xs:string">

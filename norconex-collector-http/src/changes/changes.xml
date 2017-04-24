@@ -25,6 +25,9 @@
         on command prompt with this new flag: -k or --checkcfg
       </action>
       <action dev="essiembre" type="add" issue="331">
+        Can now provide start URLs dynamically with new IStartURLsProvider.
+      </action>
+      <action dev="essiembre" type="add" issue="331">
         Added "removeTrailingHash" to GenericURLNormalizer.
       </action>
       <action dev="essiembre" type="add">
