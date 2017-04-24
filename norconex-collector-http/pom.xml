@@ -291,6 +291,7 @@
             <link>https://api.mongodb.com/java/current/</link>
             <link>http://www.mapdb.org/javadoc/latest/mapdb/</link>
             <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
+            <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
             <link>http://www.joda.org/joda-time/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
@@ -494,6 +495,7 @@
             <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
             <link>http://db.apache.org/derby/docs/10.12/publishedapi/</link>
             <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
+            <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
             <link>https://api.mongodb.com/java/current/</link>
             <link>http://www.mapdb.org/javadoc/latest/mapdb/</link>
             <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
