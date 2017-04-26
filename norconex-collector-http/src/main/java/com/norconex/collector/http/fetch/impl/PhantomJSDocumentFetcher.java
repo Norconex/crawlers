@@ -80,7 +80,7 @@ import com.norconex.importer.util.CharsetUtil;
  * before grabbing all loaded HTML. 
  * </p>
  * 
- * <h3>Experimental</h3>
+ * <h3>Considerations</h3>
  * <p>
  * Relying on an external software to fetch pages is slower and not as 
  * scalable and may be less stable. The use of {@link GenericDocumentFetcher}

@@ -3,16 +3,12 @@ The following are either things to be done, or ideas to consider:
 - Reorganize Basic+Execution tests to combine servlet test cases with their 
   test classes.
 
-- Add encrypt ability to collector-http.sh (wrapper to EncryptionUtil).
-
 - On GenericLinkExtractor, offer a flag to convert \ to /.  Cannot be done
   at normalization time since relative URLs will not be converted to full
   URLs properly without that.
 
 - Consider deprecating TikaLinkExctractor, or at least update it to support
   relative base hrefs (share some code with GenericLinkExtractor).
-
-- Have -chckcfg action verify for Jar duplicates?
 
 - Offer a separate process to run on the crawl store and produce some kind of 
   flat file with referring URL counts so people can decide to use this

@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.7.0-SNAPSHOT" date="2017-??-??" description="Feature release">
+    <release version="2.7.0" date="2017-04-26" description="Feature release">
       <action dev="essiembre" type="add" issue="95">
         New PhantomJSDocumentFetcher which relies on an external installation
         of PhantomJS to fetch documents. This provides a way to crawl
