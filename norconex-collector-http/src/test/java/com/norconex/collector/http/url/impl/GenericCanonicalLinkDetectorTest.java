@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.file.ContentType;
 
 /**
@@ -120,7 +120,7 @@ public class GenericCanonicalLinkDetectorTest {
         GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
         d.setContentTypes(ContentType.HTML, ContentType.TEXT);
         System.out.println("Writing/Reading this: " + d);
-        ConfigurationUtil.assertWriteRead(d);
+        XMLConfigurationUtil.assertWriteRead(d);
     }
 
 }

@@ -3,16 +3,12 @@ The following are either things to be done, or ideas to consider:
 - Reorganize Basic+Execution tests to combine servlet test cases with their 
   test classes.
 
-- Add encrypt ability to collector-http.sh (wrapper to EncryptionUtil).
-
 - On GenericLinkExtractor, offer a flag to convert \ to /.  Cannot be done
   at normalization time since relative URLs will not be converted to full
   URLs properly without that.
 
 - Consider deprecating TikaLinkExctractor, or at least update it to support
   relative base hrefs (share some code with GenericLinkExtractor).
-
-- Have -chckcfg action verify for Jar duplicates?
 
 - Offer a separate process to run on the crawl store and produce some kind of 
   flat file with referring URL counts so people can decide to use this
@@ -21,9 +17,6 @@ The following are either things to be done, or ideas to consider:
 
 - Have a global settings for making Properties (HttpMetadata, 
   ImporterMetadata, etc) case sensitive or not.
-
-- Have a Regex-based link extractor that could be used with virtually any
-  text-file? 
 
 - To consider: when re-processing orphans, check the depth in case the 
   max depth changed.
@@ -55,10 +48,6 @@ The following are either things to be done, or ideas to consider:
   prevent crashing due to lack of space.
 
 - Introduce "Add-ons" like social media add-ons to crawl social media sites.
-
-- Consider adding engine with JavaScript runtime like Selenium (or HtmlUnit,
-  or embedded browser engine) to crawl pages partly generated with JavaScript 
-  (and maybe help with screenshots)?
 
 - Have an interface for how to optionally store downloaded files
   (i.e., location, directory structure, file naming).  This could allow
@@ -105,9 +94,6 @@ The following are either things to be done, or ideas to consider:
 
 - Test that IPV6 is supported (as domain names).
 
-- Detect and follow RSS feeds (related to having multiple url extractors by
-  content types).  Check related ticket(s) for a real use case.
-
 - Offer option to have crawling rate adjust itself if a site is slow
   (in case it is the crawler hammering it).  Probably a change or new delay
   implementation... this means total download time (both for HEAD and GET) 
@@ -123,21 +109,5 @@ The following are either things to be done, or ideas to consider:
 
 MAYBE:
 =======
-- Create an XML schema/DTD?
-
 - Start offering per-site options?  Like crawl interval and more?
   (can be achieve with defining different crawlers now).
-
-
-  <!-- TODO: Add JEF Listeners -->
-  <jef>
-      <errorHandlers> 
-         <handler class=""></handler>
-      </errorHandlers>
-      <jobProgressListener> 
-         <listener class=""></listener>
-      </jobProgressListener>
-      <suiteLifeCycleListener> 
-         <listener class=""></listener>
-      </suiteLifeCycleListener>
-  </jef>

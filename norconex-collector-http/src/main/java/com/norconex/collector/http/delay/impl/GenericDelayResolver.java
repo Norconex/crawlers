@@ -34,6 +34,8 @@ import org.joda.time.Interval;
 import org.joda.time.LocalTime;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
@@ -71,9 +73,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *       any given thread.  The more threads you have the less of an 
  *       impact the delay will have.</li>
  * </ul>
+ *
  * <p>
- * XML configuration usage:
+ * As of 2.7.0, XML configuration entries expecting millisecond durations
+ * can be provided in human-readable format (English only), as per 
+ * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
+ * 
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
  *          default="(milliseconds)" 
@@ -87,6 +94,19 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;/schedule&gt;
  *       
  *      (... repeat schedule tag as needed ...)
+ *  &lt;/delay&gt;
+ * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following set the minimum delay between each document download
+ * on a given site to 5 seconds, no matter what the crawler robots.txt may
+ * say, except on weekend, where it is more agressive (1 second).
+ * </p> 
+ * <pre>
+ *  &lt;delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
+ *          default="5 seconds" ignoreRobotsCrawlDelay="true" scope="site" &gt;
+ *      &lt;schedule dayOfWeek="from Saturday to Sunday"&gt;1 second&lt;/schedule&gt;
  *  &lt;/delay&gt;
  * </pre>
  * 
@@ -131,7 +151,7 @@ public class GenericDelayResolver extends AbstractDelayResolver {
                     node.getString("[@dayOfWeek]", null),
                     node.getString("[@dayOfMonth]", null),
                     node.getString("[@time]", null),
-                    node.getLong("", DEFAULT_DELAY)
+                    XMLConfigurationUtil.getDuration(node, "", DEFAULT_DELAY)
             ));
         }
     }

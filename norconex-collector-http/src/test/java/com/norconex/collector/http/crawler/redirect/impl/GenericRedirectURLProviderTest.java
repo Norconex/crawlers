@@ -20,7 +20,7 @@ import org.apache.commons.lang3.CharEncoding;
 import org.junit.Test;
 
 import com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class GenericRedirectURLProviderTest {
 
@@ -29,7 +29,7 @@ public class GenericRedirectURLProviderTest {
         GenericRedirectURLProvider p = new GenericRedirectURLProvider();
         p.setFallbackCharset(CharEncoding.UTF_8);
         System.out.println("Writing/Reading this: " + p);
-        ConfigurationUtil.assertWriteRead(p);
+        XMLConfigurationUtil.assertWriteRead(p);
     }
 
 }

@@ -1,4 +1,4 @@
-/* Copyright 2015-2016 Norconex Inc.
+/* Copyright 2015-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.apache.http.client.utils.URIUtils;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.commons.lang.EqualsUtil;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
@@ -73,7 +73,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <p>You can specify your own content types as long as they contain HTML
  * text.</p>
  * 
- * <h3>XML configuration usage</h3>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;canonicalLinkDetector 
  *          class="com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector"
@@ -84,6 +84,15 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;/contentTypes&gt;
  *  &lt;/canonicalLinkDetector&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following example ignores canonical link resolution.
+ * </p>
+ * <pre>
+ *  &lt;canonicalLinkDetector ignore="true"/&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  * @since 2.2.0
  */
@@ -192,7 +201,7 @@ public class GenericCanonicalLinkDetector
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         ContentType[] cts = ContentType.valuesOf(StringUtils.split(
                 StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
         if (!ArrayUtils.isEmpty(cts)) {

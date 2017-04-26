@@ -1,4 +1,4 @@
-/* Copyright 2014-2016 Norconex Inc.
+/* Copyright 2014-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package com.norconex.collector.http.website;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +62,8 @@ public class TestServlet extends HttpServlet {
         testCases.put("script", new ScriptTestCase());
         testCases.put("zeroLength", new ZeroLengthTestCase());
         testCases.put("timeout", new TimeoutTestCase());
+        testCases.put("iframe", new IFrameTestCase());
+        testCases.put("contentTypeCharset", new ContentTypeCharsetTestCase());
     }
     
     @Override
@@ -432,6 +435,60 @@ public class TestServlet extends HttpServlet {
                         + "Contrary to main page, it should return right "
                         + "away</p>");
             }
+        }
+    }
+    
+    class IFrameTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            
+            String page = req.getParameter("page");
+            
+            out.println("<h1>IFrame test page " + page+ "</h1>");
+            
+            if (StringUtils.isBlank(page)) {
+                out.println("<p>This page includes 2 &lt;iframe&gt; tags.</p>");
+                out.println("<iframe src=\"?case=iframe&amp;page=1\">"
+                        + "</iframe>");
+                out.println("<iframe src=\"?case=iframe&amp;page=2\">"
+                        + "Some iframe content here."
+                        + "</iframe>");
+            } else if ("1".equals(page)) {
+                out.println("<p>This is iframe 1.</p>");
+            } else if ("2".equals(page)) {
+                out.println("<p>This is iframe 2.</p>");
+            }
+            if (StringUtils.isNotBlank(page)) {
+                out.println("<p>URL:<xmp>");
+                StringBuffer requestURL = req.getRequestURL();
+                String queryString = req.getQueryString();
+                if (queryString == null) {
+                    out.println(requestURL.toString());
+                } else {
+                    out.println(requestURL.append(
+                            '?').append(queryString).toString());
+                }
+                out.println("</xmp></p>");
+            }
+        }
+    }
+    
+    class ContentTypeCharsetTestCase implements ITestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp) throws Exception {
+            resp.setContentType("application/javascript");
+            resp.setCharacterEncoding("Big5");
+            String out = "<html style=\"font-family:Arial, "
+                     + "Helvetica, sans-serif;\">"
+                     + "<head><title>ContentType + Charset ☺☻"
+                     + "</title></head>"
+                     + "<body>This page returns the Content-Type as "
+                     + "\"application/javascript; charset=Big5\" "
+                     + "while in reality it is \"text/html; charset=UTF-8\"."
+                     + "Éléphant à noël. ☺☻"
+                     + "</body>"
+                     + "</html>";
+            resp.getOutputStream().write(out.getBytes(StandardCharsets.UTF_8));
         }
     }
 }

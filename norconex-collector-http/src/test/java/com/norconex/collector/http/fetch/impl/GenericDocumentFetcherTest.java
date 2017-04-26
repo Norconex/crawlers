@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class GenericDocumentFetcherTest  {
 
@@ -28,8 +28,10 @@ public class GenericDocumentFetcherTest  {
         f.setValidStatusCodes(200, 201, 202);
         f.setNotFoundStatusCodes(404, 405);
         f.setHeadersPrefix("blah");
+        f.setDetectCharset(true);
+        f.setDetectContentType(true);
         System.out.println("Writing/Reading this: " + f);
-        ConfigurationUtil.assertWriteRead(f);
+        XMLConfigurationUtil.assertWriteRead(f);
     }
 
 }

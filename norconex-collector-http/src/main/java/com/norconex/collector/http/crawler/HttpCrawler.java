@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@ package com.norconex.collector.http.crawler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.NumberFormat;
+import java.util.Iterator;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -117,7 +119,7 @@ public class HttpCrawler extends AbstractCrawler {
         initializeRedirectionStrategy();
 
         // We always initialize the sitemap resolver even if ignored 
-        // because sitemaps can not be specified as start URLs.
+        // because sitemaps can be specified as start URLs.
         if (getCrawlerConfig().getSitemapResolverFactory() != null) {
             this.sitemapResolver = 
                     getCrawlerConfig().getSitemapResolverFactory()
@@ -136,6 +138,7 @@ public class HttpCrawler extends AbstractCrawler {
         urlCount += queueStartURLsSitemaps(crawlDataStore);
         urlCount += queueStartURLsRegular(crawlDataStore);
         urlCount += queueStartURLsSeedFiles(crawlDataStore);
+        urlCount += queueStartURLsProviders(crawlDataStore);
         LOG.info(NumberFormat.getNumberInstance().format(urlCount)
                 + " start URLs identified.");
     }
@@ -163,9 +166,8 @@ public class HttpCrawler extends AbstractCrawler {
         for (int i = 0; i < urlsFiles.length; i++) {
             String urlsFile = urlsFiles[i];
             LineIterator it = null;
-            try {
-                it = IOUtils.lineIterator(
-                        new FileInputStream(urlsFile), CharEncoding.UTF_8);
+            try (InputStream is = new FileInputStream(urlsFile)) {
+                it = IOUtils.lineIterator(is, CharEncoding.UTF_8);
                 while (it.hasNext()) {
                     String startURL = it.nextLine();
                     executeQueuePipeline(new HttpCrawlData(
@@ -218,6 +220,27 @@ public class HttpCrawler extends AbstractCrawler {
             }
         }
         return urlCount.intValue();
+    }
+    
+    private int queueStartURLsProviders(final ICrawlDataStore crawlDataStore) {
+        IStartURLsProvider[] providers = 
+                getCrawlerConfig().getStartURLsProviders();
+        if (providers == null) {
+            return 0;
+        }
+        int count = 0;
+        for (IStartURLsProvider provider : providers) {
+            if (provider == null) {
+                continue;
+            }
+            Iterator<String> it = provider.provideStartURLs();
+            while (it.hasNext()) {
+                executeQueuePipeline(
+                        new HttpCrawlData(it.next(), 0), crawlDataStore);
+                count++;
+            }
+        }
+        return count;
     }
     
     private void logInitializationInformation() {
@@ -428,6 +451,13 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     protected void cleanupExecution(JobStatusUpdater statusUpdater,
             JobSuite suite, ICrawlDataStore refStore) {
+        try {
+            if (sitemapResolver != null) {
+                sitemapResolver.stop();
+            }
+        } catch (Exception e) {
+            LOG.error("Could not stop sitemap store.");
+        }
         closeHttpClient();
     }
 

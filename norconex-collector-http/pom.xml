@@ -19,13 +19,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
-  <version>2.6.2</version>
+  <version>2.7.0</version>
   <name>Norconex HTTP Collector</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <site.baseurl/>
+    <norconex-commons-lang.version>1.13.0</norconex-commons-lang.version>
   </properties>
   <inceptionYear>2009</inceptionYear>
 
@@ -65,7 +66,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.7.0</version>
+      <version>1.8.0</version>
     </dependency>
     <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -75,8 +76,12 @@
     <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-webapp</artifactId>
-        <version>9.2.11.v20150529</version>
-        <scope>test</scope>
+        <version>9.2.20.v20161216</version>
+    </dependency>
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-proxy</artifactId>
+        <version>9.2.20.v20161216</version>
     </dependency>
     <dependency>
       <groupId>com.github.fakemongo</groupId>
@@ -90,6 +95,14 @@
       <version>1.9.5</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+        <groupId>com.norconex.commons</groupId>
+        <artifactId>norconex-commons-lang</artifactId>
+        <version>${norconex-commons-lang.version}</version>
+        <classifier>resources</classifier>
+        <type>zip</type>
+        <scope>provided</scope>
+    </dependency>
   </dependencies>
   
   <dependencyManagement>
@@ -97,7 +110,7 @@
       <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
-        <version>1.12.3</version>
+        <version>${norconex-commons-lang.version}</version>
       </dependency>
       <dependency>
           <groupId>commons-codec</groupId>
@@ -107,12 +120,17 @@
       <dependency>
         <groupId>org.jsoup</groupId>
         <artifactId>jsoup</artifactId>
-        <version>1.9.2</version>
+        <version>1.10.2</version>
       </dependency>
       <dependency>
         <groupId>commons-lang</groupId>
         <artifactId>commons-lang</artifactId>
         <version>2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-collections</groupId>
+        <artifactId>commons-collections</artifactId>
+        <version>3.2.2</version>
       </dependency>
       <!-- Upgraded from 5.2 (Importer/Tika dep) to avoid exception:
            Caused by: java.lang.NoSuchMethodError: 
@@ -124,6 +142,14 @@
         <groupId>edu.ucar</groupId>
         <artifactId>jj2000</artifactId>
         <version>5.3</version>
+      </dependency>
+      <!-- Ensures correct version, as ooxml-schemas 
+          (required for Visio-XML parsing) brings it down.
+        -->
+      <dependency>
+        <groupId>org.apache.xmlbeans</groupId>
+        <artifactId>xmlbeans</artifactId>
+        <version>2.6.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -265,11 +291,10 @@
             <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
             <link>https://www.norconex.com/collectors/committer-core/latest/apidocs/</link>
             <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
-            <link>http://db.apache.org/derby/docs/10.12/publishedapi/</link>
             <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
             <link>https://api.mongodb.com/java/current/</link>
-            <link>http://www.mapdb.org/javadoc/latest/mapdb/</link>
-            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
+            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.5/</link>
+            <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
             <link>http://www.joda.org/joda-time/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
@@ -307,7 +332,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.6</version>
+        <version>3.0.2</version>
         <configuration>
           <archive>
             <manifest>
@@ -315,6 +340,9 @@
               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
           </archive>
+          <excludes>
+            <exclude>THIRD-PARTY.txt</exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>
@@ -371,7 +399,28 @@
           <nexusUrl>https://oss.sonatype.org/</nexusUrl>
           <autoReleaseAfterClose>false</autoReleaseAfterClose>
         </configuration>
-      </plugin>    
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>unpack-shared-resources</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <classifier>resources</classifier>
+              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
+              <includeArtifacIds>norconex-commons-lang</includeArtifacIds>
+              <includeGroupIds>com.norconex.commons</includeGroupIds>
+              <excludeTransitive>true</excludeTransitive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   
@@ -447,11 +496,10 @@
             <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
             <link>https://www.norconex.com/collectors/committer-core/latest/apidocs/</link>
             <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
-            <link>http://db.apache.org/derby/docs/10.12/publishedapi/</link>
             <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
+            <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
             <link>https://api.mongodb.com/java/current/</link>
-            <link>http://www.mapdb.org/javadoc/latest/mapdb/</link>
-            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
+            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.5/</link>
             <link>http://www.joda.org/joda-time/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>

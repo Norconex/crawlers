@@ -21,7 +21,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.norconex.collector.http.delay.impl.GenericDelayResolver.DelaySchedule;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class GenericDelayResolverTest {
 
@@ -36,7 +36,7 @@ public class GenericDelayResolverTest {
         r.setSchedules(schedules);
 
         System.out.println("Writing/Reading this: " + r);
-        ConfigurationUtil.assertWriteRead(r);
+        XMLConfigurationUtil.assertWriteRead(r);
     }
 
 }

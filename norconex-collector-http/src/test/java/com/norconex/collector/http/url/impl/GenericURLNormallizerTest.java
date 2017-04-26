@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import com.norconex.collector.http.url.impl.GenericURLNormalizer.Normalization;
 import com.norconex.collector.http.url.impl.GenericURLNormalizer.Replace;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class GenericURLNormallizerTest {
 
@@ -145,7 +145,7 @@ public class GenericURLNormallizerTest {
                 new Replace("\\.htm", ".html"),
                 new Replace("&debug=true"));
         System.out.println("Writing/Reading this: " + n);
-        ConfigurationUtil.assertWriteRead(n);
+        XMLConfigurationUtil.assertWriteRead(n);
     }
 
 }

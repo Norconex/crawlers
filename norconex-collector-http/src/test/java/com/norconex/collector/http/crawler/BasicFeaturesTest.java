@@ -1,4 +1,4 @@
-/* Copyright 2014-2016 Norconex Inc.
+/* Copyright 2014-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,11 @@ import com.norconex.collector.core.crawler.event.ICrawlerEventListener;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
 import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.file.IFileVisitor;
+import com.norconex.importer.doc.ImporterMetadata;
 
 /**
  * @author Pascal Essiembre
@@ -238,6 +240,44 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
+    }
+    
+    // Next two related to https://github.com/Norconex/importer/issues/41
+    @Test
+    public void testContentTypeCharsetDefault() throws IOException {
+        HttpCollector collector = newHttpCollector1Crawler(
+                "/test?case=contentTypeCharset");
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        collector.start(false);
+
+        List<HttpDocument> docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+        HttpDocument doc = docs.get(0);
+        
+        Assert.assertEquals("application/javascript", 
+                doc.getMetadata().getString(ImporterMetadata.DOC_CONTENT_TYPE));
+        Assert.assertEquals("Big5", doc.getMetadata().getString(
+                ImporterMetadata.DOC_CONTENT_ENCODING));
+    }
+    @Test
+    public void testContentTypeCharsetDetect() throws IOException {
+        HttpCollector collector = newHttpCollector1Crawler(
+                "/test?case=contentTypeCharset");
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        GenericDocumentFetcher fetcher = (GenericDocumentFetcher) 
+                crawler.getCrawlerConfig().getDocumentFetcher();
+        fetcher.setDetectContentType(true);
+        fetcher.setDetectCharset(true);
+        collector.start(false);
+
+        List<HttpDocument> docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+        HttpDocument doc = docs.get(0);
+        
+        Assert.assertEquals("text/html", 
+                doc.getMetadata().getString(ImporterMetadata.DOC_CONTENT_TYPE));
+        Assert.assertEquals(CharEncoding.UTF_8, doc.getMetadata().getString(
+                ImporterMetadata.DOC_CONTENT_ENCODING));
     }
     
     

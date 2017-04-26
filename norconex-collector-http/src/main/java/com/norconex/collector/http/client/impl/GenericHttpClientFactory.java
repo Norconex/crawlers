@@ -90,10 +90,11 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.client.IHttpClientFactory;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
+import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
@@ -133,6 +134,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     <td>Name of a JVM system property containing the key.</td>
  *   </tr>
  * </table>
+ *
+ * <p>
+ * As of 2.7.0, XML configuration entries expecting millisecond durations
+ * can be provided in human-readable format (English only), as per 
+ * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
+ * </p>
  * 
  * <h3>XML configuration usage:</h3>
  * <pre>
@@ -150,7 +157,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;maxConnectionIdleTime&gt;(milliseconds)&lt;/maxConnectionIdleTime&gt;
  *      &lt;maxConnectionInactiveTime&gt;(milliseconds)&lt;/maxConnectionInactiveTime&gt;
  *
- *      &lt;-- Be warned: trusting all certificates is usually a bad idea. --&gt;
+ *      &lt;!-- Be warned: trusting all certificates is usually a bad idea. --&gt;
  *      &lt;trustAllSSLCertificates&gt;[false|true]&lt;/trustAllSSLCertificates&gt;
  *      
  *      &lt;!-- Since 2.6.2, you can specify SSL/TLS protocols to use --&gt;
@@ -162,7 +169,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;proxyScheme&gt;...&lt;/proxyScheme&gt;
  *      &lt;proxyUsername&gt;...&lt;/proxyUsername&gt;
  *      &lt;proxyPassword&gt;...&lt;/proxyPassword&gt;
- *      &lt;-- Use the following if password is encrypted. --&gt;
+ *      &lt;!-- Use the following if password is encrypted. --&gt;
  *      &lt;proxyPasswordKey&gt;(the encryption key or a reference to it)&lt;/proxyPasswordKey&gt;
  *      &lt;proxyPasswordKeySource&gt;[key|file|environment|property]&lt;/proxyPasswordKeySource&gt;
  *      
@@ -177,7 +184,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;!-- These apply to any authentication mechanism --&gt;
  *      &lt;authUsername&gt;...&lt;/authUsername&gt;
  *      &lt;authPassword&gt;...&lt;/authPassword&gt;
- *      &lt;-- Use the following if password is encrypted. --&gt;
+ *      &lt;!-- Use the following if password is encrypted. --&gt;
  *      &lt;authPasswordKey&gt;(the encryption key or a reference to it)&lt;/authPasswordKey&gt;
  *      &lt;authPasswordKeySource&gt;[key|file|environment|property]&lt;/authPasswordKeySource&gt;
  *      
@@ -198,6 +205,22 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;authWorkstation&gt;...&lt;/authWorkstation&gt;
  *      &lt;authDomain&gt;...&lt;/authDomain&gt;
  *
+ *  &lt;/httpClientFactory&gt;
+ * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following will authenticate the crawler to a web site before crawling.
+ * The website uses an HTML form with a username and password fields called
+ * "loginUser" and "loginPwd".  
+ * </p> 
+ * <pre>
+ *  &lt;httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory"&gt;
+ *      &lt;authUsername&gt;joeUser&lt;/authUsername&gt;
+ *      &lt;authPassword&gt;joePasword&lt;/authPassword&gt;
+ *      &lt;authUsernameField&gt;loginUser&lt;/authUsernameField&gt;
+ *      &lt;authPasswordField&gt;loginPwd&lt;/authPasswordField&gt;
+ *      &lt;authURL&gt;http://www.example.com/login&lt;/authURL&gt;
  *  &lt;/httpClientFactory&gt;
  * </pre>
  * @author Pascal Essiembre
@@ -581,7 +604,7 @@ public class GenericHttpClientFactory
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         cookiesDisabled = xml.getBoolean("cookiesDisabled", cookiesDisabled);
         authMethod = xml.getString("authMethod", authMethod);
         authUsernameField = 
@@ -607,10 +630,12 @@ public class GenericHttpClientFactory
         proxyPasswordKey = 
                 loadXMLPasswordKey(xml, "proxyPasswordKey", proxyPasswordKey);
         proxyRealm = xml.getString("proxyRealm", proxyRealm);
-        connectionTimeout = xml.getInt("connectionTimeout", connectionTimeout);
-        socketTimeout = xml.getInt("socketTimeout", socketTimeout);
-        connectionRequestTimeout = xml.getInt(
-                "connectionRequestTimeout", connectionRequestTimeout);
+        connectionTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "connectionTimeout", connectionTimeout);
+        socketTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "socketTimeout", socketTimeout);
+        connectionRequestTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "connectionRequestTimeout", connectionRequestTimeout);
         connectionCharset = xml.getString(
                 "connectionCharset", connectionCharset);
         expectContinueEnabled = xml.getBoolean(
@@ -622,10 +647,10 @@ public class GenericHttpClientFactory
         localAddress = xml.getString("localAddress", localAddress);
         maxConnectionsPerRoute = xml.getInt(
                 "maxConnectionsPerRoute", maxConnectionsPerRoute);
-        maxConnectionIdleTime = xml.getInt(
-                "maxConnectionIdleTime", maxConnectionIdleTime);
-        maxConnectionInactiveTime = xml.getInt(
-                "maxConnectionInactiveTime", maxConnectionInactiveTime);
+        maxConnectionIdleTime = (int) XMLConfigurationUtil.getDuration(
+                xml, "maxConnectionIdleTime", maxConnectionIdleTime);
+        maxConnectionInactiveTime = (int) XMLConfigurationUtil.getDuration(
+                xml, "maxConnectionInactiveTime", maxConnectionInactiveTime);
         String sslProtocolsCSV = xml.getString("sslProtocols", null);
         if (StringUtils.isNotBlank(sslProtocolsCSV)) {
             setSSLProtocols(sslProtocolsCSV.trim().split("(\\s*,\\s*)+"));

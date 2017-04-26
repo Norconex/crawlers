@@ -20,7 +20,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.importer.handler.filter.OnMatch;
 
 public class SegmentCountURLFilterTest {
@@ -76,7 +76,7 @@ public class SegmentCountURLFilterTest {
         f.setOnMatch(OnMatch.EXCLUDE);
         f.setSeparator("[/&]");
         System.out.println("Writing/Reading this: " + f);
-        ConfigurationUtil.assertWriteRead(f);
+        XMLConfigurationUtil.assertWriteRead(f);
     }
 
 }

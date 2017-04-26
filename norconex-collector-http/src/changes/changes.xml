@@ -7,6 +7,81 @@
   </properties>
   <body>
 
+    <release version="2.7.0" date="2017-04-26" description="Feature release">
+      <action dev="essiembre" type="add" issue="95">
+        New PhantomJSDocumentFetcher which relies on an external installation
+        of PhantomJS to fetch documents. This provides a way to crawl
+        web pages with JavaScript-generated content. 
+      </action>
+      <action dev="essiembre" type="add" issue="319">
+        New XMLFeedLinkExtractor to extract links out of RSS or Atom feeds.
+      </action>
+      <action dev="essiembre" type="add" issue="236">
+        New RegexLinkExtractor to extract links out of any text file using
+        regular expressions.
+      </action>
+      <action dev="essiembre" type="add">
+        Added schema-based XML configuration validation which can be trigged
+        on command prompt with this new flag: -k or --checkcfg
+      </action>
+      <action dev="essiembre" type="add" issue="331">
+        Can now provide start URLs dynamically with new IStartURLsProvider.
+      </action>
+      <action dev="essiembre" type="add" issue="331">
+        Added "removeTrailingHash" to GenericURLNormalizer.
+      </action>
+      <action dev="essiembre" type="add">
+        New "detectContentType" and "detectCharset" options on 
+        GenericDocumentFetcher for ignoring the content type and character
+        encoding obtained from the HTTP response headers and detect them
+        instead.
+      </action>
+      <action dev="essiembre" type="add">
+        New features from dependency updates. Collector Core: 
+        ICollectorLifeCycleListener.  Importer: MergeTagger, 
+        ExternalTransformer.
+      </action>
+      <action dev="essiembre" type="add">
+        MongoCrawlDataStoreFactory now accepts encrypted passwords.
+      </action>
+      <action dev="essiembre" type="add">
+        Now distributed with utility scripts.
+      </action>      
+      <action dev="essiembre" type="update">
+        XML configuration entries expecting millisecond durations
+        can now be provided in human-readable format 
+        (e.g., "5 minutes and 30 seconds" or "5m30s").
+      </action>
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Collection Core 1.8.0, 
+        Norconex Commons Lang 1.13.0, Jetty 9.2.20.
+      </action>
+      <action dev="essiembre" type="update">
+        Crawler events REJECTED_FILTER, REJECTED_BAD_STATUS, REJECTED_IMPORT,
+        REJECTED_ERROR, REJECTED_ROBOTS_TXT, and REJECTED_CANONICAL, 
+        REJECTED_REDIRECTED are now DEBUG in log4j.properties.
+      </action>
+      <action dev="essiembre" type="update">
+        Modified Javadoc to include an XML usage example for all 
+        XML-configurable classes.
+      </action>      
+      <action dev="essiembre" type="fix" issue="336">
+        Fixed OverlappingFileLockException when loading the a sitemap
+        store more than once per JVM instance.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed NullPointerException from GenericLinkExtractor when encountering
+        HTML files with an empty href in their base tag.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed minor errors in writing IXMLConfigurable classes to XML.
+      </action>
+      <action dev="essiembre" type="remove">
+        Removed MapDB and Apache Derby crawlstore dependencies/implementations 
+        which were deprecated in previous versions.
+      </action>      
+    </release>
+    
     <release version="2.6.2" date="2017-01-06" description="Maintenance release">
       <action dev="essiembre" type="add">
         New "sslProtocols" configuration option on GenericHttpClientFactory 
@@ -17,7 +92,7 @@
       <action dev="essiembre" type="fix">
         Corrected documentation in collector-http-config-reference.xml to 
         indicate default orphan strategy is now PROCESS.
-      </action>      
+      </action>
     </release>
 
     <release version="2.6.1" date="2016-12-14" description="Maintenance release">

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2017 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="documentFetcher">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="validStatusCodes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="notFoundStatusCodes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="headersPrefix" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+      </xs:all>
+      <xs:attribute name="class" type="xs:string" use="required"/>
+      <xs:attribute name="detectContentType" type="xs:boolean"/>
+      <xs:attribute name="detectCharset" type="xs:boolean"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="nonEmptyString">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

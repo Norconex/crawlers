@@ -62,8 +62,13 @@ import com.norconex.commons.lang.file.ContentType;
     }
     
     public static void enhanceHTTPHeaders(HttpMetadata metadata) {
-        if (StringUtils.isNotBlank(
-                metadata.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE))) {
+        String collectorContentType = 
+                metadata.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE);
+        String collectorContentEncoding = 
+                metadata.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING);
+        
+        if (StringUtils.isNotBlank(collectorContentType)
+                && StringUtils.isNotBlank(collectorContentEncoding)) {
             return;
         }
         
@@ -77,23 +82,29 @@ import com.norconex.commons.lang.file.ContentType;
                 }
             }
         }
-        String contentType = StringUtils.trimToNull(
-                StringUtils.substringBefore(httpContentType, ";"));
-
-        // Grab charset form HTTP Content-Type
-        String charset = null;
-        if (httpContentType != null && httpContentType.contains("charset")) {
-            charset = StringUtils.trimToNull(StringUtils.substringAfter(
-                    httpContentType, "charset="));                
+        
+        if (StringUtils.isBlank(collectorContentType)) {
+            String contentType = StringUtils.trimToNull(
+                    StringUtils.substringBefore(httpContentType, ";"));
+            if (contentType != null) {
+                metadata.addString(
+                        HttpMetadata.COLLECTOR_CONTENT_TYPE, contentType);
+            }
         }
         
-        if (contentType != null) {
-            metadata.addString(
-                    HttpMetadata.COLLECTOR_CONTENT_TYPE, contentType);
-        }
-        if (charset != null) {
-            metadata.addString(
-                    HttpMetadata.COLLECTOR_CONTENT_ENCODING, charset);
+        if (StringUtils.isBlank(collectorContentEncoding)) {
+            // Grab charset form HTTP Content-Type
+            String charset = null;
+            if (httpContentType != null 
+                    && httpContentType.contains("charset")) {
+                charset = StringUtils.trimToNull(StringUtils.substringAfter(
+                        httpContentType, "charset="));                
+            }
+            
+            if (charset != null) {
+                metadata.addString(
+                        HttpMetadata.COLLECTOR_CONTENT_ENCODING, charset);
+            }
         }
     }
     

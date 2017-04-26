@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.apache.log4j.Logger;
 import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.collector.http.redirect.IRedirectURLProvider;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
@@ -102,6 +102,16 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      class="com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider"
  *      fallbackCharset="(character encoding)" /&gt;
  * </pre> 
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following sets the default character encoding to be "ISO-8859-1" when
+ * it could not be detected.
+ * </p>
+ * <pre>
+ *  &lt;redirectURLProvider fallbackCharset="ISO-8859-1" /&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  * @since 2.4.0
  */
@@ -249,7 +259,7 @@ public class GenericRedirectURLProvider
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         setFallbackCharset(
                 xml.getString("[@fallbackCharset]", getFallbackCharset()));
     }

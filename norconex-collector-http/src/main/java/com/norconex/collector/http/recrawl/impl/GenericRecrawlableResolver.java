@@ -1,4 +1,4 @@
-/* Copyright 2016 Norconex Inc.
+/* Copyright 2016-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,8 @@ import org.joda.time.DateTime;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 import com.norconex.collector.http.recrawl.PreviousCrawlData;
 import com.norconex.collector.http.sitemap.SitemapChangeFrequency;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -75,6 +76,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>value: one of "always", "hourly", "daily", "weekly", "monthly", 
  *       "yearly", "never", or a numeric value in milliseconds.</li>
  * </ul>
+ *
+ * <p>
+ * As of 2.7.0, XML configuration entries expecting millisecond durations
+ * can be provided in human-readable format (English only), as per 
+ * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
+ * </p>
  * 
  * <h3>XML configuration usage:</h3>
  * <pre>
@@ -91,7 +98,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;/recrawlableResolver&gt;
  * </pre>
  * 
- * <b>Example:</b>
+ * <h4>Usage example:</h4>
  * <p>
  * The following example ensures PDFs recrawled no more frequently than 
  * once a month, while HTML news can be crawled as fast at every half hour.
@@ -232,33 +239,38 @@ public class GenericRecrawlableResolver
         if (StringUtils.isBlank(value)) {
             return true;
         }
-        
+
+        SitemapChangeFrequency cf = 
+                SitemapChangeFrequency.getChangeFrequency(value);
+        if (cf != null) {
+            return isRecrawlableFromFrequency(cf, prevData, "custom");
+        }
+
+        int millis;
         if (NumberUtils.isDigits(value)) {
-            DateTime minCrawlDate = new DateTime(prevData.getCrawlDate());
-            int millis = NumberUtils.toInt(value);
-            minCrawlDate = minCrawlDate.plusMillis(millis);
-            if (minCrawlDate.isBeforeNow()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Recrawl suggested according to custom "
-                            + "directive (min frequency < elapsed "
-                            + "time since "
-                            + prevData.getCrawlDate() + ") for: "
-                            + prevData.getReference());
-                }
-                return true;
-            }
+            millis = NumberUtils.toInt(value);
+        } else {
+            millis = (int) DurationParser.parse(value);
+        }
+        DateTime minCrawlDate = new DateTime(prevData.getCrawlDate());
+        minCrawlDate = minCrawlDate.plusMillis(millis);
+        if (minCrawlDate.isBeforeNow()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("No recrawl suggested according to custom "
-                        + "directive (min frequency >= elapsed time since "
+                LOG.debug("Recrawl suggested according to custom "
+                        + "directive (min frequency < elapsed "
+                        + "time since "
                         + prevData.getCrawlDate() + ") for: "
                         + prevData.getReference());
             }
-            return false;
+            return true;
         }
-        
-        SitemapChangeFrequency cf = 
-                SitemapChangeFrequency.getChangeFrequency(f.getValue());
-        return isRecrawlableFromFrequency(cf, prevData, "custom");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("No recrawl suggested according to custom "
+                    + "directive (min frequency >= elapsed time since "
+                    + prevData.getCrawlDate() + ") for: "
+                    + prevData.getReference());
+        }
+        return false;
     }
     
     private boolean isRecrawlableFromSitemap(PreviousCrawlData prevData) {
@@ -431,7 +443,7 @@ public class GenericRecrawlableResolver
     
     @Override
     public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         
         String smsXml = xml.getString("[@sitemapSupport]");
         if (StringUtils.isNotBlank(smsXml)) {
@@ -464,8 +476,8 @@ public class GenericRecrawlableResolver
             writer.writeAttribute("class", getClass().getCanonicalName());
             
             if (getSitemapSupport() != null) {
-                writer.writeAttribute(
-                        "sitemapSupport", getSitemapSupport().toString());
+                writer.writeAttribute("sitemapSupport", 
+                        getSitemapSupport().toString().toLowerCase());
             }
             
             for (MinFrequency mf : minFrequencies) {

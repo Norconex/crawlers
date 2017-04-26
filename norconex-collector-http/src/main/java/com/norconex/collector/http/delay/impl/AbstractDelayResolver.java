@@ -34,7 +34,7 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.commons.lang.config.ConfigurationException;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -215,8 +215,9 @@ public abstract class AbstractDelayResolver
     @Override
     public final void loadFromXML(Reader in) throws IOException {
         try {
-            XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
-            defaultDelay = xml.getLong("[@default]", defaultDelay);
+            XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
+            defaultDelay = XMLConfigurationUtil.getDuration(
+                    xml, "[@default]", defaultDelay);
             ignoreRobotsCrawlDelay = xml.getBoolean(
                     "[@ignoreRobotsCrawlDelay]", ignoreRobotsCrawlDelay);
             scope = xml.getString("[@scope]", SCOPE_CRAWLER);

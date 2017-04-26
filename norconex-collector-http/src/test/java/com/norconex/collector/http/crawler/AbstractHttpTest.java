@@ -1,4 +1,4 @@
-/* Copyright 2014-2015 Norconex Inc.
+/* Copyright 2014-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,6 @@
  */
 package com.norconex.collector.http.crawler;
 
-/* Copyright 2014 Norconex Inc.
- * 
- * This file is part of Norconex HTTP Collector.
- * 
- * Norconex HTTP Collector is free software: you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Norconex HTTP Collector is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Norconex HTTP Collector. If not, 
- * see <http://www.gnu.org/licenses/>.
- */
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,15 +24,10 @@ import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.rules.TemporaryFolder;
 
-import com.norconex.collector.core.crawler.AbstractCrawler;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
@@ -63,32 +40,6 @@ import com.norconex.commons.lang.file.FileUtil;
 
 public abstract class AbstractHttpTest {
 
-    static {
-        // Root
-        Logger logger = Logger.getRootLogger();
-        logger.setLevel(Level.WARN);
-        logger.setAdditivity(false);
-        logger.addAppender(new ConsoleAppender(
-                new PatternLayout("%-5p [%C{1}] %m%n"), 
-                ConsoleAppender.SYSTEM_OUT));
-        // Core
-        logger = Logger.getLogger(AbstractCrawler.class);
-        logger.setLevel(Level.INFO);
-
-        // Crawler
-        logger = Logger.getLogger(HttpCrawler.class);
-        logger.setLevel(Level.INFO);
-        
-        // Jetty
-        logger = Logger.getLogger("org.eclipse.jetty");
-        logger.setLevel(Level.WARN);
-        
-        // Apache
-        logger = Logger.getLogger("org.apache");
-        logger.setLevel(Level.WARN);
-        
-    }
-    
     private static final TestWebServer SERVER = new TestWebServer();
 
     //Note: @Rule was not working for deleting folder since the webapp 

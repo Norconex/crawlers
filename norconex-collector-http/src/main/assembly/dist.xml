@@ -23,13 +23,6 @@
   <includeSiteDirectory>false</includeSiteDirectory>
   <fileSets>
     <fileSet>
-      <directory>${basedir}/src/main/scripts</directory>
-      <includes>
-        <include>**</include>
-      </includes>
-      <outputDirectory>/</outputDirectory>
-    </fileSet>
-    <fileSet>
       <directory>${basedir}/src/site/resources/examples</directory>
       <includes>
         <include>**</include>
@@ -43,8 +36,10 @@
         <exclude>CLASSES_README.txt</exclude>        
       </excludes>
       <includes>
+        <include>scripts/**</include>
         <include>third-party/**</include>
         <include>*.txt</include>
+        <include>collector*</include>
       </includes>
       <outputDirectory>/</outputDirectory>
     </fileSet>
@@ -52,6 +47,13 @@
       <directory>${project.build.directory}/site/apidocs</directory>
       <outputDirectory>apidocs</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/shared-resources</directory>
+      <excludes>
+        <exclude>install*</exclude>
+      </excludes>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>    
     <fileSet>
       <directory>${project.build.directory}/generated-resources</directory>
       <outputDirectory>third-party</outputDirectory>
@@ -77,6 +79,7 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
+      <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>      
     </dependencySet>
   </dependencySets>
 </assembly>

@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,20 +42,6 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         // Disabling durability increases test performance by a HUGE factor.
         System.setProperty("derby.system.durability", "test");
     }
-    
-    static {
-        // Root
-        Logger logger = Logger.getRootLogger();
-        logger.setLevel(Level.INFO);
-        logger.setAdditivity(false);
-        logger.addAppender(new ConsoleAppender(
-                new PatternLayout("%-5p [%C{1}] %m%n"), 
-                ConsoleAppender.SYSTEM_OUT));
-        
-        // Apache
-        logger = Logger.getLogger("com.norconex");
-        logger.setLevel(Level.INFO);
-    }   
     
     @Rule
     public final TemporaryFolder tempFolder = new TemporaryFolder();

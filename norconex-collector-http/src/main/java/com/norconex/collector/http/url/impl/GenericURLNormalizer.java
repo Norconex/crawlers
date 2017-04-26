@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.URLNormalizer;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
@@ -92,6 +92,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li> 
  *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
  *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
+ *   <li>{@link URLNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
  *   <li>{@link URLNormalizer#removeWWW() removeWWW}</li>
  *   <li>{@link URLNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
  *   <li>{@link URLNormalizer#secureScheme() secureScheme}</li>
@@ -121,7 +122,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *    &lt;/replacements&gt;
  *  &lt;/urlNormalizer&gt;
  * </pre>
- * <h3>Example:</h3>
+ * <h4>Usage example:</h4>
  * <p>
  * The following adds a normalization to add "www." to URL domains when
  * missing, to the default set of normalizations. It also add custom
@@ -156,7 +157,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         addDirectoryTrailingSlash,
         addDomainTrailingSlash,
         /**
-         * @deprecated Since 1.11.0, use {@link #addDirectoryTrailingSlash}
+         * @deprecated Since 2.6.0, use {@link #addDirectoryTrailingSlash}
          */
         @Deprecated
         addTrailingSlash, 
@@ -174,6 +175,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         removeSessionIds,
         removeTrailingQuestionMark, 
         removeTrailingSlash, 
+        removeTrailingHash, 
         removeWWW, 
         replaceIPWithDomainName, 
         secureScheme, 
@@ -264,7 +266,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
     @Override
     public void loadFromXML(Reader in) {
         
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         
         setDisabled(xml.getBoolean("[@disabled]", disabled));
         
@@ -301,18 +303,20 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             writer.writeStartElement("normalizations");
             writer.writeCharacters(StringUtils.join(normalizations, ","));
             writer.writeEndElement();
-            writer.writeStartElement("replacements");
-            for (Replace replace : replaces) {
-                writer.writeStartElement("replace");
-                writer.writeStartElement("match");
-                writer.writeCharacters(replace.getMatch());
-                writer.writeEndElement();
-                writer.writeStartElement("replacement");
-                writer.writeCharacters(replace.getReplacement());
-                writer.writeEndElement();
+            if (!replaces.isEmpty()) {
+                writer.writeStartElement("replacements");
+                for (Replace replace : replaces) {
+                    writer.writeStartElement("replace");
+                    writer.writeStartElement("match");
+                    writer.writeCharacters(replace.getMatch());
+                    writer.writeEndElement();
+                    writer.writeStartElement("replacement");
+                    writer.writeCharacters(replace.getReplacement());
+                    writer.writeEndElement();
+                    writer.writeEndElement();
+                }
                 writer.writeEndElement();
             }
-            writer.writeEndElement();
             writer.writeEndElement();
             writer.flush();
             writer.close();

@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,38 @@
 package com.norconex.collector.http.data.store.impl.jdbc;
 
 import com.norconex.collector.core.data.store.ICrawlDataStore;
-import com.norconex.collector.core.data.store.impl.jdbc.AbstractJDBCDataStoreFactory;
+import com.norconex.collector.core.data.store.impl.jdbc.BasicJDBCCrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.jdbc.IJDBCSerializer;
-import com.norconex.collector.core.data.store.impl.jdbc.JDBCCrawlDataStore.Database;
 
 /**
- * JDBC implementation of {@link ICrawlDataStore}.  Defaults to Derby 
- * database.
- * <br><br>
- * XML configuration usage:
- * <br><br>
+ * <p>
+ * JDBC implementation of {@link ICrawlDataStore} using H2.
+ * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;crawlDataStoreFactory 
  *          class="com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory"&gt;
  *      &lt;database&gt;[h2|derby]&lt;/database&gt;
  *  &lt;/crawlDataStoreFactory&gt;
  * </pre>
- *
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following changes the default to use an embedded derby database.
+ * </p> 
+ * <pre>
+ *  &lt;crawlDataStoreFactory 
+ *          class="com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory"&gt;
+ *      &lt;database&gt;derby&lt;/database&gt;
+ *  &lt;/crawlDataStoreFactory&gt;;
+ * </pre>
  * @author Pascal Essiembre
  */
 public class JDBCCrawlDataStoreFactory 
-        extends AbstractJDBCDataStoreFactory {
+        extends BasicJDBCCrawlDataStoreFactory {
 
     public JDBCCrawlDataStoreFactory() {
         super();
-    }
-    public JDBCCrawlDataStoreFactory(Database database) {
-        super(database);
     }
 
     @Override

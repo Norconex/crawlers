@@ -1,4 +1,4 @@
-/* Copyright 2016 Norconex Inc.
+/* Copyright 2016-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.norconex.collector.http.TestUtil;
 import com.norconex.collector.http.delay.impl.ReferenceDelayResolver.DelayReferencePattern;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class ReferenceDelayResolverTest {
 
@@ -37,7 +38,12 @@ public class ReferenceDelayResolverTest {
         r.setDelayReferencePatterns(delayPatterns);
 
         System.out.println("Writing/Reading this: " + r);
-        ConfigurationUtil.assertWriteRead(r);
+        XMLConfigurationUtil.assertWriteRead(r);
+    }
+    
+    @Test
+    public void testValidation() throws IOException {
+        TestUtil.testValidation(getClass());
     }
 
 }
