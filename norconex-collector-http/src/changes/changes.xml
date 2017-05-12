@@ -7,6 +7,12 @@
   </properties>
   <body>
 
+    <release version="2.7.1-SNAPSHOT" date="2017-??-??" description="Maintenance release">
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Collection Core 1.8.1.
+      </action>
+    </release>
+    
     <release version="2.7.0" date="2017-04-26" description="Feature release">
       <action dev="essiembre" type="add" issue="95">
         New PhantomJSDocumentFetcher which relies on an external installation

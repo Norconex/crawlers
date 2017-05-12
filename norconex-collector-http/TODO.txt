@@ -1,5 +1,7 @@
 The following are either things to be done, or ideas to consider:
 
+- Have a way to store all data for easy recrawl.
+
 - Reorganize Basic+Execution tests to combine servlet test cases with their 
   test classes.
 
