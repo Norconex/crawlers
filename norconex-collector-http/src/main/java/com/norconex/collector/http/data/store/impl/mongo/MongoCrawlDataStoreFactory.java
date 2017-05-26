@@ -37,6 +37,7 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
  *      &lt;dbname&gt;(Optional Mongo database name. Default to crawl id)&lt;/dbname&gt;
  *      &lt;username&gt;(Optional user name)&lt;/username&gt;
  *      &lt;password&gt;(Optional user password)&lt;/password&gt;
+ *      &lt;mechanism&gt;(Optional authentication mechanism)&lt;/mechanism&gt;
  *      &lt;!-- Use the following if password is encrypted. --&gt;
  *      &lt;passwordKey&gt;(the encryption key or a reference to it)&lt;/passwordKey&gt;
  *      &lt;passwordKeySource&gt;[key|file|environment|property]&lt;/passwordKeySource&gt;
@@ -46,6 +47,11 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
  * If "username" is not provided, no authentication will be attempted. 
  * The "username" must be a valid user that has the "readWrite" role over 
  * the database (set with "dbname").
+ * </p>
+ * <p>
+ * As of 2.7.1, it is now possible to specify which MongoDB mechanism to use 
+ * for authentication. Refer to {@link AbstractMongoCrawlDataStoreFactory}
+ * for available options.
  * </p>
  * <h4>Usage example:</h4>
  * <p>

@@ -7,6 +7,17 @@
   </properties>
   <body>
 
+    <release version="2.7.1" date="2017-05-26" description="Bugfix release">
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Collector Core 1.8.2.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed "caseSensitive" flag sometimes having no effect in 
+        GenericRecrawlableResolver.
+      </action>
+      
+    </release>
+    
     <release version="2.7.0" date="2017-04-26" description="Feature release">
       <action dev="essiembre" type="add" issue="95">
         New PhantomJSDocumentFetcher which relies on an external installation

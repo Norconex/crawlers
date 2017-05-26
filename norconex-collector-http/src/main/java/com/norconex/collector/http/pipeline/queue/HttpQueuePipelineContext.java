@@ -53,6 +53,7 @@ public class HttpQueuePipelineContext extends BasePipelineContext {
         return (HttpCrawlData) super.getCrawlData();
     }
     
+    @Override
     public HttpCrawler getCrawler() {
         return (HttpCrawler) super.getCrawler();
     };

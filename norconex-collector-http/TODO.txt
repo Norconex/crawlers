@@ -1,5 +1,12 @@
 The following are either things to be done, or ideas to consider:
 
+- Have the config reference.xml put all settings in a crawler instead
+  of crawling defaults (FS Collector as well).
+
+- Ship with importer.[sh|bat] files (applies to FS Collector as well).
+
+- Have a way to store all data for easy recrawl.
+
 - Reorganize Basic+Execution tests to combine servlet test cases with their 
   test classes.
 

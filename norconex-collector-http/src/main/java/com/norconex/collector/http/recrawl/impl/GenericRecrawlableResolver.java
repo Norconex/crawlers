@@ -140,7 +140,6 @@ public class GenericRecrawlableResolver
     private SitemapSupport sitemapSupport = SitemapSupport.FIRST;
     private final List<MinFrequency> minFrequencies = new ArrayList<>();
     
-    
     /**
      * Gets the sitemap support strategy. Defualt is 
      * {@link SitemapSupport#FIRST}.
@@ -187,7 +186,6 @@ public class GenericRecrawlableResolver
             return isRecrawlableFromSitemap(prevData);
         }
 
-
         MinFrequency f = getMatchingMinFrequency(prevData);
         if (f != null) {
             return isRecrawlableFromMinFrequencies(f, prevData);
@@ -200,11 +198,10 @@ public class GenericRecrawlableResolver
         // if we have not found a reason not to recrawl, then recrawl
         return true;
     }
-
     
     private MinFrequency getMatchingMinFrequency(PreviousCrawlData prevData) {
         for (MinFrequency f : minFrequencies) {
-            if (f.regex == null || f.value == null) {
+            if (f.pattern == null || f.value == null) {
                 LOG.warn("Value or pattern missing in minimum frequency.");
                 continue;
             }
@@ -213,11 +210,13 @@ public class GenericRecrawlableResolver
                 applyTo = "reference";
             }
             if ("reference".equalsIgnoreCase(applyTo)
-                    && f.regex.matcher(prevData.getReference()).matches()) {
+                    && f.getCachedPattern().matcher(
+                            prevData.getReference()).matches()) {
                 return f;
             }
-            if ("contentType".equalsIgnoreCase(applyTo) && f.regex.matcher(
-                    prevData.getContentType().toString()).matches()) {
+            if ("contentType".equalsIgnoreCase(applyTo) 
+                    && f.getCachedPattern().matcher(
+                            prevData.getContentType().toString()).matches()) {
                 return f;
             }
         }
@@ -363,7 +362,7 @@ public class GenericRecrawlableResolver
         private String applyTo;
         private String value;
         private String pattern;
-        private Pattern regex;
+        private Pattern cachedPattern;
         private boolean caseSensitive;
         public MinFrequency() {
             super();
@@ -391,23 +390,35 @@ public class GenericRecrawlableResolver
         }
         public void setPattern(String pattern) {
             this.pattern = pattern;
-            if (pattern == null) {
-                regex = null;
-            } else {
-                int flags = Pattern.DOTALL;
-                if (!caseSensitive) {
-                    flags = flags | Pattern.CASE_INSENSITIVE 
-                            | Pattern.UNICODE_CASE;
-                }
-                regex = Pattern.compile(pattern, flags);
-            }
+            cachedPattern = null;
         }
         public boolean isCaseSensitive() {
             return caseSensitive;
         }
         public void setCaseSensitive(boolean caseSensitive) {
             this.caseSensitive = caseSensitive;
+            cachedPattern = null;
         }
+
+        private synchronized Pattern getCachedPattern() {
+            if (cachedPattern != null) {
+                return cachedPattern;
+            }
+            Pattern p;
+            if (pattern == null) {
+                p = null;
+            } else {
+                int flags = Pattern.DOTALL;
+                if (!caseSensitive) {
+                    flags = flags | Pattern.CASE_INSENSITIVE 
+                            | Pattern.UNICODE_CASE;
+                }
+                p = Pattern.compile(pattern, flags);
+            }
+            cachedPattern = p;
+            return p;
+        }
+        
         @Override
         public String toString() {
             return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)

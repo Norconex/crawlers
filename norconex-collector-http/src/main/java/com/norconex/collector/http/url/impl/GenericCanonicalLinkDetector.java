@@ -52,7 +52,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * Google Webmaster Tools help page</a>.</p>
  * 
  * <h3>HTTP Headers</h3>
- * <p>This detector will look for a metadata field name called "Link" with a 
+ * <p>This detector will look for a metadata field (normally obtained
+ * from the HTTP Headers) name called "Link" with a 
  * value following this pattern:</p>
  * <pre>
  * &lt;http://www.example.com/sample.pdf&gt; rel="canonical"
