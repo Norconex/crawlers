@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.7.1-SNAPSHOT" date="2017-??-??" description="Bugfix release">
+    <release version="2.7.1" date="2017-05-26" description="Bugfix release">
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.8.2.
       </action>
