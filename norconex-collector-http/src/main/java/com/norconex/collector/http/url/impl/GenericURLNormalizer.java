@@ -20,7 +20,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -37,8 +36,8 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.url.URLNormalizer;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -146,7 +145,6 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;/urlNormalizer&gt;
  * </pre>
  * @author Pascal Essiembre
- * @see Pattern
  */
 public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
