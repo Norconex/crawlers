@@ -21,7 +21,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,7 @@ import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.CharEncoding;
@@ -113,8 +113,9 @@ import com.norconex.importer.util.CharsetUtil;
  *      
  *      &lt;!-- Patterns for URLs to extract --&gt;
  *      &lt;linkExtractionPatterns&gt;
- *          &lt;pattern group="(match group index for the URL)"&gt;
- *            (regular expression)
+ *          &lt;pattern&gt;
+ *            &lt;match&gt;(regular expression)&lt;/match&gt;
+ *            &lt;replace&gt;(optional regex replacement)&lt;/replace&gt;
  *          &lt;/pattern&gt;
  *          &lt;!-- you can have multiple pattern entries --&gt;
  *      &lt;/linkExtractionPatterns&gt;
@@ -123,13 +124,16 @@ import com.norconex.importer.util.CharsetUtil;
  * 
  * <h4>Usage example:</h4>
  * <p>
- * The following extracts URLs contained within square brackets.
-
+ * The following extracts page "ids" contained in square brackets and 
+ * add them to a custom URL.
  * </p>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.RegexLinkExtractor"&gt;
  *      &lt;linkExtractionPatterns&gt;
- *          &lt;pattern group="1"&gt;\[(http.*?)\]&lt;/pattern&gt;
+ *          &lt;pattern&gt;
+ *              &lt;match&gt;\[(\d+)\]&lt;match&gt;
+ *              &lt;replace&gt;http://www.example.com/page?id=$1&lt;replace&gt;
+ *          &lt;/pattern&gt;
  *      &lt;/linkExtractionPatterns&gt;
  *  &lt;/extractor&gt;
  * </pre>
@@ -159,7 +163,7 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private String charset;
     private String applyToContentTypePattern = DEFAULT_CONTENT_TYPE_PATTERN;
     private String applyToReferencePattern;
-    private final Map<String, Integer> patterns = new HashMap<>();
+    private final Map<String, String> patterns = new ListOrderedMap<>();
     
     public RegexLinkExtractor() {
         super();
@@ -264,31 +268,64 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public List<String> getPatterns() {
         return new ArrayList<>(patterns.keySet());
     }
+    
+    /**
+     * Gets a pattern replacement.
+     * @param pattern the pattern for which to obtain its replacement
+     * @return pattern replacement or <code>null</code> (no replacement)
+     * @since 2.7.2
+     */
+    public String getPatternReplacement(String pattern) {
+        return patterns.get(pattern);
+    }
+    /**
+     * @deprecated Since 2.7.2, use #getPatternReplacement(String) instead.
+     * It will return the group id if the "replacement" value only contains
+     * a group replacement (e.g. $1), else, it will always return -1.
+     */
+    @Deprecated
     public int getPatternMatchGroup(String pattern) {
-        Integer i = patterns.get(pattern);
-        if (i == null) {
-            return -1;
+        String repl = getPatternReplacement(pattern);
+        if (repl != null && repl.matches("^\\$\\d+$")) {
+            return Integer.parseInt(StringUtils.removeStart(repl, "$"));
         }
-        return i;
+        return -1;
     }
     public void clearPatterns() {
         this.patterns.clear();
     }
     public void addPattern(String pattern) {
-        this.patterns.put(pattern, 0);
+        this.patterns.put(pattern, null);
     }
+
+    /**
+     * Adds a URL pattern, with an optional replacement.
+     * @param pattern a regular expression
+     * @param replacement a regular expression replacement
+     * @since 2.7.2
+     */
+    public void addPattern(String pattern, String replacement) {
+        this.patterns.put(pattern, replacement);
+    }
+    /**
+     * @deprecated Since 2.7.2, use {@link #addPattern(String, String)} instead.
+     */
+    @Deprecated
     public void addPattern(String pattern, int matchGroup) {
-        this.patterns.put(pattern, matchGroup);
+        this.patterns.put(pattern, "$" + matchGroup);
     }
 
     private void extractLinks(
             String content, Referer referrer, Set<Link> links) {
-        for (Entry<String, Integer> e: patterns.entrySet()) {
+        for (Entry<String, String> e: patterns.entrySet()) {
             String pattern = e.getKey();
-            int matchGroup = e.getValue();
+            String repl = e.getValue();
             Matcher matcher = Pattern.compile(pattern).matcher(content);
             while (matcher.find()) {
-                String url = matcher.group(matchGroup);
+                String url = matcher.group();
+                if (StringUtils.isNotBlank(repl)) {
+                    url = url.replaceFirst(pattern, repl);
+                }
                 url = toCleanAbsoluteURL(referrer, url);
                 if (url == null) {
                     continue;
@@ -354,10 +391,24 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         if (!pNodes.isEmpty()) {
             clearPatterns();
             for (HierarchicalConfiguration pNode : pNodes) {
-                int group = pNode.getInt("[@group]", 0);
-                String pattern = pNode.getString("", null);
-                if (StringUtils.isNotBlank(pattern)) {
-                    addPattern(pattern, group);
+                String regex = pNode.getString("", null);
+                if (StringUtils.isNotBlank(regex)) {
+                    LOG.warn("The regular expression is now expected to be in "
+                            + "a <match> tag.");
+                }
+                regex = pNode.getString("match", regex);
+                
+                String repl = null;
+                Integer group = pNode.getInteger("[@group]", null);
+                if (group != null) {
+                    LOG.warn("The \"group\" attribute is deprecated. "
+                            + "Use <replace> instead.");
+                    repl = "$" + group;
+                }
+                repl = pNode.getString("replace", repl);
+
+                if (StringUtils.isNotBlank(regex)) {
+                    addPattern(regex, repl);
                 }
             }
         }
@@ -379,10 +430,10 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
             // Tags
             writer.writeStartElement("linkExtractionPatterns");
-            for (Entry<String, Integer> entry : patterns.entrySet()) {
+            for (Entry<String, String> entry : patterns.entrySet()) {
                 writer.writeStartElement("pattern");
-                writer.writeAttributeInteger("group", entry.getValue());
-                writer.writeCharacters(entry.getKey());
+                writer.writeElementString("match", entry.getKey());
+                writer.writeElementString("replace", entry.getValue());
                 writer.writeEndElement();
             }
             writer.writeEndElement();
@@ -433,8 +484,6 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
         }
     }
-
-    
     
     @Override
     public String toString() {

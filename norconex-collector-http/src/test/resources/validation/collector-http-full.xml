@@ -194,8 +194,8 @@
         <applyToContentTypePattern>ct.*</applyToContentTypePattern>
         <applyToReferencePattern>ref.*</applyToReferencePattern>
         <linkExtractionPatterns>
-          <pattern group="1">\[(.*?)\]</pattern>
-          <pattern>http://.*?\.html</pattern>
+          <pattern><match>\[(.*?)\]</match><replace>$1</replace></pattern>
+          <pattern><match>http://.*?\.html</match></pattern>
         </linkExtractionPatterns>
       </extractor>
       <extractor class="com.norconex.collector.http.url.impl.XMLFeedLinkExtractor">

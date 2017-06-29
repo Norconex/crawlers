@@ -26,11 +26,10 @@
             <xs:all>
               <xs:element name="pattern" minOccurs="1" maxOccurs="unbounded">
                 <xs:complexType>
-                  <xs:simpleContent>
-                    <xs:extension base="nonEmptyString">
-                      <xs:attribute name="group" type="xs:int"/>
-                    </xs:extension>
-                  </xs:simpleContent>
+                  <xs:all>
+                    <xs:element name="match" type="nonEmptyString" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="replace" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+                  </xs:all>
                 </xs:complexType>
               </xs:element>
             </xs:all>
