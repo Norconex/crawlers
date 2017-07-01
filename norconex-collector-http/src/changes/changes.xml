@@ -14,6 +14,9 @@
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.8.3.
       </action>
+      <action dev="essiembre" type="fix">
+        Fixed improper saving as XML of GenericDelayResolver.
+      </action>
     </release>
 
     <release version="2.7.1" date="2017-05-26" description="Bugfix release">

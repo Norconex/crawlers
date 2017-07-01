@@ -164,8 +164,10 @@ public class GenericDelayResolver extends AbstractDelayResolver {
                 writer.writeStartElement("schedule");
                 if (schedule.getDayOfWeekRange() != null) {
                     writer.writeAttribute("dayOfWeek", 
-                            "from " + schedule.getDayOfWeekRange().getMinimum()
-                          + " to " + schedule.getDayOfWeekRange().getMaximum());
+                            "from " + DelaySchedule.intToDow(
+                                    schedule.getDayOfWeekRange().getMinimum())
+                          + " to " + DelaySchedule.intToDow(
+                                  schedule.getDayOfWeekRange().getMaximum()));
                 }
                 if (schedule.getDayOfMonthRange() != null) {
                     writer.writeAttribute("dayOfMonth", 
@@ -275,7 +277,7 @@ public class GenericDelayResolver extends AbstractDelayResolver {
             }
             String dow = normalize(dayOfWeek);
             String[] parts = StringUtils.split(dow, '-');
-            return Range.between(getDOW(parts[0]), getDOW(parts[1]));
+            return Range.between(dowToInt(parts[0]), dowToInt(parts[1]));
         }
         private Range<Integer> parseDayOfMonthRange(String dayOfMonth) {
             if (StringUtils.isBlank(dayOfMonth)) {
@@ -294,7 +296,10 @@ public class GenericDelayResolver extends AbstractDelayResolver {
             }
             return new LocalTime(Integer.parseInt(str), 0);
         }
-        private int getDOW(String str) {
+        private static String intToDow(int dow) {
+            return DOW.values()[dow -1].toString();
+        }
+        private static int dowToInt(String str) {
             if (str.length() < MIN_DOW_LENGTH) {
                 throw new CollectorException(
                         "Invalid day of week: " + str);

@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,11 @@ public class GenericDelayResolverTest {
         r.setIgnoreRobotsCrawlDelay(true);
         r.setScope("thread");
         List<DelaySchedule> schedules = new ArrayList<>();
-        schedules.add(new DelaySchedule(null, null, "from 1:00 to 2:00", 1000));
+        schedules.add(new DelaySchedule(
+                "from Monday to Wednesday",
+                "from 1 to 15", 
+                "from 1:00 to 2:00",
+                1000));
         r.setSchedules(schedules);
 
         System.out.println("Writing/Reading this: " + r);
