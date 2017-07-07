@@ -12,10 +12,15 @@
         RegexLinkExtractor now supports replacement values for regex matches.
       </action>
       <action dev="essiembre" type="update">
-        Dependency updates: Norconex Collector Core 1.8.3.
+        Dependency updates: Norconex Collector Core 1.8.3, 
+        Norconex Commons Lang 1.14.0.
       </action>
       <action dev="essiembre" type="fix">
         Fixed improper saving as XML of GenericDelayResolver.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed GenericDelayResolver not taking into account ranges that
+        overlap into the next cycle (e.g. 22:00 to 5:00).
       </action>
     </release>
 

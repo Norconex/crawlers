@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.joda.time.LocalDateTime;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.norconex.collector.http.delay.impl.GenericDelayResolver.DelaySchedule;
@@ -43,4 +45,28 @@ public class GenericDelayResolverTest {
         XMLConfigurationUtil.assertWriteRead(r);
     }
 
+    
+    @Test
+    public void testDelayScheduleBoundaries() throws IOException {
+        //FYI: Jan 1, 2000 was a Saturday
+        DelaySchedule schedule = null;
+        
+        schedule = new DelaySchedule(
+                "Mon to Wed", "1 to 15", "13:00 to 14:00", 0);
+        Assert.assertTrue(schedule.isDateTimeInSchedule(
+                LocalDateTime.parse("2000-01-03T13:30")));
+        Assert.assertFalse(schedule.isDateTimeInSchedule(
+                LocalDateTime.parse("2000-01-03T1:30")));
+
+        schedule = new DelaySchedule(
+                "Fri to Tue", "25 to 5", "22:00 to 6:00", 0);
+        Assert.assertTrue(schedule.isDateTimeInSchedule(
+                LocalDateTime.parse("2000-01-01T23:30")));
+    
+        schedule = new DelaySchedule(
+                "Sat to Tue", "25 to 1", "23:30 to 23:30", 0);
+        Assert.assertTrue(schedule.isDateTimeInSchedule(
+                LocalDateTime.parse("2000-01-01T23:30")));
+    
+    }
 }
