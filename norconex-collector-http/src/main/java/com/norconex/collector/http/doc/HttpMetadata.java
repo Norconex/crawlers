@@ -36,6 +36,8 @@ public class HttpMetadata extends CollectorMetadata {
             COLLECTOR_PREFIX + "sitemap-priority";
     public static final String COLLECTOR_REFERENCED_URLS = 
             COLLECTOR_PREFIX + "referenced-urls";
+	public static final String COLLECTOR_REJECTED_URLS =
+            COLLECTOR_PREFIX + "rejected-urls";
     public static final String COLLECTOR_REFERRER_REFERENCE = 
             COLLECTOR_PREFIX + "referrer-reference";
     public static final String COLLECTOR_REFERRER_LINK_TAG = 
@@ -59,6 +61,9 @@ public class HttpMetadata extends CollectorMetadata {
 	}
 	public Collection<String> getDocumentUrls() {
 	    return getStrings(COLLECTOR_REFERENCED_URLS);
+	}
+	public Collection<String> getDocumentRejectedUrls() {
+		return getStrings(COLLECTOR_REJECTED_URLS);
 	}
 	
 }

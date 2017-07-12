@@ -81,8 +81,31 @@ import com.norconex.commons.lang.io.CachedInputStream;
         
         Set<String> uniqueExtractedURLs = new HashSet<String>();
         Set<String> uniqueQueuedURLs = new HashSet<String>();
+        Set<String> uniqueRejectedURLs = new HashSet<String>();
         if (links != null) {
             for (Link link : links) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("isKeepRejectedLinks: " + (ctx.getConfig().isKeepRejectedLinks() ? "TRUE" : "FALSE") + ".");
+                }
+                if(ctx.getConfig().isKeepRejectedLinks()) {
+                    try {
+                        String queuedURL = queueURL(link, ctx, uniqueExtractedURLs);
+                        if (StringUtils.isNotBlank(queuedURL)) {
+                            if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+                                    reference, link.getUrl())) {
+                                uniqueQueuedURLs.add(queuedURL);
+                            } else {
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("URL not in crawl scope: " + link.getUrl());
+                                }
+                                uniqueRejectedURLs.add(queuedURL);
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOG.warn("Could not queue extracted URL \""
+                                + link.getUrl() + "\".", e);
+                    }
+                } else {
                 if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
                         reference, link.getUrl())) {
                     try {
@@ -100,13 +123,29 @@ import com.norconex.commons.lang.io.CachedInputStream;
                 }
             }
         }
+        }
         
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("uniqueQueuedURLs No: " + uniqueQueuedURLs.size() + ".");
+        }
         if (!uniqueQueuedURLs.isEmpty()) {
+
             String[] referencedUrls = 
                     uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
             ctx.getMetadata().addString(
                     HttpMetadata.COLLECTOR_REFERENCED_URLS, referencedUrls);
             ctx.getCrawlData().setReferencedUrls(referencedUrls);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("uniqueRejectedURLs No: " + uniqueRejectedURLs.size() + ".");
+        }
+        if (!uniqueRejectedURLs.isEmpty()) {
+            String[] rejectedUrls =
+                    uniqueRejectedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+            ctx.getMetadata().addString(
+                    HttpMetadata.COLLECTOR_REJECTED_URLS, rejectedUrls);
+            ctx.getCrawlData().setRejectedUrls(rejectedUrls);
         }
         
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 

@@ -33,6 +33,7 @@
       <provider class="com.norconex.collector.http.crawler.MockStartURLsProvider"/>
     </startURLs>
     <keepDownloads>true</keepDownloads>
+    <keepRejectedLinks>false</keepRejectedLinks>
     <maxDepth>99</maxDepth>
     <numThreads>1</numThreads>
     <workDir>/tmp/111</workDir>

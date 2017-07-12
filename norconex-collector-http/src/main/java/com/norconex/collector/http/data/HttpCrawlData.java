@@ -48,6 +48,7 @@ public class HttpCrawlData extends BaseCrawlData {
     private String referrerLinkTitle;
     
     private String[] referencedUrls;
+	private String[] rejectedUrls;
     
     /**
      * Constructor.
@@ -209,6 +210,22 @@ public class HttpCrawlData extends BaseCrawlData {
     public void setReferencedUrls(String... referencedUrls) {
         this.referencedUrls = referencedUrls;
     }
+	/**
+     * Gets URLs rejected by this one.
+     * @return URLs rejected by this one.
+     * @since 2.6.0
+     */
+    public String[] getRejectedUrls() {
+        return rejectedUrls;
+    }
+    /**
+     * Sets URLs rejected by this one.
+     * @param rejectedUrls rejected URLs
+     * @since 2.6.0 URLs rejected by this one.
+     */
+    public void setRejectedUrls(String... rejectedUrls) {
+        this.rejectedUrls = rejectedUrls;
+    }
     
     @Override
     public boolean equals(final Object other) {
@@ -262,6 +279,7 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append("referrerLinkTag", referrerLinkTag)
                 .append("referrerLinkTitle", referrerLinkTitle)
                 .append("referencedUrls", referencedUrls)
+                .append("rejectedUrls", rejectedUrls)
                 .toString();
     }
 }

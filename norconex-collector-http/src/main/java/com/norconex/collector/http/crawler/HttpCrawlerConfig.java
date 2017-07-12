@@ -82,6 +82,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private boolean ignoreSitemap;
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
+	private boolean keepRejectedLinks;
     
     private String userAgent;
 
@@ -311,6 +312,14 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setKeepDownloads(boolean keepDownloads) {
         this.keepDownloads = keepDownloads;
     }
+	
+	public boolean isKeepRejectedLinks() {
+        return keepRejectedLinks;
+    }
+    public void setKeepRejectedLinks(boolean keepRejectedLinks) {
+        this.keepRejectedLinks = keepRejectedLinks;
+    }
+
     /**
      * Gets the metadata checksummer. Default implementation is 
      * {@link LastModifiedMetadataChecksummer} (since 2.2.0).
@@ -440,6 +449,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writer.writeElementInteger("maxDepth", getMaxDepth());
             writer.writeElementBoolean("keepDownloads", isKeepDownloads());
 
+			writer.writeElementBoolean("keepRejectedLinks", isKeepRejectedLinks());
             writer.writeStartElement("startURLs");
             writer.writeAttributeBoolean("stayOnProtocol", 
                     urlCrawlScopeStrategy.isStayOnProtocol());
@@ -602,6 +612,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 xml, "delay", getDelayResolver()));
         setMaxDepth(xml.getInt("maxDepth", getMaxDepth()));
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
+		setKeepRejectedLinks(xml.getBoolean("keepRejectedLinks", isKeepRejectedLinks()));
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "ignoreCanonicalLinks", isIgnoreCanonicalLinks()));
         urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
@@ -688,6 +699,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreRobotsMeta, castOther.ignoreRobotsMeta)
                 .append(ignoreSitemap, castOther.ignoreSitemap)
                 .append(keepDownloads, castOther.keepDownloads)
+                .append(keepRejectedLinks, castOther.keepRejectedLinks)
                 .append(ignoreCanonicalLinks, castOther.ignoreCanonicalLinks)
                 .append(userAgent, castOther.userAgent)
                 .append(urlCrawlScopeStrategy, castOther.urlCrawlScopeStrategy)
@@ -723,6 +735,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreRobotsMeta)
                 .append(ignoreSitemap)
                 .append(keepDownloads)
+                .append(keepRejectedLinks)
                 .append(ignoreCanonicalLinks)
                 .append(userAgent)
                 .append(urlCrawlScopeStrategy)
@@ -757,6 +770,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("ignoreRobotsMeta", ignoreRobotsMeta)
                 .append("ignoreSitemap", ignoreSitemap)
                 .append("keepDownloads", keepDownloads)
+                .append("keepRejectedLinks", keepRejectedLinks)
                 .append("ignoreCanonicalLinks", ignoreCanonicalLinks)
                 .append("userAgent", userAgent)
                 .append("urlCrawlScopeStrategy", urlCrawlScopeStrategy)
