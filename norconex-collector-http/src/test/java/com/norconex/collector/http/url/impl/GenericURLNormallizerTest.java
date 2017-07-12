@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package com.norconex.collector.http.url.impl;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 
 import org.junit.After;
 import org.junit.Test;
@@ -148,4 +150,36 @@ public class GenericURLNormallizerTest {
         XMLConfigurationUtil.assertWriteRead(n);
     }
 
+    @Test
+    public void testEmptyNormalizations() throws IOException {
+        GenericURLNormalizer n = null;
+        String xml = null;
+        
+        // an empty <normalizations> tag means have none
+        n = new GenericURLNormalizer();
+        xml = "<urlNormalizer><normalizations></normalizations>"
+                + "</urlNormalizer>";
+        try (Reader r = new StringReader(xml)) {
+            n.loadFromXML(r);
+        }
+        assertEquals(0, n.getNormalizations().length);
+
+        // no <normalizations> tag means use defaults
+        n = new GenericURLNormalizer();
+        xml = "<urlNormalizer></urlNormalizer>";
+        try (Reader r = new StringReader(xml)) {
+            n.loadFromXML(r);
+        }
+        assertEquals(6, n.getNormalizations().length);
+
+        // normal... just a few
+        n = new GenericURLNormalizer();
+        xml = "<urlNormalizer><normalizations>"
+                + "lowerCaseSchemeHost, removeSessionIds</normalizations>"
+                + "</urlNormalizer>";
+        try (Reader r = new StringReader(xml)) {
+            n.loadFromXML(r);
+        }
+        assertEquals(2, n.getNormalizations().length);
+    }
 }

@@ -136,11 +136,13 @@ import com.norconex.importer.util.CharsetUtil;
  * </p>
  * 
  * <h3>"nofollow"</h3>
+ * <p>
  * By default, a regular HTML link having the "rel" attribute set to "nofollow"
  * won't be extracted (e.g. 
  * <code>&lt;a href="x.html" rel="nofollow" ...&gt;</code>).  
  * To force its extraction (and ensure it is followed) you can set 
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
+ * </p>
  * 
  * <h3>URL Fragments</h3>
  * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found

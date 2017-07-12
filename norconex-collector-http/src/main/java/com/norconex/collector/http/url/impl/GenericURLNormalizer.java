@@ -49,7 +49,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * examples. 
  * </p>
  * <p>
- * Since 2.3.0, this class is in effect by default. To skip its usage, you
+ * This class is in effect by default. To skip its usage, you
  * can explicitly set the URL Normalizer to <code>null</code> in the 
  * {@link HttpCrawlerConfig}, or you can disable it using 
  * {@link #setDisabled(boolean)}.
@@ -64,7 +64,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>Capitalizing letters in escape sequences</li>
  *   <li>Decoding percent-encoded unreserved characters</li>
  *   <li>Removing the default port</li>
- *   <li>Encoding non-URI characters (since 2.3.0)</li>
+ *   <li>Encoding non-URI characters</li>
  * </ul>
  * <p>
  * To overwrite this default, you have to specify a new list of normalizations
@@ -79,8 +79,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#addDomainTrailingSlash() addDomainTrailingSlash} (since 2.6.1)</li>
  *   <li>{@link URLNormalizer#addWWW() addWWW}</li>
  *   <li>{@link URLNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
- *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters} (since 2.3.0)</li>
- *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces} (since 2.3.0)</li>
+ *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters}</li>
+ *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces}</li>
  *   <li>{@link URLNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
  *   <li>{@link URLNormalizer#removeDefaultPort() removeDefaultPort}</li>
  *   <li>{@link URLNormalizer#removeDirectoryIndex() removeDirectoryIndex}</li>
@@ -121,6 +121,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *    &lt;/replacements&gt;
  *  &lt;/urlNormalizer&gt;
  * </pre>
+ * <p>
+ * Since 2.7.2, having an empty "normalizations" tag will effectively remove
+ * any normalizations rules previously set (like default ones).  
+ * Not having the tag
+ * at all will keep existing/default normalizations.
+ * </p>
  * <h4>Usage example:</h4>
  * <p>
  * The following adds a normalization to add "www." to URL domains when
@@ -181,7 +187,6 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         unsecureScheme, 
         upperCaseEscapeSequence, 
     }
-    
     
     private final List<Normalization> normalizations = 
             new ArrayList<Normalization>();
@@ -268,17 +273,20 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         
         setDisabled(xml.getBoolean("[@disabled]", disabled));
         
-        String xmlNorms = xml.getString("normalizations");
-        if (StringUtils.isNotBlank(xmlNorms)) {
+        if (xml.containsKey("normalizations")) {
             normalizations.clear();
-            for (String norm : StringUtils.split(xmlNorms, ',')) {
-                try {
-                    normalizations.add(Normalization.valueOf(norm.trim()));
-                } catch (Exception e) {
-                    LOG.error("Invalid normalization: \"" + norm + "\".", e);
+            String xmlNorms = xml.getString("normalizations");
+            if (StringUtils.isNotBlank(xmlNorms)) {
+                for (String norm : StringUtils.split(xmlNorms, ',')) {
+                    try {
+                        normalizations.add(Normalization.valueOf(norm.trim()));
+                    } catch (Exception e) {
+                        LOG.error("Invalid normalization: '" + norm + "'.", e);
+                    }
                 }
             }
         }
+        
         List<HierarchicalConfiguration> xmlReplaces = 
                 xml.configurationsAt("replacements.replace");
         if (!replaces.isEmpty()) {
