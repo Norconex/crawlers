@@ -48,7 +48,7 @@ public class HttpCrawlData extends BaseCrawlData {
     private String referrerLinkTitle;
     
     private String[] referencedUrls;
-	private String[] rejectedUrls;
+	private String[] notInScopeUrls;
     
     /**
      * Constructor.
@@ -211,20 +211,20 @@ public class HttpCrawlData extends BaseCrawlData {
         this.referencedUrls = referencedUrls;
     }
 	/**
-     * Gets URLs rejected by this one.
-     * @return URLs rejected by this one.
+     * Gets URLs rejected by this one because are not "in-scope".
+     * @return URLs rejected by this one because are not "in-scope".
      * @since 2.6.0
      */
-    public String[] getRejectedUrls() {
-        return rejectedUrls;
+    public String[] getNotInScopeUrls() {
+        return notInScopeUrls;
     }
     /**
-     * Sets URLs rejected by this one.
-     * @param rejectedUrls rejected URLs
-     * @since 2.6.0 URLs rejected by this one.
+     * Sets URLs rejected by this one because are not "in-scope".
+     * @param notInScopeUrls rejected URLs
+     * @since 2.6.0 URLs rejected by this one because are not "in-scope".
      */
-    public void setRejectedUrls(String... rejectedUrls) {
-        this.rejectedUrls = rejectedUrls;
+    public void setNotInScopeUrls(String... notInScopeUrls) {
+        this.notInScopeUrls = notInScopeUrls;
     }
     
     @Override
@@ -245,6 +245,7 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append(referrerLinkTag, castOther.referrerLinkTag)
                 .append(referrerLinkTitle, castOther.referrerLinkTitle)
                 .append(referencedUrls, castOther.referencedUrls)
+                .append(notInScopeUrls, castOther.notInScopeUrls)
                 .isEquals();
     }
 
@@ -262,6 +263,7 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append(referrerLinkTag)
                 .append(referrerLinkTitle)
                 .append(referencedUrls)
+                .append(notInScopeUrls)
                 .toHashCode();
     }
 
@@ -279,7 +281,7 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append("referrerLinkTag", referrerLinkTag)
                 .append("referrerLinkTitle", referrerLinkTitle)
                 .append("referencedUrls", referencedUrls)
-                .append("rejectedUrls", rejectedUrls)
+                .append("notInScopeUrls", notInScopeUrls)
                 .toString();
     }
 }

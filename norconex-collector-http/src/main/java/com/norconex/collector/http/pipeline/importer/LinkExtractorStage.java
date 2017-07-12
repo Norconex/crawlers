@@ -81,13 +81,13 @@ import com.norconex.commons.lang.io.CachedInputStream;
         
         Set<String> uniqueExtractedURLs = new HashSet<String>();
         Set<String> uniqueQueuedURLs = new HashSet<String>();
-        Set<String> uniqueRejectedURLs = new HashSet<String>();
+        Set<String> uniqueNotInScopeURLs = new HashSet<String>();
         if (links != null) {
             for (Link link : links) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("isKeepRejectedLinks: " + (ctx.getConfig().isKeepRejectedLinks() ? "TRUE" : "FALSE") + ".");
+                    LOG.debug("isKeepNotInScopeLinks: " + (ctx.getConfig().isKeepNotInScopeLinks() ? "TRUE" : "FALSE") + ".");
                 }
-                if(ctx.getConfig().isKeepRejectedLinks()) {
+                if(ctx.getConfig().isKeepNotInScopeLinks()) {
                     try {
                         String queuedURL = queueURL(link, ctx, uniqueExtractedURLs);
                         if (StringUtils.isNotBlank(queuedURL)) {
@@ -98,7 +98,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
                                 if (LOG.isDebugEnabled()) {
                                     LOG.debug("URL not in crawl scope: " + link.getUrl());
                                 }
-                                uniqueRejectedURLs.add(queuedURL);
+                                uniqueNotInScopeURLs.add(queuedURL);
                             }
                         }
                     } catch (Exception e) {
@@ -106,27 +106,27 @@ import com.norconex.commons.lang.io.CachedInputStream;
                                 + link.getUrl() + "\".", e);
                     }
                 } else {
-                if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                        reference, link.getUrl())) {
-                    try {
-                        String queuedURL = queueURL(
-                                link, ctx, uniqueExtractedURLs);
-                        if (StringUtils.isNotBlank(queuedURL)) {
-                            uniqueQueuedURLs.add(queuedURL);
+                    if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+                            reference, link.getUrl())) {
+                        try {
+                            String queuedURL = queueURL(
+                                    link, ctx, uniqueExtractedURLs);
+                            if (StringUtils.isNotBlank(queuedURL)) {
+                                uniqueQueuedURLs.add(queuedURL);
+                            }
+                        } catch (Exception e) {
+                            LOG.warn("Could not queue extracted URL \""
+                                    + link.getUrl() + "\".", e);
                         }
-                    } catch (Exception e) {
-                        LOG.warn("Could not queue extracted URL \""
-                                + link.getUrl() + "\".", e);
+                    } else if (LOG.isDebugEnabled()) {
+                        LOG.debug("URL not in crawl scope: " + link.getUrl());
                     }
-                } else if (LOG.isDebugEnabled()) {
-                    LOG.debug("URL not in crawl scope: " + link.getUrl());
                 }
             }
         }
-        }
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("uniqueQueuedURLs No: " + uniqueQueuedURLs.size() + ".");
+            LOG.debug("uniqueQueuedURLs count: " + uniqueQueuedURLs.size() + ".");
         }
         if (!uniqueQueuedURLs.isEmpty()) {
 
@@ -138,14 +138,14 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("uniqueRejectedURLs No: " + uniqueRejectedURLs.size() + ".");
+            LOG.debug("uniqueNotInScopeURLs count: " + uniqueNotInScopeURLs.size() + ".");
         }
-        if (!uniqueRejectedURLs.isEmpty()) {
-            String[] rejectedUrls =
-                    uniqueRejectedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+        if (!uniqueNotInScopeURLs.isEmpty()) {
+            String[] notInScopeUrls =
+                    uniqueNotInScopeURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
             ctx.getMetadata().addString(
-                    HttpMetadata.COLLECTOR_REJECTED_URLS, rejectedUrls);
-            ctx.getCrawlData().setRejectedUrls(rejectedUrls);
+                    HttpMetadata.COLLECTOR_NOT_IN_SCOPE_URLS, notInScopeUrls);
+            ctx.getCrawlData().setNotInScopeUrls(notInScopeUrls);
         }
         
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 
