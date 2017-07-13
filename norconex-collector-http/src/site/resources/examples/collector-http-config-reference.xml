@@ -168,6 +168,12 @@
          -->
     <keepDownloads>false</keepDownloads>
 
+    <!-- Keep extracted links that are out-of-scope according to start URL
+         stayOn... flags (if any are true).  Out-of-scope links are 
+         stored in a metadata field.
+         -->
+    <keepOutOfScopeLinks>false</keepOutOfScopeLinks>
+
     <!-- What to do with orphan documents.  Orphans are valid 
          documents, which on subsequent crawls can no longer be reached when 
          running the crawler (e.g. there are no links pointing to that page 

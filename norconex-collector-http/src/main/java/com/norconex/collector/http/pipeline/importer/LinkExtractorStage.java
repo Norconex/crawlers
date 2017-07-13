@@ -79,10 +79,9 @@ import com.norconex.commons.lang.io.CachedInputStream;
             }
         }
         
-        Set<String> uniqueExtractedURLs = new HashSet<String>();
-        Set<String> uniqueQueuedURLs = new HashSet<String>();
-        Set<String> uniqueNotInScopeExtractedURLs = new HashSet<String>();
-        Set<String> uniqueNotInScopeURLs = new HashSet<String>();
+        Set<String> uniqueExtractedURLs = new HashSet<>();
+        Set<String> uniqueQueuedURLs = new HashSet<>();
+        Set<String> uniqueOutOfScopeURLs = new HashSet<>();
         if (links != null) {
             for (Link link : links) {
                 if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
@@ -98,28 +97,22 @@ import com.norconex.commons.lang.io.CachedInputStream;
                                 + link.getUrl() + "\".", e);
                     }
                 } else  {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("URL not in crawl scope: " + link.getUrl());
-                        LOG.debug("isKeepNotInScopeLinks: " + (ctx.getConfig().isKeepNotInScopeLinks() ? "TRUE" : "FALSE") + ".");
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("URL not in crawl scope: "
+                                + link.getUrl() + " (keep: " 
+                                + ctx.getConfig().isKeepOutOfScopeLinks()
+                                + ")");
                     }
-                    if(ctx.getConfig().isKeepNotInScopeLinks()) {
-                        try {
-                            String queuedNotInScopeURL = queueURL(
-                                    link, ctx, uniqueNotInScopeExtractedURLs);
-                            if (StringUtils.isNotBlank(queuedNotInScopeURL)) {
-                                uniqueNotInScopeURLs.add(queuedNotInScopeURL);
-                            }
-                        } catch (Exception e) {
-                            LOG.warn("Could not log not in-scope extracted URL \""
-                                    + link.getUrl() + "\".", e);
-                        }
+                    if(ctx.getConfig().isKeepOutOfScopeLinks()) {
+                        uniqueOutOfScopeURLs.add(link.getUrl());
                     }
                 }
             }
         }
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("uniqueQueuedURLs count: " + uniqueQueuedURLs.size() + ".");
+            LOG.debug("uniqueQueuedURLs count: "
+                    + uniqueQueuedURLs.size() + ".");
         }
         if (!uniqueQueuedURLs.isEmpty()) {
 
@@ -131,13 +124,13 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("uniqueNotInScopeURLs count: " + uniqueNotInScopeURLs.size() + ".");
+            LOG.debug("uniqueOutOfScopeURLs count: "
+                    + uniqueOutOfScopeURLs.size() + ".");
         }
-        if (!uniqueNotInScopeURLs.isEmpty()) {
-            String[] notInScopeUrls =
-                    uniqueNotInScopeURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+        if (!uniqueOutOfScopeURLs.isEmpty()) {
             ctx.getMetadata().addString(
-                    HttpMetadata.COLLECTOR_NOT_IN_SCOPE_URLS, notInScopeUrls);
+                   HttpMetadata.COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE, 
+                   uniqueOutOfScopeURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
         
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 

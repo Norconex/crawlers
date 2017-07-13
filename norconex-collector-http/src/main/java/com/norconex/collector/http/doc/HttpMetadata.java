@@ -36,8 +36,8 @@ public class HttpMetadata extends CollectorMetadata {
             COLLECTOR_PREFIX + "sitemap-priority";
     public static final String COLLECTOR_REFERENCED_URLS = 
             COLLECTOR_PREFIX + "referenced-urls";
-	public static final String COLLECTOR_NOT_IN_SCOPE_URLS =
-            COLLECTOR_PREFIX + "not-in-scope-urls";
+	public static final String COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE =
+            COLLECTOR_PREFIX + "referenced-urls-out-of-scope";
     public static final String COLLECTOR_REFERRER_REFERENCE = 
             COLLECTOR_PREFIX + "referrer-reference";
     public static final String COLLECTOR_REFERRER_LINK_TAG = 
@@ -62,8 +62,8 @@ public class HttpMetadata extends CollectorMetadata {
 	public Collection<String> getDocumentUrls() {
 	    return getStrings(COLLECTOR_REFERENCED_URLS);
 	}
-	public Collection<String> getDocumentNotInScopeUrls() {
-		return getStrings(COLLECTOR_NOT_IN_SCOPE_URLS);
+	public Collection<String> getDocumentOutOfScopeUrls() {
+		return getStrings(COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE);
 	}
 	
 }

@@ -39,6 +39,7 @@ import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
+import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.doc.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
@@ -82,7 +83,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private boolean ignoreSitemap;
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
-	private boolean keepNotInScopeLinks;
+	private boolean keepOutOfScopeLinks;
     
     private String userAgent;
 
@@ -312,14 +313,24 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setKeepDownloads(boolean keepDownloads) {
         this.keepDownloads = keepDownloads;
     }
-	
-	public boolean isKeepNotInScopeLinks() {
-        return keepNotInScopeLinks;
+    /**
+     * Whether links not in scope should be stored as metadata
+     * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
+     * @return <code>true</code> if keeping URLs not in scope.
+     * @since 2.7.2
+     */
+	public boolean isKeepOutOfScopeLinks() {
+        return keepOutOfScopeLinks;
     }
-    public void setKeepNotInScopeLinks(boolean keepNotInScopeLinks) {
-        this.keepNotInScopeLinks = keepNotInScopeLinks;
+	/**
+	 * Sets whether links not in scope should be stored as metadata
+     * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
+     * @param keepOutOfScopeLinks <code>true</code> if keeping URLs not in scope
+     * @since 2.7.2
+	 */
+    public void setKeepOutOfScopeLinks(boolean keepOutOfScopeLinks) {
+        this.keepOutOfScopeLinks = keepOutOfScopeLinks;
     }
-
     /**
      * Gets the metadata checksummer. Default implementation is 
      * {@link LastModifiedMetadataChecksummer} (since 2.2.0).
@@ -449,7 +460,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writer.writeElementInteger("maxDepth", getMaxDepth());
             writer.writeElementBoolean("keepDownloads", isKeepDownloads());
 
-			writer.writeElementBoolean("keepNotInScopeLinks", isKeepNotInScopeLinks());
+			writer.writeElementBoolean(
+			        "keepOutOfScopeLinks", isKeepOutOfScopeLinks());
             writer.writeStartElement("startURLs");
             writer.writeAttributeBoolean("stayOnProtocol", 
                     urlCrawlScopeStrategy.isStayOnProtocol());
@@ -612,7 +624,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 xml, "delay", getDelayResolver()));
         setMaxDepth(xml.getInt("maxDepth", getMaxDepth()));
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
-		setKeepNotInScopeLinks(xml.getBoolean("keepNotInScopeLinks", isKeepNotInScopeLinks()));
+		setKeepOutOfScopeLinks(
+		        xml.getBoolean("keepOutOfScopeLinks", isKeepOutOfScopeLinks()));
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "ignoreCanonicalLinks", isIgnoreCanonicalLinks()));
         urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
@@ -699,7 +712,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreRobotsMeta, castOther.ignoreRobotsMeta)
                 .append(ignoreSitemap, castOther.ignoreSitemap)
                 .append(keepDownloads, castOther.keepDownloads)
-                .append(keepNotInScopeLinks, castOther.keepNotInScopeLinks)
+                .append(keepOutOfScopeLinks, castOther.keepOutOfScopeLinks)
                 .append(ignoreCanonicalLinks, castOther.ignoreCanonicalLinks)
                 .append(userAgent, castOther.userAgent)
                 .append(urlCrawlScopeStrategy, castOther.urlCrawlScopeStrategy)
@@ -735,7 +748,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreRobotsMeta)
                 .append(ignoreSitemap)
                 .append(keepDownloads)
-                .append(keepNotInScopeLinks)
+                .append(keepOutOfScopeLinks)
                 .append(ignoreCanonicalLinks)
                 .append(userAgent)
                 .append(urlCrawlScopeStrategy)
@@ -770,7 +783,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("ignoreRobotsMeta", ignoreRobotsMeta)
                 .append("ignoreSitemap", ignoreSitemap)
                 .append("keepDownloads", keepDownloads)
-                .append("keepNotInScopeLinks", keepNotInScopeLinks)
+                .append("keepOutOfScopeLinks", keepOutOfScopeLinks)
                 .append("ignoreCanonicalLinks", ignoreCanonicalLinks)
                 .append("userAgent", userAgent)
                 .append("urlCrawlScopeStrategy", urlCrawlScopeStrategy)

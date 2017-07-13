@@ -8,6 +8,10 @@
   <body>
 
     <release version="2.7.2-SNAPSHOT" date="2017-??-??" description="Maintenance release">
+      <action dev="adeotek" type="add" issue="360">
+        It is now possible to store as metadata URLs that are not "in-scope"
+        with a new flag "keepOutOfScopeLinks".
+      </action>
       <action dev="essiembre" type="update">
         RegexLinkExtractor now supports replacement values for regex matches.
       </action>
