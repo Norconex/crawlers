@@ -48,7 +48,6 @@ public class HttpCrawlData extends BaseCrawlData {
     private String referrerLinkTitle;
     
     private String[] referencedUrls;
-	private String[] notInScopeUrls;
     
     /**
      * Constructor.
@@ -210,22 +209,6 @@ public class HttpCrawlData extends BaseCrawlData {
     public void setReferencedUrls(String... referencedUrls) {
         this.referencedUrls = referencedUrls;
     }
-	/**
-     * Gets URLs rejected by this one because are not "in-scope".
-     * @return URLs rejected by this one because are not "in-scope".
-     * @since 2.6.0
-     */
-    public String[] getNotInScopeUrls() {
-        return notInScopeUrls;
-    }
-    /**
-     * Sets URLs rejected by this one because are not "in-scope".
-     * @param notInScopeUrls rejected URLs
-     * @since 2.6.0 URLs rejected by this one because are not "in-scope".
-     */
-    public void setNotInScopeUrls(String... notInScopeUrls) {
-        this.notInScopeUrls = notInScopeUrls;
-    }
     
     @Override
     public boolean equals(final Object other) {
@@ -245,7 +228,6 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append(referrerLinkTag, castOther.referrerLinkTag)
                 .append(referrerLinkTitle, castOther.referrerLinkTitle)
                 .append(referencedUrls, castOther.referencedUrls)
-                .append(notInScopeUrls, castOther.notInScopeUrls)
                 .isEquals();
     }
 
@@ -263,7 +245,6 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append(referrerLinkTag)
                 .append(referrerLinkTitle)
                 .append(referencedUrls)
-                .append(notInScopeUrls)
                 .toHashCode();
     }
 
@@ -281,7 +262,6 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append("referrerLinkTag", referrerLinkTag)
                 .append("referrerLinkTitle", referrerLinkTitle)
                 .append("referencedUrls", referencedUrls)
-                .append("notInScopeUrls", notInScopeUrls)
                 .toString();
     }
 }

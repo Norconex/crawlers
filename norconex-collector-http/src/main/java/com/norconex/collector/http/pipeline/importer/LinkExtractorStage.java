@@ -145,7 +145,6 @@ import com.norconex.commons.lang.io.CachedInputStream;
                     uniqueNotInScopeURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
             ctx.getMetadata().addString(
                     HttpMetadata.COLLECTOR_NOT_IN_SCOPE_URLS, notInScopeUrls);
-            ctx.getCrawlData().setNotInScopeUrls(notInScopeUrls);
         }
         
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 

@@ -62,7 +62,7 @@ public class HttpMetadata extends CollectorMetadata {
 	public Collection<String> getDocumentUrls() {
 	    return getStrings(COLLECTOR_REFERENCED_URLS);
 	}
-	public Collection<String> getDocumentRejectedUrls() {
+	public Collection<String> getDocumentNotInScopeUrls() {
 		return getStrings(COLLECTOR_NOT_IN_SCOPE_URLS);
 	}
 	
