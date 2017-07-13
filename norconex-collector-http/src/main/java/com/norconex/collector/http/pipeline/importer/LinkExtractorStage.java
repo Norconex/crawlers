@@ -81,45 +81,38 @@ import com.norconex.commons.lang.io.CachedInputStream;
         
         Set<String> uniqueExtractedURLs = new HashSet<String>();
         Set<String> uniqueQueuedURLs = new HashSet<String>();
+        Set<String> uniqueNotInScopeExtractedURLs = new HashSet<String>();
         Set<String> uniqueNotInScopeURLs = new HashSet<String>();
         if (links != null) {
             for (Link link : links) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("isKeepNotInScopeLinks: " + (ctx.getConfig().isKeepNotInScopeLinks() ? "TRUE" : "FALSE") + ".");
-                }
-                if(ctx.getConfig().isKeepNotInScopeLinks()) {
+                if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+                        reference, link.getUrl())) {
                     try {
-                        String queuedURL = queueURL(link, ctx, uniqueExtractedURLs);
+                        String queuedURL = queueURL(
+                                link, ctx, uniqueExtractedURLs);
                         if (StringUtils.isNotBlank(queuedURL)) {
-                            if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                                    reference, link.getUrl())) {
-                                uniqueQueuedURLs.add(queuedURL);
-                            } else {
-                                if (LOG.isDebugEnabled()) {
-                                    LOG.debug("URL not in crawl scope: " + link.getUrl());
-                                }
-                                uniqueNotInScopeURLs.add(queuedURL);
-                            }
+                            uniqueQueuedURLs.add(queuedURL);
                         }
                     } catch (Exception e) {
                         LOG.warn("Could not queue extracted URL \""
                                 + link.getUrl() + "\".", e);
                     }
-                } else {
-                    if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                            reference, link.getUrl())) {
+                } else  {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("URL not in crawl scope: " + link.getUrl());
+                        LOG.debug("isKeepNotInScopeLinks: " + (ctx.getConfig().isKeepNotInScopeLinks() ? "TRUE" : "FALSE") + ".");
+                    }
+                    if(ctx.getConfig().isKeepNotInScopeLinks()) {
                         try {
-                            String queuedURL = queueURL(
-                                    link, ctx, uniqueExtractedURLs);
-                            if (StringUtils.isNotBlank(queuedURL)) {
-                                uniqueQueuedURLs.add(queuedURL);
+                            String queuedNotInScopeURL = queueURL(
+                                    link, ctx, uniqueNotInScopeExtractedURLs);
+                            if (StringUtils.isNotBlank(queuedNotInScopeURL)) {
+                                uniqueNotInScopeURLs.add(queuedNotInScopeURL);
                             }
                         } catch (Exception e) {
-                            LOG.warn("Could not queue extracted URL \""
+                            LOG.warn("Could not log not in-scope extracted URL \""
                                     + link.getUrl() + "\".", e);
                         }
-                    } else if (LOG.isDebugEnabled()) {
-                        LOG.debug("URL not in crawl scope: " + link.getUrl());
                     }
                 }
             }
