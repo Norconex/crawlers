@@ -476,7 +476,7 @@ public class GenericHttpClientFactory
                     EncryptionUtil.decrypt(proxyPassword, proxyPasswordKey);
             credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(
-                    new AuthScope(proxyHost, proxyPort),
+                    new AuthScope(proxyHost, proxyPort, proxyRealm),
                     new UsernamePasswordCredentials(
                             proxyUsername, password));
         }

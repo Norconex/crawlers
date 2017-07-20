@@ -30,6 +30,9 @@
         Fixed GenericDelayResolver not taking into account ranges that
         overlap into the next cycle (e.g. 22:00 to 5:00).
       </action>
+      <action dev="essiembre" type="fix">
+        Fixed setting proxy realm having no effect on GenericHttpClientFactory.
+      </action>
     </release>
 
     <release version="2.7.1" date="2017-05-26" description="Bugfix release">
