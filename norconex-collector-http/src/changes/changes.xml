@@ -7,10 +7,17 @@
   </properties>
   <body>
 
-    <release version="2.7.2-SNAPSHOT" date="2017-??-??" description="Maintenance release">
+    <release version="2.8.0-SNAPSHOT" date="2017-??-??" description="Maintenance release">
+      <action dev="essiembre" type="add">
+        GenericLinkExtractor can now limit link extraction to specified portion
+        of text only. 
+      </action>
       <action dev="adeotek" type="add" issue="360">
         It is now possible to store as metadata URLs that are not "in-scope"
         with a new flag "keepOutOfScopeLinks".
+      </action>
+      <action dev="essiembre" type="add">
+        New GenericHttpClientFactory#removeRequestHeader(String) method.
       </action>
       <action dev="essiembre" type="update">
         RegexLinkExtractor now supports replacement values for regex matches.

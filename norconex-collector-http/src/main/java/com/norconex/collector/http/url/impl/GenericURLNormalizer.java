@@ -188,9 +188,8 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         upperCaseEscapeSequence, 
     }
     
-    private final List<Normalization> normalizations = 
-            new ArrayList<Normalization>();
-    private final List<Replace> replaces = new ArrayList<Replace>();
+    private final List<Normalization> normalizations = new ArrayList<>();
+    private final List<Replace> replaces = new ArrayList<>();
     private boolean disabled;
     
     public GenericURLNormalizer() {

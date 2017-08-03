@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -803,6 +803,16 @@ public class GenericHttpClientFactory
      */
     public String[] getRequestHeaders() {
         return requestHeaders.keySet().toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+    }
+    /**
+     * Remove the request header matching the given name.
+     * @param name name of HTTP request header to remove
+     * @return the previous value associated with the name, or <code>null</code>
+     *         if there was no request header for the name. 
+     * @since 2.8.0
+     */
+    public String removeRequestHeader(String name) {
+        return requestHeaders.remove(name);
     }
     
     /**

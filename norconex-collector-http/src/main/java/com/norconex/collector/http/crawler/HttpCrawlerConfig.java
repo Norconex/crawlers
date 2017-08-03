@@ -317,7 +317,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
      * Whether links not in scope should be stored as metadata
      * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
      * @return <code>true</code> if keeping URLs not in scope.
-     * @since 2.7.2
+     * @since 2.8.0
      */
 	public boolean isKeepOutOfScopeLinks() {
         return keepOutOfScopeLinks;
@@ -326,7 +326,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 	 * Sets whether links not in scope should be stored as metadata
      * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
      * @param keepOutOfScopeLinks <code>true</code> if keeping URLs not in scope
-     * @since 2.7.2
+     * @since 2.8.0
 	 */
     public void setKeepOutOfScopeLinks(boolean keepOutOfScopeLinks) {
         this.keepOutOfScopeLinks = keepOutOfScopeLinks;

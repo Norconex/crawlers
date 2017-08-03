@@ -183,6 +183,18 @@
           <tag name="img" attribute="src" />
           <tag name="meta" attribute="http-equiv" />
         </tags>
+        <extractBetween caseSensitive="true">
+          <start>start1</start><end>end1</end>
+        </extractBetween>
+        <extractBetween caseSensitive="false">
+          <start>start2</start><end>end2</end>
+        </extractBetween>
+        <noExtractBetween caseSensitive="true">
+          <start>nostart1</start><end>noend1</end>
+        </noExtractBetween>
+        <noExtractBetween caseSensitive="false">
+          <start>nostart2</start><end>noend2</end>
+        </noExtractBetween>
       </extractor>
       <extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor">
         <tags>

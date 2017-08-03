@@ -6,6 +6,9 @@ The following are either things to be done, or ideas to consider:
 
 - Use Norconex Commons Lang Proxy class wherever proxies are used.
 
+- Use Apache HttpClient-Win for Windows Auth support like done with
+  Azure Search Committer.
+
 - Have the config reference.xml put all settings in a crawler instead
   of crawling defaults (FS Collector as well).
 

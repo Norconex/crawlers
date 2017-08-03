@@ -273,13 +273,13 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * Gets a pattern replacement.
      * @param pattern the pattern for which to obtain its replacement
      * @return pattern replacement or <code>null</code> (no replacement)
-     * @since 2.7.2
+     * @since 2.8.0
      */
     public String getPatternReplacement(String pattern) {
         return patterns.get(pattern);
     }
     /**
-     * @deprecated Since 2.7.2, use #getPatternReplacement(String) instead.
+     * @deprecated Since 2.8.0, use #getPatternReplacement(String) instead.
      * It will return the group id if the "replacement" value only contains
      * a group replacement (e.g. $1), else, it will always return -1.
      */
@@ -302,13 +302,13 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * Adds a URL pattern, with an optional replacement.
      * @param pattern a regular expression
      * @param replacement a regular expression replacement
-     * @since 2.7.2
+     * @since 2.8.0
      */
     public void addPattern(String pattern, String replacement) {
         this.patterns.put(pattern, replacement);
     }
     /**
-     * @deprecated Since 2.7.2, use {@link #addPattern(String, String)} instead.
+     * @deprecated Since 2.8.0, use {@link #addPattern(String, String)} instead.
      */
     @Deprecated
     public void addPattern(String pattern, int matchGroup) {
