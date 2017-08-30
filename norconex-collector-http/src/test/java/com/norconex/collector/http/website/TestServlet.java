@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
@@ -93,7 +92,7 @@ public class TestServlet extends HttpServlet {
         public void doTestCase(HttpServletRequest req, 
                 HttpServletResponse resp) throws Exception {
             resp.setContentType("text/html");
-            resp.setCharacterEncoding(CharEncoding.UTF_8);
+            resp.setCharacterEncoding(StandardCharsets.UTF_8.toString());
             PrintWriter out = resp.getWriter();
             out.println("<html style=\"font-family:Arial, "
                    + "Helvetica, sans-serif;\">");

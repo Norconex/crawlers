@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +33,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -542,7 +542,7 @@ public class PhantomJSDocumentFetcher
             if (LOG.isTraceEnabled()) {
                 LOG.trace("Rejected response content: "
                         + FileUtils.readFileToString(
-                                outFile, CharEncoding.UTF_8));
+                                outFile, StandardCharsets.UTF_8));
             }
             if (ArrayUtils.contains(notFoundStatusCodes, statusCode)) {
                 return new HttpFetchResponse(

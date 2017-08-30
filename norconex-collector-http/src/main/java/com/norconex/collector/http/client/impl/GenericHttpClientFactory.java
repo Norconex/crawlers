@@ -19,6 +19,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.AlgorithmConstraints;
 import java.security.AlgorithmParameters;
 import java.security.CryptoPrimitive;
@@ -44,7 +45,6 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -90,8 +90,8 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.client.IHttpClientFactory;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.time.DurationParser;
@@ -284,7 +284,7 @@ public class GenericHttpClientFactory
     private String authHostname;
     private int authPort = -1;
     private String authRealm;
-    private String authFormCharset = CharEncoding.UTF_8;
+    private String authFormCharset = StandardCharsets.UTF_8.toString();
     private String authWorkstation;
     private String authDomain;
     private boolean cookiesDisabled;
@@ -381,7 +381,7 @@ public class GenericHttpClientFactory
     protected void authenticateUsingForm(HttpClient httpClient) {
         HttpPost post = new HttpPost(getAuthURL());
 
-        List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+        List<NameValuePair> formparams = new ArrayList<>();
         formparams.add(new BasicNameValuePair(
                 getAuthUsernameField(), getAuthUsername()));
         formparams.add(new BasicNameValuePair(
@@ -398,7 +398,7 @@ public class GenericHttpClientFactory
             
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Authentication response:\n" + IOUtils.toString(
-                        response.getEntity().getContent(), CharEncoding.UTF_8));
+                        response.getEntity().getContent(), StandardCharsets.UTF_8));
             }
         } catch (Exception e) {
             throw new CollectorException(e);

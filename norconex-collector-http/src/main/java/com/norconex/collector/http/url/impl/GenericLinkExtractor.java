@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,8 +35,6 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -44,6 +43,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.tika.utils.CharsetUtils;
@@ -328,8 +328,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         } else {
             sourceCharset = CharsetUtils.clean(sourceCharset);
         }
-        sourceCharset = 
-                StringUtils.defaultIfBlank(sourceCharset, CharEncoding.UTF_8);
+        sourceCharset = StringUtils.defaultIfBlank(
+                sourceCharset, StandardCharsets.UTF_8.toString());
         
         Referer referer = new Referer(reference);
         Set<Link> links = new HashSet<>();

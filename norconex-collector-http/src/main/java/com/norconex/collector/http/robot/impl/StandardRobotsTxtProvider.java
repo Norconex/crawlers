@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -74,8 +74,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     private static final Logger LOG = LogManager.getLogger(
             StandardRobotsTxtProvider.class);
     
-    private Map<String, RobotsTxt> robotsTxtCache =
-            new HashMap<String, RobotsTxt>();
+    private Map<String, RobotsTxt> robotsTxtCache = new HashMap<>();
 
     @Override
     public synchronized RobotsTxt getRobotsTxt(
@@ -105,13 +104,13 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         return robotsTxt;
     }
 
-    
     protected RobotsTxt parseRobotsTxt(
             InputStream is, String url, String userAgent) throws IOException {
         String baseURL = getBaseURL(url);
         
         //--- Load matching data ---
-        InputStreamReader isr = new InputStreamReader(is, CharEncoding.UTF_8);
+        InputStreamReader isr = 
+                new InputStreamReader(is, StandardCharsets.UTF_8);
         BufferedReader br = new BufferedReader(isr);
         RobotData data = new RobotData();
         boolean parse = false;
@@ -236,16 +235,15 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             NOMATCH, WILD, PARTIAL, EXACT;
         };
         private Precision precision = Precision.NOMATCH;
-        private Map<String, String> rules = 
-                new ListOrderedMap<String, String>();
-        private List<String> sitemaps = new ArrayList<String>();
+        private Map<String, String> rules = new ListOrderedMap<>();
+        private List<String> sitemaps = new ArrayList<>();
         private String crawlDelay;
         private void clear() {
             sitemaps.clear();
             crawlDelay = null;
         }
         private RobotsTxt toRobotsTxt(String baseURL) {
-            List<IReferenceFilter> filters = new ArrayList<IReferenceFilter>();
+            List<IReferenceFilter> filters = new ArrayList<>();
             for (String path : rules.keySet()) {
                 String rule = rules.get(path);
                 if ("disallow".equalsIgnoreCase(rule)) {

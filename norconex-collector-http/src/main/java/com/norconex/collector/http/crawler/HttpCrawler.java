@@ -17,6 +17,7 @@ package com.norconex.collector.http.crawler;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.Iterator;
 
@@ -26,7 +27,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -167,7 +167,7 @@ public class HttpCrawler extends AbstractCrawler {
             String urlsFile = urlsFiles[i];
             LineIterator it = null;
             try (InputStream is = new FileInputStream(urlsFile)) {
-                it = IOUtils.lineIterator(is, CharEncoding.UTF_8);
+                it = IOUtils.lineIterator(is, StandardCharsets.UTF_8);
                 while (it.hasNext()) {
                     String startURL = it.nextLine();
                     executeQueuePipeline(new HttpCrawlData(

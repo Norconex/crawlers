@@ -40,6 +40,10 @@
       <action dev="essiembre" type="fix">
         Fixed setting proxy realm having no effect on GenericHttpClientFactory.
       </action>
+      <action dev="essiembre" type="remove">
+        Removed these deprecated classes: HtmlLinkExtractor, 
+        HttpMetadataChecksummer.
+      </action>
     </release>
 
     <release version="2.7.1" date="2017-05-26" description="Bugfix release">

@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -27,7 +28,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -48,9 +48,9 @@ import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
+import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 import com.norconex.importer.doc.ContentTypeDetector;
@@ -237,7 +237,7 @@ public class GenericDocumentFetcher
             // INVALID http response
             if (LOG.isTraceEnabled()) {
                 LOG.trace("Rejected response content: "
-                        + IOUtils.toString(is, CharEncoding.UTF_8));
+                        + IOUtils.toString(is, StandardCharsets.UTF_8));
                 IOUtils.closeQuietly(is);
             } else {
                 // read response anyway to be safer, but ignore content

@@ -16,13 +16,13 @@ package com.norconex.collector.http.crawler;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -110,7 +110,7 @@ public abstract class AbstractHttpTest {
             meta.load(FileUtils.openInputStream(
                     new File(basePath + ".meta")));
             String reference = FileUtils.readFileToString(
-                    new File(basePath + ".ref"), CharEncoding.UTF_8);
+                    new File(basePath + ".ref"), StandardCharsets.UTF_8);
             
             HttpDocument doc = new HttpDocument(
                     reference, crawler.getStreamFactory().newInputStream(file));

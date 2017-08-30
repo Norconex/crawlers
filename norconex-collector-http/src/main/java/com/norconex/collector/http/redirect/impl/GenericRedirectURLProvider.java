@@ -18,11 +18,11 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -44,8 +44,8 @@ import org.apache.log4j.Logger;
 import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.collector.http.redirect.IRedirectURLProvider;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -121,7 +121,8 @@ public class GenericRedirectURLProvider
     private static final Logger LOG = 
             LogManager.getLogger(GenericRedirectURLProvider.class);
     
-    public static final String DEFAULT_FALLBACK_CHARSET = CharEncoding.UTF_8;
+    public static final String DEFAULT_FALLBACK_CHARSET = 
+            StandardCharsets.UTF_8.toString();
 
     private static final int ASCII_MAX_CODEPOINT = 128;
     
@@ -235,7 +236,7 @@ public class GenericRedirectURLProvider
         // try to fix if non ascii charset is non UTF8.
         if (StringUtils.isNotBlank(nonAsciiCharset)) {
             String charset = CharsetUtils.clean(nonAsciiCharset);
-            if (!CharEncoding.UTF_8.equals(charset)) {
+            if (!StandardCharsets.UTF_8.toString().equals(charset)) {
                 try {
                     url = new String(url.getBytes(charset));
                     return url;
@@ -247,13 +248,7 @@ public class GenericRedirectURLProvider
         }
         
         // If all fails, fall back to UTF8
-        try {
-            url = new String(url.getBytes(CharEncoding.UTF_8));
-            return url;
-        } catch (UnsupportedEncodingException e) {
-            LOG.warn("Could not fix badly encoded URL with charset "
-                    + "\"UTF-8\". Redirect URL: " + redirectURL, e);
-        }
+        url = new String(url.getBytes(StandardCharsets.UTF_8));
         return url;
     }
     

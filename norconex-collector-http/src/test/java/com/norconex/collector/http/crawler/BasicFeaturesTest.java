@@ -16,11 +16,11 @@ package com.norconex.collector.http.crawler;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -123,7 +123,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
             }
         });
         String content = FileUtils.readFileToString(
-                downloadedFile.getValue(), CharEncoding.UTF_8);
+                downloadedFile.getValue(), StandardCharsets.UTF_8);
         Assert.assertTrue("Invalid or missing download file.",
                 content.contains("<b>This</b> file <i>must</i> be saved as is, "
                         + "with this <span>formatting</span>"));
@@ -155,8 +155,8 @@ public class BasicFeaturesTest extends AbstractHttpTest {
 
         HttpDocument doc = docs.get(0);
         Assert.assertTrue("Wrong or undetected User-Agent.", 
-                IOUtils.toString(doc.getContent(), CharEncoding.UTF_8).contains(
-                        "Super Secret Agent"));
+                IOUtils.toString(doc.getContent(), 
+                        StandardCharsets.UTF_8).contains("Super Secret Agent"));
     }
     
     @Test
@@ -215,7 +215,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
 
         for (HttpDocument doc : docs) {
             String content = IOUtils.toString(
-                    doc.getContent(), CharEncoding.UTF_8);
+                    doc.getContent(), StandardCharsets.UTF_8);
             if (!doc.getReference().contains("script=true")) {
                 // first page
                 Assert.assertTrue("First page not crawled properly",
@@ -276,8 +276,9 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         
         Assert.assertEquals("text/html", 
                 doc.getMetadata().getString(ImporterMetadata.DOC_CONTENT_TYPE));
-        Assert.assertEquals(CharEncoding.UTF_8, doc.getMetadata().getString(
-                ImporterMetadata.DOC_CONTENT_ENCODING));
+        Assert.assertEquals(StandardCharsets.UTF_8.toString(), 
+                doc.getMetadata().getString(
+                        ImporterMetadata.DOC_CONTENT_ENCODING));
     }
     
     
@@ -299,7 +300,8 @@ public class BasicFeaturesTest extends AbstractHttpTest {
                 meta.getString(HttpMetadata.HTTP_CONTENT_TYPE));
         Assert.assertEquals("Bad Collection content-type.", "text/html", 
                 meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE));
-        Assert.assertEquals("Bad char-encoding.", CharEncoding.UTF_8, 
+        Assert.assertEquals("Bad char-encoding.", 
+                StandardCharsets.UTF_8.toString(), 
                 meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING));
     }
     private void assertListSize(String listName, List<?> list, int size) {
