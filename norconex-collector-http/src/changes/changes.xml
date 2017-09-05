@@ -19,6 +19,10 @@
       <action dev="essiembre" type="add">
         New GenericHttpClientFactory#removeRequestHeader(String) method.
       </action>
+      <action dev="essiembre" type="add" issue="383">
+        New "resourceTimeout" option on PhantomJSDocumentFetcher to prevent
+        individual page items to hang PhantomJS for a long time.
+      </action>
       <action dev="essiembre" type="update">
         RegexLinkExtractor now supports replacement values for regex matches.
       </action>
@@ -29,6 +33,11 @@
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.8.3, 
         Norconex Commons Lang 1.14.0.
+      </action>
+      <action dev="essiembre" type="update" issue="383">
+        PhantomJSDocumentFetcher will now try to write a document for processing
+        even if its status from PhantomJS is not "success" (for cases where
+        valid content could be extracted nonetheless).
       </action>
       <action dev="essiembre" type="fix">
         Fixed improper saving as XML of GenericDelayResolver.

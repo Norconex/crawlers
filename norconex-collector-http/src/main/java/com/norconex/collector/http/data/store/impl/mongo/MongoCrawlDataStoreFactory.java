@@ -56,7 +56,7 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
  * for available options.
  * </p>
  * <p>
- * As of 2.8.2, you can define your own collection names with 
+ * As of 2.8.0, you can define your own collection names with 
  * {@link #setReferencesCollectionName(String)} and 
  * {@link #setCachedCollectionName(String)}.
  * </p>
