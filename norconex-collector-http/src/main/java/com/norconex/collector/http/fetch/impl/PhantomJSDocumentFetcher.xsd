@@ -22,6 +22,7 @@
         <xs:element name="exePath" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="scriptPath" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="renderWaitTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="resourceTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="options" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>

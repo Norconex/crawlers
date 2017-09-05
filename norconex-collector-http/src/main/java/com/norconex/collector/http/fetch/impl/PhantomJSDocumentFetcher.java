@@ -691,6 +691,8 @@ public class PhantomJSDocumentFetcher
         setScriptPath(xml.getString("scriptPath", getScriptPath()));
         setRenderWaitTime((int) XMLConfigurationUtil.getDuration(
                 xml, "renderWaitTime", getRenderWaitTime()));
+        setResourceTimeout((int) XMLConfigurationUtil.getDuration(
+                xml, "resourceTimeout", getResourceTimeout()));
         setScreenshotDir(xml.getString("screenshotDir", getScreenshotDir()));
         setScreenshotDimensions(xml.getString(
                 "screenshotDimensions", getScreenshotDimensions()));
@@ -727,6 +729,9 @@ public class PhantomJSDocumentFetcher
             writer.writeElementString("exePath", exePath);
             writer.writeElementString("scriptPath", scriptPath);
             writer.writeElementInteger("renderWaitTime", renderWaitTime);
+            if (resourceTimeout != -1) {
+                writer.writeElementInteger("resourceTimeout", resourceTimeout);
+            }
             writer.writeElementString("screenshotDir", screenshotDir);
             writer.writeElementString(
                     "screenshotDimensions", screenshotDimensions);
@@ -765,6 +770,7 @@ public class PhantomJSDocumentFetcher
                 .append(exePath, castOther.exePath)
                 .append(scriptPath, castOther.scriptPath)
                 .append(renderWaitTime, castOther.renderWaitTime)
+                .append(resourceTimeout, castOther.resourceTimeout)
                 .append(options, castOther.options)
                 .append(screenshotDir, castOther.screenshotDir)
                 .append(screenshotDimensions, castOther.screenshotDimensions)
@@ -785,6 +791,7 @@ public class PhantomJSDocumentFetcher
                 .append(exePath)
                 .append(scriptPath)
                 .append(renderWaitTime)
+                .append(resourceTimeout)
                 .append(options)
                 .append(screenshotDir)
                 .append(screenshotDimensions)
@@ -805,6 +812,7 @@ public class PhantomJSDocumentFetcher
                 .append("exePath", exePath)
                 .append("scriptPath", scriptPath)
                 .append("renderWaitTime", renderWaitTime)
+                .append("resourceTimeout", resourceTimeout)
                 .append("options", options)
                 .append("screenshotDir", screenshotDir)
                 .append("screenshotDimensions", screenshotDimensions)

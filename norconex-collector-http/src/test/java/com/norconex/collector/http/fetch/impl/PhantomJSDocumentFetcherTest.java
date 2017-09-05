@@ -32,6 +32,7 @@ public class PhantomJSDocumentFetcherTest  {
         f.setHeadersPrefix("blah");
         f.setExePath(new File("/path/to/phantomjs.exe").getAbsolutePath());
         f.setRenderWaitTime(1000);
+        f.setResourceTimeout(3000);
         f.setContentTypePattern(".blah.");
         f.setReferencePattern(".blah.blah");
         f.setDetectContentType(true);

@@ -33,4 +33,5 @@
       <validStatusCodes>200,123</validStatusCodes>
       <notFoundStatusCodes>404,456</notFoundStatusCodes>
       <headersPrefix>prefix</headersPrefix>
+      <resourceTimeout>2000</resourceTimeout>
   </documentFetcher>
