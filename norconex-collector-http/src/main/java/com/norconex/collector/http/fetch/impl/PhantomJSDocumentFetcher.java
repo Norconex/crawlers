@@ -153,6 +153,12 @@ import com.norconex.importer.util.CharsetUtil;
  * Thanks to PhantomJS, one can save images of pages being crawled, including
  * those rendered with JavaScript!  
  * </p>
+ *
+ * <p>
+ * <b>Since 2.8.0</b>, it is possible to specify a resource timeout so that
+ * slow individual page resources do not cause PhantomJS to hang for a  
+ * long time.   
+ * </p>
  * 
  * <p>
  * XML configuration entries expecting millisecond durations
@@ -171,8 +177,13 @@ import com.norconex.importer.util.CharsetUtil;
  *          (Optional path to a PhantomJS script. Defaults to scripts/phantom.js)
  *      &lt;/scriptPath&gt;
  *      &lt;renderWaitTime&gt;
- *          (Milliseconds to wait for a page to load. Defaults to 3000.)
+ *          (Milliseconds to wait for the entire page to load. 
+ *           Defaults to 3000, i.e., 3 seconds.)
  *      &lt;/renderWaitTime&gt;
+ *      &lt;resourceTimeout&gt;
+ *          (Optional Milliseconds to wait for a page resource to load. 
+ *           Defaults is unspecified.)
+ *      &lt;/resourceTimeout&gt;
  *      &lt;options&gt;
  *        &lt;opt&gt;(optional extra PhantomJS command-line option)&lt;/opt&gt;
  *        &lt;!-- You have have multiple opt tags --&gt;
@@ -267,6 +278,8 @@ public class PhantomJSDocumentFetcher
     private String exePath;
     private String scriptPath = DEFAULT_SCRIPT_PATH;
     private int renderWaitTime = DEFAULT_RENDER_WAIT_TIME;
+    private int resourceTimeout = -1;
+    
     private String[] options;
     private String screenshotDir;
     private String screenshotDimensions;
@@ -383,8 +396,27 @@ public class PhantomJSDocumentFetcher
     public void setReferencePattern(String referencePattern) {
         this.referencePattern = referencePattern;
     }
-    
-    
+
+    /**
+     * Gets the milliseconds timeout after which any resource requested will 
+     * stop trying and proceed with other parts of the page.
+     * @return the timeout value, or <code>-1</code> if undefined
+     * @since 2.8.0
+     */
+    public int getResourceTimeout() {
+        return resourceTimeout;
+    }
+    /**
+     * Sets the milliseconds timeout after which any resource requested will 
+     * stop trying and proceed with other parts of the page.
+     * @param resourceTimeout the timeout value, or <code>-1</code> 
+     *                        for undefined
+     * @since 2.8.0
+     */
+    public void setResourceTimeout(int resourceTimeout) {
+        this.resourceTimeout = resourceTimeout;
+    }
+
     @Override
 	public HttpFetchResponse fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
@@ -467,19 +499,20 @@ public class PhantomJSDocumentFetcher
 	        cmdArgs.addAll(Arrays.asList(options));
 	    }
 	    cmdArgs.add(argQuote(phantomScriptFile.getAbsolutePath()));
-	    cmdArgs.add(argQuote(url));
-	    cmdArgs.add(argQuote(outFile.getAbsolutePath()));
-	    cmdArgs.add(Integer.toString(renderWaitTime));
-        if (HttpClientProxy.isStarted()) {
+	    cmdArgs.add(argQuote(url));                        // phantom.js arg 1
+	    cmdArgs.add(argQuote(outFile.getAbsolutePath()));  // phantom.js arg 2
+	    cmdArgs.add(Integer.toString(renderWaitTime));     // phantom.js arg 3
+        if (HttpClientProxy.isStarted()) {                 // phantom.js arg 4
             cmdArgs.add(Integer.toString(HttpClientProxy.getId(httpClient)));
         } else {
             cmdArgs.add(Integer.toString(-1));
         }
-        cmdArgs.add(protocol);
-	    cmdArgs.add(argQuote(phantomScreenshotFile));
-        cmdArgs.add(argQuote(screenshotDimensions));
-        cmdArgs.add(Float.toString(screenshotZoomFactor));
-	    
+        cmdArgs.add(protocol);                             // phantom.js arg 5
+	    cmdArgs.add(argQuote(phantomScreenshotFile));      // phantom.js arg 6
+        cmdArgs.add(argQuote(screenshotDimensions));       // phantom.js arg 7
+        cmdArgs.add(Float.toString(screenshotZoomFactor)); // phantom.js arg 8
+        cmdArgs.add(Integer.toString(resourceTimeout));    // phantom.js arg 9
+        
 	    SystemCommand cmd = new SystemCommand(
 	            cmdArgs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
 	    LOG.debug("Command: " + cmd);
