@@ -31,7 +31,7 @@
         normalizations tag to blank default normalizations.
       </action>
       <action dev="essiembre" type="update">
-        Dependency updates: Norconex Collector Core 1.8.3, 
+        Dependency updates: Norconex Collector Core 1.9.0, 
         Norconex Commons Lang 1.14.0.
       </action>
       <action dev="essiembre" type="update" issue="383">

@@ -1,5 +1,12 @@
 The following are either things to be done, or ideas to consider:
 
+- Fix redirects used to authenticate or create session but otherwise return
+  to original URL which then can be crawled.
+
+- Change sample config to have just "$workdir" for logs and progress dirs.
+
+- Change sample config to have crawlerDefaults empty instead.
+
 - Remove <dependencyManagement> which is mainly valuable when used with
   parent projects (which we are not here).  Use regular <dependencies instead.
   Do this for all projects.
