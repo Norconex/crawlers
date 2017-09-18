@@ -43,7 +43,7 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     /**
      * Constructor creating a copy of supplied context.
      * @param copiable the item to be copied
-     * @since 1.9.0
+     * @since 2.8.0
      */
     public HttpImporterPipelineContext(ImporterPipelineContext copiable) {
         super(copiable.getCrawler(), copiable.getCrawlDataStore());
