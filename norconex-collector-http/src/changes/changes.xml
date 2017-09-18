@@ -39,6 +39,13 @@
         even if its status from PhantomJS is not "success" (for cases where
         valid content could be extracted nonetheless).
       </action>
+      <action dev="essiembre" type="update">
+        Blank start URLs are now silently ignored.
+      </action>
+      <action dev="essiembre" type="fix" issue="390">
+        Orphans being reprocessed no longer triggers the  
+        "RecrawlableResolverStage".
+      </action>
       <action dev="essiembre" type="fix">
         Fixed improper saving as XML of GenericDelayResolver.
       </action>
@@ -48,6 +55,10 @@
       </action>
       <action dev="essiembre" type="fix">
         Fixed setting proxy realm having no effect on GenericHttpClientFactory.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed invalid validation error for "tempDir" element on 
+        StandardSitemapResolverFactory.
       </action>
       <action dev="essiembre" type="remove">
         Removed these deprecated classes: HtmlLinkExtractor, 

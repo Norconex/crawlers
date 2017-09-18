@@ -44,6 +44,7 @@ import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
+import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
@@ -151,8 +152,12 @@ public class HttpCrawler extends AbstractCrawler {
 
         for (int i = 0; i < startURLs.length; i++) {
             String startURL = startURLs[i];
-            executeQueuePipeline(
-                    new HttpCrawlData(startURL, 0), crawlDataStore);
+            if (StringUtils.isNotBlank(startURL)) {
+                executeQueuePipeline(
+                        new HttpCrawlData(startURL, 0), crawlDataStore);
+            } else {
+                LOG.debug("Blank start URL encountered, ignoring it.");
+            }
         }
         return startURLs.length;
     }
@@ -340,23 +345,14 @@ public class HttpCrawler extends AbstractCrawler {
         
     }
     
-    @Override
     protected ImporterResponse executeImporterPipeline(
-            ICrawler crawler, 
-            ImporterDocument doc, 
-            ICrawlDataStore crawlDataStore, 
-            BaseCrawlData crawlData,
-            BaseCrawlData cachedCrawlData) {
-        //TODO create pipeline context prototype
-        //TODO cache the pipeline object?
-        HttpImporterPipelineContext context = new HttpImporterPipelineContext(
-                (HttpCrawler) crawler, crawlDataStore, 
-                (HttpCrawlData) crawlData, 
-                (HttpCrawlData) cachedCrawlData, 
-                (HttpDocument) doc);
+            ImporterPipelineContext importerContext) {
+        HttpImporterPipelineContext httpContext = 
+                new HttpImporterPipelineContext(importerContext);
         new HttpImporterPipeline(
-                getCrawlerConfig().isKeepDownloads()).execute(context);
-        return context.getImporterResponse();
+                getCrawlerConfig().isKeepDownloads(),
+                importerContext.isOrphan()).execute(httpContext);
+        return httpContext.getImporterResponse();
     }
 
     @Override

@@ -1,5 +1,7 @@
 The following are either things to be done, or ideas to consider:
 
+- Make default directory for logs and progress the workdir.
+
 - Fix redirects used to authenticate or create session but otherwise return
   to original URL which then can be crawled.
 

@@ -123,7 +123,8 @@
     </referenceFilters>    
     <robotsTxt ignore="false" class="com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider"/>
     <sitemapResolverFactory ignore="false" lenient="true" 
-        tempDir="/tmp/" class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory">
+        class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory">
+      <tempDir>/tmp/</tempDir>
       <path>/path1/</path>
       <path>/path2/</path>
     </sitemapResolverFactory>

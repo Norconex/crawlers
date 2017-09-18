@@ -27,7 +27,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.text.StrSubstitutor;
 import org.apache.http.HttpStatus;
 
 import com.norconex.commons.lang.Sleeper;
@@ -63,6 +66,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("timeout", new TimeoutTestCase());
         testCases.put("iframe", new IFrameTestCase());
         testCases.put("contentTypeCharset", new ContentTypeCharsetTestCase());
+        testCases.put("sitemap", new SitemapTestCase());
     }
     
     @Override
@@ -488,6 +492,64 @@ public class TestServlet extends HttpServlet {
                      + "</body>"
                      + "</html>";
             resp.getOutputStream().write(out.getBytes(StandardCharsets.UTF_8));
+        }
+    }
+    
+    /**
+     * The second time the sitemap has 1 less URL and that URL no longer
+     * exists.
+     */
+    class SitemapTestCase implements ITestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp) throws Exception {    
+
+            int page = NumberUtils.toInt(req.getParameter("page"), -1);
+            String token = req.getParameter("token");
+            
+            // if page is blank, the request is for the sitemap
+            if (page == -1) {
+                String baseLocURL = "http://localhost:" + req.getLocalPort() 
+                       + "/test?case=sitemap&amp;token=" + token + "&amp;page=";
+                Map<String, String> vars = new HashMap<>();
+                vars.put("loc1", baseLocURL + 1);
+                vars.put("loc2", baseLocURL + 2);
+                if (!tokens.contains(token)) {
+                    vars.put("loc3", baseLocURL + 3);
+                    tokens.add(token);
+                } else {
+                    vars.put("loc3", baseLocURL + 33);
+                    tokens.remove(token);
+                }
+                String xml = IOUtils.toString(getClass().getResourceAsStream(
+                        "sitemap.xml"), StandardCharsets.UTF_8);
+                xml = StrSubstitutor.replace(xml, vars);
+                resp.setContentType("application/xml");
+                resp.setCharacterEncoding("UTF-8");
+                resp.getWriter().println(xml);
+            } else {
+                resp.setContentType("text/html");
+                resp.setCharacterEncoding("UTF-8");
+                PrintWriter out = resp.getWriter();
+
+                if (page < 3) {
+                    out.println("<h1>Sitemap permanent page " + page + "</h1>");
+                    out.println("<p>This page should always be there.</p>");
+                } else if (page == 3) {
+                    if (tokens.contains(token)) {
+                        out.println("<h1>Sitemap temp page " + page + "</h1>");
+                        out.println("<p>This page should be there the first "
+                                + "time the site is crawled only.</p>");
+                    } else {
+                        resp.sendError(HttpStatus.SC_NOT_FOUND,
+                                "Not found (so they say)");
+                    }
+
+                } else if (page == 33) {
+                    out.println("<h1>Sitemap new page " + page + "</h1>");
+                    out.println("<p>This page should be there the second "
+                            + "time the site is crawled only.</p>");
+                }
+            }
         }
     }
 }
