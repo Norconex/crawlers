@@ -174,16 +174,18 @@ public class HttpCrawler extends AbstractCrawler {
             try (InputStream is = new FileInputStream(urlsFile)) {
                 it = IOUtils.lineIterator(is, StandardCharsets.UTF_8);
                 while (it.hasNext()) {
-                    String startURL = it.nextLine();
-                    executeQueuePipeline(new HttpCrawlData(
-                            startURL, 0), crawlDataStore);
-                    urlCount++;
+                    String startURL = StringUtils.trimToNull(it.nextLine());
+                    if (startURL != null && !startURL.startsWith("#")) {
+                        executeQueuePipeline(
+                                new HttpCrawlData(startURL, 0), crawlDataStore);
+                        urlCount++;
+                    }
                 }
             } catch (IOException e) {
                 throw new CollectorException(
                         "Could not process URLs file: " + urlsFile, e);
             } finally {
-                LineIterator.closeQuietly(it);;
+                LineIterator.closeQuietly(it);
             }
         }
         return urlCount;

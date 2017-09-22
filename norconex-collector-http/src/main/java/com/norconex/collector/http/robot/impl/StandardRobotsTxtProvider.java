@@ -204,7 +204,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     
     private String getBaseURL(String url) {
         String baseURL = HttpURL.getRoot(url);
-        if (baseURL.endsWith("/")) {
+        if (StringUtils.endsWith(baseURL, "/")) {
             baseURL = StringUtils.removeEnd(baseURL, "/");
         }
         return baseURL;

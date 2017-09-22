@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,28 +141,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     /**
      * Gets the file paths of seed files containing URLs to be used as
-     * "start URLs".
-     * @deprecated Since 2.3.0, use {@link #getStartURLsFiles()} instead.
-     * @return file paths of seed files containing URLs
-     */
-    @Deprecated
-    public String[] getUrlsFiles() {
-        return getStartURLsFiles();
-    }
-    /**
-     * Sets the file paths of seed files containing URLs to be used as
-     * "start URLs".
-     * @deprecated Since 2.3.0, use {@link #setStartURLsFiles(String...)} 
-     *             instead.
-     * @param urlsFiles file paths of seed files containing URLs
-     */
-    @Deprecated
-    public void setUrlsFiles(String... urlsFiles) {
-        setStartURLsFiles(urlsFiles);
-    }
-    /**
-     * Gets the file paths of seed files containing URLs to be used as
-     * "start URLs".
+     * "start URLs".  Files are expected to have one URL per line. 
+     * Blank lines and lines starting with # (comment) are ignored.
      * @return file paths of seed files containing URLs
      * @since 2.3.0
      */
@@ -171,7 +151,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     /**
      * Sets the file paths of seed files containing URLs to be used as
-     * "start URLs".
+     * "start URLs". Files are expected to have one URL per line. 
+     * Blank lines and lines starting with # (comment) are ignored.
      * @param startURLsFiles file paths of seed files containing URLs
      * @since 2.3.0
      */

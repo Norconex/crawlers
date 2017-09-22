@@ -42,6 +42,9 @@
       <action dev="essiembre" type="update">
         Blank start URLs are now silently ignored.
       </action>
+      <action dev="essiembre" type="fix" issue="396">
+        Fixed blank lines in start URL seed files throwing NullPointerException.
+      </action>
       <action dev="essiembre" type="fix" issue="390">
         Orphans being reprocessed no longer triggers the  
         "RecrawlableResolverStage".
@@ -62,7 +65,8 @@
       </action>
       <action dev="essiembre" type="remove">
         Removed these deprecated classes: HtmlLinkExtractor, 
-        HttpMetadataChecksummer.
+        HttpMetadataChecksummer, and deprecated methods: 
+        HttpCrawler#getUrlsFiles, HttpCrawler#setUrlsFiles. 
       </action>
     </release>
 

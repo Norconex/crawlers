@@ -67,6 +67,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("iframe", new IFrameTestCase());
         testCases.put("contentTypeCharset", new ContentTypeCharsetTestCase());
         testCases.put("sitemap", new SitemapTestCase());
+        testCases.put("merge", new MergeTestCase());
     }
     
     @Override
@@ -472,6 +473,49 @@ public class TestServlet extends HttpServlet {
                             '?').append(queryString).toString());
                 }
                 out.println("</xmp></p>");
+            }
+        }
+    }
+    
+    class MergeTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            
+            String page = req.getParameter("page");
+            
+            if (StringUtils.isBlank(page)) {
+                String html = 
+                          "<h1>Merge test page: Source page</h1>\n"
+                        + "<head>\n"
+                        + "<meta name=\"Sfield1\" content=\"Svalue1\">\n"
+                        + "<meta name=\"Sfield2\" content=\"Svalue2\">\n"
+                        + "<meta name=\"Sfield3\" content=\"Svalue3\">\n"
+                        + "<head>\n"
+                        + "<body>\n"
+                        + "<p>This source page includes metadata to test"
+                        + "merging.</p>\n"
+                        + "<a href=\"?case=merge&amp;page=cat\">cat</a>\n"
+                        + "<a href=\"?case=merge&amp;page=dog\">dog</a>\n"
+                        + "</body>\n";
+                out.println(html);
+            } else {
+                out.println("<h1>Merge test page: Target page: "
+                        + page + "</h1>");
+                String html = 
+                          "<h1>Merge test page: Source page: " +page+ "</h1>\n"
+                        + "<head>\n"
+                        + "<meta name=\"T1" + page 
+                        + "\" content=\"tvalue1-" + page + "\">\n"
+                        + "<meta name=\"T2" + page 
+                        + "\" content=\"tvalue2-" + page + "\">\n"
+                        + "<meta name=\"T3" + page 
+                        + "\" content=\"tvalue3-" + page + "\">\n"
+                        + "<head>\n"
+                        + "<body>\n"
+                        + "<p>This target page " + page 
+                        + " includes metadata to test merging.</p>\n"
+                        + "</body>\n";
+                out.println(html);
             }
         }
     }

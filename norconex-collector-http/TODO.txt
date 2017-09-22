@@ -1,5 +1,10 @@
 The following are either things to be done, or ideas to consider:
 
+- Make it possible to merge two or more docs.
+
+- Maybe add "stayOnDomainMaxSub" for how many subdomain level to support?
+  (default would be zero).
+
 - Make default directory for logs and progress the workdir.
 
 - Fix redirects used to authenticate or create session but otherwise return
