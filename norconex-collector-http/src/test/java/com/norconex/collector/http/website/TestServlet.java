@@ -55,6 +55,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("list", new ListTestCases());
         testCases.put("basic", new BasicTestCase());
         testCases.put("redirect", new RedirectTestCase());
+        testCases.put("multiRedirects", new MultiRedirectsTestCase());
         testCases.put("userAgent", new UserAgentTestCase());
         testCases.put("keepDownloads", new KeepDownloadedFilesTestCase());
         testCases.put("deletedFiles", new DeletedFilesTestCase());
@@ -165,6 +166,29 @@ public class TestServlet extends HttpServlet {
                     + "redirect and figure that out.<br><br>");
             out.println("<a href=\"page1.html\">Page 1 (broken)</a>");
             out.println("<a href=\"page2.html\">Page 2 (broken)</a>");
+        }
+    }
+
+    /**
+     * The tail of redirects should be kept as metadata so implementors
+     * can know where documents came from.
+     */
+    class MultiRedirectsTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+
+            int maxRedirects = 5;
+            int count = NumberUtils.toInt(req.getParameter("count"), 0);
+            
+            if (count < maxRedirects) {
+                resp.sendRedirect(
+                        "/test?case=multiRedirects&count=" + (count + 1));
+                return;
+            }
+            out.println("<h1>Multi-redirects test page</h1>");
+            out.println("The URL was redirected " + maxRedirects + " times. "
+                    + "Was the redirect trail kept somehwere in your crawler?"
+                    + "<br>");
         }
     }
     

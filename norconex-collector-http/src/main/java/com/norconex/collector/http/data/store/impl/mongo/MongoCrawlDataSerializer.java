@@ -44,7 +44,9 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
 
     /** @since 2.6.0 */
     private static final String FIELD_REFERENCED_URLS = "referencedUrls";
-    
+    /** @since 2.8.0 */
+    private static final String FIELD_REDIRECT_TRAIL = "redirectTrail";
+
     @Override
     public Document toDocument(Stage stage, ICrawlData crawlData) {
         HttpCrawlData data = (HttpCrawlData) crawlData;
@@ -61,6 +63,10 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         if (ArrayUtils.isNotEmpty(data.getReferencedUrls())) {
             doc.put(FIELD_REFERENCED_URLS, 
                     Arrays.asList(data.getReferencedUrls()));
+        }
+        if (ArrayUtils.isNotEmpty(data.getRedirectTrail())) {
+            doc.put(FIELD_REDIRECT_TRAIL, 
+                    Arrays.asList(data.getRedirectTrail()));
         }
         return doc;
     }
@@ -101,6 +107,14 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
             data.setReferencedUrls(
                     dbRefUrls.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
+
+        @SuppressWarnings("unchecked")
+        List<String> dbRdrTrail = (List<String>) doc.get(FIELD_REDIRECT_TRAIL);
+        if (dbRdrTrail != null) {
+            data.setRedirectTrail(
+                    dbRdrTrail.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+        }
+        
         return data;
     }
 }

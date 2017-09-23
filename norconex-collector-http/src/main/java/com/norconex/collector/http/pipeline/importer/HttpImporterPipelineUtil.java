@@ -16,6 +16,7 @@ package com.norconex.collector.http.pipeline.importer;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -198,18 +199,18 @@ import com.norconex.commons.lang.file.ContentType;
             String redirectURL) {
         ICrawlDataStore store = ctx.getCrawlDataStore();
         HttpCrawlData crawlData = ctx.getCrawlData();            
-        String originalURL =  crawlData.getReference();
+        String sourceURL =  crawlData.getReference();
         
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?
         if (store.isActive(redirectURL)) {
-            rejectRedirectDup("being processed", originalURL, redirectURL);
+            rejectRedirectDup("being processed", sourceURL, redirectURL);
             return;
         } else if (store.isQueued(redirectURL)) {
-            rejectRedirectDup("queued", originalURL, redirectURL);
+            rejectRedirectDup("queued", sourceURL, redirectURL);
             return;
         } else if (store.isProcessed(redirectURL)) {
-            rejectRedirectDup("processed", originalURL, redirectURL);
+            rejectRedirectDup("processed", sourceURL, redirectURL);
             return;
         }
 
@@ -228,6 +229,8 @@ import com.norconex.commons.lang.file.ContentType;
         newData.setReferrerLinkTag(crawlData.getReferrerLinkTag());
         newData.setReferrerLinkText(crawlData.getReferrerLinkText());
         newData.setReferrerLinkTitle(crawlData.getReferrerLinkTitle());
+        newData.setRedirectTrail(
+                ArrayUtils.add(crawlData.getRedirectTrail(), sourceURL));
         if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
                 crawlData.getReference(), redirectURL)) {
             HttpQueuePipelineContext newContext = 

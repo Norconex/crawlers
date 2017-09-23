@@ -70,6 +70,7 @@ public abstract class AbstractHttpTest {
     @AfterClass
     public static void afterClass() throws Exception {
         SERVER.stop();
+//        tempFolder.delete();
         FileUtil.delete(tempFolder.getRoot());
     }
 

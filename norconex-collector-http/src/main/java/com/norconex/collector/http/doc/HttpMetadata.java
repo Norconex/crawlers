@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,9 @@ public class HttpMetadata extends CollectorMetadata {
             COLLECTOR_PREFIX + "referrer-link-text";
     public static final String COLLECTOR_REFERRER_LINK_TITLE = 
             COLLECTOR_PREFIX + "referrer-link-title";
+    /** @since 2.8.0 */
+    public static final String COLLECTOR_REDIRECT_TRAIL = 
+            COLLECTOR_PREFIX + "redirect-trail";
 
 	public HttpMetadata(String documentURL) {
 		super();

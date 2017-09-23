@@ -1,5 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
+- Have a pre import process that can save the main image from a page
+  with options to save on disk or as a base64 string field.
+  Offer the last option to the PhantomJS screenshot feature.
+
 - Make it possible to merge two or more docs.
 
 - Maybe add "stayOnDomainMaxSub" for how many subdomain level to support?

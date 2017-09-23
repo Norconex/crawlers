@@ -8,6 +8,10 @@
   <body>
 
     <release version="2.8.0-SNAPSHOT" date="2017-??-??" description="Maintenance release">
+      <action dev="essiembre" type="add" issue="397">
+        New metadata field "collector.redirect-trail" for storing all redirect
+        source URLs with the target URL metadata.
+      </action>
       <action dev="essiembre" type="add">
         GenericLinkExtractor can now limit link extraction to specified portion
         of text only. 

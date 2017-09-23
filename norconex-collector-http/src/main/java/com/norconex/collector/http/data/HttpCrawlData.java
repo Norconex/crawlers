@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.commons.lang.url.HttpURL;
 
-
 /**
  * A URL being crawled holding relevant crawl information.
  * @author Pascal Essiembre
@@ -48,6 +47,7 @@ public class HttpCrawlData extends BaseCrawlData {
     private String referrerLinkTitle;
     
     private String[] referencedUrls;
+    private String[] redirectTrail;
     
     /**
      * Constructor.
@@ -204,10 +204,27 @@ public class HttpCrawlData extends BaseCrawlData {
     /**
      * Sets URLs referenced by this one.
      * @param referencedUrls referenced URLs
-     * @since 2.6.0 URLs referenced by this one.
+     * @since 2.6.0
      */
     public void setReferencedUrls(String... referencedUrls) {
         this.referencedUrls = referencedUrls;
+    }
+
+    /**
+     * Gets the trail of URLs that were redirected up to this one.
+     * @return URL redirection trail to this one
+     * @since 2.8.0
+     */
+    public String[] getRedirectTrail() {
+        return redirectTrail;
+    }
+    /**
+     * Sets the trail of URLs that were redirected up to this one.
+     * @param redirectTrail URL redirection trail to this one
+     * @since 2.8.0
+     */
+    public void setRedirectTrail(String... redirectTrail) {
+        this.redirectTrail = redirectTrail;
     }
     
     @Override
@@ -228,6 +245,7 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append(referrerLinkTag, castOther.referrerLinkTag)
                 .append(referrerLinkTitle, castOther.referrerLinkTitle)
                 .append(referencedUrls, castOther.referencedUrls)
+                .append(redirectTrail, castOther.redirectTrail)
                 .isEquals();
     }
 
@@ -245,6 +263,7 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append(referrerLinkTag)
                 .append(referrerLinkTitle)
                 .append(referencedUrls)
+                .append(redirectTrail)
                 .toHashCode();
     }
 
@@ -262,6 +281,7 @@ public class HttpCrawlData extends BaseCrawlData {
                 .append("referrerLinkTag", referrerLinkTag)
                 .append("referrerLinkTitle", referrerLinkTitle)
                 .append("referencedUrls", referencedUrls)
+                .append("redirectTrail", redirectTrail)
                 .toString();
     }
 }

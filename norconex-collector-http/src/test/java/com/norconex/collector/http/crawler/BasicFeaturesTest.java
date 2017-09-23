@@ -84,6 +84,37 @@ public class BasicFeaturesTest extends AbstractHttpTest {
     }
     
     @Test
+    public void testMultiRedirects() throws IOException {
+        HttpCollector collector = newHttpCollector1Crawler(
+                "/test?case=multiRedirects");
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        crawler.getCrawlerConfig().setMaxDepth(0);
+        collector.start(false);
+        
+        List<HttpDocument> docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+
+        HttpDocument doc = docs.get(0);
+        String ref = doc.getReference();
+
+        List<String> trail = doc.getMetadata().getStrings(
+                HttpMetadata.COLLECTOR_REDIRECT_TRAIL);
+        System.out.println("Redirect source URLs:" + trail);
+        assertListSize("URL", trail, 5);
+
+        // Test the trail order:
+        Assert.assertFalse(trail.get(0).contains("count"));
+        Assert.assertTrue(trail.get(1).contains("count=1"));
+        Assert.assertTrue(trail.get(2).contains("count=2"));
+        Assert.assertTrue(trail.get(3).contains("count=3"));
+        Assert.assertTrue(trail.get(4).contains("count=4"));
+        
+        // Test final URL:
+        Assert.assertTrue(
+                "Invalid redirection URL: " + ref, ref.contains("count=5"));
+    }    
+    
+    @Test
     public void testBasicFeatures() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=basic&depth=0");

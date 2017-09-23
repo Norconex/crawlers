@@ -344,7 +344,11 @@ public class HttpCrawler extends AbstractCrawler {
         metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TITLE, 
                 httpData.getReferrerLinkTitle());
         
-        
+        // Add possible redirect trail 
+        if (ArrayUtils.isNotEmpty(httpData.getRedirectTrail())) {
+            metadata.setString(HttpMetadata.COLLECTOR_REDIRECT_TRAIL, 
+                    httpData.getRedirectTrail());
+        }
     }
     
     protected ImporterResponse executeImporterPipeline(
