@@ -40,7 +40,7 @@ import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.doc.IHttpDocumentProcessor;
+import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;

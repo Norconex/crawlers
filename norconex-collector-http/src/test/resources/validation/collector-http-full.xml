@@ -228,7 +228,19 @@
               onMatch="exclude" count="5" duplicate="false" separator="/" />
     </documentFilters>
     <preImportProcessors>
-      <processor class="com.norconex.collector.http.doc.MockHttpDocumentProcessor"/>
+      <processor class="com.norconex.collector.http.processor.impl.FeaturedImageProcessor">
+         <pageContentTypePattern>text/html</pageContentTypePattern>
+         <domSelector>dom dom</domSelector>
+         <minDimensions>425x312</minDimensions>
+         <largest>true</largest>
+         <imageCacheSize>1234</imageCacheSize>
+         <imageCacheDir>/some/path</imageCacheDir>
+         <storage>url, inline</storage>
+         <scaleDimensions>25</scaleDimensions>
+         <scaleStretch>true</scaleStretch>
+         <imageFormat>gif</imageFormat>
+         <storageDiskDir structure="datetime">/some/other/path</storageDiskDir>
+      </processor>      
     </preImportProcessors>
 
     <!-- Importer is purposely slim since the full config is tested in
@@ -252,7 +264,7 @@
       <sourceFields>field1,field2</sourceFields>
     </documentChecksummer>
     <postImportProcessors>
-      <processor class="com.norconex.collector.http.doc.MockHttpDocumentProcessor"/>
+      <processor class="com.norconex.collector.http.processor.impl.MockHttpDocumentProcessor"/>
     </postImportProcessors>    
     <spoiledReferenceStrategizer 
         class="com.norconex.collector.core.spoil.impl.GenericSpoiledReferenceStrategizer"

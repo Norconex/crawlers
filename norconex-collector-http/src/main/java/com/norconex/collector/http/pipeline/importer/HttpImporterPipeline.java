@@ -26,7 +26,7 @@ import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.delay.IDelayResolver;
-import com.norconex.collector.http.doc.IHttpDocumentProcessor;
+import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**

@@ -103,7 +103,7 @@ import com.norconex.importer.util.CharsetUtil;
  * By default, these content-types are considered HTML:
  * </p>
  * <pre>
- * text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
+ * text/html, application/xhtml+xml, application/vnd.wap.xhtml+xml, application/x-asp
  * </pre>
  * <p>
  * Those can be overwritten with {@link #setContentTypePattern(String)}.

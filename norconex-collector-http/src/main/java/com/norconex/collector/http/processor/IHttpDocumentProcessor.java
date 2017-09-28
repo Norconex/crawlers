@@ -12,16 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.doc;
+package com.norconex.collector.http.processor;
+
+import org.apache.http.client.HttpClient;
+
+import com.norconex.collector.http.doc.HttpDocument;
 
 /**
  * Custom processing (optional) performed on a document.  Can be used 
  * just before of after a document has been imported.  
  * @author Pascal Essiembre
- * @deprecated Since 2.8.0, use 
- * {@link com.norconex.collector.http.processor.IHttpDocumentProcessor}
+ * @since 2.8.0 (moved from "com.norconex.collector.http.doc" package)
  */
-@Deprecated
-public interface IHttpDocumentProcessor 
-        extends com.norconex.collector.http.processor.IHttpDocumentProcessor {
+public interface IHttpDocumentProcessor {
+
+	/**
+	 * Processes a document.
+	 * @param httpClient HTTP Client
+	 * @param doc the document
+	 */
+    void processDocument(HttpClient httpClient, HttpDocument doc);
 }
