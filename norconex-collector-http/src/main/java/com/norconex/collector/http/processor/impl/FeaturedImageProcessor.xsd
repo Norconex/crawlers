@@ -21,13 +21,7 @@
       <xs:all>
         <xs:element name="pageContentTypePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="domSelector" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="minDimensions" minOccurs="0" maxOccurs="1">
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:pattern value="(\d+)|(\d+[xX]\d+)" />
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
+        <xs:element name="minDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
         <xs:element name="largest" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="imageCacheSize" type="xs:int" minOccurs="0" maxOccurs="1"/>
         <xs:element name="imageCacheDir" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -38,13 +32,7 @@
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
-        <xs:element name="scaleDimensions" minOccurs="0" maxOccurs="1">
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:pattern value="(\d+)|(\d+[xX]\d+)" />
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
+        <xs:element name="scaleDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
         <xs:element name="scaleStretch" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="imageFormat" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="storageDiskDir">
@@ -54,6 +42,7 @@
                 <xs:attribute name="structure">
                   <xs:simpleType>
                     <xs:restriction base="xs:string">
+                      <xs:enumeration value=""/>
                       <xs:enumeration value="url2path"/>
                       <xs:enumeration value="date"/>
                       <xs:enumeration value="datetime"/>
@@ -68,5 +57,11 @@
       <xs:attribute name="class" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
+
+  <xs:simpleType name="dimension">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="((\d+)|(\d+[xX]\d+)){0,1}" />      
+    </xs:restriction>
+  </xs:simpleType>
 
 </xs:schema>
