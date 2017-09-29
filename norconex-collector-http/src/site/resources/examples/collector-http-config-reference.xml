@@ -182,6 +182,15 @@
          -->
     <orphansStrategy>PROCESS</orphansStrategy>
 
+    <!-- One or more fully qualified names of Java exceptions
+         that should force a crawler to stop when triggered during the 
+         processing of a document. 
+         Default is empty (will try to continue upon exceptions).
+         -->
+    <stopOnExceptions>
+        <exception>com.norconex.committer.core.CommitterException</exception>
+    </stopOnExceptions>
+
     <!-- One or more optional listeners to be notified on various crawling
          events (e.g. document rejected, document imported, etc). 
          Class must implement 

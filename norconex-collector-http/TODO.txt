@@ -1,8 +1,7 @@
 The following are either things to be done, or ideas to consider:
 
-- Have a pre import process that can save the main image from a page
-  with options to save on disk or as a base64 string field.
-  Offer the last option to the PhantomJS screenshot feature.
+- Offer the same image storing options to the PhantomJS screenshot 
+  feature (as the FeaturedImageProcessor).
 
 - Make it possible to merge two or more docs.
 
