@@ -15,8 +15,6 @@
 package com.norconex.collector.http.processor.impl;
 
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +41,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Method;
+import org.imgscalr.Scalr.Mode;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -157,13 +158,13 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     &lt;!-- Only applicable for "inline" storage: --&gt;
  *     &lt;storageInlineField&gt;
  *         (Overwrite default field where to store the inline image.
- *          Default is {@link #COLLECTOR_FEATURED_IMAGE_INLINE}.)
+ *          Default is {@value #COLLECTOR_FEATURED_IMAGE_INLINE}.)
  *     &lt;/storageInlineField&gt;
  *     
  *     &lt;!-- Only applicable for "url" storage: --&gt;
  *     &lt;storageUrlField&gt;
  *         (Overwrite default field where to store the image URL.
- *          Default is {@link #COLLECTOR_FEATURED_IMAGE_URL}.)
+ *          Default is {@value #COLLECTOR_FEATURED_IMAGE_URL}.)
  *     &lt;/storageUrlField&gt;
  *     
  *  &lt;/processor&gt;
@@ -489,32 +490,15 @@ public class FeaturedImageProcessor
             return new BufferedImage(1, 1, origImg.getType());
         }
         
-        double scaledWidth = scaleDimensions.getWidth();
-        double scaledHeight = scaleDimensions.getHeight();
+        int scaledWidth = (int) scaleDimensions.getWidth();
+        int scaledHeight = (int) scaleDimensions.getHeight();
         
-        if (!scaleStretch) {
-            double targetRatio = scaledWidth / scaledHeight;
-            double sourceRatio = 
-                    (double) origImg.getWidth() / origImg.getHeight();
-            if (sourceRatio >= targetRatio) {
-                scaledHeight = scaledWidth / sourceRatio;      
-            } else {
-                scaledWidth = scaledHeight * sourceRatio;      
-            } 
+        Mode mode = Mode.AUTOMATIC;
+        if (scaleStretch) {
+            mode = Mode.FIT_EXACT;
         }
-        
-        BufferedImage scaledImg = new BufferedImage(
-                    (int) scaledWidth, (int) scaledHeight, origImg.getType());
-        Graphics2D g = scaledImg.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
-                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, 
-                RenderingHints.VALUE_RENDER_QUALITY);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                RenderingHints.VALUE_ANTIALIAS_ON);            
-        g.drawImage(origImg, 0, 0, (int) scaledWidth, (int) scaledHeight, null);
-        g.dispose();
-        return scaledImg;
+        return Scalr.resize(origImg, Method.ULTRA_QUALITY, 
+                mode, scaledWidth, scaledHeight);
     }
     
     // make synchronized?

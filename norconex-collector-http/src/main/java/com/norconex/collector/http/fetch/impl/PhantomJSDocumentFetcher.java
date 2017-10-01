@@ -15,8 +15,6 @@
 package com.norconex.collector.http.fetch.impl;
 
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +47,9 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Method;
+import org.imgscalr.Scalr.Mode;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.CrawlState;
@@ -918,32 +919,15 @@ public class PhantomJSDocumentFetcher
             return origImg;
         }
 
-        double scaledWidth = screenshotScaleDimensions.getWidth();
-        double scaledHeight = screenshotScaleDimensions.getHeight();
+        int scaledWidth = (int) screenshotScaleDimensions.getWidth();
+        int scaledHeight = (int) screenshotScaleDimensions.getHeight();
         
-        if (!screenshotScaleStretch) {
-            double targetRatio = scaledWidth / scaledHeight;
-            double sourceRatio = 
-                    (double) origImg.getWidth() / origImg.getHeight();
-            if (sourceRatio >= targetRatio) {
-                scaledHeight = scaledWidth / sourceRatio;      
-            } else {
-                scaledWidth = scaledHeight * sourceRatio;      
-            } 
+        Mode mode = Mode.AUTOMATIC;
+        if (screenshotScaleStretch) {
+            mode = Mode.FIT_EXACT;
         }
-        
-        BufferedImage scaledImg = new BufferedImage(
-                    (int) scaledWidth, (int) scaledHeight, origImg.getType());
-        Graphics2D g = scaledImg.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
-                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, 
-                RenderingHints.VALUE_RENDER_QUALITY);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                RenderingHints.VALUE_ANTIALIAS_ON);            
-        g.drawImage(origImg, 0, 0, (int) scaledWidth, (int) scaledHeight, null);
-        g.dispose();
-        return scaledImg;
+        return Scalr.resize(origImg, Method.ULTRA_QUALITY, 
+                mode, scaledWidth, scaledHeight);
     }    
     
     private SystemCommand createPhantomJSCommand(
