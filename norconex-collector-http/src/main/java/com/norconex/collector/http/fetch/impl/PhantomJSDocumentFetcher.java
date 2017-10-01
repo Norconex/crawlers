@@ -733,7 +733,7 @@ public class PhantomJSDocumentFetcher
     /**
      * Sets the screenshot scaling quality to use when when storage
      * is "disk" or "inline".
-     * @scaleQuality quality
+     * @param screenshotScaleQuality quality
      * @since 2.8.0
      */
     public void setScreenshotScaleQuality(Quality screenshotScaleQuality) {
