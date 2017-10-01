@@ -22,7 +22,9 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.imageio.ImageIO;
@@ -241,6 +243,7 @@ public class FeaturedImageProcessor
     private String storageInlineField = COLLECTOR_FEATURED_IMAGE_INLINE;
     private String storageUrlField = COLLECTOR_FEATURED_IMAGE_URL;
     
+    private static final Map<String, ImageCache> IMG_CACHES = new HashMap<>();
     private boolean initialized;
     private ImageCache cache;
     
@@ -445,7 +448,12 @@ public class FeaturedImageProcessor
         if (initialized) {
             return;
         }
-        this.cache = new ImageCache(imageCacheSize, new File(imageCacheDir));
+        ImageCache imgCache = IMG_CACHES.get(imageCacheDir);
+        if (imgCache == null) {
+            imgCache = new ImageCache(imageCacheSize, new File(imageCacheDir));
+            IMG_CACHES.put(imageCacheDir, imgCache);
+        }
+        this.cache = imgCache;
         this.initialized = true;
     }
 
@@ -699,5 +707,5 @@ public class FeaturedImageProcessor
                 .append("storageInlineField", storageInlineField)
                 .append("storageUrlField", storageUrlField)
                 .toString();
-    }        
+    }
 }

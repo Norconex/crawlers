@@ -35,7 +35,7 @@
         <xs:element name="scaleDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
         <xs:element name="scaleStretch" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="imageFormat" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="storageDiskDir">
+        <xs:element name="storageDiskDir" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:simpleContent>
               <xs:extension base="xs:string">
