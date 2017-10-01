@@ -53,6 +53,9 @@
             </xs:simpleContent>
           </xs:complexType>
         </xs:element>
+        <xs:element name="storageDiskField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="storageInlineField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="storageUrlField" type="xs:string" minOccurs="0" maxOccurs="1"/>
       </xs:all>
       <xs:attribute name="class" type="xs:string" use="required"/>
     </xs:complexType>

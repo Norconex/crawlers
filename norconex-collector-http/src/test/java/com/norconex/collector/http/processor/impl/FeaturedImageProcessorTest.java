@@ -47,8 +47,11 @@ public class FeaturedImageProcessorTest {
         p.setStorage(Storage.URL, Storage.INLINE, Storage.DISK);
         p.setStorageDiskDir("c:\\someotherdir");
         p.setStorageDiskStructure(StorageDiskStructure.DATETIME);
+        p.setStorageDiskField("diskField");
+        p.setStorageInlineField("inlineField");
+        p.setStorageUrlField("urlField");
 
-        LOG.debug("Writing/Reading this: " + p);
+        LOG.info("Writing/Reading this: " + p);
         XMLConfigurationUtil.assertWriteRead(p);
         
         // Mostly empty
@@ -64,8 +67,11 @@ public class FeaturedImageProcessorTest {
         p.setStorage((Storage) null);
         p.setStorageDiskDir(null);
         p.setStorageDiskStructure(null);
+        p.setStorageDiskField(null);
+        p.setStorageInlineField(null);
+        p.setStorageUrlField(null);
 
-        LOG.debug("Writing/Reading this: " + p);
+        LOG.info("Writing/Reading this: " + p);
         XMLConfigurationUtil.assertWriteRead(p);
         
     }

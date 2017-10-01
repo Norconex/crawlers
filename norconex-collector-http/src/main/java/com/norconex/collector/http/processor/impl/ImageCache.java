@@ -34,16 +34,25 @@ import org.h2.mvstore.MVStore;
 
 import com.norconex.collector.core.data.store.CrawlDataStoreException;
 
+/**
+ * Caches images. This class should not be instantiated more than once
+ * for the same path. It is best to share the instance. 
+ * @author Pascal Essiembre
+ * @since 2.8.0
+ */
+//TODO consider managing MVStore instances within this class to avoid
+// file lock issues.
 public class ImageCache {
     
     private static final Logger LOG = LogManager.getLogger(ImageCache.class);    
     
     private final MVStore store;
     private final Map<String, String> lru;
+    private final File cacheDir;
     private MVMap<String, MVImage> imgCache;
     
     public ImageCache(int maxSize, File dir) {
-        
+        this.cacheDir = dir;
         try {
             FileUtils.forceMkdir(dir);
             LOG.debug("Image cache directory: " + dir);
@@ -72,6 +81,10 @@ public class ImageCache {
         this.store.commit();
     }
 
+    public File getCacheDirectory() {
+        return cacheDir;
+    }
+    
     public ScaledImage getImage(String ref) throws IOException {
         lru.put(ref, null);
         MVImage img = imgCache.get(ref);

@@ -12,6 +12,10 @@
         New FeaturedImageProcessor class to extract the "main" image from 
         a web page. 
       </action>
+      <action dev="essiembre" type="add">
+        New screenshot storage options for PhantomJSDocumentFetcher, like
+        specifying image format, store inline (base64), and exact size. 
+      </action>
       <action dev="essiembre" type="add" issue="397">
         New metadata field "collector.redirect-trail" for storing all redirect
         source URLs with the target URL metadata.

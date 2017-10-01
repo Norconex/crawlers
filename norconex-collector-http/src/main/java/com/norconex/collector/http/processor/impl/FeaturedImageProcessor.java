@@ -114,7 +114,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *         (Optional CSS-like path matching one or more image elements)
  *     &lt;/domSelector&gt;
  *     &lt;minDimensions&gt;
- *         (Minimum size for an image to be considered. Default is 400. 
+ *         (Minimum pixel size for an image to be considered. 
+ *          Default is 400x400). 
  *     &lt;/minDimensions&gt;
  *     &lt;largest&gt;[false|true]&lt;/largest&gt;
  *     
@@ -132,7 +133,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *
  *     &lt;!-- Only applicable for "inline" and "disk" storage: --&gt;
  *     &lt;scaleDimensions&gt;
- *         (Target size the main image should be scaled to. Default is 150.)
+ *         (Target pixel size the featured image should be scaled to. 
+ *          Default is 150x150.)
  *     &lt;/scaleDimensions&gt;
  *     &lt;scaleStretch&gt;
  *         [false|true]
@@ -147,6 +149,22 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     &lt;storageDiskDir structure="[url2path|date|datetime]"&gt;
  *         (Path to directory where to store images on disk.)
  *     &lt;/storageDiskDir&gt;
+ *     &lt;storageDiskField&gt;
+ *         (Overwrite default field where to store the image path.
+ *          Default is {@value #COLLECTOR_FEATURED_IMAGE_PATH}.)
+ *     &lt;/storageDiskField&gt;
+ *     
+ *     &lt;!-- Only applicable for "inline" storage: --&gt;
+ *     &lt;storageInlineField&gt;
+ *         (Overwrite default field where to store the inline image.
+ *          Default is {@link #COLLECTOR_FEATURED_IMAGE_INLINE}.)
+ *     &lt;/storageInlineField&gt;
+ *     
+ *     &lt;!-- Only applicable for "url" storage: --&gt;
+ *     &lt;storageUrlField&gt;
+ *         (Overwrite default field where to store the image URL.
+ *          Default is {@link #COLLECTOR_FEATURED_IMAGE_URL}.)
+ *     &lt;/storageUrlField&gt;
  *     
  *  &lt;/processor&gt;
  * </pre>
@@ -217,6 +235,10 @@ public class FeaturedImageProcessor
     private String storageDiskDir = DEFAULT_STORAGE_DISK_DIR;
     private StorageDiskStructure storageDiskStructure = 
             StorageDiskStructure.URL2PATH;
+    
+    private String storageDiskField = COLLECTOR_FEATURED_IMAGE_PATH;
+    private String storageInlineField = COLLECTOR_FEATURED_IMAGE_INLINE;
+    private String storageUrlField = COLLECTOR_FEATURED_IMAGE_URL;
     
     private boolean initialized;
     private ImageCache cache;
@@ -300,7 +322,24 @@ public class FeaturedImageProcessor
             StorageDiskStructure storageDiskStructure) {
         this.storageDiskStructure = storageDiskStructure;
     }
-    
+    public String getStorageDiskField() {
+        return storageDiskField;
+    }
+    public void setStorageDiskField(String storageDiskField) {
+        this.storageDiskField = storageDiskField;
+    }
+    public String getStorageInlineField() {
+        return storageInlineField;
+    }
+    public void setStorageInlineField(String storageInlineField) {
+        this.storageInlineField = storageInlineField;
+    }
+    public String getStorageUrlField() {
+        return storageUrlField;
+    }
+    public void setStorageUrlField(String storageUrlField) {
+        this.storageUrlField = storageUrlField;
+    }
     @Override
     public void processDocument(HttpClient httpClient, HttpDocument doc) {
         ensureInit();
@@ -337,12 +376,12 @@ public class FeaturedImageProcessor
     private void storeImage(ScaledImage img, HttpDocument doc)
             throws IOException {
         if (ArrayUtils.contains(storage, Storage.URL)) {
-            doc.getMetadata().addString(
-                    COLLECTOR_FEATURED_IMAGE_URL, img.getUrl());
+            doc.getMetadata().addString(Objects.toString(storageUrlField, 
+                    COLLECTOR_FEATURED_IMAGE_URL), img.getUrl());
         }
         if (ArrayUtils.contains(storage, Storage.INLINE)) {
-            doc.getMetadata().addString(
-                    COLLECTOR_FEATURED_IMAGE_INLINE, 
+            doc.getMetadata().addString(Objects.toString(storageInlineField,
+                    COLLECTOR_FEATURED_IMAGE_INLINE), 
                     img.toHTMLInlineString(imageFormat));
         }
         if (ArrayUtils.contains(storage, Storage.DISK)) {
@@ -362,8 +401,9 @@ public class FeaturedImageProcessor
                         + "." + imageFormat);
             }
             ImageIO.write(img.getImage(), imageFormat, imageFile);
-            doc.getMetadata().addString(
-                    COLLECTOR_FEATURED_IMAGE_PATH, imageFile.getAbsolutePath());
+            doc.getMetadata().addString(Objects.toString(
+                    storageDiskField, COLLECTOR_FEATURED_IMAGE_PATH),
+                    imageFile.getAbsolutePath());
         }
     }
     
@@ -405,6 +445,7 @@ public class FeaturedImageProcessor
             return;
         }
         this.cache = new ImageCache(imageCacheSize, new File(imageCacheDir));
+        this.initialized = true;
     }
 
     private ScaledImage getImage(HttpClient httpClient, String url) {
@@ -541,6 +582,13 @@ public class FeaturedImageProcessor
                 setStorageDiskStructure((StorageDiskStructure) null);
             }
         }
+        
+        setStorageDiskField(XMLConfigurationUtil.getNullableString(
+                xml, "storageDiskField", getStorageDiskField()));
+        setStorageInlineField(XMLConfigurationUtil.getNullableString(
+                xml, "storageInlineField", getStorageInlineField()));
+        setStorageUrlField(XMLConfigurationUtil.getNullableString(
+                xml, "storageUrlField", getStorageUrlField()));
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
@@ -586,6 +634,13 @@ public class FeaturedImageProcessor
                     StringUtils.trimToEmpty(getStorageDiskDir()));
             writer.writeEndElement();
             
+            writer.writeElementString(
+                    "storageDiskField", getStorageDiskField(), true);
+            writer.writeElementString(
+                    "storageInlineField", getStorageInlineField(), true);
+            writer.writeElementString(
+                    "storageUrlField", getStorageUrlField(), true);
+            
             writer.writeEndElement();
             writer.flush();
             writer.close();
@@ -614,6 +669,9 @@ public class FeaturedImageProcessor
                 .append(storage, castOther.storage)
                 .append(storageDiskDir, castOther.storageDiskDir)
                 .append(storageDiskStructure, castOther.storageDiskStructure)
+                .append(storageDiskField, castOther.storageDiskField)
+                .append(storageInlineField, castOther.storageInlineField)
+                .append(storageUrlField, castOther.storageUrlField)
                 .isEquals();
     }
 
@@ -632,6 +690,9 @@ public class FeaturedImageProcessor
                 .append(storage)
                 .append(storageDiskDir)
                 .append(storageDiskStructure)
+                .append(storageDiskField)
+                .append(storageInlineField)
+                .append(storageUrlField)
                 .toHashCode();
     }
 
@@ -650,6 +711,9 @@ public class FeaturedImageProcessor
                 .append("storage", storage)
                 .append("storageDiskDir", storageDiskDir)
                 .append("storageDiskStructure", storageDiskStructure)
+                .append("storageDiskField", storageDiskField)
+                .append("storageInlineField", storageInlineField)
+                .append("storageUrlField", storageUrlField)
                 .toString();
     }        
 }

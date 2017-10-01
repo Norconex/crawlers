@@ -22,6 +22,8 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.xml.bind.DatatypeConverter;
 
+//TODO move as part of importer along with utility methods, and create 
+//handler(s) to convert images
 public class ScaledImage {
     private String url;
     private final Dimension originalSize;

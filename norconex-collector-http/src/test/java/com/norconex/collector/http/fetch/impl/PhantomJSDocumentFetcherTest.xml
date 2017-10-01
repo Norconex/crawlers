@@ -27,11 +27,19 @@
       </options>
       <referencePattern>.*\.html</referencePattern>      
       <contentTypePattern>text/html</contentTypePattern>      
-      <screenshotDir>/path/screenshots/</screenshotDir>
-      <screenshotDimensions>800x600</screenshotDimensions>
-      <screenshotZoomFactor>0.25</screenshotZoomFactor>
       <validStatusCodes>200,123</validStatusCodes>
       <notFoundStatusCodes>404,456</notFoundStatusCodes>
       <headersPrefix>prefix</headersPrefix>
       <resourceTimeout>2000</resourceTimeout>
+      
+      <screenshotDimensions>800x600</screenshotDimensions>
+      <screenshotZoomFactor>0.25</screenshotZoomFactor>
+      <screenshotScaleDimensions>125</screenshotScaleDimensions>
+      <screenshotScaleStretch>true</screenshotScaleStretch>
+      <screenshotImageFormat>jpg</screenshotImageFormat>
+      <screenshotStorage>disk,inline</screenshotStorage>
+      <screenshotStorageDiskDir structure="date">/path/screenshots/</screenshotStorageDiskDir>
+      <screenshotStorageDiskField>my-disk-field</screenshotStorageDiskField>
+      <screenshotStorageInlineField>my-inline-field</screenshotStorageInlineField>      
   </documentFetcher>
+  
