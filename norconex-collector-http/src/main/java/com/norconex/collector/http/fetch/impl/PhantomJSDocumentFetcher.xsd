@@ -39,6 +39,26 @@
         <xs:element name="screenshotZoomFactor" type="xs:float" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotScaleDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotScaleStretch" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="screenshotScaleQuality" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute name="structure">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value=""/>
+                      <xs:enumeration value="auto"/>
+                      <xs:enumeration value="low"/>
+                      <xs:enumeration value="medium"/>
+                      <xs:enumeration value="high"/>
+                      <xs:enumeration value="max"/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:attribute>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
         <xs:element name="screenshotImageFormat" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotStorage" minOccurs="0" maxOccurs="1">
           <xs:simpleType>

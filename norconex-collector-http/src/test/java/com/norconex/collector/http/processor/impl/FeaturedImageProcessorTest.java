@@ -21,6 +21,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import com.norconex.collector.http.processor.impl.FeaturedImageProcessor.Quality;
 import com.norconex.collector.http.processor.impl.FeaturedImageProcessor.Storage;
 import com.norconex.collector.http.processor.impl.FeaturedImageProcessor.StorageDiskStructure;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
@@ -42,6 +43,7 @@ public class FeaturedImageProcessorTest {
         p.setLargest(true);
         p.setMinDimensions(new Dimension(100, 400));
         p.setPageContentTypePattern("text/html");
+        p.setScaleQuality(Quality.LOW);
         p.setScaleDimensions(new Dimension(50, 50));
         p.setScaleStretch(true);
         p.setStorage(Storage.URL, Storage.INLINE, Storage.DISK);
@@ -62,6 +64,7 @@ public class FeaturedImageProcessorTest {
         p.setLargest(false);
         p.setMinDimensions(null);
         p.setPageContentTypePattern(null);
+        p.setScaleQuality(null);
         p.setScaleDimensions(null);
         p.setScaleStretch(false);
         p.setStorage((Storage) null);

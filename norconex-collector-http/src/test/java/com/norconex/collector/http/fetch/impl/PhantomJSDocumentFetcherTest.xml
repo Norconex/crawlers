@@ -34,6 +34,7 @@
       
       <screenshotDimensions>800x600</screenshotDimensions>
       <screenshotZoomFactor>0.25</screenshotZoomFactor>
+      <screenshotScaleQuality>medium</screenshotScaleQuality>      
       <screenshotScaleDimensions>125</screenshotScaleDimensions>
       <screenshotScaleStretch>true</screenshotScaleStretch>
       <screenshotImageFormat>jpg</screenshotImageFormat>

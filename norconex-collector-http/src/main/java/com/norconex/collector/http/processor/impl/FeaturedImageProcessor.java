@@ -143,6 +143,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *         [false|true]
  *         (Whether to stretch to match scale size. Default keeps aspect ratio.)
  *     &lt;/scaleStretch&gt;
+ *     &lt;scaleQuality&gt;
+ *         [auto|low|medium|high|max]
+ *         (Default is "auto", which tries the best balance between quality 
+ *          and speed based on image size. The lower the quality the faster
+ *          it is to scale images.)
+ *     &lt;/scaleQuality&gt;
  *     &lt;imageFormat&gt;
  *         (Target format of stored image. E.g., "jpg", "png", "gif", "bmp", ...
  *          Default is "png")
@@ -180,7 +186,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <p>
  * The following extracts the first image being 300x400 or larger, scaling
  * it down to be 50x50 and storing it as an inline JPEG in a document field, 
- * preserving aspect ratio.
+ * preserving aspect ratio and using the best quality possible.
  * </p>
  * <pre>
  *  &lt;preImportProcessors&gt;
@@ -188,6 +194,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;minDimensions&gt;300x400&lt;/minDimensions&gt;
  *      &lt;scaleDimensions&gt;50&lt;/scaleDimensions&gt;
  *      &lt;imageFormat&gt;jpg&lt;/imageFormat&gt;
+ *      &lt;scaleQuality&gt;max&lt;/scaleQuality&gt;      
  *      &lt;storage&gt;inline&lt;/storage&gt;
  *    &lt;/processor&gt;
  *  &lt;/preImportProcessors&gt;
@@ -223,7 +230,17 @@ public class FeaturedImageProcessor
 
     public enum Storage { URL, INLINE, DISK }
     public enum StorageDiskStructure { URL2PATH, DATE, DATETIME }
-    
+    public enum Quality {
+        AUTO(Method.AUTOMATIC), 
+        LOW(Method.SPEED), 
+        MEDIUM(Method.BALANCED), 
+        HIGH(Method.QUALITY), 
+        MAX(Method.ULTRA_QUALITY);
+        private Method scalrMethod;
+        private Quality(Method scalrMethod) {
+            this.scalrMethod = scalrMethod;
+        }
+    }
     
     private String pageContentTypePattern = DEFAULT_PAGE_CONTENT_TYPE_PATTERN;
     private String domSelector;
@@ -238,6 +255,7 @@ public class FeaturedImageProcessor
     private String storageDiskDir = DEFAULT_STORAGE_DISK_DIR;
     private StorageDiskStructure storageDiskStructure = 
             StorageDiskStructure.URL2PATH;
+    private Quality scaleQuality = Quality.AUTO;
     
     private String storageDiskField = COLLECTOR_FEATURED_IMAGE_PATH;
     private String storageInlineField = COLLECTOR_FEATURED_IMAGE_INLINE;
@@ -343,6 +361,12 @@ public class FeaturedImageProcessor
     }
     public void setStorageUrlField(String storageUrlField) {
         this.storageUrlField = storageUrlField;
+    }
+    public Quality getScaleQuality() {
+        return scaleQuality;
+    }
+    public void setScaleQuality(Quality scaleQuality) {
+        this.scaleQuality = scaleQuality;
     }
     @Override
     public void processDocument(HttpClient httpClient, HttpDocument doc) {
@@ -505,8 +529,11 @@ public class FeaturedImageProcessor
         if (scaleStretch) {
             mode = Mode.FIT_EXACT;
         }
-        return Scalr.resize(origImg, Method.ULTRA_QUALITY, 
-                mode, scaledWidth, scaledHeight);
+        Method method = Method.AUTOMATIC;
+        if (scaleQuality != null) {
+            method = scaleQuality.scalrMethod;
+        }
+        return Scalr.resize(origImg, method, mode, scaledWidth, scaledHeight);
     }
     
     // make synchronized?
@@ -545,6 +572,15 @@ public class FeaturedImageProcessor
         setImageCacheDir(XMLConfigurationUtil.getNullableString(
                 xml, "imageCacheDir", getImageCacheDir()));
         setLargest(xml.getBoolean("largest", isLargest()));
+        
+        if (xml.containsKey("scaleQuality")) {
+            String xmlQuality = xml.getString("scaleQuality", null);
+            if (StringUtils.isNotBlank(xmlQuality)) {
+                setScaleQuality(Quality.valueOf(xmlQuality.toUpperCase()));
+            } else {
+                setScaleQuality((Quality) null);
+            }
+        }
 
         if (xml.containsKey("storage")) {
             String[] xmlStorages = 
@@ -602,6 +638,8 @@ public class FeaturedImageProcessor
             writer.writeElementString(
                     "imageCacheDir", getImageCacheDir(), true);
             writer.writeElementBoolean("largest", isLargest());
+            writer.writeElementString("scaleQuality", getScaleQuality() != null 
+                    ? getScaleQuality().toString().toLowerCase() : null, true);
             
             Storage[] storages = getStorage();
             if (ArrayUtils.isNotEmpty(storages)) {
@@ -664,6 +702,7 @@ public class FeaturedImageProcessor
                 .append(storageDiskField, castOther.storageDiskField)
                 .append(storageInlineField, castOther.storageInlineField)
                 .append(storageUrlField, castOther.storageUrlField)
+                .append(scaleQuality, castOther.scaleQuality)
                 .isEquals();
     }
 
@@ -685,6 +724,7 @@ public class FeaturedImageProcessor
                 .append(storageDiskField)
                 .append(storageInlineField)
                 .append(storageUrlField)
+                .append(scaleQuality)
                 .toHashCode();
     }
 
@@ -706,6 +746,7 @@ public class FeaturedImageProcessor
                 .append("storageDiskField", storageDiskField)
                 .append("storageInlineField", storageInlineField)
                 .append("storageUrlField", storageUrlField)
+                .append("scaleQuality", scaleQuality)
                 .toString();
     }
 }

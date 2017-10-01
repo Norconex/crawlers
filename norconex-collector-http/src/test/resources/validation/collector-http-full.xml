@@ -236,6 +236,7 @@
          <imageCacheSize>1234</imageCacheSize>
          <imageCacheDir>/some/path</imageCacheDir>
          <storage>url, inline</storage>
+         <scaleQuality>medium</scaleQuality>
          <scaleDimensions>25</scaleDimensions>
          <scaleStretch>true</scaleStretch>
          <imageFormat>gif</imageFormat>

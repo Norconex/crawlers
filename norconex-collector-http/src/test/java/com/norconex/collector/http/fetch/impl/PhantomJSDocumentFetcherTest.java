@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import com.norconex.collector.http.TestUtil;
+import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.Quality;
 import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.Storage;
 import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.StorageDiskStructure;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
@@ -48,6 +49,7 @@ public class PhantomJSDocumentFetcherTest  {
         f.setScreenshotEnabled(true);
         f.setScreenshotDimensions(30, 40);
         f.setScreenshotImageFormat("gif");
+        f.setScreenshotScaleQuality(Quality.HIGH);
         f.setScreenshotScaleDimensions(666, 666);
         f.setScreenshotScaleStretch(true);
         f.setScreenshotStorage(Storage.values());

@@ -255,6 +255,12 @@ import com.norconex.importer.util.CharsetUtil;
  *         [false|true]
  *         (Whether to stretch to match scale size. Default keeps aspect ratio.)
  *      &lt;/screenshotScaleStretch&gt;
+ *      &lt;screenshotScaleQuality&gt;
+ *          [auto|low|medium|high|max]
+ *          (Default is "auto", which tries the best balance between quality 
+ *           and speed based on image size. The lower the quality the faster
+ *           it is to scale images.)
+ *      &lt;/screenshotScaleQuality&gt;
  *      &lt;screenshotImageFormat&gt;
  *         (Target format of stored image. E.g., "jpg", "png", "gif", "bmp", ...
  *          Default is "png")
@@ -330,7 +336,18 @@ public class PhantomJSDocumentFetcher
 
     public enum Storage { INLINE, DISK }
     public enum StorageDiskStructure { URL2PATH, DATE, DATETIME }
-
+    public enum Quality {
+        AUTO(Method.AUTOMATIC), 
+        LOW(Method.SPEED), 
+        MEDIUM(Method.BALANCED), 
+        HIGH(Method.QUALITY), 
+        MAX(Method.ULTRA_QUALITY);
+        private Method scalrMethod;
+        private Quality(Method scalrMethod) {
+            this.scalrMethod = scalrMethod;
+        }
+    }
+    
     public static final String DEFAULT_SCRIPT_PATH = "scripts/phantom.js";
     public static final int DEFAULT_RENDER_WAIT_TIME = 3000;
     public static final float DEFAULT_SCREENSHOT_ZOOM_FACTOR = 1.0f;
@@ -392,6 +409,8 @@ public class PhantomJSDocumentFetcher
             new Storage[] { DEFAULT_SCREENSHOT_STORAGE };
     private StorageDiskStructure screenshotStorageDiskStructure = 
             StorageDiskStructure.DATETIME;
+    private Quality screenshotScaleQuality = Quality.AUTO;
+    
     private boolean initialized;
     
     public PhantomJSDocumentFetcher() {
@@ -701,6 +720,25 @@ public class PhantomJSDocumentFetcher
             StorageDiskStructure screenshotStorageDiskStructure) {
         this.screenshotStorageDiskStructure = screenshotStorageDiskStructure;
     }
+    /**
+     * Gets the screenshot scaling quality to use when when storage
+     * is "disk" or "inline".
+     * Default is {@link Quality#AUTO}
+     * @return quality
+     * @since 2.8.0
+     */
+    public Quality getScreenshotScaleQuality() {
+        return screenshotScaleQuality;
+    }
+    /**
+     * Sets the screenshot scaling quality to use when when storage
+     * is "disk" or "inline".
+     * @scaleQuality quality
+     * @since 2.8.0
+     */
+    public void setScreenshotScaleQuality(Quality screenshotScaleQuality) {
+        this.screenshotScaleQuality = screenshotScaleQuality;
+    }
     @Override
 	public HttpFetchResponse fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
@@ -926,8 +964,11 @@ public class PhantomJSDocumentFetcher
         if (screenshotScaleStretch) {
             mode = Mode.FIT_EXACT;
         }
-        return Scalr.resize(origImg, Method.ULTRA_QUALITY, 
-                mode, scaledWidth, scaledHeight);
+        Method method = Method.AUTOMATIC;
+        if (screenshotScaleQuality != null) {
+            method = screenshotScaleQuality.scalrMethod;
+        }        
+        return Scalr.resize(origImg, method, mode, scaledWidth, scaledHeight);
     }    
     
     private SystemCommand createPhantomJSCommand(
@@ -1098,6 +1139,15 @@ public class PhantomJSDocumentFetcher
         // Screenshots
         setScreenshotEnabled(xml.getBoolean(
                 "[@screenshotEnabled]", isScreenshotEnabled()));
+
+        if (xml.containsKey("screenshotScaleQuality")) {
+            String xmlQuality = xml.getString("screenshotScaleQuality", null);
+            if (StringUtils.isNotBlank(xmlQuality)) {
+                setScreenshotScaleQuality(Quality.valueOf(xmlQuality.toUpperCase()));
+            } else {
+                setScreenshotScaleQuality((Quality) null);
+            }
+        }
         
         if (xml.containsKey("screenshotStorage")) {
             String[] xmlStorages = XMLConfigurationUtil.getCSVStringArray(
@@ -1183,6 +1233,10 @@ public class PhantomJSDocumentFetcher
             writer.writeElementString("contentTypePattern", contentTypePattern);
 
             // Screenshots
+            writer.writeElementString("screenshotScaleQuality", 
+                    getScreenshotScaleQuality() != null 
+                    ? getScreenshotScaleQuality().toString().toLowerCase() 
+                    : null, true);
             writer.writeElementDimension("screenshotScaleDimensions", 
                     getScreenshotScaleDimensions(), true);
             writer.writeElementString(
@@ -1267,6 +1321,8 @@ public class PhantomJSDocumentFetcher
                 .append(screenshotStorage, castOther.screenshotStorage)
                 .append(screenshotStorageDiskStructure, 
                         castOther.screenshotStorageDiskStructure)
+                .append(screenshotScaleQuality, 
+                        castOther.screenshotScaleQuality)
                 .isEquals();
     }
 
@@ -1296,6 +1352,7 @@ public class PhantomJSDocumentFetcher
                 .append(screenshotImageFormat)
                 .append(screenshotStorage)
                 .append(screenshotStorageDiskStructure)
+                .append(screenshotScaleQuality)
                 .toHashCode();
     }
 
@@ -1328,6 +1385,7 @@ public class PhantomJSDocumentFetcher
                 .append("screenshotStorage", screenshotStorage)
                 .append("screenshotStorageDiskStructure", 
                         screenshotStorageDiskStructure)
+                .append("screenshotScaleQuality", screenshotScaleQuality)
                 .toString();
     }    
 
