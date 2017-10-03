@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.http.fetch.impl;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -63,6 +64,7 @@ import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.processor.impl.ScaledImage;
 import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
+import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
@@ -968,7 +970,22 @@ public class PhantomJSDocumentFetcher
         if (screenshotScaleQuality != null) {
             method = screenshotScaleQuality.scalrMethod;
         }        
-        return Scalr.resize(origImg, method, mode, scaledWidth, scaledHeight);
+        BufferedImage newImg = 
+                Scalr.resize(origImg, method, mode, scaledWidth, scaledHeight);
+
+        // Remove alpha layer for formats not supporting it. This prevents
+        // some files from having a colored background (instead of transparency)
+        // or to not be saved properly (e.g. png to bmp).
+        if (EqualsUtil.equalsNoneIgnoreCase(
+                screenshotImageFormat, "png", "gif")) {
+            BufferedImage fixedImg = new BufferedImage(
+                    newImg.getWidth(), newImg.getHeight(), 
+                    BufferedImage.TYPE_INT_RGB);
+            fixedImg.createGraphics().drawImage(
+                    newImg, 0, 0, Color.WHITE, null);
+            newImg = fixedImg;
+        }
+        return newImg;
     }    
     
     private SystemCommand createPhantomJSCommand(
