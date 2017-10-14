@@ -79,6 +79,10 @@
         Fixed invalid validation error for "tempDir" element on 
         StandardSitemapResolverFactory.
       </action>
+      <action dev="essiembre" type="fix" issue="408">
+        Fixed PhantomJSDocumentFetcher sometimes throwing a 
+        NullPointerException when content-type could not be established.
+      </action>
       <action dev="essiembre" type="remove">
         Removed these deprecated classes: HtmlLinkExtractor, 
         HttpMetadataChecksummer, and deprecated methods: 

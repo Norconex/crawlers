@@ -1106,10 +1106,10 @@ public class PhantomJSDocumentFetcher
         return Pattern.matches(referencePattern, Objects.toString(url, ""));
     }
     private boolean isHTMLByContentType(String contentType) {
-        String cleanContentType = StringUtils.substringBefore(
-                contentType, ";").trim();
+        String cleanContentType = StringUtils.trimToEmpty(
+                StringUtils.substringBefore(contentType, ";"));
         return Pattern.matches(
-                contentTypePattern, Objects.toString(cleanContentType, ""));
+                contentTypePattern, cleanContentType);
     }
     private String getContentType(HttpDocument doc) {
         String ct = Objects.toString(doc.getContentType(), null);
