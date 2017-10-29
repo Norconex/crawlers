@@ -125,7 +125,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     &lt;largest&gt;[false|true]&lt;/largest&gt;
  *     
  *     &lt;imageCacheSize&gt;
- *         (Maximum number of images to cache for faster processing)
+ *         (Maximum number of images to cache for faster processing.
+ *          Set to 0 to disable caching.)
  *     &lt;/imageCacheSize&gt;
  *     &lt;imageCacheDir&gt;
  *         (Directory where to create the image cache)
@@ -474,18 +475,24 @@ public class FeaturedImageProcessor
         if (initialized) {
             return;
         }
-        ImageCache imgCache = IMG_CACHES.get(imageCacheDir);
-        if (imgCache == null) {
-            imgCache = new ImageCache(imageCacheSize, new File(imageCacheDir));
-            IMG_CACHES.put(imageCacheDir, imgCache);
+        if (imageCacheSize != 0) {
+            ImageCache imgCache = IMG_CACHES.get(imageCacheDir);
+            if (imgCache == null) {
+                imgCache = new ImageCache(
+                        imageCacheSize, new File(imageCacheDir));
+                IMG_CACHES.put(imageCacheDir, imgCache);
+            }
+            this.cache = imgCache;
         }
-        this.cache = imgCache;
         this.initialized = true;
     }
 
     private ScaledImage getImage(HttpClient httpClient, String url) {
         try {
-            ScaledImage img = cache.getImage(url);
+            ScaledImage img = null;
+            if (cache != null) {
+                img = cache.getImage(url);
+            }
             if (img == null) {
                 BufferedImage bi = fetchImage(httpClient, url);
                 if (bi == null) {
@@ -496,7 +503,9 @@ public class FeaturedImageProcessor
                 bi = scale(bi);
                 
                 img = new ScaledImage(url, dim, bi);
-                cache.setImage(img);
+                if (cache != null) {
+                    cache.setImage(img);
+                }
             }
             return img;
         } catch (Exception e) {

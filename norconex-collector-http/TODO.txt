@@ -1,7 +1,6 @@
 The following are either things to be done, or ideas to consider:
 
-- Offer the same image storing options to the PhantomJS screenshot 
-  feature (as the FeaturedImageProcessor).
+- Image cache gives issues with multiple crawlers using the same path, fix this.
 
 - Make it possible to merge two or more docs.
 
