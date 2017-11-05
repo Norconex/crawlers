@@ -234,7 +234,7 @@ import com.norconex.commons.lang.file.ContentType;
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Redirect URL encountered a second time, re-queue it "
                         + "again (once) in case it came from a circular "
-                        + "reference.");
+                        + "reference: " + redirectURL);
             }
         }
 
