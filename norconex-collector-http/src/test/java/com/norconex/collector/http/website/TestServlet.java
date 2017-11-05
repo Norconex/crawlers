@@ -30,20 +30,23 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.text.StrSubstitutor;
 import org.apache.http.HttpStatus;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.map.Properties;
 
 /**
  * @author Pascal Essiembre
- *
  */
 public class TestServlet extends HttpServlet {
 
     private static final long serialVersionUID = -4252570491708918968L;
-
+    private static final Logger LOG = LogManager.getLogger(TestServlet.class);
+    
     private final Map<String, ITestCase> testCases = new HashMap<>();
     
     private final List<String> tokens = new ArrayList<String>();
@@ -61,6 +64,7 @@ public class TestServlet extends HttpServlet {
         testCases.put("deletedFiles", new DeletedFilesTestCase());
         testCases.put("modifiedFiles", new ModifiedFilesTestCase());
         testCases.put("canonical", new CanonicalTestCase());
+        testCases.put("canonRedirLoop", new CanonicalRedirectLoopTestCase());
         testCases.put("specialURLs", new SpecialURLTestCase());
         testCases.put("script", new ScriptTestCase());
         testCases.put("zeroLength", new ZeroLengthTestCase());
@@ -347,6 +351,42 @@ public class TestServlet extends HttpServlet {
             );
         }
     }
+    
+    // Canonical points to a page that redirects back to canonical    
+    class CanonicalRedirectLoopTestCase extends HtmlTestCase {
+        private final MutableInt count = new MutableInt();
+        
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            
+            if (count.intValue() == 10) {
+                resp.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        "Too many canonicals + redirects (loop).");
+                count.setValue(0);
+                return;
+            }
+            
+            count.increment();
+            String type = req.getParameter("type");
+            String baseURL = "http://localhost:" + req.getLocalPort() 
+                    + "/test?case=canonRedirLoop";
+            
+            if ("canonical".equals(type)) {
+LOG.warn(">>> Canonical requested, which points to redirect.");
+                resp.setHeader("Link", 
+                        "<" + baseURL + "&type=redirect>; rel=\"canonical\"");
+                out.println("<h1>Canonical-redirect circular reference.</h1>"
+                        + "<p>This page has a canonical URL in the HTTP header "
+                        + "that points to a page that redirects back to this "
+                        + "one (loop). The crawler should be smart enough "
+                        + "to pick one and not enter in an infite loop.</p>");
+            } else {
+LOG.warn(">>> Redirect requested, which points to canonical.");
+                resp.sendRedirect(baseURL + "&type=canonical");
+            }
+        }
+    }    
+    
     
     class SpecialURLTestCase extends HtmlTestCase {
         public void doTestCase(HttpServletRequest req, 

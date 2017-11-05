@@ -16,6 +16,10 @@
         New screenshot storage options for PhantomJSDocumentFetcher, like
         specifying image format, store inline (base64), and exact size. 
       </action>
+      <action dev="essiembre" type="add">
+        New "authFormParams" option for adding arbitrary parameter to 
+        authentication forms. 
+      </action>
       <action dev="essiembre" type="add" issue="397">
         New metadata field "collector.redirect-trail" for storing all redirect
         source URLs with the target URL metadata.
@@ -35,9 +39,19 @@
         New "resourceTimeout" option on PhantomJSDocumentFetcher to prevent
         individual page items to hang PhantomJS for a long time.
       </action>
+      <action dev="essiembre" type="update" issue="162">
+        Now handles circular references between a non-canonical page pointing
+        to a URL redirecting back to that non-canonical page.  When this loop
+        is encountered, it will now process the non-canonical page 
+        (used to reject both).
+      </action>
       <action dev="essiembre" type="update">
         *.http.doc.IHttpDocumentProcessor now deprecated in favor of
         *.http.processor.IHttpDocumentProcessor.
+      </action>
+      <action dev="essiembre" type="update">
+        Crawler event REJECTED_CANONICAL now deprecated in favor of
+        REJECTED_NONCANONICAL.
       </action>
       <action dev="essiembre" type="update">
         RegexLinkExtractor now supports replacement values for regex matches.

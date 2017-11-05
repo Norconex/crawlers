@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.http.crawler;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +26,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,6 +49,9 @@ import com.norconex.importer.doc.ImporterMetadata;
  */
 public class BasicFeaturesTest extends AbstractHttpTest {
 
+    private static final Logger LOG = 
+            LogManager.getLogger(BasicFeaturesTest.class);
+    
     /**
      * Constructor.
      */
@@ -67,7 +74,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
 
         List<String> urls = 
                 doc.getMetadata().getStrings(HttpMetadata.COLLECTOR_URL);
-        System.out.println("URLs:" + urls);
+        LOG.debug("URLs:" + urls);
         assertListSize("URL", urls, 1);
 
         Assert.assertTrue("Invalid redirection URL: " + ref,
@@ -99,7 +106,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
 
         List<String> trail = doc.getMetadata().getStrings(
                 HttpMetadata.COLLECTOR_REDIRECT_TRAIL);
-        System.out.println("Redirect source URLs:" + trail);
+        LOG.debug("Redirect source URLs:" + trail);
         assertListSize("URL", trail, 5);
 
         // Test the trail order:
@@ -112,7 +119,57 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         // Test final URL:
         Assert.assertTrue(
                 "Invalid redirection URL: " + ref, ref.contains("count=5"));
-    }    
+    }
+    
+    @Test
+    public void testCanonicalRedirectLoop() throws IOException {
+
+        HttpCollector collector = null;
+        HttpCrawler crawler = null;
+        List<HttpDocument> docs = null;
+        HttpDocument doc = null;
+        String content = null;
+        
+        //--- Starting with canonical ---
+        collector = newHttpCollector1Crawler(
+                "/test?case=canonRedirLoop&type=canonical");
+        crawler = (HttpCrawler) collector.getCrawlers()[0];
+        collector.start(false);
+        
+        docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+
+        doc = docs.get(0);
+        content = IOUtils.toString(doc.getContent(), StandardCharsets.UTF_8);
+        assertTrue("Wrong content", 
+                content.contains("Canonical-redirect circular reference"));
+        assertTrue("Wrong reference", 
+                doc.getReference().contains("&type=canonical"));
+        
+LOG.warn("FINAL REF: " + doc.getReference());
+LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
+        HttpMetadata.COLLECTOR_REDIRECT_TRAIL));
+        
+        //-- Starting with redirect ---
+        collector = newHttpCollector1Crawler(
+                "/test?case=canonRedirLoop&type=redirect");
+        crawler = (HttpCrawler) collector.getCrawlers()[0];
+        collector.start(false);
+        
+        docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+        
+        doc = docs.get(0);
+        content = IOUtils.toString(doc.getContent(), StandardCharsets.UTF_8);
+        assertTrue("Wrong content", 
+                content.contains("Canonical-redirect circular reference"));
+        assertTrue("Wrong reference", 
+                doc.getReference().contains("&type=canonical"));
+        
+        LOG.warn("FINAL REF: " + doc.getReference());
+        LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
+        HttpMetadata.COLLECTOR_REDIRECT_TRAIL));
+    }       
     
     @Test
     public void testBasicFeatures() throws IOException {
@@ -200,7 +257,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
                 new ICrawlerEventListener[] {new ICrawlerEventListener() {
             @Override
             public void crawlerEvent(ICrawler crawler, CrawlerEvent event) {
-                if (HttpCrawlerEvent.REJECTED_CANONICAL.equals(
+                if (HttpCrawlerEvent.REJECTED_NONCANONICAL.equals(
                         event.getEventType())) {
                     canCount.increment();
                 }

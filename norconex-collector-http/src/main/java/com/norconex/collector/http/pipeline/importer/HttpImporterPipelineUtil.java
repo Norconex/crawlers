@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package com.norconex.collector.http.pipeline.importer;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,10 +36,8 @@ import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.file.ContentType;
 
-
 /**
  * @author Pascal Essiembre
- *
  */
 /*default*/ final class HttpImporterPipelineUtil {
 
@@ -62,49 +61,42 @@ import com.norconex.commons.lang.file.ContentType;
         }
     }
     
-    public static void enhanceHTTPHeaders(HttpMetadata metadata) {
-        String collectorContentType = 
-                metadata.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE);
-        String collectorContentEncoding = 
-                metadata.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING);
+    public static void enhanceHTTPHeaders(HttpMetadata meta) {
+        String colCT = meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE);
+        String colCE = meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING);
         
-        if (StringUtils.isNotBlank(collectorContentType)
-                && StringUtils.isNotBlank(collectorContentEncoding)) {
+        if (StringUtils.isNotBlank(colCT) && StringUtils.isNotBlank(colCE)) {
             return;
         }
         
         // Grab content type from HTTP Header
-        String httpContentType = 
-                metadata.getString(HttpMetadata.HTTP_CONTENT_TYPE);
-        if (StringUtils.isBlank(httpContentType)) {
-            for (String key : metadata.keySet()) {
+        String httpCT = meta.getString(HttpMetadata.HTTP_CONTENT_TYPE);
+        if (StringUtils.isBlank(httpCT)) {
+            for (String key : meta.keySet()) {
                 if (StringUtils.endsWith(key, HttpMetadata.HTTP_CONTENT_TYPE)) {
-                    httpContentType = metadata.getString(key);
+                    httpCT = meta.getString(key);
                 }
             }
         }
         
-        if (StringUtils.isBlank(collectorContentType)) {
-            String contentType = StringUtils.trimToNull(
-                    StringUtils.substringBefore(httpContentType, ";"));
-            if (contentType != null) {
-                metadata.addString(
-                        HttpMetadata.COLLECTOR_CONTENT_TYPE, contentType);
+        if (StringUtils.isBlank(colCT)) {
+            String ct = StringUtils.trimToNull(
+                    StringUtils.substringBefore(httpCT, ";"));
+            if (ct != null) {
+                meta.addString(HttpMetadata.COLLECTOR_CONTENT_TYPE, ct);
             }
         }
         
-        if (StringUtils.isBlank(collectorContentEncoding)) {
+        if (StringUtils.isBlank(colCE)) {
             // Grab charset form HTTP Content-Type
-            String charset = null;
-            if (httpContentType != null 
-                    && httpContentType.contains("charset")) {
-                charset = StringUtils.trimToNull(StringUtils.substringAfter(
-                        httpContentType, "charset="));                
+            String ce = null;
+            if (httpCT != null && httpCT.contains("charset")) {
+                ce = StringUtils.trimToNull(
+                        StringUtils.substringAfter(httpCT, "charset="));                
             }
             
-            if (charset != null) {
-                metadata.addString(
-                        HttpMetadata.COLLECTOR_CONTENT_ENCODING, charset);
+            if (ce != null) {
+                meta.addString(HttpMetadata.COLLECTOR_CONTENT_ENCODING, ce);
             }
         }
     }
@@ -120,29 +112,30 @@ import com.norconex.commons.lang.file.ContentType;
             return true;
         }
         
-        // Proceed with metadata canonical link detection
         ICanonicalLinkDetector detector = 
                 ctx.getConfig().getCanonicalLinkDetector();
+        HttpCrawlData crawlData = ctx.getCrawlData();
+        String reference = crawlData.getReference();
+        
         String canURL = null;
         if (fromMeta) {
-            canURL = detector.detectFromMetadata(
-                    ctx.getCrawlData().getReference(), ctx.getMetadata());
+            // Proceed with metadata (HTTP headers) canonical link detection
+            canURL = detector.detectFromMetadata(reference, ctx.getMetadata());
         } else {
+            // Proceed with document (<meta>) canonical link detection
             try {
                 canURL = detector.detectFromContent(
-                        ctx.getCrawlData().getReference(),
+                        reference,
                         ctx.getDocument().getContent(), 
                         ctx.getDocument().getContentType());
             } catch (IOException e) {
                 throw new CollectorException(
                         "Cannot resolve canonical link from content for: " 
-                        + ctx.getCrawlData().getReference(), e);
+                        + reference, e);
             }
         }
         
         if (StringUtils.isNotBlank(canURL)) {
-            String referrerURL = ctx.getCrawlData().getReference();
-            
             // Since the current/containing page URL has already been 
             // normalized, make sure we normalize this one for the purpose
             // of comparing it.  It will them be sent un-normalized to 
@@ -157,15 +150,26 @@ import com.norconex.commons.lang.file.ContentType;
                 LOG.info("Canonical URL detected is null after "
                       + "normalization so it will be ignored and its referrer "
                       + "will be processed instead.  Canonical URL: \""
-                      +  canURL + "\" Rererrer URL: " + referrerURL);
+                      +  canURL + "\" Rererrer URL: " + reference);
                 return false;
             }
             
-            if (normalizedCanURL.equals(referrerURL)) {
+            if (normalizedCanURL.equals(reference)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Canonical URL detected is the same as document "
-                          + "URL. Process normally. URL: " + referrerURL);
+                          + "URL. Process normally. URL: " + reference);
                 }
+                return true;
+            }
+
+            // if circling back here again, we are in a loop, process 
+            // it regardless
+            if (ArrayUtils.contains(
+                    crawlData.getRedirectTrail(), normalizedCanURL)) {
+                LOG.warn("Circular reference between redirect and canonical "
+                      + "URL detected. Will ignore canonical directive and "
+                      + "process URL: \"" + reference + "\". Redirect trail: "
+                      + Arrays.toString(crawlData.getRedirectTrail()));
                 return true;
             }
 
@@ -175,17 +179,17 @@ import com.norconex.commons.lang.file.ContentType;
                       + "URL. Document will be rejected while canonical URL "
                       + "will be queued for processing: " + canURL);
             }
-            HttpCrawlData newData = (HttpCrawlData) ctx.getCrawlData().clone();
+            HttpCrawlData newData = (HttpCrawlData) crawlData.clone();
             newData.setReference(canURL);
-            newData.setReferrerReference(referrerURL);
-            
+            newData.setReferrerReference(reference);
+
             HttpQueuePipelineContext newContext = new HttpQueuePipelineContext(
                     ctx.getCrawler(), ctx.getCrawlDataStore(), newData);
             new HttpQueuePipeline().execute(newContext);
-            ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+            crawlData.setState(HttpCrawlState.REJECTED);
             ctx.getCrawler().fireCrawlerEvent(
-                    HttpCrawlerEvent.REJECTED_CANONICAL, 
-                    ctx.getCrawlData(), detector);
+                    HttpCrawlerEvent.REJECTED_NONCANONICAL, 
+                    crawlData, detector);
             return false;                
         }
         return true;            
@@ -201,6 +205,8 @@ import com.norconex.commons.lang.file.ContentType;
         HttpCrawlData crawlData = ctx.getCrawlData();            
         String sourceURL =  crawlData.getReference();
         
+        boolean requeue = false;
+        
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?
         if (store.isActive(redirectURL)) {
@@ -210,8 +216,26 @@ import com.norconex.commons.lang.file.ContentType;
             rejectRedirectDup("queued", sourceURL, redirectURL);
             return;
         } else if (store.isProcessed(redirectURL)) {
-            rejectRedirectDup("processed", sourceURL, redirectURL);
-            return;
+            // If part of redirect trail, allow a second queueing 
+            // but not more.  This in case redirecting back to self is 
+            // part of a normal flow (e.g. weird login).  
+            // If already queued twice, we treat as a loop
+            // and we reject.
+            if (ArrayUtils.contains(
+                    crawlData.getRedirectTrail(), redirectURL)) {
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Redirect encountered for 3rd time, rejecting: "
+                        + redirectURL);
+                }
+                rejectRedirectDup("processed", sourceURL, redirectURL);
+                return;
+            }
+            requeue = true;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Redirect URL encountered a second time, re-queue it "
+                        + "again (once) in case it came from a circular "
+                        + "reference.");
+            }
         }
 
         //--- Fresh URL, queue it! ---
@@ -231,7 +255,9 @@ import com.norconex.commons.lang.file.ContentType;
         newData.setReferrerLinkTitle(crawlData.getReferrerLinkTitle());
         newData.setRedirectTrail(
                 ArrayUtils.add(crawlData.getRedirectTrail(), sourceURL));
-        if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+        if (requeue) {
+            store.queue(newData);
+        } else if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
                 crawlData.getReference(), redirectURL)) {
             HttpQueuePipelineContext newContext = 
                     new HttpQueuePipelineContext(
