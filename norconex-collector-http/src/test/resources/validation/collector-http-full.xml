@@ -112,6 +112,7 @@
       <authRealm>authRealm</authRealm>
       <authWorkstation>authWorkstation</authWorkstation>
       <authDomain>authDomain</authDomain>
+      <authPreemptive>true</authPreemptive>
     </httpClientFactory>
     <referenceFilters>
       <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"

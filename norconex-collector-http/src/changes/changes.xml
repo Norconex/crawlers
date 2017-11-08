@@ -24,6 +24,10 @@
         New metadata field "collector.redirect-trail" for storing all redirect
         source URLs with the target URL metadata.
       </action>
+      <action dev="essiembre" type="add" issue="420">
+        New "authPreemptive" configuration option on GenericHttpClientFactory
+        to use preemptive authentication with BASIC authentication.
+      </action>
       <action dev="essiembre" type="add">
         GenericLinkExtractor can now limit link extraction to specified portion
         of text only. 

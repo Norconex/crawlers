@@ -19,6 +19,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.AlgorithmConstraints;
 import java.security.AlgorithmParameters;
@@ -41,6 +42,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
@@ -53,6 +55,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -205,6 +208,9 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;authPort&gt;...&lt;/authPort&gt;
  *      &lt;authRealm&gt;...&lt;/authRealm&gt;
  *      
+ *      &lt;!-- This applies to BASIC authentication --&gt;
+ *      &lt;authPreemptive&gt;[false|true]&lt;/authPreemptive&gt;
+ *      
  *      &lt;!-- These apply to NTLM authentication --&gt;
  *      &lt;authHostname&gt;...&lt;/authHostname&gt;
  *      &lt;authPort&gt;...&lt;/authPort&gt;
@@ -293,6 +299,7 @@ public class GenericHttpClientFactory
     private String authFormCharset = StandardCharsets.UTF_8.toString();
     private String authWorkstation;
     private String authDomain;
+    private boolean authPreemptive;
     private boolean cookiesDisabled;
     private boolean trustAllSSLCertificates;
     private String proxyHost;
@@ -430,15 +437,49 @@ public class GenericHttpClientFactory
     }
     
     /**
+     * <p>
      * Creates a list of HTTP headers previously set by 
      * {@link #setRequestHeader(String, String)}.
+     * </p>
+     * <p>
+     * <b>Since 2.8.0</b>, this method will also add a "Basic" authentication
+     * header if {@link #setAuthPreemptive(boolean)} is <code>true</code> and
+     * credentials were supplied.
+     * </p>
      * @return a list of HTTP request headers
      * @since 2.3.0
      */
     protected List<Header> createDefaultRequestHeaders() {
+        //--- Configuration-defined headers
         List<Header> headers = new ArrayList<>();
         for (Entry<String, String> entry : requestHeaders.entrySet()) {
             headers.add(new BasicHeader(entry.getKey(), entry.getValue()));
+        }
+        
+        //--- preemptive headers
+        // preemptive authaurisation could be done by creating a HttpContext
+        // passed to the HttpClient execute method, but since that method
+        // is not invoked from this class, we want to keep things
+        // together and we add the preemptive authentication directly
+        // in the default HTTP headers. 
+        if (authPreemptive) {
+            if (StringUtils.isBlank(authUsername)) {
+                LOG.warn("Preemptive authentication is enabled while no "
+                        + "username was provided.");
+                return headers;
+            }
+            if (!AUTH_METHOD_BASIC.equals(authMethod)) {
+                LOG.warn("Using preemptive authentication with a "
+                        + "method other than \"Basic\" may not produce the "
+                        + "expected outcome.");
+            }
+            String password = EncryptionUtil.decrypt(
+                    authPassword, authPasswordKey);
+            String auth = getAuthUsername() + ":" + password;
+            byte[] encodedAuth = Base64.encodeBase64(
+              auth.getBytes(Charset.forName("ISO-8859-1")));
+            String authHeader = "Basic " + new String(encodedAuth);
+            headers.add(new BasicHeader(HttpHeaders.AUTHORIZATION, authHeader));
         }
         return headers;
     }
@@ -585,7 +626,7 @@ public class GenericHttpClientFactory
             }
         };
     }    
-    
+
     protected SSLContext createSSLContext() {
         if (!trustAllSSLCertificates) {
             return null;
@@ -635,6 +676,7 @@ public class GenericHttpClientFactory
         authFormCharset = xml.getString("authFormCharset", authFormCharset);
         authWorkstation = xml.getString("authWorkstation", authWorkstation);
         authDomain = xml.getString("authDomain", authDomain);
+        authPreemptive = xml.getBoolean("authPreemptive", authPreemptive);
         proxyHost = xml.getString("proxyHost", proxyHost);
         proxyPort = xml.getInt("proxyPort", proxyPort);
         proxyScheme = xml.getString("proxyScheme", proxyScheme);
@@ -735,6 +777,7 @@ public class GenericHttpClientFactory
             writer.writeElementString("authWorkstation", authWorkstation);
             writer.writeElementString("authDomain", authDomain);
             writer.writeElementString("authRealm", authRealm);
+            writer.writeElementBoolean("authPreemptive", authPreemptive);
             writer.writeElementString("proxyHost", proxyHost);
             writer.writeElementInteger("proxyPort", proxyPort);
             writer.writeElementString("proxyScheme", proxyScheme);
@@ -1530,7 +1573,27 @@ public class GenericHttpClientFactory
     public String removeAuthFormParameter(String name) {
         return authFormParams.remove(name);
     }
-    
+
+    /**
+     * Gets whether to perform preemptive authentication 
+     * (valid for "basic" authentication method).
+     * @return <code>true</code> to perform preemptive authentication
+     * @since 2.8.0
+     */
+    public boolean isAuthPreemptive() {
+        return authPreemptive;
+    }
+    /**
+     * Sets whether to perform preemptive authentication 
+     * (valid for "basic" authentication method).
+     * @param authPreemptive 
+     *            <code>true</code> to perform preemptive authentication
+     * @since 2.8.0
+     */
+    public void setAuthPreemptive(boolean authPreemptive) {
+        this.authPreemptive = authPreemptive;
+    }
+
     @Override
     public boolean equals(final Object obj) {
         if (!(obj instanceof GenericHttpClientFactory)) {
@@ -1551,6 +1614,7 @@ public class GenericHttpClientFactory
                 .append(authFormCharset, other.authFormCharset)
                 .append(authWorkstation, other.authWorkstation)
                 .append(authDomain, other.authDomain)
+                .append(authPreemptive, other.authPreemptive)
                 .append(cookiesDisabled, other.cookiesDisabled)
                 .append(trustAllSSLCertificates, other.trustAllSSLCertificates)
                 .append(proxyHost, other.proxyHost)
@@ -1595,6 +1659,7 @@ public class GenericHttpClientFactory
                 .append(authFormCharset)
                 .append(authWorkstation)
                 .append(authDomain)
+                .append(authPreemptive)
                 .append(cookiesDisabled)
                 .append(trustAllSSLCertificates)
                 .append(proxyHost)
@@ -1637,6 +1702,7 @@ public class GenericHttpClientFactory
                 .append("authFormCharset", authFormCharset)
                 .append("authWorkstation", authWorkstation)
                 .append("authDomain", authDomain)
+                .append("authPreemptive", authPreemptive)
                 .append("cookiesDisabled", cookiesDisabled)
                 .append("trustAllSSLCertificates", trustAllSSLCertificates)
                 .append("proxyHost", proxyHost)
