@@ -468,7 +468,7 @@ public class GenericHttpClientFactory
                         + "username was provided.");
                 return headers;
             }
-            if (!AUTH_METHOD_BASIC.equals(authMethod)) {
+            if (!AUTH_METHOD_BASIC.equalsIgnoreCase(authMethod)) {
                 LOG.warn("Using preemptive authentication with a "
                         + "method other than \"Basic\" may not produce the "
                         + "expected outcome.");
