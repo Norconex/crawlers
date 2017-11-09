@@ -340,6 +340,9 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private String toCleanAbsoluteURL(
             final Referer urlParts, final String newURL) {
         String url = StringUtils.trimToNull(newURL);
+        if (url == null) {
+            return null;
+        }
         
         // Decode HTML entities.
         url = StringEscapeUtils.unescapeHtml4(url);

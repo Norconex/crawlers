@@ -76,6 +76,10 @@
       <action dev="essiembre" type="update">
         Blank start URLs are now silently ignored.
       </action>
+      <action dev="essiembre" type="fix" issue="422">
+        Fixed blank URLs extracted by RegexLinkExtractorin throwing 
+        NullPointerException.
+      </action>
       <action dev="essiembre" type="fix" issue="396">
         Fixed blank lines in start URL seed files throwing NullPointerException.
       </action>
