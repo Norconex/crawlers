@@ -278,7 +278,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private static final String[] DEFAULT_SCHEMES = 
             new String[] { "http", "https", "ftp" };
     
-    private static final int PATTERN_URL_GROUP = 4;
     private static final int PATTERN_FLAGS = 
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
     private static final int LOGGING_MAX_URL_LENGTH = 200;
@@ -662,12 +661,16 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
 
             Pattern p = Pattern.compile(
-                    "(^|\\s)(" + attribs + ")\\s*=\\s*([\"'])([^\\<\\>]*?)\\3",
-                    PATTERN_FLAGS);
-            Matcher urlMatcher = p.matcher(restOfTag);
-            while (urlMatcher.find()) {
-                String attribName = urlMatcher.group(2);
-                String matchedUrl = urlMatcher.group(PATTERN_URL_GROUP);
+                    "(^|\\s)(" + attribs + ")\\s*=\\s*"
+                  + "((?<quot>[\"'])(?<url1>[^\\<\\>]*?)\\k<quot>"
+                  + "|(?<url2>[^\\s\\>]+)[\\s\\>])", PATTERN_FLAGS);
+
+            Matcher urlm = p.matcher(restOfTag);
+            while (urlm.find()) {
+                String attribName = urlm.group(2);
+                // Will either match url1 (quoted) or url2 (unquoted).
+                String matchedUrl = urlm.start("url1") != -1 
+                        ? urlm.group("url1") : urlm.group("url2");
                 if (StringUtils.isBlank(matchedUrl)) {
                     continue;
                 }
@@ -778,7 +781,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         if (!m.find()) {
             return;
         }
-        String url = toCleanAbsoluteURL(referrer, m.group(PATTERN_URL_GROUP));
+        String url = toCleanAbsoluteURL(referrer, m.group(4));
         Link link = new Link(url);
         link.setReferrer(referrer.url);
         link.setTag("meta.http-equiv.refresh");

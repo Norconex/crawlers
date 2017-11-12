@@ -49,6 +49,9 @@
         is encountered, it will now process the non-canonical page 
         (used to reject both).
       </action>
+      <action dev="essiembre" type="update" issue="423">
+        GenericLinkExtractor now extracts unquoted URLs.
+      </action>
       <action dev="essiembre" type="update">
         *.http.doc.IHttpDocumentProcessor now deprecated in favor of
         *.http.processor.IHttpDocumentProcessor.

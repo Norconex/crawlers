@@ -383,7 +383,49 @@ public class LinkExtractorTest {
         input.close();
         Assert.assertTrue("URL not extracted: " + url, contains(links, url));
     }
-    
+
+    //Test for: https://github.com/Norconex/collector-http/issues/423
+    @Test
+    public void testUnquottedURL() throws IOException {
+        String ref = "http://www.example.com/index.html";
+        String url1 = "http://www.example.com/unquoted_url1.html";
+        String url2 = "http://www.example.com/unquoted_url2.html";
+        String html = "<html><body>"
+                + "<a href=unquoted_url1.html>test link 1</a>"
+                + "<a href=unquoted_url2.html title=\"blah\">test link 2</a>"
+                + "</body></html>";
+        ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
+        input.close();
+        assertTrue("Could not find expected URL: " + url1, 
+                contains(links, url1));
+        assertTrue("Could not find expected URL: " + url2, 
+                contains(links, url2));
+    }
+    @Test
+    public void testBadQuotingURL() throws IOException {
+        String ref = "http://www.example.com/index.html";
+        String url1 = "http://www.example.com/bad\"quote1.html";
+        String url2 = "http://www.example.com/bad'quote2.html";
+        String url3 = "http://www.example.com/bad\"quote3.html";
+        String html = "<html><body>"
+                + "<a href=bad\"quote1.html>test link 1</a>"
+                + "<a href=\"bad'quote2.html\">test link 1</a>"
+                + "<a href='bad\"quote3.html'>test link 1</a>"
+                + "</body></html>";
+        ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
+        input.close();
+        assertTrue("Could not find expected URL: " + url1, 
+                contains(links, url1));
+        assertTrue("Could not find expected URL: " + url2, 
+                contains(links, url2));
+        assertTrue("Could not find expected URL: " + url3, 
+                contains(links, url3));
+    }
+
     private boolean contains(Set<Link> links, String url) {
         for (Link link : links) {
             if (url.equals(link.getUrl())) {
