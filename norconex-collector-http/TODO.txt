@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- Investigate why defining tags (e.g. <httpClientFactory> under the collector
+  root tag (as opposed to under crawler tag) does not produce validation error.
+
 - Image cache gives issues with multiple crawlers using the same path, fix this.
 
 - Make it possible to merge two or more docs.
