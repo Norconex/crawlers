@@ -23,7 +23,12 @@
   <crawlers>
     <crawler id="Test Crawler">
       <startURLs>
+      #if ($startURL)
         <url>${startURL}</url>
+      #end
+      #if ($sitemap)
+        <sitemap>${sitemap}</sitemap>
+      #end
       </startURLs>
       <workDir>${workDir}</workDir>
       <maxDepth>${maxDepth}</maxDepth>
@@ -31,9 +36,13 @@
       <delay default="${delay}" />
       <numThreads>1</numThreads>
 
-      <sitemap ignore="true" />
+      <sitemapResolverFactory ignore="true" />
       <robotsTxt ignore="true" />
       <robotsMeta ignore="true" />
+
+    #if (${orphansStrategy})
+      <orphansStrategy>${orphansStrategy}</orphansStrategy>
+    #end
 
     #if ($crawlDataStoreFactory)
       <crawlDataStoreFactory class="${crawlDataStoreFactory}">

@@ -51,8 +51,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;sitemapResolverFactory ignore="[false|true]" lenient="[false|true]" 
- *        tempDir="(where to store temp files)"
  *     class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory"&gt;
+ *     &lt;tempDir&gt;(where to store temp files)&lt;/tempDir&gt;
  *     &lt;path&gt;
  *       (Optional path relative to URL root for a sitemap. Use a single empty
  *        "path" tag to rely instead on any sitemaps specified as start URLs or

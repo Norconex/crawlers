@@ -198,6 +198,40 @@ public class ExecutionTest extends AbstractHttpTest {
                 0, countDeletedFiles());
     }
 
+    //Test for https://github.com/Norconex/collector-http/issues/390
+    @Test
+    public void testSitemapDelayWithURLDeletion() 
+            throws IOException, XMLStreamException {
+        String sitemapURL = newUrl("/test?case=sitemap&amp;token="
+                + System.currentTimeMillis());
+        vars.setString("sitemap", sitemapURL);
+        vars.setString("startURL", (String) null);
+        vars.setString("orphansStrategy", "PROCESS");
+        
+        int exitValue = 0;
+
+        // Test once and make sure we get 3 additions in total.
+        exitValue = runCollector("start", vars);
+        Assert.assertEquals("Wrong exit value.", 0, exitValue);
+        Assert.assertEquals("Wrong number of added files.",
+                3, countAddedFiles());
+        Assert.assertEquals("Wrong number of deleted files.",
+                0, countDeletedFiles());
+        ageProgress(progressDir);
+        FileUtil.delete(committedDir);
+        
+        // Test twice and make sure we get 1 add, 2 unmodified and 
+        // 1 pages deleted, regardless of delay specified in sitemap.
+        exitValue = runCollector("start", vars);
+        Assert.assertEquals("Wrong exit value.", 0, exitValue);
+        Assert.assertEquals("Wrong number of added files.",
+                1, countAddedFiles());
+        Assert.assertEquals("Wrong number of deleted files.",
+                1, countDeletedFiles());
+        ageProgress(progressDir);
+        FileUtil.delete(committedDir);
+    }    
+    
     //Test for https://github.com/Norconex/collector-http/issues/316
     @Test
     public void testWebPageTimeout() 

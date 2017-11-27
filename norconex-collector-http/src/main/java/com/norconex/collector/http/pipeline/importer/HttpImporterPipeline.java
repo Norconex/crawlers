@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.delay.IDelayResolver;
-import com.norconex.collector.http.doc.IHttpDocumentProcessor;
+import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
@@ -40,9 +40,14 @@ public class HttpImporterPipeline
     //sharing all thread safe/common information, 
     //just changing what is url/doc specific.
     
-    public HttpImporterPipeline(boolean isKeepDownloads) {
+    public HttpImporterPipeline(boolean isKeepDownloads, boolean isOrphan) {
         
-        addStage(new RecrawlableResolverStage());
+        // if an orphan is reprocessed, it could be that it is no longer
+        // referenced because of deletion.  Because of that, we need
+        // to process it again to find out.
+        if (!isOrphan) {
+            addStage(new RecrawlableResolverStage());
+        }
         
         //TODO rename DelayResolver to HitInterval ??
         addStage(new DelayResolverStage());

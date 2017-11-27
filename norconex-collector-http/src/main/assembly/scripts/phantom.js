@@ -20,19 +20,20 @@ var page = require('webpage').create();
 var fs = require('fs');
 var system = require('system');
 
-if (system.args.length !== 9) {
+if (system.args.length !== 10) {
 	system.stderr.writeLine('Invalid number of arguments.');
     phantom.exit(1);
 }
 
 var url = system.args[1];           // The URL to fetch
 var outfile = system.args[2];       // The temp output file
-var timeout = system.args[3];       // How long to wait for a page to render
+var timeout = system.args[3];       // How long to wait for the whole page to render
 var bindId = system.args[4];        // HttpClient binding id
 var protocol = system.args[5];      // Was the original URL "https" or "http"?
 var thumbnailFile = system.args[6]; // Optional path to image file
 var dimension = system.args[7];     // e.g. 1024x768
 var zoomFactor = system.args[8];    // e.g. 0.25 (25%)
+var resourceTimeout = system.args[9]; // timeout for a single page resource
 
 if (thumbnailFile && dimension) {
 	var pageWidth = 1024;
@@ -54,6 +55,9 @@ if (bindId !== "-1") {
         "collector.proxy.protocol": protocol
     };
 }
+if (resourceTimeout !== "-1") {
+	page.settings.resourceTimeout = resourceTimeout;
+}
 
 page.onResourceError = function(resourceError) {
 	system.stderr.writeLine(
@@ -73,8 +77,12 @@ page.onResourceReceived = function(response) {
 
 page.open(url, function (status) {
     if (status !== 'success') {
-    	system.stderr.writeLine('Unable to load: ' + url + ' (status=' + status + ').');
+    	system.stderr.writeLine('Unsuccessful loading of: '
+    			+ url + ' (status=' + status + ').');
     	system.stderr.writeLine('Content: ' + page.content);
+    	if (page.content) {
+            fs.write(outfile, page.content, 'w');
+    	}
         phantom.exit();
     } else {
         window.setTimeout(function () {

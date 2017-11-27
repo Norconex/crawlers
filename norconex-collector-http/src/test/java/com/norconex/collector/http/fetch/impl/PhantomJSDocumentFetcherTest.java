@@ -17,13 +17,21 @@ package com.norconex.collector.http.fetch.impl;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import com.norconex.collector.http.TestUtil;
+import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.Quality;
+import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.Storage;
+import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.StorageDiskStructure;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class PhantomJSDocumentFetcherTest  {
 
+    private static final Logger LOG = 
+            LogManager.getLogger(PhantomJSDocumentFetcherTest.class);    
+    
     @Test
     public void testWriteRead() throws IOException {
         PhantomJSDocumentFetcher f = new PhantomJSDocumentFetcher();
@@ -32,11 +40,26 @@ public class PhantomJSDocumentFetcherTest  {
         f.setHeadersPrefix("blah");
         f.setExePath(new File("/path/to/phantomjs.exe").getAbsolutePath());
         f.setRenderWaitTime(1000);
+        f.setResourceTimeout(3000);
         f.setContentTypePattern(".blah.");
         f.setReferencePattern(".blah.blah");
         f.setDetectContentType(true);
         f.setDetectCharset(true);
-        System.out.println("Writing/Reading this: " + f);
+        
+        f.setScreenshotEnabled(true);
+        f.setScreenshotDimensions(30, 40);
+        f.setScreenshotImageFormat("gif");
+        f.setScreenshotScaleQuality(Quality.HIGH);
+        f.setScreenshotScaleDimensions(666, 666);
+        f.setScreenshotScaleStretch(true);
+        f.setScreenshotStorage(Storage.values());
+        f.setScreenshotStorageDiskDir("/path/screenshot");
+        f.setScreenshotStorageDiskField("diskField");
+        f.setScreenshotStorageDiskStructure(StorageDiskStructure.DATE);
+        f.setScreenshotStorageInlineField("inlineField");
+        f.setScreenshotZoomFactor(0.5f);
+
+        LOG.info("Writing/Reading this: " + f);
         XMLConfigurationUtil.assertWriteRead(f);
     }
 

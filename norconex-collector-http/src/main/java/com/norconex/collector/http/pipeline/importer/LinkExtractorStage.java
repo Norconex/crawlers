@@ -79,8 +79,9 @@ import com.norconex.commons.lang.io.CachedInputStream;
             }
         }
         
-        Set<String> uniqueExtractedURLs = new HashSet<String>();
-        Set<String> uniqueQueuedURLs = new HashSet<String>();
+        Set<String> uniqueExtractedURLs = new HashSet<>();
+        Set<String> uniqueQueuedURLs = new HashSet<>();
+        Set<String> uniqueOutOfScopeURLs = new HashSet<>();
         if (links != null) {
             for (Link link : links) {
                 if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
@@ -95,18 +96,41 @@ import com.norconex.commons.lang.io.CachedInputStream;
                         LOG.warn("Could not queue extracted URL \""
                                 + link.getUrl() + "\".", e);
                     }
-                } else if (LOG.isDebugEnabled()) {
-                    LOG.debug("URL not in crawl scope: " + link.getUrl());
+                } else  {
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("URL not in crawl scope: "
+                                + link.getUrl() + " (keep: " 
+                                + ctx.getConfig().isKeepOutOfScopeLinks()
+                                + ")");
+                    }
+                    if(ctx.getConfig().isKeepOutOfScopeLinks()) {
+                        uniqueOutOfScopeURLs.add(link.getUrl());
+                    }
                 }
             }
         }
         
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("uniqueQueuedURLs count: "
+                    + uniqueQueuedURLs.size() + ".");
+        }
         if (!uniqueQueuedURLs.isEmpty()) {
+
             String[] referencedUrls = 
                     uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
             ctx.getMetadata().addString(
                     HttpMetadata.COLLECTOR_REFERENCED_URLS, referencedUrls);
             ctx.getCrawlData().setReferencedUrls(referencedUrls);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("uniqueOutOfScopeURLs count: "
+                    + uniqueOutOfScopeURLs.size() + ".");
+        }
+        if (!uniqueOutOfScopeURLs.isEmpty()) {
+            ctx.getMetadata().addString(
+                   HttpMetadata.COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE, 
+                   uniqueOutOfScopeURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
         
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 

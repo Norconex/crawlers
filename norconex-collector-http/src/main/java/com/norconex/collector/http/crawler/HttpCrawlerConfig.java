@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,8 @@ import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
-import com.norconex.collector.http.doc.IHttpDocumentProcessor;
+import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
@@ -82,6 +83,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private boolean ignoreSitemap;
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
+	private boolean keepOutOfScopeLinks;
     
     private String userAgent;
 
@@ -139,28 +141,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     /**
      * Gets the file paths of seed files containing URLs to be used as
-     * "start URLs".
-     * @deprecated Since 2.3.0, use {@link #getStartURLsFiles()} instead.
-     * @return file paths of seed files containing URLs
-     */
-    @Deprecated
-    public String[] getUrlsFiles() {
-        return getStartURLsFiles();
-    }
-    /**
-     * Sets the file paths of seed files containing URLs to be used as
-     * "start URLs".
-     * @deprecated Since 2.3.0, use {@link #setStartURLsFiles(String...)} 
-     *             instead.
-     * @param urlsFiles file paths of seed files containing URLs
-     */
-    @Deprecated
-    public void setUrlsFiles(String... urlsFiles) {
-        setStartURLsFiles(urlsFiles);
-    }
-    /**
-     * Gets the file paths of seed files containing URLs to be used as
-     * "start URLs".
+     * "start URLs".  Files are expected to have one URL per line. 
+     * Blank lines and lines starting with # (comment) are ignored.
      * @return file paths of seed files containing URLs
      * @since 2.3.0
      */
@@ -169,7 +151,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     /**
      * Sets the file paths of seed files containing URLs to be used as
-     * "start URLs".
+     * "start URLs". Files are expected to have one URL per line. 
+     * Blank lines and lines starting with # (comment) are ignored.
      * @param startURLsFiles file paths of seed files containing URLs
      * @since 2.3.0
      */
@@ -312,6 +295,24 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         this.keepDownloads = keepDownloads;
     }
     /**
+     * Whether links not in scope should be stored as metadata
+     * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
+     * @return <code>true</code> if keeping URLs not in scope.
+     * @since 2.8.0
+     */
+	public boolean isKeepOutOfScopeLinks() {
+        return keepOutOfScopeLinks;
+    }
+	/**
+	 * Sets whether links not in scope should be stored as metadata
+     * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
+     * @param keepOutOfScopeLinks <code>true</code> if keeping URLs not in scope
+     * @since 2.8.0
+	 */
+    public void setKeepOutOfScopeLinks(boolean keepOutOfScopeLinks) {
+        this.keepOutOfScopeLinks = keepOutOfScopeLinks;
+    }
+    /**
      * Gets the metadata checksummer. Default implementation is 
      * {@link LastModifiedMetadataChecksummer} (since 2.2.0).
      * @return metadata checksummer
@@ -440,6 +441,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writer.writeElementInteger("maxDepth", getMaxDepth());
             writer.writeElementBoolean("keepDownloads", isKeepDownloads());
 
+			writer.writeElementBoolean(
+			        "keepOutOfScopeLinks", isKeepOutOfScopeLinks());
             writer.writeStartElement("startURLs");
             writer.writeAttributeBoolean("stayOnProtocol", 
                     urlCrawlScopeStrategy.isStayOnProtocol());
@@ -602,6 +605,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 xml, "delay", getDelayResolver()));
         setMaxDepth(xml.getInt("maxDepth", getMaxDepth()));
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
+		setKeepOutOfScopeLinks(
+		        xml.getBoolean("keepOutOfScopeLinks", isKeepOutOfScopeLinks()));
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "ignoreCanonicalLinks", isIgnoreCanonicalLinks()));
         urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
@@ -688,6 +693,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreRobotsMeta, castOther.ignoreRobotsMeta)
                 .append(ignoreSitemap, castOther.ignoreSitemap)
                 .append(keepDownloads, castOther.keepDownloads)
+                .append(keepOutOfScopeLinks, castOther.keepOutOfScopeLinks)
                 .append(ignoreCanonicalLinks, castOther.ignoreCanonicalLinks)
                 .append(userAgent, castOther.userAgent)
                 .append(urlCrawlScopeStrategy, castOther.urlCrawlScopeStrategy)
@@ -723,6 +729,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreRobotsMeta)
                 .append(ignoreSitemap)
                 .append(keepDownloads)
+                .append(keepOutOfScopeLinks)
                 .append(ignoreCanonicalLinks)
                 .append(userAgent)
                 .append(urlCrawlScopeStrategy)
@@ -757,6 +764,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("ignoreRobotsMeta", ignoreRobotsMeta)
                 .append("ignoreSitemap", ignoreSitemap)
                 .append("keepDownloads", keepDownloads)
+                .append("keepOutOfScopeLinks", keepOutOfScopeLinks)
                 .append("ignoreCanonicalLinks", ignoreCanonicalLinks)
                 .append("userAgent", userAgent)
                 .append("urlCrawlScopeStrategy", urlCrawlScopeStrategy)

@@ -1,5 +1,33 @@
 The following are either things to be done, or ideas to consider:
 
+- Investigate why defining tags (e.g. <httpClientFactory> under the collector
+  root tag (as opposed to under crawler tag) does not produce validation error.
+
+- Image cache gives issues with multiple crawlers using the same path, fix this.
+
+- Make it possible to merge two or more docs.
+
+- Maybe add "stayOnDomainMaxSub" for how many subdomain level to support?
+  (default would be zero).
+
+- Make default directory for logs and progress the workdir.
+
+- Fix redirects used to authenticate or create session but otherwise return
+  to original URL which then can be crawled.
+
+- Change sample config to have just "$workdir" for logs and progress dirs.
+
+- Change sample config to have crawlerDefaults empty instead.
+
+- Remove <dependencyManagement> which is mainly valuable when used with
+  parent projects (which we are not here).  Use regular <dependencies instead.
+  Do this for all projects.
+
+- Use Norconex Commons Lang Proxy class wherever proxies are used.
+
+- Use Apache HttpClient-Win for Windows Auth support like done with
+  Azure Search Committer.
+
 - Have the config reference.xml put all settings in a crawler instead
   of crawling defaults (FS Collector as well).
 

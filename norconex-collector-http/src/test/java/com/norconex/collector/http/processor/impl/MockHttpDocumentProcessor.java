@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.doc;
+package com.norconex.collector.http.processor.impl;
 
 import org.apache.http.client.HttpClient;
 
 import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.IHttpDocumentProcessor;
+import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 
 public class MockHttpDocumentProcessor implements IHttpDocumentProcessor {
 

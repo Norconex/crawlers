@@ -7,6 +7,114 @@
   </properties>
   <body>
 
+    <release version="2.8.0" date="2017-11-26" description="Maintenance release">
+      <action dev="essiembre" type="add">
+        New FeaturedImageProcessor class to extract the "main" image from 
+        a web page. 
+      </action>
+      <action dev="essiembre" type="add">
+        New screenshot storage options for PhantomJSDocumentFetcher, like
+        specifying image format, store inline (base64), and exact size. 
+      </action>
+      <action dev="essiembre" type="add">
+        New "authFormParams" option on GenericHttpClientFactory for adding 
+        arbitrary parameter to authentication forms. 
+      </action>
+      <action dev="essiembre" type="add" issue="397">
+        New metadata field "collector.redirect-trail" for storing all redirect
+        source URLs with the target URL metadata.
+      </action>
+      <action dev="essiembre" type="add" issue="420">
+        New "authPreemptive" configuration option on GenericHttpClientFactory
+        to use preemptive authentication with BASIC authentication.
+      </action>
+      <action dev="essiembre" type="add">
+        GenericLinkExtractor can now limit link extraction to specified portion
+        of text only. 
+      </action>
+      <action dev="adeotek" type="add" issue="360">
+        It is now possible to store as metadata URLs that are not "in-scope"
+        with a new flag "keepOutOfScopeLinks".
+      </action>
+      <action dev="essiembre" type="add">
+        New GenericHttpClientFactory#removeRequestHeader(String) method.
+      </action>
+      <action dev="essiembre" type="add" issue="383">
+        New "resourceTimeout" option on PhantomJSDocumentFetcher to prevent
+        individual page items to hang PhantomJS for a long time.
+      </action>
+      <action dev="essiembre" type="update" issue="162">
+        Now handles circular references between a non-canonical page pointing
+        to a URL redirecting back to that non-canonical page.  When this loop
+        is encountered, it will now process the non-canonical page 
+        (used to reject both).
+      </action>
+      <action dev="essiembre" type="update" issue="423">
+        GenericLinkExtractor now extracts unquoted URLs.
+      </action>
+      <action dev="essiembre" type="update">
+        *.http.doc.IHttpDocumentProcessor now deprecated in favor of
+        *.http.processor.IHttpDocumentProcessor.
+      </action>
+      <action dev="essiembre" type="update">
+        Crawler event REJECTED_CANONICAL now deprecated in favor of
+        REJECTED_NONCANONICAL.
+      </action>
+      <action dev="essiembre" type="update">
+        RegexLinkExtractor now supports replacement values for regex matches.
+      </action>
+      <action dev="essiembre" type="update">
+        GenericURLNormalizer XML configuration can now accepts empty 
+        normalizations tag to blank default normalizations.
+      </action>
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Collector Core 1.9.0, 
+        Norconex Commons Lang 1.14.0.
+      </action>
+      <action dev="essiembre" type="update" issue="383">
+        PhantomJSDocumentFetcher will now try to write a document for processing
+        even if its status from PhantomJS is not "success" (for cases where
+        valid content could be extracted nonetheless).
+      </action>
+      <action dev="essiembre" type="update">
+        Blank start URLs are now silently ignored.
+      </action>
+      <action dev="essiembre" type="fix" issue="422">
+        Fixed blank URLs extracted by RegexLinkExtractorin throwing 
+        NullPointerException.
+      </action>
+      <action dev="essiembre" type="fix" issue="396">
+        Fixed blank lines in start URL seed files throwing NullPointerException.
+      </action>
+      <action dev="essiembre" type="fix" issue="390">
+        Orphans being reprocessed no longer triggers the  
+        "RecrawlableResolverStage".
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed improper saving as XML of GenericDelayResolver.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed GenericDelayResolver not taking into account ranges that
+        overlap into the next cycle (e.g. 22:00 to 5:00).
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed setting proxy realm having no effect on GenericHttpClientFactory.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed invalid validation error for "tempDir" element on 
+        StandardSitemapResolverFactory.
+      </action>
+      <action dev="essiembre" type="fix" issue="408">
+        Fixed PhantomJSDocumentFetcher sometimes throwing a 
+        NullPointerException when content-type could not be established.
+      </action>
+      <action dev="essiembre" type="remove">
+        Removed these deprecated classes: HtmlLinkExtractor, 
+        HttpMetadataChecksummer, and deprecated methods: 
+        HttpCrawler#getUrlsFiles, HttpCrawler#setUrlsFiles. 
+      </action>
+    </release>
+
     <release version="2.7.1" date="2017-05-26" description="Bugfix release">
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.8.2.

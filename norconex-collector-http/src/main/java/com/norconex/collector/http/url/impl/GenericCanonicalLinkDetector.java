@@ -27,19 +27,19 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.client.utils.URIUtils;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.commons.lang.EqualsUtil;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.unit.DataUnit;

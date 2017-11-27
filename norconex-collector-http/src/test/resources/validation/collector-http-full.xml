@@ -33,6 +33,7 @@
       <provider class="com.norconex.collector.http.crawler.MockStartURLsProvider"/>
     </startURLs>
     <keepDownloads>true</keepDownloads>
+    <keepOutOfScopeLinks>false</keepOutOfScopeLinks>
     <maxDepth>99</maxDepth>
     <numThreads>1</numThreads>
     <workDir>/tmp/111</workDir>
@@ -111,6 +112,7 @@
       <authRealm>authRealm</authRealm>
       <authWorkstation>authWorkstation</authWorkstation>
       <authDomain>authDomain</authDomain>
+      <authPreemptive>true</authPreemptive>
     </httpClientFactory>
     <referenceFilters>
       <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
@@ -122,7 +124,8 @@
     </referenceFilters>    
     <robotsTxt ignore="false" class="com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider"/>
     <sitemapResolverFactory ignore="false" lenient="true" 
-        tempDir="/tmp/" class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory">
+        class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory">
+      <tempDir>/tmp/</tempDir>
       <path>/path1/</path>
       <path>/path2/</path>
     </sitemapResolverFactory>
@@ -182,6 +185,18 @@
           <tag name="img" attribute="src" />
           <tag name="meta" attribute="http-equiv" />
         </tags>
+        <extractBetween caseSensitive="true">
+          <start>start1</start><end>end1</end>
+        </extractBetween>
+        <extractBetween caseSensitive="false">
+          <start>start2</start><end>end2</end>
+        </extractBetween>
+        <noExtractBetween caseSensitive="true">
+          <start>nostart1</start><end>noend1</end>
+        </noExtractBetween>
+        <noExtractBetween caseSensitive="false">
+          <start>nostart2</start><end>noend2</end>
+        </noExtractBetween>
       </extractor>
       <extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor">
         <tags>
@@ -194,8 +209,8 @@
         <applyToContentTypePattern>ct.*</applyToContentTypePattern>
         <applyToReferencePattern>ref.*</applyToReferencePattern>
         <linkExtractionPatterns>
-          <pattern group="1">\[(.*?)\]</pattern>
-          <pattern>http://.*?\.html</pattern>
+          <pattern><match>\[(.*?)\]</match><replace>$1</replace></pattern>
+          <pattern><match>http://.*?\.html</match></pattern>
         </linkExtractionPatterns>
       </extractor>
       <extractor class="com.norconex.collector.http.url.impl.XMLFeedLinkExtractor">
@@ -214,7 +229,23 @@
               onMatch="exclude" count="5" duplicate="false" separator="/" />
     </documentFilters>
     <preImportProcessors>
-      <processor class="com.norconex.collector.http.doc.MockHttpDocumentProcessor"/>
+      <processor class="com.norconex.collector.http.processor.impl.FeaturedImageProcessor">
+         <pageContentTypePattern>text/html</pageContentTypePattern>
+         <domSelector>dom dom</domSelector>
+         <minDimensions>425x312</minDimensions>
+         <largest>true</largest>
+         <imageCacheSize>1234</imageCacheSize>
+         <imageCacheDir>/some/path</imageCacheDir>
+         <storage>url, inline</storage>
+         <scaleQuality>medium</scaleQuality>
+         <scaleDimensions>25</scaleDimensions>
+         <scaleStretch>true</scaleStretch>
+         <imageFormat>gif</imageFormat>
+         <storageDiskDir structure="datetime">/some/other/path</storageDiskDir>
+         <storageDiskField>diskField</storageDiskField>
+         <storageInlineField>inlineField</storageInlineField>
+         <storageUrlField>urlField</storageUrlField>
+      </processor>      
     </preImportProcessors>
 
     <!-- Importer is purposely slim since the full config is tested in
@@ -238,7 +269,7 @@
       <sourceFields>field1,field2</sourceFields>
     </documentChecksummer>
     <postImportProcessors>
-      <processor class="com.norconex.collector.http.doc.MockHttpDocumentProcessor"/>
+      <processor class="com.norconex.collector.http.processor.impl.MockHttpDocumentProcessor"/>
     </postImportProcessors>    
     <spoiledReferenceStrategizer 
         class="com.norconex.collector.core.spoil.impl.GenericSpoiledReferenceStrategizer"

@@ -20,6 +20,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,13 +35,15 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.tika.utils.CharsetUtils;
@@ -136,11 +141,13 @@ import com.norconex.importer.util.CharsetUtil;
  * </p>
  * 
  * <h3>"nofollow"</h3>
+ * <p>
  * By default, a regular HTML link having the "rel" attribute set to "nofollow"
  * won't be extracted (e.g. 
  * <code>&lt;a href="x.html" rel="nofollow" ...&gt;</code>).  
  * To force its extraction (and ensure it is followed) you can set 
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
+ * </p>
  * 
  * <h3>URL Fragments</h3>
  * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
@@ -177,6 +184,15 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link #setCommentsEnabled(boolean)}
  * </p>
  * 
+ * <h3>Extract links in certain parts only</h3>
+ * <p><b>Since 2.8.0</b>, you can identify portions of a document where links
+ * should be extracted or ignored with 
+ * {@link #setExtractBetweens(RegexPair...)} and 
+ * {@link #setNoExtractBetweens(RegexPair...)}. Eligible content for link
+ * extraction is identified first, and content to exclude is done on that 
+ * subset.
+ * </p>
+ * 
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
@@ -193,11 +209,26 @@ import com.norconex.importer.util.CharsetUtil;
  *           leave blank or remove tag to use defaults.)
  *      &lt;/schemes&gt;
  *      
- *      &lt;!-- Which tags and attributes hold the URLs to extract --&gt;
+ *      &lt;!-- Which tags and attributes hold the URLs to extract. --&gt;
  *      &lt;tags&gt;
  *          &lt;tag name="(tag name)" attribute="(tag attribute)" /&gt;
  *          &lt;!-- you can have multiple tag entries --&gt;
  *      &lt;/tags&gt;
+ *      
+ *      &lt;!-- Only extract URLs from the following text portions. --&gt;
+ *      &lt;extractBetween caseSensitive="[false|true]"&gt;
+ *          &lt;start&gt;(regex)&lt;/start&gt;
+ *          &lt;end&gt;(regex)&lt;/end&gt; *      
+ *      &lt;/extractBetween&gt;
+ *      &lt;!-- you can have multiple extractBetween entries --&gt;
+ *      
+ *      &lt;!-- Do not extract URLs from the following text portions. --&gt;
+ *      &lt;noExtractBetween caseSensitive="[false|true]"&gt;
+ *          &lt;start&gt;(regex)&lt;/start&gt;
+ *          &lt;end&gt;(regex)&lt;/end&gt;
+ *      &lt;/noExtractBetween&gt;
+ *      &lt;!-- you can have multiple noExtractBetween entries --&gt;
+ *      
  *  &lt;/extractor&gt;
  * </pre>
  * 
@@ -224,6 +255,7 @@ import com.norconex.importer.util.CharsetUtil;
  */
 public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
+    
     private static final Logger LOG = LogManager.getLogger(
             GenericLinkExtractor.class);
 
@@ -246,7 +278,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private static final String[] DEFAULT_SCHEMES = 
             new String[] { "http", "https", "ftp" };
     
-    private static final int PATTERN_URL_GROUP = 4;
     private static final int PATTERN_FLAGS = 
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
     private static final int LOGGING_MAX_URL_LENGTH = 200;
@@ -260,6 +291,9 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private String charset;
     private boolean commentsEnabled;
     
+    private final List<RegexPair> extractBetweens = new ArrayList<>();
+    private final List<RegexPair> noExtractBetweens = new ArrayList<>();
+    
     public GenericLinkExtractor() {
         super();
         // default tags/attributes used to extract data. 
@@ -270,7 +304,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         addLinkTag("meta", "http-equiv");
     }
 
-    
     private static final Pattern BASE_HREF_PATTERN = Pattern.compile(
             "<base[^<]+?href\\s*=\\s*([\"']{0,1})(.*?)\\1", PATTERN_FLAGS);
     @Override
@@ -294,8 +327,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         } else {
             sourceCharset = CharsetUtils.clean(sourceCharset);
         }
-        sourceCharset = 
-                StringUtils.defaultIfBlank(sourceCharset, CharEncoding.UTF_8);
+        sourceCharset = StringUtils.defaultIfBlank(
+                sourceCharset, StandardCharsets.UTF_8.toString());
         
         Referer referer = new Referer(reference);
         Set<Link> links = new HashSet<>();
@@ -322,7 +355,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return links;
     }
 
-    
     private Referer adjustReferer(
             final String content, final Referer referer, 
             final boolean firstChunk) {
@@ -349,7 +381,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return ArrayUtils.contains(contentTypes, contentType);
     }
     
-    
     /**
      * Gets the maximum supported URL length.
      * @return maximum URL length
@@ -370,6 +401,70 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
     public void setContentTypes(ContentType... contentTypes) {
         this.contentTypes = ArrayUtils.clone(contentTypes);
+    }
+    
+    /**
+     * Gets the patterns delimiting the portions of a document to be considered
+     * for link extraction.
+     * @return extract between patterns
+     * @since 2.8.0
+     */
+    public RegexPair[] getExtractBetweens() {
+        return extractBetweens.toArray(new RegexPair[] {});
+    }
+    /**
+     * Sets the patterns delimiting the portions of a document to be considered
+     * for link extraction.
+     * @param betweens extract between patterns
+     * @since 2.8.0
+     */
+    public void setExtractBetweens(RegexPair... betweens) {
+        this.extractBetweens.clear();
+        this.extractBetweens.addAll(Arrays.asList(betweens));
+    }
+    /**
+     * Adds patterns delimiting a portion of a document to be considered
+     * for link extraction.
+     * @param start pattern matching start of text portion
+     * @param end pattern matching end of text portion
+     * @param caseSensitive whether the patterns are case sensitive or not
+     * @since 2.8.0
+     */
+    public void addExtractBetween(
+            String start, String end, boolean caseSensitive) {
+        this.extractBetweens.add(new RegexPair(start, end, caseSensitive));
+    }
+
+    /**
+     * Gets the patterns delimiting the portions of a document to be excluded
+     * from link extraction.
+     * @return extract between patterns
+     * @since 2.8.0
+     */
+    public RegexPair[] getNoExtractBetweens() {
+        return noExtractBetweens.toArray(new RegexPair[] {});
+    }
+    /**
+     * Sets the patterns delimiting the portions of a document to be excluded
+     * from link extraction.
+     * @param betweens extract between patterns
+     * @since 2.8.0
+     */
+    public void setNoExtractBetweens(RegexPair... betweens) {
+        this.noExtractBetweens.clear();
+        this.noExtractBetweens.addAll(Arrays.asList(betweens));
+    }
+    /**
+     * Adds patterns delimiting a portion of a document to be excluded
+     * from link extraction.
+     * @param start pattern matching start of text portion
+     * @param end pattern matching end of text portion
+     * @param caseSensitive whether the patterns are case sensitive or not
+     * @since 2.8.0
+     */
+    public void addNoExtractBetween(
+            String start, String end, boolean caseSensitive) {
+        this.noExtractBetweens.add(new RegexPair(start, end, caseSensitive));
     }
 
     /**
@@ -504,6 +599,9 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             String theContent, Referer referrer, Set<Link> links) {
         String content = theContent;
 
+        // Eliminate content not matching extract patterns 
+        content = excludeUnwantedContent(content);
+        
         // Get rid of <script> tags content to eliminate possibly 
         // generated URLs.
         content = SCRIPT_PATTERN.matcher(content).replaceAll("$1$3");
@@ -563,12 +661,16 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
 
             Pattern p = Pattern.compile(
-                    "(^|\\s)(" + attribs + ")\\s*=\\s*([\"'])([^\\<\\>]*?)\\3",
-                    PATTERN_FLAGS);
-            Matcher urlMatcher = p.matcher(restOfTag);
-            while (urlMatcher.find()) {
-                String attribName = urlMatcher.group(2);
-                String matchedUrl = urlMatcher.group(PATTERN_URL_GROUP);
+                    "(^|\\s)(" + attribs + ")\\s*=\\s*"
+                  + "((?<quot>[\"'])(?<url1>[^\\<\\>]*?)\\k<quot>"
+                  + "|(?<url2>[^\\s\\>]+)[\\s\\>])", PATTERN_FLAGS);
+
+            Matcher urlm = p.matcher(restOfTag);
+            while (urlm.find()) {
+                String attribName = urlm.group(2);
+                // Will either match url1 (quoted) or url2 (unquoted).
+                String matchedUrl = urlm.start("url1") != -1 
+                        ? urlm.group("url1") : urlm.group("url2");
                 if (StringUtils.isBlank(matchedUrl)) {
                     continue;
                 }
@@ -601,6 +703,67 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
     }
     
+    //TODO consider moving this logic to new class shared with others,
+    //like StripBetweenTagger
+    private String excludeUnwantedContent(String content) {
+        String newContent = content;
+        if (!extractBetweens.isEmpty()) {
+            newContent = excludeUnwantedContent(newContent, true);
+        }
+        if (!noExtractBetweens.isEmpty()) {
+            newContent = excludeUnwantedContent(newContent, false);
+        }
+        return newContent;
+    }
+    private String excludeUnwantedContent(String content, boolean keepMatch) {
+        StringBuilder newContent = new StringBuilder();
+        if (!keepMatch) {
+            newContent.append(content);
+        }
+        List<RegexPair> pairs;
+        if (keepMatch) {
+            pairs = extractBetweens;
+        } else {
+            pairs = noExtractBetweens;
+        }
+        for (RegexPair pair : pairs) {
+            int flags = Pattern.DOTALL;
+            if (!pair.isCaseSensitive()) {
+                flags = flags | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+            }
+            List<Pair<Integer, Integer>> matches = new ArrayList<>();
+            Pattern leftPattern = Pattern.compile(pair.getStart(), flags);
+            Matcher leftMatch = leftPattern.matcher(content);
+            while (leftMatch.find()) {
+                Pattern rightPattern = Pattern.compile(pair.getEnd(), flags);
+                Matcher rightMatch = rightPattern.matcher(content);
+                if (rightMatch.find(leftMatch.end())) {
+                    matches.add(new ImmutablePair<Integer, Integer>(
+                            leftMatch.start(), rightMatch.end()));
+                } else {
+                    break;
+                }
+            }
+            excludeUnwantedContent(newContent, content, matches, keepMatch);
+        }
+        return newContent.toString();
+    }
+    private void excludeUnwantedContent(
+            StringBuilder newContent, String content, 
+            List<Pair<Integer, Integer>> matches, boolean keepMatch) {
+        if (keepMatch) {
+            for (Pair<Integer, Integer> pair : matches) {
+                newContent.append(
+                        content.substring(pair.getLeft(), pair.getRight()));
+            }
+        } else {
+            for (int i = matches.size() -1; i >= 0; i--) {
+                Pair<Integer, Integer> pair = matches.get(i);
+                newContent.delete(pair.getLeft(), pair.getRight());
+            }
+        }
+    }
+
     //--- Extract meta refresh -------------------------------------------------
     private static final Pattern META_EQUIV_REFRESH_PATTERN = Pattern.compile(
             "(^|\\W+)http-equiv\\s*=\\s*[\"']{0,1}refresh[\"']{0,1}",
@@ -618,7 +781,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         if (!m.find()) {
             return;
         }
-        String url = toCleanAbsoluteURL(referrer, m.group(PATTERN_URL_GROUP));
+        String url = toCleanAbsoluteURL(referrer, m.group(4));
         Link link = new Link(url);
         link.setReferrer(referrer.url);
         link.setTag("meta.http-equiv.refresh");
@@ -745,6 +908,32 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 }
             }
         }
+        
+        // extract between
+        List<HierarchicalConfiguration> extractNodes = 
+                xml.configurationsAt("extractBetween");
+        if (!extractNodes.isEmpty()) {
+            extractBetweens.clear();
+            for (HierarchicalConfiguration node : extractNodes) {
+                addExtractBetween(
+                        node.getString("start", null),
+                        node.getString("end", null),
+                        node.getBoolean("[@caseSensitive]", false));
+            }
+        }
+
+        // no extract between
+        List<HierarchicalConfiguration> noExtractNodes = 
+                xml.configurationsAt("noExtractBetween");
+        if (!noExtractNodes.isEmpty()) {
+            noExtractBetweens.clear();
+            for (HierarchicalConfiguration node : noExtractNodes) {
+                addNoExtractBetween(
+                        node.getString("start", null),
+                        node.getString("end", null),
+                        node.getBoolean("[@caseSensitive]", false));
+            }
+        }
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
@@ -784,14 +973,32 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
             writer.writeEndElement();
 
+            // extract between
+            for (RegexPair pair : extractBetweens) {
+                writer.writeStartElement("extractBetween");
+                writer.writeAttributeBoolean(
+                        "caseSensitive", pair.isCaseSensitive());
+                writer.writeElementString("start", pair.getStart());
+                writer.writeElementString("end", pair.getEnd());
+                writer.writeEndElement();
+            }            
+
+            // no extract between
+            for (RegexPair pair : noExtractBetweens) {
+                writer.writeStartElement("noExtractBetween");
+                writer.writeAttributeBoolean(
+                        "caseSensitive", pair.isCaseSensitive());
+                writer.writeElementString("start", pair.getStart());
+                writer.writeElementString("end", pair.getEnd());
+                writer.writeEndElement();
+            }            
+
             writer.writeEndElement();
             writer.flush();
             writer.close();
-            
         } catch (XMLStreamException e) {
             throw new IOException("Cannot save as XML.", e);
         }
-        
     }
     
     //TODO delete this class and use HttpURL#toAbsolute() instead?
@@ -831,7 +1038,40 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
     }
 
-    
+    //TODO make standalone class?
+    public static class RegexPair {
+        private final String start; 
+        private final String end;
+        private final boolean caseSensitive;
+        public RegexPair(String start, String end, boolean caseSensitive) {
+            super();
+            this.start = start;
+            this.end = end;
+            this.caseSensitive = caseSensitive;
+        }
+        public String getStart() {
+            return start;
+        }
+        public String getEnd() {
+            return end;
+        }
+        public boolean isCaseSensitive() {
+            return caseSensitive;
+        }
+        @Override
+        public boolean equals(final Object other) {
+            return EqualsBuilder.reflectionEquals(this, other, false);
+        }
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this, false);
+        }
+        @Override
+        public String toString() {
+            return ReflectionToStringBuilder.toString(
+                    this, ToStringStyle.SHORT_PREFIX_STYLE);
+        }
+    }
     
     @Override
     public String toString() {
@@ -843,6 +1083,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append("commentsEnabled", commentsEnabled)
                 .append("tagAttribs", tagAttribs)
                 .append("charset", charset)
+                .append("extractBetweens", extractBetweens)
+                .append("noExtractBetweens", noExtractBetweens)
                 .toString();
     }
 
@@ -861,6 +1103,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(commentsEnabled, castOther.commentsEnabled)
                 .append(tagAttribs.entrySet(), castOther.tagAttribs.entrySet())
                 .append(charset, castOther.charset)
+                .append(extractBetweens, castOther.extractBetweens)
+                .append(noExtractBetweens, castOther.noExtractBetweens)
                 .isEquals();
     }
 
@@ -874,6 +1118,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 .append(commentsEnabled)
                 .append(tagAttribs)
                 .append(charset)
+                .append(extractBetweens)
+                .append(noExtractBetweens)
                 .toHashCode();
     }
 }

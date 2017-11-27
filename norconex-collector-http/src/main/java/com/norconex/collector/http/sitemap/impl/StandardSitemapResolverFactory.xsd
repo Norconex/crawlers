@@ -19,13 +19,14 @@
   <xs:element name="sitemapResolverFactory">
     <xs:complexType>
       <xs:all>
+        <xs:element name="tempDir" 
+            type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="path" 
-            type="nonEmptyString" minOccurs="0" maxOccurs="unbounded"/>
+            type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
       <xs:attribute name="ignore" type="xs:boolean"/>
       <xs:attribute name="lenient" type="xs:boolean"/>
-      <xs:attribute name="tempDir" type="xs:string"/>
     </xs:complexType>
   </xs:element>
 

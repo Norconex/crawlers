@@ -14,16 +14,20 @@
  */
 package com.norconex.collector.http.crawler;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,6 +49,9 @@ import com.norconex.importer.doc.ImporterMetadata;
  */
 public class BasicFeaturesTest extends AbstractHttpTest {
 
+    private static final Logger LOG = 
+            LogManager.getLogger(BasicFeaturesTest.class);
+    
     /**
      * Constructor.
      */
@@ -67,7 +74,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
 
         List<String> urls = 
                 doc.getMetadata().getStrings(HttpMetadata.COLLECTOR_URL);
-        System.out.println("URLs:" + urls);
+        LOG.debug("URLs:" + urls);
         assertListSize("URL", urls, 1);
 
         Assert.assertTrue("Invalid redirection URL: " + ref,
@@ -82,6 +89,87 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         Assert.assertTrue("Invalid relative URL: " + inPageUrls.get(1),
                 inPageUrls.get(1).matches(".*/test/redirected/page[12].html"));
     }
+    
+    @Test
+    public void testMultiRedirects() throws IOException {
+        HttpCollector collector = newHttpCollector1Crawler(
+                "/test?case=multiRedirects");
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        crawler.getCrawlerConfig().setMaxDepth(0);
+        collector.start(false);
+        
+        List<HttpDocument> docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+
+        HttpDocument doc = docs.get(0);
+        String ref = doc.getReference();
+
+        List<String> trail = doc.getMetadata().getStrings(
+                HttpMetadata.COLLECTOR_REDIRECT_TRAIL);
+        LOG.debug("Redirect source URLs:" + trail);
+        assertListSize("URL", trail, 5);
+
+        // Test the trail order:
+        Assert.assertFalse(trail.get(0).contains("count"));
+        Assert.assertTrue(trail.get(1).contains("count=1"));
+        Assert.assertTrue(trail.get(2).contains("count=2"));
+        Assert.assertTrue(trail.get(3).contains("count=3"));
+        Assert.assertTrue(trail.get(4).contains("count=4"));
+        
+        // Test final URL:
+        Assert.assertTrue(
+                "Invalid redirection URL: " + ref, ref.contains("count=5"));
+    }
+    
+    @Test
+    public void testCanonicalRedirectLoop() throws IOException {
+
+        HttpCollector collector = null;
+        HttpCrawler crawler = null;
+        List<HttpDocument> docs = null;
+        HttpDocument doc = null;
+        String content = null;
+        
+        //--- Starting with canonical ---
+        collector = newHttpCollector1Crawler(
+                "/test?case=canonRedirLoop&type=canonical");
+        crawler = (HttpCrawler) collector.getCrawlers()[0];
+        collector.start(false);
+        
+        docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+
+        doc = docs.get(0);
+        content = IOUtils.toString(doc.getContent(), StandardCharsets.UTF_8);
+        assertTrue("Wrong content", 
+                content.contains("Canonical-redirect circular reference"));
+        assertTrue("Wrong reference", 
+                doc.getReference().contains("&type=canonical"));
+        
+LOG.warn("FINAL REF: " + doc.getReference());
+LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
+        HttpMetadata.COLLECTOR_REDIRECT_TRAIL));
+        
+        //-- Starting with redirect ---
+        collector = newHttpCollector1Crawler(
+                "/test?case=canonRedirLoop&type=redirect");
+        crawler = (HttpCrawler) collector.getCrawlers()[0];
+        collector.start(false);
+        
+        docs = getCommitedDocuments(crawler);
+        assertListSize("document", docs, 1);
+        
+        doc = docs.get(0);
+        content = IOUtils.toString(doc.getContent(), StandardCharsets.UTF_8);
+        assertTrue("Wrong content", 
+                content.contains("Canonical-redirect circular reference"));
+        assertTrue("Wrong reference", 
+                doc.getReference().contains("&type=canonical"));
+        
+        LOG.warn("FINAL REF: " + doc.getReference());
+        LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
+        HttpMetadata.COLLECTOR_REDIRECT_TRAIL));
+    }       
     
     @Test
     public void testBasicFeatures() throws IOException {
@@ -123,7 +211,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
             }
         });
         String content = FileUtils.readFileToString(
-                downloadedFile.getValue(), CharEncoding.UTF_8);
+                downloadedFile.getValue(), StandardCharsets.UTF_8);
         Assert.assertTrue("Invalid or missing download file.",
                 content.contains("<b>This</b> file <i>must</i> be saved as is, "
                         + "with this <span>formatting</span>"));
@@ -155,8 +243,8 @@ public class BasicFeaturesTest extends AbstractHttpTest {
 
         HttpDocument doc = docs.get(0);
         Assert.assertTrue("Wrong or undetected User-Agent.", 
-                IOUtils.toString(doc.getContent(), CharEncoding.UTF_8).contains(
-                        "Super Secret Agent"));
+                IOUtils.toString(doc.getContent(), 
+                        StandardCharsets.UTF_8).contains("Super Secret Agent"));
     }
     
     @Test
@@ -169,7 +257,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
                 new ICrawlerEventListener[] {new ICrawlerEventListener() {
             @Override
             public void crawlerEvent(ICrawler crawler, CrawlerEvent event) {
-                if (HttpCrawlerEvent.REJECTED_CANONICAL.equals(
+                if (HttpCrawlerEvent.REJECTED_NONCANONICAL.equals(
                         event.getEventType())) {
                     canCount.increment();
                 }
@@ -215,7 +303,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
 
         for (HttpDocument doc : docs) {
             String content = IOUtils.toString(
-                    doc.getContent(), CharEncoding.UTF_8);
+                    doc.getContent(), StandardCharsets.UTF_8);
             if (!doc.getReference().contains("script=true")) {
                 // first page
                 Assert.assertTrue("First page not crawled properly",
@@ -276,8 +364,9 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         
         Assert.assertEquals("text/html", 
                 doc.getMetadata().getString(ImporterMetadata.DOC_CONTENT_TYPE));
-        Assert.assertEquals(CharEncoding.UTF_8, doc.getMetadata().getString(
-                ImporterMetadata.DOC_CONTENT_ENCODING));
+        Assert.assertEquals(StandardCharsets.UTF_8.toString(), 
+                doc.getMetadata().getString(
+                        ImporterMetadata.DOC_CONTENT_ENCODING));
     }
     
     
@@ -299,7 +388,8 @@ public class BasicFeaturesTest extends AbstractHttpTest {
                 meta.getString(HttpMetadata.HTTP_CONTENT_TYPE));
         Assert.assertEquals("Bad Collection content-type.", "text/html", 
                 meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE));
-        Assert.assertEquals("Bad char-encoding.", CharEncoding.UTF_8, 
+        Assert.assertEquals("Bad char-encoding.", 
+                StandardCharsets.UTF_8.toString(), 
                 meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING));
     }
     private void assertListSize(String listName, List<?> list, int size) {

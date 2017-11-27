@@ -27,21 +27,26 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.CharEncoding;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.text.StrSubstitutor;
 import org.apache.http.HttpStatus;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.map.Properties;
 
 /**
  * @author Pascal Essiembre
- *
  */
 public class TestServlet extends HttpServlet {
 
     private static final long serialVersionUID = -4252570491708918968L;
-
+    private static final Logger LOG = LogManager.getLogger(TestServlet.class);
+    
     private final Map<String, ITestCase> testCases = new HashMap<>();
     
     private final List<String> tokens = new ArrayList<String>();
@@ -53,17 +58,21 @@ public class TestServlet extends HttpServlet {
         testCases.put("list", new ListTestCases());
         testCases.put("basic", new BasicTestCase());
         testCases.put("redirect", new RedirectTestCase());
+        testCases.put("multiRedirects", new MultiRedirectsTestCase());
         testCases.put("userAgent", new UserAgentTestCase());
         testCases.put("keepDownloads", new KeepDownloadedFilesTestCase());
         testCases.put("deletedFiles", new DeletedFilesTestCase());
         testCases.put("modifiedFiles", new ModifiedFilesTestCase());
         testCases.put("canonical", new CanonicalTestCase());
+        testCases.put("canonRedirLoop", new CanonicalRedirectLoopTestCase());
         testCases.put("specialURLs", new SpecialURLTestCase());
         testCases.put("script", new ScriptTestCase());
         testCases.put("zeroLength", new ZeroLengthTestCase());
         testCases.put("timeout", new TimeoutTestCase());
         testCases.put("iframe", new IFrameTestCase());
         testCases.put("contentTypeCharset", new ContentTypeCharsetTestCase());
+        testCases.put("sitemap", new SitemapTestCase());
+        testCases.put("merge", new MergeTestCase());
     }
     
     @Override
@@ -93,7 +102,7 @@ public class TestServlet extends HttpServlet {
         public void doTestCase(HttpServletRequest req, 
                 HttpServletResponse resp) throws Exception {
             resp.setContentType("text/html");
-            resp.setCharacterEncoding(CharEncoding.UTF_8);
+            resp.setCharacterEncoding(StandardCharsets.UTF_8.toString());
             PrintWriter out = resp.getWriter();
             out.println("<html style=\"font-family:Arial, "
                    + "Helvetica, sans-serif;\">");
@@ -161,6 +170,29 @@ public class TestServlet extends HttpServlet {
                     + "redirect and figure that out.<br><br>");
             out.println("<a href=\"page1.html\">Page 1 (broken)</a>");
             out.println("<a href=\"page2.html\">Page 2 (broken)</a>");
+        }
+    }
+
+    /**
+     * The tail of redirects should be kept as metadata so implementors
+     * can know where documents came from.
+     */
+    class MultiRedirectsTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+
+            int maxRedirects = 5;
+            int count = NumberUtils.toInt(req.getParameter("count"), 0);
+            
+            if (count < maxRedirects) {
+                resp.sendRedirect(
+                        "/test?case=multiRedirects&count=" + (count + 1));
+                return;
+            }
+            out.println("<h1>Multi-redirects test page</h1>");
+            out.println("The URL was redirected " + maxRedirects + " times. "
+                    + "Was the redirect trail kept somehwere in your crawler?"
+                    + "<br>");
         }
     }
     
@@ -320,6 +352,42 @@ public class TestServlet extends HttpServlet {
         }
     }
     
+    // Canonical points to a page that redirects back to canonical    
+    class CanonicalRedirectLoopTestCase extends HtmlTestCase {
+        private final MutableInt count = new MutableInt();
+        
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            
+            if (count.intValue() == 10) {
+                resp.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        "Too many canonicals + redirects (loop).");
+                count.setValue(0);
+                return;
+            }
+            
+            count.increment();
+            String type = req.getParameter("type");
+            String baseURL = "http://localhost:" + req.getLocalPort() 
+                    + "/test?case=canonRedirLoop";
+            
+            if ("canonical".equals(type)) {
+LOG.warn(">>> Canonical requested, which points to redirect.");
+                resp.setHeader("Link", 
+                        "<" + baseURL + "&type=redirect>; rel=\"canonical\"");
+                out.println("<h1>Canonical-redirect circular reference.</h1>"
+                        + "<p>This page has a canonical URL in the HTTP header "
+                        + "that points to a page that redirects back to this "
+                        + "one (loop). The crawler should be smart enough "
+                        + "to pick one and not enter in an infite loop.</p>");
+            } else {
+LOG.warn(">>> Redirect requested, which points to canonical.");
+                resp.sendRedirect(baseURL + "&type=canonical");
+            }
+        }
+    }    
+    
+    
     class SpecialURLTestCase extends HtmlTestCase {
         public void doTestCase(HttpServletRequest req, 
                 HttpServletResponse resp, PrintWriter out) throws Exception {
@@ -473,6 +541,49 @@ public class TestServlet extends HttpServlet {
         }
     }
     
+    class MergeTestCase extends HtmlTestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            
+            String page = req.getParameter("page");
+            
+            if (StringUtils.isBlank(page)) {
+                String html = 
+                          "<h1>Merge test page: Source page</h1>\n"
+                        + "<head>\n"
+                        + "<meta name=\"Sfield1\" content=\"Svalue1\">\n"
+                        + "<meta name=\"Sfield2\" content=\"Svalue2\">\n"
+                        + "<meta name=\"Sfield3\" content=\"Svalue3\">\n"
+                        + "<head>\n"
+                        + "<body>\n"
+                        + "<p>This source page includes metadata to test"
+                        + "merging.</p>\n"
+                        + "<a href=\"?case=merge&amp;page=cat\">cat</a>\n"
+                        + "<a href=\"?case=merge&amp;page=dog\">dog</a>\n"
+                        + "</body>\n";
+                out.println(html);
+            } else {
+                out.println("<h1>Merge test page: Target page: "
+                        + page + "</h1>");
+                String html = 
+                          "<h1>Merge test page: Source page: " +page+ "</h1>\n"
+                        + "<head>\n"
+                        + "<meta name=\"T1" + page 
+                        + "\" content=\"tvalue1-" + page + "\">\n"
+                        + "<meta name=\"T2" + page 
+                        + "\" content=\"tvalue2-" + page + "\">\n"
+                        + "<meta name=\"T3" + page 
+                        + "\" content=\"tvalue3-" + page + "\">\n"
+                        + "<head>\n"
+                        + "<body>\n"
+                        + "<p>This target page " + page 
+                        + " includes metadata to test merging.</p>\n"
+                        + "</body>\n";
+                out.println(html);
+            }
+        }
+    }
+    
     class ContentTypeCharsetTestCase implements ITestCase {
         public void doTestCase(HttpServletRequest req, 
                 HttpServletResponse resp) throws Exception {
@@ -489,6 +600,64 @@ public class TestServlet extends HttpServlet {
                      + "</body>"
                      + "</html>";
             resp.getOutputStream().write(out.getBytes(StandardCharsets.UTF_8));
+        }
+    }
+    
+    /**
+     * The second time the sitemap has 1 less URL and that URL no longer
+     * exists.
+     */
+    class SitemapTestCase implements ITestCase {
+        public void doTestCase(HttpServletRequest req, 
+                HttpServletResponse resp) throws Exception {    
+
+            int page = NumberUtils.toInt(req.getParameter("page"), -1);
+            String token = req.getParameter("token");
+            
+            // if page is blank, the request is for the sitemap
+            if (page == -1) {
+                String baseLocURL = "http://localhost:" + req.getLocalPort() 
+                       + "/test?case=sitemap&amp;token=" + token + "&amp;page=";
+                Map<String, String> vars = new HashMap<>();
+                vars.put("loc1", baseLocURL + 1);
+                vars.put("loc2", baseLocURL + 2);
+                if (!tokens.contains(token)) {
+                    vars.put("loc3", baseLocURL + 3);
+                    tokens.add(token);
+                } else {
+                    vars.put("loc3", baseLocURL + 33);
+                    tokens.remove(token);
+                }
+                String xml = IOUtils.toString(getClass().getResourceAsStream(
+                        "sitemap.xml"), StandardCharsets.UTF_8);
+                xml = StrSubstitutor.replace(xml, vars);
+                resp.setContentType("application/xml");
+                resp.setCharacterEncoding("UTF-8");
+                resp.getWriter().println(xml);
+            } else {
+                resp.setContentType("text/html");
+                resp.setCharacterEncoding("UTF-8");
+                PrintWriter out = resp.getWriter();
+
+                if (page < 3) {
+                    out.println("<h1>Sitemap permanent page " + page + "</h1>");
+                    out.println("<p>This page should always be there.</p>");
+                } else if (page == 3) {
+                    if (tokens.contains(token)) {
+                        out.println("<h1>Sitemap temp page " + page + "</h1>");
+                        out.println("<p>This page should be there the first "
+                                + "time the site is crawled only.</p>");
+                    } else {
+                        resp.sendError(HttpStatus.SC_NOT_FOUND,
+                                "Not found (so they say)");
+                    }
+
+                } else if (page == 33) {
+                    out.println("<h1>Sitemap new page " + page + "</h1>");
+                    out.println("<p>This page should be there the second "
+                            + "time the site is crawled only.</p>");
+                }
+            }
         }
     }
 }

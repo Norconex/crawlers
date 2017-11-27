@@ -20,7 +20,7 @@
     <xs:complexType>
       <xs:all>
         <xs:element name="normalizations" 
-            type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+            type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="replacements" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>

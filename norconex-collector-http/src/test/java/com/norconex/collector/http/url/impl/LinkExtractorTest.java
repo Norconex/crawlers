@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -243,6 +243,56 @@ public class LinkExtractorTest {
         return link;
     }    
 
+    //--- Extract/NoExtract Tests ----------------------------------------------    
+    @Test
+    public void testExtractBetween() throws IOException {
+        String baseURL = "http://www.example.com/";
+    
+        // All these must be found
+        String[] expectedURLs = {
+                baseURL + "include1.html",
+                baseURL + "include2.html",
+                baseURL + "include3.html",
+                baseURL + "include4.html",
+                baseURL + "include5.html",
+        };
+        // All these must NOT be found
+        String[] unexpectedURLs = {
+                baseURL + "exclude1.html",
+                baseURL + "exclude2.html",
+                baseURL + "exclude3.html",
+                baseURL + "exclude4.html",
+                baseURL + "exclude5.html",
+                baseURL + "exclude6.html",
+                baseURL + "exclude7.html",
+        };
+    
+        // Only GenericLinkExtractor:
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        extractor.addExtractBetween("<include1>", "</include1>\\s+", true);
+        extractor.addExtractBetween("<Include2>", "</Include2>\\s+", false);
+        extractor.addNoExtractBetween("<exclude1>", "</exclude1>\\s+", true);
+        extractor.addNoExtractBetween("<Exclude2>", "</Exclude2>\\s+", false);
+        
+        Set<Link> links;
+        try (InputStream is = getClass().getResourceAsStream(
+                "LinkExtractBetweenTest.html")) {
+            links = extractor.extractLinks(is, 
+                    baseURL + "LinkExtractBetweenTest.html", ContentType.HTML);
+        }
+    
+        for (String expectedURL : expectedURLs) {
+            assertTrue("Could not find expected URL: " + expectedURL, 
+                    contains(links, expectedURL));
+        }
+        for (String unexpectedURL : unexpectedURLs) {
+            assertFalse("Found unexpected URL: " + unexpectedURL, 
+                    contains(links, unexpectedURL));
+        }
+    
+        Assert.assertEquals("Invalid number of links extracted.", 
+                expectedURLs.length, links.size());        
+    }
     
     //--- Other Tests ----------------------------------------------------------    
     @Test
@@ -252,6 +302,10 @@ public class LinkExtractorTest {
         extractor.setIgnoreNofollow(true);
         extractor.addLinkTag("food", "chocolate");
         extractor.addLinkTag("friend", "Thor");
+        extractor.addExtractBetween("start1", "end1", true);
+        extractor.addExtractBetween("start2", "end2", false);
+        extractor.addNoExtractBetween("nostart1", "noend1", true);
+        extractor.addNoExtractBetween("nostart2", "noend2", false);
         System.out.println("Writing/Reading this: " + extractor);
         XMLConfigurationUtil.assertWriteRead(extractor);
     }
@@ -329,7 +383,49 @@ public class LinkExtractorTest {
         input.close();
         Assert.assertTrue("URL not extracted: " + url, contains(links, url));
     }
-    
+
+    //Test for: https://github.com/Norconex/collector-http/issues/423
+    @Test
+    public void testUnquottedURL() throws IOException {
+        String ref = "http://www.example.com/index.html";
+        String url1 = "http://www.example.com/unquoted_url1.html";
+        String url2 = "http://www.example.com/unquoted_url2.html";
+        String html = "<html><body>"
+                + "<a href=unquoted_url1.html>test link 1</a>"
+                + "<a href=unquoted_url2.html title=\"blah\">test link 2</a>"
+                + "</body></html>";
+        ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
+        input.close();
+        assertTrue("Could not find expected URL: " + url1, 
+                contains(links, url1));
+        assertTrue("Could not find expected URL: " + url2, 
+                contains(links, url2));
+    }
+    @Test
+    public void testBadQuotingURL() throws IOException {
+        String ref = "http://www.example.com/index.html";
+        String url1 = "http://www.example.com/bad\"quote1.html";
+        String url2 = "http://www.example.com/bad'quote2.html";
+        String url3 = "http://www.example.com/bad\"quote3.html";
+        String html = "<html><body>"
+                + "<a href=bad\"quote1.html>test link 1</a>"
+                + "<a href=\"bad'quote2.html\">test link 1</a>"
+                + "<a href='bad\"quote3.html'>test link 1</a>"
+                + "</body></html>";
+        ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
+        input.close();
+        assertTrue("Could not find expected URL: " + url1, 
+                contains(links, url1));
+        assertTrue("Could not find expected URL: " + url2, 
+                contains(links, url2));
+        assertTrue("Could not find expected URL: " + url3, 
+                contains(links, url3));
+    }
+
     private boolean contains(Set<Link> links, String url) {
         for (Link link : links) {
             if (url.equals(link.getUrl())) {

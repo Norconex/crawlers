@@ -58,6 +58,8 @@ public class HttpCollectorTest extends AbstractHttpTest {
         
         HttpCollectorConfig config = new HttpCollectorConfig();
         config.setId("test-http-collector");
+        config.setLogsDir(crawlerCfg.getWorkDir().getAbsolutePath());
+        config.setProgressDir(crawlerCfg.getWorkDir().getAbsolutePath());
         config.setCrawlerConfigs(new ICrawlerConfig[] {crawlerCfg});
         config.setCollectorListeners(new ICollectorLifeCycleListener() {
             @Override

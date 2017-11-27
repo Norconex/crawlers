@@ -168,6 +168,12 @@
          -->
     <keepDownloads>false</keepDownloads>
 
+    <!-- Keep extracted links that are out-of-scope according to start URL
+         stayOn... flags (if any are true).  Out-of-scope links are 
+         stored in a metadata field.
+         -->
+    <keepOutOfScopeLinks>false</keepOutOfScopeLinks>
+
     <!-- What to do with orphan documents.  Orphans are valid 
          documents, which on subsequent crawls can no longer be reached when 
          running the crawler (e.g. there are no links pointing to that page 
@@ -175,6 +181,15 @@
          IGNORE, DELETE, and PROCESS (default).
          -->
     <orphansStrategy>PROCESS</orphansStrategy>
+
+    <!-- One or more fully qualified names of Java exceptions
+         that should force a crawler to stop when triggered during the 
+         processing of a document. 
+         Default is empty (will try to continue upon exceptions).
+         -->
+    <stopOnExceptions>
+        <exception>com.norconex.committer.core.CommitterException</exception>
+    </stopOnExceptions>
 
     <!-- One or more optional listeners to be notified on various crawling
          events (e.g. document rejected, document imported, etc). 

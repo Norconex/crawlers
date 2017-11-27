@@ -84,7 +84,6 @@ import com.norconex.importer.handler.filter.OnMatch;
  * @since 1.2
  * @see Pattern
  */
-@SuppressWarnings("nls")
 public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
         IReferenceFilter, IDocumentFilter, IMetadataFilter, IXMLConfigurable{
 
@@ -185,7 +184,7 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
 
         boolean reachedCount = false;
         if (duplicate) {
-            Map<String, Integer> segMap = new HashMap<String, Integer>();
+            Map<String, Integer> segMap = new HashMap<>();
             for (String seg : cleanSegments) {
                 Integer dupCount = segMap.get(seg);
                 if (dupCount == null) {
@@ -209,7 +208,7 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
         String path = new HttpURL(url).getPath();
         String[] allSegments = separatorPattern.split(path);
         // remove empty/nulls
-        List<String> cleanSegments = new ArrayList<String>();
+        List<String> cleanSegments = new ArrayList<>();
         for (String segment : allSegments) {
             if (StringUtils.isNotBlank(segment)) {
                 cleanSegments.add(segment);

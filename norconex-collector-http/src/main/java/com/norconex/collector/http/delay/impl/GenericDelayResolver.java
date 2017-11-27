@@ -22,18 +22,15 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.LocalTime;
+import org.joda.time.LocalDateTime;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.commons.lang.CircularRange;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
@@ -173,10 +170,11 @@ public class GenericDelayResolver extends AbstractDelayResolver {
                          + " to " + schedule.getDayOfMonthRange().getMaximum());
                 }
                 if (schedule.getTimeRange() != null) {
-                    writer.writeAttribute("time", "from " 
-                        + schedule.getTimeRange().getLeft().toString("HH:mm")
-                        + " to "
-                        + schedule.getTimeRange().getRight().toString("HH:mm"));
+                    int min = schedule.getTimeRange().getMinimum();
+                    int max = schedule.getTimeRange().getMaximum();
+                    writer.writeAttribute("time", 
+                          "from " + (min / 100) + ":" + (min % 100)
+                         + " to " + (max / 100) + ":" + (max % 100));
                 }
                 writer.writeCharacters(Long.toString(schedule.getDelay()));
                 writer.writeEndElement();
@@ -215,11 +213,14 @@ public class GenericDelayResolver extends AbstractDelayResolver {
     }
     
     public static class DelaySchedule {
-        private final Range<Integer> dayOfWeekRange;
-        private final Range<Integer> dayOfMonthRange;
-        private final ImmutablePair<LocalTime, LocalTime> timeRange;
+        private final CircularRange<DOW> dayOfWeekRange;
+        private final CircularRange<Integer> dayOfMonthRange;
+        // time is 4 digits. E.g., 16:34 is 1634
+        //TODO use LocalTime when moving to Java 8 
+        //(and make this class top-level).
+        private final CircularRange<Integer> timeRange;
         private final long delay;
-        private enum DOW {mon,tue,wed,thu,fri,sat,sun}
+        public enum DOW {mon,tue,wed,thu,fri,sat,sun}
 
         public DelaySchedule(String dow, String dom, String time, long delay) {
             super();
@@ -229,78 +230,74 @@ public class GenericDelayResolver extends AbstractDelayResolver {
             this.delay = delay;
         }
         public boolean isCurrentTimeInSchedule() {
-            DateTime now = DateTime.now();
-            if (dayOfWeekRange != null 
-                    && !dayOfWeekRange.contains(now.getDayOfWeek())) {
+            return isDateTimeInSchedule(LocalDateTime.now());
+        }
+        /*default*/ boolean isDateTimeInSchedule(LocalDateTime dt) {
+            if (dayOfWeekRange != null && !dayOfWeekRange.contains(
+                    DOW.values()[dt.getDayOfWeek() -1])) {
                 return false;
             }
             if (dayOfMonthRange != null 
-                    && !dayOfMonthRange.contains(now.getDayOfMonth())) {
+                    && !dayOfMonthRange.contains(dt.getDayOfMonth())) {
                 return false;
             }
-            if (timeRange != null) {
-                Interval interval = new Interval(
-                        timeRange.getLeft().toDateTimeToday(),
-                        timeRange.getRight().toDateTimeToday());
-                if (!interval.contains(now)) {
-                    return false;
-                }
-            }
-            return true;
+            return timeRange == null || timeRange.contains(
+                    (dt.getHourOfDay() * 100) + dt.getMinuteOfHour());
         }
-        public Range<Integer> getDayOfWeekRange() {
+        public CircularRange<DOW> getDayOfWeekRange() {
             return dayOfWeekRange;
         }
-        public Range<Integer> getDayOfMonthRange() {
+        public CircularRange<Integer> getDayOfMonthRange() {
             return dayOfMonthRange;
         }
-        public ImmutablePair<LocalTime, LocalTime> getTimeRange() {
+        public CircularRange<Integer> getTimeRange() {
             return timeRange;
         }
         public long getDelay() {
             return delay;
         }
-        private ImmutablePair<LocalTime, LocalTime> parseTime(String time) {
+        private CircularRange<Integer> parseTime(String time) {
             if (StringUtils.isBlank(time)) {
                 return null;
             }
             String localTime = normalize(time);
             String[] parts = StringUtils.split(localTime, '-');
-            return new ImmutablePair<>(
-                    getLocalTime(parts[0]), getLocalTime(parts[1]));
+            return CircularRange.between(
+                    0, 2359, toTimeInt(parts[0]), toTimeInt(parts[1]));
         }
-        private Range<Integer> parseDayOfWeekRange(String dayOfWeek) {
+        private CircularRange<DOW> parseDayOfWeekRange(String dayOfWeek) {
             if (StringUtils.isBlank(dayOfWeek)) {
                 return null;
             }
             String dow = normalize(dayOfWeek);
             String[] parts = StringUtils.split(dow, '-');
-            return Range.between(getDOW(parts[0]), getDOW(parts[1]));
+            return CircularRange.between(
+                    DOW.mon, DOW.sun, toDow(parts[0]), toDow(parts[1]));
         }
-        private Range<Integer> parseDayOfMonthRange(String dayOfMonth) {
+        private CircularRange<Integer> parseDayOfMonthRange(String dayOfMonth) {
             if (StringUtils.isBlank(dayOfMonth)) {
                 return null;
             }
             String dom = normalize(dayOfMonth);
             String[] parts = StringUtils.split(dom, '-');
-            return Range.between(
+            return CircularRange.between(1, 31, 
                     Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
         }
-        private LocalTime getLocalTime(String str) {
+        private Integer toTimeInt(String str) {
             if (str.contains(":")) {
                 String[] parts = StringUtils.split(str, ':');
-                return new LocalTime(
-                        Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+                return (Integer.parseInt(parts[0]) * 100)
+                        + Integer.parseInt(parts[1]);
             }
-            return new LocalTime(Integer.parseInt(str), 0);
+            return Integer.parseInt(str) * 100;
         }
-        private int getDOW(String str) {
+        private static DOW toDow(String str) {
             if (str.length() < MIN_DOW_LENGTH) {
                 throw new CollectorException(
                         "Invalid day of week: " + str);
             }
             String dow = str.substring(0, MIN_DOW_LENGTH);
-            return DOW.valueOf(dow).ordinal() + 1;
+            return DOW.valueOf(dow);
         }
         private String normalize(String str) {
             String out = str.toLowerCase();
