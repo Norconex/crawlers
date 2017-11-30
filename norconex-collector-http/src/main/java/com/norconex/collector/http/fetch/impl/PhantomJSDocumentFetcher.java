@@ -1026,9 +1026,13 @@ public class PhantomJSDocumentFetcher
         } else {
             cmdArgs.add(argQuote(p.phantomScreenshotFile.getAbsolutePath()));
         }
-        cmdArgs.add(argQuote(                              // phantom.js arg 7
-                screenshotDimensions.getWidth() + "x"
-              + screenshotDimensions.getHeight()));       
+        if (screenshotDimensions == null) {                // phantom.js arg 7
+            cmdArgs.add(argQuote(""));
+        } else {
+            cmdArgs.add(argQuote(
+                    screenshotDimensions.getWidth() + "x"
+                  + screenshotDimensions.getHeight()));       
+        }
         cmdArgs.add(Float.toString(screenshotZoomFactor)); // phantom.js arg 8
         cmdArgs.add(Integer.toString(resourceTimeout));    // phantom.js arg 9
         

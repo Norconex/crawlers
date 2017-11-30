@@ -7,7 +7,14 @@
   </properties>
   <body>
 
-    <release version="2.8.0" date="2017-11-26" description="Maintenance release">
+    <release version="2.8.1-SNAPSHOT" date="201?-???-??" description="Bugfix release">
+      <action dev="essiembre" type="fix">
+         Fixed NullPointerException when using PhantomJSDocumentFetcher without
+         specifying any "screenshotDimensions".
+      </action>
+    </release>
+
+    <release version="2.8.0" date="2017-11-26" description="Feature release">
       <action dev="essiembre" type="add">
         New FeaturedImageProcessor class to extract the "main" image from 
         a web page. 

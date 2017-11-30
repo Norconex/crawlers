@@ -218,7 +218,7 @@ import com.norconex.importer.util.CharsetUtil;
  *      &lt;!-- Only extract URLs from the following text portions. --&gt;
  *      &lt;extractBetween caseSensitive="[false|true]"&gt;
  *          &lt;start&gt;(regex)&lt;/start&gt;
- *          &lt;end&gt;(regex)&lt;/end&gt; *      
+ *          &lt;end&gt;(regex)&lt;/end&gt;      
  *      &lt;/extractBetween&gt;
  *      &lt;!-- you can have multiple extractBetween entries --&gt;
  *      
