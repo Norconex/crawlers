@@ -41,6 +41,21 @@
         <xs:element name="proxyPassword" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="proxyPasswordKey" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="proxyPasswordKeySource" type="passwordKeySourceType" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authFormParams" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="param" minOccurs="1" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="nonEmptyString">
+                      <xs:attribute name="name" type="xs:string" use="required" />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
         <xs:element name="headers" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>

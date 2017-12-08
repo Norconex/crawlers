@@ -12,6 +12,10 @@
          Fixed NullPointerException when using PhantomJSDocumentFetcher without
          specifying any "screenshotDimensions".
       </action>
+      <action dev="essiembre" type="fix" issue="434">
+         Added validation support for new "authFormParams" option in 
+         GenericHttpClientFactory.
+      </action>      
     </release>
 
     <release version="2.8.0" date="2017-11-26" description="Feature release">
