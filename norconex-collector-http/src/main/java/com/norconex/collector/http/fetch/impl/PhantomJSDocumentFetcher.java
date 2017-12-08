@@ -1442,7 +1442,7 @@ public class PhantomJSDocumentFetcher
                     Long.toString(TimeIdGenerator.next()));
             
             String scheme = "http";
-            if (url.startsWith("https")) {
+            if (doc.getReference().startsWith("https")) {
                 scheme = "https";
             }
             this.protocol = scheme;
