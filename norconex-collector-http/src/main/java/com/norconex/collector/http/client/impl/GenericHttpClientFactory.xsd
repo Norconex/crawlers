@@ -47,7 +47,7 @@
               <xs:element name="param" minOccurs="1" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:simpleContent>
-                    <xs:extension base="nonEmptyString">
+                    <xs:extension base="xs:string">
                       <xs:attribute name="name" type="xs:string" use="required" />
                     </xs:extension>
                   </xs:simpleContent>
@@ -62,7 +62,7 @@
               <xs:element name="header" minOccurs="1" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:simpleContent>
-                    <xs:extension base="nonEmptyString">
+                    <xs:extension base="xs:string">
                       <xs:attribute name="name" type="xs:string" use="required" />
                     </xs:extension>
                   </xs:simpleContent>
