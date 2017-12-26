@@ -40,10 +40,10 @@ import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
+import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver;
 import com.norconex.collector.http.redirect.IRedirectURLProvider;
@@ -87,8 +87,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     
     private String userAgent;
 
-    //TODO make configurable via interface instead?
-    private final URLCrawlScopeStrategy urlCrawlScopeStrategy = 
+    private URLCrawlScopeStrategy urlCrawlScopeStrategy = 
             new URLCrawlScopeStrategy();
     
     private IURLNormalizer urlNormalizer = new GenericURLNormalizer();
@@ -392,8 +391,21 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         this.ignoreCanonicalLinks = ignoreCanonicalLinks;
     }
 
+    /**
+     * Gets the strategy to use to determine if a URL is in scope.
+     * @return the strategy
+     */
     public URLCrawlScopeStrategy getURLCrawlScopeStrategy() {
         return urlCrawlScopeStrategy;
+    }
+    /**
+     * Sets the strategy to use to determine if a URL is in scope.
+     * @param urlCrawlScopeStrategy strategy to use
+     * @since 2.8.1
+     */
+    public void setUrlCrawlScopeStrategy(
+            URLCrawlScopeStrategy urlCrawlScopeStrategy) {
+        this.urlCrawlScopeStrategy = urlCrawlScopeStrategy;
     }
     
     /**

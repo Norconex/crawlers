@@ -1,5 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
+- Have a new <inScopeStrategy class="..."> with the default implementation
+  being [Generic]URLCrawlScopeStrategy, taking the stayOn* and implementing 
+  an IURLCrawlScope interface.
+
 - Investigate why defining tags (e.g. <httpClientFactory> under the collector
   root tag (as opposed to under crawler tag) does not produce validation error.
 
