@@ -282,6 +282,8 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * @deprecated Since 2.8.0, use #getPatternReplacement(String) instead.
      * It will return the group id if the "replacement" value only contains
      * a group replacement (e.g. $1), else, it will always return -1.
+     * @param pattern the pattern for which to obtain its replacement
+     * @return the matching group.
      */
     @Deprecated
     public int getPatternMatchGroup(String pattern) {
@@ -308,6 +310,8 @@ public class RegexLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         this.patterns.put(pattern, replacement);
     }
     /**
+     * @param pattern a regular expression
+     * @param matchGroup regular expression match group
      * @deprecated Since 2.8.0, use {@link #addPattern(String, String)} instead.
      */
     @Deprecated
