@@ -12,6 +12,10 @@
         Dependency updates: Norconex Collector Core 1.9.1,
         Norconex Commons Lang 1.14.1.
       </action>
+      <action dev="essiembre" type="fix" issue="473">
+         Fixed invalid validation error when XML configuration for 
+         PhantomJSDocumentFetcher does not contain "screenshotStorageDiskDir".
+      </action>      
       <action dev="essiembre" type="fix">
          Fixed NullPointerException when using PhantomJSDocumentFetcher without
          specifying any "screenshotDimensions".

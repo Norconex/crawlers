@@ -1,5 +1,11 @@
 The following are either things to be done, or ideas to consider:
 
+- Maybe rename REJECTED_UNMODIFIED|PREMATURE to IGNORED_* ? 
+
+- Should HttpClientProxy (for PhantomJS) reuse the same http methods?
+  (e.g., POST should be POST).  Also check that https sites can be handled 
+  better.
+
 - Have a new <inScopeStrategy class="..."> with the default implementation
   being [Generic]URLCrawlScopeStrategy, taking the stayOn* and implementing 
   an IURLCrawlScope interface.

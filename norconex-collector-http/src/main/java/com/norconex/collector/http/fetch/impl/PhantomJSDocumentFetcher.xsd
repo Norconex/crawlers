@@ -67,7 +67,7 @@
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
-        <xs:element name="screenshotStorageDiskDir">
+        <xs:element name="screenshotStorageDiskDir" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:simpleContent>
               <xs:extension base="xs:string">
