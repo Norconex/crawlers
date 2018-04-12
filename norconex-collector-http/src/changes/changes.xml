@@ -12,6 +12,9 @@
         Dependency updates: Norconex Collector Core 1.9.1,
         Norconex Commons Lang 1.14.1.
       </action>
+      <action dev="essiembre" type="update" issue="475">
+        GenericDocumentFetcher now logs documents it could not fetch as INFO. 
+      </action>
       <action dev="essiembre" type="fix" issue="473">
          Fixed invalid validation error when XML configuration for 
          PhantomJSDocumentFetcher does not contain "screenshotStorageDiskDir".

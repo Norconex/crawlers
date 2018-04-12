@@ -259,10 +259,10 @@ public class GenericDocumentFetcher
                     CrawlState.BAD_STATUS, statusCode, reason);
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
-                LOG.error("Cannot fetch document: " + doc.getReference()
+                LOG.info("Cannot fetch document: " + doc.getReference()
                         + " (" + e.getMessage() + ")", e);
             } else {
-                LOG.error("Cannot fetch document: " + doc.getReference()
+                LOG.info("Cannot fetch document: " + doc.getReference()
                         + " (" + e.getMessage() + ")");
             }
             throw new CollectorException(e);

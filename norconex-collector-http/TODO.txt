@@ -1,5 +1,12 @@
 The following are either things to be done, or ideas to consider:
 
+- Add one of these as JVM arg: 
+      -XX:ExitOnOutOfMemoryError
+      -XX:CrashOnOutOfMemoryError 
+
+- Add to FAQ: how to extract few different HTML tag scenarios and maybe 
+  add a tagger that helps with that.
+
 - Maybe rename REJECTED_UNMODIFIED|PREMATURE to IGNORED_* ? 
 
 - Should HttpClientProxy (for PhantomJS) reuse the same http methods?
