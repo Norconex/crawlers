@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class StandardSitemapResolverTest {
 
@@ -30,12 +30,12 @@ public class StandardSitemapResolverTest {
         r.setTempDir(new File("C:\\temp\\sitemap"));
         r.setSitemapPaths("/sitemap.xml", "/subdir/sitemap.xml");
         System.out.println("Writing/Reading this: " + r);
-        ConfigurationUtil.assertWriteRead(r);
+        XMLConfigurationUtil.assertWriteRead(r);
 
         // try with empty paths
         r.setSitemapPaths(new String[] {});
         System.out.println("Writing/Reading this: " + r);
-        ConfigurationUtil.assertWriteRead(r);
+        XMLConfigurationUtil.assertWriteRead(r);
 
     }
 

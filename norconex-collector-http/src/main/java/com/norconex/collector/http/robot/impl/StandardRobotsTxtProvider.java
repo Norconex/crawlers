@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -53,13 +53,20 @@ import com.norconex.importer.handler.filter.OnMatch;
  * described at <a href="http://www.robotstxt.org/robotstxt.html">
  * http://www.robotstxt.org/robotstxt.html</a>.
  * </p>
- * <p>
- * XML configuration usage:
- * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;robotsTxt ignore="false" 
- *     class="com.norconex.collector.http.robot.StandardRobotsTxtProvider"/&gt;
+ *     class="com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider"/&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following ignores "robots.txt" files present on web sites.
+ * </p>
+ * <pre>
+ *  &lt;robotsTxt ignore="true" /&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  */
 public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
@@ -67,8 +74,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     private static final Logger LOG = LogManager.getLogger(
             StandardRobotsTxtProvider.class);
     
-    private Map<String, RobotsTxt> robotsTxtCache =
-            new HashMap<String, RobotsTxt>();
+    private Map<String, RobotsTxt> robotsTxtCache = new HashMap<>();
 
     @Override
     public synchronized RobotsTxt getRobotsTxt(
@@ -98,22 +104,22 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         return robotsTxt;
     }
 
-    
     protected RobotsTxt parseRobotsTxt(
             InputStream is, String url, String userAgent) throws IOException {
         String baseURL = getBaseURL(url);
         
         //--- Load matching data ---
-        InputStreamReader isr = new InputStreamReader(is, CharEncoding.UTF_8);
+        InputStreamReader isr = 
+                new InputStreamReader(is, StandardCharsets.UTF_8);
         BufferedReader br = new BufferedReader(isr);
         RobotData data = new RobotData();
         boolean parse = false;
         String line;
         while ((line = br.readLine()) != null) {
+            line = cleanLineFromTrailingComments(line);
             if (ignoreLine(line)) {
                 continue;
             }
-            line = cleanLineFromComments(line);
             
             String key = line.replaceFirst("(.*?)(:.*)", "$1").trim();
             String value = line.replaceFirst("(.*?:)(.*)", "$2").trim();
@@ -138,7 +144,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             } else if (parse) {
                 if ("crawl-delay".equalsIgnoreCase(key)) {
                     data.crawlDelay = value;
-                } else {
+                } else if (StringUtils.isNotBlank(value)) {
                     data.rules.put(value, key);
                 }
             }
@@ -148,7 +154,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         return data.toRobotsTxt(baseURL);
     }
 
-    private String cleanLineFromComments(String line) {
+    private String cleanLineFromTrailingComments(String line) {
         if (line.matches(".*\\s+#.*")){
             line = line.replaceFirst("\\s+#.*", "");
         }
@@ -198,7 +204,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     
     private String getBaseURL(String url) {
         String baseURL = HttpURL.getRoot(url);
-        if (baseURL.endsWith("/")) {
+        if (StringUtils.endsWith(baseURL, "/")) {
             baseURL = StringUtils.removeEnd(baseURL, "/");
         }
         return baseURL;
@@ -229,16 +235,15 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             NOMATCH, WILD, PARTIAL, EXACT;
         };
         private Precision precision = Precision.NOMATCH;
-        private Map<String, String> rules = 
-                new ListOrderedMap<String, String>();
-        private List<String> sitemaps = new ArrayList<String>();
+        private Map<String, String> rules = new ListOrderedMap<>();
+        private List<String> sitemaps = new ArrayList<>();
         private String crawlDelay;
         private void clear() {
             sitemaps.clear();
             crawlDelay = null;
         }
         private RobotsTxt toRobotsTxt(String baseURL) {
-            List<IReferenceFilter> filters = new ArrayList<IReferenceFilter>();
+            List<IReferenceFilter> filters = new ArrayList<>();
             for (String path : rules.keySet()) {
                 String rule = rules.get(path);
                 if ("disallow".equalsIgnoreCase(rule)) {

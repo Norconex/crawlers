@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver.MinFrequency;
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver.SitemapSupport;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class GenericRecrawlableResolverTest {
 
@@ -36,6 +36,6 @@ public class GenericRecrawlableResolverTest {
         r.setMinFrequencies(f1, f2);
 
         System.out.println("Writing/Reading this: " + r);
-        ConfigurationUtil.assertWriteRead(r);
+        XMLConfigurationUtil.assertWriteRead(r);
     }
 }

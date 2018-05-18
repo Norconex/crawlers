@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import com.norconex.collector.core.filter.IDocumentFilter;
 import com.norconex.collector.core.filter.IMetadataFilter;
 import com.norconex.collector.core.filter.IReferenceFilter;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
@@ -45,20 +45,23 @@ import com.norconex.importer.doc.ImporterDocument;
 import com.norconex.importer.handler.filter.AbstractOnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 /**
+ * <p>
  * Filters URL based based on the number of URL segments. A URL with
  * a number of segments equal or more than the specified count will either
  * be included or excluded, as specified.
- * <br><br>
+ * </p>
+ * <p>
  * By default
  * segments are obtained by breaking the URL text at each forward slashes
  * (/), starting after the host name.  You can define different or
  * additional segment separator characters.
- * <br><br>
+ * </p>
+ * <p>
  * When <code>duplicate</code> is <code>true</code>, it will count the maximum
  * number of duplicate segments found.
- * <p>
- * XML configuration usage:
  * </p>
+ * 
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
  *          onMatch="[include|exclude]"
@@ -66,11 +69,21 @@ import com.norconex.importer.handler.filter.OnMatch;
  *          duplicate="[false|true]"
  *          separator="(a regex identifying segment separator)" /&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following will reject URLs with more than 5 forward slashes after
+ * the domain.
+ * </p>
+ * <pre>
+ *  &lt;filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
+ *          onMatch="exclude" count="5" /&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  * @since 1.2
  * @see Pattern
  */
-@SuppressWarnings("nls")
 public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
         IReferenceFilter, IDocumentFilter, IMetadataFilter, IXMLConfigurable{
 
@@ -171,7 +184,7 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
 
         boolean reachedCount = false;
         if (duplicate) {
-            Map<String, Integer> segMap = new HashMap<String, Integer>();
+            Map<String, Integer> segMap = new HashMap<>();
             for (String seg : cleanSegments) {
                 Integer dupCount = segMap.get(seg);
                 if (dupCount == null) {
@@ -195,7 +208,7 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
         String path = new HttpURL(url).getPath();
         String[] allSegments = separatorPattern.split(path);
         // remove empty/nulls
-        List<String> cleanSegments = new ArrayList<String>();
+        List<String> cleanSegments = new ArrayList<>();
         for (String segment : allSegments) {
             if (StringUtils.isNotBlank(segment)) {
                 cleanSegments.add(segment);
@@ -206,7 +219,7 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         setSeparator(xml.getString(""));
         super.loadFromXML(xml);
         setCount(xml.getInt("[@count]", DEFAULT_SEGMENT_COUNT));

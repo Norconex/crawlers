@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,14 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.AlgorithmConstraints;
 import java.security.AlgorithmParameters;
 import java.security.CryptoPrimitive;
 import java.security.Key;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,11 +42,11 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -51,6 +55,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -88,10 +93,12 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.client.IHttpClientFactory;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
+import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
@@ -131,6 +138,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     <td>Name of a JVM system property containing the key.</td>
  *   </tr>
  * </table>
+ *
+ * <p>
+ * As of 2.7.0, XML configuration entries expecting millisecond durations
+ * can be provided in human-readable format (English only), as per 
+ * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
+ * </p>
  * 
  * <h3>XML configuration usage:</h3>
  * <pre>
@@ -148,8 +161,11 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;maxConnectionIdleTime&gt;(milliseconds)&lt;/maxConnectionIdleTime&gt;
  *      &lt;maxConnectionInactiveTime&gt;(milliseconds)&lt;/maxConnectionInactiveTime&gt;
  *
- *      &lt;-- Be warned: trusting all certificates is usually a bad idea. --&gt;
+ *      &lt;!-- Be warned: trusting all certificates is usually a bad idea. --&gt;
  *      &lt;trustAllSSLCertificates&gt;[false|true]&lt;/trustAllSSLCertificates&gt;
+ *      
+ *      &lt;!-- Since 2.6.2, you can specify SSL/TLS protocols to use --&gt;
+ *      &lt;sslProtocols&gt;(coma-separated list)&lt;/sslProtocols&gt;
  *
  *      &lt;proxyHost&gt;...&lt;/proxyHost&gt;
  *      &lt;proxyPort&gt;...&lt;/proxyPort&gt;
@@ -157,11 +173,11 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;proxyScheme&gt;...&lt;/proxyScheme&gt;
  *      &lt;proxyUsername&gt;...&lt;/proxyUsername&gt;
  *      &lt;proxyPassword&gt;...&lt;/proxyPassword&gt;
- *      &lt;-- Use the following if password is encrypted. --&gt;
+ *      &lt;!-- Use the following if password is encrypted. --&gt;
  *      &lt;proxyPasswordKey&gt;(the encryption key or a reference to it)&lt;/proxyPasswordKey&gt;
  *      &lt;proxyPasswordKeySource&gt;[key|file|environment|property]&lt;/proxyPasswordKeySource&gt;
  *      
- *      &lt;!-- Since 2.3.0, you can set HTTP request headers --&gt;
+ *      &lt;!-- HTTP request headers passed on every HTTP requests --&gt;
  *      &lt;headers&gt;
  *          &lt;header name="(header name)"&gt;(header value)&lt;/header&gt;
  *          &lt;!-- You can repeat this header tag as needed. --&gt;
@@ -172,7 +188,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;!-- These apply to any authentication mechanism --&gt;
  *      &lt;authUsername&gt;...&lt;/authUsername&gt;
  *      &lt;authPassword&gt;...&lt;/authPassword&gt;
- *      &lt;-- Use the following if password is encrypted. --&gt;
+ *      &lt;!-- Use the following if password is encrypted. --&gt;
  *      &lt;authPasswordKey&gt;(the encryption key or a reference to it)&lt;/authPasswordKey&gt;
  *      &lt;authPasswordKeySource&gt;[key|file|environment|property]&lt;/authPasswordKeySource&gt;
  *      
@@ -181,11 +197,19 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;authPasswordField&gt;...&lt;/authPasswordField&gt;
  *      &lt;authURL&gt;...&lt;/authURL&gt;
  *      &lt;authFormCharset&gt;...&lt;/authFormCharset&gt;
+ *      &lt;!-- Extra form parameters required to authenticate (since 2.8.0) --&gt;
+ *      &lt;authFormParams&gt;
+ *          &lt;param name="(param name)"&gt;(param value)&lt;/param&gt;
+ *          &lt;!-- You can repeat this param tag as needed. --&gt;
+ *      &lt;/authFormParams&gt;
  *      
  *      &lt;!-- These apply to both BASIC and DIGEST authentication --&gt;
  *      &lt;authHostname&gt;...&lt;/authHostname&gt;
  *      &lt;authPort&gt;...&lt;/authPort&gt;
  *      &lt;authRealm&gt;...&lt;/authRealm&gt;
+ *      
+ *      &lt;!-- This applies to BASIC authentication --&gt;
+ *      &lt;authPreemptive&gt;[false|true]&lt;/authPreemptive&gt;
  *      
  *      &lt;!-- These apply to NTLM authentication --&gt;
  *      &lt;authHostname&gt;...&lt;/authHostname&gt;
@@ -193,6 +217,22 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;authWorkstation&gt;...&lt;/authWorkstation&gt;
  *      &lt;authDomain&gt;...&lt;/authDomain&gt;
  *
+ *  &lt;/httpClientFactory&gt;
+ * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following will authenticate the crawler to a web site before crawling.
+ * The website uses an HTML form with a username and password fields called
+ * "loginUser" and "loginPwd".  
+ * </p> 
+ * <pre>
+ *  &lt;httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory"&gt;
+ *      &lt;authUsername&gt;joeUser&lt;/authUsername&gt;
+ *      &lt;authPassword&gt;joePasword&lt;/authPassword&gt;
+ *      &lt;authUsernameField&gt;loginUser&lt;/authUsernameField&gt;
+ *      &lt;authPasswordField&gt;loginPwd&lt;/authPasswordField&gt;
+ *      &lt;authURL&gt;http://www.example.com/login&lt;/authURL&gt;
  *  &lt;/httpClientFactory&gt;
  * </pre>
  * @author Pascal Essiembre
@@ -256,9 +296,10 @@ public class GenericHttpClientFactory
     private String authHostname;
     private int authPort = -1;
     private String authRealm;
-    private String authFormCharset = CharEncoding.UTF_8;
+    private String authFormCharset = StandardCharsets.UTF_8.toString();
     private String authWorkstation;
     private String authDomain;
+    private boolean authPreemptive;
     private boolean cookiesDisabled;
     private boolean trustAllSSLCertificates;
     private String proxyHost;
@@ -279,7 +320,9 @@ public class GenericHttpClientFactory
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
     private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
     private int maxConnectionInactiveTime;
+    private String[] sslProtocols;
     private final Map<String, String> requestHeaders = new HashMap<>();
+    private final Map<String, String> authFormParams = new HashMap<>();
     
     @Override
     public HttpClient createHTTPClient(String userAgent) {
@@ -352,11 +395,17 @@ public class GenericHttpClientFactory
     protected void authenticateUsingForm(HttpClient httpClient) {
         HttpPost post = new HttpPost(getAuthURL());
 
-        List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+        List<NameValuePair> formparams = new ArrayList<>();
         formparams.add(new BasicNameValuePair(
                 getAuthUsernameField(), getAuthUsername()));
         formparams.add(new BasicNameValuePair(
                 getAuthPasswordField(), getAuthPassword()));
+
+        for (Entry<String, String> en : authFormParams.entrySet()) {
+            formparams.add(new BasicNameValuePair(
+                  en.getKey(), en.getValue()));
+        }
+        
         LOG.info("Performing FORM authentication at \"" + getAuthURL()
                 + "\" (username=" + getAuthUsername() + "; password=*****)");
         try {
@@ -369,7 +418,7 @@ public class GenericHttpClientFactory
             
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Authentication response:\n" + IOUtils.toString(
-                        response.getEntity().getContent(), CharEncoding.UTF_8));
+                        response.getEntity().getContent(), StandardCharsets.UTF_8));
             }
         } catch (Exception e) {
             throw new CollectorException(e);
@@ -388,15 +437,49 @@ public class GenericHttpClientFactory
     }
     
     /**
+     * <p>
      * Creates a list of HTTP headers previously set by 
      * {@link #setRequestHeader(String, String)}.
+     * </p>
+     * <p>
+     * <b>Since 2.8.0</b>, this method will also add a "Basic" authentication
+     * header if {@link #setAuthPreemptive(boolean)} is <code>true</code> and
+     * credentials were supplied.
+     * </p>
      * @return a list of HTTP request headers
      * @since 2.3.0
      */
     protected List<Header> createDefaultRequestHeaders() {
+        //--- Configuration-defined headers
         List<Header> headers = new ArrayList<>();
         for (Entry<String, String> entry : requestHeaders.entrySet()) {
             headers.add(new BasicHeader(entry.getKey(), entry.getValue()));
+        }
+        
+        //--- preemptive headers
+        // preemptive authaurisation could be done by creating a HttpContext
+        // passed to the HttpClient execute method, but since that method
+        // is not invoked from this class, we want to keep things
+        // together and we add the preemptive authentication directly
+        // in the default HTTP headers. 
+        if (authPreemptive) {
+            if (StringUtils.isBlank(authUsername)) {
+                LOG.warn("Preemptive authentication is enabled while no "
+                        + "username was provided.");
+                return headers;
+            }
+            if (!AUTH_METHOD_BASIC.equalsIgnoreCase(authMethod)) {
+                LOG.warn("Using preemptive authentication with a "
+                        + "method other than \"Basic\" may not produce the "
+                        + "expected outcome.");
+            }
+            String password = EncryptionUtil.decrypt(
+                    authPassword, authPasswordKey);
+            String auth = getAuthUsername() + ":" + password;
+            byte[] encodedAuth = Base64.encodeBase64(
+              auth.getBytes(Charset.forName("ISO-8859-1")));
+            String authHeader = "Basic " + new String(encodedAuth);
+            headers.add(new BasicHeader(HttpHeaders.AUTHORIZATION, authHeader));
         }
         return headers;
     }
@@ -447,7 +530,7 @@ public class GenericHttpClientFactory
                     EncryptionUtil.decrypt(proxyPassword, proxyPasswordKey);
             credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(
-                    new AuthScope(proxyHost, proxyPort),
+                    new AuthScope(proxyHost, proxyPort, proxyRealm),
                     new UsernamePasswordCredentials(
                             proxyUsername, password));
         }
@@ -483,44 +566,67 @@ public class GenericHttpClientFactory
     
     protected LayeredConnectionSocketFactory createSSLSocketFactory(
             SSLContext sslContext) {
-        if (!trustAllSSLCertificates) {
+        if (!trustAllSSLCertificates && ArrayUtils.isEmpty(sslProtocols)) {
             return null;
         }
-        LOG.debug("SSL: Turning off host name verification.");
 
+        SSLContext context = sslContext;
+        if (context == null) {
+            try {
+                context = SSLContexts.custom().build();
+            } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                throw new CollectorException(
+                        "Cannot create SSL context.", e);
+            }
+        }
+        
         // Turn off host name verification and remove all algorithm constraints.
-        LayeredConnectionSocketFactory socketFactory = 
-                new SSLConnectionSocketFactory(
-                        sslContext, new NoopHostnameVerifier()) {
+        return new SSLConnectionSocketFactory(
+                        context, new NoopHostnameVerifier()) {
             @Override
             protected void prepareSocket(SSLSocket socket)
                     throws IOException {
                 SSLParameters sslParams = new SSLParameters();
-                sslParams.setAlgorithmConstraints(new AlgorithmConstraints() {
-                    @Override
-                    public boolean permits(Set<CryptoPrimitive> primitives,
-                            Key key) {
-                        return true;
-                    }
-                    @Override
-                    public boolean permits(Set<CryptoPrimitive> primitives,
-                            String algorithm, AlgorithmParameters parameters) {
-                        return true;
-                    }
-                    @Override
-                    public boolean permits(Set<CryptoPrimitive> primitives,
-                            String algorithm, Key key,
-                            AlgorithmParameters parameters) {
-                        return true;
-                    }
-                });
+                
+                // Trust all certificates
+                if (trustAllSSLCertificates) {
+                    LOG.debug("SSL: Turning off host name verification.");
+                    sslParams.setAlgorithmConstraints(
+                            new AlgorithmConstraints() {
+                        @Override
+                        public boolean permits(
+                                Set<CryptoPrimitive> primitives, Key key) {
+                            return true;
+                        }
+                        @Override
+                        public boolean permits(Set<CryptoPrimitive> primitives,
+                                String algorithm, 
+                                AlgorithmParameters parameters) {
+                            return true;
+                        }
+                        @Override
+                        public boolean permits(
+                                Set<CryptoPrimitive> primitives,
+                                String algorithm, Key key,
+                                AlgorithmParameters parameters) {
+                            return true;
+                        }
+                    });
+                }
+                
+                // Specify protocols
+                if (ArrayUtils.isNotEmpty(sslProtocols)) {
+                    LOG.debug("SSL: Protocols=" 
+                            + StringUtils.join(sslProtocols, ","));
+                    sslParams.setProtocols(sslProtocols);
+                }
+                
                 sslParams.setEndpointIdentificationAlgorithm("HTTPS");
                 socket.setSSLParameters(sslParams);
             }
         };
-        return socketFactory;
     }    
-    
+
     protected SSLContext createSSLContext() {
         if (!trustAllSSLCertificates) {
             return null;
@@ -552,7 +658,7 @@ public class GenericHttpClientFactory
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         cookiesDisabled = xml.getBoolean("cookiesDisabled", cookiesDisabled);
         authMethod = xml.getString("authMethod", authMethod);
         authUsernameField = 
@@ -570,6 +676,7 @@ public class GenericHttpClientFactory
         authFormCharset = xml.getString("authFormCharset", authFormCharset);
         authWorkstation = xml.getString("authWorkstation", authWorkstation);
         authDomain = xml.getString("authDomain", authDomain);
+        authPreemptive = xml.getBoolean("authPreemptive", authPreemptive);
         proxyHost = xml.getString("proxyHost", proxyHost);
         proxyPort = xml.getInt("proxyPort", proxyPort);
         proxyScheme = xml.getString("proxyScheme", proxyScheme);
@@ -578,10 +685,12 @@ public class GenericHttpClientFactory
         proxyPasswordKey = 
                 loadXMLPasswordKey(xml, "proxyPasswordKey", proxyPasswordKey);
         proxyRealm = xml.getString("proxyRealm", proxyRealm);
-        connectionTimeout = xml.getInt("connectionTimeout", connectionTimeout);
-        socketTimeout = xml.getInt("socketTimeout", socketTimeout);
-        connectionRequestTimeout = xml.getInt(
-                "connectionRequestTimeout", connectionRequestTimeout);
+        connectionTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "connectionTimeout", connectionTimeout);
+        socketTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "socketTimeout", socketTimeout);
+        connectionRequestTimeout = (int) XMLConfigurationUtil.getDuration(
+                xml, "connectionRequestTimeout", connectionRequestTimeout);
         connectionCharset = xml.getString(
                 "connectionCharset", connectionCharset);
         expectContinueEnabled = xml.getBoolean(
@@ -593,11 +702,15 @@ public class GenericHttpClientFactory
         localAddress = xml.getString("localAddress", localAddress);
         maxConnectionsPerRoute = xml.getInt(
                 "maxConnectionsPerRoute", maxConnectionsPerRoute);
-        maxConnectionIdleTime = xml.getInt(
-                "maxConnectionIdleTime", maxConnectionIdleTime);
-        maxConnectionInactiveTime = xml.getInt(
-                "maxConnectionInactiveTime", maxConnectionInactiveTime);
-     
+        maxConnectionIdleTime = (int) XMLConfigurationUtil.getDuration(
+                xml, "maxConnectionIdleTime", maxConnectionIdleTime);
+        maxConnectionInactiveTime = (int) XMLConfigurationUtil.getDuration(
+                xml, "maxConnectionInactiveTime", maxConnectionInactiveTime);
+        String sslProtocolsCSV = xml.getString("sslProtocols", null);
+        if (StringUtils.isNotBlank(sslProtocolsCSV)) {
+            setSSLProtocols(sslProtocolsCSV.trim().split("(\\s*,\\s*)+"));
+        }
+        
         // request headers
         List<HierarchicalConfiguration> xmlHeaders = 
                 xml.configurationsAt("headers.header");
@@ -610,6 +723,18 @@ public class GenericHttpClientFactory
             }
         }
 
+        // auth form parameters
+        List<HierarchicalConfiguration> xmlAuthFormParams = 
+                xml.configurationsAt("authFormParams.param");
+        if (!xmlAuthFormParams.isEmpty()) {
+            authFormParams.clear();
+            for (HierarchicalConfiguration xmlParam : xmlAuthFormParams) {
+                requestHeaders.put(
+                        xmlParam.getString("[@name]"), 
+                        xmlParam.getString(""));
+            }
+        }
+        
         if (xml.getString("staleConnectionCheckDisabled") != null) {
             LOG.warn("Since 2.1.0, the configuration option \""
                     + "staleConnectionCheckDisabled\" is no longer supported. "
@@ -652,6 +777,7 @@ public class GenericHttpClientFactory
             writer.writeElementString("authWorkstation", authWorkstation);
             writer.writeElementString("authDomain", authDomain);
             writer.writeElementString("authRealm", authRealm);
+            writer.writeElementBoolean("authPreemptive", authPreemptive);
             writer.writeElementString("proxyHost", proxyHost);
             writer.writeElementInteger("proxyPort", proxyPort);
             writer.writeElementString("proxyScheme", proxyScheme);
@@ -677,11 +803,24 @@ public class GenericHttpClientFactory
                     "maxConnectionIdleTime", maxConnectionIdleTime);
             writer.writeElementInteger(
                     "maxConnectionInactiveTime", maxConnectionInactiveTime);
-            
+            if (ArrayUtils.isNotEmpty(sslProtocols)) {
+                writer.writeElementString(
+                        "sslProtocols", StringUtils.join(sslProtocols, ","));
+            }
             if (!requestHeaders.isEmpty()) {
                 writer.writeStartElement("headers");
                 for (Entry<String, String> entry : requestHeaders.entrySet()) {
                     writer.writeStartElement("header");
+                    writer.writeAttributeString("name", entry.getKey());
+                    writer.writeCharacters(entry.getValue());
+                    writer.writeEndElement();
+                }
+                writer.writeEndElement();
+            }
+            if (!authFormParams.isEmpty()) {
+                writer.writeStartElement("authFormParams");
+                for (Entry<String, String> entry : authFormParams.entrySet()) {
+                    writer.writeStartElement("param");
                     writer.writeAttributeString("name", entry.getKey());
                     writer.writeCharacters(entry.getValue());
                     writer.writeEndElement();
@@ -739,9 +878,31 @@ public class GenericHttpClientFactory
      * are set, it returns an empty array.
      * @return HTTP request header names
      * @since 2.3.0
+     * @deprecated Since 2.8.0 use {@link #getRequestHeaderNames()}
      */
+    @Deprecated
     public String[] getRequestHeaders() {
+        return getRequestHeaderNames();
+    }
+    /**
+     * Gets all HTTP request header names for headers previously set
+     * with {@link #setRequestHeader(String, String)}. If no request headers
+     * are set, it returns an empty array.
+     * @return HTTP request header names
+     * @since 2.8.0
+     */
+    public String[] getRequestHeaderNames() {
         return requestHeaders.keySet().toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+    }
+    /**
+     * Remove the request header matching the given name.
+     * @param name name of HTTP request header to remove
+     * @return the previous value associated with the name, or <code>null</code>
+     *         if there was no request header for the name. 
+     * @since 2.8.0
+     */
+    public String removeRequestHeader(String name) {
+        return requestHeaders.remove(name);
     }
     
     /**
@@ -1350,52 +1511,136 @@ public class GenericHttpClientFactory
     public void setMaxConnectionInactiveTime(int maxConnectionInactiveTime) {
         this.maxConnectionInactiveTime = maxConnectionInactiveTime;
     }
-    
+
+    /**
+     * Gets the supported SSL/TLS protocols.  Default is <code>null</code>,
+     * which means it will use those provided/configured by your Java 
+     * platform. 
+     * @return SSL/TLS protocols
+     * @since 2.6.2
+     */
+    public String[] getSSLProtocols() {
+        return sslProtocols;
+    }
+    /**
+     * Sets the supported SSL/TLS protocols, such as SSLv3, TLSv1, TLSv1.1, 
+     * and TLSv1.2.  Note that specifying a protocol not supported by 
+     * your underlying Java platform will not work. 
+     * @param sslProtocols SSL/TLS protocols supported
+     * @since 2.6.2
+     */
+    public void setSSLProtocols(String... sslProtocols) {
+        this.sslProtocols = sslProtocols;
+    }
+
+    /**
+     * Sets an authentication form parameter (equivalent to "input" or other
+     * fields in HTML forms).
+     * @param name form parameter name
+     * @param value form parameter value
+     * @since 2.8.0
+     */
+    public void setAuthFormParam(String name, String value) {
+        authFormParams.put(name, value);
+    }
+    /**
+     * Gets an authentication form parameter (equivalent to "input" or other
+     * fields in HTML forms).
+     * @param name form parameter name
+     * @return form parameter value or <code>null</code> if 
+     *         no match is found
+     * @since 2.8.0
+     */
+    public String getAuthFormParam(String name) {
+        return authFormParams.get(name);
+    }
+    /**
+     * Gets all authentication form parameter names. If no form parameters
+     * are set, it returns an empty array.
+     * @return HTTP request header names
+     * @since 2.8.0
+     */
+    public String[] getAuthFormParamNames() {
+        return authFormParams.keySet().toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+    }
+    /**
+     * Remove the authentication form parameter matching the given name.
+     * @param name name of form parameter to remove
+     * @return the previous value associated with the name, or <code>null</code>
+     *         if there was no form parameter for the name. 
+     * @since 2.8.0
+     */
+    public String removeAuthFormParameter(String name) {
+        return authFormParams.remove(name);
+    }
+
+    /**
+     * Gets whether to perform preemptive authentication 
+     * (valid for "basic" authentication method).
+     * @return <code>true</code> to perform preemptive authentication
+     * @since 2.8.0
+     */
+    public boolean isAuthPreemptive() {
+        return authPreemptive;
+    }
+    /**
+     * Sets whether to perform preemptive authentication 
+     * (valid for "basic" authentication method).
+     * @param authPreemptive 
+     *            <code>true</code> to perform preemptive authentication
+     * @since 2.8.0
+     */
+    public void setAuthPreemptive(boolean authPreemptive) {
+        this.authPreemptive = authPreemptive;
+    }
+
     @Override
-    public boolean equals(final Object other) {
-        if (!(other instanceof GenericHttpClientFactory)) {
+    public boolean equals(final Object obj) {
+        if (!(obj instanceof GenericHttpClientFactory)) {
             return false;
         }
-        GenericHttpClientFactory castOther = (GenericHttpClientFactory) other;
+        GenericHttpClientFactory other = (GenericHttpClientFactory) obj;
         return new EqualsBuilder()
-                .append(authMethod, castOther.authMethod)
-                .append(authURL, castOther.authURL)
-                .append(authUsernameField, castOther.authUsernameField)
-                .append(authUsername, castOther.authUsername)
-                .append(authPasswordField, castOther.authPasswordField)
-                .append(authPassword, castOther.authPassword)
-                .append(authPasswordKey, castOther.authPasswordKey)
-                .append(authHostname, castOther.authHostname)
-                .append(authPort, castOther.authPort)
-                .append(authRealm, castOther.authRealm)
-                .append(authFormCharset, castOther.authFormCharset)
-                .append(authWorkstation, castOther.authWorkstation)
-                .append(authDomain, castOther.authDomain)
-                .append(cookiesDisabled, castOther.cookiesDisabled)
-                .append(trustAllSSLCertificates, 
-                        castOther.trustAllSSLCertificates)
-                .append(proxyHost, castOther.proxyHost)
-                .append(proxyPort, castOther.proxyPort)
-                .append(proxyScheme, castOther.proxyScheme)
-                .append(proxyUsername, castOther.proxyUsername)
-                .append(proxyPassword, castOther.proxyPassword)
-                .append(proxyPasswordKey, castOther.proxyPasswordKey)
-                .append(proxyRealm, castOther.proxyRealm)
-                .append(connectionTimeout, castOther.connectionTimeout)
-                .append(socketTimeout, castOther.socketTimeout)
+                .append(authMethod, other.authMethod)
+                .append(authURL, other.authURL)
+                .append(authUsernameField, other.authUsernameField)
+                .append(authUsername, other.authUsername)
+                .append(authPasswordField, other.authPasswordField)
+                .append(authPassword, other.authPassword)
+                .append(authPasswordKey, other.authPasswordKey)
+                .append(authHostname, other.authHostname)
+                .append(authPort, other.authPort)
+                .append(authRealm, other.authRealm)
+                .append(authFormCharset, other.authFormCharset)
+                .append(authWorkstation, other.authWorkstation)
+                .append(authDomain, other.authDomain)
+                .append(authPreemptive, other.authPreemptive)
+                .append(cookiesDisabled, other.cookiesDisabled)
+                .append(trustAllSSLCertificates, other.trustAllSSLCertificates)
+                .append(proxyHost, other.proxyHost)
+                .append(proxyPort, other.proxyPort)
+                .append(proxyScheme, other.proxyScheme)
+                .append(proxyUsername, other.proxyUsername)
+                .append(proxyPassword, other.proxyPassword)
+                .append(proxyPasswordKey, other.proxyPasswordKey)
+                .append(proxyRealm, other.proxyRealm)
+                .append(connectionTimeout, other.connectionTimeout)
+                .append(socketTimeout, other.socketTimeout)
                 .append(connectionRequestTimeout, 
-                        castOther.connectionRequestTimeout)
-                .append(connectionCharset, castOther.connectionCharset)
-                .append(localAddress, castOther.localAddress)
-                .append(expectContinueEnabled, castOther.expectContinueEnabled)
-                .append(maxRedirects, castOther.maxRedirects)
-                .append(maxConnections, castOther.maxConnections)
-                .append(maxConnectionsPerRoute, 
-                        castOther.maxConnectionsPerRoute)
-                .append(maxConnectionIdleTime, castOther.maxConnectionIdleTime)
+                        other.connectionRequestTimeout)
+                .append(connectionCharset, other.connectionCharset)
+                .append(localAddress, other.localAddress)
+                .append(expectContinueEnabled, other.expectContinueEnabled)
+                .append(maxRedirects, other.maxRedirects)
+                .append(maxConnections, other.maxConnections)
+                .append(maxConnectionsPerRoute, other.maxConnectionsPerRoute)
+                .append(maxConnectionIdleTime, other.maxConnectionIdleTime)
                 .append(maxConnectionInactiveTime, 
-                        castOther.maxConnectionInactiveTime)
-                .isEquals();
+                        other.maxConnectionInactiveTime)
+                .append(sslProtocols, other.sslProtocols)
+                .isEquals()
+                && EqualsUtil.equalsMap(requestHeaders, other.requestHeaders)
+                && EqualsUtil.equalsMap(authFormParams, other.authFormParams);
     }
 
     @Override
@@ -1414,6 +1659,7 @@ public class GenericHttpClientFactory
                 .append(authFormCharset)
                 .append(authWorkstation)
                 .append(authDomain)
+                .append(authPreemptive)
                 .append(cookiesDisabled)
                 .append(trustAllSSLCertificates)
                 .append(proxyHost)
@@ -1434,6 +1680,9 @@ public class GenericHttpClientFactory
                 .append(maxConnectionsPerRoute)
                 .append(maxConnectionIdleTime)
                 .append(maxConnectionInactiveTime)
+                .append(sslProtocols)
+                .append(requestHeaders)
+                .append(authFormParams)
                 .toHashCode();
     }
 
@@ -1453,6 +1702,7 @@ public class GenericHttpClientFactory
                 .append("authFormCharset", authFormCharset)
                 .append("authWorkstation", authWorkstation)
                 .append("authDomain", authDomain)
+                .append("authPreemptive", authPreemptive)
                 .append("cookiesDisabled", cookiesDisabled)
                 .append("trustAllSSLCertificates", trustAllSSLCertificates)
                 .append("proxyHost", proxyHost)
@@ -1473,6 +1723,9 @@ public class GenericHttpClientFactory
                 .append("maxConnectionsPerRoute", maxConnectionsPerRoute)
                 .append("maxConnectionIdleTime", maxConnectionIdleTime)
                 .append("maxConnectionInactiveTime", maxConnectionInactiveTime)
+                .append("sslProtocols", sslProtocols)
+                .append("requestHeaders", requestHeaders)
+                .append("authFormParams", authFormParams)
                 .toString();
     }
 }

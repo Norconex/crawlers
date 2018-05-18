@@ -30,8 +30,13 @@ public class HttpCrawlerEvent extends CrawlerEvent {
             "REJECTED_ROBOTS_META_NOINDEX";
     public static final String REJECTED_TOO_DEEP = "REJECTED_TOO_DEEP";
     public static final String URLS_EXTRACTED = "URLS_EXTRACTED";
-    /** @since 2.2.0 */
-    public static final String REJECTED_CANONICAL = "REJECTED_CANONICAL";
+    /** @since 2.8.0 (renamed from REJECTED_CANONICAL) */
+    public static final String REJECTED_NONCANONICAL = "REJECTED_NONCANONICAL";
+    /**
+     * @deprecated Since 2.8.0, use {@link #REJECTED_NONCANONICAL}.
+     */
+    @Deprecated
+    public static final String REJECTED_CANONICAL = REJECTED_NONCANONICAL;
     /** @since 2.3.0 */
     public static final String REJECTED_REDIRECTED = "REJECTED_REDIRECTED";
 

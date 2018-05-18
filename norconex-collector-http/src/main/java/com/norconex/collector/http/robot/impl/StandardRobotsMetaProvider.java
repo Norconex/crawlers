@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.RobotsMeta;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
@@ -60,15 +60,21 @@ import com.norconex.commons.lang.map.Properties;
  * HTTP header, the ones in HTML page will take precedence, and the
  * ones in HTTP header will be ignored.</p>
  * 
- * <p>
- * XML configuration usage:
- * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;robotsMeta ignore="false" 
- *     class="com.norconex.collector.http.robot.StandardRobotsMetaProvider"&gt;
+ *     class="com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider"&gt;
  *     &lt;headersPrefix&gt;(string prefixing headers)&lt;/headersPrefix&gt;
  *  &lt;/robotsMeta&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following ignores robot meta information.</p>
+ * <pre>
+ *  &lt;robotsMeta ignore="true" /&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  */
 public class StandardRobotsMetaProvider 
@@ -197,7 +203,7 @@ public class StandardRobotsMetaProvider
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         setHeadersPrefix(xml.getString("headersPrefix", null));
     }
 

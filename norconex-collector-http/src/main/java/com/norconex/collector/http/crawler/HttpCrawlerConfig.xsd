@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2017 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="/com/norconex/collector/core/crawler/AbstractCrawlerConfig.xsd"></xs:include>
+
+  <xs:element name="crawlerDefaults" type="HttpCrawlerConfigType"/>
+  <xs:element name="crawler" type="HttpCrawlerConfigType"/>
+
+  <xs:complexType name="HttpCrawlerConfigType">
+    <xs:complexContent> 
+      <xs:extension base="AbstractCrawlerConfig">
+        <xs:all>
+          <xs:element name="startURLs" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:all>
+                <xs:element ref="startURLChoice" minOccurs="1" maxOccurs="unbounded"/>
+              </xs:all>
+              <xs:attribute name="stayOnDomain" type="xs:boolean"/>
+              <xs:attribute name="stayOnPort" type="xs:boolean"/>
+              <xs:attribute name="stayOnProtocol" type="xs:boolean"/>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="keepDownloads" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="keepOutOfScopeLinks" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="userAgent" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="httpClientFactory" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="robotsTxt" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:complexContent> 
+                <xs:extension base="anyComplexOptionalClassType"> 
+                  <xs:attribute name="ignore" type="xs:boolean"/>              
+                </xs:extension> 
+              </xs:complexContent>   
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="sitemapResolverFactory" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:complexContent> 
+                <xs:extension base="anyComplexOptionalClassType"> 
+                  <xs:attribute name="ignore" type="xs:boolean"/>              
+                </xs:extension> 
+              </xs:complexContent>   
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="redirectURLProvider" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="recrawlableResolver" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="metadataFetcher" type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="canonicalLinkDetector" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:complexContent> 
+                <xs:extension base="anyComplexOptionalClassType"> 
+                  <xs:attribute name="ignore" type="xs:boolean"/>              
+                </xs:extension> 
+              </xs:complexContent>   
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="metadataChecksummer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="documentFetcher" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="robotsMeta" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:complexContent> 
+                <xs:extension base="anyComplexOptionalClassType"> 
+                  <xs:attribute name="ignore" type="xs:boolean"/>              
+                </xs:extension> 
+              </xs:complexContent>   
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="linkExtractors" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:all>
+                <xs:element name="extractor" 
+                    type="anyComplexRequiredClassType" minOccurs="1" maxOccurs="unbounded"/>
+              </xs:all>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="preImportProcessors" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:all>
+                <xs:element name="processor" 
+                    type="anyComplexRequiredClassType" minOccurs="1" maxOccurs="unbounded"/>
+              </xs:all>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="postImportProcessors" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:all>
+                <xs:element name="processor" 
+                    type="anyComplexRequiredClassType" minOccurs="1" maxOccurs="unbounded"/>
+              </xs:all>
+            </xs:complexType>
+          </xs:element>
+        </xs:all>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="startURLChoice" abstract="true"/>
+  <xs:element name="url" substitutionGroup="startURLChoice" type="nonEmptyString"/>
+  <xs:element name="urlsFile" substitutionGroup="startURLChoice" type="nonEmptyString"/>
+  <xs:element name="sitemap" substitutionGroup="startURLChoice" type="nonEmptyString"/>
+  <xs:element name="provider" substitutionGroup="startURLChoice" type="anyComplexRequiredClassType" />
+
+  <xs:simpleType name="nonEmptyString">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

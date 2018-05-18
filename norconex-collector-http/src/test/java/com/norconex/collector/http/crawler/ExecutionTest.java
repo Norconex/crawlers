@@ -34,6 +34,7 @@ import org.apache.tools.ant.types.Path;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
@@ -54,6 +55,18 @@ import com.norconex.commons.lang.map.Properties;
  */
 public class ExecutionTest extends AbstractHttpTest {
 
+    /**
+     * By default recovery tests are disabled as they rely on execution
+     * time of different processes which is not predictable enough
+     * to prevent false failures (test[Resume|Start]... methods).
+     * It is recommended you enable those in development but otherwise leave
+     * them disable as it will often break your automated build process.
+     * Should be revisited if we find a way to make them more stable.
+     * To enable, set the system property "enableRecoveryTests" to "true".
+     */
+    public static final boolean ENABLE_RECOVERY_TESTS = 
+            Boolean.getBoolean("enableRecoveryTests");
+    
     private File workDir;
     private File committedDir;
     private File progressDir;
@@ -67,6 +80,18 @@ public class ExecutionTest extends AbstractHttpTest {
     public ExecutionTest() {
     }
 
+    @BeforeClass
+    public static void notifyOfRecoveryTests() {
+        if (!ENABLE_RECOVERY_TESTS) {
+            System.out.println("Recovery tests are disabled in "
+                    + ExecutionTest.class.getCanonicalName()
+                    + ". To enable them, set -DenableRecoveryTests=true");
+        } else {
+            System.out.println("Recovery tests are enabled in "
+                    + ExecutionTest.class.getCanonicalName() + ".");
+        }
+    }
+    
     @Before
     public void setup() throws IOException {
         workDir = getTempFolder().newFolder();
@@ -173,6 +198,77 @@ public class ExecutionTest extends AbstractHttpTest {
                 0, countDeletedFiles());
     }
 
+    //Test for https://github.com/Norconex/collector-http/issues/390
+    @Test
+    public void testSitemapDelayWithURLDeletion() 
+            throws IOException, XMLStreamException {
+        String sitemapURL = newUrl("/test?case=sitemap&amp;token="
+                + System.currentTimeMillis());
+        vars.setString("sitemap", sitemapURL);
+        vars.setString("startURL", (String) null);
+        vars.setString("orphansStrategy", "PROCESS");
+        
+        int exitValue = 0;
+
+        // Test once and make sure we get 3 additions in total.
+        exitValue = runCollector("start", vars);
+        Assert.assertEquals("Wrong exit value.", 0, exitValue);
+        Assert.assertEquals("Wrong number of added files.",
+                3, countAddedFiles());
+        Assert.assertEquals("Wrong number of deleted files.",
+                0, countDeletedFiles());
+        ageProgress(progressDir);
+        FileUtil.delete(committedDir);
+        
+        // Test twice and make sure we get 1 add, 2 unmodified and 
+        // 1 pages deleted, regardless of delay specified in sitemap.
+        exitValue = runCollector("start", vars);
+        Assert.assertEquals("Wrong exit value.", 0, exitValue);
+        Assert.assertEquals("Wrong number of added files.",
+                1, countAddedFiles());
+        Assert.assertEquals("Wrong number of deleted files.",
+                1, countDeletedFiles());
+        ageProgress(progressDir);
+        FileUtil.delete(committedDir);
+    }    
+    
+    //Test for https://github.com/Norconex/collector-http/issues/316
+    @Test
+    public void testWebPageTimeout() 
+            throws IOException, XMLStreamException {
+        String startURL = newUrl("/test?case=timeout&amp;token="
+                + System.currentTimeMillis());
+        vars.setString("startURL", startURL);
+        vars.setClass("documentChecksummer", MD5DocumentChecksummer.class);
+        vars.setString("extraCrawlerConfig", 
+                "<httpClientFactory>"
+              + "<connectionTimeout>2000</connectionTimeout>"
+              + "<socketTimeout>2000</socketTimeout>"
+              + "<connectionRequestTimeout>2000</connectionRequestTimeout>"
+              + "</httpClientFactory>"
+        );
+        
+        int exitValue = 0;
+
+        // Test once and make sure we get 3 additions in total.
+        exitValue = runCollector("start", vars);
+        Assert.assertEquals("Wrong exit value.", 0, exitValue);
+        Assert.assertEquals("Wrong number of added files.",
+                3, countAddedFiles());
+        ageProgress(progressDir);
+        FileUtil.delete(committedDir);
+        
+        // Test twice and make sure we get 2 modified child docs even if
+        // master times out (as opposed to consider child as orphans to be
+        // deleted.
+        exitValue = runCollector("start", vars);
+        Assert.assertEquals("Wrong exit value.", 0, exitValue);
+        Assert.assertEquals("Wrong number of modified files.",
+                2, countAddedFiles());
+        ageProgress(progressDir);
+        FileUtil.delete(committedDir);
+    } 
+    
     @Test
     public void testStartAfterStopped()
             throws IOException, XMLStreamException, InterruptedException {
@@ -186,6 +282,11 @@ public class ExecutionTest extends AbstractHttpTest {
     }
     private void testAfterStopped(boolean resume)
             throws IOException, XMLStreamException, InterruptedException {
+        
+        if (!ENABLE_RECOVERY_TESTS) {
+            return;
+        }
+        
         vars.setInt("delay", 5000);
         
         Thread newCrawl = new Thread() {
@@ -212,7 +313,8 @@ public class ExecutionTest extends AbstractHttpTest {
 
         int fileCount = countAddedFiles();
         Assert.assertTrue("Should not have had time to process more than "
-                + "2 or 3 files", fileCount > 1 && fileCount < 4);
+                + "2 or 3 files (processed " + fileCount + ").",
+                fileCount > 1 && fileCount < 4);
 
         ageProgress(progressDir);
         vars.setInt("delay", 0);
@@ -250,20 +352,20 @@ public class ExecutionTest extends AbstractHttpTest {
             throws IOException, XMLStreamException {
         testAfterJvmCrash(true, JDBCCrawlDataStoreFactory.class, "derby");
     }
-
-//TODO find out why the following test fails/succeeds inconsistently. Is it due
-// to fluctuating processing time vs expected processing time? Why only
-// this one?
-//    @Test
-//    public void testResumeAfterJvmCrash_H2() 
-//            throws IOException, XMLStreamException {
-//        testAfterJvmCrash(true, JDBCCrawlDataStoreFactory.class, "h2");
-//    }
+    @Test
+    public void testResumeAfterJvmCrash_H2() 
+            throws IOException, XMLStreamException {
+        testAfterJvmCrash(true, JDBCCrawlDataStoreFactory.class, "h2");
+    }
 
     private void testAfterJvmCrash(
             boolean resume,
             Class<? extends ICrawlDataStoreFactory> storeFactory, 
             String database)  throws IOException, XMLStreamException {
+        
+        if (!ENABLE_RECOVERY_TESTS) {
+            return;
+        }
         
         vars.setClass("crawlerListener", JVMCrasher.class);
         vars.setClass("crawlDataStoreFactory", storeFactory);

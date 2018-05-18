@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  */
 package com.norconex.collector.http.doc;
 
-import org.apache.http.client.HttpClient;
-
 /**
  * Custom processing (optional) performed on a document.  Can be used 
  * just before of after a document has been imported.  
  * @author Pascal Essiembre
+ * @deprecated Since 2.8.0, use 
+ * {@link com.norconex.collector.http.processor.IHttpDocumentProcessor}
  */
-public interface IHttpDocumentProcessor {
-
-	/**
-	 * Processes a document.
-	 * @param httpClient HTTP Client
-	 * @param doc the document
-	 */
-    void processDocument(HttpClient httpClient, HttpDocument doc);
+@Deprecated
+public interface IHttpDocumentProcessor 
+        extends com.norconex.collector.http.processor.IHttpDocumentProcessor {
 }

@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,8 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
             + "referrerLinkTag, "
             + "referrerLinkText, "
             + "referrerLinkTitle, "
-            + "referencedUrls ";
+            + "referencedUrls, "
+            + "redirectTrail ";
     
     @Override
     public String[] getCreateTableSQLs(String table) {
@@ -85,6 +86,7 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
                 + "referrerLinkText VARCHAR(2048), "
                 + "referrerLinkTitle VARCHAR(2048), "
                 + "referencedUrls CLOB, "
+                + "redirectTrail CLOB, "
                 
                 + "PRIMARY KEY (reference))";
 
@@ -113,7 +115,7 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
     @Override
     public String getInsertCrawlDataSQL(String table) {
         return "INSERT INTO " + table + "(" + ALL_FIELDS 
-                + ") values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + ") values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     }
     @Override
     public Object[] getInsertCrawlDataValues(
@@ -149,7 +151,8 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
                         data.getReferrerLinkText(), 0, TEXT_MAX_LENGTH),
                 StringUtils.substring(
                         data.getReferrerLinkTitle(), 0, TITLE_MAX_LENGTH),
-                StringUtils.join(data.getReferencedUrls(), (char) 007)
+                StringUtils.join(data.getReferencedUrls(), (char) 007),
+                StringUtils.join(data.getRedirectTrail(), (char) 007)
         };
     }
     
@@ -232,6 +235,16 @@ public class JDBCCrawlDataSerializer implements IJDBCSerializer {
         } catch (IOException e) {
             throw new SQLException(
                     "Could not read referencedUrls character stream.", e);
+        }
+        try {
+            Reader refRdrReader = rs.getCharacterStream("redirectTrail");
+            if (refRdrReader != null) {
+                data.setRedirectTrail(StringUtils.split(
+                        IOUtils.toString(refRdrReader), (char) 007));
+            }
+        } catch (IOException e) {
+            throw new SQLException(
+                    "Could not read redirectTrail character stream.", e);
         }
         return data;
     }

@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,19 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.client.utils.URIUtils;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.commons.lang.EqualsUtil;
-import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.unit.DataUnit;
@@ -52,7 +52,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * Google Webmaster Tools help page</a>.</p>
  * 
  * <h3>HTTP Headers</h3>
- * <p>This detector will look for a metadata field name called "Link" with a 
+ * <p>This detector will look for a metadata field (normally obtained
+ * from the HTTP Headers) name called "Link" with a 
  * value following this pattern:</p>
  * <pre>
  * &lt;http://www.example.com/sample.pdf&gt; rel="canonical"
@@ -73,7 +74,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <p>You can specify your own content types as long as they contain HTML
  * text.</p>
  * 
- * <h3>XML configuration usage</h3>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;canonicalLinkDetector 
  *          class="com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector"
@@ -84,6 +85,15 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;/contentTypes&gt;
  *  &lt;/canonicalLinkDetector&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following example ignores canonical link resolution.
+ * </p>
+ * <pre>
+ *  &lt;canonicalLinkDetector ignore="true"/&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  * @since 2.2.0
  */
@@ -113,7 +123,7 @@ public class GenericCanonicalLinkDetector
         String link = StringUtils.trimToNull(metadata.getString("Link"));
         if (link != null) {
             if (link.toLowerCase().matches(
-                    ".*rel\\s*=\\s*[\"']canonical[\"'].*")) {
+                    ".*rel\\s*=\\s*([\"'])canonical\\1.*")) {
                 link = StringUtils.substringBetween(link, "<", ">");
                 return toAbsolute(reference, link);
             }
@@ -123,14 +133,18 @@ public class GenericCanonicalLinkDetector
 
     private static final Pattern PATTERN_TAG = 
             Pattern.compile("<\\s*(\\w+.*?)[/\\s]*>", Pattern.DOTALL);
+    private static final int PATTERN_TAG_GROUP = 1;
     private static final Pattern PATTERN_NAME = 
             Pattern.compile("^(\\w+)", Pattern.DOTALL);
+    private static final int PATTERN_NAME_GROUP = 1;
     private static final Pattern PATTERN_REL = 
-            Pattern.compile("\\srel\\s*=\\s*[\"']\\s*canonical\\s*[\"']", 
+            Pattern.compile("\\srel\\s*=\\s*([\"'])\\s*canonical\\s*\\1", 
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_URL = 
-            Pattern.compile("\\shref\\s*=\\s*[\"']\\s*(.*?)\\s*[\"']", 
+            Pattern.compile("\\shref\\s*=\\s*([\"'])\\s*(.*?)\\s*\\1", 
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+    private static final int PATTERN_URL_GROUP = 2;
+    
     @Override
     public String detectFromContent(
             String reference, InputStream is, ContentType contentType)
@@ -152,15 +166,17 @@ public class GenericCanonicalLinkDetector
             while ((text = r.readText()) != null) {
                 Matcher matcher = PATTERN_TAG.matcher(text);
                 while (matcher.find()) {
-                    String tag = matcher.group(1);
+                    String tag = matcher.group(PATTERN_TAG_GROUP);
                     Matcher nameMatcher = PATTERN_NAME.matcher(tag);
                     nameMatcher.find();
-                    String name = nameMatcher.group(1).toLowerCase();
+                    String name = nameMatcher.group(
+                            PATTERN_NAME_GROUP).toLowerCase();
                     if ("link".equalsIgnoreCase(name)
                             && PATTERN_REL.matcher(tag).find()) {
                         Matcher urlMatcher = PATTERN_URL.matcher(tag);
                         if (urlMatcher.find()) {
-                            return toAbsolute(reference, urlMatcher.group(1));
+                            return toAbsolute(reference, 
+                                    urlMatcher.group(PATTERN_URL_GROUP));
                         }
                         return null;
                     } else if (EqualsUtil.equalsAnyIgnoreCase(
@@ -186,7 +202,7 @@ public class GenericCanonicalLinkDetector
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         ContentType[] cts = ContentType.valuesOf(StringUtils.split(
                 StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
         if (!ArrayUtils.isEmpty(cts)) {

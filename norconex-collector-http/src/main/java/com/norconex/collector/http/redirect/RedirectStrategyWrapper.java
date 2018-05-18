@@ -50,6 +50,16 @@ public class RedirectStrategyWrapper implements RedirectStrategy {
     public static String getRedirectURL() {
         return REDIRECT_URL.get();
     }
+
+    /**
+     * Sets the redirect URL.  This method is normally never invoked unless
+     * you cannot rely on the default crawler behavior to set it for you.
+     * @param redirectUrl redirect URL
+     * @since 2.7.0
+     */
+    public static void setRedirectURL(String redirectUrl) {
+        REDIRECT_URL.set(redirectUrl);
+    }
     
     /**
      * Gets the redirect URL provider.

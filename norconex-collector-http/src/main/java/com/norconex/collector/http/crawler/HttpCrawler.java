@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@ package com.norconex.collector.http.crawler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
+import java.util.Iterator;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -24,7 +27,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -42,6 +44,7 @@ import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
+import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
@@ -117,7 +120,7 @@ public class HttpCrawler extends AbstractCrawler {
         initializeRedirectionStrategy();
 
         // We always initialize the sitemap resolver even if ignored 
-        // because sitemaps can not be specified as start URLs.
+        // because sitemaps can be specified as start URLs.
         if (getCrawlerConfig().getSitemapResolverFactory() != null) {
             this.sitemapResolver = 
                     getCrawlerConfig().getSitemapResolverFactory()
@@ -136,6 +139,7 @@ public class HttpCrawler extends AbstractCrawler {
         urlCount += queueStartURLsSitemaps(crawlDataStore);
         urlCount += queueStartURLsRegular(crawlDataStore);
         urlCount += queueStartURLsSeedFiles(crawlDataStore);
+        urlCount += queueStartURLsProviders(crawlDataStore);
         LOG.info(NumberFormat.getNumberInstance().format(urlCount)
                 + " start URLs identified.");
     }
@@ -148,8 +152,12 @@ public class HttpCrawler extends AbstractCrawler {
 
         for (int i = 0; i < startURLs.length; i++) {
             String startURL = startURLs[i];
-            executeQueuePipeline(
-                    new HttpCrawlData(startURL, 0), crawlDataStore);
+            if (StringUtils.isNotBlank(startURL)) {
+                executeQueuePipeline(
+                        new HttpCrawlData(startURL, 0), crawlDataStore);
+            } else {
+                LOG.debug("Blank start URL encountered, ignoring it.");
+            }
         }
         return startURLs.length;
     }
@@ -163,20 +171,21 @@ public class HttpCrawler extends AbstractCrawler {
         for (int i = 0; i < urlsFiles.length; i++) {
             String urlsFile = urlsFiles[i];
             LineIterator it = null;
-            try {
-                it = IOUtils.lineIterator(
-                        new FileInputStream(urlsFile), CharEncoding.UTF_8);
+            try (InputStream is = new FileInputStream(urlsFile)) {
+                it = IOUtils.lineIterator(is, StandardCharsets.UTF_8);
                 while (it.hasNext()) {
-                    String startURL = it.nextLine();
-                    executeQueuePipeline(new HttpCrawlData(
-                            startURL, 0), crawlDataStore);
-                    urlCount++;
+                    String startURL = StringUtils.trimToNull(it.nextLine());
+                    if (startURL != null && !startURL.startsWith("#")) {
+                        executeQueuePipeline(
+                                new HttpCrawlData(startURL, 0), crawlDataStore);
+                        urlCount++;
+                    }
                 }
             } catch (IOException e) {
                 throw new CollectorException(
                         "Could not process URLs file: " + urlsFile, e);
             } finally {
-                LineIterator.closeQuietly(it);;
+                LineIterator.closeQuietly(it);
             }
         }
         return urlCount;
@@ -218,6 +227,27 @@ public class HttpCrawler extends AbstractCrawler {
             }
         }
         return urlCount.intValue();
+    }
+    
+    private int queueStartURLsProviders(final ICrawlDataStore crawlDataStore) {
+        IStartURLsProvider[] providers = 
+                getCrawlerConfig().getStartURLsProviders();
+        if (providers == null) {
+            return 0;
+        }
+        int count = 0;
+        for (IStartURLsProvider provider : providers) {
+            if (provider == null) {
+                continue;
+            }
+            Iterator<String> it = provider.provideStartURLs();
+            while (it.hasNext()) {
+                executeQueuePipeline(
+                        new HttpCrawlData(it.next(), 0), crawlDataStore);
+                count++;
+            }
+        }
+        return count;
     }
     
     private void logInitializationInformation() {
@@ -314,26 +344,21 @@ public class HttpCrawler extends AbstractCrawler {
         metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TITLE, 
                 httpData.getReferrerLinkTitle());
         
-        
+        // Add possible redirect trail 
+        if (ArrayUtils.isNotEmpty(httpData.getRedirectTrail())) {
+            metadata.setString(HttpMetadata.COLLECTOR_REDIRECT_TRAIL, 
+                    httpData.getRedirectTrail());
+        }
     }
     
-    @Override
     protected ImporterResponse executeImporterPipeline(
-            ICrawler crawler, 
-            ImporterDocument doc, 
-            ICrawlDataStore crawlDataStore, 
-            BaseCrawlData crawlData,
-            BaseCrawlData cachedCrawlData) {
-        //TODO create pipeline context prototype
-        //TODO cache the pipeline object?
-        HttpImporterPipelineContext context = new HttpImporterPipelineContext(
-                (HttpCrawler) crawler, crawlDataStore, 
-                (HttpCrawlData) crawlData, 
-                (HttpCrawlData) cachedCrawlData, 
-                (HttpDocument) doc);
+            ImporterPipelineContext importerContext) {
+        HttpImporterPipelineContext httpContext = 
+                new HttpImporterPipelineContext(importerContext);
         new HttpImporterPipeline(
-                getCrawlerConfig().isKeepDownloads()).execute(context);
-        return context.getImporterResponse();
+                getCrawlerConfig().isKeepDownloads(),
+                importerContext.isOrphan()).execute(httpContext);
+        return httpContext.getImporterResponse();
     }
 
     @Override
@@ -428,6 +453,13 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     protected void cleanupExecution(JobStatusUpdater statusUpdater,
             JobSuite suite, ICrawlDataStore refStore) {
+        try {
+            if (sitemapResolver != null) {
+                sitemapResolver.stop();
+            }
+        } catch (Exception e) {
+            LOG.error("Could not stop sitemap store.");
+        }
         closeHttpClient();
     }
 

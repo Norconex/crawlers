@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -27,7 +28,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -45,26 +45,42 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
-import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.importer.doc.ContentTypeDetector;
+import com.norconex.importer.util.CharsetUtil;
 
 /**
  * <p>
  * Default implementation of {@link IHttpDocumentFetcher}.
  * </p>
+ * <h3>Content type and character encoding</h3>
  * <p>
- * XML configuration usage:
+ * The default behavior of the HTTP Collector to identify the content type
+ * and character encoding of a document is to rely on the 
+ * "<a href="https://www.w3.org/Protocols/rfc1341/4_Content-Type.html">Content-Type</a>"
+ * HTTP response header.  Web servers can sometimes return invalid
+ * or missing content type and character encoding information. Since 2.7.0,
+ * you can optionally decide not to trust web servers HTTP responses and have 
+ * the collector perform its own content type and encoding detection.
+ * Such detection can be enabled with {@link #setDetectContentType(boolean)}
+ * and {@link #setDetectCharset(boolean)}.
  * </p>
+ * 
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;documentFetcher  
- *      class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher"&gt;
- *      &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
- *      &lt;notFoundStatusCodes&gt;(defaults to 404)&lt;/notFoundStatusCodes&gt;
- *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
+ *      class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher"
+ *      detectContentType="[false|true]" detectCharset="[false|true]"&gt;
+ *    &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
+ *    &lt;notFoundStatusCodes&gt;(defaults to 404)&lt;/notFoundStatusCodes&gt;
+ *    &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
  *  &lt;/documentFetcher&gt;
  * </pre>
  * <p>
@@ -75,6 +91,17 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <p>
  * The "notFoundStatusCodes" element was added in 2.2.0.
  * </p>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following configures the document fetcher to not trust HTTP response
+ * headers to identify the content type and encoding, but try to detect
+ * them instead.
+ * </p>
+ * <pre>
+ *  &lt;documentFetcher detectContentType="true" detectCharset="true"/&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  */
 public class GenericDocumentFetcher 
@@ -87,6 +114,9 @@ public class GenericDocumentFetcher
     private int[] notFoundStatusCodes = 
             GenericMetadataFetcher.DEFAULT_NOT_FOUND_STATUS_CODES;
     private String headersPrefix;
+    private boolean detectContentType;
+    private boolean detectCharset;
+    private ContentTypeDetector contentTypeDetector = new ContentTypeDetector();
     
     public GenericDocumentFetcher() {
         this(GenericMetadataFetcher.DEFAULT_VALID_STATUS_CODES);
@@ -96,8 +126,73 @@ public class GenericDocumentFetcher
         setValidStatusCodes(validStatusCodes);
     }
     
+    public int[] getValidStatusCodes() {
+        return ArrayUtils.clone(validStatusCodes);
+    }
+    public final void setValidStatusCodes(int... validStatusCodes) {
+        this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
+    }
+    /**
+     * Gets HTTP status codes to be considered as "Not found" state.
+     * Default is 404.
+     * @return "Not found" codes
+     * @since 2.2.0
+     */
+    public int[] getNotFoundStatusCodes() {
+        return ArrayUtils.clone(notFoundStatusCodes);
+    }
+    /**
+     * Sets HTTP status codes to be considered as "Not found" state.
+     * @param notFoundStatusCodes "Not found" codes
+     * @since 2.2.0
+     */
+    public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
+        this.notFoundStatusCodes = ArrayUtils.clone(notFoundStatusCodes);
+    }
+    public String getHeadersPrefix() {
+        return headersPrefix;
+    }
+    public void setHeadersPrefix(String headersPrefix) {
+        this.headersPrefix = headersPrefix;
+    }
+    /**
+     * Gets whether content type is detected instead of relying on 
+     * HTTP response header.
+     * @return <code>true</code> to enable detection
+     * @since 2.7.0
+     */
+	public boolean isDetectContentType() {
+        return detectContentType;
+    }
+	/**
+	 * Sets whether content type is detected instead of relying on 
+     * HTTP response header.
+	 * @param detectContentType <code>true</code> to enable detection
+     * @since 2.7.0
+	 */
+    public void setDetectContentType(boolean detectContentType) {
+        this.detectContentType = detectContentType;
+    }
+    /**
+     * Gets whether character encoding is detected instead of relying on 
+     * HTTP response header.
+     * @return <code>true</code> to enable detection
+     * @since 2.7.0
+     */
+    public boolean isDetectCharset() {
+        return detectCharset;
+    }
+    /**
+     * Sets whether character encoding is detected instead of relying on 
+     * HTTP response header.
+     * @param detectCharset <code>true</code> to enable detection
+     * @since 2.7.0
+     */
+    public void setDetectCharset(boolean detectCharset) {
+        this.detectCharset = detectCharset;
+    }
     
-	@Override
+    @Override
 	public HttpFetchResponse fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
 	    //TODO replace signature with Writer class.
@@ -133,6 +228,8 @@ public class GenericDocumentFetcher
                 
                 //read a copy to force caching and then close the HTTP stream
                 IOUtils.copy(doc.getContent(), new NullOutputStream());
+                
+                performDetection(doc);
                 return new HttpFetchResponse(
                         HttpCrawlState.NEW, statusCode, reason);
             }
@@ -140,7 +237,7 @@ public class GenericDocumentFetcher
             // INVALID http response
             if (LOG.isTraceEnabled()) {
                 LOG.trace("Rejected response content: "
-                        + IOUtils.toString(is, CharEncoding.UTF_8));
+                        + IOUtils.toString(is, StandardCharsets.UTF_8));
                 IOUtils.closeQuietly(is);
             } else {
                 // read response anyway to be safer, but ignore content
@@ -176,6 +273,24 @@ public class GenericDocumentFetcher
         }  
 	}
 	
+    private void performDetection(HttpDocument doc) throws IOException {
+        if (detectContentType) {
+            ContentType ct = contentTypeDetector.detect(
+                    doc.getContent(), doc.getReference());
+            if (ct != null) {
+                doc.getMetadata().setString(
+                        HttpMetadata.COLLECTOR_CONTENT_TYPE, ct.toString());
+            }
+        }
+        if (detectCharset) {
+            String charset = CharsetUtil.detectCharset(doc.getContent());
+            if (StringUtils.isNotBlank(charset)) {
+                doc.getMetadata().setString(
+                        HttpMetadata.COLLECTOR_CONTENT_ENCODING, charset);
+            }
+        }
+    }
+    
 	/**
 	 * Creates the HTTP request to be executed.  Default implementation
 	 * returns an {@link HttpGet} request around the document reference.
@@ -192,38 +307,9 @@ public class GenericDocumentFetcher
 	    return new HttpGet(uri);
 	}
 	
-    public int[] getValidStatusCodes() {
-        return ArrayUtils.clone(validStatusCodes);
-    }
-    public final void setValidStatusCodes(int... validStatusCodes) {
-        this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
-    }
-    /**
-     * Gets HTTP status codes to be considered as "Not found" state.
-     * Default is 404.
-     * @return "Not found" codes
-     * @since 2.2.0
-     */
-    public int[] getNotFoundStatusCodes() {
-        return ArrayUtils.clone(notFoundStatusCodes);
-    }
-    /**
-     * Sets HTTP status codes to be considered as "Not found" state.
-     * @param notFoundStatusCodes "Not found" codes
-     * @since 2.2.0
-     */
-    public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
-        this.notFoundStatusCodes = ArrayUtils.clone(notFoundStatusCodes);
-    }
-    public String getHeadersPrefix() {
-        return headersPrefix;
-    }
-    public void setHeadersPrefix(String headersPrefix) {
-        this.headersPrefix = headersPrefix;
-    }
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
 
         String validCodes = xml.getString("validStatusCodes");
         int[] intValidCodes = validStatusCodes;
@@ -250,13 +336,20 @@ public class GenericDocumentFetcher
         setNotFoundStatusCodes(intNFCodes);
         
         setHeadersPrefix(xml.getString("headersPrefix"));
+        setDetectContentType(
+                xml.getBoolean("[@detectContentType]", isDetectContentType()));
+        setDetectCharset(xml.getBoolean("[@detectCharset]", isDetectCharset()));
+        
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
         try {
             EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
-            writer.writeStartElement("httpDocumentFetcher");
+            writer.writeStartElement("documentFetcher");
             writer.writeAttribute("class", getClass().getCanonicalName());
+            writer.writeAttributeBoolean(
+                    "detectContentType", isDetectContentType());
+            writer.writeAttributeBoolean("detectCharset", isDetectCharset());
 
             writer.writeElementString("validStatusCodes", 
                     StringUtils.join(validStatusCodes, ','));
@@ -281,6 +374,8 @@ public class GenericDocumentFetcher
                 .append(validStatusCodes, castOther.validStatusCodes)
                 .append(notFoundStatusCodes, castOther.notFoundStatusCodes)
                 .append(headersPrefix, castOther.headersPrefix)
+                .append(detectContentType, castOther.detectContentType)
+                .append(detectCharset, castOther.detectCharset)
                 .isEquals();
     }
 
@@ -290,6 +385,8 @@ public class GenericDocumentFetcher
                 .append(validStatusCodes)
                 .append(notFoundStatusCodes)
                 .append(headersPrefix)
+                .append(detectContentType)
+                .append(detectCharset)
                 .toHashCode();
     }
 
@@ -299,6 +396,8 @@ public class GenericDocumentFetcher
                 .append("validStatusCodes", validStatusCodes)
                 .append("notFoundStatusCodes", notFoundStatusCodes)
                 .append("headersPrefix", headersPrefix)
+                .append("detectContentType", detectContentType)
+                .append("detectCharset", detectCharset)
                 .toString();
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,22 +38,21 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.ISitemapResolverFactory;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
+ * <p>
  * Factory used to created {@link StandardSitemapResolver} instances.
  * Refer to {@link StandardSitemapResolver} for resolution logic.
- * @author Pascal Essiembre
- *
- * <p>
- * XML configuration usage:
  * </p>
+ *
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;sitemapResolverFactory ignore="[false|true]" lenient="[false|true]" 
- *        tempDir="(where to store temp files)"
  *     class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory"&gt;
+ *     &lt;tempDir&gt;(where to store temp files)&lt;/tempDir&gt;
  *     &lt;path&gt;
  *       (Optional path relative to URL root for a sitemap. Use a single empty
  *        "path" tag to rely instead on any sitemaps specified as start URLs or
@@ -63,6 +62,16 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     (... repeat path tag as needed ...)
  *  &lt;/sitemapResolverFactory&gt;
  * </pre>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following ignores sitemap files present on web sites.
+ * </p>
+ * <pre>
+ *  &lt;sitemapResolverFactory ignore="true"/&gt;
+ * </pre>
+ * 
+ * @author Pascal Essiembre
  * @see StandardSitemapResolver
  */
 public class StandardSitemapResolverFactory 
@@ -170,7 +179,7 @@ public class StandardSitemapResolverFactory
 
     @Override
     public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         String tempPath = xml.getString(
                 "tempDir", Objects.toString(getTempDir(), null));
         if (tempPath != null) {

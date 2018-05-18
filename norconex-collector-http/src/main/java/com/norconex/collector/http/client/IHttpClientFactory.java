@@ -17,14 +17,16 @@ package com.norconex.collector.http.client;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 
+import com.norconex.commons.lang.config.IXMLConfigurable;
+
 /**
- * Create (and initializes) an {@link HttpClient} to be used for all 
- * HTTP request this crawler will make.  If implementing 
+ * Create (and initializes) an Apache {@link HttpClient} to be used for all 
+ * HTTP requests this crawler will make.  If implementing 
  * {@link CloseableHttpClient} the crawler will take care of closing
  * it properly when crawling ends.
  * 
- * Implementors also implementing IXMLConfigurable must name their XML tag
- * <code>httpClientFactory</code> to ensure it gets loaded properly.
+ * Implementors also implementing {@link IXMLConfigurable} must name their XML 
+ * tag <code>httpClientFactory</code> to ensure it gets loaded properly.
  * @since 1.3.0
  * @author Pascal Essiembre
  */

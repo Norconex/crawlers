@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,12 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.client.HttpClient;
 
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
@@ -35,6 +39,20 @@ import com.norconex.importer.Importer;
 public class HttpImporterPipelineContext extends ImporterPipelineContext {
 
     private RobotsMeta robotsMeta;
+    
+    /**
+     * Constructor creating a copy of supplied context.
+     * @param copiable the item to be copied
+     * @since 2.8.0
+     */
+    public HttpImporterPipelineContext(ImporterPipelineContext copiable) {
+        super(copiable.getCrawler(), copiable.getCrawlDataStore());
+        try {
+            BeanUtils.copyProperties(this, copiable);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new CollectorException("Could not copy importer context.", e);
+        }
+    }
     
     public HttpImporterPipelineContext(
             HttpCrawler crawler, ICrawlDataStore crawlDataStore, 

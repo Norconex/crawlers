@@ -22,7 +22,7 @@ import org.junit.Test;
 import com.norconex.collector.core.CollectorConfigLoader;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 
 /**
@@ -49,8 +49,11 @@ public class HttpCrawlerConfigTest {
                 "C:\\keys\\myEncryptionKey.txt", EncryptionKey.Source.FILE));
         clientFactory.setAuthPasswordKey(new EncryptionKey("my key"));
         
+        crawlerConfig.setStartURLsProviders(new MockStartURLsProvider());
+
+        
         System.out.println("Writing/Reading this: " + config);
-        ConfigurationUtil.assertWriteRead(config);
+        XMLConfigurationUtil.assertWriteRead(config);
 //        assertWriteRead(config);
     }
     

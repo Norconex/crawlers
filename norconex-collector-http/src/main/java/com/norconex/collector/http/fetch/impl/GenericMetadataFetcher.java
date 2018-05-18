@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,17 +42,17 @@ import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
-import com.norconex.commons.lang.config.ConfigurationUtil;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
- * Basic implementation of {@link IHttpMetadataFetcher}.  
  * <p>
- * XML configuration usage:
+ * Basic implementation of {@link IHttpMetadataFetcher}.
  * </p>
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;metadataFetcher 
  *      class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" &gt;
@@ -69,6 +69,17 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <p>
  * The "notFoundStatusCodes" element was added in 2.6.0.
  * </p>
+ * 
+ * <h4>Usage example:</h4>
+ * <p>
+ * The following configures a crawler to use this fetcher with the default
+ * settings.
+ * </p>
+ * <pre>
+ *  &lt;metadataFetcher 
+ *      class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" /&gt;
+ * </pre>
+ * 
  * @author Pascal Essiembre
  */
 public class GenericMetadataFetcher 
@@ -194,7 +205,7 @@ public class GenericMetadataFetcher
     
     @Override
     public void loadFromXML(Reader in) {
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         
         String validCodes = xml.getString("validStatusCodes");
         int[] intValidCodes = validStatusCodes;

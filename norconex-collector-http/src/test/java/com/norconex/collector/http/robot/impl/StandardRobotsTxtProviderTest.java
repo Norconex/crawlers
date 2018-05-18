@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
 package com.norconex.collector.http.robot.impl;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -71,7 +71,12 @@ public class StandardRobotsTxtProviderTest {
         String robotTxt6 = 
                 "User-agent: *\n\n"
               + "Disallow: \n\n";
-        
+
+        // Make sure trailing comments do not throw it off.
+        String robotTxt7 = 
+                "User-agent: *\n\n"
+              + "Disallow: # allow all\n\n";
+
         
         assertStartsWith("Robots.txt -> Disallow: /bathroom/",
                 parseRobotRule("mister-crawler", robotTxt1)[1]);
@@ -93,6 +98,8 @@ public class StandardRobotsTxtProviderTest {
 
         Assert.assertTrue(ArrayUtils.isEmpty(
                 parseRobotRule("mister-crawler", robotTxt6)));
+        Assert.assertTrue(ArrayUtils.isEmpty(
+                parseRobotRule("mister-crawler", robotTxt7)));
 
     }
 
@@ -173,9 +180,8 @@ public class StandardRobotsTxtProviderTest {
         StandardRobotsTxtProvider robotProvider = 
                 new StandardRobotsTxtProvider();
         return robotProvider.parseRobotsTxt(
-                IOUtils.toInputStream(content, CharEncoding.UTF_8), 
-                url,
-                "mister-crawler").getFilters();
+                IOUtils.toInputStream(content, StandardCharsets.UTF_8), 
+                url, "mister-crawler").getFilters();
     }
     
     private IRobotsTxtFilter[] parseRobotRule(String agent, String content) 

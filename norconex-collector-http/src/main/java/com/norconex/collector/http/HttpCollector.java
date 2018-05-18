@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
  * target sites will help you.
  * @author Pascal Essiembre
  */
-@SuppressWarnings("nls")
 public class HttpCollector extends AbstractCollector {
 
     /**

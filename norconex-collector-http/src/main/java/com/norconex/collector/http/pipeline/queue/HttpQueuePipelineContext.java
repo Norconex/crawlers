@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public class HttpQueuePipelineContext extends BasePipelineContext {
     public HttpQueuePipelineContext(
             HttpCrawler crawler, ICrawlDataStore refStore, 
             HttpCrawlData crawlData) {
-        super(crawler, refStore, crawlData, null);
+        super(crawler, refStore, crawlData);
     }
 
     public final HttpClient getHttpClient() {
@@ -53,7 +53,8 @@ public class HttpQueuePipelineContext extends BasePipelineContext {
         return (HttpCrawlData) super.getCrawlData();
     }
     
+    @Override
     public HttpCrawler getCrawler() {
         return (HttpCrawler) super.getCrawler();
-    };
+    }
 }

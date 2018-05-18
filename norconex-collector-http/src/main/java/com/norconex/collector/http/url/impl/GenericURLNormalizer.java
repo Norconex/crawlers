@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2017 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -37,8 +36,8 @@ import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.commons.lang.config.ConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.url.URLNormalizer;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
@@ -50,7 +49,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * examples. 
  * </p>
  * <p>
- * Since 2.3.0, this class is in effect by default. To skip its usage, you
+ * This class is in effect by default. To skip its usage, you
  * can explicitly set the URL Normalizer to <code>null</code> in the 
  * {@link HttpCrawlerConfig}, or you can disable it using 
  * {@link #setDisabled(boolean)}.
@@ -65,7 +64,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>Capitalizing letters in escape sequences</li>
  *   <li>Decoding percent-encoded unreserved characters</li>
  *   <li>Removing the default port</li>
- *   <li>Encoding non-URI characters (since 2.3.0)</li>
+ *   <li>Encoding non-URI characters</li>
  * </ul>
  * <p>
  * To overwrite this default, you have to specify a new list of normalizations
@@ -80,8 +79,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#addDomainTrailingSlash() addDomainTrailingSlash} (since 2.6.1)</li>
  *   <li>{@link URLNormalizer#addWWW() addWWW}</li>
  *   <li>{@link URLNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
- *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters} (since 2.3.0)</li>
- *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces} (since 2.3.0)</li>
+ *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters}</li>
+ *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces}</li>
  *   <li>{@link URLNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
  *   <li>{@link URLNormalizer#removeDefaultPort() removeDefaultPort}</li>
  *   <li>{@link URLNormalizer#removeDirectoryIndex() removeDirectoryIndex}</li>
@@ -92,6 +91,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li> 
  *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
  *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
+ *   <li>{@link URLNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
  *   <li>{@link URLNormalizer#removeWWW() removeWWW}</li>
  *   <li>{@link URLNormalizer#replaceIPWithDomainName() replaceIPWithDomainName}</li>
  *   <li>{@link URLNormalizer#secureScheme() secureScheme}</li>
@@ -121,7 +121,13 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *    &lt;/replacements&gt;
  *  &lt;/urlNormalizer&gt;
  * </pre>
- * <h3>Example:</h3>
+ * <p>
+ * Since 2.7.2, having an empty "normalizations" tag will effectively remove
+ * any normalizations rules previously set (like default ones).  
+ * Not having the tag
+ * at all will keep existing/default normalizations.
+ * </p>
+ * <h4>Usage example:</h4>
  * <p>
  * The following adds a normalization to add "www." to URL domains when
  * missing, to the default set of normalizations. It also add custom
@@ -145,7 +151,6 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;/urlNormalizer&gt;
  * </pre>
  * @author Pascal Essiembre
- * @see Pattern
  */
 public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
@@ -156,7 +161,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         addDirectoryTrailingSlash,
         addDomainTrailingSlash,
         /**
-         * @deprecated Since 1.11.0, use {@link #addDirectoryTrailingSlash}
+         * @deprecated Since 2.6.0, use {@link #addDirectoryTrailingSlash}
          */
         @Deprecated
         addTrailingSlash, 
@@ -174,6 +179,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         removeSessionIds,
         removeTrailingQuestionMark, 
         removeTrailingSlash, 
+        removeTrailingHash, 
         removeWWW, 
         replaceIPWithDomainName, 
         secureScheme, 
@@ -182,10 +188,8 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         upperCaseEscapeSequence, 
     }
     
-    
-    private final List<Normalization> normalizations = 
-            new ArrayList<Normalization>();
-    private final List<Replace> replaces = new ArrayList<Replace>();
+    private final List<Normalization> normalizations = new ArrayList<>();
+    private final List<Replace> replaces = new ArrayList<>();
     private boolean disabled;
     
     public GenericURLNormalizer() {
@@ -264,21 +268,24 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
     @Override
     public void loadFromXML(Reader in) {
         
-        XMLConfiguration xml = ConfigurationUtil.newXMLConfiguration(in);
+        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
         
         setDisabled(xml.getBoolean("[@disabled]", disabled));
         
-        String xmlNorms = xml.getString("normalizations");
-        if (StringUtils.isNotBlank(xmlNorms)) {
+        if (xml.containsKey("normalizations")) {
             normalizations.clear();
-            for (String norm : StringUtils.split(xmlNorms, ',')) {
-                try {
-                    normalizations.add(Normalization.valueOf(norm.trim()));
-                } catch (Exception e) {
-                    LOG.error("Invalid normalization: \"" + norm + "\".", e);
+            String xmlNorms = xml.getString("normalizations");
+            if (StringUtils.isNotBlank(xmlNorms)) {
+                for (String norm : StringUtils.split(xmlNorms, ',')) {
+                    try {
+                        normalizations.add(Normalization.valueOf(norm.trim()));
+                    } catch (Exception e) {
+                        LOG.error("Invalid normalization: '" + norm + "'.", e);
+                    }
                 }
             }
         }
+        
         List<HierarchicalConfiguration> xmlReplaces = 
                 xml.configurationsAt("replacements.replace");
         if (!replaces.isEmpty()) {
@@ -301,18 +308,20 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             writer.writeStartElement("normalizations");
             writer.writeCharacters(StringUtils.join(normalizations, ","));
             writer.writeEndElement();
-            writer.writeStartElement("replacements");
-            for (Replace replace : replaces) {
-                writer.writeStartElement("replace");
-                writer.writeStartElement("match");
-                writer.writeCharacters(replace.getMatch());
-                writer.writeEndElement();
-                writer.writeStartElement("replacement");
-                writer.writeCharacters(replace.getReplacement());
-                writer.writeEndElement();
+            if (!replaces.isEmpty()) {
+                writer.writeStartElement("replacements");
+                for (Replace replace : replaces) {
+                    writer.writeStartElement("replace");
+                    writer.writeStartElement("match");
+                    writer.writeCharacters(replace.getMatch());
+                    writer.writeEndElement();
+                    writer.writeStartElement("replacement");
+                    writer.writeCharacters(replace.getReplacement());
+                    writer.writeEndElement();
+                    writer.writeEndElement();
+                }
                 writer.writeEndElement();
             }
-            writer.writeEndElement();
             writer.writeEndElement();
             writer.flush();
             writer.close();
