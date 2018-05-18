@@ -76,7 +76,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * name to get a full description from {@link URLNormalizer}:
  * </p>
  * <ul>
- *   <li>{@link URLNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash}</li>
+ *   <li>{@link URLNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash} (since 2.6.0)</li>
+ *   <li>{@link URLNormalizer#addDomainTrailingSlash() addDomainTrailingSlash} (since 2.6.1)</li>
  *   <li>{@link URLNormalizer#addWWW() addWWW}</li>
  *   <li>{@link URLNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
  *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters} (since 2.3.0)</li>
@@ -153,6 +154,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
   
     public enum Normalization {
         addDirectoryTrailingSlash,
+        addDomainTrailingSlash,
         /**
          * @deprecated Since 1.11.0, use {@link #addDirectoryTrailingSlash}
          */

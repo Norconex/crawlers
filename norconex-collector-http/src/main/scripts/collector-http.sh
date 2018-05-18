@@ -11,4 +11,17 @@ export ROOT_DIR=$(realpath $(dirname $0))
 #
 #     -Djava.io.tmpdir=/path/to/tmp
 
+# If you are experiencing memory problems or simply wish to increase crawling
+# performance you can specify the amount of memory allocated by increasing
+# the Java heap space. You can do so by adding the following to the Java
+# command below (using 2G as an example):  
+#
+#     -Xmx2G
+
+# For advanced users, JMX monitoring can be enabled by adding the following 
+# to the java command below: 
+#
+#     -DenableJMX=true
+
+
 java -Dlog4j.configuration="file:${ROOT_DIR}/log4j.properties" -Dfile.encoding=UTF8 -cp "./lib/*:./classes" com.norconex.collector.http.HttpCollector "$@"
