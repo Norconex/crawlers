@@ -209,6 +209,7 @@ public class XMLFeedLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         private final String referer;
         private final Set<Link> links;
         private boolean isInLink = false;
+        private String stringLink="";
         public FeedHandler(String referer, Set<Link> links) {
             super();
             this.referer = referer;
@@ -230,18 +231,25 @@ public class XMLFeedLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         @Override
         public void characters(
                 char[] chars, int start, int len) throws SAXException {
-            if (isInLink && len > 0) {
-                Link link = new Link(new String(chars, start, len));
-                link.setReferrer(referer);
-                links.add(link); 
-            }
+        	 if (isInLink && len > 0) {
+          	   stringLink = stringLink+new String(chars, start, len);
+
+             }
         }
         @Override
         public void endElement(String uri, String localName, String qName) 
                 throws SAXException {
-            if ("link".equals(localName)) {
-                isInLink = false;
-            }
+        	if ("link".equals(localName)){
+     		   if(stringLink.length() > 0) {
+
+     			   Link link = new Link(stringLink);
+     			   link.setReferrer(referer);
+     			   links.add(link); 
+     			   stringLink="";
+     		   }
+     		   isInLink = false;
+
+     	   }
         }
     };
     
