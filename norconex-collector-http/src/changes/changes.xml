@@ -10,7 +10,7 @@
     <release version="2.8.1-SNAPSHOT" date="201?-???-??" description="Bugfix release">
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.9.1,
-        Norconex Commons Lang 1.14.1.
+        Norconex Commons Lang 1.15.0.
       </action>
       <action dev="essiembre" type="update" issue="475">
         GenericDocumentFetcher now logs documents it could not fetch as INFO. 

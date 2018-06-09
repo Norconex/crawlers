@@ -816,14 +816,6 @@ public class PhantomJSDocumentFetcher
                     output.getContentType());
         }
 
-        String contentType = getContentType(doc);
-        if (!isHTMLByContentType(contentType)) {
-            LOG.debug("Not a matching content type (" + contentType
-                + ")  after download, re-downloading with "
-                + "GenericDocumentFetcher for: " + doc.getReference());
-            return genericFetcher.fetchDocument(httpClient, doc);
-        }
-        
         if (StringUtils.isNotBlank(output.getError())) {
             LOG.error("PhantomJS:" + output.getError());
         }
@@ -847,8 +839,17 @@ public class PhantomJSDocumentFetcher
             doc.setContent(doc.getContent().newInputStream(p.outFile));
             //read a copy to force caching
             IOUtils.copy(doc.getContent(), new NullOutputStream());
-            
+
             performDetection(doc);
+            
+            String contentType = getContentType(doc);
+            if (!isHTMLByContentType(contentType)) {
+                LOG.debug("Not a matching content type (" + contentType
+                    + ")  after download, re-downloading with "
+                    + "GenericDocumentFetcher for: " + doc.getReference());
+                return genericFetcher.fetchDocument(httpClient, doc);
+            }
+            
             return new HttpFetchResponse(
                     HttpCrawlState.NEW, statusCode, reason);
         }
@@ -1101,6 +1102,7 @@ public class PhantomJSDocumentFetcher
         String safeArg = Objects.toString(arg, "");
         if (SystemUtils.IS_OS_WINDOWS) {
             safeArg = StringUtils.strip(safeArg, "\"");
+            safeArg = safeArg.replaceAll("((?<!\\^\\^\\^)[\\|\\&])", "^^^$1");
             return "\"" + safeArg + "\"";
         }
         return safeArg;

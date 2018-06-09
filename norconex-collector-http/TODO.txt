@@ -1,5 +1,14 @@
 The following are either things to be done, or ideas to consider:
 
+- Support HTTP v2.  Example site: https://www.eetimes.com/rss_simple.asp
+
+- Add external site depth?
+
+- Create parent project to set managed dependencies?
+
+- Use safe filename methods for saving sitemap data (otherwise fails when 
+  containing spaces or others).
+
 - Add one of these as JVM arg: 
       -XX:ExitOnOutOfMemoryError
       -XX:CrashOnOutOfMemoryError 
