@@ -249,7 +249,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
             return uri.toString();
         } catch (URISyntaxException e) {
-            LOG.error("Could not resolve extracted URL: \"" + extractedURL
+            LOG.info("Could not resolve extracted URL: \"" + extractedURL
                     + "\" from document \"" + docURL + "\".");
         }
         return null;

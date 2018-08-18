@@ -220,7 +220,7 @@ import com.norconex.importer.util.CharsetUtil;
  *      &lt;/resourceTimeout&gt;
  *      &lt;options&gt;
  *        &lt;opt&gt;(optional extra PhantomJS command-line option)&lt;/opt&gt;
- *        &lt;!-- You have have multiple opt tags --&gt;
+ *        &lt;!-- You can have multiple opt tags --&gt;
  *      &lt;/options&gt;
  *      &lt;referencePattern&gt;
  *          (Regular expression matching URLs for which to use the
@@ -816,14 +816,6 @@ public class PhantomJSDocumentFetcher
                     output.getContentType());
         }
 
-        String contentType = getContentType(doc);
-        if (!isHTMLByContentType(contentType)) {
-            LOG.debug("Not a matching content type (" + contentType
-                + ")  after download, re-downloading with "
-                + "GenericDocumentFetcher for: " + doc.getReference());
-            return genericFetcher.fetchDocument(httpClient, doc);
-        }
-        
         if (StringUtils.isNotBlank(output.getError())) {
             LOG.error("PhantomJS:" + output.getError());
         }
@@ -847,8 +839,17 @@ public class PhantomJSDocumentFetcher
             doc.setContent(doc.getContent().newInputStream(p.outFile));
             //read a copy to force caching
             IOUtils.copy(doc.getContent(), new NullOutputStream());
-            
+
             performDetection(doc);
+            
+            String contentType = getContentType(doc);
+            if (!isHTMLByContentType(contentType)) {
+                LOG.debug("Not a matching content type (" + contentType
+                    + ")  after download, re-downloading with "
+                    + "GenericDocumentFetcher for: " + doc.getReference());
+                return genericFetcher.fetchDocument(httpClient, doc);
+            }
+            
             return new HttpFetchResponse(
                     HttpCrawlState.NEW, statusCode, reason);
         }
@@ -1026,9 +1027,13 @@ public class PhantomJSDocumentFetcher
         } else {
             cmdArgs.add(argQuote(p.phantomScreenshotFile.getAbsolutePath()));
         }
-        cmdArgs.add(argQuote(                              // phantom.js arg 7
-                screenshotDimensions.getWidth() + "x"
-              + screenshotDimensions.getHeight()));       
+        if (screenshotDimensions == null) {                // phantom.js arg 7
+            cmdArgs.add(argQuote(""));
+        } else {
+            cmdArgs.add(argQuote(
+                    screenshotDimensions.getWidth() + "x"
+                  + screenshotDimensions.getHeight()));       
+        }
         cmdArgs.add(Float.toString(screenshotZoomFactor)); // phantom.js arg 8
         cmdArgs.add(Integer.toString(resourceTimeout));    // phantom.js arg 9
         
@@ -1097,6 +1102,7 @@ public class PhantomJSDocumentFetcher
         String safeArg = Objects.toString(arg, "");
         if (SystemUtils.IS_OS_WINDOWS) {
             safeArg = StringUtils.strip(safeArg, "\"");
+            safeArg = safeArg.replaceAll("((?<!\\^\\^\\^)[\\|\\&])", "^^^$1");
             return "\"" + safeArg + "\"";
         }
         return safeArg;
@@ -1438,7 +1444,7 @@ public class PhantomJSDocumentFetcher
                     Long.toString(TimeIdGenerator.next()));
             
             String scheme = "http";
-            if (url.startsWith("https")) {
+            if (doc.getReference().startsWith("https")) {
                 scheme = "https";
             }
             this.protocol = scheme;

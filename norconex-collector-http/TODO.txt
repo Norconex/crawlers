@@ -1,5 +1,34 @@
 The following are either things to be done, or ideas to consider:
 
+- Support custom arguments to the PhantomJS script file.
+  https://github.com/Norconex/collector-http/issues/505
+
+- Support HTTP v2.  Example site: https://www.eetimes.com/rss_simple.asp
+
+- Add external site depth?
+
+- Create parent project to set managed dependencies?
+
+- Use safe filename methods for saving sitemap data (otherwise fails when 
+  containing spaces or others).
+
+- Add one of these as JVM arg: 
+      -XX:ExitOnOutOfMemoryError
+      -XX:CrashOnOutOfMemoryError 
+
+- Add to FAQ: how to extract few different HTML tag scenarios and maybe 
+  add a tagger that helps with that.
+
+- Maybe rename REJECTED_UNMODIFIED|PREMATURE to IGNORED_* ? 
+
+- Should HttpClientProxy (for PhantomJS) reuse the same http methods?
+  (e.g., POST should be POST).  Also check that https sites can be handled 
+  better.
+
+- Have a new <inScopeStrategy class="..."> with the default implementation
+  being [Generic]URLCrawlScopeStrategy, taking the stayOn* and implementing 
+  an IURLCrawlScope interface.
+
 - Investigate why defining tags (e.g. <httpClientFactory> under the collector
   root tag (as opposed to under crawler tag) does not produce validation error.
 

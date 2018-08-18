@@ -94,8 +94,12 @@
       <proxyPassword>pwd</proxyPassword>
       <proxyPasswordKey>key</proxyPasswordKey>
       <proxyPasswordKeySource>environment</proxyPasswordKeySource>
+      <authFormParams>
+        <param name="token1"></param>
+        <param name="token2">somevalue2</param>
+      </authFormParams>
       <headers>
-        <header name="head1">value1</header>
+        <header name="head1"></header>
         <header name="head2">value2</header>
       </headers>
       <authMethod>digest</authMethod>
