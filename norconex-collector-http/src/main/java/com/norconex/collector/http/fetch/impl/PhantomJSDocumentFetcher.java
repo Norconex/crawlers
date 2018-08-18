@@ -220,7 +220,7 @@ import com.norconex.importer.util.CharsetUtil;
  *      &lt;/resourceTimeout&gt;
  *      &lt;options&gt;
  *        &lt;opt&gt;(optional extra PhantomJS command-line option)&lt;/opt&gt;
- *        &lt;!-- You have have multiple opt tags --&gt;
+ *        &lt;!-- You can have multiple opt tags --&gt;
  *      &lt;/options&gt;
  *      &lt;referencePattern&gt;
  *          (Regular expression matching URLs for which to use the

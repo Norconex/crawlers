@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- Support custom arguments to the PhantomJS script file.
+  https://github.com/Norconex/collector-http/issues/505
+
 - Support HTTP v2.  Example site: https://www.eetimes.com/rss_simple.asp
 
 - Add external site depth?
