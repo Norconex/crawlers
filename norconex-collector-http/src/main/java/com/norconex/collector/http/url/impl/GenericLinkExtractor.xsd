@@ -35,6 +35,13 @@
         </xs:element>
         <xs:element name="extractBetween" type="extractType" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="noExtractBetween" type="extractType" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="nofollow" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="regexUrl" type="nonEmptyString" minOccurs="0" maxOccurs="unbounded" />
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
       </xs:all>
       <xs:attribute name="class" type="xs:string" use="required"/>
       <xs:attribute name="maxURLLength" type="xs:int"/>

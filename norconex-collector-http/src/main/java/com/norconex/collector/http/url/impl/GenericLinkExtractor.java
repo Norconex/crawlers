@@ -148,6 +148,11 @@ import com.norconex.importer.util.CharsetUtil;
  * To force its extraction (and ensure it is followed) you can set 
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * </p>
+ * <p>
+ * <b>Since 2.10.0</b> it is possible to treat all the links in certain pages
+ * as "nofollow" links. Link extraction is essentially skipped for URLs matching
+ * the patterns set in {@link #setNofollowPatterns(List)}.
+ * </p> 
  * 
  * <h3>URL Fragments</h3>
  * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
@@ -293,6 +298,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     
     private final List<RegexPair> extractBetweens = new ArrayList<>();
     private final List<RegexPair> noExtractBetweens = new ArrayList<>();
+    private final List<Pattern> nofollowPatterns = new ArrayList<>();
     
     public GenericLinkExtractor() {
         super();
@@ -318,6 +324,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         // Do not extract if not a supported content type
         if (!ArrayUtils.contains(cTypes, contentType)) {
             return null;
+        }
+        
+        for (Pattern p : nofollowPatterns) {
+            if (p.matcher(reference).matches()) {
+                return null;
+            }
         }
 
         // Do it, extract Links
@@ -465,6 +477,38 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public void addNoExtractBetween(
             String start, String end, boolean caseSensitive) {
         this.noExtractBetweens.add(new RegexPair(start, end, caseSensitive));
+    }
+    
+    /**
+     * Gets the patterns of references for which link extraction is disabled.
+     * @return nofollow regex patterns
+     * @since 2.10.0
+     */
+    public List<String> getNofollowPatterns() {
+        List<String> list = new ArrayList<>(nofollowPatterns.size());
+        for (Pattern pattern : nofollowPatterns) {
+            list.add(pattern.pattern());
+        }
+        return list;
+    }
+    /**
+     * Sets the patterns of references for which link extraction is disabled.
+     * @param patterns the list of regex URL patterns
+     * @since 2.10.0
+     */
+    public void setNofollowPatterns(List<String> patterns) {
+        nofollowPatterns.clear();
+        for (String regex : patterns) {
+            nofollowPatterns.add(Pattern.compile(regex));
+        }
+    }
+    /**
+     * Adds a pattern for references for which link extraction is disabled.
+     * @param regex the regex URL pattern
+     * @since 2.10.0
+     */
+    public void addNofollowPatterns(String regex) {
+        nofollowPatterns.add(Pattern.compile(regex));
     }
 
     /**
@@ -934,6 +978,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                         node.getBoolean("[@caseSensitive]", false));
             }
         }
+        
+        // no extraction in these pages
+        nofollowPatterns.clear();
+        for (String regex : xml.getStringArray("nofollow.regexUrl")) {
+            nofollowPatterns.add(Pattern.compile(regex));
+        }
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
@@ -993,7 +1043,17 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 writer.writeEndElement();
             }            
 
+            // no extraction in these pages
+            if (nofollowPatterns.size() > 0) {
+                writer.writeStartElement("nofollow");
+                for (Pattern regex : nofollowPatterns) {
+                    writer.writeElementString("regexUrl", regex.pattern());
+                }
+                writer.writeEndElement();
+            }
+            
             writer.writeEndElement();
+
             writer.flush();
             writer.close();
         } catch (XMLStreamException e) {
