@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,20 @@ package com.norconex.collector.http.fetch.impl;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.TestUtil;
 import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.Quality;
 import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.Storage;
 import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.StorageDiskStructure;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
-
+import com.norconex.commons.lang.xml.XML;
 public class PhantomJSDocumentFetcherTest  {
 
-    private static final Logger LOG = 
-            LogManager.getLogger(PhantomJSDocumentFetcherTest.class);    
-    
+    private static final Logger LOG =
+            LoggerFactory.getLogger(PhantomJSDocumentFetcherTest.class);
+
     @Test
     public void testWriteRead() throws IOException {
         PhantomJSDocumentFetcher f = new PhantomJSDocumentFetcher();
@@ -45,7 +44,7 @@ public class PhantomJSDocumentFetcherTest  {
         f.setReferencePattern(".blah.blah");
         f.setDetectContentType(true);
         f.setDetectCharset(true);
-        
+
         f.setScreenshotEnabled(true);
         f.setScreenshotDimensions(30, 40);
         f.setScreenshotImageFormat("gif");
@@ -60,7 +59,7 @@ public class PhantomJSDocumentFetcherTest  {
         f.setScreenshotZoomFactor(0.5f);
 
         LOG.info("Writing/Reading this: " + f);
-        XMLConfigurationUtil.assertWriteRead(f);
+        XML.assertWriteRead(f, "documentFetcher");
     }
 
     @Test

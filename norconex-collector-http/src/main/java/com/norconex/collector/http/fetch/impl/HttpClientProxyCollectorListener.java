@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,50 +14,46 @@
  */
 package com.norconex.collector.http.fetch.impl;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.client.HttpClient;
 
-import com.norconex.collector.core.ICollector;
-import com.norconex.collector.core.ICollectorLifeCycleListener;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.collector.http.HttpCollectorEvent;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.event.IEventListener;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
- * Starts and stops an HTTP proxy that uses Apache {@link HttpClient} to 
+ * Starts and stops an HTTP proxy that uses Apache {@link HttpClient} to
  * make HTTP requests.  To be used by external applications, such as PhantomJS.
  * </p>
  * <p>
- * The proxy server started uses a random port by default.  You can 
+ * The proxy server started uses a random port by default.  You can
  * specify which port to use with {@link #setPort(int)}.
  * </p>
  * <h3>XML configuration usage:</h3>
- * 
+ *
  * <pre>
  *  &lt;httpcollector id="MyHttpCollector"&gt;
  *    ...
  *    &lt;collectorListeners&gt;
- *      &lt;listener 
+ *      &lt;listener
  *          class="com.norconex.collector.http.fetch.impl.HttpClientProxyCollectorListener"
  *          port="(Optional port. Default is 0, which means random.)" /&gt;
  *    &lt;/collectorListeners&gt;
  *    ...
  *  &lt;/httpcollector&gt;
  * </pre>
- * 
+ *
  * @see PhantomJSDocumentFetcher
  * @author Pascal Essiembre
  * @since 2.7.0
  */
-public class HttpClientProxyCollectorListener 
-        implements ICollectorLifeCycleListener, IXMLConfigurable {
+public class HttpClientProxyCollectorListener
+        implements IEventListener<HttpCollectorEvent>, IXMLConfigurable {
 
     private int port;
 
@@ -67,31 +63,36 @@ public class HttpClientProxyCollectorListener
     public void setPort(int port) {
         this.port = port;
     }
-    
+
     @Override
-    public void onCollectorStart(ICollector collector) {
-        HttpClientProxy.start(port);
-    }
-    @Override
-    public void onCollectorFinish(ICollector collector) {
-        HttpClientProxy.stop();
+    public void accept(HttpCollectorEvent event) {
+        if (event.is(HttpCollectorEvent.COLLECTOR_STARTED)) {
+            HttpClientProxy.start(port);
+        } else if (event.is(HttpCollectorEvent.COLLECTOR_ENDED)) {
+            HttpClientProxy.stop();
+        }
     }
 
     @Override
-    public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        setPort(xml.getInt("[@port]", getPort()));
+    public void loadFromXML(XML xml) {
+        setPort(xml.getInteger("@port", port));
     }
     @Override
-    public void saveToXML(Writer out) throws IOException {
-        try {        
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);         
-            writer.writeStartElement("listener");
-            writer.writeAttribute("class", getClass().getCanonicalName());
-            writer.writeAttributeInteger("port", getPort());
-            writer.writeEndElement();
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
-        }        
+    public void saveToXML(XML xml) {
+        xml.setAttribute("port", port);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return EqualsBuilder.reflectionEquals(this, other);
+    }
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+    @Override
+    public String toString() {
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

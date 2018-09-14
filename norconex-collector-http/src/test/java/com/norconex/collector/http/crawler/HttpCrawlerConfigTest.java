@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,53 +14,61 @@
  */
 package com.norconex.collector.http.crawler;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.CollectorConfigLoader;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * @author Pascal Essiembre
  */
 public class HttpCrawlerConfigTest {
 
-    
+    private static final Logger LOG =
+            LoggerFactory.getLogger(HttpCrawlerConfigTest.class);
+
     @Test
     public void testWriteRead() throws IOException {
-        File configFile = new File(
-//                "src/site/resources/examples/minimum/minimum-config.xml");
-                "src/site/resources/examples/complex/complex-config.xml");
-        HttpCollectorConfig config = (HttpCollectorConfig) 
-                new CollectorConfigLoader(HttpCollectorConfig.class)
-                        .loadCollectorConfig(configFile);
-        HttpCrawlerConfig crawlerConfig = 
-                (HttpCrawlerConfig) config.getCrawlerConfigs()[0];
-        GenericHttpClientFactory clientFactory = 
+//        File configFile = new File(
+////                "src/site/resources/examples/minimum/minimum-config.xml");
+//                "src/site/resources/examples/complex/complex-config.xml");
+//        HttpCollectorConfig config = (HttpCollectorConfig)
+//                new CollectorConfigLoader(HttpCollectorConfig.class)
+//                        .loadCollectorConfig(configFile);
+
+        HttpCollectorConfig config = new HttpCollectorConfig();
+        new XML(Paths.get("src/site/resources/examples/complex/"
+                + "complex-config.xml")).configure(config);
+
+        HttpCrawlerConfig crawlerConfig =
+                (HttpCrawlerConfig) config.getCrawlerConfigs().get(0);
+        GenericHttpClientFactory clientFactory =
                 (GenericHttpClientFactory) crawlerConfig.getHttpClientFactory();
         clientFactory.setRequestHeader("header1", "value1");
         clientFactory.setRequestHeader("header2", "value2");
         clientFactory.setProxyPasswordKey(new EncryptionKey(
                 "C:\\keys\\myEncryptionKey.txt", EncryptionKey.Source.FILE));
         clientFactory.setAuthPasswordKey(new EncryptionKey("my key"));
-        
+
         crawlerConfig.setStartURLsProviders(new MockStartURLsProvider());
 
-        
-        System.out.println("Writing/Reading this: " + config);
-        XMLConfigurationUtil.assertWriteRead(config);
+
+        LOG.debug("Writing/Reading this: {}", config);
+        XML.assertWriteRead(config, "httpcollector");
 //        assertWriteRead(config);
     }
-    
-    
+
+
 //    public static void assertWriteRead(IXMLConfigurable xmlConfiurable)
 //            throws IOException {
-//        
+//
 //        // Write
 //        Writer out = new OutputStreamWriter(System.out);
 //        try {

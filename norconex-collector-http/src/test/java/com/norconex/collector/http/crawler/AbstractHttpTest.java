@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Norconex Inc.
+/* Copyright 2014-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -36,17 +37,18 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.website.TestWebServer;
 import com.norconex.committer.core.impl.FileSystemCommitter;
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileUtil;
 
 public abstract class AbstractHttpTest {
 
     private static final TestWebServer SERVER = new TestWebServer();
 
-    //Note: @Rule was not working for deleting folder since the webapp 
+    //Note: @Rule was not working for deleting folder since the webapp
     // still had a hold on the file.
     private static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    
+
     @BeforeClass
     public static void beforeClass() throws IOException {
         tempFolder.create();
@@ -77,7 +79,7 @@ public abstract class AbstractHttpTest {
     protected static TemporaryFolder getTempFolder() {
         return tempFolder;
     }
-    
+
     protected String getBaseUrl() {
         return "http://localhost:" + SERVER.getLocalPort();
     }
@@ -93,7 +95,7 @@ public abstract class AbstractHttpTest {
         }
         return dir;
     }
-    
+
     protected List<HttpDocument> getCommitedDocuments(HttpCrawler crawler)
             throws IOException {
         File addDir =  getCommitterDir(crawler);
@@ -106,32 +108,32 @@ public abstract class AbstractHttpTest {
             }
             HttpMetadata meta = new HttpMetadata(file.getAbsolutePath());
             String basePath = StringUtils.removeEnd(
-                    file.getAbsolutePath(), 
+                    file.getAbsolutePath(),
                     FileSystemCommitter.EXTENSION_CONTENT);
-            meta.load(FileUtils.openInputStream(
+            meta.loadFromProperties(FileUtils.openInputStream(
                     new File(basePath + ".meta")));
             String reference = FileUtils.readFileToString(
                     new File(basePath + ".ref"), StandardCharsets.UTF_8);
-            
+
             HttpDocument doc = new HttpDocument(
                     reference, crawler.getStreamFactory().newInputStream(file));
             // remove previous reference to avoid duplicates
             doc.getMetadata().remove(HttpMetadata.COLLECTOR_URL);
-            doc.getMetadata().load(meta);
+            doc.getMetadata().loadFromMap(meta);
             docs.add(doc);
         }
         return docs;
     }
 
-    protected HttpCollector newHttpCollector1Crawler(String... startURLs) 
+    protected HttpCollector newHttpCollector1Crawler(String... startURLs)
             throws IOException {
-        
-        File progressDir = tempFolder.newFolder("progress" + UUID.randomUUID());
-        File logsDir = tempFolder.newFolder("logs" + UUID.randomUUID());
+
+//        File progressDir = tempFolder.newFolder("progress" + UUID.randomUUID());
+//        File logsDir = tempFolder.newFolder("logs" + UUID.randomUUID());
         File workdir = tempFolder.newFolder("workdir" + UUID.randomUUID());
         File committerDir = tempFolder.newFolder(
                 "committedFiles_" + UUID.randomUUID());
-        
+
         //--- Committer ---
         //ICommitter committer = new NilCommitter();
         FileSystemCommitter committer = new FileSystemCommitter();
@@ -146,7 +148,7 @@ public abstract class AbstractHttpTest {
             urls[i] = getBaseUrl() + startURLs[i];
         }
         httpConfig.setStartURLs(urls);
-        httpConfig.setWorkDir(workdir);
+        httpConfig.setWorkDir(workdir.toPath());
         httpConfig.setNumThreads(1);
         GenericDelayResolver resolver = new GenericDelayResolver();
         resolver.setDefaultDelay(0);
@@ -154,16 +156,16 @@ public abstract class AbstractHttpTest {
         httpConfig.setIgnoreRobotsMeta(true);
         httpConfig.setIgnoreSitemap(true);
         httpConfig.setCommitter(committer);
-        HttpCrawler crawler = new HttpCrawler(httpConfig);
-        
+        HttpCrawler crawler = new HttpCrawler(httpConfig, new EventManager());
+
         //--- Collector ---
         HttpCollectorConfig colConfig = new HttpCollectorConfig();
-        colConfig.setId("Unit Test HTTP Collector instance " 
+        colConfig.setId("Unit Test HTTP Collector instance "
                 + UUID.randomUUID());
-        colConfig.setProgressDir(progressDir.getAbsolutePath());
-        colConfig.setLogsDir(logsDir.getAbsolutePath());
+//        colConfig.setProgressDir(progressDir.getAbsolutePath());
+//        colConfig.setLogsDir(logsDir.getAbsolutePath());
         HttpCollector collector = new HttpCollector(colConfig);
-        collector.setCrawlers(new HttpCrawler[]{ crawler });
+        collector.setCrawlers(Arrays.asList(crawler));
         return collector;
     }
 }

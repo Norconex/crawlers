@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,11 @@
  */
 package com.norconex.collector.http.pipeline.queue;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.pipeline.BasePipelineContext;
 import com.norconex.collector.core.pipeline.queue.QueueReferenceStage;
@@ -30,17 +33,17 @@ import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
  * Performs a URL handling logic before actual processing of the document
- * it represents takes place.  That is, before any 
+ * it represents takes place.  That is, before any
  * document or document header is downloaded.
- * Instances are only valid for the scope of a single URL.  
+ * Instances are only valid for the scope of a single URL.
  * @author Pascal Essiembre
  */
 public final class HttpQueuePipeline
         extends Pipeline<BasePipelineContext> {
 
-    private static final Logger LOG = 
-            LogManager.getLogger(HttpQueuePipeline.class);
-    
+    private static final Logger LOG =
+            LoggerFactory.getLogger(HttpQueuePipeline.class);
+
     public HttpQueuePipeline() {
         super();
         addStage(new DepthValidationStage());
@@ -50,68 +53,68 @@ public final class HttpQueuePipeline
         addStage(new SitemapStage());
         addStage(new QueueReferenceStage());
     }
-    
+
     //--- URL Depth ------------------------------------------------------------
     private static class DepthValidationStage extends AbstractQueueStage {
         @Override
         public boolean executeStage(HttpQueuePipelineContext ctx) {
-            if (ctx.getConfig().getMaxDepth() != -1 
-                    && ctx.getCrawlData().getDepth() 
+            if (ctx.getConfig().getMaxDepth() != -1
+                    && ctx.getCrawlData().getDepth()
                             > ctx.getConfig().getMaxDepth()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("URL too deep to process (" 
-                            + ctx.getCrawlData().getDepth() + "): " 
+                    LOG.debug("URL too deep to process ("
+                            + ctx.getCrawlData().getDepth() + "): "
                             + ctx.getCrawlData().getReference());
                 }
                 ctx.getCrawlData().setState(HttpCrawlState.TOO_DEEP);
-                ctx.getCrawler().fireCrawlerEvent(
-                        HttpCrawlerEvent.REJECTED_TOO_DEEP, 
+                ctx.fireCrawlerEvent(
+                        HttpCrawlerEvent.REJECTED_TOO_DEEP,
                         ctx.getCrawlData(), ctx.getCrawlData().getDepth());
                 return false;
             }
             return true;
         }
     }
-    
+
     /*default*/ static RobotsTxt getRobotsTxt(HttpQueuePipelineContext ctx) {
         if (!ctx.getConfig().isIgnoreRobotsTxt()) {
             return ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
-                    ctx.getHttpClient(), ctx.getCrawlData().getReference(), 
+                    ctx.getHttpClient(), ctx.getCrawlData().getReference(),
                     ctx.getConfig().getUserAgent());
         } else {
             return null;
         }
     }
-    
+
     //--- Sitemap URL Extraction -----------------------------------------------
     private static class SitemapStage extends AbstractQueueStage {
         @Override
         public boolean executeStage(final HttpQueuePipelineContext ctx) {
-            if (ctx.getConfig().isIgnoreSitemap() 
+            if (ctx.getConfig().isIgnoreSitemap()
                     || ctx.getSitemapResolver() == null) {
                 return true;
             }
             String urlRoot = ctx.getCrawlData().getUrlRoot();
-            String[] robotsTxtLocations = null;
+            List<String> robotsTxtLocations = new ArrayList<>();
             RobotsTxt robotsTxt = getRobotsTxt(ctx);
             if (robotsTxt != null) {
-                robotsTxtLocations = robotsTxt.getSitemapLocations();
+                robotsTxtLocations.addAll(robotsTxt.getSitemapLocations());
             }
             final ISitemapResolver sitemapResolver = ctx.getSitemapResolver();
-            
+
             SitemapURLAdder urlAdder = new SitemapURLAdder() {
                 @Override
                 public void add(HttpCrawlData reference) {
-                    HttpQueuePipelineContext context = 
+                    HttpQueuePipelineContext context =
                             new HttpQueuePipelineContext(
-                                    ctx.getCrawler(), 
-                                    ctx.getCrawlDataStore(), 
+                                    ctx.getCrawler(),
+                                    ctx.getCrawlDataStore(),
                                     reference);
                     new HttpQueuePipeline().execute(context);
                 }
             };
             sitemapResolver.resolveSitemaps(
-                    ctx.getHttpClient(), urlRoot, 
+                    ctx.getHttpClient(), urlRoot,
                     robotsTxtLocations, urlAdder, false);
             return true;
         }

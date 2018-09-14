@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@ package com.norconex.collector.http.robot.impl;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,31 +34,31 @@ public class StandardRobotsTxtProviderTest {
 
     @Test
     public void testGetRobotsTxt() throws IOException {
-        String robotTxt1 = 
+        String robotTxt1 =
                 "User-agent: *\n"
               + "Disallow: /dontgo/there/\n"
               + "User-agent: mister-crawler\n"
               + "Disallow: /bathroom/\n"
               + "User-agent: miss-crawler\n"
               + "Disallow: /tvremote/\n";
-        String robotTxt2 = 
+        String robotTxt2 =
                 " User-agent : mister-crawler \n"
               + "  Disallow : /bathroom/ \n"
               + "   User-agent : * \n"
               + "    Disallow : /dontgo/there/ \n";
-        String robotTxt3 = 
+        String robotTxt3 =
                 "User-agent: miss-crawler\n"
               + "Disallow: /tvremote/\n"
               + "User-agent: *\n"
               + "Disallow: /dontgo/there/\n";
-        String robotTxt4 = 
+        String robotTxt4 =
                 "User-agent: miss-crawler\n"
               + "Disallow: /tvremote/\n"
               + "User-agent: *\n"
               + "Disallow: /dontgo/there/\n"
               + "User-agent: mister-crawler\n"
               + "Disallow: /bathroom/\n";
-        String robotTxt5 = 
+        String robotTxt5 =
                 "# robots.txt\n"
               + "User-agent: *\n"
               + "Disallow: /some/fake/ # Spiders, keep out! \n"
@@ -68,39 +68,38 @@ public class StandardRobotsTxtProviderTest {
         // An empty Disallow means allow all.
         // Test made for https://github.com/Norconex/collector-http/issues/129
         // Standard: https://en.wikipedia.org/wiki/Robots_exclusion_standard
-        String robotTxt6 = 
+        String robotTxt6 =
                 "User-agent: *\n\n"
               + "Disallow: \n\n";
 
         // Make sure trailing comments do not throw it off.
-        String robotTxt7 = 
+        String robotTxt7 =
                 "User-agent: *\n\n"
               + "Disallow: # allow all\n\n";
 
-        
+
         assertStartsWith("Robots.txt -> Disallow: /bathroom/",
-                parseRobotRule("mister-crawler", robotTxt1)[1]);
+                parseRobotRule("mister-crawler", robotTxt1).get(1));
         assertStartsWith("Robots.txt -> Disallow: /bathroom/",
-                parseRobotRule("mister-crawler", robotTxt2)[0]);
+                parseRobotRule("mister-crawler", robotTxt2).get(0));
         assertStartsWith("Robots.txt -> Disallow: /dontgo/there/",
-                parseRobotRule("mister-crawler", robotTxt3)[0]);
+                parseRobotRule("mister-crawler", robotTxt3).get(0));
         assertStartsWith("Robots.txt -> Disallow: /bathroom/",
-                parseRobotRule("mister-crawler", robotTxt4)[1]);
-        
+                parseRobotRule("mister-crawler", robotTxt4).get(1));
+
         assertStartsWith("Robots.txt -> Disallow: /some/fake/",
-                parseRobotRule("mister-crawler", robotTxt5)[0]);
+                parseRobotRule("mister-crawler", robotTxt5).get(0));
         assertStartsWith("Robots.txt -> Disallow: /spidertrap/",
-                parseRobotRule("mister-crawler", robotTxt5)[1]);
-        assertStartsWith("Robots.txt -> Allow: /open/", 
-                parseRobotRule("mister-crawler", robotTxt5)[2]);
-        Assert.assertEquals(3, 
-                parseRobotRule("mister-crawler", robotTxt5).length);
+                parseRobotRule("mister-crawler", robotTxt5).get(1));
+        assertStartsWith("Robots.txt -> Allow: /open/",
+                parseRobotRule("mister-crawler", robotTxt5).get(2));
+        Assert.assertEquals(3,
+                parseRobotRule("mister-crawler", robotTxt5).size());
 
-        Assert.assertTrue(ArrayUtils.isEmpty(
-                parseRobotRule("mister-crawler", robotTxt6)));
-        Assert.assertTrue(ArrayUtils.isEmpty(
-                parseRobotRule("mister-crawler", robotTxt7)));
-
+        Assert.assertTrue(
+                parseRobotRule("mister-crawler", robotTxt6).isEmpty());
+        Assert.assertTrue(
+                parseRobotRule("mister-crawler", robotTxt7).isEmpty());
     }
 
     @Test
@@ -108,7 +107,8 @@ public class StandardRobotsTxtProviderTest {
         String robotTxt =
                 "User-agent: *\n\n"
               + "Disallow: /testing/*/wildcards\n";
-        IReferenceFilter rule = parseRobotRule("mister-crawler", robotTxt)[0];
+        IReferenceFilter rule =
+                parseRobotRule("mister-crawler", robotTxt).get(0);
 
         assertMatch(
                 "http://www.test.com/testing/some/random/path/wildcards", rule);
@@ -125,7 +125,8 @@ public class StandardRobotsTxtProviderTest {
         String robotTxt =
                 "User-agent: *\n\n"
               + "Disallow: /testing/anchors$\n";
-        IReferenceFilter rule = parseRobotRule("mister-crawler", robotTxt)[0];
+        IReferenceFilter rule =
+                parseRobotRule("mister-crawler", robotTxt).get(0);
 
         assertMatch("http://www.test.com/testing/anchors", rule);
         assertMatch("http://www.test.com/testing/anchors/", rule);
@@ -139,7 +140,8 @@ public class StandardRobotsTxtProviderTest {
         String robotTxt =
                 "User-agent: *\n\n"
               + "Disallow: /testing/reg.ex/escape?\n";
-        IReferenceFilter rule = parseRobotRule("mister-crawler", robotTxt)[0];
+        IReferenceFilter rule =
+                parseRobotRule("mister-crawler", robotTxt).get(0);
 
         assertMatch("http://www.test.com/testing/reg.ex/escape?", rule);
         assertMatch("http://www.test.com/testing/reg.ex/escape?test", rule);
@@ -154,7 +156,7 @@ public class StandardRobotsTxtProviderTest {
             String startsWith, IReferenceFilter robotRule) {
         String rule = StringUtils.substring(
                 robotRule.toString(), 0, startsWith.length());
-        Assert.assertEquals(startsWith, rule); 
+        Assert.assertEquals(startsWith, rule);
     }
 
     private void assertMatch(
@@ -175,18 +177,18 @@ public class StandardRobotsTxtProviderTest {
         assertMatch(url, robotRule, false);
     }
 
-    private IRobotsTxtFilter[] parseRobotRule(
+    private List<IRobotsTxtFilter> parseRobotRule(
             String agent, String content, String url) throws IOException {
-        StandardRobotsTxtProvider robotProvider = 
+        StandardRobotsTxtProvider robotProvider =
                 new StandardRobotsTxtProvider();
         return robotProvider.parseRobotsTxt(
-                IOUtils.toInputStream(content, StandardCharsets.UTF_8), 
+                IOUtils.toInputStream(content, StandardCharsets.UTF_8),
                 url, "mister-crawler").getFilters();
     }
-    
-    private IRobotsTxtFilter[] parseRobotRule(String agent, String content) 
+
+    private List<IRobotsTxtFilter> parseRobotRule(String agent, String content)
             throws IOException {
-        return parseRobotRule(agent, content, 
+        return parseRobotRule(agent, content,
                 "http://www.test.com/some/fake/url.html");
     }
 }

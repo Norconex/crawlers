@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- Optionally keep the URL trail or at least start URL for document:
+  https://github.com/Norconex/collector-http/issues/514
+
 - Support custom arguments to the PhantomJS script file.
   https://github.com/Norconex/collector-http/issues/505
 

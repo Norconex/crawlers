@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,30 +20,29 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.Writer;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.imageio.ImageIO;
-import javax.xml.stream.XMLStreamException;
 
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Mode;
@@ -51,17 +50,19 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CollectorMetadata;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
@@ -77,7 +78,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * the minimum size. You can specify you want the largest of all matching
  * ones instead.  In addition, if you know your images to be defined
  * in a special way (e.g., all share the same CSS class), then you can use
- * the "domSelector" to limit to one or a few images. See 
+ * the "domSelector" to limit to one or a few images. See
  * <a href="https://jsoup.org/cookbook/extracting-data/selector-syntax">
  * JSoup selector-syntax</a> for how to build the "domSelector".
  * </p>
@@ -89,14 +90,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </p>
  * <ul>
  *   <li>
- *     <b>url</b>: Default. The absolute image URL is stored in a 
+ *     <b>url</b>: Default. The absolute image URL is stored in a
  *     <code>collector.featured-image-url</code> field.
- *     When only this option is set, scaling options and image format 
+ *     When only this option is set, scaling options and image format
  *     have no effect.
  *   </li>
  *   <li>
  *     <b>inline</b>: Stores a Base64 string of the scaled image, in the format
- *     specified, in a <code>collector.featured-image-inline</code> field. 
+ *     specified, in a <code>collector.featured-image-inline</code> field.
  *     The string is ready to be
  *     used inline, in a &lt;img src="..."&gt; tag.
  *   </li>
@@ -106,24 +107,24 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     in a <code>collector.featured-image-path</code> field.
  *   </li>
  * </ul>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;processor class="com.norconex.collector.http.processor.impl.FeaturedImageProcessor"&gt;
- *     
+ *
  *     &lt;pageContentTypePattern&gt;
  *         (Optional regex to overwrite default matching of HTML pages)
  *     &lt;/pageContentTypePattern&gt;
- *     
+ *
  *     &lt;domSelector&gt;
  *         (Optional CSS-like path matching one or more image elements)
  *     &lt;/domSelector&gt;
  *     &lt;minDimensions&gt;
- *         (Minimum pixel size for an image to be considered. 
- *          Default is 400x400). 
+ *         (Minimum pixel size for an image to be considered.
+ *          Default is 400x400).
  *     &lt;/minDimensions&gt;
  *     &lt;largest&gt;[false|true]&lt;/largest&gt;
- *     
+ *
  *     &lt;imageCacheSize&gt;
  *         (Maximum number of images to cache for faster processing.
  *          Set to 0 to disable caching.)
@@ -131,7 +132,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     &lt;imageCacheDir&gt;
  *         (Directory where to create the image cache)
  *     &lt;/imageCacheDir&gt;
- *     
+ *
  *     &lt;storage&gt;
  *         [url|inline|disk]
  *         (One or more, comma-separated. Default is "url".)
@@ -139,7 +140,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *
  *     &lt;!-- Only applicable for "inline" and "disk" storage: --&gt;
  *     &lt;scaleDimensions&gt;
- *         (Target pixel size the featured image should be scaled to. 
+ *         (Target pixel size the featured image should be scaled to.
  *          Default is 150x150.)
  *     &lt;/scaleDimensions&gt;
  *     &lt;scaleStretch&gt;
@@ -148,7 +149,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     &lt;/scaleStretch&gt;
  *     &lt;scaleQuality&gt;
  *         [auto|low|medium|high|max]
- *         (Default is "auto", which tries the best balance between quality 
+ *         (Default is "auto", which tries the best balance between quality
  *          and speed based on image size. The lower the quality the faster
  *          it is to scale images.)
  *     &lt;/scaleQuality&gt;
@@ -156,7 +157,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *         (Target format of stored image. E.g., "jpg", "png", "gif", "bmp", ...
  *          Default is "png")
  *     &lt;/imageFormat&gt;
- *     
+ *
  *     &lt;!-- Only applicable for "disk" storage: --&gt;
  *     &lt;storageDiskDir structure="[url2path|date|datetime]"&gt;
  *         (Path to directory where to store images on disk.)
@@ -165,30 +166,30 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *         (Overwrite default field where to store the image path.
  *          Default is {@value #COLLECTOR_FEATURED_IMAGE_PATH}.)
  *     &lt;/storageDiskField&gt;
- *     
+ *
  *     &lt;!-- Only applicable for "inline" storage: --&gt;
  *     &lt;storageInlineField&gt;
  *         (Overwrite default field where to store the inline image.
  *          Default is {@value #COLLECTOR_FEATURED_IMAGE_INLINE}.)
  *     &lt;/storageInlineField&gt;
- *     
+ *
  *     &lt;!-- Only applicable for "url" storage: --&gt;
  *     &lt;storageUrlField&gt;
  *         (Overwrite default field where to store the image URL.
  *          Default is {@value #COLLECTOR_FEATURED_IMAGE_URL}.)
  *     &lt;/storageUrlField&gt;
- *     
+ *
  *  &lt;/processor&gt;
  * </pre>
- * 
- * When specifying an image size, the format is <code>[width]x[height]</code> 
- * or a single value. When a single value is used, that value represents both 
+ *
+ * When specifying an image size, the format is <code>[width]x[height]</code>
+ * or a single value. When a single value is used, that value represents both
  * the width and height (i.e., a square).
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following extracts the first image being 300x400 or larger, scaling
- * it down to be 50x50 and storing it as an inline JPEG in a document field, 
+ * it down to be 50x50 and storing it as an inline JPEG in a document field,
  * preserving aspect ratio and using the best quality possible.
  * </p>
  * <pre>
@@ -197,29 +198,29 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;minDimensions&gt;300x400&lt;/minDimensions&gt;
  *      &lt;scaleDimensions&gt;50&lt;/scaleDimensions&gt;
  *      &lt;imageFormat&gt;jpg&lt;/imageFormat&gt;
- *      &lt;scaleQuality&gt;max&lt;/scaleQuality&gt;      
+ *      &lt;scaleQuality&gt;max&lt;/scaleQuality&gt;
  *      &lt;storage&gt;inline&lt;/storage&gt;
  *    &lt;/processor&gt;
  *  &lt;/preImportProcessors&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  * @since 2.8.0
  */
-public class FeaturedImageProcessor 
+public class FeaturedImageProcessor
         implements IHttpDocumentProcessor, IXMLConfigurable {
 
-    private static final Logger LOG = LogManager.getLogger(
+    private static final Logger LOG = LoggerFactory.getLogger(
             FeaturedImageProcessor.class);
 
-    public static final String COLLECTOR_FEATURED_IMAGE_URL = 
+    public static final String COLLECTOR_FEATURED_IMAGE_URL =
             CollectorMetadata.COLLECTOR_PREFIX + "featured-image-url";
-    public static final String COLLECTOR_FEATURED_IMAGE_PATH = 
+    public static final String COLLECTOR_FEATURED_IMAGE_PATH =
             CollectorMetadata.COLLECTOR_PREFIX + "featured-image-path";
-    public static final String COLLECTOR_FEATURED_IMAGE_INLINE = 
+    public static final String COLLECTOR_FEATURED_IMAGE_INLINE =
             CollectorMetadata.COLLECTOR_PREFIX + "featured-image-inline";
-    
-    public static final String DEFAULT_PAGE_CONTENT_TYPE_PATTERN = 
+
+    public static final String DEFAULT_PAGE_CONTENT_TYPE_PATTERN =
             "text/html|application/(xhtml\\+xml|vnd\\.wap.xhtml\\+xml|x-asp)";
     public static final int DEFAULT_IMAGE_CACHE_SIZE = 1000;
     public static final String DEFAULT_IMAGE_CACHE_DIR =
@@ -234,17 +235,17 @@ public class FeaturedImageProcessor
     public enum Storage { URL, INLINE, DISK }
     public enum StorageDiskStructure { URL2PATH, DATE, DATETIME }
     public enum Quality {
-        AUTO(Method.AUTOMATIC), 
-        LOW(Method.SPEED), 
-        MEDIUM(Method.BALANCED), 
-        HIGH(Method.QUALITY), 
+        AUTO(Method.AUTOMATIC),
+        LOW(Method.SPEED),
+        MEDIUM(Method.BALANCED),
+        HIGH(Method.QUALITY),
         MAX(Method.ULTRA_QUALITY);
-        private Method scalrMethod;
+        private final Method scalrMethod;
         private Quality(Method scalrMethod) {
             this.scalrMethod = scalrMethod;
         }
     }
-    
+
     private String pageContentTypePattern = DEFAULT_PAGE_CONTENT_TYPE_PATTERN;
     private String domSelector;
     private Dimension minDimensions = DEFAULT_MIN_SIZE;
@@ -252,22 +253,23 @@ public class FeaturedImageProcessor
     private boolean scaleStretch;
     private String imageFormat = DEFAULT_IMAGE_FORMAT;
     private int imageCacheSize = DEFAULT_IMAGE_CACHE_SIZE;
-    private String imageCacheDir = DEFAULT_IMAGE_CACHE_DIR;
+    private Path imageCacheDir = Paths.get(DEFAULT_IMAGE_CACHE_DIR);
     private boolean largest;
-    private Storage[] storage = new Storage[] { DEFAULT_STORAGE };
+    private final List<Storage> storage =
+            new ArrayList<>(Arrays.asList(DEFAULT_STORAGE));
     private String storageDiskDir = DEFAULT_STORAGE_DISK_DIR;
-    private StorageDiskStructure storageDiskStructure = 
+    private StorageDiskStructure storageDiskStructure =
             StorageDiskStructure.URL2PATH;
     private Quality scaleQuality = Quality.AUTO;
-    
+
     private String storageDiskField = COLLECTOR_FEATURED_IMAGE_PATH;
     private String storageInlineField = COLLECTOR_FEATURED_IMAGE_INLINE;
     private String storageUrlField = COLLECTOR_FEATURED_IMAGE_URL;
-    
-    private static final Map<String, ImageCache> IMG_CACHES = new HashMap<>();
-    private boolean initialized;
-    private ImageCache cache;
-    
+
+    private static final Map<Path, ImageCache> IMG_CACHES = new HashMap<>();
+    private transient boolean initialized;
+    private transient ImageCache cache;
+
     public String getPageContentTypePattern() {
         return pageContentTypePattern;
     }
@@ -316,10 +318,10 @@ public class FeaturedImageProcessor
     public void setImageCacheSize(int imageCacheSize) {
         this.imageCacheSize = imageCacheSize;
     }
-    public String getImageCacheDir() {
+    public Path getImageCacheDir() {
         return imageCacheDir;
     }
-    public void setImageCacheDir(String imageCacheDir) {
+    public void setImageCacheDir(Path imageCacheDir) {
         this.imageCacheDir = imageCacheDir;
     }
     public boolean isLargest() {
@@ -328,11 +330,27 @@ public class FeaturedImageProcessor
     public void setLargest(boolean largest) {
         this.largest = largest;
     }
-    public Storage[] getStorage() {
-        return storage;
+    /**
+     * Gets the storage mechanisms.
+     * @return storage mechanisms
+     */
+    public List<Storage> getStorage() {
+        return Collections.unmodifiableList(storage);
     }
+    /**
+     * Sets the storage mechanisms.
+     * @param storage storage mechanisms
+     */
     public void setStorage(Storage... storage) {
-        this.storage = storage;
+        CollectionUtil.setAll(this.storage, storage);
+    }
+    /**
+     * Sets the storage mechanisms.
+     * @param storage storage mechanisms
+     * @since 3.0.0
+     */
+    public void setStorage(List<Storage> storage) {
+        CollectionUtil.setAll(this.storage, storage);
     }
     public String getStorageDiskDir() {
         return storageDiskDir;
@@ -374,7 +392,7 @@ public class FeaturedImageProcessor
     @Override
     public void processDocument(HttpClient httpClient, HttpDocument doc) {
         ensureInit();
-        
+
         // Return if not valid content type
         if (StringUtils.isNotBlank(pageContentTypePattern)
                 && !Objects.toString(doc.getContentType()).matches(
@@ -384,65 +402,64 @@ public class FeaturedImageProcessor
 
         try {
             // Obtain the image
-            Document dom = Jsoup.parse(doc.getContent(), 
+            Document dom = Jsoup.parse(doc.getContent(),
                     doc.getContentEncoding(), doc.getReference());
             ScaledImage img = findFeaturedImage(dom, httpClient, largest);
-            
+
             // Save the image
             if (img != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Featured image is \"" + img.getUrl()
-                            + "\" for \"" + doc.getReference() + "\"");
-                }
+                LOG.debug("Featured image is \"{}\" for \"{}\"",
+                        img.getUrl(), doc.getReference());
                 storeImage(img, doc);
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("No featured image found for: " + doc.getReference());
+            } else {
+                LOG.debug("No featured image found for: {}",
+                        doc.getReference());
             }
         } catch (IOException e) {
-            LOG.error("Could not extract main image from document: "
-                    + doc.getReference(), e);
+            LOG.error("Could not extract main image from document: {}",
+                    doc.getReference(), e);
         }
     }
-    
+
     private void storeImage(ScaledImage img, HttpDocument doc)
             throws IOException {
-        if (ArrayUtils.contains(storage, Storage.URL)) {
-            doc.getMetadata().addString(Objects.toString(storageUrlField, 
+        if (storage.contains(Storage.URL)) {
+            doc.getMetadata().add(Objects.toString(storageUrlField,
                     COLLECTOR_FEATURED_IMAGE_URL), img.getUrl());
         }
-        if (ArrayUtils.contains(storage, Storage.INLINE)) {
-            doc.getMetadata().addString(Objects.toString(storageInlineField,
-                    COLLECTOR_FEATURED_IMAGE_INLINE), 
+        if (storage.contains(Storage.INLINE)) {
+            doc.getMetadata().add(Objects.toString(storageInlineField,
+                    COLLECTOR_FEATURED_IMAGE_INLINE),
                     img.toHTMLInlineString(imageFormat));
         }
-        if (ArrayUtils.contains(storage, Storage.DISK)) {
+        if (storage.contains(Storage.DISK)) {
             File diskDir = new File(storageDiskDir);
             File imageFile = null;
             if (storageDiskStructure == StorageDiskStructure.DATE) {
                 String fileId = Long.toString(TimeIdGenerator.next());
                 imageFile = new File(FileUtil.createDateDirs(
-                        diskDir), fileId + "." + imageFormat);            
+                        diskDir), fileId + "." + imageFormat);
             } else if (storageDiskStructure == StorageDiskStructure.DATETIME) {
                 String fileId = Long.toString(TimeIdGenerator.next());
                 imageFile = new File(FileUtil.createDateTimeDirs(
-                        diskDir), fileId + "." + imageFormat);            
+                        diskDir), fileId + "." + imageFormat);
             } else {
                 imageFile = new File(FileUtil.createURLDirs(
                         diskDir, img.getUrl(), true).getAbsolutePath()
                         + "." + imageFormat);
             }
             ImageIO.write(img.getImage(), imageFormat, imageFile);
-            doc.getMetadata().addString(Objects.toString(
+            doc.getMetadata().add(Objects.toString(
                     storageDiskField, COLLECTOR_FEATURED_IMAGE_PATH),
                     imageFile.getAbsolutePath());
         }
     }
-    
+
     private boolean savingImage() {
-        return ArrayUtils.contains(storage, Storage.INLINE)
-                || ArrayUtils.contains(storage, Storage.DISK);
+        return storage.contains(Storage.INLINE)
+                || storage.contains(Storage.DISK);
     }
-    
+
     private ScaledImage findFeaturedImage(
             Document dom, HttpClient httpClient, boolean largest) {
         Elements els;
@@ -462,7 +479,7 @@ public class FeaturedImageProcessor
             if (minDimensions == null || img.contains(minDimensions)) {
                 if (!largest) {
                     return img;
-                } else if (largestImg == null 
+                } else if (largestImg == null
                         || img.getArea() > largestImg.getArea()) {
                     largestImg = img;
                 }
@@ -470,7 +487,7 @@ public class FeaturedImageProcessor
         }
         return largestImg;
     }
-    
+
     private synchronized void ensureInit() {
         if (initialized) {
             return;
@@ -478,8 +495,7 @@ public class FeaturedImageProcessor
         if (imageCacheSize != 0) {
             ImageCache imgCache = IMG_CACHES.get(imageCacheDir);
             if (imgCache == null) {
-                imgCache = new ImageCache(
-                        imageCacheSize, new File(imageCacheDir));
+                imgCache = new ImageCache(imageCacheSize, imageCacheDir);
                 IMG_CACHES.put(imageCacheDir, imgCache);
             }
             this.cache = imgCache;
@@ -501,7 +517,7 @@ public class FeaturedImageProcessor
                 }
                 Dimension dim = new Dimension(bi.getWidth(), bi.getHeight());
                 bi = scale(bi);
-                
+
                 img = new ScaledImage(url, dim, bi);
                 if (cache != null) {
                     cache.setImage(img);
@@ -513,7 +529,7 @@ public class FeaturedImageProcessor
         }
         return null;
     }
-    
+
     private BufferedImage scale(BufferedImage origImg) {
 
         // If scale is not needed (URL storage only), make image tiny.
@@ -527,15 +543,15 @@ public class FeaturedImageProcessor
         }
 
         // if image is smaller than minimum dimension... cache empty image
-        if (minDimensions != null && 
+        if (minDimensions != null &&
                 (origImg.getWidth() < minDimensions.getWidth()
                         || origImg.getHeight() < minDimensions.getHeight())) {
             return new BufferedImage(1, 1, origImg.getType());
         }
-        
+
         int scaledWidth = (int) scaleDimensions.getWidth();
         int scaledHeight = (int) scaleDimensions.getHeight();
-        
+
         Mode mode = Mode.AUTOMATIC;
         if (scaleStretch) {
             mode = Mode.FIT_EXACT;
@@ -544,7 +560,7 @@ public class FeaturedImageProcessor
         if (scaleQuality != null) {
             method = scaleQuality.scalrMethod;
         }
-        BufferedImage newImg = 
+        BufferedImage newImg =
                 Scalr.resize(origImg, method, mode, scaledWidth, scaledHeight);
 
         // Remove alpha layer for formats not supporting it. This prevents
@@ -552,7 +568,7 @@ public class FeaturedImageProcessor
         // or to not be saved properly (e.g. png to bmp).
         if (EqualsUtil.equalsNoneIgnoreCase(imageFormat, "png", "gif")) {
             BufferedImage fixedImg = new BufferedImage(
-                    newImg.getWidth(), newImg.getHeight(), 
+                    newImg.getWidth(), newImg.getHeight(),
                     BufferedImage.TYPE_INT_RGB);
             fixedImg.createGraphics().drawImage(
                     newImg, 0, 0, Color.WHITE, null);
@@ -560,218 +576,83 @@ public class FeaturedImageProcessor
         }
         return newImg;
     }
-    
+
     // make synchronized?
     private BufferedImage fetchImage(HttpClient httpClient, String url) {
         HttpResponse response;
-        InputStream is = null;        
+        InputStream is = null;
         try {
             URI uri = HttpURL.toURI(url);
             response = httpClient.execute(new HttpGet(uri));
             is = response.getEntity().getContent();
             return ImageIO.read(is);
         } catch (IOException e) {
-            LOG.debug("Could not load image: " + url, e);
+            LOG.debug("Could not load image: {}", url, e);
         } finally {
             IOUtils.closeQuietly(is);
         }
-        LOG.debug("Image was not recognized: " + url);
+        LOG.debug("Image was not recognized: {}", url);
         return null;
     }
-    
+
     @Override
-    public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        
-        setPageContentTypePattern(XMLConfigurationUtil.getNullableString(
-                xml, "pageContentTypePattern", getPageContentTypePattern()));
-        setDomSelector(xml.getString("domSelector", getDomSelector()));
-        setMinDimensions(XMLConfigurationUtil.getNullableDimension(
-                xml, "minDimensions", getMinDimensions()));
-        setScaleDimensions(XMLConfigurationUtil.getNullableDimension(
-                xml, "scaleDimensions", getScaleDimensions()));
-        setScaleStretch(xml.getBoolean("scaleStretch", isScaleStretch()));
-        setImageFormat(XMLConfigurationUtil.getNullableString(
-                xml, "imageFormat", getImageFormat()));
-        setImageCacheSize(xml.getInt("imageCacheSize", getImageCacheSize()));
-        setImageCacheDir(XMLConfigurationUtil.getNullableString(
-                xml, "imageCacheDir", getImageCacheDir()));
-        setLargest(xml.getBoolean("largest", isLargest()));
-        
-        if (xml.containsKey("scaleQuality")) {
-            String xmlQuality = xml.getString("scaleQuality", null);
-            if (StringUtils.isNotBlank(xmlQuality)) {
-                setScaleQuality(Quality.valueOf(xmlQuality.toUpperCase()));
-            } else {
-                setScaleQuality((Quality) null);
-            }
-        }
-
-        if (xml.containsKey("storage")) {
-            String[] xmlStorages = 
-                    XMLConfigurationUtil.getCSVStringArray(xml, "storage");
-            if (ArrayUtils.isNotEmpty(xmlStorages)) {
-                Storage[] storages = new Storage[xmlStorages.length];
-                for (int i = 0; i < xmlStorages.length; i++) {
-                    String xmlStorage = xmlStorages[i];
-                    storages[i] = Storage.valueOf(xmlStorage.toUpperCase());
-                }
-                setStorage(storages);
-            } else {
-                setStorage((Storage) null);
-            }
-        }
-
-        setStorageDiskDir(XMLConfigurationUtil.getNullableString(
-                xml, "storageDiskDir", getStorageDiskDir()));
-
-        if (xml.containsKey("storageDiskDir[@structure]")) {
-            String xmlStructure = 
-                    xml.getString("storageDiskDir[@structure]", null);
-            if (StringUtils.isNotBlank(xmlStructure)) {
-                setStorageDiskStructure(StorageDiskStructure.valueOf(
-                        xmlStructure.toUpperCase()));
-            } else {
-                setStorageDiskStructure((StorageDiskStructure) null);
-            }
-        }
-        
-        setStorageDiskField(XMLConfigurationUtil.getNullableString(
-                xml, "storageDiskField", getStorageDiskField()));
-        setStorageInlineField(XMLConfigurationUtil.getNullableString(
-                xml, "storageInlineField", getStorageInlineField()));
-        setStorageUrlField(XMLConfigurationUtil.getNullableString(
-                xml, "storageUrlField", getStorageUrlField()));
+    public void loadFromXML(XML xml) {
+        setPageContentTypePattern(xml.getString(
+                "pageContentTypePattern", pageContentTypePattern));
+        setDomSelector(xml.getString("domSelector", domSelector));
+        setMinDimensions(xml.getDimension("minDimensions", minDimensions));
+        setScaleDimensions(xml.getDimension(
+                "scaleDimensions", scaleDimensions));
+        setScaleStretch(xml.getBoolean("scaleStretch", scaleStretch));
+        setImageFormat(xml.getString("imageFormat", imageFormat));
+        setImageCacheSize(xml.getInteger("imageCacheSize", imageCacheSize));
+        setImageCacheDir(xml.getPath("imageCacheDir", imageCacheDir));
+        setLargest(xml.getBoolean("largest", largest));
+        setScaleQuality(xml.getEnum(
+                "scaleQuality", Quality.class, scaleQuality));
+        setStorage(xml.getDelimitedEnumList("storage", Storage.class, storage));
+        setStorageDiskDir(xml.getString("storageDiskDir", storageDiskDir));
+        setStorageDiskStructure(
+                xml.getEnum("storageDiskDir/@structure",
+                        StorageDiskStructure.class, storageDiskStructure));
+        setStorageDiskField(xml.getString(
+                "storageDiskField", storageDiskField));
+        setStorageInlineField(xml.getString(
+                "storageInlineField", getStorageInlineField()));
+        setStorageUrlField(xml.getString(
+                "storageUrlField", getStorageUrlField()));
     }
     @Override
-    public void saveToXML(Writer out) throws IOException {
-        try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);         
-            writer.writeStartElement("processor");
-            writer.writeAttribute("class", getClass().getCanonicalName());
-
-            writer.writeElementString("pageContentTypePattern", 
-                    getPageContentTypePattern(), true);
-            writer.writeElementString("domSelector", getDomSelector());
-            writer.writeElementDimension(
-                    "minDimensions", getMinDimensions(), true);
-            writer.writeElementDimension(
-                    "scaleDimensions", getScaleDimensions(), true);
-            writer.writeElementBoolean("scaleStretch", isScaleStretch());
-            writer.writeElementString("imageFormat", getImageFormat(), true);
-            writer.writeElementInteger("imageCacheSize", getImageCacheSize());
-            writer.writeElementString(
-                    "imageCacheDir", getImageCacheDir(), true);
-            writer.writeElementBoolean("largest", isLargest());
-            writer.writeElementString("scaleQuality", getScaleQuality() != null 
-                    ? getScaleQuality().toString().toLowerCase() : null, true);
-            
-            Storage[] storages = getStorage();
-            if (ArrayUtils.isNotEmpty(storages)) {
-                String[] xmlStorages = new String[storages.length];
-                for (int i = 0; i < storages.length; i++) {
-                    if (storages[i] != null) {
-                        xmlStorages[i] = storages[i].toString().toLowerCase();
-                    }
-                }
-                writer.writeElementString(
-                        "storage", StringUtils.join(xmlStorages, ','), true);
-            }
-            
-            writer.writeStartElement("storageDiskDir");
-            String structure = null;
-            if (getStorageDiskStructure() != null) {
-                structure = getStorageDiskStructure().toString().toLowerCase();
-            }
-            writer.writeAttribute(
-                    "structure", StringUtils.trimToEmpty(structure));
-            writer.writeCharacters(
-                    StringUtils.trimToEmpty(getStorageDiskDir()));
-            writer.writeEndElement();
-            
-            writer.writeElementString(
-                    "storageDiskField", getStorageDiskField(), true);
-            writer.writeElementString(
-                    "storageInlineField", getStorageInlineField(), true);
-            writer.writeElementString(
-                    "storageUrlField", getStorageUrlField(), true);
-            
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
-        }
+    public void saveToXML(XML xml) {
+        xml.addElement("pageContentTypePattern", pageContentTypePattern);
+        xml.addElement("domSelector", domSelector);
+        xml.addElement("minDimensions", minDimensions);
+        xml.addElement("scaleDimensions", scaleDimensions);
+        xml.addElement("scaleStretch", isScaleStretch());
+        xml.addElement("imageFormat", imageFormat);
+        xml.addElement("imageCacheSize", imageCacheSize);
+        xml.addElement("imageCacheDir", imageCacheDir);
+        xml.addElement("largest", largest);
+        xml.addElement("scaleQuality", scaleQuality);
+        xml.addDelimitedElementList("storage", storage);
+        xml.addElement("storageDiskDir", storageDiskDir)
+                .setAttribute("structure", storageDiskStructure);
+        xml.addElement("storageDiskField", storageDiskField);
+        xml.addElement("storageInlineField", storageInlineField);
+        xml.addElement("storageUrlField", storageUrlField);
     }
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof FeaturedImageProcessor)) {
-            return false;
-        }
-        FeaturedImageProcessor castOther = (FeaturedImageProcessor) other;
-        return new EqualsBuilder()
-                .append(pageContentTypePattern, 
-                        castOther.pageContentTypePattern)
-                .append(domSelector, castOther.domSelector)
-                .append(minDimensions, castOther.minDimensions)
-                .append(scaleDimensions, castOther.scaleDimensions)
-                .append(scaleStretch, castOther.scaleStretch)
-                .append(imageFormat, castOther.imageFormat)
-                .append(imageCacheSize, castOther.imageCacheSize)
-                .append(imageCacheDir, castOther.imageCacheDir)
-                .append(largest, castOther.largest)
-                .append(storage, castOther.storage)
-                .append(storageDiskDir, castOther.storageDiskDir)
-                .append(storageDiskStructure, castOther.storageDiskStructure)
-                .append(storageDiskField, castOther.storageDiskField)
-                .append(storageInlineField, castOther.storageInlineField)
-                .append(storageUrlField, castOther.storageUrlField)
-                .append(scaleQuality, castOther.scaleQuality)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .append(pageContentTypePattern)
-                .append(domSelector)
-                .append(minDimensions)
-                .append(scaleDimensions)
-                .append(scaleStretch)
-                .append(imageFormat)
-                .append(imageCacheSize)
-                .append(imageCacheDir)
-                .append(largest)
-                .append(storage)
-                .append(storageDiskDir)
-                .append(storageDiskStructure)
-                .append(storageDiskField)
-                .append(storageInlineField)
-                .append(storageUrlField)
-                .append(scaleQuality)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("pageContentTypePattern", pageContentTypePattern)
-                .append("domSelector", domSelector)
-                .append("minDimensions", minDimensions)
-                .append("scaleDimensions", scaleDimensions)
-                .append("scaleStretch", scaleStretch)
-                .append("imageFormat", imageFormat)
-                .append("imageCacheSize", imageCacheSize)
-                .append("imageCacheDir", imageCacheDir)
-                .append("largest", largest)
-                .append("storage", storage)
-                .append("storageDiskDir", storageDiskDir)
-                .append("storageDiskStructure", storageDiskStructure)
-                .append("storageDiskField", storageDiskField)
-                .append("storageInlineField", storageInlineField)
-                .append("storageUrlField", storageUrlField)
-                .append("scaleQuality", scaleQuality)
-                .toString();
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,11 @@
  */
 package com.norconex.collector.http.fetch;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import com.norconex.collector.core.data.CrawlState;
 
 /**
@@ -26,7 +31,7 @@ public class HttpFetchResponse {
     private final CrawlState crawlState;
     private final int statusCode;
     private final String reasonPhrase;
-    
+
     public HttpFetchResponse(
             CrawlState crawlState, int statusCode, String reasonPhrase) {
         super();
@@ -50,8 +55,16 @@ public class HttpFetchResponse {
     }
 
     @Override
+    public boolean equals(final Object other) {
+        return EqualsBuilder.reflectionEquals(this, other);
+    }
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+    @Override
     public String toString() {
-        return "HttpFetchResponse [crawlState=" + crawlState + ", statusCode="
-                + statusCode + ", reasonPhrase=" + reasonPhrase + "]";
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

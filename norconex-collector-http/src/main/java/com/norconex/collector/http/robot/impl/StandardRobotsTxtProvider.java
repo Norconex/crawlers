@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,23 +23,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
 import com.norconex.collector.http.robot.IRobotsTxtFilter;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
@@ -55,10 +54,10 @@ import com.norconex.importer.handler.filter.OnMatch;
  * </p>
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;robotsTxt ignore="false" 
+ *  &lt;robotsTxt ignore="false"
  *     class="com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider"/&gt;
  * </pre>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following ignores "robots.txt" files present on web sites.
@@ -66,20 +65,21 @@ import com.norconex.importer.handler.filter.OnMatch;
  * <pre>
  *  &lt;robotsTxt ignore="true" /&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  */
 public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
 
-    private static final Logger LOG = LogManager.getLogger(
+    private static final Logger LOG = LoggerFactory.getLogger(
             StandardRobotsTxtProvider.class);
-    
-    private Map<String, RobotsTxt> robotsTxtCache = new HashMap<>();
+
+    private final Map<String, RobotsTxt> robotsTxtCache =
+            new HashMap<>();
 
     @Override
     public synchronized RobotsTxt getRobotsTxt(
             HttpClient httpClient, String url, String userAgent) {
-        
+
         String trimmedURL = StringUtils.trimToEmpty(url);
         String baseURL = getBaseURL(trimmedURL);
         RobotsTxt robotsTxt = robotsTxtCache.get(baseURL);
@@ -94,11 +94,11 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             InputStream is = response.getEntity().getContent();
             robotsTxt = parseRobotsTxt(is, trimmedURL, userAgent);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Fetched and parsed robots.txt: " + robotsURL);
+                LOG.debug("Fetched and parsed robots.txt: {}", robotsURL);
             }
         } catch (Exception e) {
-            LOG.warn("Not able to obtain robots.txt at: " + robotsURL, e);
-            robotsTxt = new RobotsTxt(new IRobotsTxtFilter[]{});
+            LOG.warn("Not able to obtain robots.txt at: {}", robotsURL, e);
+            robotsTxt = new RobotsTxt();
         }
         robotsTxtCache.put(baseURL, robotsTxt);
         return robotsTxt;
@@ -107,9 +107,9 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     protected RobotsTxt parseRobotsTxt(
             InputStream is, String url, String userAgent) throws IOException {
         String baseURL = getBaseURL(url);
-        
+
         //--- Load matching data ---
-        InputStreamReader isr = 
+        InputStreamReader isr =
                 new InputStreamReader(is, StandardCharsets.UTF_8);
         BufferedReader br = new BufferedReader(isr);
         RobotData data = new RobotData();
@@ -120,10 +120,10 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             if (ignoreLine(line)) {
                 continue;
             }
-            
+
             String key = line.replaceFirst("(.*?)(:.*)", "$1").trim();
             String value = line.replaceFirst("(.*?:)(.*)", "$2").trim();
-            
+
             if ("sitemap".equalsIgnoreCase(key)) {
                 data.sitemaps.add(value);
             }
@@ -132,7 +132,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
                 if (data.precision == RobotData.Precision.EXACT) {
                     break;
                 }
-                RobotData.Precision precision = 
+                RobotData.Precision precision =
                         matchesUserAgent(userAgent, value);
                 if (precision.ordinal() > data.precision.ordinal()) {
                     data.clear();
@@ -150,7 +150,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             }
         }
         isr.close();
-        
+
         return data.toRobotsTxt(baseURL);
     }
 
@@ -176,12 +176,9 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         if (PATTERN_ALLOW_ALL.matcher(line).matches()) {
             return true;
         }
-        if (PATTERN_DISALLOW_NONE.matcher(line).matches()) {
-            return true;
-        }
-        return false;
+        return PATTERN_DISALLOW_NONE.matcher(line).matches();
     }
-    
+
     private RobotData.Precision matchesUserAgent(
             String userAgent, String value) {
         if ("*".equals(value)) {
@@ -201,7 +198,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         }
         return RobotData.Precision.NOMATCH;
     }
-    
+
     private String getBaseURL(String url) {
         String baseURL = HttpURL.getRoot(url);
         if (StringUtils.endsWith(baseURL, "/")) {
@@ -209,61 +206,53 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         }
         return baseURL;
     }
-    
+
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof StandardRobotsTxtProvider)) {
-            return false;
-        }
-        return true;
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .toString();
-    }    
+        return new ReflectionToStringBuilder(this,
+                ToStringStyle.SHORT_PREFIX_STYLE).toString();
+    }
 
     private static class RobotData {
-        private enum Precision { 
+        private enum Precision {
             NOMATCH, WILD, PARTIAL, EXACT;
-        };
+        }
         private Precision precision = Precision.NOMATCH;
-        private Map<String, String> rules = new ListOrderedMap<>();
-        private List<String> sitemaps = new ArrayList<>();
+        private final Map<String, String> rules = new ListOrderedMap<>();
+        private final List<String> sitemaps = new ArrayList<>();
         private String crawlDelay;
         private void clear() {
             sitemaps.clear();
             crawlDelay = null;
         }
         private RobotsTxt toRobotsTxt(String baseURL) {
-            List<IReferenceFilter> filters = new ArrayList<>();
-            for (String path : rules.keySet()) {
-                String rule = rules.get(path);
+            List<IRobotsTxtFilter> filters = new ArrayList<>();
+            for (Entry<String, String> entry : rules.entrySet()) {
+                String path = entry.getKey();
+                String rule = entry.getValue();
                 if ("disallow".equalsIgnoreCase(rule)) {
-                    IReferenceFilter filter;
+                    IRobotsTxtFilter filter;
                     filter = buildURLFilter(baseURL, path, OnMatch.EXCLUDE);
-                    LOG.debug("Add filter from robots.txt: " + filter);
+                    LOG.debug("Add filter from robots.txt: {}", filter);
                     filters.add(filter);
-                } else if ("allow".equalsIgnoreCase(rule)) {                    
+                } else if ("allow".equalsIgnoreCase(rule)) {
                     IRobotsTxtFilter filter;
                     filter = buildURLFilter(baseURL, path, OnMatch.INCLUDE);
-                    LOG.debug("Add filter from robots.txt: " + filter);
+                    LOG.debug("Add filter from robots.txt: {}", filter);
                     filters.add(filter);
-                } 
+                }
             }
             float delay = NumberUtils.toFloat(
                     crawlDelay, RobotsTxt.UNSPECIFIED_CRAWL_DELAY);
-            return new RobotsTxt(
-                    filters.toArray(new IRobotsTxtFilter[]{}),
-                    sitemaps.toArray(ArrayUtils.EMPTY_STRING_ARRAY),
-                    delay);
+            return new RobotsTxt(filters, sitemaps, delay);
         }
         private IRobotsTxtFilter buildURLFilter(
                 String baseURL, final String path, final OnMatch onMatch) {
@@ -299,12 +288,11 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             // Last, we assemble the final regex by explicitly anchoring and
             // prepending the (quoted) baseUrl.
             regex = "\\A" + Pattern.quote(baseURL) + regex + "\\z";
-            RobotsTxtFilter filter = new RobotsTxtFilter(path, regex, onMatch);
-            return filter;
+            return new RobotsTxtFilter(path, regex, onMatch);
         }
     }
 
-    private static class RobotsTxtFilter extends RegexReferenceFilter 
+    private static class RobotsTxtFilter extends RegexReferenceFilter
             implements IRobotsTxtFilter {
         private final String path;
         public RobotsTxtFilter(
@@ -312,40 +300,25 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             super(regex, onMatch, false);
             this.path = path;
         }
+        @Override
         public String getPath() {
             return path;
         }
         @Override
-        public String toString() {
-            return "Robots.txt -> " + (getOnMatch() == OnMatch.INCLUDE 
-                    ? "Allow: " : "Disallow: ") + path
-                            + " (" + getRegex().toString() + ")";            
+        public boolean equals(final Object other) {
+            return EqualsBuilder.reflectionEquals(
+                    this, other, "robotsTxtCache");
         }
         @Override
         public int hashCode() {
-            return new HashCodeBuilder()
-                .appendSuper(super.hashCode())
-                .append(path)
-                .toHashCode();
+            return HashCodeBuilder.reflectionHashCode(
+                    this, "robotsTxtCache");
         }
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (!(obj instanceof RobotsTxtFilter)) {
-                return false;
-            }
-            RobotsTxtFilter other = (RobotsTxtFilter) obj;
-            return new EqualsBuilder()
-                .appendSuper(super.equals(obj))
-                .append(path, other.path)
-                .isEquals();
-        }        
+        public String toString() {
+            return new ReflectionToStringBuilder(this,
+                    ToStringStyle.SHORT_PREFIX_STYLE)
+                    .setExcludeFieldNames("robotsTxtCache").toString();
+        }
     }
-    
 }
-

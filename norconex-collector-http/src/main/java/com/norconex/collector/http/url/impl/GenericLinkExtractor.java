@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Norconex Inc.
+/* Copyright 2014-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,52 +19,46 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringEscapeUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.tika.utils.CharsetUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.collector.http.url.Link;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.util.CharsetUtil;
 
 /**
  * Generic link extractor for URLs found in HTML and possibly other text files.
- * 
+ *
  * <h3>Content-types</h3>
  * By default, this extractor will look for URLs only in documents matching
- * one of these content types: 
+ * one of these content types:
  * <pre>
  * text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
  * </pre>
@@ -73,131 +67,131 @@ import com.norconex.importer.util.CharsetUtil;
  * too different, consider implementing your own {@link ILinkExtractor} instead.
  * Removing the default values and define no content types will have for effect
  * to try to extract URLs from all files (usually a bad idea).
- * 
+ *
  * <h3>Tags attributes</h3>
- * URLs are assumed to be contained within valid tags or tag attributes.  
- * The default tags and attributes used are (tag.attribute): 
+ * URLs are assumed to be contained within valid tags or tag attributes.
+ * The default tags and attributes used are (tag.attribute):
  * <pre>
  * a.href, frame.src, iframe.src, img.src, meta.http-equiv
  * </pre>
- * You can specify your own set of tags and attributes to have 
+ * You can specify your own set of tags and attributes to have
  * different ones used for extracting URLs. For an elaborated set, you can
- * combine the above with your own list or use any of the following 
+ * combine the above with your own list or use any of the following
  * suggestions (tag.attribute):
  * <pre>
  * applet.archive,   applet.codebase,  area.href,         audio.src,
- * base.href,        blockquote.cite,  body.background,   button.formaction, 
- * command.icon,     del.cite,         embed.src,         form.action, 
- * frame.longdesc,   head.profile,     html.manifest,     iframe.longdesc, 
- * img.longdesc,     img.usemap,       input.formaction,  input.src, 
+ * base.href,        blockquote.cite,  body.background,   button.formaction,
+ * command.icon,     del.cite,         embed.src,         form.action,
+ * frame.longdesc,   head.profile,     html.manifest,     iframe.longdesc,
+ * img.longdesc,     img.usemap,       input.formaction,  input.src,
  * input.usemap,     ins.cite,         link.href,         object.archive,
- * object.classid,   object.codebase,  object.data,       object.usemap, 
- * q.cite,           script.src,       source.src,        video.poster, 
+ * object.classid,   object.codebase,  object.data,       object.usemap,
+ * q.cite,           script.src,       source.src,        video.poster,
  * video.src
  * </pre>
  * <p>The <code>meta.http-equiv</code> is treated differently.  Only if the
  * "http-equiv" value is refresh and a "content" tag with a URL exist that it
  * will be extracted.  "object" and "applet" can have multiple URLs.</p>
- * 
+ *
  * <p>
- * <b>Since 2.2.0</b>, it is possible to identify a tag only as the holder of 
+ * <b>Since 2.2.0</b>, it is possible to identify a tag only as the holder of
  * a URL (without attributes). The tag body value will be used as the URL.
  * </p>
- * 
+ *
  * <h3>Referrer data</h3>
  * <p>
  * The following referrer information is stored as metadata in each document
  * represented by the extracted URLs:
  * </p>
  * <ul>
- *   <li><b>Referrer reference:</b> The reference (URL) of the page where the 
- *   link to a document was found.  Metadata value is 
+ *   <li><b>Referrer reference:</b> The reference (URL) of the page where the
+ *   link to a document was found.  Metadata value is
  *   {@link HttpMetadata#COLLECTOR_REFERRER_REFERENCE}.</li>
  *   <li><b>Referrer link tag:</b> The tag and attribute names of the link
  *   that contained the document reference (URL) in referrer's content.
- *   Metadata value is 
+ *   Metadata value is
  *   {@link HttpMetadata#COLLECTOR_REFERRER_LINK_TAG}.</li>
- *   <li><b>Referrer link text:</b> The text between the 
+ *   <li><b>Referrer link text:</b> The text between the
  *   <code>&lt;a href=""&gt;&lt;/a&gt;</code> tags of the referrer document.
  *   Can be useful to help establish better document titles.
- *   Metadata value is 
+ *   Metadata value is
  *   {@link HttpMetadata#COLLECTOR_REFERRER_LINK_TEXT}.</li>
  *   <li><b>Referrer link title:</b> The <code>title</code> attribute of the
-     link that contained the document reference (URL) in referrer's content.   
+     link that contained the document reference (URL) in referrer's content.
  *   Can also be useful to help establish better document titles.
- *   Metadata value is 
+ *   Metadata value is
  *   {@link HttpMetadata#COLLECTOR_REFERRER_LINK_TITLE}.</li>
  * </ul>
  * <p>
  * <b>Since 2.6.0</b>, the referrer data is always stored (was optional before).
- * </p> 
- * 
- * <h3>Character encoding</h3>
- * <p><b>Since 2.4.0</b>, this extractor will by default <i>attempt</i> to 
- * detect the encoding of the a page when extracting links and 
- * referrer information. If no charset could be detected, it falls back to 
- * UTF-8. It is also possible to dictate which encoding to use with 
- * {@link #setCharset(String)}. 
  * </p>
- * 
+ *
+ * <h3>Character encoding</h3>
+ * <p><b>Since 2.4.0</b>, this extractor will by default <i>attempt</i> to
+ * detect the encoding of the a page when extracting links and
+ * referrer information. If no charset could be detected, it falls back to
+ * UTF-8. It is also possible to dictate which encoding to use with
+ * {@link #setCharset(String)}.
+ * </p>
+ *
  * <h3>"nofollow"</h3>
  * <p>
  * By default, a regular HTML link having the "rel" attribute set to "nofollow"
- * won't be extracted (e.g. 
- * <code>&lt;a href="x.html" rel="nofollow" ...&gt;</code>).  
- * To force its extraction (and ensure it is followed) you can set 
+ * won't be extracted (e.g.
+ * <code>&lt;a href="x.html" rel="nofollow" ...&gt;</code>).
+ * To force its extraction (and ensure it is followed) you can set
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * </p>
- * 
+ *
  * <h3>URL Fragments</h3>
  * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
  * in URLs and every characters after it. It relies on the implementation
- * of {@link IURLNormalizer} to strip it if need be.  
- * {@link GenericURLNormalizer} is now always invoked by default, and the 
- * default set of rules defined for it will remove fragments. 
+ * of {@link IURLNormalizer} to strip it if need be.
+ * {@link GenericURLNormalizer} is now always invoked by default, and the
+ * default set of rules defined for it will remove fragments.
  * </p>
- * 
+ *
  * <p>
  * The URL specification says hashtags
  * are used to represent fragments only. That is, to quickly jump to a specific
  * section of the page the URL represents. Under normal circumstances,
  * keeping the URL fragments usually leads to duplicates documents being fetched
  * (same URL but different fragment) and they should be stripped. Unfortunately,
- * there are sites not following the URL standard and using hashtags as a 
+ * there are sites not following the URL standard and using hashtags as a
  * regular part of a URL (i.e. different hashtags point to different web pages).
  * It may be essential when crawling these sites to keep the URL fragments.
  * This can be done by making sure the URL normalizer does not strip them.
  * </p>
- * 
+ *
  * <h3>URL Schemes</h3>
- * <p><b>Since 2.4.0</b>, only valid 
+ * <p><b>Since 2.4.0</b>, only valid
  * <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax">
- * schemes</a> are extracted for absolute URLs. By default, those are 
- * <code>http</code>, <code>https</code>, and <code>ftp</code>. You can 
- * specify your own list of supported protocols with 
+ * schemes</a> are extracted for absolute URLs. By default, those are
+ * <code>http</code>, <code>https</code>, and <code>ftp</code>. You can
+ * specify your own list of supported protocols with
  * {@link #setSchemes(String[])}.
  * </p>
- * 
+ *
  * <h3>HTML/XML Comments</h3>
- * <p><b>Since 2.6.0</b>, URLs found in &lt;!-- comments --&gt; are no longer 
- * extracted by default. To enable URL extraction from comments, use 
+ * <p><b>Since 2.6.0</b>, URLs found in &lt;!-- comments --&gt; are no longer
+ * extracted by default. To enable URL extraction from comments, use
  * {@link #setCommentsEnabled(boolean)}
  * </p>
- * 
+ *
  * <h3>Extract links in certain parts only</h3>
  * <p><b>Since 2.8.0</b>, you can identify portions of a document where links
- * should be extracted or ignored with 
- * {@link #setExtractBetweens(RegexPair...)} and 
+ * should be extracted or ignored with
+ * {@link #setExtractBetweens(RegexPair...)} and
  * {@link #setNoExtractBetweens(RegexPair...)}. Eligible content for link
- * extraction is identified first, and content to exclude is done on that 
+ * extraction is identified first, and content to exclude is done on that
  * subset.
  * </p>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
- *          maxURLLength="(maximum URL length. Default is 2048)" 
- *          ignoreNofollow="[false|true]" 
+ *          maxURLLength="(maximum URL length. Default is 2048)"
+ *          ignoreNofollow="[false|true]"
  *          commentsEnabled="[false|true]"
  *          charset="(supported character encoding)" &gt;
  *      &lt;contentTypes&gt;
@@ -208,30 +202,30 @@ import com.norconex.importer.util.CharsetUtil;
  *          (CSV list of URI scheme for which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
  *      &lt;/schemes&gt;
- *      
+ *
  *      &lt;!-- Which tags and attributes hold the URLs to extract. --&gt;
  *      &lt;tags&gt;
  *          &lt;tag name="(tag name)" attribute="(tag attribute)" /&gt;
  *          &lt;!-- you can have multiple tag entries --&gt;
  *      &lt;/tags&gt;
- *      
+ *
  *      &lt;!-- Only extract URLs from the following text portions. --&gt;
  *      &lt;extractBetween caseSensitive="[false|true]"&gt;
  *          &lt;start&gt;(regex)&lt;/start&gt;
- *          &lt;end&gt;(regex)&lt;/end&gt;      
+ *          &lt;end&gt;(regex)&lt;/end&gt;
  *      &lt;/extractBetween&gt;
  *      &lt;!-- you can have multiple extractBetween entries --&gt;
- *      
+ *
  *      &lt;!-- Do not extract URLs from the following text portions. --&gt;
  *      &lt;noExtractBetween caseSensitive="[false|true]"&gt;
  *          &lt;start&gt;(regex)&lt;/start&gt;
  *          &lt;end&gt;(regex)&lt;/end&gt;
  *      &lt;/noExtractBetween&gt;
  *      &lt;!-- you can have multiple noExtractBetween entries --&gt;
- *      
+ *
  *  &lt;/extractor&gt;
  * </pre>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following adds URLs to JavaScript files to the list of URLs to be
@@ -249,14 +243,14 @@ import com.norconex.importer.util.CharsetUtil;
  *      &lt;/tags&gt;
  *  &lt;/extractor&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  * @since 2.3.0
  */
 public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
-    
-    private static final Logger LOG = LogManager.getLogger(
+
+    private static final Logger LOG = LoggerFactory.getLogger(
             GenericLinkExtractor.class);
 
     //TODO make buffer size and overlap size configurable
@@ -268,35 +262,37 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     /** Default maximum length a URL can have. */
     public static final int DEFAULT_MAX_URL_LENGTH = 2048;
 
-    private static final ContentType[] DEFAULT_CONTENT_TYPES = 
-            new ContentType[] {
-        ContentType.HTML,
-        ContentType.valueOf("application/xhtml+xml"),
-        ContentType.valueOf("vnd.wap.xhtml+xml"),
-        ContentType.valueOf("x-asp"),
-    };
-    private static final String[] DEFAULT_SCHEMES = 
-            new String[] { "http", "https", "ftp" };
-    
-    private static final int PATTERN_FLAGS = 
+    private static final List<ContentType> DEFAULT_CONTENT_TYPES =
+            Collections.unmodifiableList(Arrays.asList(
+                ContentType.HTML,
+                ContentType.valueOf("application/xhtml+xml"),
+                ContentType.valueOf("vnd.wap.xhtml+xml"),
+                ContentType.valueOf("x-asp")
+            ));
+
+    private static final List<String> DEFAULT_SCHEMES =
+            Collections.unmodifiableList(Arrays.asList("http", "https", "ftp"));
+
+    private static final int PATTERN_FLAGS =
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
     private static final int LOGGING_MAX_URL_LENGTH = 200;
-    
-    private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
-    private String[] schemes = DEFAULT_SCHEMES;
+
+    private final List<ContentType> contentTypes =
+            new ArrayList<>(DEFAULT_CONTENT_TYPES);
+    private final List<String> schemes = new ArrayList<>(DEFAULT_SCHEMES);
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     private boolean ignoreNofollow;
     private final Properties tagAttribs = new Properties(true);
     private Pattern tagPattern;
     private String charset;
     private boolean commentsEnabled;
-    
+
     private final List<RegexPair> extractBetweens = new ArrayList<>();
     private final List<RegexPair> noExtractBetweens = new ArrayList<>();
-    
+
     public GenericLinkExtractor() {
         super();
-        // default tags/attributes used to extract data. 
+        // default tags/attributes used to extract data.
         addLinkTag("a", "href");
         addLinkTag("frame", "src");
         addLinkTag("iframe", "src");
@@ -310,14 +306,14 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public Set<Link> extractLinks(InputStream input, String reference,
             ContentType contentType) throws IOException {
 
-        ContentType[] cTypes = contentTypes;
-        if (ArrayUtils.isEmpty(cTypes)) {
+        List<ContentType> cTypes = contentTypes;
+        if (cTypes.isEmpty()) {
             cTypes = DEFAULT_CONTENT_TYPES;
         }
 
         // Do not extract if not a supported content type
-        if (!ArrayUtils.contains(cTypes, contentType)) {
-            return null;
+        if (!cTypes.contains(contentType)) {
+            return Collections.emptySet();
         }
 
         // Do it, extract Links
@@ -329,12 +325,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
         sourceCharset = StringUtils.defaultIfBlank(
                 sourceCharset, StandardCharsets.UTF_8.toString());
-        
+
         Referer referer = new Referer(reference);
         Set<Link> links = new HashSet<>();
-        
+
         StringBuilder sb = new StringBuilder();
-        Reader r = 
+        Reader r =
                 new BufferedReader(new InputStreamReader(input, sourceCharset));
         int ch;
         boolean firstChunk = true;
@@ -356,7 +352,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
 
     private Referer adjustReferer(
-            final String content, final Referer referer, 
+            final String content, final Referer referer,
             final boolean firstChunk) {
         Referer ref = referer;
         if (firstChunk) {
@@ -371,16 +367,16 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
         return ref;
     }
-    
-    
+
+
     @Override
     public boolean accepts(String url, ContentType contentType) {
-        if (ArrayUtils.isEmpty(contentTypes)) {
+        if (contentTypes.isEmpty()) {
             return true;
         }
-        return ArrayUtils.contains(contentTypes, contentType);
+        return contentTypes.contains(contentType);
     }
-    
+
     /**
      * Gets the maximum supported URL length.
      * @return maximum URL length
@@ -396,21 +392,33 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         this.maxURLLength = maxURLLength;
     }
 
-    public ContentType[] getContentTypes() {
-        return ArrayUtils.clone(contentTypes);
+    public List<ContentType> getContentTypes() {
+        return Collections.unmodifiableList(contentTypes);
     }
+    /**
+     * Sets the content types on which to perform link extraction.
+     * @param contentTypes content types
+     */
     public void setContentTypes(ContentType... contentTypes) {
-        this.contentTypes = ArrayUtils.clone(contentTypes);
+        CollectionUtil.setAll(this.contentTypes, contentTypes);
     }
-    
+    /**
+     * Sets the content types on which to perform link extraction.
+     * @param contentTypes content types
+     * @since 3.0.0
+     */
+    public void setContentTypes(List<ContentType> contentTypes) {
+        CollectionUtil.setAll(this.contentTypes, contentTypes);
+    }
+
     /**
      * Gets the patterns delimiting the portions of a document to be considered
      * for link extraction.
      * @return extract between patterns
      * @since 2.8.0
      */
-    public RegexPair[] getExtractBetweens() {
-        return extractBetweens.toArray(new RegexPair[] {});
+    public List<RegexPair> getExtractBetweens() {
+        return Collections.unmodifiableList(extractBetweens);
     }
     /**
      * Sets the patterns delimiting the portions of a document to be considered
@@ -419,8 +427,16 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * @since 2.8.0
      */
     public void setExtractBetweens(RegexPair... betweens) {
-        this.extractBetweens.clear();
-        this.extractBetweens.addAll(Arrays.asList(betweens));
+        CollectionUtil.setAll(this.extractBetweens, betweens);
+    }
+    /**
+     * Sets the patterns delimiting the portions of a document to be considered
+     * for link extraction.
+     * @param betweens extract between patterns
+     * @since 3.0.0
+     */
+    public void setExtractBetweens(List<RegexPair> betweens) {
+        CollectionUtil.setAll(this.extractBetweens, betweens);
     }
     /**
      * Adds patterns delimiting a portion of a document to be considered
@@ -441,8 +457,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * @return extract between patterns
      * @since 2.8.0
      */
-    public RegexPair[] getNoExtractBetweens() {
-        return noExtractBetweens.toArray(new RegexPair[] {});
+    public List<RegexPair> getNoExtractBetweens() {
+        return Collections.unmodifiableList(noExtractBetweens);
     }
     /**
      * Sets the patterns delimiting the portions of a document to be excluded
@@ -451,8 +467,16 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * @since 2.8.0
      */
     public void setNoExtractBetweens(RegexPair... betweens) {
-        this.noExtractBetweens.clear();
-        this.noExtractBetweens.addAll(Arrays.asList(betweens));
+        CollectionUtil.setAll(this.noExtractBetweens, betweens);
+    }
+    /**
+     * Sets the patterns delimiting the portions of a document to be excluded
+     * from link extraction.
+     * @param betweens extract between patterns
+     * @since 3.0.0
+     */
+    public void setNoExtractBetweens(List<RegexPair> betweens) {
+        CollectionUtil.setAll(this.noExtractBetweens, betweens);
     }
     /**
      * Adds patterns delimiting a portion of a document to be excluded
@@ -468,7 +492,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
 
     /**
-     * Gets whether links should be extracted from HTML/XML comments. 
+     * Gets whether links should be extracted from HTML/XML comments.
      * @return <code>true</code> if links should be extracted from comments.
      * @since 2.6.0
      */
@@ -476,8 +500,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return commentsEnabled;
     }
     /**
-     * Sets whether links should be extracted from HTML/XML comments. 
-     * @param commentsEnabled <code>true</code> if links 
+     * Sets whether links should be extracted from HTML/XML comments.
+     * @param commentsEnabled <code>true</code> if links
      *        should be extracted from comments.
      * @since 2.6.0
      */
@@ -490,8 +514,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * @return schemes to be extracted
      * @since 2.4.0
      */
-    public String[] getSchemes() {
-        return schemes;
+    public List<String> getSchemes() {
+        return Collections.unmodifiableList(schemes);
     }
     /**
      * Sets the schemes to be extracted.
@@ -499,7 +523,15 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * @since 2.4.0
      */
     public void setSchemes(String... schemes) {
-        this.schemes = schemes;
+        CollectionUtil.setAll(this.schemes, schemes);
+    }
+    /**
+     * Sets the schemes to be extracted.
+     * @param schemes schemes to be extracted
+     * @since 3.0.0
+     */
+    public void setSchemes(List<String> schemes) {
+        CollectionUtil.setAll(this.schemes, schemes);
     }
 
     public boolean isIgnoreNofollow() {
@@ -507,28 +539,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
     public void setIgnoreNofollow(boolean ignoreNofollow) {
         this.ignoreNofollow = ignoreNofollow;
-    }
-
-    /**
-     * Gets whether to keep referrer data. 
-     * <b>Since 2.6.0, always return true</b>.
-     * @return <code>true</code>
-     * @deprecated Since 2.6.0, referrer data is always kept
-     */
-    @Deprecated
-    public boolean isKeepReferrerData() {
-        return true;
-    }
-    /**
-     * Sets whether to keep the referrer data. 
-     * <b>Since 2.6.0, this method has no effect.</b>  
-     * @param keepReferrerData referrer data
-     * @deprecated Since 2.6.0, referrer data is always kept
-     */
-    @Deprecated
-    public void setKeepReferrerData(boolean keepReferrerData) {
-        LOG.warn("Since 2.6.0, referrer data is always kept. "
-               + "Setting \"keepReferrerData\" has no effect.");
     }
 
     /**
@@ -551,7 +561,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
 
     public synchronized void addLinkTag(String tagName, String attribute) {
-        tagAttribs.addString(tagName, attribute);
+        tagAttribs.add(tagName, attribute);
         resetTagPattern();
     }
     public synchronized void removeLinkTag(String tagName, String attribute) {
@@ -563,8 +573,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             if (values.isEmpty()) {
                 tagAttribs.remove(tagName);
             } else {
-                tagAttribs.setString(tagName, 
-                        values.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+                tagAttribs.set(tagName, values);
             }
         }
         resetTagPattern();
@@ -579,13 +588,13 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         tagPattern = Pattern.compile(
                 "<(" + tagNames + ")((\\s*>)|(\\s([^\\<]*?)>))", PATTERN_FLAGS);
     }
-    
+
     private Pattern getTagBodyPattern(String name) {
         return Pattern.compile(
-                "<\\s*" + name + "[^<]*?>([^<]*?)<\\s*/\\s*" + name + "\\s*>", 
+                "<\\s*" + name + "[^<]*?>([^<]*?)<\\s*/\\s*" + name + "\\s*>",
                 PATTERN_FLAGS);
     }
-    
+
     //--- Extract Links --------------------------------------------------------
     private static final Pattern A_TEXT_PATTERN = Pattern.compile(
             "<a[^<]+?>(.*?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
@@ -599,10 +608,10 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             String theContent, Referer referrer, Set<Link> links) {
         String content = theContent;
 
-        // Eliminate content not matching extract patterns 
+        // Eliminate content not matching extract patterns
         content = excludeUnwantedContent(content);
-        
-        // Get rid of <script> tags content to eliminate possibly 
+
+        // Get rid of <script> tags content to eliminate possibly
         // generated URLs.
         content = SCRIPT_PATTERN.matcher(content).replaceAll("$1$3");
         if (!isCommentsEnabled()) {
@@ -629,7 +638,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     Link link = new Link(url);
                     link.setReferrer(referrer.url);
                     link.setTag(tagName);
-                    links.add(link);                
+                    links.add(link);
                 }
                 continue;
             }
@@ -669,7 +678,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             while (urlm.find()) {
                 String attribName = urlm.group(2);
                 // Will either match url1 (quoted) or url2 (unquoted).
-                String matchedUrl = urlm.start("url1") != -1 
+                String matchedUrl = urlm.start("url1") != -1
                         ? urlm.group("url1") : urlm.group("url2");
                 if (StringUtils.isBlank(matchedUrl)) {
                     continue;
@@ -702,7 +711,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
         }
     }
-    
+
     //TODO consider moving this logic to new class shared with others,
     //like StripBetweenTagger
     private String excludeUnwantedContent(String content) {
@@ -738,7 +747,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 Pattern rightPattern = Pattern.compile(pair.getEnd(), flags);
                 Matcher rightMatch = rightPattern.matcher(content);
                 if (rightMatch.find(leftMatch.end())) {
-                    matches.add(new ImmutablePair<Integer, Integer>(
+                    matches.add(new ImmutablePair<>(
                             leftMatch.start(), rightMatch.end()));
                 } else {
                     break;
@@ -749,7 +758,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return newContent.toString();
     }
     private void excludeUnwantedContent(
-            StringBuilder newContent, String content, 
+            StringBuilder newContent, String content,
             List<Pair<Integer, Integer>> matches, boolean keepMatch) {
         if (keepMatch) {
             for (Pair<Integer, Integer> pair : matches) {
@@ -787,7 +796,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         link.setTag("meta.http-equiv.refresh");
         links.add(link);
     }
-    
+
     //--- Has a nofollow attribute? --------------------------------------------
     private static final Pattern NOFOLLOW_PATTERN = Pattern.compile(
             "(^|\\s)rel\\s*=\\s*([\"']{0,1})(\\s*nofollow\\s*)\\2",
@@ -798,21 +807,21 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
         return NOFOLLOW_PATTERN.matcher(attribs).find();
     }
-    
-    
+
+
     private String toCleanAbsoluteURL(
             final Referer urlParts, final String newURL) {
         String url = StringUtils.trimToNull(newURL);
         if (!isValidNewURL(url)) {
             return null;
         }
-        
+
         // Decode HTML entities.
         url = StringEscapeUtils.unescapeHtml4(url);
-        
+
         if (url.startsWith("//")) {
             // this is URL relative to protocol
-            url = urlParts.scheme 
+            url = urlParts.scheme
                     + StringUtils.substringAfter(url, "//");
         } else if (url.startsWith("/")) {
             // this is a URL relative to domain name
@@ -830,15 +839,16 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
 
         if (url.length() > maxURLLength) {
-            LOG.debug("URL length (" + url.length() + ") exceeding "
-                   + "maximum length allowed (" + maxURLLength
-                   + ") to be extracted. URL (showing first "
-                   + LOGGING_MAX_URL_LENGTH + " chars): " 
-                   + StringUtils.substring(
-                           url, 0, LOGGING_MAX_URL_LENGTH) + "...");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("URL length ({}) exceeding maximum length allowed "
+                        + "({}) to be extracted. URL (showing first {} chars): "
+                        + "{}...",
+                        url.length(), maxURLLength, LOGGING_MAX_URL_LENGTH,
+                        StringUtils.substring(url, 0, LOGGING_MAX_URL_LENGTH));
+            }
             return null;
         }
-        
+
         return url;
     }
 
@@ -851,156 +861,178 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
         // if scheme is specified, make sure it is valid
         if (SCHEME_PATTERN.matcher(newURL).matches()) {
-            String[] supportedSchemes = getSchemes();
-            if (ArrayUtils.isEmpty(supportedSchemes)) {
+            List<String> supportedSchemes = getSchemes();
+            if (supportedSchemes.isEmpty()) {
                 supportedSchemes = DEFAULT_SCHEMES;
             }
             for (String scheme : supportedSchemes) {
                 if (StringUtils.startsWithIgnoreCase(newURL, scheme + ":")) {
                     return true;
                 }
-            }        
+            }
             return false;
         }
         return true;
     }
 
     @Override
-    public void loadFromXML(Reader in) {
-        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        setMaxURLLength(xml.getInt("[@maxURLLength]", getMaxURLLength()));
-        setIgnoreNofollow(xml.getBoolean(
-                "[@ignoreNofollow]", isIgnoreNofollow()));
-        setCommentsEnabled(xml.getBoolean(
-                "[@commentsEnabled]", isCommentsEnabled()));
-        setCharset(xml.getString("[@charset]", getCharset()));
-        if (xml.getBoolean("[@keepFragment]", false)) {
-            LOG.warn("'keepFragment' on GenericLinkExtractor was removed. "
-                   + "Instead, URL normalization now always takes place by "
-                   + "default unless disabled, and removeFragment is part of "
-                   + "the default normalization rules.");
-        }
-        
-        // Content Types
-        ContentType[] cts = ContentType.valuesOf(StringUtils.split(
-                StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
-        if (!ArrayUtils.isEmpty(cts)) {
-            setContentTypes(cts);
-        }
-
-        // Schemes
-        String[] supportedSchemes = StringUtils.split(
-                StringUtils.trimToNull(xml.getString("schemes")), ", ");
-        if (!ArrayUtils.isEmpty(supportedSchemes)) {
-            setSchemes(supportedSchemes);
-        }
+    public void loadFromXML(XML xml) {
+        setMaxURLLength(xml.getInteger("@maxURLLength", maxURLLength));
+        setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
+        setCommentsEnabled(xml.getBoolean("@commentsEnabled", commentsEnabled));
+        setCharset(xml.getString("@charset", charset));
+        setContentTypes(xml.getDelimitedList(
+                "contentTypes", ContentType.class, contentTypes));
+        setSchemes(xml.getDelimitedStringList("schemes", schemes));
 
         // tag & attributes
-        List<HierarchicalConfiguration> tagNodes = 
-                xml.configurationsAt("tags.tag");
-        if (!tagNodes.isEmpty()) {
+        List<XML> xmlTags = xml.getXMLList("tags/tag");
+        if (!xmlTags.isEmpty()) {
             clearLinkTags();
-            for (HierarchicalConfiguration tagNode : tagNodes) {
-                String name = tagNode.getString("[@name]", null);
-                String attr = tagNode.getString("[@attribute]", null);
+            for (XML xmlTag: xmlTags) {
+                String name = xmlTag.getString("@name", null);
+                String attr = xmlTag.getString("@attribute", null);
                 if (StringUtils.isNotBlank(name)) {
                     addLinkTag(name, attr);
                 }
             }
         }
-        
+//        List<HierarchicalConfiguration> tagNodes =
+//                xml.configurationsAt("tags.tag");
+//        if (!tagNodes.isEmpty()) {
+//            clearLinkTags();
+//            for (HierarchicalConfiguration tagNode : tagNodes) {
+//                String name = tagNode.getString("@name", null);
+//                String attr = tagNode.getString("@attribute", null);
+//                if (StringUtils.isNotBlank(name)) {
+//                    addLinkTag(name, attr);
+//                }
+//            }
+//        }
+
         // extract between
-        List<HierarchicalConfiguration> extractNodes = 
-                xml.configurationsAt("extractBetween");
-        if (!extractNodes.isEmpty()) {
+        List<XML> xmlBetweens = xml.getXMLList("extractBetween");
+        if (!xmlBetweens.isEmpty()) {
             extractBetweens.clear();
-            for (HierarchicalConfiguration node : extractNodes) {
+            for (XML xmlBetween: xmlBetweens) {
                 addExtractBetween(
-                        node.getString("start", null),
-                        node.getString("end", null),
-                        node.getBoolean("[@caseSensitive]", false));
+                        xmlBetween.getString("start", null),
+                        xmlBetween.getString("end", null),
+                        xmlBetween.getBoolean("@caseSensitive", false));
             }
         }
+//        List<HierarchicalConfiguration> extractNodes =
+//                xml.configurationsAt("extractBetween");
+//        if (!extractNodes.isEmpty()) {
+//            extractBetweens.clear();
+//            for (HierarchicalConfiguration node : extractNodes) {
+//                addExtractBetween(
+//                        node.getString("start", null),
+//                        node.getString("end", null),
+//                        node.getBoolean("@caseSensitive", false));
+//            }
+//        }
 
         // no extract between
-        List<HierarchicalConfiguration> noExtractNodes = 
-                xml.configurationsAt("noExtractBetween");
-        if (!noExtractNodes.isEmpty()) {
+        List<XML> xmlNoBetweens = xml.getXMLList("noExtractBetween");
+        if (!xmlNoBetweens.isEmpty()) {
             noExtractBetweens.clear();
-            for (HierarchicalConfiguration node : noExtractNodes) {
+            for (XML xmlNoBetween: xmlNoBetweens) {
                 addNoExtractBetween(
-                        node.getString("start", null),
-                        node.getString("end", null),
-                        node.getBoolean("[@caseSensitive]", false));
+                        xmlNoBetween.getString("start", null),
+                        xmlNoBetween.getString("end", null),
+                        xmlNoBetween.getBoolean("@caseSensitive", false));
             }
         }
+//        List<HierarchicalConfiguration> noExtractNodes =
+//                xml.configurationsAt("noExtractBetween");
+//        if (!noExtractNodes.isEmpty()) {
+//            noExtractBetweens.clear();
+//            for (HierarchicalConfiguration node : noExtractNodes) {
+//                addNoExtractBetween(
+//                        node.getString("start", null),
+//                        node.getString("end", null),
+//                        node.getBoolean("@caseSensitive", false));
+//            }
+//        }
     }
     @Override
-    public void saveToXML(Writer out) throws IOException {
-        try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
-            writer.writeStartElement("extractor");
-            writer.writeAttribute("class", getClass().getCanonicalName());
+    public void saveToXML(XML xml) {
+        xml.setAttribute("maxURLLength", maxURLLength);
+        xml.setAttribute("ignoreNofollow", ignoreNofollow);
+        xml.setAttribute("commentsEnabled", commentsEnabled);
+        xml.setAttribute("charset", charset);
+        xml.addDelimitedElementList("contentTypes", contentTypes);
+        xml.addDelimitedElementList("schemes", schemes);
 
-            writer.writeAttributeInteger("maxURLLength", getMaxURLLength());
-            writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
-            writer.writeAttributeBoolean(
-                    "commentsEnabled", isCommentsEnabled());
-            writer.writeAttributeString("charset", getCharset());
-            
-            // Content Types
-            if (!ArrayUtils.isEmpty(getContentTypes())) {
-                writer.writeElementString("contentTypes", 
-                        StringUtils.join(getContentTypes(), ','));
+        // Content Types
+//        if (!ArrayUtils.isEmpty(getContentTypes())) {
+//            xml.addElement("contentTypes",
+//                    StringUtils.join(getContentTypes(), ','));
+//        }
+
+        // Schemes
+//        if (!ArrayUtils.isEmpty(getSchemes())) {
+//            xml.addElement("schemes",
+//                    StringUtils.join(getSchemes(), ','));
+//        }
+
+        // Tags
+        XML xmlTags = xml.addElement("tags");
+        for (Entry<String, List<String>> entry :
+                tagAttribs.entrySet()) {
+            for (String attrib : entry.getValue()) {
+                xmlTags.addElement("tag")
+                        .setAttribute("name", entry.getKey())
+                        .setAttribute("attribute", attrib);
             }
-
-            // Schemes
-            if (!ArrayUtils.isEmpty(getSchemes())) {
-                writer.writeElementString("schemes", 
-                        StringUtils.join(getSchemes(), ','));
-            }
-
-            // Tags
-            writer.writeStartElement("tags");
-            for (Map.Entry<String, List<String>> entry : 
-                    tagAttribs.entrySet()) {
-                for (String attrib : entry.getValue()) {
-                    writer.writeStartElement("tag");
-                    writer.writeAttributeString("name", entry.getKey());
-                    writer.writeAttributeString("attribute", attrib);
-                    writer.writeEndElement();
-                }
-            }
-            writer.writeEndElement();
-
-            // extract between
-            for (RegexPair pair : extractBetweens) {
-                writer.writeStartElement("extractBetween");
-                writer.writeAttributeBoolean(
-                        "caseSensitive", pair.isCaseSensitive());
-                writer.writeElementString("start", pair.getStart());
-                writer.writeElementString("end", pair.getEnd());
-                writer.writeEndElement();
-            }            
-
-            // no extract between
-            for (RegexPair pair : noExtractBetweens) {
-                writer.writeStartElement("noExtractBetween");
-                writer.writeAttributeBoolean(
-                        "caseSensitive", pair.isCaseSensitive());
-                writer.writeElementString("start", pair.getStart());
-                writer.writeElementString("end", pair.getEnd());
-                writer.writeEndElement();
-            }            
-
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
         }
+
+//        writer.writeStartElement("tags");
+//        for (Map.Entry<String, List<String>> entry :
+//                tagAttribs.entrySet()) {
+//            for (String attrib : entry.getValue()) {
+//                writer.writeStartElement("tag");
+//                writer.writeAttributeString("name", entry.getKey());
+//                writer.writeAttributeString("attribute", attrib);
+//                writer.writeEndElement();
+//            }
+//        }
+//        writer.writeEndElement();
+
+        // extract between
+        for (RegexPair pair : extractBetweens) {
+            XML xmlBetween = xml.addElement("extractBetween")
+                    .setAttribute("caseSensitive", pair.caseSensitive);
+            xmlBetween.addElement("start", pair.getStart());
+            xmlBetween.addElement("end", pair.getEnd());
+        }
+//        for (RegexPair pair : extractBetweens) {
+//            writer.writeStartElement("extractBetween");
+//            writer.writeAttributeBoolean(
+//                    "caseSensitive", pair.isCaseSensitive());
+//            xml.addElement("start", pair.getStart());
+//            xml.addElement("end", pair.getEnd());
+//            writer.writeEndElement();
+//        }
+
+        // no extract between
+        for (RegexPair pair : noExtractBetweens) {
+            XML xmlNoBetween = xml.addElement("noExtractBetween")
+                    .setAttribute("caseSensitive", pair.caseSensitive);
+            xmlNoBetween.addElement("start", pair.getStart());
+            xmlNoBetween.addElement("end", pair.getEnd());
+        }
+//        for (RegexPair pair : noExtractBetweens) {
+//            writer.writeStartElement("noExtractBetween");
+//            writer.writeAttributeBoolean(
+//                    "caseSensitive", pair.isCaseSensitive());
+//            xml.addElement("start", pair.getStart());
+//            xml.addElement("end", pair.getEnd());
+//            writer.writeEndElement();
+//        }
     }
-    
+
     //TODO delete this class and use HttpURL#toAbsolute() instead?
     private static class Referer {
         private final String scheme;
@@ -1018,7 +1050,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
             // URL Path (anything after double slash)
             path = documentUrl.replaceFirst("(.*?:(//){0,1})(.*)", "$3");
-            
+
             // URL Relative Base: truncate to last / before a ? or #
             String relBase = path.replaceFirst(
                     "(.*?)([\\?\\#])(.*)", "$1");
@@ -1026,21 +1058,20 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
             // URL Absolute Base: truncate to first / if present, after protocol
             absoluteBase = scheme + path.replaceFirst("(.*?)(/.*)", "$1");
-            
-            // URL Document Base: truncate from first ? or # 
-            documentBase = 
+
+            // URL Document Base: truncate from first ? or #
+            documentBase =
                     scheme + path.replaceFirst("(.*?)([\\?\\#])(.*)", "$1");
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DOCUMENT URL ----> " + documentUrl);
-                LOG.debug("  BASE RELATIVE -> " + relativeBase);
-                LOG.debug("  BASE ABSOLUTE -> " + absoluteBase);
-            }
+
+            LOG.trace("DOCUMENT URL ----> {}", documentUrl);
+            LOG.trace("  BASE RELATIVE -> {}", relativeBase);
+            LOG.trace("  BASE ABSOLUTE -> {}", absoluteBase);
         }
     }
 
     //TODO make standalone class?
     public static class RegexPair {
-        private final String start; 
+        private final String start;
         private final String end;
         private final boolean caseSensitive;
         public RegexPair(String start, String end, boolean caseSensitive) {
@@ -1072,54 +1103,19 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     this, ToStringStyle.SHORT_PREFIX_STYLE);
         }
     }
-    
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("contentTypes", contentTypes)
-                .append("schemes", schemes)
-                .append("maxURLLength", maxURLLength)
-                .append("ignoreNofollow", ignoreNofollow)
-                .append("commentsEnabled", commentsEnabled)
-                .append("tagAttribs", tagAttribs)
-                .append("charset", charset)
-                .append("extractBetweens", extractBetweens)
-                .append("noExtractBetweens", noExtractBetweens)
-                .toString();
-    }
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof GenericLinkExtractor)) {
-            return false;
-        }
-        
-        GenericLinkExtractor castOther = (GenericLinkExtractor) other;
-        return new EqualsBuilder()
-                .append(contentTypes, castOther.contentTypes)
-                .append(schemes, castOther.schemes)
-                .append(maxURLLength, castOther.maxURLLength)
-                .append(ignoreNofollow, castOther.ignoreNofollow)
-                .append(commentsEnabled, castOther.commentsEnabled)
-                .append(tagAttribs.entrySet(), castOther.tagAttribs.entrySet())
-                .append(charset, castOther.charset)
-                .append(extractBetweens, castOther.extractBetweens)
-                .append(noExtractBetweens, castOther.noExtractBetweens)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other, "tagPattern");
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .append(contentTypes)
-                .append(schemes)
-                .append(maxURLLength)
-                .append(ignoreNofollow)
-                .append(commentsEnabled)
-                .append(tagAttribs)
-                .append(charset)
-                .append(extractBetweens)
-                .append(noExtractBetweens)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this, "tagPattern");
+    }
+    @Override
+    public String toString() {
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .setExcludeFieldNames("tagPattern").toString();
     }
 }

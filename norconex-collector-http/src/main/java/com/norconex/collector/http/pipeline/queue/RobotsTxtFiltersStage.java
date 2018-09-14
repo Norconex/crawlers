@@ -1,4 +1,4 @@
-/* Copyright 2016 Norconex Inc.
+/* Copyright 2016-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
  */
 package com.norconex.collector.http.pipeline.queue;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlState;
@@ -27,57 +29,53 @@ import com.norconex.collector.http.robot.RobotsTxt;
  * Apply robot rules provided by resolved RobotsTxt.
  * </p>
  * <p>
- * The "Allow" directive as defined by 
+ * The "Allow" directive as defined by
  * <a href="https://support.google.com/webmasters/answer/6062596?hl=en">
  * Google robot rules</a> is also supported (even if not "standard").
  * </p>
- * 
+ *
  * @author Pascal Essiembre
  * @since 2.4.0
  */
 /*default*/ class RobotsTxtFiltersStage extends AbstractQueueStage {
-    
-    private static final Logger LOG = 
-            LogManager.getLogger(RobotsTxtFiltersStage.class);    
-    
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(RobotsTxtFiltersStage.class);
+
     @Override
     public boolean executeStage(HttpQueuePipelineContext ctx) {
         if (!ctx.getConfig().isIgnoreRobotsTxt()) {
             IRobotsTxtFilter filter = findRejectingRobotsFilter(ctx);
             if (filter != null) {
                 ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
-                ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_ROBOTS_TXT, 
+                ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_ROBOTS_TXT,
                         ctx.getCrawlData(), filter);
                 LOG.debug("REJECTED by robots.txt. "
-                        + ". Reference=" + ctx.getCrawlData().getReference()
-                        + " Filter=" + filter);                
+                        + ". Reference={} Filter={}",
+                        ctx.getCrawlData().getReference(), filter);
                 return false;
             }
         }
         return true;
     }
-    
+
 
     /* Find matching rules, knowing that "Allow" work like this:
-     * "A matching Allow directive beats a matching Disallow only if it 
+     * "A matching Allow directive beats a matching Disallow only if it
      * contains more or equal number of characters in the path".
      * (logic described here: http://tools.seobook.com/robots-txt/)
      */
     private IRobotsTxtFilter findRejectingRobotsFilter(
             HttpQueuePipelineContext ctx) {
-        
+
         RobotsTxt robotsTxt = HttpQueuePipeline.getRobotsTxt(ctx);
         if (robotsTxt == null) {
             return null;
         }
-        IRobotsTxtFilter [] disallowFilters = robotsTxt.getDisallowFilters();
-        if (disallowFilters == null) {
-            return null;
-        }
-
+        List<IRobotsTxtFilter> disallowFilters = robotsTxt.getDisallowFilters();
+        List<IRobotsTxtFilter> allowFilters = robotsTxt.getAllowFilters();
         String url = ctx.getCrawlData().getReference();
-        IRobotsTxtFilter [] allowFilters = robotsTxt.getAllowFilters();
-        
+
         for (IRobotsTxtFilter df : disallowFilters) {
             if (!df.acceptReference(url)) {
                 // Rejected by Disallow, check if overruled by Allow
@@ -96,5 +94,5 @@ import com.norconex.collector.http.robot.RobotsTxt;
             }
         }
         return null;
-    }    
+    }
 }

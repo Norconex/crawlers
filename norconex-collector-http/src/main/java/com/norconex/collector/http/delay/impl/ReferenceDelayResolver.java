@@ -1,4 +1,4 @@
-/* Copyright 2016-2017 Norconex Inc.
+/* Copyright 2016-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,16 @@
  */
 package com.norconex.collector.http.delay.impl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
@@ -38,12 +32,12 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * There are a few ways the actual delay value can be defined (in order):
  * </p>
  * <ol>
- *   <li>Takes the delay specify by a robots.txt file.  
+ *   <li>Takes the delay specify by a robots.txt file.
  *       Only applicable if robots.txt files and its robots crawl delays
  *       are not ignored.</li>
  *   <li>Takes the delay matching a reference pattern, if any (picks the first
  *       one matching).</li>
- *   <li>Used the specified default delay or 3 seconds, if none is 
+ *   <li>Used the specified default delay or 3 seconds, if none is
  *       specified.</li>
  * </ol>
  * <p>
@@ -53,49 +47,49 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <ul>
  *   <li><b>crawler</b>: the delay is applied between each URL download
  *       within a crawler instance, regardless how many threads are defined
- *       within that crawler, or whether URLs are from the 
+ *       within that crawler, or whether URLs are from the
  *       same site or not.  This is the default scope.</li>
  *   <li><b>site</b>: the delay is applied between each URL download
  *       from the same site within a crawler instance, regardless how many
  *       threads are defined. A site is defined by a URL protocol and its
  *       domain (e.g. http://example.com).</li>
  *   <li><b>thread</b>: the delay is applied between each URL download from
- *       any given thread.  The more threads you have the less of an 
+ *       any given thread.  The more threads you have the less of an
  *       impact the delay will have.</li>
  * </ul>
  *
  * <p>
  * As of 2.7.0, XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per 
+ * can be provided in human-readable format (English only), as per
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;delay class="com.norconex.collector.http.delay.impl.ReferenceDelayResolver"
- *          default="(milliseconds)" 
+ *          default="(milliseconds)"
  *          ignoreRobotsCrawlDelay="[false|true]"
  *          scope="[crawler|site|thread]" &gt;
  *      &lt;pattern delay="(delay in milliseconds)"&gt;
  *        (regular expression applied against document reference)
  *      &lt;/pattern&gt;
- *       
+ *
  *      (... repeat pattern tag as needed ...)
  *  &lt;/delay&gt;
  * </pre>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
- * The following will increase the delay to 10 seconds when encountering PDFs 
+ * The following will increase the delay to 10 seconds when encountering PDFs
  * from a default of 3 seconds.
- * </p> 
+ * </p>
  * <pre>
  *  &lt;delay class="com.norconex.collector.http.delay.impl.ReferenceDelayResolver"
  *          default="3 seconds" &gt;
  *      &lt;pattern delay="10 seconds"&gt;.*\.pdf&lt;/pattern&gt;
  *  &lt;/delay&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  * @since 2.5.0
  */
@@ -128,61 +122,36 @@ public class ReferenceDelayResolver extends AbstractDelayResolver {
     }
 
     @Override
-    protected void loadDelaysFromXML(XMLConfiguration xml) 
-            throws IOException {
-        List<HierarchicalConfiguration> nodes =
-                xml.configurationsAt("pattern");
-        for (HierarchicalConfiguration node : nodes) {
+    protected void loadDelaysFromXML(XML xml) {
+        for (XML pxml : xml.getXMLList("pattern")) {
             delayPatterns.add(new DelayReferencePattern(
-                    node.getString("", ""),
-                    XMLConfigurationUtil.getDuration(
-                            node, "[@delay]", DEFAULT_DELAY)));
+                    pxml.getString(".", ""),
+                    pxml.getDurationMillis("@delay", DEFAULT_DELAY)));
         }
     }
 
     @Override
-    protected void saveDelaysToXML(EnhancedXMLStreamWriter writer)
-            throws IOException {
-        try {
-            for (DelayReferencePattern delayPattern : delayPatterns) {
-                writer.writeStartElement("pattern");
-                writer.writeAttributeLong("delay", delayPattern.getDelay());
-                writer.writeCharacters(delayPattern.getPattern());
-                writer.writeEndElement();
-            }
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
-        }        
+    protected void saveDelaysToXML(XML xml) {
+        for (DelayReferencePattern delayPattern : delayPatterns) {
+            xml.addElement("pattern", delayPattern.getPattern())
+                    .setAttribute("delay", delayPattern.getDelay());
+        }
     }
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof ReferenceDelayResolver)) {
-            return false;
-        }
-        ReferenceDelayResolver castOther = (ReferenceDelayResolver) other;
-        return new EqualsBuilder()
-                .appendSuper(super.equals(castOther))
-                .append(delayPatterns, castOther.delayPatterns)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .appendSuper(super.hashCode())
-                .append(delayPatterns)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-    
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .appendSuper(super.toString())
-                .append("delayPatterns", delayPatterns)
-                .toString();
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
-    
+
     public static class DelayReferencePattern {
         private final String pattern;
         private final long delay;
@@ -204,28 +173,16 @@ public class ReferenceDelayResolver extends AbstractDelayResolver {
 
         @Override
         public boolean equals(final Object other) {
-            if (!(other instanceof DelayReferencePattern)) {
-                return false;
-            }
-            DelayReferencePattern castOther = (DelayReferencePattern) other;
-            return new EqualsBuilder()
-                    .append(pattern, castOther.pattern)
-                    .append(delay, castOther.delay)
-                    .isEquals();
+            return EqualsBuilder.reflectionEquals(this, other);
         }
         @Override
         public int hashCode() {
-            return new HashCodeBuilder()
-                .append(pattern)
-                .append(delay)
-                .toHashCode();
+            return HashCodeBuilder.reflectionHashCode(this);
         }
         @Override
         public String toString() {
-            return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                    .append("pattern", pattern)
-                    .append("delay", delay)
-                    .toString();
+            return new ReflectionToStringBuilder(
+                    this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
         }
     }
 }

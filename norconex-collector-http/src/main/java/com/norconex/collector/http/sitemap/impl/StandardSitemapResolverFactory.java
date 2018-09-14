@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,22 @@
  */
 package com.norconex.collector.http.sitemap.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.ISitemapResolverFactory;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
@@ -50,7 +39,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;sitemapResolverFactory ignore="[false|true]" lenient="[false|true]" 
+ *  &lt;sitemapResolverFactory ignore="[false|true]" lenient="[false|true]"
  *     class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory"&gt;
  *     &lt;tempDir&gt;(where to store temp files)&lt;/tempDir&gt;
  *     &lt;path&gt;
@@ -62,7 +51,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     (... repeat path tag as needed ...)
  *  &lt;/sitemapResolverFactory&gt;
  * </pre>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following ignores sitemap files present on web sites.
@@ -70,31 +59,31 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <pre>
  *  &lt;sitemapResolverFactory ignore="true"/&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  * @see StandardSitemapResolver
  */
-public class StandardSitemapResolverFactory 
+public class StandardSitemapResolverFactory
         implements ISitemapResolverFactory, IXMLConfigurable {
 
-    private static final Logger LOG = LogManager.getLogger(
-            StandardSitemapResolverFactory.class);
+//    private static final Logger LOG = LoggerFactory.getLogger(
+//            StandardSitemapResolverFactory.class);
 
-    private File tempDir;
-    private String[] sitemapPaths = 
-            StandardSitemapResolver.DEFAULT_SITEMAP_PATHS;
+    private Path tempDir;
+    private final List<String> sitemapPaths =
+            new ArrayList<>(StandardSitemapResolver.DEFAULT_SITEMAP_PATHS);
     private boolean lenient;
-    
+
     @Override
     public ISitemapResolver createSitemapResolver(
             HttpCrawlerConfig config, boolean resume) {
-  
-        File resolvedTempDir = tempDir;
+
+        Path resolvedTempDir = tempDir;
         if (resolvedTempDir == null) {
             resolvedTempDir = config.getWorkDir();
         }
         if (resolvedTempDir == null) {
-            resolvedTempDir = FileUtils.getTempDirectory();
+            resolvedTempDir = FileUtils.getTempDirectory().toPath();
         }
         StandardSitemapResolver sr = new StandardSitemapResolver(
                 resolvedTempDir, new SitemapStore(config, resume));
@@ -104,49 +93,34 @@ public class StandardSitemapResolverFactory
     }
 
     /**
-     * Gets the URL paths, relative to the URL root, from which to try 
-     * locate and resolve sitemaps. Default paths are 
+     * Gets the URL paths, relative to the URL root, from which to try
+     * locate and resolve sitemaps. Default paths are
      * "/sitemap.xml" and "/sitemap-index.xml".
      * @return sitemap paths.
      * @since 2.3.0
      */
-    public String[] getSitemapPaths() {
+    public List<String> getSitemapPaths() {
         return sitemapPaths;
     }
     /**
-     * Sets the URL paths, relative to the URL root, from which to try 
+     * Sets the URL paths, relative to the URL root, from which to try
      * locate and resolve sitemaps.
      * @param sitemapPaths sitemap paths.
      * @since 2.3.0
      */
     public void setSitemapPaths(String... sitemapPaths) {
-        this.sitemapPaths = sitemapPaths;
-    }
-    
-    /**
-     * Get sitemap locations.
-     * @return sitemap locations
-     * @deprecated Since 2.3.0, use {@link HttpCrawlerConfig#getStartSitemapURLs()}
-     */
-    @Deprecated
-    public String[] getSitemapLocations() {
-        LOG.warn("Since 2.3.0, calling StandardSitemapResolver"
-                + "#getSitemapLocation() has no effect. "
-                + "Use HttpCrawlerConfig#getSitemaps() instead.");
-        return null;
+        CollectionUtil.setAll(this.sitemapPaths, sitemapPaths);
     }
     /**
-     * Set sitemap locations.
-     * @param sitemapLocations sitemap locations
-     * @deprecated Since 2.3.0, use 
-     *             {@link HttpCrawlerConfig#setStartSitemapURLs(String[])}
+     * Sets the URL paths, relative to the URL root, from which to try
+     * locate and resolve sitemaps.
+     * @param sitemapPaths sitemap paths.
+     * @since 3.0.0
      */
-    public void setSitemapLocations(String... sitemapLocations) {
-        LOG.warn("Since 2.3.0, calling StandardSitemapResolver"
-                + "#setSitemapLocation(String...) has no effect. "
-                + "Use HttpCrawlerConfig#setSitemaps(String[] ...) instead.");
+    public void setSitemapPaths(List<String> sitemapPaths) {
+        CollectionUtil.setAll(this.sitemapPaths, sitemapPaths);
     }
-    
+
     public boolean isLenient() {
         return lenient;
     }
@@ -158,117 +132,88 @@ public class StandardSitemapResolverFactory
      * Gets the directory where sitemap files are temporary stored
      * before they are parsed.  When <code>null</code> (default), temporary
      * files are created directly under {@link HttpCrawlerConfig#getWorkDir()}.
-     * the crawler working directory is also undefined, it will use the 
-     * system temporary directory, as returned by 
+     * the crawler working directory is also undefined, it will use the
+     * system temporary directory, as returned by
      * {@link FileUtils#getTempDirectory()}.
      * @return directory where temporary files are written
      * @since 2.3.0
      */
-    public File getTempDir() {
+    public Path getTempDir() {
         return tempDir;
     }
     /**
      * Sets the temporary directory where sitemap files are temporary stored
-     * before they are parsed.  
+     * before they are parsed.
      * @param tempDir directory where temporary files are written
      * @since 2.3.0
      */
-    public void setTempDir(File tempDir) {
+    public void setTempDir(Path tempDir) {
         this.tempDir = tempDir;
     }
 
     @Override
-    public void loadFromXML(Reader in) throws IOException {
-        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        String tempPath = xml.getString(
-                "tempDir", Objects.toString(getTempDir(), null));
-        if (tempPath != null) {
-            setTempDir(new File(tempPath));
-        }
-        setLenient(xml.getBoolean("[@lenient]", false));
-        String[] paths = xml.getList(
-                "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY); 
-        if (!ArrayUtils.isEmpty(paths)) {
-            // not empty but if empty after removing blank ones, consider
-            // empty (we want no path)
-            List<String> cleanPaths = new ArrayList<String>(paths.length);
-            for (String path : paths) {
-                if (StringUtils.isNotBlank(path)) {
-                    cleanPaths.add(path);
-                }
-            }
-            if (cleanPaths.isEmpty()) {
-                setSitemapPaths(ArrayUtils.EMPTY_STRING_ARRAY);
-            } else {
-                setSitemapPaths(
-                        cleanPaths.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
-            }
-        }
-        
-        if (!xml.getList("location").isEmpty()) {
-            LOG.warn("Since 2.3.0, the location tag is no longer supported. "
-                    + "Use <sitemap> under <startURLs> for an equivalent.");
-        }
+    public void loadFromXML(XML xml) {
+        setTempDir(xml.getPath("tempDir", tempDir));
+        setLenient(xml.getBoolean("@lenient", lenient));
+
+        //TODO make sure null can be set to clear the paths
+        setSitemapPaths(xml.getStringList("path", sitemapPaths));
+//
+//
+//
+//        String[] paths = xml.getList(
+//                "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+//        if (!ArrayUtils.isEmpty(paths)) {
+//            // not empty but if empty after removing blank ones, consider
+//            // empty (we want no path)
+//            List<String> cleanPaths = new ArrayList<>(paths.length);
+//            for (String path : paths) {
+//                if (StringUtils.isNotBlank(path)) {
+//                    cleanPaths.add(path);
+//                }
+//            }
+//            if (cleanPaths.isEmpty()) {
+//                setSitemapPaths(ArrayUtils.EMPTY_STRING_ARRAY);
+//            } else {
+//                setSitemapPaths(
+//                        cleanPaths.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+//            }
+//        }
     }
 
     @Override
-    public void saveToXML(Writer out) throws IOException {
-        try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
-            writer.writeStartElement("sitemapResolverFactory");
-            writer.writeAttribute("class", getClass().getCanonicalName());
-            writer.writeAttribute("lenient", Boolean.toString(lenient));
-            writer.writeElementString(
-                    "tempDir", Objects.toString(getTempDir(), null));
-            if (ArrayUtils.isEmpty(sitemapPaths)) {
-                writer.writeStartElement("path");
-                writer.writeCharacters("");
-                writer.writeEndElement();
-            } else {
-                for (String path : sitemapPaths) {
-                    writer.writeStartElement("path");
-                    writer.writeCharacters(path);
-                    writer.writeEndElement();
-                }
-            }
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
-        }
-    }
+    public void saveToXML(XML xml) {
+        xml.setAttribute("lenient", lenient);
+        xml.addElement("tempDir", getTempDir());
+        xml.addElementList("path", sitemapPaths);
 
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("sitemapPaths", sitemapPaths)
-                .append("lenient", lenient)
-                .append("tempDir", tempDir)
-                .toString();
+        //TODO make sure null can be set to clear the paths
+
+
+//        if (ArrayUtils.isEmpty(sitemapPaths)) {
+//            writer.writeStartElement("path");
+//            writer.writeCharacters("");
+//            writer.writeEndElement();
+//        } else {
+//            for (String path : sitemapPaths) {
+//                writer.writeStartElement("path");
+//                writer.writeCharacters(path);
+//                writer.writeEndElement();
+//            }
+//        }
     }
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof StandardSitemapResolverFactory)) {
-            return false;
-        }
-        StandardSitemapResolverFactory castOther = 
-                (StandardSitemapResolverFactory) other;
-        return new EqualsBuilder()
-                .append(sitemapPaths, castOther.sitemapPaths)
-                .append(lenient, castOther.lenient)
-                .append(tempDir, castOther.tempDir)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .append(sitemapPaths)
-                .append(lenient)
-                .append(tempDir)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-    
+    @Override
+    public String toString() {
+        return new ReflectionToStringBuilder(this,
+                ToStringStyle.SHORT_PREFIX_STYLE).toString();
+    }
 }

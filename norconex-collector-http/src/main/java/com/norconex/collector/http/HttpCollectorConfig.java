@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,9 @@
  */
 package com.norconex.collector.http;
 
-import java.io.Writer;
-
-import org.apache.commons.configuration.XMLConfiguration;
-
 import com.norconex.collector.core.AbstractCollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * HTTP Collector configuration.
@@ -28,16 +25,15 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 public class HttpCollectorConfig extends AbstractCollectorConfig {
 
 	public HttpCollectorConfig() {
-        super(HttpCrawlerConfig.class, "httpcollector");
+        super(HttpCrawlerConfig.class);
     }
 
-    @Override
-    protected void saveCollectorConfigToXML(Writer out) {
-        // Nothing more than what the super class already saves.
-    }
-
-    @Override
-    protected void loadCollectorConfigFromXML(XMLConfiguration xml) {
+	@Override
+	protected void loadCollectorConfigFromXML(XML xml) {
         // Nothing more than what the super class already loads.
-    }
+	}
+	@Override
+	protected void saveCollectorConfigToXML(XML xml) {
+        // Nothing more than what the super class already saves.
+	}
 }

@@ -14,8 +14,8 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
@@ -31,7 +31,7 @@ import com.norconex.collector.http.recrawl.PreviousCrawlData;
 /*default*/ class RecrawlableResolverStage extends AbstractImporterStage {
     
     private static final Logger LOG = 
-            LogManager.getLogger(RecrawlableResolverStage.class);
+            LoggerFactory.getLogger(RecrawlableResolverStage.class);
     
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {

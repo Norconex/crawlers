@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,20 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.url.Link;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * @author Pascal Essiembre
  */
 public class RegexLinkExtractorTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(
+            RegexLinkExtractorTest.class);
 
     @Test
     public void testLinkExtraction()  throws IOException {
@@ -65,11 +70,11 @@ public class RegexLinkExtractorTest {
         IOUtils.closeQuietly(is);
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL, 
+            assertTrue("Could not find expected URL: " + expectedURL,
                     contains(links, expectedURL));
         }
 
-        Assert.assertEquals("Invalid number of links extracted.", 
+        Assert.assertEquals("Invalid number of links extracted.",
                 expectedURLs.length, links.size());
     }
 
@@ -82,7 +87,7 @@ public class RegexLinkExtractorTest {
         RegexLinkExtractor extractor = new RegexLinkExtractor();
         try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
                 getClass().getSimpleName() + ".cfg.xml"))) {
-            extractor.loadFromXML(r);
+            extractor.loadFromXML(new XML(r));
         }
         // All these must be found
         String[] expectedURLs = {
@@ -97,17 +102,17 @@ public class RegexLinkExtractorTest {
         }
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL, 
+            assertTrue("Could not find expected URL: " + expectedURL,
                     contains(links, expectedURL));
         }
 
-        Assert.assertEquals("Invalid number of links extracted.", 
+        Assert.assertEquals("Invalid number of links extracted.",
                 expectedURLs.length, links.size());
     }
 
-    
-    
-    
+
+
+
     @Test
     public void testGenericWriteRead() throws IOException {
         RegexLinkExtractor extractor = new RegexLinkExtractor();
@@ -117,8 +122,8 @@ public class RegexLinkExtractorTest {
         extractor.setApplyToReferencePattern("ref");
         extractor.setCharset("charset");
         extractor.setMaxURLLength(12345);
-        System.out.println("Writing/Reading this: " + extractor);
-        XMLConfigurationUtil.assertWriteRead(extractor);
+        LOG.debug("Writing/Reading this: {}", extractor);
+        XML.assertWriteRead(extractor, "extractor");
     }
 
     private boolean contains(Set<Link> links, String url) {

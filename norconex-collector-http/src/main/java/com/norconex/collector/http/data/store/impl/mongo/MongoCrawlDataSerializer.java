@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,10 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
 
     private static final String FIELD_DEPTH = "depth";
     private static final String FIELD_SITEMAP_LAST_MOD = "sitemapLastMod";
-    private static final String FIELD_SITEMAP_CHANGE_FREQ = 
+    private static final String FIELD_SITEMAP_CHANGE_FREQ =
             "sitemapChangeFreq";
     private static final String FIELD_SITEMAP_PRIORITY = "sitemapPriority";
-    
+
     private static final String FIELD_ORIGINAL_REFERENCE = "originalReference";
     private static final String FIELD_REFERRER_REFERENCE = "referrerReference";
     private static final String FIELD_REFERRER_LINK_TAG = "referrerLinkTag";
@@ -60,12 +60,12 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         doc.put(FIELD_REFERRER_LINK_TAG, data.getReferrerLinkTag());
         doc.put(FIELD_REFERRER_LINK_TEXT, data.getReferrerLinkText());
         doc.put(FIELD_REFERRER_LINK_TITLE, data.getReferrerLinkTitle());
-        if (ArrayUtils.isNotEmpty(data.getReferencedUrls())) {
-            doc.put(FIELD_REFERENCED_URLS, 
+        if (!data.getReferencedUrls().isEmpty()) {
+            doc.put(FIELD_REFERENCED_URLS,
                     Arrays.asList(data.getReferencedUrls()));
         }
-        if (ArrayUtils.isNotEmpty(data.getRedirectTrail())) {
-            doc.put(FIELD_REDIRECT_TRAIL, 
+        if (!data.getRedirectTrail().isEmpty()) {
+            doc.put(FIELD_REDIRECT_TRAIL,
                     Arrays.asList(data.getRedirectTrail()));
         }
         return doc;
@@ -80,7 +80,7 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
                 eq(FIELD_STAGE, Stage.QUEUED.name()), newDocument,
                 new FindOneAndUpdateOptions().sort(sort));
     }
-    
+
     @Override
     public ICrawlData fromDocument(Document doc) {
         ICrawlData superData = super.fromDocument(doc);
@@ -88,7 +88,7 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
             return null;
         }
         HttpCrawlData data = new HttpCrawlData(superData);
-        data.setDepth(doc.getInteger(FIELD_DEPTH)); 
+        data.setDepth(doc.getInteger(FIELD_DEPTH));
         data.setSitemapLastMod(doc.getLong(FIELD_SITEMAP_LAST_MOD));
         data.setSitemapChangeFreq(doc.getString(FIELD_SITEMAP_CHANGE_FREQ));
         Double val = doc.getDouble(FIELD_SITEMAP_PRIORITY);
@@ -100,7 +100,7 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         data.setReferrerLinkTag(doc.getString(FIELD_REFERRER_LINK_TAG));
         data.setReferrerLinkText(doc.getString(FIELD_REFERRER_LINK_TEXT));
         data.setReferrerLinkTitle(doc.getString(FIELD_REFERRER_LINK_TITLE));
-        
+
         @SuppressWarnings("unchecked")
         List<String> dbRefUrls = (List<String>) doc.get(FIELD_REFERENCED_URLS);
         if (dbRefUrls != null) {
@@ -114,7 +114,7 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
             data.setRedirectTrail(
                     dbRdrTrail.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
-        
+
         return data;
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,20 @@ import java.io.StringReader;
 
 import org.junit.After;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.url.impl.GenericURLNormalizer.Normalization;
 import com.norconex.collector.http.url.impl.GenericURLNormalizer.Replace;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
-
+import com.norconex.commons.lang.xml.XML;
 public class GenericURLNormallizerTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(
+            GenericURLNormallizerTest.class);
 
     private String s;
     private String t;
-    
+
     @After
     public void tearDown() throws Exception {
         s = null;
@@ -48,7 +52,7 @@ public class GenericURLNormallizerTest {
         t = "http://example.com/";
         assertEquals(t, n.normalizeURL(s));
     }
-    
+
     // Test for https://github.com/Norconex/collector-http/issues/2904
     @Test
     public void testUppercaseProtocol() {
@@ -60,7 +64,7 @@ public class GenericURLNormallizerTest {
         t = "HTTP://example.com/";
         assertEquals(t, n.normalizeURL(s));
     }
-    
+
     // Test for https://github.com/Norconex/collector-http/issues/290
     @Test
     public void testRemoveTrailingSlashWithOnlyHostname() {
@@ -72,7 +76,7 @@ public class GenericURLNormallizerTest {
         t = "http://bot.nerus.com";
         assertEquals(t, n.normalizeURL(s));
     }
-    
+
     @Test
 	public void testReplacements() {
         GenericURLNormalizer n = new GenericURLNormalizer();
@@ -110,12 +114,12 @@ public class GenericURLNormallizerTest {
                 Normalization.removeSessionIds,
                 Normalization.upperCaseEscapeSequence
                 );
-        
+
         s = "http://www.etools.ch/sitemap_index.xml";
         t = "http://www.etools.ch/sitemap_index.xml";
         assertEquals(t, n.normalizeURL(s));
     }
-    
+
     @Test
     public void testGithubIssue29() throws IOException {
         // Github issue #29
@@ -127,12 +131,12 @@ public class GenericURLNormallizerTest {
                 Normalization.removeDefaultPort);
         n.setReplaces(
                 new Replace("&view=print", "&view=html"));
-        
+
         s = "http://www.somehost.com/hook/";
         t = "http://www.somehost.com/hook/";
         assertEquals(t, n.normalizeURL(s));
     }
-    
+
     @Test
     public void testWriteRead() throws IOException {
         GenericURLNormalizer n = new GenericURLNormalizer();
@@ -146,21 +150,21 @@ public class GenericURLNormallizerTest {
         n.setReplaces(
                 new Replace("\\.htm", ".html"),
                 new Replace("&debug=true"));
-        System.out.println("Writing/Reading this: " + n);
-        XMLConfigurationUtil.assertWriteRead(n);
+        LOG.debug("Writing/Reading this: {}", n);
+        XML.assertWriteRead(n, "urlNormalizer");
     }
 
     @Test
     public void testEmptyNormalizations() throws IOException {
         GenericURLNormalizer n = null;
         String xml = null;
-        
+
         // an empty <normalizations> tag means have none
         n = new GenericURLNormalizer();
         xml = "<urlNormalizer><normalizations></normalizations>"
                 + "</urlNormalizer>";
         try (Reader r = new StringReader(xml)) {
-            n.loadFromXML(r);
+            n.loadFromXML(new XML(r));
         }
         assertEquals(0, n.getNormalizations().length);
 
@@ -168,7 +172,7 @@ public class GenericURLNormallizerTest {
         n = new GenericURLNormalizer();
         xml = "<urlNormalizer></urlNormalizer>";
         try (Reader r = new StringReader(xml)) {
-            n.loadFromXML(r);
+            n.loadFromXML(new XML(r));
         }
         assertEquals(6, n.getNormalizations().length);
 
@@ -178,7 +182,7 @@ public class GenericURLNormallizerTest {
                 + "lowerCaseSchemeHost, removeSessionIds</normalizations>"
                 + "</urlNormalizer>";
         try (Reader r = new StringReader(xml)) {
-            n.loadFromXML(r);
+            n.loadFromXML(new XML(r));
         }
         assertEquals(2, n.getNormalizations().length);
     }

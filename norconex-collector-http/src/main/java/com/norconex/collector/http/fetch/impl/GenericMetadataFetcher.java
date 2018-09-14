@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  */
 package com.norconex.collector.http.fetch.impl;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -34,19 +32,19 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
@@ -54,7 +52,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </p>
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;metadataFetcher 
+ *  &lt;metadataFetcher
  *      class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" &gt;
  *      &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
  *      &lt;notFoundStatusCodes&gt;(defaults to 404)&lt;/notFoundStatusCodes&gt;
@@ -62,63 +60,88 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *  &lt;/metadataFetcher&gt;
  * </pre>
  * <p>
- * The "validStatusCodes" and "notFoundStatusCodes" elements expect a 
+ * The "validStatusCodes" and "notFoundStatusCodes" elements expect a
  * coma-separated list of HTTP response code.  If a code is added in both
  * elements, the valid list takes precedence.
  * </p>
  * <p>
  * The "notFoundStatusCodes" element was added in 2.6.0.
  * </p>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following configures a crawler to use this fetcher with the default
  * settings.
  * </p>
  * <pre>
- *  &lt;metadataFetcher 
+ *  &lt;metadataFetcher
  *      class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" /&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  */
-public class GenericMetadataFetcher 
+public class GenericMetadataFetcher
         implements IHttpMetadataFetcher, IXMLConfigurable {
 
-    private static final Logger LOG = LogManager.getLogger(
+    private static final Logger LOG = LoggerFactory.getLogger(
 			GenericMetadataFetcher.class);
-    /*default*/ static final int[] DEFAULT_VALID_STATUS_CODES = new int[] {
-        HttpStatus.SC_OK,
-    };
-    /*default*/ static final int[] DEFAULT_NOT_FOUND_STATUS_CODES = new int[] {
-            HttpStatus.SC_NOT_FOUND,
-    };
 
-    private int[] validStatusCodes;
-    private int[] notFoundStatusCodes = DEFAULT_NOT_FOUND_STATUS_CODES;
+    static final List<Integer> DEFAULT_VALID_STATUS_CODES =
+            Collections.unmodifiableList(Arrays.asList(HttpStatus.SC_OK));
+    static final List<Integer> DEFAULT_NOT_FOUND_STATUS_CODES =
+            Collections.unmodifiableList(Arrays.asList(HttpStatus.SC_NOT_FOUND));
+
+    private final List<Integer> validStatusCodes =
+            new ArrayList<>(DEFAULT_VALID_STATUS_CODES);
+    private final List<Integer> notFoundStatusCodes =
+            new ArrayList<>(DEFAULT_NOT_FOUND_STATUS_CODES);
     private String headersPrefix;
 
     public GenericMetadataFetcher() {
-        this(DEFAULT_VALID_STATUS_CODES);
+        super();
+    }
+    /**
+     * New metadata fetcher.
+     * @param validStatusCodes HTTP status codes considered valid
+     * @since 3.0.0
+     */
+    public GenericMetadataFetcher(List<Integer> validStatusCodes) {
+        super();
+        setValidStatusCodes(validStatusCodes);
     }
     public GenericMetadataFetcher(int[] validStatusCodes) {
         super();
         setValidStatusCodes(validStatusCodes);
     }
-	public int[] getValidStatusCodes() {
-        return ArrayUtils.clone(validStatusCodes);
+
+    public List<Integer> getValidStatusCodes() {
+	    return Collections.unmodifiableList(validStatusCodes);
     }
+	/**
+	 * Gets valid HTTP response status codes.
+	 * @param validStatusCodes valid status codes
+	 * @since 3.0.0
+	 */
+    public void setValidStatusCodes(List<Integer> validStatusCodes) {
+        CollectionUtil.setAll(this.validStatusCodes, validStatusCodes);
+    }
+    /**
+     * Gets valid HTTP response status codes.
+     * @param validStatusCodes valid status codes
+     */
     public void setValidStatusCodes(int... validStatusCodes) {
-        this.validStatusCodes = ArrayUtils.clone(validStatusCodes);
+        CollectionUtil.setAll(this.validStatusCodes,
+                ArrayUtils.toObject(validStatusCodes));
     }
+
     /**
      * Gets HTTP status codes to be considered as "Not found" state.
      * Default is 404.
      * @return "Not found" codes
      * @since 2.6.0
      */
-    public int[] getNotFoundStatusCodes() {
-        return ArrayUtils.clone(notFoundStatusCodes);
+    public List<Integer> getNotFoundStatusCodes() {
+        return Collections.unmodifiableList(notFoundStatusCodes);
     }
     /**
      * Sets HTTP status codes to be considered as "Not found" state.
@@ -126,8 +149,18 @@ public class GenericMetadataFetcher
      * @since 2.6.0
      */
     public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
-        this.notFoundStatusCodes = ArrayUtils.clone(notFoundStatusCodes);
-    }    
+        CollectionUtil.setAll(this.notFoundStatusCodes,
+                ArrayUtils.toObject(notFoundStatusCodes));
+    }
+    /**
+     * Sets HTTP status codes to be considered as "Not found" state.
+     * @param notFoundStatusCodes "Not found" codes
+     * @since 3.0.0
+     */
+    public final void setNotFoundStatusCodes(
+            List<Integer> notFoundStatusCodes) {
+        CollectionUtil.setAll(this.notFoundStatusCodes, notFoundStatusCodes);
+    }
 	public String getHeadersPrefix() {
         return headersPrefix;
     }
@@ -137,18 +170,18 @@ public class GenericMetadataFetcher
     @Override
     public HttpFetchResponse fetchHTTPHeaders(
             HttpClient httpClient, String url, Properties metadata) {
-        LOG.debug("Fetching HTTP headers: " + url);
+        LOG.debug("Fetching HTTP headers: {}", url);
         HttpRequestBase method = null;
 	    try {
 	        method = createUriRequest(url);
-	        
+
 	        // Execute the method.
 	        HttpResponse response = httpClient.execute(method);
 	        int statusCode = response.getStatusLine().getStatusCode();
 	        String reason = response.getStatusLine().getReasonPhrase();
-	        
+
             // VALID http response
-            if (ArrayUtils.contains(validStatusCodes, statusCode)) {
+            if (validStatusCodes.contains(statusCode)) {
                 //--- Fetch headers ---
                 Header[] headers = response.getAllHeaders();
                 for (int i = 0; i < headers.length; i++) {
@@ -157,14 +190,14 @@ public class GenericMetadataFetcher
                     if (StringUtils.isNotBlank(headersPrefix)) {
                         name = headersPrefix + name;
                     }
-                    metadata.addString(name, header.getValue());
+                    metadata.add(name, header.getValue());
                 }
                 return new HttpFetchResponse(
                         HttpCrawlState.NEW, statusCode, reason);
             }
 
             // INVALID http response
-            if (ArrayUtils.contains(notFoundStatusCodes, statusCode)) {
+            if (notFoundStatusCodes.contains(statusCode)) {
                 return new HttpFetchResponse(
                         HttpCrawlState.NOT_FOUND, statusCode, reason);
             }
@@ -185,9 +218,9 @@ public class GenericMetadataFetcher
 	        if (method != null) {
 	            method.releaseConnection();
 	        }
-        }  
+        }
 	}
-	
+
     /**
      * Creates the HTTP request to be executed.  Default implementation
      * returns an {@link HttpHead} request around the provided URL.
@@ -198,90 +231,37 @@ public class GenericMetadataFetcher
     protected HttpRequestBase createUriRequest(String url) {
         URI uri = HttpURL.toURI(url);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Encoded URI: " + uri);
+            LOG.debug("Encoded URI: {}", uri);
         }
         return new HttpHead(uri);
     }
-    
+
     @Override
-    public void loadFromXML(Reader in) {
-        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        
-        String validCodes = xml.getString("validStatusCodes");
-        int[] intValidCodes = validStatusCodes;
-        if (StringUtils.isNotBlank(validCodes)) {
-            String[] strCodes = validCodes.split(",");
-            intValidCodes = new int[strCodes.length];
-            for (int i = 0; i < strCodes.length; i++) {
-                String code = strCodes[i];
-                intValidCodes[i] = Integer.parseInt(code);
-            }
-        }
-        setValidStatusCodes(intValidCodes);        
-        
-        String notFoundCodes = xml.getString("notFoundStatusCodes");
-        int[] intNFCodes = notFoundStatusCodes;
-        if (StringUtils.isNotBlank(notFoundCodes)) {
-            String[] strCodes = notFoundCodes.split(",");
-            intNFCodes = new int[strCodes.length];
-            for (int i = 0; i < strCodes.length; i++) {
-                String code = strCodes[i];
-                intNFCodes[i] = Integer.parseInt(code);
-            }
-        }
-        setNotFoundStatusCodes(intNFCodes);
-        
+    public void loadFromXML(XML xml) {
+        setValidStatusCodes(xml.getDelimitedList(
+                "validStatusCodes", Integer.class, validStatusCodes));
+        setNotFoundStatusCodes(xml.getDelimitedList(
+                "notFoundStatusCodes", Integer.class, notFoundStatusCodes));
         setHeadersPrefix(xml.getString("headersPrefix"));
     }
     @Override
-    public void saveToXML(Writer out) throws IOException {
-        try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);         
-            writer.writeStartElement("metadataFetcher");
-            writer.writeAttribute("class", getClass().getCanonicalName());
-
-            writer.writeElementString("validStatusCodes", 
-                    StringUtils.join(validStatusCodes, ','));
-            writer.writeElementString("notFoundStatusCodes", 
-                    StringUtils.join(notFoundStatusCodes, ','));
-            writer.writeElementString("headersPrefix", headersPrefix);
-            
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
-        }
+    public void saveToXML(XML xml) {
+        xml.addDelimitedElementList("validStatusCodes", validStatusCodes);
+        xml.addDelimitedElementList("notFoundStatusCodes", notFoundStatusCodes);
+        xml.addElement("headersPrefix", headersPrefix);
     }
-    
+
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof GenericMetadataFetcher)) {
-            return false;
-        }
-        GenericMetadataFetcher castOther = (GenericMetadataFetcher) other;
-        return new EqualsBuilder()
-                .append(validStatusCodes, castOther.validStatusCodes)
-                .append(notFoundStatusCodes, castOther.notFoundStatusCodes)
-                .append(headersPrefix, castOther.headersPrefix)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .append(validStatusCodes)
-                .append(notFoundStatusCodes)
-                .append(headersPrefix)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("validStatusCodes", validStatusCodes)
-                .append("notFoundStatusCodes", notFoundStatusCodes)
-                .append("headersPrefix", headersPrefix)
-                .toString();
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2016 Norconex Inc.
+/* Copyright 2016-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,29 @@ package com.norconex.collector.http.recrawl.impl;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver.MinFrequency;
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver.SitemapSupport;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
-
+import com.norconex.commons.lang.xml.XML;
 public class GenericRecrawlableResolverTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(
+            GenericRecrawlableResolverTest.class);
 
     @Test
     public void testWriteRead() throws IOException {
         GenericRecrawlableResolver r = new GenericRecrawlableResolver();
         r.setSitemapSupport(SitemapSupport.LAST);
-        
+
         MinFrequency f1 = new MinFrequency("reference", "monthly", ".*\\.pdf");
         MinFrequency f2 = new MinFrequency("contentType", "1234", ".*");
         f2.setCaseSensitive(true);
-        
+
         r.setMinFrequencies(f1, f2);
 
-        System.out.println("Writing/Reading this: " + r);
-        XMLConfigurationUtil.assertWriteRead(r);
+        LOG.debug("Writing/Reading this: {}", r);
+        XML.assertWriteRead(r, "recrawlableResolver");
     }
 }

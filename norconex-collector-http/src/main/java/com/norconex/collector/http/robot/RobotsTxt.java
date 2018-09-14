@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,49 +15,59 @@
 package com.norconex.collector.http.robot;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.importer.handler.filter.OnMatch;
 
 public class RobotsTxt {
 
     public static final float UNSPECIFIED_CRAWL_DELAY = -1;
 
-    private static final IRobotsTxtFilter[] EMPTY_ROBOTSTXT_FILTERS =
-            new IRobotsTxtFilter[] {};
-    
     //TODO delete this variable that contains all of them?
-    private final IRobotsTxtFilter[] filters;
-    private final IRobotsTxtFilter[] disallowFilters;
-    private final IRobotsTxtFilter[] allowFilters;
+    private final List<IRobotsTxtFilter> filters = new ArrayList<>();
+    private final List<IRobotsTxtFilter> disallowFilters = new ArrayList<>();
+    private final List<IRobotsTxtFilter> allowFilters = new ArrayList<>();
     private final float crawlDelay;
-    private final String[] sitemapLocations;
-    
-    public RobotsTxt(IRobotsTxtFilter[] filters) {
+    private final List<String> sitemapLocations = new ArrayList<>();
+
+    /**
+     * Creates a new robot txt object with the supplied filters.
+     * @param filters filters
+     */
+    public RobotsTxt(IRobotsTxtFilter... filters) {
+        this(CollectionUtil.asListOrEmpty(filters), UNSPECIFIED_CRAWL_DELAY);
+    }
+    /**
+     * Creates a new robot txt object with the supplied filters.
+     * @param filters filters
+     * @since 3.0.0
+     */
+    public RobotsTxt(List<IRobotsTxtFilter> filters) {
         this(filters, UNSPECIFIED_CRAWL_DELAY);
     }
-    public RobotsTxt(IRobotsTxtFilter[] filters, float crawlDelay) {
+    public RobotsTxt(List<IRobotsTxtFilter> filters, float crawlDelay) {
         this(filters, null, crawlDelay);
     }
-    public RobotsTxt(IRobotsTxtFilter[] filters, String[] sitemapLocations) {
+    public RobotsTxt(
+            List<IRobotsTxtFilter> filters, List<String> sitemapLocations) {
         this(filters, sitemapLocations, UNSPECIFIED_CRAWL_DELAY);
     }
-    public RobotsTxt(IRobotsTxtFilter[] filters, String[] sitemapLocations, 
-            float crawlDelay) {
+    public RobotsTxt(List<IRobotsTxtFilter> filters,
+            List<String> sitemapLocations, float crawlDelay) {
         super();
-        this.filters = ArrayUtils.clone(filters);
-        this.sitemapLocations = ArrayUtils.clone(sitemapLocations);
+
+        CollectionUtil.setAll(this.filters, filters);
+        CollectionUtil.setAll(this.sitemapLocations, sitemapLocations);
         this.crawlDelay = crawlDelay;
-        
-        if (filters == null) {
-            this.disallowFilters = null;
-            this.allowFilters = null;
-        } else {
+
+        if (!this.filters.isEmpty()) {
             List<IRobotsTxtFilter> disallows = new ArrayList<>();
             List<IRobotsTxtFilter> allows = new ArrayList<>();
             for (IRobotsTxtFilter filter : this.filters) {
@@ -67,83 +77,53 @@ public class RobotsTxt {
                     allows.add(filter);
                 }
             }
-            this.disallowFilters = disallows.toArray(EMPTY_ROBOTSTXT_FILTERS);
-            this.allowFilters = allows.toArray(EMPTY_ROBOTSTXT_FILTERS);
+            CollectionUtil.setAll(this.disallowFilters, disallows);
+            CollectionUtil.setAll(this.allowFilters, allows);
         }
     }
 
     //TODO deprecate?
     /**
      * Gets all filters.
-     * @return filters
+     * @return filters (never <code>null</code>)
      */
-    public IRobotsTxtFilter[] getFilters() {
-        return ArrayUtils.clone(filters);
+    public List<IRobotsTxtFilter> getFilters() {
+        return Collections.unmodifiableList(filters);
     }
     /**
      * Gets "Disallow" filters.
-     * @return disallow filters
+     * @return disallow filters (never <code>null</code>)
      * @since 2.4.0
      */
-    public IRobotsTxtFilter[] getDisallowFilters() {
-        return ArrayUtils.clone(disallowFilters);
+    public List<IRobotsTxtFilter> getDisallowFilters() {
+        return Collections.unmodifiableList(disallowFilters);
     }
     /**
      * Gets "Allow" filters.
-     * @return allow filters
+     * @return allow filters (never <code>null</code>)
      * @since 2.4.0
      */
-    public IRobotsTxtFilter[] getAllowFilters() {
-        return ArrayUtils.clone(allowFilters);
+    public List<IRobotsTxtFilter> getAllowFilters() {
+        return Collections.unmodifiableList(allowFilters);
     }
-    public String[] getSitemapLocations() {
-        return ArrayUtils.clone(sitemapLocations);
+    public List<String> getSitemapLocations() {
+        return Collections.unmodifiableList(sitemapLocations);
     }
     public float getCrawlDelay() {
         return crawlDelay;
     }
+
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + Float.floatToIntBits(crawlDelay);
-        result = prime * result + Arrays.hashCode(filters);
-        result = prime * result + Arrays.hashCode(sitemapLocations);
-        return result;
+    public boolean equals(final Object other) {
+        return EqualsBuilder.reflectionEquals(this, other);
     }
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        RobotsTxt other = (RobotsTxt) obj;
-        if (Float.floatToIntBits(crawlDelay) != Float
-                .floatToIntBits(other.crawlDelay)) {
-            return false;
-        }
-        if (!Arrays.equals(filters, other.filters)) {
-            return false;
-        }
-        if (!Arrays.equals(sitemapLocations, other.sitemapLocations)) {
-            return false;
-        }
-        return true;
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
     @Override
     public String toString() {
-        ToStringBuilder builder = new ToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE);
-        builder.append("filters", filters);
-        builder.append("crawlDelay", crawlDelay);
-        builder.append("sitemapLocations", sitemapLocations);
-        return builder.toString();
+        return new ReflectionToStringBuilder(this,
+                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
-    
-    
 }

@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.norconex.collector.http.url;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
@@ -27,13 +27,13 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  * @author Pascal Essiembre
  */
 public class Link implements Comparable<Link> {
-    
+
     private final String url;
     private String text;
     private String referrer;
     private String tag;
     private String title;
-    
+
     public Link(String url) {
         super();
         this.url = url;
@@ -57,7 +57,7 @@ public class Link implements Comparable<Link> {
     public void setReferrer(String referrer) {
         this.referrer = referrer;
     }
-    
+
     public String getTag() {
         return tag;
     }
@@ -74,40 +74,19 @@ public class Link implements Comparable<Link> {
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof Link))
-            return false;
-        Link castOther = (Link) other;
-        return new EqualsBuilder()
-                .append(url, castOther.url)
-                .append(tag, castOther.tag)
-                .append(text, castOther.text)
-                .append(title, castOther.title)
-                .append(referrer, castOther.referrer)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .append(url)
-                .append(tag)
-                .append(text)
-                .append(title)
-                .append(referrer)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+    @Override
+    public String toString() {
+        return new ReflectionToStringBuilder(this,
+                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 
     @Override
-    public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("url", url)
-                .append("tag", tag)
-                .append("text", text)
-                .append("title", title)
-                .append("referrer", referrer)
-                .toString();
-    }
-
     public int compareTo(final Link other) {
         return new CompareToBuilder().append(url, other.url).toComparison();
     }

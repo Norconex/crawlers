@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
  */
 package com.norconex.collector.http.robot;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class RobotsMeta {
     private final boolean nofollow;
@@ -32,22 +34,16 @@ public class RobotsMeta {
         return noindex;
     }
     @Override
-    public String toString() {
-        return "RobotsMeta [nofollow=" + nofollow + ", noindex=" + noindex
-                + "]";
-    }
-    @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof RobotsMeta)) {
-            return false;
-        }
-        RobotsMeta castOther = (RobotsMeta) other;
-        return new EqualsBuilder().append(nofollow, castOther.nofollow)
-                .append(noindex, castOther.noindex).isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(nofollow).append(noindex)
-                    .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+    @Override
+    public String toString() {
+        return new ReflectionToStringBuilder(this,
+                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

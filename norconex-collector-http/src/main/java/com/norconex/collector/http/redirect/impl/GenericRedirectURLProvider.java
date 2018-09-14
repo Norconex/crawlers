@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Norconex Inc.
+/* Copyright 2015-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,13 @@
  */
 package com.norconex.collector.http.redirect.impl;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
@@ -39,28 +33,27 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.tika.utils.CharsetUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.redirect.IRedirectURLProvider;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.XML;
 
 /**
- * <p>Provide redirect URLs by grabbing them from the HTTP Response 
+ * <p>Provide redirect URLs by grabbing them from the HTTP Response
  * <code>Location</code> header value. The URL is made absolute and
  * an attempt is made to fix possible character encoding issues.</p>
- * 
+ *
  * <p>
- * The <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC 2616</a> 
- * specification mentions that the <code>Location</code> header 
- * should contain a URI as defined by the 
+ * The <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC 2616</a>
+ * specification mentions that the <code>Location</code> header
+ * should contain a URI as defined by the
  * <a href="http://www.ietf.org/rfc/rfc1630.txt">RFC 1630</a> specification.
  * The later requires that a URI be 7-bit ASCII with any special characters
- * URL encoded.  
+ * URL encoded.
  * Some redirect URLs do not conform to that so we apply the following logic
  * in an attempt to fix them:
  * </p>
@@ -72,7 +65,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *         Yes: No attempt to fix it is made.
  *       </li>
  *       <li>
- *         No: Does the HTTP response specify a character encoding in the 
+ *         No: Does the HTTP response specify a character encoding in the
  *         <code>Content-Type</code> header?
  *         <ul>
  *           <li>
@@ -95,14 +88,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     </ul>
  *   </li>
  * </ul>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;redirectURLProvider 
+ *  &lt;redirectURLProvider
  *      class="com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider"
  *      fallbackCharset="(character encoding)" /&gt;
- * </pre> 
- * 
+ * </pre>
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following sets the default character encoding to be "ISO-8859-1" when
@@ -111,22 +104,22 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <pre>
  *  &lt;redirectURLProvider fallbackCharset="ISO-8859-1" /&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  * @since 2.4.0
  */
-public class GenericRedirectURLProvider 
+public class GenericRedirectURLProvider
         implements IRedirectURLProvider, IXMLConfigurable {
 
-    private static final Logger LOG = 
-            LogManager.getLogger(GenericRedirectURLProvider.class);
-    
-    public static final String DEFAULT_FALLBACK_CHARSET = 
+    private static final Logger LOG =
+            LoggerFactory.getLogger(GenericRedirectURLProvider.class);
+
+    public static final String DEFAULT_FALLBACK_CHARSET =
             StandardCharsets.UTF_8.toString();
 
     private static final int ASCII_MAX_CODEPOINT = 128;
-    
-    private String fallbackCharset = DEFAULT_FALLBACK_CHARSET; 
+
+    private String fallbackCharset = DEFAULT_FALLBACK_CHARSET;
 
     public String getFallbackCharset() {
         return fallbackCharset;
@@ -138,23 +131,23 @@ public class GenericRedirectURLProvider
     @Override
     public String provideRedirectURL(HttpRequest request,
             HttpResponse response, HttpContext context) {
-        HttpRequest currentReq = (HttpRequest) context.getAttribute( 
+        HttpRequest currentReq = (HttpRequest) context.getAttribute(
                 HttpCoreContext.HTTP_REQUEST);
-        HttpHost currentHost = (HttpHost)  context.getAttribute( 
+        HttpHost currentHost = (HttpHost)  context.getAttribute(
                 HttpCoreContext.HTTP_TARGET_HOST);
-        
+
         String originalURL = toAbsoluteURI(currentHost, currentReq);
-        
+
         //--- Location ---
         Header hl = response.getLastHeader(HttpHeaders.LOCATION);
         if (hl == null) {
             //TODO should throw exception instead?
-            LOG.error("Redirect detected to a null Location for: " 
-                    + toAbsoluteURI(currentHost, currentReq));
+            LOG.error("Redirect detected to a null Location for: {}",
+                    toAbsoluteURI(currentHost, currentReq));
             return null;
         }
         String redirectLocation = hl.getValue();
-        
+
         //--- Charset ---
         String charset = null;
         Header hc = response.getLastHeader("Content-Type");
@@ -168,20 +161,20 @@ public class GenericRedirectURLProvider
         if (StringUtils.isBlank(charset)) {
             charset = fallbackCharset;
         }
-        
+
         //--- Build/fix redirect URL ---
         String targetURL = HttpURL.toAbsolute(originalURL, redirectLocation);
         targetURL = resolveRedirectURL(targetURL, charset);
-        
+
         if (LOG.isDebugEnabled()) {
-            LOG.debug("URL redirect: " + originalURL + " -> " + targetURL);
+            LOG.debug("URL redirect: {} -> {}", originalURL, targetURL);
         }
         return targetURL;
     }
-    
+
     private String toAbsoluteURI(HttpHost host, HttpRequest req) {
         HttpRequest originalReq = req;
-        
+
         // Check if we can get full URL from a nested request, to keep
         // the #fragment, if present.
         if (req instanceof HttpRequestWrapper) {
@@ -199,7 +192,7 @@ public class GenericRedirectURLProvider
             }
             return host.toURI() + httpReq.getURI();
         }
-        
+
         // if not a friendly type, doing in a more generic way
         RequestLine reqLine = originalReq.getRequestLine();
         if (reqLine != null) {
@@ -207,11 +200,11 @@ public class GenericRedirectURLProvider
         }
         return null;
     }
-    
+
     //TODO is there value in moving this method to somewhere re-usable?
     private String resolveRedirectURL(
             final String redirectURL, final String nonAsciiCharset) {
-        
+
         String url = redirectURL;
 
         // Is string containing only ASCII as it should?
@@ -230,9 +223,9 @@ public class GenericRedirectURLProvider
         } else {
             LOG.warn("Redirect URI made of 7-bit clean ASCII. "
                     + "It probably is not encoded properly. "
-                    + "Will try to fix. Redirect URL: " + redirectURL);
+                    + "Will try to fix. Redirect URL: {}", redirectURL);
         }
-        
+
         // try to fix if non ascii charset is non UTF8.
         if (StringUtils.isNotBlank(nonAsciiCharset)) {
             String charset = CharsetUtils.clean(nonAsciiCharset);
@@ -241,69 +234,38 @@ public class GenericRedirectURLProvider
                     url = new String(url.getBytes(charset));
                     return url;
                 } catch (UnsupportedEncodingException e) {
-                    LOG.warn("Could not fix badly encoded URL with charset \""
-                            + charset + "\". Redirect URL: " + redirectURL, e);
+                    LOG.warn("Could not fix badly encoded URL with charset "
+                            + "\"{}\". Redirect URL: {}",
+                            charset, redirectURL, e);
                 }
             }
         }
-        
+
         // If all fails, fall back to UTF8
         url = new String(url.getBytes(StandardCharsets.UTF_8));
         return url;
     }
-    
-    @Override
-    public void loadFromXML(Reader in) {
-        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        setFallbackCharset(
-                xml.getString("[@fallbackCharset]", getFallbackCharset()));
-    }
-    @Override
-    public void saveToXML(Writer out) throws IOException {
-        try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
-            writer.writeStartElement("redirectURLProvider");
-            writer.writeAttribute("class", getClass().getCanonicalName());
 
-            writer.writeAttribute("fallbackCharset", getFallbackCharset());
-            
-            writer.writeEndElement();
-            
-            writer.flush();
-            writer.close();
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
-        }
-    }
-    
     @Override
-    public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-            .append("fallbackCharset", fallbackCharset)
-            .toString();
+    public void loadFromXML(XML xml) {
+        setFallbackCharset(xml.getString("@fallbackCharset", fallbackCharset));
+    }
+    @Override
+    public void saveToXML(XML xml) {
+        xml.setAttribute("fallbackCharset", fallbackCharset);
     }
 
+    @Override
+    public boolean equals(final Object other) {
+        return EqualsBuilder.reflectionEquals(this, other);
+    }
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-            .append(fallbackCharset)
-            .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof GenericRedirectURLProvider)) {
-            return false;
-        }
-        GenericRedirectURLProvider other = (GenericRedirectURLProvider) obj;
-        return new EqualsBuilder()
-            .append(fallbackCharset, other.fallbackCharset)
-            .isEquals();
+    public String toString() {
+        return new ReflectionToStringBuilder(this,
+                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

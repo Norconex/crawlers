@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,31 +18,35 @@ import java.io.IOException;
 
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.crawler.ICrawlerConfig;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.TestUtil;
 import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTest;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
-
+import com.norconex.commons.lang.xml.XML;
 public class H2CrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
-	
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(H2CrawlDataStoreTest.class);
+
     @Override
     protected ICrawlDataStore createCrawlDataStore(
             ICrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
         return new JDBCCrawlDataStoreFactory().createCrawlDataStore(
                 config, resume);
     }
-    
+
     @Test
     public void testValidation() throws IOException {
         TestUtil.testValidation(getClass());
     }
-    
+
     @Test
     public void testWriteRead() throws IOException {
         JDBCCrawlDataStoreFactory f = new JDBCCrawlDataStoreFactory();
-        System.out.println("Writing/Reading this: " + f);
-        XMLConfigurationUtil.assertWriteRead(f);
+        LOG.debug("Writing/Reading this: {}", f);
+        XML.assertWriteRead(f, "crawlDataStoreFactory");
     }
 }

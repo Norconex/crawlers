@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,28 @@ package com.norconex.collector.http.processor.impl;
 
 import java.awt.Dimension;
 import java.io.IOException;
+import java.nio.file.Paths;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.processor.impl.FeaturedImageProcessor.Quality;
 import com.norconex.collector.http.processor.impl.FeaturedImageProcessor.Storage;
 import com.norconex.collector.http.processor.impl.FeaturedImageProcessor.StorageDiskStructure;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
-
+import com.norconex.commons.lang.xml.XML;
 public class FeaturedImageProcessorTest {
-    
-    private static final Logger LOG = LogManager.getLogger(
+
+    private static final Logger LOG = LoggerFactory.getLogger(
             FeaturedImageProcessorTest.class);
-    
+
     @Test
     public void testWriteRead() throws IOException {
         FeaturedImageProcessor p = new FeaturedImageProcessor();
 
         // All settings
         p.setDomSelector("dom.dom");
-        p.setImageCacheDir("c:\\somedir");
+        p.setImageCacheDir(Paths.get("c:\\somedir"));
         p.setImageCacheSize(5000);
         p.setImageFormat("jpg");
         p.setLargest(true);
@@ -54,8 +54,8 @@ public class FeaturedImageProcessorTest {
         p.setStorageUrlField("urlField");
 
         LOG.info("Writing/Reading this: " + p);
-        XMLConfigurationUtil.assertWriteRead(p);
-        
+        XML.assertWriteRead(p, "processor");
+
         // Mostly empty
         p.setDomSelector(null);
         p.setImageCacheDir(null);
@@ -75,7 +75,7 @@ public class FeaturedImageProcessorTest {
         p.setStorageUrlField(null);
 
         LOG.info("Writing/Reading this: " + p);
-        XMLConfigurationUtil.assertWriteRead(p);
-        
+        XML.assertWriteRead(p, "processor");
+
     }
 }

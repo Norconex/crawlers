@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Norconex Inc.
+/* Copyright 2015-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,15 @@ package com.norconex.collector.http.fetch.impl;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.xml.XML;
 
 public class GenericDocumentFetcherTest  {
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(GenericDocumentFetcherTest.class);
 
     @Test
     public void testWriteRead() throws IOException {
@@ -30,8 +35,8 @@ public class GenericDocumentFetcherTest  {
         f.setHeadersPrefix("blah");
         f.setDetectCharset(true);
         f.setDetectContentType(true);
-        System.out.println("Writing/Reading this: " + f);
-        XMLConfigurationUtil.assertWriteRead(f);
+        LOG.debug("Writing/Reading this: {}", f);
+        XML.assertWriteRead(f, "documentFetcher");
     }
 
 }

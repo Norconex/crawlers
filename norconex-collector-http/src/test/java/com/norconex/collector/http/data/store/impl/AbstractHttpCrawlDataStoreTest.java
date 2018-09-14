@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,10 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         // Disabling durability increases test performance by a HUGE factor.
         System.setProperty("derby.system.durability", "test");
     }
-    
+
     @Rule
     public final TemporaryFolder tempFolder = new TemporaryFolder();
-    
+
     private ICrawlDataStore crawlStore;
     private ICrawlerConfig crawlerConfig;
 
@@ -71,7 +71,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         // the tempFolder is re-created at each test
         crawlStore = createCrawlDataStore(crawlerConfig, tempFolder, false);
     }
-    
+
     @After
     public void tearDown() throws Exception {
         if (crawlStore != null) {
@@ -83,17 +83,17 @@ public abstract class AbstractHttpCrawlDataStoreTest {
             String crawlerId, TemporaryFolder tempFolder) {
         HttpCrawlerConfig config = new HttpCrawlerConfig();
         config.setId(crawlerId);
-        config.setWorkDir(tempFolder.getRoot());
+        config.setWorkDir(tempFolder.getRoot().toPath());
         return config;
     }
-    
+
     protected void resetDatabase(boolean resume) {
         if (crawlStore != null) {
             crawlStore.close();
         }
         crawlStore = createCrawlDataStore(
                 getCrawlerConfig(), getTempfolder(), resume);
-    }    
+    }
     protected void moveProcessedToCache() {
         // Resetting the database with the "resume" option disabled will
         // transfer all the processed references to the cache for most
@@ -103,23 +103,23 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     protected String getCrawlerId() {
         return getClass().getSimpleName();
     }
-    
+
     protected abstract ICrawlDataStore createCrawlDataStore(
             ICrawlerConfig config, TemporaryFolder tempFolder, boolean resume);
 
 
     //--- Tests ----------------------------------------------------------------
-    
+
     @Test
     public void testWriteReadNulls() throws Exception {
         String ref = "http://testrefnulls.com";
-        HttpCrawlData dataIn = new HttpCrawlData(ref, 1);        
+        HttpCrawlData dataIn = new HttpCrawlData(ref, 1);
         crawlStore.processed(dataIn);
         moveProcessedToCache();
-        ICrawlData dataOut = (ICrawlData) crawlStore.getCached(ref);
+        ICrawlData dataOut = crawlStore.getCached(ref);
         assertEquals(dataIn, dataOut);
     }
-    
+
     @Test
     public void testWriteReadNoNulls() throws Exception {
         String url = "http://testurlnonulls.com";
@@ -142,8 +142,8 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         dataIn.setReferencedUrls("url1", "url2", "url3", "url4", "url5");
         getCrawlDataStore().processed(dataIn);
         moveProcessedToCache();
-        HttpCrawlData dataOut = 
+        HttpCrawlData dataOut =
                 (HttpCrawlData) getCrawlDataStore().getCached(url);
         assertEquals(dataIn, dataOut);
-    }    
+    }
 }

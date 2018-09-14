@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,22 +33,22 @@ import com.norconex.commons.lang.pipeline.Pipeline;
  * @author Pascal Essiembre
  *
  */
-public class HttpImporterPipeline 
+public class HttpImporterPipeline
         extends Pipeline<ImporterPipelineContext> {
 
     //TODO create a DocumentPipelinePrototype to generate prototypes
-    //sharing all thread safe/common information, 
+    //sharing all thread safe/common information,
     //just changing what is url/doc specific.
-    
+
     public HttpImporterPipeline(boolean isKeepDownloads, boolean isOrphan) {
-        
+
         // if an orphan is reprocessed, it could be that it is no longer
         // referenced because of deletion.  Because of that, we need
         // to process it again to find out.
         if (!isOrphan) {
             addStage(new RecrawlableResolverStage());
         }
-        
+
         //TODO rename DelayResolver to HitInterval ??
         addStage(new DelayResolverStage());
 
@@ -57,7 +57,7 @@ public class HttpImporterPipeline
         addStage(new MetadataFiltersHEADStage());
         addStage(new MetadataCanonicalHEADStage());
         addStage(new MetadataChecksumStage(true));
-        
+
         // HTTP "GET" and onward:
         addStage(new DocumentFetcherStage());
         if (isKeepDownloads) {
@@ -71,8 +71,8 @@ public class HttpImporterPipeline
         addStage(new MetadataFiltersGETStage());
         addStage(new MetadataChecksumStage(false));
         addStage(new DocumentFiltersStage());
-        addStage(new DocumentPreProcessingStage());        
-        addStage(new ImportModuleStage());        
+        addStage(new DocumentPreProcessingStage());
+        addStage(new ImportModuleStage());
     }
 
     //--- Wait for delay to expire ---------------------------------------------
@@ -84,9 +84,9 @@ public class HttpImporterPipeline
                 if (!ctx.getConfig().isIgnoreRobotsTxt()) {
                     delayResolver.delay(
                             ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
-                                    ctx.getHttpClient(), 
-                                    ctx.getCrawlData().getReference(), 
-                                    ctx.getConfig().getUserAgent()), 
+                                    ctx.getHttpClient(),
+                                    ctx.getCrawlData().getReference(),
+                                    ctx.getConfig().getUserAgent()),
                             ctx.getCrawlData().getReference());
                 } else {
                     delayResolver.delay(
@@ -97,13 +97,13 @@ public class HttpImporterPipeline
         }
     }
 
-    
+
     //--- HTTP Headers Filters -------------------------------------------------
-    private static class MetadataFiltersHEADStage 
+    private static class MetadataFiltersHEADStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
-            if (ctx.getHttpHeadersFetcher() != null 
+            if (ctx.getHttpHeadersFetcher() != null
                     && ImporterPipelineUtil.isHeadersRejected(ctx)) {
                 ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
                 return false;
@@ -113,7 +113,7 @@ public class HttpImporterPipeline
     }
 
     //--- HTTP Headers Canonical URL handling ----------------------------------
-    private static class MetadataCanonicalHEADStage 
+    private static class MetadataCanonicalHEADStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
@@ -126,7 +126,7 @@ public class HttpImporterPipeline
     }
 
     //--- HTTP Headers Canonical URL after fetch -------------------------------
-    private static class MetadataCanonicalGETStage 
+    private static class MetadataCanonicalGETStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
@@ -135,14 +135,14 @@ public class HttpImporterPipeline
     }
 
     //--- Document Canonical URL from <head> -----------------------------------
-    private static class DocumentCanonicalStage 
+    private static class DocumentCanonicalStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             return HttpImporterPipelineUtil.resolveCanonical(ctx, false);
         }
     }
-    
+
     //--- Robots Meta Creation -------------------------------------------------
     private static class RobotsMetaCreateStage extends AbstractImporterStage {
         @Override
@@ -160,12 +160,12 @@ public class HttpImporterPipeline
                                 ctx.getMetadata()));
                 reader.close();
 
-                ctx.getCrawler().fireCrawlerEvent(
-                        HttpCrawlerEvent.CREATED_ROBOTS_META, 
-                        ctx.getCrawlData(), 
+                ctx.fireCrawlerEvent(
+                        HttpCrawlerEvent.CREATED_ROBOTS_META,
+                        ctx.getCrawlData(),
                         ctx.getRobotsMeta());
             } catch (IOException e) {
-                throw new CollectorException("Cannot create RobotsMeta for : " 
+                throw new CollectorException("Cannot create RobotsMeta for : "
                                 + ctx.getCrawlData().getReference(), e);
             }
             return true;
@@ -176,14 +176,14 @@ public class HttpImporterPipeline
     private static class RobotsMetaNoIndexStage extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
-            boolean canIndex = ctx.getConfig().isIgnoreRobotsMeta() 
+            boolean canIndex = ctx.getConfig().isIgnoreRobotsMeta()
                     || ctx.getRobotsMeta() == null
                     || !ctx.getRobotsMeta().isNoindex();
             if (!canIndex) {
-                
-                ctx.getCrawler().fireCrawlerEvent(
-                        HttpCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX, 
-                        ctx.getCrawlData(), 
+
+                ctx.fireCrawlerEvent(
+                        HttpCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX,
+                        ctx.getCrawlData(),
                         ctx.getRobotsMeta());
                 ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
                 return false;
@@ -191,9 +191,9 @@ public class HttpImporterPipeline
             return canIndex;
         }
     }
-    
+
     //--- Headers filters if not done already ----------------------------------
-    private static class MetadataFiltersGETStage 
+    private static class MetadataFiltersGETStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
@@ -205,10 +205,10 @@ public class HttpImporterPipeline
             }
             return true;
         }
-    }    
-    
+    }
+
     //--- Document Pre-Processing ----------------------------------------------
-    private static class DocumentPreProcessingStage 
+    private static class DocumentPreProcessingStage
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
@@ -217,9 +217,9 @@ public class HttpImporterPipeline
                         ctx.getConfig().getPreImportProcessors()) {
                     preProc.processDocument(
                             ctx.getHttpClient(), ctx.getDocument());
-                    
-                    ctx.getCrawler().fireCrawlerEvent(
-                            HttpCrawlerEvent.DOCUMENT_PREIMPORTED, 
+
+                    ctx.fireCrawlerEvent(
+                            HttpCrawlerEvent.DOCUMENT_PREIMPORTED,
                             ctx.getCrawlData(), preProc);
                 }
             }

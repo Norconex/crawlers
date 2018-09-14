@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,19 @@ package com.norconex.collector.http.delay.impl;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.commons.lang.Sleeper;
 
 public class SiteDelay extends AbstractDelay {
 
-    private Map<String, SleepState> siteLastHitNanos = 
+    private final Map<String, SleepState> siteLastHitNanos =
             new ConcurrentHashMap<>();
-    
+
     @Override
     public void delay(long expectedDelayNanos, String url) {
         if (expectedDelayNanos <= 0) {
@@ -38,11 +40,8 @@ public class SiteDelay extends AbstractDelay {
         SleepState sleepState = null;
         try {
             synchronized (siteLastHitNanos) {
-                sleepState = siteLastHitNanos.get(site);
-                if (sleepState == null) {
-                    siteLastHitNanos.put(site, new SleepState());
-                    return;
-                }
+                sleepState = siteLastHitNanos.computeIfAbsent(
+                        site, k -> new SleepState());
                 while (sleepState.sleeping) {
                     Sleeper.sleepNanos(Math.min(
                             TINY_SLEEP_MS, expectedDelayNanos));
@@ -63,18 +62,16 @@ public class SiteDelay extends AbstractDelay {
         private boolean sleeping;
         @Override
         public boolean equals(final Object other) {
-            if (!(other instanceof SleepState)) {
-                return false;
-            }
-            SleepState castOther = (SleepState) other;
-            return new EqualsBuilder()
-                    .append(lastHitEpochNanos, castOther.lastHitEpochNanos)
-                    .append(sleeping, castOther.sleeping).isEquals();
+            return EqualsBuilder.reflectionEquals(this, other);
         }
         @Override
         public int hashCode() {
-            return new HashCodeBuilder().append(lastHitEpochNanos)
-                    .append(sleeping).toHashCode();
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
+        @Override
+        public String toString() {
+            return new ReflectionToStringBuilder(
+                    this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
         }
     }
 }

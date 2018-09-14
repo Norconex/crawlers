@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Norconex Inc.
+/* Copyright 2015-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,15 @@ import java.util.List;
 import org.joda.time.LocalDateTime;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.delay.impl.GenericDelayResolver.DelaySchedule;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
-
+import com.norconex.commons.lang.xml.XML;
 public class GenericDelayResolverTest {
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(GenericDelayResolverTest.class);
 
     @Test
     public void testWriteRead() throws IOException {
@@ -36,21 +40,21 @@ public class GenericDelayResolverTest {
         List<DelaySchedule> schedules = new ArrayList<>();
         schedules.add(new DelaySchedule(
                 "from Monday to Wednesday",
-                "from 1 to 15", 
+                "from 1 to 15",
                 "from 1:00 to 2:00",
                 1000));
         r.setSchedules(schedules);
 
-        System.out.println("Writing/Reading this: " + r);
-        XMLConfigurationUtil.assertWriteRead(r);
+        LOG.debug("Writing/Reading this: {}", r);
+        XML.assertWriteRead(r, "delay");
     }
 
-    
+
     @Test
     public void testDelayScheduleBoundaries() throws IOException {
         //FYI: Jan 1, 2000 was a Saturday
         DelaySchedule schedule = null;
-        
+
         schedule = new DelaySchedule(
                 "Mon to Wed", "1 to 15", "13:00 to 14:00", 0);
         Assert.assertTrue(schedule.isDateTimeInSchedule(
@@ -62,11 +66,11 @@ public class GenericDelayResolverTest {
                 "Fri to Tue", "25 to 5", "22:00 to 6:00", 0);
         Assert.assertTrue(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-01T23:30")));
-    
+
         schedule = new DelaySchedule(
                 "Sat to Tue", "25 to 1", "23:30 to 23:30", 0);
         Assert.assertTrue(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-01T23:30")));
-    
+
     }
 }

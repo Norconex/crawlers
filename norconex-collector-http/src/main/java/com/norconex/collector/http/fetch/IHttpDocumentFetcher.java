@@ -19,7 +19,7 @@ import org.apache.http.client.HttpClient;
 import com.norconex.collector.http.doc.HttpDocument;
 
 /**
- * Fetches the HTTP document and its metadata (HTTP Headers).  The 
+ * Fetches the HTTP document and its metadata (HTTP Headers).  The
  * document metadata is populated with the HTTP Headers and the document body
  * is saved to the document local file.
  * @author Pascal Essiembre
@@ -32,7 +32,6 @@ public interface IHttpDocumentFetcher {
 	 * @param doc the document to fetch and save
 	 * @return fetch response
 	 */
-    HttpFetchResponse fetchDocument(
-	        HttpClient httpClient, HttpDocument doc);
-	
+    HttpFetchResponse fetchDocument(HttpClient httpClient, HttpDocument doc);
+
 }

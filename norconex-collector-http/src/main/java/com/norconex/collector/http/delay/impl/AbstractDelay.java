@@ -16,8 +16,8 @@ package com.norconex.collector.http.delay.impl;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.Sleeper;
 
@@ -27,7 +27,7 @@ import com.norconex.commons.lang.Sleeper;
  */
 public abstract class AbstractDelay {
 
-    private static final Logger LOG = LogManager.getLogger(AbstractDelay.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractDelay.class);
 
     protected static final int TINY_SLEEP_MS = 10;
     private static final float THOUSAND_MILLIS = 1000f;

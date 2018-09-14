@@ -7,6 +7,34 @@
   </properties>
   <body>
 
+    <release version="3.0.0-SNAPSHOT" date="2018-??-??" description="Major release">
+      <action dev="essiembre" type="update">
+        Now using XML class from Norconex Commons Lang for loading/saving
+        configuration.
+      </action>
+      <action dev="essiembre" type="update">
+        Now using SLF4J for logging.
+      </action>
+      <action dev="essiembre" type="update">
+        Dependency updates: Norconex Collector Core 2.0.0. 
+      </action>
+      <action dev="essiembre" type="update">
+        Now requires Java 8 or higher.
+      </action>
+      <action dev="essiembre" type="update">
+        Lists are now replacing arrays in most places.
+      </action>
+      <action dev="essiembre" type="remove">
+        Removed some code deprecated in releases before 3.0.0. 
+      </action>
+      <action dev="essiembre" type="update">
+        Path is used in addition/instead of File in many places.
+      </action>
+      <action dev="essiembre" type="add">
+        New HttpCollectorEvent.
+      </action>
+    </release>
+
     <release version="2.8.1" date="2018-08-17" description="Maintenance release">
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.9.1,
@@ -152,7 +180,6 @@
         Fixed "caseSensitive" flag sometimes having no effect in 
         GenericRecrawlableResolver.
       </action>
-      
     </release>
     
     <release version="2.7.0" date="2017-04-26" description="Feature release">

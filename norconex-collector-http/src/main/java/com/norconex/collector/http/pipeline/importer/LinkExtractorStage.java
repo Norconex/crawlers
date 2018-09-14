@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@ package com.norconex.collector.http.pipeline.importer;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
@@ -41,29 +42,27 @@ import com.norconex.commons.lang.io.CachedInputStream;
  */
 /*default*/ class LinkExtractorStage extends AbstractImporterStage {
 
-    private static final Logger LOG = 
-            LogManager.getLogger(LinkExtractorStage.class);
-    
+    private static final Logger LOG =
+            LoggerFactory.getLogger(LinkExtractorStage.class);
+
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
         String reference = ctx.getCrawlData().getReference();
-        
-        ILinkExtractor[] extractors = ctx.getConfig().getLinkExtractors();
-        if (ArrayUtils.isEmpty(extractors)) {
+
+        List<ILinkExtractor> extractors = ctx.getConfig().getLinkExtractors();
+        if (extractors.isEmpty()) {
             LOG.debug("No configured link extractor.  No links will be "
                     + "detected.");
             return true;
         }
-        
-        if (ctx.getRobotsMeta() != null 
+
+        if (ctx.getRobotsMeta() != null
                 && ctx.getRobotsMeta().isNofollow()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No URLs extracted due to Robots nofollow rule "
-                        + "for URL: " + reference);
-            }
+            LOG.debug("No URLs extracted due to Robots nofollow rule "
+                    + "for URL: {}", reference);
             return true;
         }
-        
+
         Set<Link> links = new HashSet<>();
         CachedInputStream is = ctx.getContent();
         ContentType ct = ctx.getDocument().getContentType();
@@ -78,7 +77,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
                 }
             }
         }
-        
+
         Set<String> uniqueExtractedURLs = new HashSet<>();
         Set<String> uniqueQueuedURLs = new HashSet<>();
         Set<String> uniqueOutOfScopeURLs = new HashSet<>();
@@ -99,7 +98,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
                 } else  {
                     if (LOG.isTraceEnabled()) {
                         LOG.trace("URL not in crawl scope: "
-                                + link.getUrl() + " (keep: " 
+                                + link.getUrl() + " (keep: "
                                 + ctx.getConfig().isKeepOutOfScopeLinks()
                                 + ")");
                     }
@@ -109,16 +108,15 @@ import com.norconex.commons.lang.io.CachedInputStream;
                 }
             }
         }
-        
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("uniqueQueuedURLs count: "
                     + uniqueQueuedURLs.size() + ".");
         }
         if (!uniqueQueuedURLs.isEmpty()) {
-
-            String[] referencedUrls = 
+            String[] referencedUrls =
                     uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
-            ctx.getMetadata().addString(
+            ctx.getMetadata().add(
                     HttpMetadata.COLLECTOR_REFERENCED_URLS, referencedUrls);
             ctx.getCrawlData().setReferencedUrls(referencedUrls);
         }
@@ -128,23 +126,23 @@ import com.norconex.commons.lang.io.CachedInputStream;
                     + uniqueOutOfScopeURLs.size() + ".");
         }
         if (!uniqueOutOfScopeURLs.isEmpty()) {
-            ctx.getMetadata().addString(
-                   HttpMetadata.COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE, 
+            ctx.getMetadata().add(
+                   HttpMetadata.COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE,
                    uniqueOutOfScopeURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
-        
-        ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED, 
+
+        ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED,
                 ctx.getCrawlData(), uniqueQueuedURLs);
         return true;
     }
 
     // Executes HttpQueuePipeline if URL not already processed in that page
     // Returns a URL that was not already processed
-    private String queueURL(Link link, 
+    private String queueURL(Link link,
             HttpImporterPipelineContext ctx, Set<String> uniqueExtractedURLs) {
-        
+
         //TODO do we want to add all URLs in a page, or just the valid ones?
-        // i.e., those properly formatted.  If we do so, can it prevent 
+        // i.e., those properly formatted.  If we do so, can it prevent
         // weird/custom URLs that some link extractors may find valid?
         if (uniqueExtractedURLs.add(link.getUrl())) {
             HttpCrawlData newURL = new HttpCrawlData(
@@ -153,12 +151,12 @@ import com.norconex.commons.lang.io.CachedInputStream;
             newURL.setReferrerLinkTag(link.getTag());
             newURL.setReferrerLinkText(link.getText());
             newURL.setReferrerLinkTitle(link.getTitle());
-            HttpQueuePipelineContext newContext = 
-                    new HttpQueuePipelineContext(ctx.getCrawler(), 
+            HttpQueuePipelineContext newContext =
+                    new HttpQueuePipelineContext(ctx.getCrawler(),
                             ctx.getCrawlDataStore(), newURL);
             new HttpQueuePipeline().execute(newContext);
             String afterQueueURL = newURL.getReference();
-            if (LOG.isDebugEnabled() 
+            if (LOG.isDebugEnabled()
                     && !link.getUrl().equals(afterQueueURL)) {
                 LOG.debug("URL modified from \"" + link.getUrl()
                         + "\" to \"" + afterQueueURL);

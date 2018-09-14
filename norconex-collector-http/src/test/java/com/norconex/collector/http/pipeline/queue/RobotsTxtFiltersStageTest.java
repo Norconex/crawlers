@@ -1,4 +1,4 @@
-/* Copyright 2016 Norconex Inc.
+/* Copyright 2016-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,13 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
+import com.norconex.commons.lang.event.EventManager;
 
 /**
  * @author Pascal Essiembre
  */
 public class RobotsTxtFiltersStageTest {
-    
+
     @Test
     public void testAllow() throws IOException {
         // An allow for a robot rule should now be rejecting all non-allowing.
@@ -41,14 +42,14 @@ public class RobotsTxtFiltersStageTest {
                 "User-agent: *\n\n"
               + "Disallow: /rejectMost/*\n"
               + "Allow: /rejectMost/butNotThisOne/*\n";
-        
+
         Assert.assertFalse("Matches Disallow", testAllow(robotTxt,
                 "http://rejected.com/rejectMost/blah.html"));
         Assert.assertTrue("Matches Disallow AND Allow", testAllow(robotTxt,
                 "http://accepted.com/rejectMost/butNotThisOne/blah.html"));
         Assert.assertTrue("No match in robot.txt", testAllow(robotTxt,
                 "http://accepted.com/notListed/blah.html"));
-        
+
     }
     private boolean testAllow(
             final String robotTxt, final String url) throws IOException {
@@ -57,7 +58,7 @@ public class RobotsTxtFiltersStageTest {
             public synchronized RobotsTxt getRobotsTxt(
                     HttpClient httpClient, String url, String userAgent) {
                 try {
-                    return parseRobotsTxt(IOUtils.toInputStream(robotTxt, 
+                    return parseRobotsTxt(IOUtils.toInputStream(robotTxt,
                             StandardCharsets.UTF_8), url, "test-crawler");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -66,11 +67,11 @@ public class RobotsTxtFiltersStageTest {
         };
         HttpCrawlerConfig cfg = new HttpCrawlerConfig();
         cfg.setRobotsTxtProvider(provider);
-        
+
         HttpQueuePipelineContext ctx = new HttpQueuePipelineContext(
-                new HttpCrawler(cfg),
+                new HttpCrawler(cfg, new EventManager()),
                 null, new HttpCrawlData(url, 0));
         RobotsTxtFiltersStage filterStage = new RobotsTxtFiltersStage();
         return filterStage.execute(ctx);
-    }    
+    }
 }

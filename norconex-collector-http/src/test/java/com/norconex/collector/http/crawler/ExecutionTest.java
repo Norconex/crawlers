@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactor
 import com.norconex.committer.core.impl.FileSystemCommitter;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.commons.lang.file.IFileVisitor;
 import com.norconex.commons.lang.map.Properties;
 
 /**
@@ -64,16 +63,16 @@ public class ExecutionTest extends AbstractHttpTest {
      * Should be revisited if we find a way to make them more stable.
      * To enable, set the system property "enableRecoveryTests" to "true".
      */
-    public static final boolean ENABLE_RECOVERY_TESTS = 
+    public static final boolean ENABLE_RECOVERY_TESTS =
             Boolean.getBoolean("enableRecoveryTests");
-    
+
     private File workDir;
     private File committedDir;
     private File progressDir;
     private File varsFile;
     private File configFile;;
     private Properties vars;
-    
+
     /**
      * Constructor.
      */
@@ -91,7 +90,7 @@ public class ExecutionTest extends AbstractHttpTest {
                     + ExecutionTest.class.getCanonicalName() + ".");
         }
     }
-    
+
     @Before
     public void setup() throws IOException {
         workDir = getTempFolder().newFolder();
@@ -99,13 +98,13 @@ public class ExecutionTest extends AbstractHttpTest {
         progressDir = new File(workDir, "progress");
         varsFile = getTempFolder().newFile("test.properties");
         configFile = getTempFolder().newFile("test.cfg");
-        
+
         vars = new Properties();
-        vars.setString("startURL", newUrl("/test?case=basic&amp;depth=0"));
-        vars.setFile("workDir", workDir);
-        vars.setInt("maxDepth", 10);
-        vars.setInt("maxDocuments", 10);
-        vars.setInt("delay", 0);
+        vars.set("startURL", newUrl("/test?case=basic&amp;depth=0"));
+        vars.set("workDir", workDir);
+        vars.set("maxDepth", 10);
+        vars.set("maxDocuments", 10);
+        vars.set("delay", 0);
     }
     @After
     public void tearDown() throws IOException {
@@ -122,14 +121,13 @@ public class ExecutionTest extends AbstractHttpTest {
     }
 
     @Test
-    public void testWebPageModificationDetection() 
+    public void testWebPageModificationDetection()
             throws IOException, XMLStreamException {
         String startURL = newUrl("/test?case=modifiedFiles");
-        vars.setString("startURL", startURL);
-        vars.setClass(
-                "metadataChecksummer", LastModifiedMetadataChecksummer.class);
-        vars.setClass("documentChecksummer", MD5DocumentChecksummer.class);
-        
+        vars.set("startURL", startURL);
+        vars.set("metadataChecksummer", LastModifiedMetadataChecksummer.class);
+        vars.set("documentChecksummer", MD5DocumentChecksummer.class);
+
         int exitValue = 0;
 
         // Test once and make sure we get 4 additions in total.
@@ -139,11 +137,11 @@ public class ExecutionTest extends AbstractHttpTest {
                 4, countAddedFiles());
         ageProgress(progressDir);
         FileUtil.delete(committedDir);
-        
+
         // Test twice and make sure we get 1 add (3 unmodified), because:
         // Page 1 has new modified date, we check content. Content is same.
         // Page 2 has same modified date, we do not go further (ignore content).
-        // Page 3 has new modified date, so we check content. 
+        // Page 3 has new modified date, so we check content.
         // Content is modified.
         exitValue = runCollector("start", vars);
         Assert.assertEquals("Wrong exit value.", 0, exitValue);
@@ -151,20 +149,19 @@ public class ExecutionTest extends AbstractHttpTest {
                 1, countAddedFiles());
         ageProgress(progressDir);
         FileUtil.delete(committedDir);
-        
+
         //TODO test with just header checksum, then with just content checksum?
-    } 
-    
+    }
+
     @Test
-    public void testWebPageDeletionDetection() 
+    public void testWebPageDeletionDetection()
             throws IOException, XMLStreamException {
         String startURL = newUrl("/test?case=deletedFiles&amp;token="
                 + System.currentTimeMillis());
-        vars.setString("startURL", startURL);
-        vars.setClass(
-                "metadataChecksummer", LastModifiedMetadataChecksummer.class);
-        vars.setClass("documentChecksummer", MD5DocumentChecksummer.class);
-        
+        vars.set("startURL", startURL);
+        vars.set("metadataChecksummer", LastModifiedMetadataChecksummer.class);
+        vars.set("documentChecksummer", MD5DocumentChecksummer.class);
+
         int exitValue = 0;
 
         // Test once and make sure we get 4 additions in total.
@@ -176,7 +173,7 @@ public class ExecutionTest extends AbstractHttpTest {
                 0, countDeletedFiles());
         ageProgress(progressDir);
         FileUtil.delete(committedDir);
-        
+
         // Test twice and make sure we get 0 add (1 unmodified)
         // and 3 pages to delete.
         exitValue = runCollector("start", vars);
@@ -200,14 +197,14 @@ public class ExecutionTest extends AbstractHttpTest {
 
     //Test for https://github.com/Norconex/collector-http/issues/390
     @Test
-    public void testSitemapDelayWithURLDeletion() 
+    public void testSitemapDelayWithURLDeletion()
             throws IOException, XMLStreamException {
         String sitemapURL = newUrl("/test?case=sitemap&amp;token="
                 + System.currentTimeMillis());
-        vars.setString("sitemap", sitemapURL);
-        vars.setString("startURL", (String) null);
-        vars.setString("orphansStrategy", "PROCESS");
-        
+        vars.set("sitemap", sitemapURL);
+        vars.set("startURL", (String) null);
+        vars.set("orphansStrategy", "PROCESS");
+
         int exitValue = 0;
 
         // Test once and make sure we get 3 additions in total.
@@ -219,8 +216,8 @@ public class ExecutionTest extends AbstractHttpTest {
                 0, countDeletedFiles());
         ageProgress(progressDir);
         FileUtil.delete(committedDir);
-        
-        // Test twice and make sure we get 1 add, 2 unmodified and 
+
+        // Test twice and make sure we get 1 add, 2 unmodified and
         // 1 pages deleted, regardless of delay specified in sitemap.
         exitValue = runCollector("start", vars);
         Assert.assertEquals("Wrong exit value.", 0, exitValue);
@@ -230,24 +227,24 @@ public class ExecutionTest extends AbstractHttpTest {
                 1, countDeletedFiles());
         ageProgress(progressDir);
         FileUtil.delete(committedDir);
-    }    
-    
+    }
+
     //Test for https://github.com/Norconex/collector-http/issues/316
     @Test
-    public void testWebPageTimeout() 
+    public void testWebPageTimeout()
             throws IOException, XMLStreamException {
         String startURL = newUrl("/test?case=timeout&amp;token="
                 + System.currentTimeMillis());
-        vars.setString("startURL", startURL);
-        vars.setClass("documentChecksummer", MD5DocumentChecksummer.class);
-        vars.setString("extraCrawlerConfig", 
+        vars.set("startURL", startURL);
+        vars.set("documentChecksummer", MD5DocumentChecksummer.class);
+        vars.set("extraCrawlerConfig",
                 "<httpClientFactory>"
               + "<connectionTimeout>2000</connectionTimeout>"
               + "<socketTimeout>2000</socketTimeout>"
               + "<connectionRequestTimeout>2000</connectionRequestTimeout>"
               + "</httpClientFactory>"
         );
-        
+
         int exitValue = 0;
 
         // Test once and make sure we get 3 additions in total.
@@ -257,7 +254,7 @@ public class ExecutionTest extends AbstractHttpTest {
                 3, countAddedFiles());
         ageProgress(progressDir);
         FileUtil.delete(committedDir);
-        
+
         // Test twice and make sure we get 2 modified child docs even if
         // master times out (as opposed to consider child as orphans to be
         // deleted.
@@ -267,8 +264,8 @@ public class ExecutionTest extends AbstractHttpTest {
                 2, countAddedFiles());
         ageProgress(progressDir);
         FileUtil.delete(committedDir);
-    } 
-    
+    }
+
     @Test
     public void testStartAfterStopped()
             throws IOException, XMLStreamException, InterruptedException {
@@ -282,21 +279,21 @@ public class ExecutionTest extends AbstractHttpTest {
     }
     private void testAfterStopped(boolean resume)
             throws IOException, XMLStreamException, InterruptedException {
-        
+
         if (!ENABLE_RECOVERY_TESTS) {
             return;
         }
-        
-        vars.setInt("delay", 5000);
-        
+
+        vars.set("delay", 5000);
+
         Thread newCrawl = new Thread() {
             @Override
             public void run() {
                 try {
                     System.out.println("Starting collector.");
                     int returnValue = runCollector("start", vars);
-                    Assert.assertEquals("Wrong first return value.", 0, 
-                            returnValue); 
+                    Assert.assertEquals("Wrong first return value.", 0,
+                            returnValue);
                 } catch (IOException | XMLStreamException e) {
                     throw new RuntimeException(e);
                 }
@@ -307,8 +304,8 @@ public class ExecutionTest extends AbstractHttpTest {
 
         System.out.println("Requesting collector to stop.");
         int returnValue = runCollector("stop", null);
-        Assert.assertEquals("Wrong stop return value.", 0, returnValue); 
-        
+        Assert.assertEquals("Wrong stop return value.", 0, returnValue);
+
         newCrawl.join();
 
         int fileCount = countAddedFiles();
@@ -317,8 +314,8 @@ public class ExecutionTest extends AbstractHttpTest {
                 fileCount > 1 && fileCount < 4);
 
         ageProgress(progressDir);
-        vars.setInt("delay", 0);
-        
+        vars.set("delay", 0);
+
         //--- Resume after stop ---
         if (resume) {
             int exitValue = runCollector("resume", vars);
@@ -328,7 +325,7 @@ public class ExecutionTest extends AbstractHttpTest {
         //--- Start after stop ---
         } else {
             FileUtil.delete(committedDir);
-            vars.setInt("maxDocuments", 2);
+            vars.set("maxDocuments", 2);
             int exitValue = runCollector("start", vars);
             Assert.assertEquals("Wrong exit value.", 0, exitValue);
             Assert.assertEquals("Wrong number of committed files after start.",
@@ -343,42 +340,42 @@ public class ExecutionTest extends AbstractHttpTest {
     }
 
     @Test
-    public void testResumeAfterJvmCrash_MVStore() 
+    public void testResumeAfterJvmCrash_MVStore()
             throws IOException, XMLStreamException {
         testAfterJvmCrash(true, MVStoreCrawlDataStoreFactory.class, null);
     }
     @Test
-    public void testResumeAfterJvmCrash_Derby() 
+    public void testResumeAfterJvmCrash_Derby()
             throws IOException, XMLStreamException {
         testAfterJvmCrash(true, JDBCCrawlDataStoreFactory.class, "derby");
     }
     @Test
-    public void testResumeAfterJvmCrash_H2() 
+    public void testResumeAfterJvmCrash_H2()
             throws IOException, XMLStreamException {
         testAfterJvmCrash(true, JDBCCrawlDataStoreFactory.class, "h2");
     }
 
     private void testAfterJvmCrash(
             boolean resume,
-            Class<? extends ICrawlDataStoreFactory> storeFactory, 
+            Class<? extends ICrawlDataStoreFactory> storeFactory,
             String database)  throws IOException, XMLStreamException {
-        
+
         if (!ENABLE_RECOVERY_TESTS) {
             return;
         }
-        
-        vars.setClass("crawlerListener", JVMCrasher.class);
-        vars.setClass("crawlDataStoreFactory", storeFactory);
+
+        vars.set("crawlerListener", JVMCrasher.class);
+        vars.set("crawlDataStoreFactory", storeFactory);
         if (database != null) {
-            vars.setString("crawlDataStoreFactoryDatabase", database);
+            vars.set("crawlDataStoreFactoryDatabase", database);
         }
-        
+
         int exitValue = 0;
 
         //--- Crash start run ---
         System.out.println("\n--- Crash start run ---");
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong crash exit value.", 
+        Assert.assertEquals("Wrong crash exit value.",
                 JVMCrasher.CRASH_EXIT_VALUE, exitValue);
         // JVMCrasher crashes after 7th *fetch*, so only 6 should have been
         // committed.
@@ -386,23 +383,23 @@ public class ExecutionTest extends AbstractHttpTest {
                 6, countAddedFiles());
         ageProgress(progressDir);
 
-        
+
         //--- Resume run ---
         if (resume) {
             // Should resume where left and reach 10 docs committed.
             System.out.println("\n--- Resume run ---");
             exitValue = runCollector("resume", vars);
-            
+
             Assert.assertEquals("Wrong resume exit value.", 0, exitValue);
             Assert.assertEquals("Wrong number of committed files after resume.",
                     10, countAddedFiles());
             ageProgress(progressDir);
         }
-        
+
         //--- Good start run ---
         // Should run just fine after backup
         System.out.println("\n--- Good start run ---");
-        vars.setInt("maxDocuments", 5);
+        vars.set("maxDocuments", 5);
         exitValue = runCollector("start", vars);
         Assert.assertEquals("Wrong start exit value.", 0, exitValue);
         // Since we are not clearing previous committed files, 5 is added
@@ -418,49 +415,39 @@ public class ExecutionTest extends AbstractHttpTest {
     }
 
     private int countAddedFiles() {
-        return countFiles(committedDir, 
+        return countFiles(committedDir,
                 FileSystemCommitter.FILE_SUFFIX_ADD + ".ref");
     }
     private int countDeletedFiles() {
-        return countFiles(committedDir, 
+        return countFiles(committedDir,
                 FileSystemCommitter.FILE_SUFFIX_REMOVE + ".ref");
     }
     private int countFiles(File dir, String suffix) {
         final MutableInt count = new MutableInt();
-        FileUtil.visitAllFiles(dir, new IFileVisitor() {
-            @Override
-            public void visit(File file) {
-                count.increment();
-            }
-        }, FileFilterUtils.suffixFileFilter(suffix));
+        FileUtil.visitAllFiles(dir, file -> count.increment(), FileFilterUtils.suffixFileFilter(suffix));
         return count.intValue();
     }
-    
+
     // Age progress files to fool activity tracker so we can restart right away.
     private void ageProgress(File progressDir) {
         final long age = System.currentTimeMillis() - (10 * 1000);
-        FileUtil.visitAllFiles(progressDir, new IFileVisitor() {
-            @Override
-            public void visit(File file) {
-                file.setLastModified(age);
-            }
-        });
+        FileUtil.visitAllFiles(progressDir, file -> file.setLastModified(age));
     }
-    
+
     private int runCollector(String action, Properties configVars)
             throws IOException, XMLStreamException {
 
         // Config + variables
         if (configVars != null) {
             try (Writer w = new FileWriter(varsFile)) {
-                configVars.store(w, "");
+                configVars.storeToProperties(w, "");
             }
             try (InputStream is = getClass().getResourceAsStream(
                     "ExecutionTest-config.xml")) {
                 FileUtils.copyInputStreamToFile(is, configFile);
             }
         }
-        
+
         Project project = new Project();
         project.setBaseDir(getTempFolder().getRoot());
         project.init();
@@ -487,7 +474,7 @@ public class ExecutionTest extends AbstractHttpTest {
             javaTask.setClasspath(
                     new Path(project, SystemUtils.JAVA_CLASS_PATH));
             String args = "-a " + action
-                    + " -c \"" + configFile.getAbsolutePath() 
+                    + " -c \"" + configFile.getAbsolutePath()
                     + "\" -v \"" + varsFile + "\"";
             javaTask.getCommandLine().createArgument().setLine(args);
             javaTask.init();
@@ -500,7 +487,7 @@ public class ExecutionTest extends AbstractHttpTest {
         }
         project.log("Finished");
         project.fireBuildFinished(caught);
-        
+
         return retValue;
     }
 }

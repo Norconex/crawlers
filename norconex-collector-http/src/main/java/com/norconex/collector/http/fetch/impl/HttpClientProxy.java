@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,19 +36,19 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ContentType;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 
 /**
- * Proxy that allow to bing URLs to be processed by an external application
+ * Proxy that allows to bing URLs to be processed by an external application
  * with {@link HttpClient} instances.
  * @author Pascal Essiembre
  * @since 2.7.0
@@ -58,31 +56,25 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 /*default*/ class HttpClientProxy extends HttpServlet {
 
     private static final long serialVersionUID = 6443306025065328217L;
-    private static final Logger LOG = 
-            LogManager.getLogger(HttpClientProxy.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(HttpClientProxy.class);
 
     public static final String KEY_PROXY_REDIRECT = "collector.proxy.redirect";
     public static final String KEY_PROXY_BIND_ID = "collector.proxy.bindId";
     public static final String KEY_PROXY_PROTOCOL = "collector.proxy.protocol";
-    
+
     private static Server server;
     private static int proxyPort;
     private static boolean proxyStarted;
-    private static final BidiMap<HttpClient, Integer> CLIENT_IDS = 
+    private static final BidiMap<HttpClient, Integer> CLIENT_IDS =
             new DualHashBidiMap<>();
-    private static final AtomicInteger ID_GEN = new AtomicInteger(); 
-    
+    private static final AtomicInteger ID_GEN = new AtomicInteger();
+
     private HttpClientProxy() {
         super();
-        
+
     }
-    
-    @Override
-    public void service(ServletRequest req, ServletResponse res)
-            throws ServletException, IOException {
-        super.service(req, res);
-    }
-    
+
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -100,7 +92,7 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
             handleException(req, resp, e);
         }
     }
-    
+
 
     private void handleException(
             HttpServletRequest req, HttpServletResponse resp, Exception e) {
@@ -112,17 +104,17 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
         }
         if (e instanceof EofException) {
             LOG.debug("Client connection was closed (e.g. timeout) before this "
-                   + "URL could be processed: " + url);
+                   + "URL could be processed: {}", url);
         } else if (e instanceof IllegalStateException
                 && "Connection pool shut down".equals(e.getMessage())) {
-            LOG.debug("Crawling completed before this URL could be processed: "
-                + url);
+            LOG.debug("Crawling completed before this URL could be "
+                    + "processed: {}", url);
         } else {
-            LOG.error("Could NOT proxy this URL: '" + url + "'.", e);
+            LOG.error("Could NOT proxy this URL: '{}'.", url, e);
         }
         try {
             if (!resp.isCommitted()) {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                         "Could NOT proxy this URL: '" + url + "'.");
             } else {
                 LOG.debug("Could not send error to client: "
@@ -132,33 +124,33 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
             LOG.error("Could not send HTTP error.", e1);
         }
     }
-    
-    
-    
+
+
+
     private void proxy(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+            throws IOException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Request received.");
         }
-        
+
         ProxyRequest pr = new ProxyRequest(req);
         InputStream in = null;
         OutputStream out = null;
         HttpGet get = new HttpGet(pr.getUrl());
-        
+
         try {
             HttpResponse response = pr.getHttpClient().execute(get);
-            
+
             resp.setStatus(response.getStatusLine().getStatusCode());
-            
+
             HttpEntity entity = response.getEntity();
-            
+
             Charset charset = ContentType.getOrDefault(entity).getCharset();
             if (charset != null) {
                 resp.setCharacterEncoding(charset.toString());
             }
-            
+
             in = entity.getContent();
             out = resp.getOutputStream();
             if (in == null || out == null) {
@@ -175,7 +167,7 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
                     resp.addHeader(name, value);
                 }
             }
-            
+
             //-- Deal with redirects ---
             // We do this here since threading prevents the existing solution
             // from working fine.
@@ -188,30 +180,26 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
         } finally {
             IOUtils.closeQuietly(in);
             IOUtils.closeQuietly(out);
-            try { 
-                if (get != null) {
-                    get.releaseConnection();
-                }
-            } catch (Exception e) { e.printStackTrace(); };
+            try {
+                get.releaseConnection();
+            } catch (Exception e) {
+                LOG.warn("Cannont release HttpClientProxy connection", e);
+            }
         }
     }
-    
+
     private String getURL(HttpServletRequest req) {
         String url = req.getRequestURL().toString();
         String queryString = req.getQueryString();
         if (queryString != null) {
             url += "?"+queryString;
-        } 
+        }
         return url;
     }
-    
+
     public static synchronized int getId(HttpClient httpClient) {
-        Integer id = CLIENT_IDS.get(httpClient);
-        if (id == null) {
-            id = ID_GEN.incrementAndGet();
-            CLIENT_IDS.put(httpClient, id);
-        }
-        return id;
+        return CLIENT_IDS.computeIfAbsent(
+                httpClient, k -> ID_GEN.incrementAndGet());
     }
 
     public static synchronized void start() {
@@ -223,7 +211,7 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
             LOG.info("HTTPClient proxy already started.");
             return;
         }
-        
+
         server = new Server();
         WebAppContext webappContext = new WebAppContext();
         webappContext.setContextPath("/");
@@ -232,22 +220,22 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
         ServletHolder servletHolder = new ServletHolder(
                 new HttpClientProxy());
         webappContext.addServlet(servletHolder, "/*");
-        
+
         server.setHandler(webappContext);
-        
+
         ServerConnector connector = new ServerConnector(server);
         connector.setPort(port);
         server.addConnector(connector);
-        
+
         LOG.info("Starting HTTPClient proxy.");
-        
+
         // start
         try {
             server.start();
-            proxyPort = ((ServerConnector) 
+            proxyPort = ((ServerConnector)
                     server.getConnectors()[0]).getLocalPort();
             proxyStarted = true;
-            LOG.info("HTTPClient proxy started on port " + proxyPort + ".");
+            LOG.info("HTTPClient proxy started on port {}.", proxyPort);
         } catch (Exception e) {
             throw new CollectorException(
                     "Could not start HTTPClient proxy.", e);
@@ -277,14 +265,14 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
     public static boolean isStarted() {
         return proxyStarted;
     }
-    
+
     public static String getProxyHost() {
         return "http://localhost:" + proxyPort;
     }
-    
+
     private class ProxyRequest {
         private final String url;
-        private HttpClient httpClient; 
+        private final HttpClient httpClient;
         public ProxyRequest(HttpServletRequest req) {
             super();
             String protocol = req.getHeader(KEY_PROXY_PROTOCOL);
@@ -295,8 +283,7 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
             }
             this.url = targetURL;
             this.httpClient = CLIENT_IDS.getKey(id);
-            LOG.debug("Proxy URL=" + url
-                    + "; ID=" + id + "; PROTOCOL=" + protocol);
+            LOG.debug("Proxy URL={}; ID={}; PROTOCOL={}", url, id, protocol);
         }
         public String getUrl() {
             return url;

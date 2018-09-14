@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,40 +25,40 @@ public class HttpMetadata extends CollectorMetadata {
 
 	public static final String HTTP_CONTENT_TYPE = "Content-Type";
     public static final String HTTP_CONTENT_LENGTH = "Content-Length";
-    
+
     public static final String COLLECTOR_URL = COLLECTOR_PREFIX + "url";
     public static final String COLLECTOR_DEPTH = COLLECTOR_PREFIX + "depth";
-    public static final String COLLECTOR_SM_LASTMOD = 
+    public static final String COLLECTOR_SM_LASTMOD =
             COLLECTOR_PREFIX + "sitemap-lastmod";
-    public static final String COLLECTOR_SM_CHANGE_FREQ = 
+    public static final String COLLECTOR_SM_CHANGE_FREQ =
             COLLECTOR_PREFIX + "sitemap-changefreq";
-    public static final String COLLECTOR_SM_PRORITY = 
+    public static final String COLLECTOR_SM_PRORITY =
             COLLECTOR_PREFIX + "sitemap-priority";
-    public static final String COLLECTOR_REFERENCED_URLS = 
+    public static final String COLLECTOR_REFERENCED_URLS =
             COLLECTOR_PREFIX + "referenced-urls";
 	public static final String COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE =
             COLLECTOR_PREFIX + "referenced-urls-out-of-scope";
-    public static final String COLLECTOR_REFERRER_REFERENCE = 
+    public static final String COLLECTOR_REFERRER_REFERENCE =
             COLLECTOR_PREFIX + "referrer-reference";
-    public static final String COLLECTOR_REFERRER_LINK_TAG = 
+    public static final String COLLECTOR_REFERRER_LINK_TAG =
             COLLECTOR_PREFIX + "referrer-link-tag";
-    public static final String COLLECTOR_REFERRER_LINK_TEXT = 
+    public static final String COLLECTOR_REFERRER_LINK_TEXT =
             COLLECTOR_PREFIX + "referrer-link-text";
-    public static final String COLLECTOR_REFERRER_LINK_TITLE = 
+    public static final String COLLECTOR_REFERRER_LINK_TITLE =
             COLLECTOR_PREFIX + "referrer-link-title";
     /** @since 2.8.0 */
-    public static final String COLLECTOR_REDIRECT_TRAIL = 
+    public static final String COLLECTOR_REDIRECT_TRAIL =
             COLLECTOR_PREFIX + "redirect-trail";
 
 	public HttpMetadata(String documentURL) {
 		super();
-		setString(COLLECTOR_URL, documentURL);
+		set(COLLECTOR_URL, documentURL);
 	}
 
     public HttpMetadata(Properties metadata) {
         super(metadata);
     }
-	
+
 	public String getDocumentUrl() {
 	    return getString(COLLECTOR_URL);
 	}
@@ -68,5 +68,5 @@ public class HttpMetadata extends CollectorMetadata {
 	public Collection<String> getDocumentOutOfScopeUrls() {
 		return getStrings(COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE);
 	}
-	
+
 }

@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,23 @@ package com.norconex.collector.http.url.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
@@ -46,34 +41,36 @@ import org.apache.tika.parser.html.HtmlMapper;
 import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.Link;
 import org.apache.tika.sax.LinkContentHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.XML;
 
 /**
- * <p>Implementation of {@link ILinkExtractor} using 
- * <a href="http://tika.apache.org/">Apache Tika</a> to perform URL 
+ * <p>Implementation of {@link ILinkExtractor} using
+ * <a href="http://tika.apache.org/">Apache Tika</a> to perform URL
  * extractions from HTML documents.
  * This is an alternative to the {@link GenericLinkExtractor}.
  * <br><br>
- * The configuration of content-types, storing the referrer data, and ignoring 
+ * The configuration of content-types, storing the referrer data, and ignoring
  * "nofollow" are the same
  * as in {@link GenericLinkExtractor}.
  * </p>
- * 
+ *
  * <h3>URL Fragments</h3>
  * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
  * in URLs and every characters after it. It relies on the implementation
  * of {@link IURLNormalizer} to strip it if need be.  Still since 2.3.0,
- * {@link GenericURLNormalizer} is now always invoked by default, and the 
- * default set of rules defined for it will remove fragments. 
+ * {@link GenericURLNormalizer} is now always invoked by default, and the
+ * default set of rules defined for it will remove fragments.
  * </p>
- * 
+ *
  * <h3>XML configuration usage</h3>
  * <pre>
  *  &lt;extractor class="com.norconex.collector.http.url.impl.TikaLinkExtractor"
@@ -82,38 +79,39 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *          (CSV list of content types on which to perform link extraction.
  *           leave blank or remove tag to use defaults.)
  *      &lt;/contentTypes&gt;
- *  &lt;/extractor&gt;  
+ *  &lt;/extractor&gt;
  * </pre>
  * @author Pascal Essiembre
  * @see GenericLinkExtractor
  */
 public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
-    private static final Logger LOG = LogManager.getLogger(
+    private static final Logger LOG = LoggerFactory.getLogger(
             TikaLinkExtractor.class);
 
-    private static final ContentType[] DEFAULT_CONTENT_TYPES = 
-            new ContentType[] {
-        ContentType.HTML,
-        ContentType.valueOf("application/xhtml+xml"),
-        ContentType.valueOf("vnd.wap.xhtml+xml"),
-        ContentType.valueOf("x-asp"),
-    };
+    private static final List<ContentType> DEFAULT_CONTENT_TYPES =
+            Collections.unmodifiableList(Arrays.asList(
+                ContentType.HTML,
+                ContentType.valueOf("application/xhtml+xml"),
+                ContentType.valueOf("vnd.wap.xhtml+xml"),
+                ContentType.valueOf("x-asp")
+            ));
     private static final Pattern META_REFRESH_PATTERN = Pattern.compile(
             "(\\W|^)(url)(\\s*=\\s*)([\"']{0,1})(.+?)([\"'>])",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final int URL_PATTERN_GROUP_URL = 5;
-    
+
     //TODO consider an abstract class if content type and referrer data
     // pops up again.
-    private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
+    private final List<ContentType> contentTypes =
+            new ArrayList<>(DEFAULT_CONTENT_TYPES);
     private boolean ignoreNofollow;
     private static final HtmlMapper fixedHtmlMapper = new FixedHtmlParserMapper();
 
     public TikaLinkExtractor() {
         super();
     }
-    
+
     @Override
     public Set<com.norconex.collector.http.url.Link> extractLinks(
             InputStream is, String url, ContentType contentType)
@@ -127,10 +125,10 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             parser.parse(is, linkHandler, metadata, parseContext);
             IOUtils.closeQuietly(is);
             List<Link> tikaLinks = linkHandler.getLinks();
-            Set<com.norconex.collector.http.url.Link> nxLinks = 
+            Set<com.norconex.collector.http.url.Link> nxLinks =
                     new HashSet<>(tikaLinks.size());
             for (Link tikaLink : tikaLinks) {
-                if (!isIgnoreNofollow() 
+                if (!isIgnoreNofollow()
                         && "nofollow".equalsIgnoreCase(
                                 StringUtils.trim(tikaLink.getRel()))) {
                     continue;
@@ -146,7 +144,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                     extractedURL = resolve(url, extractedURL);
                 }
                 if (StringUtils.isNotBlank(extractedURL)) {
-                    com.norconex.collector.http.url.Link nxLink = 
+                    com.norconex.collector.http.url.Link nxLink =
                             new com.norconex.collector.http.url.Link(
                                     extractedURL);
                     nxLink.setReferrer(url);
@@ -174,14 +172,14 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 }
                 refreshURL = resolve(url, refreshURL);
                 if (StringUtils.isNotBlank(refreshURL)) {
-                    com.norconex.collector.http.url.Link nxLink = 
+                    com.norconex.collector.http.url.Link nxLink =
                             new com.norconex.collector.http.url.Link(
                                     refreshURL);
                     nxLink.setReferrer(url);
                     nxLinks.add(nxLink);
                 }
             }
-            
+
             return nxLinks;
         } catch (TikaException | SAXException e) {
             throw new IOException("Could not parse to extract URLs: " + url, e);
@@ -196,12 +194,24 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
         return null;
     }
-    
-    public ContentType[] getContentTypes() {
-        return ArrayUtils.clone(contentTypes);
+
+    public List<ContentType> getContentTypes() {
+        return Collections.unmodifiableList(contentTypes);
     }
+    /**
+     * Sets the content types on which to perform link extraction.
+     * @param contentTypes content types
+     */
     public void setContentTypes(ContentType... contentTypes) {
-        this.contentTypes = ArrayUtils.clone(contentTypes);
+        CollectionUtil.setAll(this.contentTypes, contentTypes);
+    }
+    /**
+     * Sets the content types on which to perform link extraction.
+     * @param contentTypes content types
+     * @since 3.0.0
+     */
+    public void setContentTypes(List<ContentType> contentTypes) {
+        CollectionUtil.setAll(this.contentTypes, contentTypes);
     }
 
     public boolean isIgnoreNofollow() {
@@ -210,37 +220,12 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public void setIgnoreNofollow(boolean ignoreNofollow) {
         this.ignoreNofollow = ignoreNofollow;
     }
-    
-    /**
-     * Gets whether to keep referrer data. 
-     * <b>Since 2.6.0, always return true</b>.
-     * @return <code>true</code>
-     * @deprecated Since 2.6.0, referrer data is always kept
-     */
-    @Deprecated
-    public boolean isKeepReferrerData() {
-        return true;
-    }
-    /**
-     * Sets whether to keep the referrer data. 
-     * <b>Since 2.6.0, this method has no effect.</b>  
-     * @param keepReferrerData referrer data
-     * @deprecated Since 2.6.0, referrer data is always kept
-     */
-    @Deprecated
-    public void setKeepReferrerData(boolean keepReferrerData) {
-        LOG.warn("Since 2.6.0, referrer data is always kept. "
-               + "Setting \"keepReferrerData\" has no effect.");
-    }
 
     @Override
     public boolean accepts(String url, ContentType contentType) {
-        if (ArrayUtils.isEmpty(contentTypes)) {
-            return true;
-        }
-        return ArrayUtils.contains(contentTypes, contentType);
+        return contentTypes.contains(contentType);
     }
-    
+
     private String resolve(String docURL, String extractedURL) {
         try {
             URI uri = new URI(extractedURL);
@@ -254,73 +239,42 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
         return null;
     }
-    
+
     @Override
-    public void loadFromXML(Reader in) {
-        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        setIgnoreNofollow(xml.getBoolean(
-                "[@ignoreNofollow]", isIgnoreNofollow()));
-        // Content Types
-        ContentType[] cts = ContentType.valuesOf(StringUtils.split(
-                StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
-        if (!ArrayUtils.isEmpty(cts)) {
-            setContentTypes(cts);
-        }
+    public void loadFromXML(XML xml) {
+        setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
+        setContentTypes(xml.getDelimitedList(
+                "contentTypes", ContentType.class, contentTypes));
+
+//        ContentType[] cts = ContentType.valuesOf(StringUtils.split(
+//                StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
+//        if (!ArrayUtils.isEmpty(cts)) {
+//            setContentTypes(cts);
+//        }
     }
     @Override
-    public void saveToXML(Writer out) throws IOException {
-        try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
-            writer.writeStartElement("extractor");
-            writer.writeAttribute("class", getClass().getCanonicalName());
-
-            writer.writeAttributeBoolean("ignoreNofollow", isIgnoreNofollow());
-            // Content Types
-            if (!ArrayUtils.isEmpty(getContentTypes())) {
-                writer.writeElementString("contentTypes", 
-                        StringUtils.join(getContentTypes(), ','));
-            }
-
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
-            
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
-        }
-    }
-    
-    
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("contentTypes", contentTypes)
-                .append("ignoreNofollow", ignoreNofollow)
-                .toString();
+    public void saveToXML(XML xml) {
+        xml.setAttribute("ignoreNofollow", ignoreNofollow);
+        xml.addDelimitedElementList("contentTypes", contentTypes);
     }
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof TikaLinkExtractor)) {
-            return false;
-        }
-        TikaLinkExtractor castOther = (TikaLinkExtractor) other;
-        return new EqualsBuilder().append(contentTypes, castOther.contentTypes)
-                .append(ignoreNofollow, castOther.ignoreNofollow)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(contentTypes)
-                .append(ignoreNofollow)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-    
+    @Override
+    public String toString() {
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
+    }
+
 
     // Custom HTML Mapper that adds "title" to the supported anchor
-    // attributes, in order to be able to extract the title out of 
+    // attributes, in order to be able to extract the title out of
     // anchors when keepReferrerData is true.
     private static class FixedHtmlParserMapper extends DefaultHtmlMapper {
         @Override

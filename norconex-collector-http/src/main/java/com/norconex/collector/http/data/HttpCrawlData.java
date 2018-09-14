@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
  */
 package com.norconex.collector.http.data;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.ICrawlData;
+import com.norconex.commons.lang.bean.BeanUtil;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.url.HttpURL;
 
 /**
@@ -45,10 +47,10 @@ public class HttpCrawlData extends BaseCrawlData {
     private String referrerReference;
     private String referrerLinkTag;
     private String referrerLinkTitle;
-    
-    private String[] referencedUrls;
-    private String[] redirectTrail;
-    
+
+    private final List<String> referencedUrls = new ArrayList<>();
+    private final List<String> redirectTrail = new ArrayList<>();
+
     /**
      * Constructor.
      */
@@ -61,14 +63,10 @@ public class HttpCrawlData extends BaseCrawlData {
      */
     public HttpCrawlData(ICrawlData crawlData) {
         if (crawlData != null) {
-            try {
-                BeanUtils.copyProperties(this, crawlData);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new CollectorException(e);
-            }
+            BeanUtil.copyProperties(this, crawlData);
         }
     }
-    
+
     /**
      * Constructor.
      * @param url URL being crawled
@@ -80,7 +78,7 @@ public class HttpCrawlData extends BaseCrawlData {
         setDepth(depth);
     }
 
-    
+
     public String getOriginalReference() {
         return originalReference;
     }
@@ -109,7 +107,7 @@ public class HttpCrawlData extends BaseCrawlData {
     public void setSitemapLastMod(Long sitemapLastMod) {
         this.sitemapLastMod = sitemapLastMod;
     }
-    
+
     /**
      * Gets the sitemap change frequency.
      * @return sitemap change frequency
@@ -124,7 +122,7 @@ public class HttpCrawlData extends BaseCrawlData {
     public void setSitemapChangeFreq(String sitemapChangeFreq) {
         this.sitemapChangeFreq = sitemapChangeFreq;
     }
-    
+
     /**
      * Gets the sitemap priority.
      * @return sitemap priority
@@ -147,7 +145,7 @@ public class HttpCrawlData extends BaseCrawlData {
     public final void setDepth(int depth) {
         this.depth = depth;
     }
-    
+
     public String getReferrerLinkText() {
         return referrerLinkText;
     }
@@ -168,7 +166,7 @@ public class HttpCrawlData extends BaseCrawlData {
     public void setReferrerLinkTag(String referrerLinkTag) {
         this.referrerLinkTag = referrerLinkTag;
     }
-    
+
     public String getReferrerLinkTitle() {
         return referrerLinkTitle;
     }
@@ -195,11 +193,11 @@ public class HttpCrawlData extends BaseCrawlData {
 
     /**
      * Gets URLs referenced by this one.
-     * @return URLs referenced by this one.
+     * @return URLs referenced by this one (never <code>null</code>).
      * @since 2.6.0
      */
-    public String[] getReferencedUrls() {
-        return referencedUrls;
+    public List<String> getReferencedUrls() {
+        return Collections.unmodifiableList(referencedUrls);
     }
     /**
      * Sets URLs referenced by this one.
@@ -207,16 +205,24 @@ public class HttpCrawlData extends BaseCrawlData {
      * @since 2.6.0
      */
     public void setReferencedUrls(String... referencedUrls) {
-        this.referencedUrls = referencedUrls;
+        CollectionUtil.setAll(this.referencedUrls, referencedUrls);
+    }
+    /**
+     * Sets URLs referenced by this one.
+     * @param referencedUrls referenced URLs
+     * @since 3.0.0
+     */
+    public void setReferencedUrls(List<String> referencedUrls) {
+        CollectionUtil.setAll(this.referencedUrls, referencedUrls);
     }
 
     /**
      * Gets the trail of URLs that were redirected up to this one.
-     * @return URL redirection trail to this one
+     * @return URL redirection trail to this one (never <code>null</code>).
      * @since 2.8.0
      */
-    public String[] getRedirectTrail() {
-        return redirectTrail;
+    public List<String> getRedirectTrail() {
+        return Collections.unmodifiableList(redirectTrail);
     }
     /**
      * Sets the trail of URLs that were redirected up to this one.
@@ -224,64 +230,36 @@ public class HttpCrawlData extends BaseCrawlData {
      * @since 2.8.0
      */
     public void setRedirectTrail(String... redirectTrail) {
-        this.redirectTrail = redirectTrail;
+        CollectionUtil.setAll(this.redirectTrail, redirectTrail);
     }
-    
+    /**
+     * Sets the trail of URLs that were redirected up to this one.
+     * @param redirectTrail URL redirection trail to this one
+     * @since 3.0.0
+     */
+    public void setRedirectTrail(List<String> redirectTrail) {
+        CollectionUtil.setAll(this.redirectTrail, redirectTrail);
+    }
+    /**
+     * Adds a redirect URL to the trail of URLs that were redirected so far.
+     * @param url URL to add
+     * @since 3.0.0
+     */
+    public void addRedirectURL(String url) {
+        redirectTrail.add(url);
+    }
+
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof HttpCrawlData)) {
-            return false;
-        }
-        HttpCrawlData castOther = (HttpCrawlData) other;
-        return new EqualsBuilder().appendSuper(super.equals(other))
-                .append(depth, castOther.depth)
-                .append(urlRoot, castOther.urlRoot)
-                .append(sitemapLastMod, castOther.sitemapLastMod)
-                .append(sitemapChangeFreq, castOther.sitemapChangeFreq)
-                .append(sitemapPriority, castOther.sitemapPriority)
-                .append(originalReference, castOther.originalReference)
-                .append(referrerLinkText, castOther.referrerLinkText)
-                .append(referrerReference, castOther.referrerReference)
-                .append(referrerLinkTag, castOther.referrerLinkTag)
-                .append(referrerLinkTitle, castOther.referrerLinkTitle)
-                .append(referencedUrls, castOther.referencedUrls)
-                .append(redirectTrail, castOther.redirectTrail)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().appendSuper(super.hashCode())
-                .append(depth)
-                .append(urlRoot)
-                .append(sitemapLastMod)
-                .append(sitemapChangeFreq)
-                .append(sitemapPriority)
-                .append(originalReference)
-                .append(referrerLinkText)
-                .append(referrerReference)
-                .append(referrerLinkTag)
-                .append(referrerLinkTitle)
-                .append(referencedUrls)
-                .append(redirectTrail)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .appendSuper(super.toString()).append("depth", depth)
-                .append("urlRoot", urlRoot)
-                .append("sitemapLastMod", sitemapLastMod)
-                .append("sitemapChangeFreq", sitemapChangeFreq)
-                .append("sitemapPriority", sitemapPriority)
-                .append("originalReference", originalReference)
-                .append("referrerLinkText", referrerLinkText)
-                .append("referrerReference", referrerReference)
-                .append("referrerLinkTag", referrerLinkTag)
-                .append("referrerLinkTitle", referrerLinkTitle)
-                .append("referencedUrls", referencedUrls)
-                .append("redirectTrail", redirectTrail)
-                .toString();
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

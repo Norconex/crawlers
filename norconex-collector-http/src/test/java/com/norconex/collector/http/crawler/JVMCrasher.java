@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,21 @@
  */
 package com.norconex.collector.http.crawler;
 
-import com.norconex.collector.core.crawler.ICrawler;
-import com.norconex.collector.core.crawler.event.CrawlerEvent;
-import com.norconex.collector.core.crawler.event.ICrawlerEventListener;
+import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.commons.lang.event.Event;
+import com.norconex.commons.lang.event.IEventListener;
 
 /**
  * Crashes the JVM with no finalization, after the 7th document *fetch*.
  * In other words, the last fetch document will not be committed.
  * @author Pascal Essiembre
  */
-public class JVMCrasher implements ICrawlerEventListener {
+public class JVMCrasher implements IEventListener<Event<?>> {
 
     public static final int CRASH_EXIT_VALUE = 13;
-    
+
     private int count = 0;
-    
+
     /**
      * Constructor.
      */
@@ -36,13 +36,12 @@ public class JVMCrasher implements ICrawlerEventListener {
     }
 
     @Override
-    public void crawlerEvent(ICrawler crawler, CrawlerEvent event) {
-        if (CrawlerEvent.DOCUMENT_FETCHED.equals(event.getEventType())) {
+    public void accept(Event<?> e) {
+        if (e.is(CrawlerEvent.DOCUMENT_FETCHED)) {
             count++;
             if (count % 7 == 0) {
                 Runtime.getRuntime().halt(13);
             }
         }
     }
-
 }

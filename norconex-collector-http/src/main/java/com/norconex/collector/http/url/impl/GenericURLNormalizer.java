@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,50 +14,43 @@
  */
 package com.norconex.collector.http.url.impl;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.MethodUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.url.IURLNormalizer;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.url.URLNormalizer;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
  * Generic implementation of {@link IURLNormalizer} that should satisfy
- * most URL normalization needs.  This implementation relies on 
- * {@link URLNormalizer}.  Please refer to it for complete documentation and 
- * examples. 
+ * most URL normalization needs.  This implementation relies on
+ * {@link URLNormalizer}.  Please refer to it for complete documentation and
+ * examples.
  * </p>
  * <p>
  * This class is in effect by default. To skip its usage, you
- * can explicitly set the URL Normalizer to <code>null</code> in the 
- * {@link HttpCrawlerConfig}, or you can disable it using 
+ * can explicitly set the URL Normalizer to <code>null</code> in the
+ * {@link HttpCrawlerConfig}, or you can disable it using
  * {@link #setDisabled(boolean)}.
  * </p>
  * <p>
- * By default, this class removes the URL fragment and applies these 
+ * By default, this class removes the URL fragment and applies these
  * <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a>
- * normalizations: 
+ * normalizations:
  * </p>
  * <ul>
  *   <li>Converting the scheme and host to lower case</li>
@@ -68,8 +61,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </ul>
  * <p>
  * To overwrite this default, you have to specify a new list of normalizations
- * to apply, via the {@link #setNormalizations(Normalization...)} method, 
- * or via XML configuration.  Each 
+ * to apply, via the {@link #setNormalizations(Normalization...)} method,
+ * or via XML configuration.  Each
  * normalizations is identified by a code name.  The following is the
  * complete code name list for supported normalizations.  Click on any code
  * name to get a full description from {@link URLNormalizer}:
@@ -88,7 +81,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#removeDuplicateSlashes() removeDuplicateSlashes}</li>
  *   <li>{@link URLNormalizer#removeEmptyParameters() removeEmptyParameters}</li>
  *   <li>{@link URLNormalizer#removeFragment() removeFragment}</li>
- *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li> 
+ *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li>
  *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
  *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
  *   <li>{@link URLNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
@@ -100,17 +93,17 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
  * </ul>
  * <p>
- *   In addition, this class allows you to specify any number of URL 
+ *   In addition, this class allows you to specify any number of URL
  *   value replacements using regular expressions.
  * </p>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;urlNormalizer
  *      class="com.norconex.collector.http.url.impl.GenericURLNormalizer"
  *      disabled="[false|true]"&gt;
  *    &lt;normalizations&gt;
- *      (normalization code names, coma separated) 
+ *      (normalization code names, coma separated)
  *    &lt;/normalizations&gt;
  *    &lt;replacements&gt;
  *      &lt;replace&gt;
@@ -123,7 +116,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </pre>
  * <p>
  * Since 2.7.2, having an empty "normalizations" tag will effectively remove
- * any normalizations rules previously set (like default ones).  
+ * any normalizations rules previously set (like default ones).
  * Not having the tag
  * at all will keep existing/default normalizations.
  * </p>
@@ -132,14 +125,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * The following adds a normalization to add "www." to URL domains when
  * missing, to the default set of normalizations. It also add custom
  * URL "search-and-replace" to remove any "&amp;view=print" strings from URLs
- * as well as replace "&amp;type=summary" with "&amp;type=full". 
+ * as well as replace "&amp;type=summary" with "&amp;type=full".
  * </p>
  * <pre>
  *  &lt;urlNormalizer class="com.norconex.collector.http.url.impl.GenericURLNormalizer"&gt;
  *    &lt;normalizations&gt;
  *        removeFragment, lowerCaseSchemeHost, upperCaseEscapeSequence,
- *        decodeUnreservedCharacters, removeDefaultPort, 
- *        encodeNonURICharacters, addWWW 
+ *        decodeUnreservedCharacters, removeDefaultPort,
+ *        encodeNonURICharacters, addWWW
  *    &lt;/normalizations&gt;
  *    &lt;replacements&gt;
  *      &lt;replace&gt;&lt;match&gt;&amp;amp;view=print&lt;/match&gt;&lt;/replace&gt;
@@ -154,44 +147,39 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  */
 public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
-    private static final Logger LOG = LogManager.getLogger(
+    private static final Logger LOG = LoggerFactory.getLogger(
             GenericURLNormalizer.class);
-  
+
     public enum Normalization {
         addDirectoryTrailingSlash,
         addDomainTrailingSlash,
-        /**
-         * @deprecated Since 2.6.0, use {@link #addDirectoryTrailingSlash}
-         */
-        @Deprecated
-        addTrailingSlash, 
-        addWWW, 
-        decodeUnreservedCharacters, 
+        addWWW,
+        decodeUnreservedCharacters,
         encodeNonURICharacters,
         encodeSpaces,
         lowerCaseSchemeHost,
-        removeDefaultPort, 
-        removeDirectoryIndex, 
-        removeDotSegments, 
-        removeDuplicateSlashes, 
-        removeEmptyParameters, 
-        removeFragment, 
+        removeDefaultPort,
+        removeDirectoryIndex,
+        removeDotSegments,
+        removeDuplicateSlashes,
+        removeEmptyParameters,
+        removeFragment,
         removeSessionIds,
-        removeTrailingQuestionMark, 
-        removeTrailingSlash, 
-        removeTrailingHash, 
-        removeWWW, 
-        replaceIPWithDomainName, 
-        secureScheme, 
-        sortQueryParameters, 
-        unsecureScheme, 
-        upperCaseEscapeSequence, 
+        removeTrailingQuestionMark,
+        removeTrailingSlash,
+        removeTrailingHash,
+        removeWWW,
+        replaceIPWithDomainName,
+        secureScheme,
+        sortQueryParameters,
+        unsecureScheme,
+        upperCaseEscapeSequence,
     }
-    
+
     private final List<Normalization> normalizations = new ArrayList<>();
     private final List<Replace> replaces = new ArrayList<>();
     private boolean disabled;
-    
+
     public GenericURLNormalizer() {
         super();
         setNormalizations(
@@ -208,14 +196,14 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         if (disabled) {
             return url;
         }
-        
+
         URLNormalizer normalizer = new URLNormalizer(url);
         for (Normalization n : normalizations) {
             try {
                 MethodUtils.invokeExactMethod(
                         normalizer, n.toString(), (Object[]) null);
             } catch (Exception e) {
-                LOG.error("Could not apply normalization \"" + n + "\".", e);
+                LOG.error("Could not apply normalization \"{}\".", n, e);
             }
         }
         String normedURL = normalizer.toString();
@@ -231,7 +219,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         }
         return normedURL;
     }
-    
+
     public Normalization[] getNormalizations() {
         return normalizations.toArray(new Normalization[] {});
     }
@@ -247,7 +235,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         this.replaces.clear();
         this.replaces.addAll(Arrays.asList(replaces));
     }
-    
+
     /**
      * Whether this URL Normalizer is disabled or not.
      * @return <code>true</code> if disabled
@@ -266,98 +254,93 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
     }
 
     @Override
-    public void loadFromXML(Reader in) {
-        
-        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        
-        setDisabled(xml.getBoolean("[@disabled]", disabled));
-        
-        if (xml.containsKey("normalizations")) {
-            normalizations.clear();
-            String xmlNorms = xml.getString("normalizations");
-            if (StringUtils.isNotBlank(xmlNorms)) {
-                for (String norm : StringUtils.split(xmlNorms, ',')) {
-                    try {
-                        normalizations.add(Normalization.valueOf(norm.trim()));
-                    } catch (Exception e) {
-                        LOG.error("Invalid normalization: '" + norm + "'.", e);
-                    }
-                }
-            }
-        }
-        
-        List<HierarchicalConfiguration> xmlReplaces = 
-                xml.configurationsAt("replacements.replace");
-        if (!replaces.isEmpty()) {
+    public void loadFromXML(XML xml) {
+        setDisabled(xml.getBoolean("@disabled", disabled));
+
+        CollectionUtil.setAll(this.normalizations, CollectionUtil.toTypeList(
+                xml.getDelimitedStringList("normalizations"),
+                        s -> Normalization.valueOf(s.trim())));
+
+//        xml.getDelimitedStringList("normalizations").stream().map(
+//                s -> Normalization.valueOf(s.trim())).collect(Collectors.toList());
+//
+//        if (xml.contains("normalizations")) {
+//            normalizations.clear();
+//            xxx
+//            String xmlNorms = xml.getString("normalizations");
+//            if (StringUtils.isNotBlank(xmlNorms)) {
+//                for (String norm : StringUtils.split(xmlNorms, ',')) {
+//                    try {
+//                        normalizations.add(Normalization.valueOf(norm.trim()));
+//                    } catch (Exception e) {
+//                        LOG.error("Invalid normalization: '" + norm + "'.", e);
+//                    }
+//                }
+//            }
+//        }
+
+        List<XML> xmlReplaces = xml.getXMLList("replacements/replace");
+        if (!xmlReplaces.isEmpty()) {
             replaces.clear();
         }
-        for (HierarchicalConfiguration node : xmlReplaces) {
-             String match = node.getString("match", "");
-             String replacement = node.getString("replacement", "");
-             replaces.add(new Replace(match, replacement));
+        for (XML xmlReplace : xmlReplaces) {
+            String match = xmlReplace.getString("match", "");
+            String replacement = xmlReplace.getString("replacement", "");
+            replaces.add(new Replace(match, replacement));
         }
+
+//        List<HierarchicalConfiguration> xmlReplaces =
+//                xml.configurationsAt("replacements.replace");
+//        if (!replaces.isEmpty()) {
+//            replaces.clear();
+//        }
+//        for (HierarchicalConfiguration node : xmlReplaces) {
+//             String match = node.getString("match", "");
+//             String replacement = node.getString("replacement", "");
+//             replaces.add(new Replace(match, replacement));
+//        }
     }
 
     @Override
-    public void saveToXML(Writer out) throws IOException {
-        try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out); 
-            writer.writeStartElement("urlNormalizer");
-            writer.writeAttribute("class", getClass().getCanonicalName());
-            writer.writeAttributeBoolean("disabled", isDisabled());
-            writer.writeStartElement("normalizations");
-            writer.writeCharacters(StringUtils.join(normalizations, ","));
-            writer.writeEndElement();
-            if (!replaces.isEmpty()) {
-                writer.writeStartElement("replacements");
-                for (Replace replace : replaces) {
-                    writer.writeStartElement("replace");
-                    writer.writeStartElement("match");
-                    writer.writeCharacters(replace.getMatch());
-                    writer.writeEndElement();
-                    writer.writeStartElement("replacement");
-                    writer.writeCharacters(replace.getReplacement());
-                    writer.writeEndElement();
-                    writer.writeEndElement();
-                }
-                writer.writeEndElement();
+    public void saveToXML(XML xml) {
+        xml.setAttribute("disabled", disabled);
+        xml.addDelimitedElementList("normalizations", normalizations);
+        if (!replaces.isEmpty()) {
+            XML xmlReplaces = xml.addElement("replacements");
+            for (Replace replace : replaces) {
+                XML xmlReplace = xmlReplaces.addElement("replace");
+                xmlReplace.addElement("match", replace.getMatch());
+                xmlReplace.addElement("replacement", replace.getReplacement());
             }
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
+
+//            writer.writeStartElement("replacements");
+//            for (Replace replace : replaces) {
+//                writer.writeStartElement("replace");
+//                writer.writeStartElement("match");
+//                writer.writeCharacters(replace.getMatch());
+//                writer.writeEndElement();
+//                writer.writeStartElement("replacement");
+//                writer.writeCharacters(replace.getReplacement());
+//                writer.writeEndElement();
+//                writer.writeEndElement();
+//            }
+//            writer.writeEndElement();
         }
     }
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof GenericURLNormalizer)) {
-            return false;
-        }
-        GenericURLNormalizer castOther = (GenericURLNormalizer) other;
-        return new EqualsBuilder()
-                .append(disabled, castOther.disabled)
-                .append(normalizations, castOther.normalizations)
-                .append(replaces, castOther.replaces)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .append(disabled)
-                .append(normalizations)
-                .append(replaces)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("disabled", disabled)
-                .append("normalizations", normalizations)
-                .append("replaces", replaces)
-                .toString();
-    }        
+        return new ReflectionToStringBuilder(this,
+                ToStringStyle.SHORT_PREFIX_STYLE).toString();
+    }
 
     public static class Replace {
         private final String match;
@@ -380,28 +363,16 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         }
         @Override
         public boolean equals(final Object other) {
-            if (!(other instanceof Replace)) {
-                return false;
-            }
-            Replace castOther = (Replace) other;
-            return new EqualsBuilder()
-                    .append(match, castOther.match)
-                    .append(replacement, castOther.replacement)
-                    .isEquals();
+            return EqualsBuilder.reflectionEquals(this, other);
         }
         @Override
         public int hashCode() {
-            return new HashCodeBuilder()
-                    .append(match)
-                    .append(replacement)
-                    .toHashCode();
+            return HashCodeBuilder.reflectionHashCode(this);
         }
         @Override
         public String toString() {
-            return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                    .append("match", match)
-                    .append("replacement", replacement)
-                    .toString();
-        }        
+            return new ReflectionToStringBuilder(this,
+                    ToStringStyle.SHORT_PREFIX_STYLE).toString();
+        }
     }
 }

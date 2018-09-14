@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,8 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import java.lang.reflect.InvocationTargetException;
-
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.client.HttpClient;
 
-import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
@@ -30,6 +26,7 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
+import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.importer.Importer;
 
 /**
@@ -39,7 +36,7 @@ import com.norconex.importer.Importer;
 public class HttpImporterPipelineContext extends ImporterPipelineContext {
 
     private RobotsMeta robotsMeta;
-    
+
     /**
      * Constructor creating a copy of supplied context.
      * @param copiable the item to be copied
@@ -47,16 +44,12 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
      */
     public HttpImporterPipelineContext(ImporterPipelineContext copiable) {
         super(copiable.getCrawler(), copiable.getCrawlDataStore());
-        try {
-            BeanUtils.copyProperties(this, copiable);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new CollectorException("Could not copy importer context.", e);
-        }
+        BeanUtil.copyProperties(this, copiable);
     }
-    
+
     public HttpImporterPipelineContext(
-            HttpCrawler crawler, ICrawlDataStore crawlDataStore, 
-            HttpCrawlData crawlData, HttpCrawlData cachedCrawlData, 
+            HttpCrawler crawler, ICrawlDataStore crawlDataStore,
+            HttpCrawlData crawlData, HttpCrawlData cachedCrawlData,
             HttpDocument doc) {
         super(crawler, crawlDataStore, crawlData, cachedCrawlData, doc);
     }
@@ -70,17 +63,17 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     public HttpCrawlerConfig getConfig() {
         return getCrawler().getCrawlerConfig();
     }
-    
+
     @Override
     public HttpCrawlData getCrawlData() {
         return (HttpCrawlData) super.getCrawlData();
     }
-    
+
     @Override
     public HttpCrawlData getCachedCrawlData() {
         return (HttpCrawlData) super.getCachedCrawlData();
     }
-    
+
     public HttpClient getHttpClient() {
         return getCrawler().getHttpClient();
     }
@@ -97,11 +90,11 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     public ISitemapResolver getSitemapResolver() {
         return getCrawler().getSitemapResolver();
     }
-    
+
     public HttpMetadata getMetadata() {
         return getDocument().getMetadata();
     }
-    
+
     public Importer getImporter() {
         return getCrawler().getImporter();
     }
@@ -119,6 +112,5 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     public boolean isHttpHeadFetchEnabled() {
         return getConfig().getMetadataFetcher() != null;
     }
-    
+
 }
-              

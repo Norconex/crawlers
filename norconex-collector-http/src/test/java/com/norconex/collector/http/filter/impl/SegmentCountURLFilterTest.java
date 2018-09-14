@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,16 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.handler.filter.OnMatch;
 
 public class SegmentCountURLFilterTest {
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(SegmentCountURLFilterTest.class);
 
     SegmentCountURLFilter f;
     String url;
@@ -75,8 +80,8 @@ public class SegmentCountURLFilterTest {
         f.setDuplicate(true);
         f.setOnMatch(OnMatch.EXCLUDE);
         f.setSeparator("[/&]");
-        System.out.println("Writing/Reading this: " + f);
-        XMLConfigurationUtil.assertWriteRead(f);
+        LOG.debug("Writing/Reading this: {}", f);
+        XML.assertWriteRead(f, "filter");
     }
 
 }

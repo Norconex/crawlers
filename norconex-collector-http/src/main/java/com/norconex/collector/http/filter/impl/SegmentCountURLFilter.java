@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,27 @@
  */
 package com.norconex.collector.http.filter.impl;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.core.filter.IDocumentFilter;
 import com.norconex.collector.core.filter.IMetadataFilter;
 import com.norconex.collector.core.filter.IReferenceFilter;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ImporterDocument;
-import com.norconex.importer.handler.filter.AbstractOnMatchFilter;
+import com.norconex.importer.handler.filter.IOnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 /**
  * <p>
@@ -60,7 +52,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  * When <code>duplicate</code> is <code>true</code>, it will count the maximum
  * number of duplicate segments found.
  * </p>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
@@ -69,7 +61,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  *          duplicate="[false|true]"
  *          separator="(a regex identifying segment separator)" /&gt;
  * </pre>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following will reject URLs with more than 5 forward slashes after
@@ -79,12 +71,12 @@ import com.norconex.importer.handler.filter.OnMatch;
  *  &lt;filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
  *          onMatch="exclude" count="5" /&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  * @since 1.2
  * @see Pattern
  */
-public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
+public class SegmentCountURLFilter implements IOnMatchFilter,
         IReferenceFilter, IDocumentFilter, IMetadataFilter, IXMLConfigurable{
 
     /** Default segment separator pattern. */
@@ -96,6 +88,8 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
     private int count = DEFAULT_SEGMENT_COUNT;
     private boolean duplicate;
     private Pattern separatorPattern;
+
+    private OnMatch onMatch;
 
     /**
      * Constructor.
@@ -166,6 +160,14 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
     }
 
     @Override
+    public OnMatch getOnMatch() {
+        return onMatch;
+    }
+    public void setOnMatch(OnMatch onMatch) {
+        this.onMatch = onMatch;
+    }
+
+    @Override
     public boolean acceptDocument(ImporterDocument document) {
         return acceptReference(document.getReference());
     }
@@ -216,74 +218,33 @@ public class SegmentCountURLFilter extends AbstractOnMatchFilter implements
         }
         return cleanSegments;
     }
-    
+
     @Override
-    public void loadFromXML(Reader in) {
-        XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        setSeparator(xml.getString(""));
-        super.loadFromXML(xml);
-        setCount(xml.getInt("[@count]", DEFAULT_SEGMENT_COUNT));
-        setDuplicate(xml.getBoolean("[@duplicate]", false));
+    public void loadFromXML(XML xml) {
+        setSeparator(xml.getString("."));
+        setCount(xml.getInteger("@count", DEFAULT_SEGMENT_COUNT));
+        setDuplicate(xml.getBoolean("@duplicate", false));
         setSeparator(xml.getString(
-                "[@separator]", DEFAULT_SEGMENT_SEPARATOR_PATTERN));
+                "@separator", DEFAULT_SEGMENT_SEPARATOR_PATTERN));
     }
     @Override
-    public void saveToXML(Writer out) throws IOException {
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
-        try {
-            XMLStreamWriter writer = factory.createXMLStreamWriter(out);
-            writer.writeStartElement("filter");
-            writer.writeAttribute("class", getClass().getCanonicalName());
-            super.saveToXML(writer);
-            writer.writeAttribute("count", Integer.toString(count));
-            writer.writeAttribute("duplicate", Boolean.toString(duplicate));
-            writer.writeAttribute("separator", separator);
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
-        }
+    public void saveToXML(XML xml) {
+        xml.setAttribute("count", count);
+        xml.setAttribute("duplicate", duplicate);
+        xml.setAttribute("separator", separator);
     }
 
     @Override
-    public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-            .appendSuper(super.toString())
-            .append("count", count)
-            .append("separator", separator)
-            .append("duplicate", duplicate)
-            .toString();
+    public boolean equals(final Object other) {
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-            .appendSuper(super.hashCode())
-            .append(count)
-            .append(separator)
-            .append(duplicate)
-            .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof SegmentCountURLFilter)) {
-            return false;
-        }
-        SegmentCountURLFilter other = (SegmentCountURLFilter) obj;
-        return new EqualsBuilder()
-            .appendSuper(super.equals(obj))
-            .append(count, other.count)
-            .append(separator, other.separator)
-            .append(duplicate, other.duplicate)
-            .isEquals();
+    public String toString() {
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }
-

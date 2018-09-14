@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,28 @@
  */
 package com.norconex.collector.http.crawler;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.mutable.MutableInt;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
 import com.norconex.collector.core.CollectorException;
@@ -57,44 +58,47 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
+import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.doc.ImporterDocument;
 import com.norconex.importer.response.ImporterResponse;
-import com.norconex.jef4.status.IJobStatus;
-import com.norconex.jef4.status.JobStatusUpdater;
-import com.norconex.jef4.suite.JobSuite;
+import com.norconex.jef5.status.JobStatus;
+import com.norconex.jef5.status.JobStatusUpdater;
+import com.norconex.jef5.suite.JobSuite;
 
 /**
  * The HTTP Crawler.
  * @author Pascal Essiembre
  */
 public class HttpCrawler extends AbstractCrawler {
-	
-    private static final Logger LOG = LogManager.getLogger(HttpCrawler.class);
-	
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpCrawler.class);
+
 	private HttpClient httpClient;
 	private ISitemapResolver sitemapResolver;
-	
+
     /**
      * Constructor.
      * @param crawlerConfig HTTP crawler configuration
+     * @param eventManager event manager
      */
-	public HttpCrawler(HttpCrawlerConfig crawlerConfig) {
-		super(crawlerConfig);
+	public HttpCrawler(
+	        HttpCrawlerConfig crawlerConfig, EventManager eventManager) {
+		super(crawlerConfig, eventManager);
 	}
 
     @Override
     public HttpCrawlerConfig getCrawlerConfig() {
         return (HttpCrawlerConfig) super.getCrawlerConfig();
     }
-    
+
     /**
      * @return the httpClient
      */
     public HttpClient getHttpClient() {
         return httpClient;
     }
-    
+
     /**
      * @return the sitemapResolver
      */
@@ -103,26 +107,26 @@ public class HttpCrawler extends AbstractCrawler {
     }
 
     @Override
-    public void stop(IJobStatus jobStatus, JobSuite suite) {
+    public void stop(JobStatus jobStatus, JobSuite suite) {
         super.stop(jobStatus, suite);
         if (sitemapResolver != null) {
             sitemapResolver.stop();
         }
     }
-    
+
     @Override
     protected void prepareExecution(
-            JobStatusUpdater statusUpdater, JobSuite suite, 
+            JobStatusUpdater statusUpdater, JobSuite suite,
             ICrawlDataStore crawlDataStore, boolean resume) {
-        
+
         logInitializationInformation();
         initializeHTTPClient();
         initializeRedirectionStrategy();
 
-        // We always initialize the sitemap resolver even if ignored 
+        // We always initialize the sitemap resolver even if ignored
         // because sitemaps can be specified as start URLs.
         if (getCrawlerConfig().getSitemapResolverFactory() != null) {
-            this.sitemapResolver = 
+            this.sitemapResolver =
                     getCrawlerConfig().getSitemapResolverFactory()
                             .createSitemapResolver(getCrawlerConfig(), resume);
         }
@@ -131,7 +135,7 @@ public class HttpCrawler extends AbstractCrawler {
             queueStartURLs(crawlDataStore);
         }
     }
-    
+
     private void queueStartURLs(final ICrawlDataStore crawlDataStore) {
         int urlCount = 0;
         // Sitemaps must be first, since we favor explicit sitemap
@@ -140,18 +144,15 @@ public class HttpCrawler extends AbstractCrawler {
         urlCount += queueStartURLsRegular(crawlDataStore);
         urlCount += queueStartURLsSeedFiles(crawlDataStore);
         urlCount += queueStartURLsProviders(crawlDataStore);
-        LOG.info(NumberFormat.getNumberInstance().format(urlCount)
-                + " start URLs identified.");
-    }
-    
-    private int queueStartURLsRegular(final ICrawlDataStore crawlDataStore) {
-        String[] startURLs = getCrawlerConfig().getStartURLs();
-        if (startURLs == null) {
-            return 0;
+        if (LOG.isInfoEnabled()) {
+            LOG.info("{} start URLs identified.",
+                    NumberFormat.getNumberInstance().format(urlCount));
         }
+    }
 
-        for (int i = 0; i < startURLs.length; i++) {
-            String startURL = startURLs[i];
+    private int queueStartURLsRegular(final ICrawlDataStore crawlDataStore) {
+        List<String> startURLs = getCrawlerConfig().getStartURLs();
+        for (String startURL : startURLs) {
             if (StringUtils.isNotBlank(startURL)) {
                 executeQueuePipeline(
                         new HttpCrawlData(startURL, 0), crawlDataStore);
@@ -159,19 +160,15 @@ public class HttpCrawler extends AbstractCrawler {
                 LOG.debug("Blank start URL encountered, ignoring it.");
             }
         }
-        return startURLs.length;
+        return startURLs.size();
     }
     private int queueStartURLsSeedFiles(final ICrawlDataStore crawlDataStore) {
-        String[] urlsFiles = getCrawlerConfig().getStartURLsFiles();
-        if (urlsFiles == null) {
-            return 0;
-        }
+        List<Path> urlsFiles = getCrawlerConfig().getStartURLsFiles();
 
         int urlCount = 0;
-        for (int i = 0; i < urlsFiles.length; i++) {
-            String urlsFile = urlsFiles[i];
+        for (Path urlsFile : urlsFiles) {
             LineIterator it = null;
-            try (InputStream is = new FileInputStream(urlsFile)) {
+            try (InputStream is = Files.newInputStream(urlsFile)) {
                 it = IOUtils.lineIterator(is, StandardCharsets.UTF_8);
                 while (it.hasNext()) {
                     String startURL = StringUtils.trimToNull(it.nextLine());
@@ -191,15 +188,10 @@ public class HttpCrawler extends AbstractCrawler {
         return urlCount;
     }
     private int queueStartURLsSitemaps(final ICrawlDataStore crawlDataStore) {
-        String[] sitemapURLs = getCrawlerConfig().getStartSitemapURLs();
-        
-        // If no sitemap URLs, leave now
-        if (sitemapURLs == null) {
-            return 0;
-        }
-        
+        List<String> sitemapURLs = getCrawlerConfig().getStartSitemapURLs();
+
         // There are sitemaps, process them. First group them by URL root
-        MultiValuedMap<String, String> sitemapsPerRoots = 
+        MultiValuedMap<String, String> sitemapsPerRoots =
                 new ArrayListValuedHashMap<>();
         for (String sitemapURL : sitemapURLs) {
             String urlRoot = HttpURL.getRoot(sitemapURL);
@@ -216,8 +208,8 @@ public class HttpCrawler extends AbstractCrawler {
         };
         // Process each URL root group separately
         for (String  urlRoot : sitemapsPerRoots.keySet()) {
-            String[] locations = sitemapsPerRoots.get(
-                    urlRoot).toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+            List<String> locations =
+                    (List<String>) sitemapsPerRoots.get(urlRoot);
             if (sitemapResolver != null) {
                 sitemapResolver.resolveSitemaps(
                         httpClient, urlRoot, locations, urlAdder, true);
@@ -228,9 +220,9 @@ public class HttpCrawler extends AbstractCrawler {
         }
         return urlCount.intValue();
     }
-    
+
     private int queueStartURLsProviders(final ICrawlDataStore crawlDataStore) {
-        IStartURLsProvider[] providers = 
+        List<IStartURLsProvider> providers =
                 getCrawlerConfig().getStartURLsProviders();
         if (providers == null) {
             return 0;
@@ -249,25 +241,26 @@ public class HttpCrawler extends AbstractCrawler {
         }
         return count;
     }
-    
+
     private void logInitializationInformation() {
-        LOG.info(getId() +  ": RobotsTxt support: " 
-                + !getCrawlerConfig().isIgnoreRobotsTxt());
-        LOG.info(getId() +  ": RobotsMeta support: "  
-                + !getCrawlerConfig().isIgnoreRobotsMeta()); 
-        LOG.info(getId() +  ": Sitemap support: " 
-                + !getCrawlerConfig().isIgnoreSitemap());
-        LOG.info(getId() +  ": Canonical links support: " 
-                + !getCrawlerConfig().isIgnoreCanonicalLinks());
-        
+        String id = getId();
+        LOG.info("{}: RobotsTxt support: {}",
+                id, !getCrawlerConfig().isIgnoreRobotsTxt());
+        LOG.info("{}: RobotsMeta support: {}",
+                id, !getCrawlerConfig().isIgnoreRobotsMeta());
+        LOG.info("{}: Sitemap support: {}",
+                id, !getCrawlerConfig().isIgnoreSitemap());
+        LOG.info("{}: Canonical links support: {}",
+                id, !getCrawlerConfig().isIgnoreCanonicalLinks());
+
         String userAgent = getCrawlerConfig().getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
-            LOG.info(getId() +  ": User-Agent: <None specified>");
+            LOG.info("{}: User-Agent: <None specified>", id);
             LOG.debug("It is recommended you identify yourself to web sites "
                     + "by specifying a user agent "
                     + "(https://en.wikipedia.org/wiki/User_agent)");
         } else {
-            LOG.info(getId() +  ": User-Agent: " + userAgent);
+            LOG.info("{}: User-Agent: {}", id, userAgent);
         }
     }
 
@@ -286,28 +279,28 @@ public class HttpCrawler extends AbstractCrawler {
         return new HttpDocument(document);
     }
     @Override
-    protected void initCrawlData(ICrawlData crawlData, 
+    protected void initCrawlData(ICrawlData crawlData,
             ICrawlData cachedCrawlData, ImporterDocument document) {
         HttpDocument doc = (HttpDocument) document;
         HttpCrawlData httpData = (HttpCrawlData) crawlData;
         HttpCrawlData cachedHttpData = (HttpCrawlData) cachedCrawlData;
         HttpMetadata metadata = doc.getMetadata();
-        
-        metadata.addInt(HttpMetadata.COLLECTOR_DEPTH, httpData.getDepth());
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_SM_CHANGE_FREQ, 
+
+        metadata.add(HttpMetadata.COLLECTOR_DEPTH, httpData.getDepth());
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_SM_CHANGE_FREQ,
                 httpData.getSitemapChangeFreq());
         if (httpData.getSitemapLastMod() != null) {
-            metadata.addLong(HttpMetadata.COLLECTOR_SM_LASTMOD, 
+            metadata.add(HttpMetadata.COLLECTOR_SM_LASTMOD,
                     httpData.getSitemapLastMod());
-        }        
+        }
         if (httpData.getSitemapPriority() != null) {
-            metadata.addFloat(HttpMetadata.COLLECTOR_SM_PRORITY, 
+            metadata.add(HttpMetadata.COLLECTOR_SM_PRORITY,
                     httpData.getSitemapPriority());
         }
 
         // In case the crawl data supplied is from a URL was pulled from cache
         // since the parent was skipped and could not be extracted normally
-        // with link information, we attach referrer data here if null 
+        // with link information, we attach referrer data here if null
         // (but only if referrer reference is not null, which should never
         // be in this case as it is set by beforeFinalizeDocumentProcessing()
         // below.
@@ -318,7 +311,7 @@ public class HttpCrawler extends AbstractCrawler {
         //initialize some new crawl data from cache higher up?
         if (cachedHttpData != null && httpData.getReferrerReference() != null
                 && Objects.equal(
-                        httpData.getReferrerReference(), 
+                        httpData.getReferrerReference(),
                         cachedHttpData.getReferrerReference())) {
             if (httpData.getReferrerLinkTag() == null) {
                 httpData.setReferrerLinkTag(
@@ -333,27 +326,28 @@ public class HttpCrawler extends AbstractCrawler {
                         cachedHttpData.getReferrerLinkTitle());
             }
         }
-        
+
         // Add referrer data to metadata
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_REFERENCE, 
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_REFERENCE,
                 httpData.getReferrerReference());
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TAG, 
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TAG,
                 httpData.getReferrerLinkTag());
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TEXT, 
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TEXT,
                 httpData.getReferrerLinkText());
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TITLE, 
+        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TITLE,
                 httpData.getReferrerLinkTitle());
-        
-        // Add possible redirect trail 
-        if (ArrayUtils.isNotEmpty(httpData.getRedirectTrail())) {
-            metadata.setString(HttpMetadata.COLLECTOR_REDIRECT_TRAIL, 
+
+        // Add possible redirect trail
+        if (!httpData.getRedirectTrail().isEmpty()) {
+            metadata.set(HttpMetadata.COLLECTOR_REDIRECT_TRAIL,
                     httpData.getRedirectTrail());
         }
     }
-    
+
+    @Override
     protected ImporterResponse executeImporterPipeline(
             ImporterPipelineContext importerContext) {
-        HttpImporterPipelineContext httpContext = 
+        HttpImporterPipelineContext httpContext =
                 new HttpImporterPipelineContext(importerContext);
         new HttpImporterPipeline(
                 getCrawlerConfig().isKeepDownloads(),
@@ -364,7 +358,7 @@ public class HttpCrawler extends AbstractCrawler {
     @Override
     protected BaseCrawlData createEmbeddedCrawlData(
             String embeddedReference, ICrawlData parentCrawlData) {
-        return new HttpCrawlData(embeddedReference, 
+        return new HttpCrawlData(embeddedReference,
                 ((HttpCrawlData) parentCrawlData).getDepth());
     }
 
@@ -374,7 +368,7 @@ public class HttpCrawler extends AbstractCrawler {
             BaseCrawlData crawlData, BaseCrawlData cachedCrawlData) {
 
         HttpCommitterPipelineContext context = new HttpCommitterPipelineContext(
-                (HttpCrawler) crawler, crawlDataStore, (HttpDocument) doc, 
+                (HttpCrawler) crawler, crawlDataStore, (HttpDocument) doc,
                 (HttpCrawlData) crawlData, (HttpCrawlData) cachedCrawlData);
         new HttpCommitterPipeline().execute(context);
     }
@@ -386,22 +380,22 @@ public class HttpCrawler extends AbstractCrawler {
 
         // If URLs were not yet extracted, it means no links will be followed.
         // In case the referring document was skipped or has a bad status
-        // (which can always be temporary), we should queue for processing any 
-        // referenced links from cache to make sure an attempt will be made to 
+        // (which can always be temporary), we should queue for processing any
+        // referenced links from cache to make sure an attempt will be made to
         // re-crawl these "child" links and they will not be considered orphans.
-        // Else, as orphans they could wrongfully be deleted, ignored, or 
+        // Else, as orphans they could wrongfully be deleted, ignored, or
         // be re-assigned the wrong depth if linked from another, deeper, page.
         // See: https://github.com/Norconex/collector-http/issues/278
-        
-        
+
+
         HttpCrawlData httpData = (HttpCrawlData) crawlData;
         HttpCrawlData httpCachedData = (HttpCrawlData) cachedData;
 
         // If never crawled before, URLs were extracted already, or cached
         // version has no extracted, URLs, abort now.
-        if (cachedData == null 
-                || !ArrayUtils.isEmpty(httpData.getReferencedUrls())
-                || ArrayUtils.isEmpty(httpCachedData.getReferencedUrls())) {
+        if (cachedData == null
+                || !httpData.getReferencedUrls().isEmpty()
+                || httpCachedData.getReferencedUrls().isEmpty()) {
             return;
         }
 
@@ -416,13 +410,14 @@ public class HttpCrawler extends AbstractCrawler {
 
         // OK, let's do this
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Queuing referenced URLs of " + crawlData.getReference());
+            LOG.debug("Queuing referenced URLs of {}",
+                    crawlData.getReference());
         }
-        
+
         int childDepth = httpData.getDepth() + 1;
-        String[] referencedUrls = httpCachedData.getReferencedUrls();
+        List<String> referencedUrls = httpCachedData.getReferencedUrls();
         for (String url : referencedUrls) {
-            
+
             HttpCrawlData childData = new HttpCrawlData(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
             if (LOG.isDebugEnabled()) {
@@ -432,16 +427,16 @@ public class HttpCrawler extends AbstractCrawler {
             executeQueuePipeline(childData, store);
         }
     }
-    
+
     @Override
     protected void markReferenceVariationsAsProcessed(
             BaseCrawlData crawlData, ICrawlDataStore crawlDataStore) {
-        
+
         HttpCrawlData httpData = (HttpCrawlData) crawlData;
         // Mark original URL as processed
         String originalRef = httpData.getOriginalReference();
         String finalRef = httpData.getReference();
-        if (StringUtils.isNotBlank(originalRef) 
+        if (StringUtils.isNotBlank(originalRef)
                 && ObjectUtils.notEqual(originalRef, finalRef)) {
             HttpCrawlData originalData = (HttpCrawlData) httpData.clone();
             originalData.setReference(originalRef);
@@ -449,7 +444,7 @@ public class HttpCrawler extends AbstractCrawler {
             crawlDataStore.processed(originalData);
         }
     }
-    
+
     @Override
     protected void cleanupExecution(JobStatusUpdater statusUpdater,
             JobSuite suite, ICrawlDataStore refStore) {
@@ -466,16 +461,16 @@ public class HttpCrawler extends AbstractCrawler {
     private void metadataAddString(
             HttpMetadata metadata, String key, String value) {
         if (value != null) {
-            metadata.addString(key, value); 
+            metadata.add(key, value);
         }
     }
-    
+
     private void initializeHTTPClient() {
         httpClient = getCrawlerConfig().getHttpClientFactory().createHTTPClient(
                 getCrawlerConfig().getUserAgent());
 	}
 
-    // Wraps redirection strategy to consider URLs as new documents to 
+    // Wraps redirection strategy to consider URLs as new documents to
     // queue for processing.
     private void initializeRedirectionStrategy() {
         try {
@@ -483,9 +478,9 @@ public class HttpCrawler extends AbstractCrawler {
             Object redir = FieldUtils.readField(
                     chain, "redirectStrategy", true);
             if (redir instanceof RedirectStrategy) {
-                RedirectStrategy originalStrategy = (RedirectStrategy) redir; 
-                RedirectStrategyWrapper strategyWrapper = 
-                        new RedirectStrategyWrapper(originalStrategy, 
+                RedirectStrategy originalStrategy = (RedirectStrategy) redir;
+                RedirectStrategyWrapper strategyWrapper =
+                        new RedirectStrategyWrapper(originalStrategy,
                                 getCrawlerConfig().getRedirectURLProvider());
                 FieldUtils.writeField(
                         chain, "redirectStrategy", strategyWrapper, true);
@@ -498,7 +493,7 @@ public class HttpCrawler extends AbstractCrawler {
                     + "internal connection manager does not support it.");
         }
     }
-    
+
     private void closeHttpClient() {
         if (httpClient instanceof CloseableHttpClient) {
             try {

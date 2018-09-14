@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,17 @@ import com.norconex.commons.lang.pipeline.Pipeline;
  * @author Pascal Essiembre
  *
  */
-public class HttpCommitterPipeline 
+public class HttpCommitterPipeline
         extends Pipeline<DocumentPipelineContext> {
 
     public HttpCommitterPipeline() {
-        addStage(new DocumentChecksumStage());   
-        addStage(new DocumentPostProcessingStage());     
+        addStage(new DocumentChecksumStage());
+        addStage(new DocumentPostProcessingStage());
         addStage(new CommitModuleStage());
     }
-    
+
     //--- Document Post-Processing ---------------------------------------------
-    private static class DocumentPostProcessingStage 
+    private static class DocumentPostProcessingStage
             extends AbstractCommitterStage {
         @Override
         public boolean executeStage(HttpCommitterPipelineContext ctx) {
@@ -44,13 +44,11 @@ public class HttpCommitterPipeline
                         ctx.getConfig().getPostImportProcessors()) {
                     postProc.processDocument(
                             ctx.getHttpClient(), ctx.getDocument());
-                    
-                    ctx.getCrawler().fireCrawlerEvent(
-                            HttpCrawlerEvent.DOCUMENT_POSTIMPORTED, 
+                    ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_POSTIMPORTED,
                             ctx.getCrawlData(), postProc);
-                }            
+                }
             }
             return true;
         }
-    }  
+    }
 }

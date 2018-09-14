@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,30 +30,34 @@ import com.norconex.collector.http.doc.HttpDocument;
 public class HttpCommitterPipelineContext extends DocumentPipelineContext {
 
     public HttpCommitterPipelineContext(
-            HttpCrawler crawler, 
+            HttpCrawler crawler,
             ICrawlDataStore crawlDataStore,
-            HttpDocument doc, 
+            HttpDocument doc,
             HttpCrawlData crawlData,
             HttpCrawlData cachedCrawlData) {
         super(crawler, crawlDataStore, crawlData, cachedCrawlData, doc);
     }
 
+    @Override
     public HttpCrawler getCrawler() {
         return (HttpCrawler) super.getCrawler();
     }
 
+    @Override
     public HttpCrawlerConfig getConfig() {
         return getCrawler().getCrawlerConfig();
     }
-    
+
+    @Override
     public HttpCrawlData getCrawlData() {
         return (HttpCrawlData) super.getCrawlData();
     }
-    
+
     public HttpClient getHttpClient() {
         return getCrawler().getHttpClient();
     }
 
+    @Override
     public HttpDocument getDocument() {
         return (HttpDocument) super.getDocument();
     }

@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,20 @@
  */
 package com.norconex.collector.http.delay.impl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.joda.time.LocalDateTime;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.commons.lang.CircularRange;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
@@ -41,16 +35,16 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * There are a few ways the actual delay value can be defined (in order):
  * </p>
  * <ol>
- *   <li>Takes the delay specify by a robots.txt file.  
+ *   <li>Takes the delay specify by a robots.txt file.
  *       Only applicable if robots.txt files and its robots crawl delays
  *       are not ignored.</li>
  *   <li>Takes an explicitly scheduled delay, if any (picks the first
  *       one matching).</li>
- *   <li>Use the specified default delay or 3 seconds, if none is 
+ *   <li>Use the specified default delay or 3 seconds, if none is
  *       specified.</li>
  * </ol>
  * <p>
- * In a delay schedule, the days of weeks are spelled out (in English): 
+ * In a delay schedule, the days of weeks are spelled out (in English):
  * Monday, Tuesday, etc.  Time ranges are using the 24h format.
  * </p>
  * <p>
@@ -60,59 +54,59 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <ul>
  *   <li><b>crawler</b>: the delay is applied between each URL download
  *       within a crawler instance, regardless how many threads are defined
- *       within that crawler, or whether URLs are from the 
+ *       within that crawler, or whether URLs are from the
  *       same site or not.  This is the default scope.</li>
  *   <li><b>site</b>: the delay is applied between each URL download
  *       from the same site within a crawler instance, regardless how many
  *       threads are defined. A site is defined by a URL protocol and its
  *       domain (e.g. http://example.com).</li>
  *   <li><b>thread</b>: the delay is applied between each URL download from
- *       any given thread.  The more threads you have the less of an 
+ *       any given thread.  The more threads you have the less of an
  *       impact the delay will have.</li>
  * </ul>
  *
  * <p>
  * As of 2.7.0, XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per 
+ * can be provided in human-readable format (English only), as per
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
- *          default="(milliseconds)" 
+ *          default="(milliseconds)"
  *          ignoreRobotsCrawlDelay="[false|true]"
  *          scope="[crawler|site|thread]" &gt;
- *      &lt;schedule 
+ *      &lt;schedule
  *          dayOfWeek="from (week day) to (week day)"
  *          dayOfMonth="from [1-31] to [1-31]"
  *          time="from (HH:mm) to (HH:mm)"&gt;
  *        (delay in milliseconds)
  *      &lt;/schedule&gt;
- *       
+ *
  *      (... repeat schedule tag as needed ...)
  *  &lt;/delay&gt;
  * </pre>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following set the minimum delay between each document download
  * on a given site to 5 seconds, no matter what the crawler robots.txt may
  * say, except on weekend, where it is more agressive (1 second).
- * </p> 
+ * </p>
  * <pre>
  *  &lt;delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
  *          default="5 seconds" ignoreRobotsCrawlDelay="true" scope="site" &gt;
  *      &lt;schedule dayOfWeek="from Saturday to Sunday"&gt;1 second&lt;/schedule&gt;
  *  &lt;/delay&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  */
 public class GenericDelayResolver extends AbstractDelayResolver {
 
     private static final int MIN_DOW_LENGTH = 3;
-    
+
     private List<DelaySchedule> schedules = new ArrayList<>();
 
     public GenericDelayResolver() {
@@ -139,84 +133,60 @@ public class GenericDelayResolver extends AbstractDelayResolver {
     }
 
     @Override
-    protected void loadDelaysFromXML(XMLConfiguration xml) 
-            throws IOException {
-        List<HierarchicalConfiguration> nodes =
-                xml.configurationsAt("schedule");
-        for (HierarchicalConfiguration node : nodes) {
+    protected void loadDelaysFromXML(XML xml) {
+        for (XML sxml : xml.getXMLList("schedule")) {
             schedules.add(new DelaySchedule(
-                    node.getString("[@dayOfWeek]", null),
-                    node.getString("[@dayOfMonth]", null),
-                    node.getString("[@time]", null),
-                    XMLConfigurationUtil.getDuration(node, "", DEFAULT_DELAY)
+                    sxml.getString("@dayOfWeek", null),
+                    sxml.getString("@dayOfMonth", null),
+                    sxml.getString("@time", null),
+                    sxml.getDurationMillis(".", DEFAULT_DELAY)
             ));
         }
     }
 
     @Override
-    protected void saveDelaysToXML(EnhancedXMLStreamWriter writer)
-            throws IOException {
-        try {
-            for (DelaySchedule schedule : schedules) {
-                writer.writeStartElement("schedule");
-                if (schedule.getDayOfWeekRange() != null) {
-                    writer.writeAttribute("dayOfWeek", 
-                            "from " + schedule.getDayOfWeekRange().getMinimum()
-                          + " to " + schedule.getDayOfWeekRange().getMaximum());
-                }
-                if (schedule.getDayOfMonthRange() != null) {
-                    writer.writeAttribute("dayOfMonth", 
-                           "from " + schedule.getDayOfMonthRange().getMinimum()
-                         + " to " + schedule.getDayOfMonthRange().getMaximum());
-                }
-                if (schedule.getTimeRange() != null) {
-                    int min = schedule.getTimeRange().getMinimum();
-                    int max = schedule.getTimeRange().getMaximum();
-                    writer.writeAttribute("time", 
-                          "from " + (min / 100) + ":" + (min % 100)
-                         + " to " + (max / 100) + ":" + (max % 100));
-                }
-                writer.writeCharacters(Long.toString(schedule.getDelay()));
-                writer.writeEndElement();
+    protected void saveDelaysToXML(XML xml) {
+        for (DelaySchedule schedule : schedules) {
+            XML sxml = xml.addElement("schedule", schedule.getDelay());
+            if (schedule.getDayOfWeekRange() != null) {
+                sxml.setAttribute("dayOfWeek",
+                        "from " + schedule.getDayOfWeekRange().getMinimum()
+                      + " to " + schedule.getDayOfWeekRange().getMaximum());
             }
-        } catch (XMLStreamException e) {
-            throw new IOException("Cannot save as XML.", e);
-        }        
+            if (schedule.getDayOfMonthRange() != null) {
+                sxml.setAttribute("dayOfMonth",
+                       "from " + schedule.getDayOfMonthRange().getMinimum()
+                     + " to " + schedule.getDayOfMonthRange().getMaximum());
+            }
+            if (schedule.getTimeRange() != null) {
+                int min = schedule.getTimeRange().getMinimum();
+                int max = schedule.getTimeRange().getMaximum();
+                sxml.setAttribute("time",
+                      "from " + (min / 100) + ":" + (min % 100)
+                     + " to " + (max / 100) + ":" + (max % 100));
+            }
+        }
     }
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof GenericDelayResolver)) {
-            return false;
-        }
-        GenericDelayResolver castOther = (GenericDelayResolver) other;
-        return new EqualsBuilder()
-                .appendSuper(super.equals(castOther))
-                .append(schedules, castOther.schedules)
-                .isEquals();
+        return EqualsBuilder.reflectionEquals(this, other);
     }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .appendSuper(super.hashCode())
-                .append(schedules)
-                .toHashCode();
+        return HashCodeBuilder.reflectionHashCode(this);
     }
-    
     @Override
     public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .appendSuper(super.toString())
-                .append("schedules", schedules)
-                .toString();
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
-    
+
     public static class DelaySchedule {
         private final CircularRange<DOW> dayOfWeekRange;
         private final CircularRange<Integer> dayOfMonthRange;
         // time is 4 digits. E.g., 16:34 is 1634
-        //TODO use LocalTime when moving to Java 8 
+        //TODO use LocalTime when moving to Java 8
         //(and make this class top-level).
         private final CircularRange<Integer> timeRange;
         private final long delay;
@@ -237,7 +207,7 @@ public class GenericDelayResolver extends AbstractDelayResolver {
                     DOW.values()[dt.getDayOfWeek() -1])) {
                 return false;
             }
-            if (dayOfMonthRange != null 
+            if (dayOfMonthRange != null
                     && !dayOfMonthRange.contains(dt.getDayOfMonth())) {
                 return false;
             }
@@ -280,7 +250,7 @@ public class GenericDelayResolver extends AbstractDelayResolver {
             }
             String dom = normalize(dayOfMonth);
             String[] parts = StringUtils.split(dom, '-');
-            return CircularRange.between(1, 31, 
+            return CircularRange.between(1, 31,
                     Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
         }
         private Integer toTimeInt(String str) {
@@ -313,34 +283,16 @@ public class GenericDelayResolver extends AbstractDelayResolver {
 
         @Override
         public boolean equals(final Object other) {
-            if (!(other instanceof DelaySchedule)) {
-                return false;
-            }
-            DelaySchedule castOther = (DelaySchedule) other;
-            return new EqualsBuilder()
-                    .append(dayOfMonthRange, castOther.dayOfMonthRange)
-                    .append(dayOfWeekRange, castOther.dayOfWeekRange)
-                    .append(timeRange, castOther.timeRange)
-                    .append(delay, castOther.delay)
-                    .isEquals();
+            return EqualsBuilder.reflectionEquals(this, other);
         }
         @Override
         public int hashCode() {
-            return new HashCodeBuilder()
-                .append(dayOfMonthRange)
-                .append(dayOfWeekRange)
-                .append(timeRange)
-                .append(delay)
-                .toHashCode();
+            return HashCodeBuilder.reflectionHashCode(this);
         }
         @Override
         public String toString() {
-            return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                    .append("dayOfMonthRange", dayOfMonthRange)
-                    .append("dayOfWeekRange", dayOfWeekRange)
-                    .append("timeRange", timeRange)
-                    .append("delay", delay)
-                    .toString();
+            return new ReflectionToStringBuilder(
+                    this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
         }
     }
 }

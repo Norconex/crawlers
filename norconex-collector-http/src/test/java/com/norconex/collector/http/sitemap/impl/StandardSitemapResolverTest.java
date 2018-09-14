@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,33 @@
  */
 package com.norconex.collector.http.sitemap.impl;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
+import com.norconex.commons.lang.xml.XML;
 
 public class StandardSitemapResolverTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(
+            StandardSitemapResolverTest.class);
 
     @Test
     public void testWriteRead() throws IOException {
         StandardSitemapResolverFactory r = new StandardSitemapResolverFactory();
         r.setLenient(true);
-        r.setTempDir(new File("C:\\temp\\sitemap"));
+        r.setTempDir(Paths.get("C:\\temp\\sitemap"));
         r.setSitemapPaths("/sitemap.xml", "/subdir/sitemap.xml");
-        System.out.println("Writing/Reading this: " + r);
-        XMLConfigurationUtil.assertWriteRead(r);
+        LOG.debug("Writing/Reading this: {}", r);
+        XML.assertWriteRead(r, "sitemapResolverFactory");
 
         // try with empty paths
         r.setSitemapPaths(new String[] {});
-        System.out.println("Writing/Reading this: " + r);
-        XMLConfigurationUtil.assertWriteRead(r);
+        LOG.debug("Writing/Reading this: {}", r);
+        XML.assertWriteRead(r, "sitemapResolverFactory");
 
     }
 
