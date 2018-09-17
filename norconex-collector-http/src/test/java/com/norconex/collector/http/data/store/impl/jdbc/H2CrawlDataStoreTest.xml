@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2017 Norconex Inc.
+   Copyright 2017-2018 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,5 +17,4 @@
 -->
   <!-- Validation done here since not in /validation/collector-http-full.xml -->
   <crawlDataStoreFactory 
-          class="com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory">
-  </crawlDataStoreFactory>
+          class="com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory"/>

@@ -16,10 +16,8 @@ package com.norconex.collector.http.data.store.impl.mongo;
 
 import static com.mongodb.client.model.Filters.eq;
 
-import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.bson.Document;
 
 import com.mongodb.client.MongoCollection;
@@ -61,12 +59,10 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         doc.put(FIELD_REFERRER_LINK_TEXT, data.getReferrerLinkText());
         doc.put(FIELD_REFERRER_LINK_TITLE, data.getReferrerLinkTitle());
         if (!data.getReferencedUrls().isEmpty()) {
-            doc.put(FIELD_REFERENCED_URLS,
-                    Arrays.asList(data.getReferencedUrls()));
+            doc.put(FIELD_REFERENCED_URLS, data.getReferencedUrls());
         }
         if (!data.getRedirectTrail().isEmpty()) {
-            doc.put(FIELD_REDIRECT_TRAIL,
-                    Arrays.asList(data.getRedirectTrail()));
+            doc.put(FIELD_REDIRECT_TRAIL, data.getRedirectTrail());
         }
         return doc;
     }
@@ -104,15 +100,13 @@ public class MongoCrawlDataSerializer extends BaseMongoSerializer {
         @SuppressWarnings("unchecked")
         List<String> dbRefUrls = (List<String>) doc.get(FIELD_REFERENCED_URLS);
         if (dbRefUrls != null) {
-            data.setReferencedUrls(
-                    dbRefUrls.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+            data.setReferencedUrls(dbRefUrls);
         }
 
         @SuppressWarnings("unchecked")
         List<String> dbRdrTrail = (List<String>) doc.get(FIELD_REDIRECT_TRAIL);
         if (dbRdrTrail != null) {
-            data.setRedirectTrail(
-                    dbRdrTrail.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+            data.setRedirectTrail(dbRdrTrail);
         }
 
         return data;

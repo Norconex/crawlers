@@ -156,8 +156,14 @@ public class StandardSitemapResolverFactory
         setTempDir(xml.getPath("tempDir", tempDir));
         setLenient(xml.getBoolean("@lenient", lenient));
 
-        //TODO make sure null can be set to clear the paths
-        setSitemapPaths(xml.getStringList("path", sitemapPaths));
+        //TODO make sure null can be set to clear the paths instead of this hack
+        List<String> paths = xml.getStringList("path");
+        if (paths.size() == 1 && paths.get(0).equals("")) {
+            setSitemapPaths((List<String>) null);
+        } else if (!paths.isEmpty()) {
+            setSitemapPaths(paths);
+        }
+//        setSitemapPaths(xml.getStringList("path", sitemapPaths));
 //
 //
 //
@@ -185,9 +191,17 @@ public class StandardSitemapResolverFactory
     public void saveToXML(XML xml) {
         xml.setAttribute("lenient", lenient);
         xml.addElement("tempDir", getTempDir());
-        xml.addElementList("path", sitemapPaths);
+//        xml.addElementList("path", sitemapPaths);
+
+        if (sitemapPaths.isEmpty()) {
+            xml.addElement("path", "");
+        } else {
+            xml.addElementList("path", sitemapPaths);
+        }
 
         //TODO make sure null can be set to clear the paths
+        // could be done for list if always wrapping lists in parent tag
+        // that when present but empty, means null.
 
 
 //        if (ArrayUtils.isEmpty(sitemapPaths)) {

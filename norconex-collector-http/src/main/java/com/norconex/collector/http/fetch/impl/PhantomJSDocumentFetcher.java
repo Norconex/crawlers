@@ -1289,16 +1289,18 @@ public class PhantomJSDocumentFetcher
 
     @Override
     public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
+        return EqualsBuilder.reflectionEquals(
+                this, other, "contentTypeDetector");
     }
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+        return HashCodeBuilder.reflectionHashCode(this, "contentTypeDetector");
     }
     @Override
     public String toString() {
         return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
+                this, ToStringStyle.SHORT_PREFIX_STYLE)
+                    .setExcludeFieldNames("contentTypeDetector").toString();
     }
 
     private static class PhantomJSArguments {

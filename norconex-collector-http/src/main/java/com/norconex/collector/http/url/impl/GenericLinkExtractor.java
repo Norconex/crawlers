@@ -283,12 +283,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     private boolean ignoreNofollow;
     private final Properties tagAttribs = new Properties(true);
-    private Pattern tagPattern;
-    private String charset;
-    private boolean commentsEnabled;
+    transient private Pattern tagPattern;
+    transient private String charset;
+    transient private boolean commentsEnabled;
 
-    private final List<RegexPair> extractBetweens = new ArrayList<>();
-    private final List<RegexPair> noExtractBetweens = new ArrayList<>();
+    transient private final List<RegexPair> extractBetweens = new ArrayList<>();
+    transient private final List<RegexPair> noExtractBetweens = new ArrayList<>();
 
     public GenericLinkExtractor() {
         super();

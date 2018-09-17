@@ -18,11 +18,11 @@
 <importer>
 
   <postParseHandlers>
-     <tagger class="com.norconex.importer.handler.tagger.impl.ConstantTagger">
+     <handler class="com.norconex.importer.handler.tagger.impl.ConstantTagger">
        <constant name="SITE">Norconex Test Site</constant>
-     </tagger>
-     <tagger class="com.norconex.importer.handler.tagger.impl.DeleteTagger">
+     </handler>
+     <handler class="com.norconex.importer.handler.tagger.impl.DeleteTagger">
        <fields>${fieldsToDelete}</fields>
-     </tagger>
+     </handler>
   </postParseHandlers>
 </importer>           

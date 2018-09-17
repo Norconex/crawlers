@@ -22,9 +22,13 @@
   #set($urlNormalizer   = "${http}.url.impl.GenericURLNormalizer")
   #set($filterExtension = "${core}.filter.impl.ExtensionReferenceFilter")
   #set($filterRegexRef  = "${core}.filter.impl.RegexReferenceFilter")
-  
+
+  <workDir>$workdir</workDir>
+
+  <!-- DEPRECATED:
   <progressDir>${workdir}/progress</progressDir>
   <logsDir>${workdir}/logs</logsDir>
+   -->  
 
   <crawlerDefaults>
 

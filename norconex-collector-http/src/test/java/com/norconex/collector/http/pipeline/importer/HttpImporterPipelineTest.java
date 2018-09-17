@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
@@ -60,4 +61,27 @@ public class HttpImporterPipelineTest {
         Assert.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
     }
 
+    @Test
+    public void testCopyProperties() {
+        String reference = "http://www.example.com/file.pdf";
+        HttpDocument doc = new HttpDocument(reference,
+                new CachedStreamFactory(1, 1).newInputStream());
+
+
+        ImporterPipelineContext ipc = new ImporterPipelineContext(
+                new HttpCrawler(new HttpCrawlerConfig(), new EventManager()),
+                null, new HttpCrawlData(reference, 0), null, doc);
+
+        new HttpImporterPipelineContext(ipc);
+//        HttpImporterPipelineContext hipc = new HttpImporterPipelineContext(
+//                new HttpCrawler(new HttpCrawlerConfig(), new EventManager()),
+//                null, new HttpCrawlData(reference, 0), null, doc);
+//        HttpImporterPipelineContext
+
+//source->        ImporterPipelineContext
+//target->        HttpImporterPipelineContext
+
+
+//        Assert.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
+    }
 }

@@ -253,16 +253,6 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
             }
         });
 
-//        crawler.getCrawlerConfig().setCrawlerListeners(
-//                new ICrawlerEventListener[] {new ICrawlerEventListener() {
-//            @Override
-//            public void crawlerEvent(ICrawler crawler, CrawlerEvent event) {
-//                if (HttpCrawlerEvent.REJECTED_NONCANONICAL.equals(
-//                        event.getEventType())) {
-//                    canCount.increment();
-//                }
-//            }
-//        }});
         collector.start(false);
 
         List<HttpDocument> docs = getCommitedDocuments(crawler);

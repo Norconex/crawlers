@@ -17,8 +17,11 @@
 -->
 <httpcollector id="Test Collector">
 
+  <workDir>${workDir}</workDir>
+<!-- DEPRECATED: 
   <progressDir>${workDir}/progress</progressDir>
   <logsDir>${workDir}/logs</logsDir>
+ -->
 
   <crawlers>
     <crawler id="Test Crawler">

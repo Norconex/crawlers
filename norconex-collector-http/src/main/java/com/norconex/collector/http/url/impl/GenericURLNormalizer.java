@@ -257,9 +257,18 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
     public void loadFromXML(XML xml) {
         setDisabled(xml.getBoolean("@disabled", disabled));
 
-        CollectionUtil.setAll(this.normalizations, CollectionUtil.toTypeList(
-                xml.getDelimitedStringList("normalizations"),
-                        s -> Normalization.valueOf(s.trim())));
+        //TODO be consistant how to clear defaults... similar issue as with
+        //StandardSitemapResolverFactory
+        List<String> norms = xml.getStringList("normalizations");
+        if (norms.size() == 1 && norms.get(0).equals("")) {
+            CollectionUtil.setAll(
+                    this.normalizations, (List<Normalization>) null);
+        } else if (!norms.isEmpty()) {
+            CollectionUtil.setAll(this.normalizations, CollectionUtil.toTypeList(
+                    xml.getDelimitedStringList("normalizations"),
+                            s -> Normalization.valueOf(s.trim())));
+        }
+
 
 //        xml.getDelimitedStringList("normalizations").stream().map(
 //                s -> Normalization.valueOf(s.trim())).collect(Collectors.toList());

@@ -37,7 +37,6 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.website.TestWebServer;
 import com.norconex.committer.core.impl.FileSystemCommitter;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileUtil;
 
 public abstract class AbstractHttpTest {
@@ -128,6 +127,14 @@ public abstract class AbstractHttpTest {
     protected HttpCollector newHttpCollector1Crawler(String... startURLs)
             throws IOException {
 
+        //--- Collector ---
+        HttpCollectorConfig colConfig = new HttpCollectorConfig();
+        colConfig.setId("Unit Test HTTP Collector instance "
+                + UUID.randomUUID());
+//        colConfig.setProgressDir(progressDir.getAbsolutePath());
+//        colConfig.setLogsDir(logsDir.getAbsolutePath());
+        HttpCollector collector = new HttpCollector(colConfig);
+
 //        File progressDir = tempFolder.newFolder("progress" + UUID.randomUUID());
 //        File logsDir = tempFolder.newFolder("logs" + UUID.randomUUID());
         File workdir = tempFolder.newFolder("workdir" + UUID.randomUUID());
@@ -156,15 +163,9 @@ public abstract class AbstractHttpTest {
         httpConfig.setIgnoreRobotsMeta(true);
         httpConfig.setIgnoreSitemap(true);
         httpConfig.setCommitter(committer);
-        HttpCrawler crawler = new HttpCrawler(httpConfig, new EventManager());
+        HttpCrawler crawler = new HttpCrawler(
+                httpConfig, collector.getEventManager());
 
-        //--- Collector ---
-        HttpCollectorConfig colConfig = new HttpCollectorConfig();
-        colConfig.setId("Unit Test HTTP Collector instance "
-                + UUID.randomUUID());
-//        colConfig.setProgressDir(progressDir.getAbsolutePath());
-//        colConfig.setLogsDir(logsDir.getAbsolutePath());
-        HttpCollector collector = new HttpCollector(colConfig);
         collector.setCrawlers(Arrays.asList(crawler));
         return collector;
     }

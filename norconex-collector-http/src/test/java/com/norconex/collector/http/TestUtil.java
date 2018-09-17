@@ -71,7 +71,7 @@ public final class TestUtil {
 
         try (Reader r = new InputStreamReader(xmlStream)) {
             Assert.assertTrue("Validation warnings/errors were found.",
-                    new XML(r).validate(HttpCollectorConfig.class).isEmpty());
+                    new XML(r).validate().isEmpty());
         }
 
 //        CountingConsoleAppender appender = new CountingConsoleAppender();

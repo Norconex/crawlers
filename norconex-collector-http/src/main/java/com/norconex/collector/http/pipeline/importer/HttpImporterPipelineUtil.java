@@ -242,6 +242,7 @@ import com.norconex.commons.lang.file.ContentType;
         newData.setReferrerLinkTag(crawlData.getReferrerLinkTag());
         newData.setReferrerLinkText(crawlData.getReferrerLinkText());
         newData.setReferrerLinkTitle(crawlData.getReferrerLinkTitle());
+        newData.setRedirectTrail(crawlData.getRedirectTrail());
         newData.addRedirectURL(sourceURL);
         if (requeue) {
             store.queue(newData);

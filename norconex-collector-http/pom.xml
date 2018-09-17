@@ -89,6 +89,7 @@
         <artifactId>jetty-proxy</artifactId>
         <version>${jetty.version}</version>
     </dependency>
+
     <dependency>
       <groupId>com.github.fakemongo</groupId>
       <artifactId>fongo</artifactId>
@@ -101,6 +102,19 @@
       <version>1.9.5</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>2.10.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.10.0</version>
+      <scope>test</scope>
+    </dependency>    
+    
     <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>

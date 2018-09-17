@@ -52,6 +52,11 @@
                       <xs:enumeration value="medium"/>
                       <xs:enumeration value="high"/>
                       <xs:enumeration value="max"/>
+                      <xs:enumeration value="AUTO"/>
+                      <xs:enumeration value="LOW"/>
+                      <xs:enumeration value="MEDIUM"/>
+                      <xs:enumeration value="HIGH"/>
+                      <xs:enumeration value="MAX"/>
                     </xs:restriction>
                   </xs:simpleType>
                 </xs:attribute>
@@ -63,7 +68,7 @@
         <xs:element name="screenshotStorage" minOccurs="0" maxOccurs="1">
           <xs:simpleType>
             <xs:restriction base="xs:string">
-              <xs:pattern value="((\s*,\s*){0,1}(inline|disk)){0,2}" />
+              <xs:pattern value="((\s*,\s*){0,1}(inline|disk|INLINE|DISK)){0,2}" />
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
@@ -78,6 +83,9 @@
                       <xs:enumeration value="url2path"/>
                       <xs:enumeration value="date"/>
                       <xs:enumeration value="datetime"/>
+                      <xs:enumeration value="URL2PATH"/>
+                      <xs:enumeration value="DATE"/>
+                      <xs:enumeration value="DATETIME"/>
                     </xs:restriction>
                   </xs:simpleType>
                 </xs:attribute>

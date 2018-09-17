@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
+import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.xml.XML;
 
@@ -44,8 +45,12 @@ public class HttpCrawlerConfigTest {
 //                        .loadCollectorConfig(configFile);
 
         HttpCollectorConfig config = new HttpCollectorConfig();
-        new XML(Paths.get("src/site/resources/examples/complex/"
-                + "complex-config.xml")).configure(config);
+
+        XML xml = new ConfigurationLoader().loadXML(Paths.get(
+                "src/site/resources/examples/complex/complex-config.xml"));
+        xml.configure(config);
+//        new XML(new ConfigurationLoader().loadXML(
+//                ).configure(config);
 
         HttpCrawlerConfig crawlerConfig =
                 (HttpCrawlerConfig) config.getCrawlerConfigs().get(0);

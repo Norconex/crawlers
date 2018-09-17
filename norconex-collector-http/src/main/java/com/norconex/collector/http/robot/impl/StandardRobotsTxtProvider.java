@@ -209,16 +209,17 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
 
     @Override
     public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
+        return EqualsBuilder.reflectionEquals(this, other, "robotsTxtCache");
     }
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+        return HashCodeBuilder.reflectionHashCode(this, "robotsTxtCache");
     }
     @Override
     public String toString() {
         return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
+                ToStringStyle.SHORT_PREFIX_STYLE)
+                .setExcludeFieldNames("robotsTxtCache").toString();
     }
 
     private static class RobotData {
@@ -306,19 +307,17 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         }
         @Override
         public boolean equals(final Object other) {
-            return EqualsBuilder.reflectionEquals(
-                    this, other, "robotsTxtCache");
+            return EqualsBuilder.reflectionEquals(this, other);
         }
         @Override
         public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(
-                    this, "robotsTxtCache");
+            return HashCodeBuilder.reflectionHashCode(this);
         }
         @Override
         public String toString() {
-            return new ReflectionToStringBuilder(this,
-                    ToStringStyle.SHORT_PREFIX_STYLE)
-                    .setExcludeFieldNames("robotsTxtCache").toString();
+            return "Robots.txt -> " + (getOnMatch() == OnMatch.INCLUDE 
+                    ? "Allow: " : "Disallow: ") + path
+                            + " (" + getRegex().toString() + ")";            
         }
     }
 }

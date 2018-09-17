@@ -226,25 +226,28 @@ public class SegmentCountURLFilter implements IOnMatchFilter,
         setDuplicate(xml.getBoolean("@duplicate", false));
         setSeparator(xml.getString(
                 "@separator", DEFAULT_SEGMENT_SEPARATOR_PATTERN));
+        setOnMatch(xml.getEnum("@onMatch", OnMatch.class, onMatch));
     }
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("count", count);
         xml.setAttribute("duplicate", duplicate);
         xml.setAttribute("separator", separator);
+        xml.setAttribute("onMatch", onMatch);
     }
 
     @Override
     public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
+        return EqualsBuilder.reflectionEquals(this, other, "separatorPattern");
     }
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+        return HashCodeBuilder.reflectionHashCode(this, "separatorPattern");
     }
     @Override
     public String toString() {
         return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
+                this, ToStringStyle.SHORT_PREFIX_STYLE)
+                        .setExcludeFieldNames("separatorPattern").toString();
     }
 }

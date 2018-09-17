@@ -24,6 +24,8 @@
           <xs:restriction base="xs:string">
             <xs:enumeration value="include"/>
             <xs:enumeration value="exclude"/>
+            <xs:enumeration value="INCLUDE"/>
+            <xs:enumeration value="EXCLUDE"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
