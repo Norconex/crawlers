@@ -14,7 +14,6 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -70,8 +69,11 @@ import com.norconex.commons.lang.io.CachedInputStream;
         for (ILinkExtractor extractor : extractors) {
             if (extractor.accepts(reference, ct)) {
                 try {
-                    links.addAll(extractor.extractLinks(is, reference, ct));
-                } catch (IOException e) {
+                    Set<Link> extracted = extractor.extractLinks(is, reference, ct);
+                    if (extracted != null) {
+                        links.addAll(extracted);
+                    }
+                } catch (Exception e) {
                     LOG.error("Could not extract links from: " + reference, e);
                 } finally {
                     is.rewind();
