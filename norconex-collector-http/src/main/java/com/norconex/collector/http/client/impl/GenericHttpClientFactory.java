@@ -300,7 +300,7 @@ public class GenericHttpClientFactory
     private String authWorkstation;
     private String authDomain;
     private boolean authPreemptive;
-    private boolean cookiesDisabled;
+    private String cookieSpec = CookieSpecs.STANDARD;
     private boolean trustAllSSLCertificates;
     private String proxyHost;
     private int proxyPort;
@@ -497,12 +497,8 @@ public class GenericHttpClientFactory
                 .setSocketTimeout(socketTimeout)
                 .setConnectionRequestTimeout(connectionRequestTimeout)
                 .setMaxRedirects(maxRedirects)
-                .setExpectContinueEnabled(expectContinueEnabled);
-        if (cookiesDisabled) {
-            builder.setCookieSpec(CookieSpecs.IGNORE_COOKIES);
-        } else {
-            builder.setCookieSpec(CookieSpecs.DEFAULT);
-        }
+                .setExpectContinueEnabled(expectContinueEnabled)
+                .setCookieSpec(cookieSpec);
         if (maxRedirects <= 0) {
             builder.setRedirectsEnabled(false);
         }
@@ -659,7 +655,11 @@ public class GenericHttpClientFactory
     @Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        cookiesDisabled = xml.getBoolean("cookiesDisabled", cookiesDisabled);
+        if (xml.getBoolean("cookiesDisabled", false)) {
+            cookieSpec = CookieSpecs.IGNORE_COOKIES;
+        } else {
+            cookieSpec = xml.getString("cookieSpec", cookieSpec);
+        }
         authMethod = xml.getString("authMethod", authMethod);
         authUsernameField = 
                 xml.getString("authUsernameField", authUsernameField);
@@ -763,7 +763,7 @@ public class GenericHttpClientFactory
             writer.writeStartElement("httpClientFactory");
             writer.writeAttribute("class", getClass().getCanonicalName());
 
-            writer.writeElementBoolean("cookiesDisabled", cookiesDisabled);
+            writer.writeElementString("cookieSpec", cookieSpec);
             writer.writeElementString("authMethod", authMethod);
             writer.writeElementString("authUsername", authUsername);
             writer.writeElementString("authPassword", authPassword);
@@ -1027,14 +1027,27 @@ public class GenericHttpClientFactory
      * @return <code>true</code> if disabled
      */
     public boolean isCookiesDisabled() {
-        return cookiesDisabled;
+        return CookieSpecs.IGNORE_COOKIES.equals(cookieSpec);
     }
     /**
      * Sets whether cookie support is disabled.
      * @param cookiesDisabled <code>true</code> if disabled
      */
     public void setCookiesDisabled(boolean cookiesDisabled) {
-        this.cookiesDisabled = cookiesDisabled;
+        this.cookieSpec = CookieSpecs.IGNORE_COOKIES;
+    }
+    
+    /**
+     * @return the cookieSpec to use as defined in {@link CookieSpecs}
+     */
+    public String getCookieSpec() {
+        return cookieSpec;
+    }
+    /**
+     * @param cookieSpec the cookieSpec to use as defined in {@link CookieSpecs}
+     */
+    public void setCookieSpec(String cookieSpec) {
+        this.cookieSpec = cookieSpec;
     }
 
     /**
@@ -1615,7 +1628,7 @@ public class GenericHttpClientFactory
                 .append(authWorkstation, other.authWorkstation)
                 .append(authDomain, other.authDomain)
                 .append(authPreemptive, other.authPreemptive)
-                .append(cookiesDisabled, other.cookiesDisabled)
+                .append(cookieSpec, other.cookieSpec)
                 .append(trustAllSSLCertificates, other.trustAllSSLCertificates)
                 .append(proxyHost, other.proxyHost)
                 .append(proxyPort, other.proxyPort)
@@ -1660,7 +1673,7 @@ public class GenericHttpClientFactory
                 .append(authWorkstation)
                 .append(authDomain)
                 .append(authPreemptive)
-                .append(cookiesDisabled)
+                .append(cookieSpec)
                 .append(trustAllSSLCertificates)
                 .append(proxyHost)
                 .append(proxyPort)
@@ -1703,7 +1716,7 @@ public class GenericHttpClientFactory
                 .append("authWorkstation", authWorkstation)
                 .append("authDomain", authDomain)
                 .append("authPreemptive", authPreemptive)
-                .append("cookiesDisabled", cookiesDisabled)
+                .append("cookieSpec", cookieSpec)
                 .append("trustAllSSLCertificates", trustAllSSLCertificates)
                 .append("proxyHost", proxyHost)
                 .append("proxyPort", proxyPort)
