@@ -231,6 +231,8 @@ public class FeaturedImageProcessor
     public static final Dimension DEFAULT_MIN_SIZE = new Dimension(400, 400);
     public static final Dimension DEFAULT_SCALE_SIZE = new Dimension(150, 150);
     public static final Storage DEFAULT_STORAGE = Storage.URL;
+    public static final StorageDiskStructure DEFAULT_STORAGE_DISK_STRUCTURE =
+            StorageDiskStructure.URL2PATH;
 
     public enum Storage { URL, INLINE, DISK }
     public enum StorageDiskStructure { URL2PATH, DATE, DATETIME }
@@ -258,8 +260,7 @@ public class FeaturedImageProcessor
     private final List<Storage> storage =
             new ArrayList<>(Arrays.asList(DEFAULT_STORAGE));
     private String storageDiskDir = DEFAULT_STORAGE_DISK_DIR;
-    private StorageDiskStructure storageDiskStructure =
-            StorageDiskStructure.URL2PATH;
+    private StorageDiskStructure storageDiskStructure;
     private Quality scaleQuality = Quality.AUTO;
 
     private String storageDiskField = COLLECTOR_FEATURED_IMAGE_PATH;

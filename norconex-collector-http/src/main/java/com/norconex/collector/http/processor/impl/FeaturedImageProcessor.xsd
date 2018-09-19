@@ -28,7 +28,7 @@
         <xs:element name="storage" minOccurs="0" maxOccurs="1">
           <xs:simpleType>
             <xs:restriction base="xs:string">
-              <xs:pattern value="((\s*,\s*){0,1}(url|inline|disk)){0,3}" />
+              <xs:pattern value="((\s*,\s*){0,1}(url|inline|disk|URL|INLINE|DISK)){0,3}" />
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
@@ -47,6 +47,11 @@
                       <xs:enumeration value="medium"/>
                       <xs:enumeration value="high"/>
                       <xs:enumeration value="max"/>
+                      <xs:enumeration value="AUTO"/>
+                      <xs:enumeration value="LOW"/>
+                      <xs:enumeration value="MEDIUM"/>
+                      <xs:enumeration value="HIGH"/>
+                      <xs:enumeration value="MAX"/>
                     </xs:restriction>
                   </xs:simpleType>
                 </xs:attribute>
@@ -66,6 +71,9 @@
                       <xs:enumeration value="url2path"/>
                       <xs:enumeration value="date"/>
                       <xs:enumeration value="datetime"/>
+                      <xs:enumeration value="URL2PATH"/>
+                      <xs:enumeration value="DATE"/>
+                      <xs:enumeration value="DATETIME"/>
                     </xs:restriction>
                   </xs:simpleType>
                 </xs:attribute>

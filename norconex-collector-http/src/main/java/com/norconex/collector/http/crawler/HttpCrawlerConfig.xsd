@@ -38,7 +38,7 @@
           <xs:element name="keepDownloads" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
           <xs:element name="keepOutOfScopeLinks" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
           <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="userAgent" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
           <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="httpClientFactory" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
@@ -113,15 +113,9 @@
   </xs:complexType>
 
   <xs:element name="startURLChoice" abstract="true"/>
-  <xs:element name="url" substitutionGroup="startURLChoice" type="nonEmptyString"/>
-  <xs:element name="urlsFile" substitutionGroup="startURLChoice" type="nonEmptyString"/>
-  <xs:element name="sitemap" substitutionGroup="startURLChoice" type="nonEmptyString"/>
+  <xs:element name="url" substitutionGroup="startURLChoice" type="xs:string"/>
+  <xs:element name="urlsFile" substitutionGroup="startURLChoice" type="xs:string"/>
+  <xs:element name="sitemap" substitutionGroup="startURLChoice" type="xs:string"/>
   <xs:element name="provider" substitutionGroup="startURLChoice" type="anyComplexRequiredClassType" />
-
-  <xs:simpleType name="nonEmptyString">
-    <xs:restriction base="xs:string">
-      <xs:minLength value="1"/>
-    </xs:restriction>
-  </xs:simpleType>
 
 </xs:schema>

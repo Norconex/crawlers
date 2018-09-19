@@ -19,17 +19,11 @@
   <xs:element name="robotsMeta">
     <xs:complexType>
       <xs:all>
-        <xs:element name="headersPrefix" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
       <xs:attribute name="ignore" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
-
-  <xs:simpleType name="nonEmptyString">
-    <xs:restriction base="xs:string">
-      <xs:minLength value="1"/>
-    </xs:restriction>
-  </xs:simpleType>
 
 </xs:schema>

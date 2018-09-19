@@ -19,8 +19,8 @@
   <xs:element name="extractor">
     <xs:complexType>
       <xs:all>
-        <xs:element name="contentTypes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="schemes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="contentTypes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="schemes" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="tags" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
@@ -43,12 +43,6 @@
       <xs:attribute name="charset" type="xs:string"/>
     </xs:complexType>
   </xs:element>
-
-  <xs:simpleType name="nonEmptyString">
-    <xs:restriction base="xs:string">
-      <xs:minLength value="1"/>
-    </xs:restriction>
-  </xs:simpleType>
 
   <xs:complexType name="extractType">
     <xs:all>

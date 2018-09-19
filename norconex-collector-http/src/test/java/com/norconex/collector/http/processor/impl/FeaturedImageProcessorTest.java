@@ -17,6 +17,7 @@ package com.norconex.collector.http.processor.impl;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -67,7 +68,7 @@ public class FeaturedImageProcessorTest {
         p.setScaleQuality(null);
         p.setScaleDimensions(null);
         p.setScaleStretch(false);
-        p.setStorage((Storage) null);
+        p.setStorage((List<Storage>) null);
         p.setStorageDiskDir(null);
         p.setStorageDiskStructure(null);
         p.setStorageDiskField(null);

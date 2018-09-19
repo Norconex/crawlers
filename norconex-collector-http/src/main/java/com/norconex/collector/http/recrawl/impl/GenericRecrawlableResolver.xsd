@@ -51,6 +51,9 @@
             <xs:enumeration value="first"/>
             <xs:enumeration value="last"/>
             <xs:enumeration value="never"/>
+            <xs:enumeration value="FIRST"/>
+            <xs:enumeration value="LAST"/>
+            <xs:enumeration value="NEVER"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>

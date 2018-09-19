@@ -23,28 +23,28 @@
         <xs:element name="connectionTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="socketTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="connectionRequestTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="connectionCharset" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="connectionCharset" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="expectContinueEnabled" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxRedirects" type="xs:int" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="localAddress" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="localAddress" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxConnections" type="xs:int" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxConnectionsPerRoute" type="xs:int" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxConnectionIdleTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxConnectionInactiveTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="trustAllSSLCertificates" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="sslProtocols" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyHost" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="sslProtocols" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="proxyHost" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="proxyPort" type="xs:int" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyRealm" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyScheme" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyUsername" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyPassword" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyPasswordKey" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="proxyRealm" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="proxyScheme" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="proxyUsername" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="proxyPassword" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="proxyPasswordKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="proxyPasswordKeySource" type="passwordKeySourceType" minOccurs="0" maxOccurs="1"/>
         <xs:element name="authFormParams" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
-              <xs:element name="param" minOccurs="1" maxOccurs="unbounded">
+              <xs:element name="param" minOccurs="0" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:simpleContent>
                     <xs:extension base="xs:string">
@@ -59,7 +59,7 @@
         <xs:element name="headers" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
-              <xs:element name="header" minOccurs="1" maxOccurs="unbounded">
+              <xs:element name="header" minOccurs="0" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:simpleContent>
                     <xs:extension base="xs:string">
@@ -74,46 +74,51 @@
         <xs:element name="authMethod" minOccurs="0" maxOccurs="1">
           <xs:simpleType>
             <xs:restriction base="xs:string">
+              <xs:enumeration value=""/>
               <xs:enumeration value="form"/>
               <xs:enumeration value="basic"/>
               <xs:enumeration value="digest"/>
               <xs:enumeration value="ntlm"/>
               <xs:enumeration value="spnego"/>
               <xs:enumeration value="kerberos"/>
+              <xs:enumeration value="FORM"/>
+              <xs:enumeration value="BASIC"/>
+              <xs:enumeration value="DIGEST"/>
+              <xs:enumeration value="NTLM"/>
+              <xs:enumeration value="SPNEGO"/>
+              <xs:enumeration value="KERBEROS"/>
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
-        <xs:element name="authUsername" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authPassword" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authPasswordKey" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authUsername" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authPassword" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authPasswordKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="authPasswordKeySource" type="passwordKeySourceType" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authUsernameField" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authPasswordField" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authURL" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authFormCharset" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authHostname" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authUsernameField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authPasswordField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authURL" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authFormCharset" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authHostname" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="authPort" type="xs:int" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authRealm" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authWorkstation" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authDomain" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authRealm" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authWorkstation" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authDomain" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="authPreemptive" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
     </xs:complexType>
   </xs:element>
 
-  <xs:simpleType name="nonEmptyString">
-    <xs:restriction base="xs:string">
-      <xs:minLength value="1"/>
-    </xs:restriction>
-  </xs:simpleType>
-  
   <xs:simpleType name="passwordKeySourceType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="key"/>
       <xs:enumeration value="file"/>
       <xs:enumeration value="environment"/>
       <xs:enumeration value="property"/>
+      <xs:enumeration value="KEY"/>
+      <xs:enumeration value="FILE"/>
+      <xs:enumeration value="ENVIRONMENT"/>
+      <xs:enumeration value="PROPERTY"/>
     </xs:restriction>
   </xs:simpleType>
 

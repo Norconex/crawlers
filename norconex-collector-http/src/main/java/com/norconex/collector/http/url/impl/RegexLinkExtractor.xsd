@@ -19,16 +19,16 @@
   <xs:element name="extractor">
     <xs:complexType>
       <xs:all>
-        <xs:element name="applyToContentTypePattern" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="applyToReferencePattern" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="applyToContentTypePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="applyToReferencePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="linkExtractionPatterns" minOccurs="1" maxOccurs="1">
           <xs:complexType>
             <xs:all>
               <xs:element name="pattern" minOccurs="1" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:all>
-                    <xs:element name="match" type="nonEmptyString" minOccurs="1" maxOccurs="1"/>
-                    <xs:element name="replace" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="match" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="replace" type="xs:string" minOccurs="0" maxOccurs="1"/>
                   </xs:all>
                 </xs:complexType>
               </xs:element>
@@ -41,12 +41,6 @@
       <xs:attribute name="charset" type="xs:string"/>
     </xs:complexType>
   </xs:element>
-
-  <xs:simpleType name="nonEmptyString">
-    <xs:restriction base="xs:string">
-      <xs:minLength value="1"/>
-    </xs:restriction>
-  </xs:simpleType>
 
 </xs:schema>
       

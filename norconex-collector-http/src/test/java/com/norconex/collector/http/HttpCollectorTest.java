@@ -23,6 +23,7 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.crawler.ICrawlerConfig;
 import com.norconex.collector.http.crawler.AbstractHttpTest;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
@@ -64,8 +65,8 @@ public class HttpCollectorTest extends AbstractHttpTest {
         // type and event name.
         config.addEventListeners(e -> {
             if (e.is(HttpCollectorEvent.COLLECTOR_ENDED)) {
-                JobState state =
-                        ((HttpCollectorEvent) e).getSource().getState();
+                JobState state = ((CollectorEvent<?>) e).getSource()
+                        .getJobSuite().getRootStatus().getState();
                 assertEquals(JobState.COMPLETED, state);
             }
 

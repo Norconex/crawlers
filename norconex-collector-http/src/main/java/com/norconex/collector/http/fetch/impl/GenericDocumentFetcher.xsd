@@ -19,20 +19,14 @@
   <xs:element name="documentFetcher">
     <xs:complexType>
       <xs:all>
-        <xs:element name="validStatusCodes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="notFoundStatusCodes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="headersPrefix" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="notFoundStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
       </xs:all>
       <xs:attribute name="class" type="xs:string" use="required"/>
       <xs:attribute name="detectContentType" type="xs:boolean"/>
       <xs:attribute name="detectCharset" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
-
-  <xs:simpleType name="nonEmptyString">
-    <xs:restriction base="xs:string">
-      <xs:minLength value="1"/>
-    </xs:restriction>
-  </xs:simpleType>
 
 </xs:schema>

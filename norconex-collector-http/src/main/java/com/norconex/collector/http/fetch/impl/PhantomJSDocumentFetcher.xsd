@@ -19,22 +19,22 @@
   <xs:element name="documentFetcher">
     <xs:complexType>
       <xs:all>
-        <xs:element name="exePath" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="scriptPath" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="exePath" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="scriptPath" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="renderWaitTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="resourceTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="options" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
-              <xs:element name="opt" type="nonEmptyString" minOccurs="1" maxOccurs="unbounded"/>
+              <xs:element name="opt" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
             </xs:all>
           </xs:complexType>
         </xs:element>
-        <xs:element name="referencePattern" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="contentTypePattern" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="validStatusCodes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="notFoundStatusCodes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="headersPrefix" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="referencePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="contentTypePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="notFoundStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotZoomFactor" type="xs:float" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotScaleDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
@@ -64,7 +64,7 @@
             </xs:simpleContent>
           </xs:complexType>
         </xs:element>
-        <xs:element name="screenshotImageFormat" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="screenshotImageFormat" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="screenshotStorage" minOccurs="0" maxOccurs="1">
           <xs:simpleType>
             <xs:restriction base="xs:string">
@@ -93,8 +93,8 @@
             </xs:simpleContent>
           </xs:complexType>
         </xs:element>
-        <xs:element name="screenshotStorageDiskField" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="screenshotStorageInlineField" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="screenshotStorageDiskField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="screenshotStorageInlineField" type="xs:string" minOccurs="0" maxOccurs="1"/>
       </xs:all>
       <xs:attribute name="class" type="xs:string" use="required"/>
       <xs:attribute name="detectContentType" type="xs:boolean"/>
@@ -102,12 +102,6 @@
       <xs:attribute name="screenshotEnabled" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
-
-  <xs:simpleType name="nonEmptyString">
-    <xs:restriction base="xs:string">
-      <xs:minLength value="1"/>
-    </xs:restriction>
-  </xs:simpleType>
 
   <xs:simpleType name="dimension">
     <xs:restriction base="xs:string">

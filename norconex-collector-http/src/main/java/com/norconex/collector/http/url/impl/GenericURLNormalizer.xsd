@@ -28,7 +28,7 @@
                 <xs:complexType>
                   <xs:all>
                     <xs:element name="match" 
-                        type="nonEmptyString" minOccurs="1" maxOccurs="1"/>
+                        type="xs:string" minOccurs="1" maxOccurs="1"/>
                     <xs:element name="replacement" 
                         type="xs:string" minOccurs="0" maxOccurs="1"/>
                   </xs:all>
@@ -42,11 +42,5 @@
       <xs:attribute name="disabled" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
-
-  <xs:simpleType name="nonEmptyString">
-    <xs:restriction base="xs:string">
-      <xs:minLength value="1"/>
-    </xs:restriction>
-  </xs:simpleType>
 
 </xs:schema>
