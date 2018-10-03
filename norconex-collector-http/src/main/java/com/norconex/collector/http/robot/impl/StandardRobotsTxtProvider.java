@@ -33,13 +33,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
+import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.fetch.HttpFetchResponse;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 import com.norconex.collector.http.robot.IRobotsTxtFilter;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.RobotsTxt;
@@ -76,9 +76,12 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     private final Map<String, RobotsTxt> robotsTxtCache =
             new HashMap<>();
 
+
     @Override
     public synchronized RobotsTxt getRobotsTxt(
-            HttpClient httpClient, String url, String userAgent) {
+            HttpFetcherExecutor fetcher, String url) {
+//    public synchronized RobotsTxt getRobotsTxt(
+//            HttpClient httpClient, String url, String userAgent) {
 
         String trimmedURL = StringUtils.trimToEmpty(url);
         String baseURL = getBaseURL(trimmedURL);
@@ -89,10 +92,16 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
 
         String robotsURL = baseURL + "/robots.txt";
         try {
-            HttpGet method = new HttpGet(robotsURL);
-            HttpResponse response = httpClient.execute(method);
-            InputStream is = response.getEntity().getContent();
-            robotsTxt = parseRobotsTxt(is, trimmedURL, userAgent);
+//            HttpGet method = new HttpGet(robotsURL);
+//            HttpResponse response = httpClient.execute(method);
+//            InputStream is = response.getEntity().getContent();
+//            robotsTxt = parseRobotsTxt(is, trimmedURL, userAgent);
+
+            HttpDocument doc = new HttpDocument(robotsURL,
+                    fetcher.getStreamFactory());
+            HttpFetchResponse response = fetcher.fetchDocument(doc);
+            robotsTxt = parseRobotsTxt(doc.getInputStream(), trimmedURL,
+                    response.getUserAgent());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Fetched and parsed robots.txt: {}", robotsURL);
             }
@@ -315,9 +324,9 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         }
         @Override
         public String toString() {
-            return "Robots.txt -> " + (getOnMatch() == OnMatch.INCLUDE 
+            return "Robots.txt -> " + (getOnMatch() == OnMatch.INCLUDE
                     ? "Allow: " : "Disallow: ") + path
-                            + " (" + getRegex().toString() + ")";            
+                            + " (" + getRegex().toString() + ")";
         }
     }
 }

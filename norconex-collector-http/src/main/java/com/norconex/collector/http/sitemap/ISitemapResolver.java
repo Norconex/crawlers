@@ -16,9 +16,8 @@ package com.norconex.collector.http.sitemap;
 
 import java.util.List;
 
-import org.apache.http.client.HttpClient;
-
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 import com.norconex.collector.http.sitemap.impl.StandardSitemapResolver;
 
 
@@ -56,7 +55,7 @@ public interface ISitemapResolver {
     /**
      * Resolves the sitemap instructions for a URL "root" (e.g.
      * http://www.example.com).
-     * @param httpClient the http client to use to stream Internet
+     * @param httpFetcher the http fetcher executor to use to stream Internet
      *        files if needed
      * @param urlRoot the URL root for which to resolve the sitemap
      * @param sitemapLocations sitemap locations to resolve
@@ -64,7 +63,7 @@ public interface ISitemapResolver {
      * @param startURLs whether the sitemapLocations provided (if any) are
      *        start URLs (defined in {@link HttpCrawlerConfig#getStartSitemapURLs()})
      */
-    void resolveSitemaps(HttpClient httpClient, String urlRoot,
+    void resolveSitemaps(HttpFetcherExecutor httpFetcher, String urlRoot,
             List<String> sitemapLocations, SitemapURLAdder sitemapURLAdder,
             boolean startURLs);
 

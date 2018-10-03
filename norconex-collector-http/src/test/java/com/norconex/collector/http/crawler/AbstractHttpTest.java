@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 import com.norconex.collector.http.HttpCollector;
@@ -37,7 +37,6 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.website.TestWebServer;
 import com.norconex.committer.core.impl.FileSystemCommitter;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.commons.lang.file.FileUtil;
 
 public abstract class AbstractHttpTest {
 
@@ -45,12 +44,14 @@ public abstract class AbstractHttpTest {
 
     //Note: @Rule was not working for deleting folder since the webapp
     // still had a hold on the file.
-    private static TemporaryFolder tempFolder = new TemporaryFolder();
+    //private static TemporaryFolder tempFolder = new TemporaryFolder();
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
 
     @BeforeClass
     public static void beforeClass() throws IOException {
-        tempFolder.create();
+//        tempFolder.create();
         new Thread() {
             @Override
             public void run() {
@@ -72,10 +73,20 @@ public abstract class AbstractHttpTest {
     public static void afterClass() throws Exception {
         SERVER.stop();
 //        tempFolder.delete();
-        FileUtil.delete(tempFolder.getRoot());
+//        FileUtil.delete(tempFolder.getRoot());
     }
 
-    protected static TemporaryFolder getTempFolder() {
+//    @Before
+//    public void before() throws IOException {
+//        tempFolder = new TemporaryFolder();
+//        tempFolder.create();
+//    }
+//    @After
+//    public void after() throws IOException {
+//        FileUtil.delete(tempFolder.getRoot());
+//    }
+
+    protected /*static*/ TemporaryFolder getTempFolder() {
         return tempFolder;
     }
 
@@ -124,6 +135,12 @@ public abstract class AbstractHttpTest {
         return docs;
     }
 
+    protected HttpCrawlerConfig getCrawlerConfig(
+            HttpCollector collector, int cfgIndex) {
+        return (HttpCrawlerConfig) collector.getCollectorConfig()
+                .getCrawlerConfigs().get(cfgIndex);
+    }
+
     protected HttpCollector newHttpCollector1Crawler(String... startURLs)
             throws IOException {
 
@@ -140,6 +157,7 @@ public abstract class AbstractHttpTest {
         File workdir = tempFolder.newFolder("workdir" + UUID.randomUUID());
         File committerDir = tempFolder.newFolder(
                 "committedFiles_" + UUID.randomUUID());
+        colConfig.setWorkDir(workdir.toPath());
 
         //--- Committer ---
         //ICommitter committer = new NilCommitter();
@@ -155,7 +173,6 @@ public abstract class AbstractHttpTest {
             urls[i] = getBaseUrl() + startURLs[i];
         }
         httpConfig.setStartURLs(urls);
-        httpConfig.setWorkDir(workdir.toPath());
         httpConfig.setNumThreads(1);
         GenericDelayResolver resolver = new GenericDelayResolver();
         resolver.setDefaultDelay(0);
@@ -163,10 +180,11 @@ public abstract class AbstractHttpTest {
         httpConfig.setIgnoreRobotsMeta(true);
         httpConfig.setIgnoreSitemap(true);
         httpConfig.setCommitter(committer);
-        HttpCrawler crawler = new HttpCrawler(
-                httpConfig, collector.getEventManager());
 
-        collector.setCrawlers(Arrays.asList(crawler));
+        colConfig.setCrawlerConfigs(httpConfig);
+//        HttpCrawler crawler = new HttpCrawler(httpConfig, collector);
+//
+//        collector.setCrawlers(Arrays.asList(crawler));
         return collector;
     }
 }

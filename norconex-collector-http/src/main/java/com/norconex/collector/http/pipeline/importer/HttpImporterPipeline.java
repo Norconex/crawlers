@@ -84,9 +84,8 @@ public class HttpImporterPipeline
                 if (!ctx.getConfig().isIgnoreRobotsTxt()) {
                     delayResolver.delay(
                             ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
-                                    ctx.getHttpClient(),
-                                    ctx.getCrawlData().getReference(),
-                                    ctx.getConfig().getUserAgent()),
+                                    ctx.getHttpFetcherExecutor(),
+                                    ctx.getCrawlData().getReference()),
                             ctx.getCrawlData().getReference());
                 } else {
                     delayResolver.delay(
@@ -103,9 +102,14 @@ public class HttpImporterPipeline
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
-            if (ctx.getHttpHeadersFetcher() != null
+            if (ctx.getConfig().isFetchHttpHead()
                     && ImporterPipelineUtil.isHeadersRejected(ctx)) {
                 ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                return false;
+            }
+            //TODO check if fetching headers is enabled before (like above)
+            if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
+                    ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             return true;
@@ -197,7 +201,7 @@ public class HttpImporterPipeline
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
-            if (ctx.getHttpHeadersFetcher() == null) {
+            if (!ctx.getConfig().isFetchHttpHead()) {
                 if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
                     ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
                     return false;
@@ -216,8 +220,7 @@ public class HttpImporterPipeline
                 for (IHttpDocumentProcessor preProc :
                         ctx.getConfig().getPreImportProcessors()) {
                     preProc.processDocument(
-                            ctx.getHttpClient(), ctx.getDocument());
-
+                            ctx.getHttpFetcherExecutor(), ctx.getDocument());
                     ctx.fireCrawlerEvent(
                             HttpCrawlerEvent.DOCUMENT_PREIMPORTED,
                             ctx.getCrawlData(), preProc);

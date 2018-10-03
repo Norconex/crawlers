@@ -50,9 +50,9 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.util.CharsetUtil;
@@ -104,7 +104,9 @@ import com.norconex.importer.util.CharsetUtil;
  * </pre>
  *
  * @author Pascal Essiembre
+ * @deprecated Since 3.0.0 use {@link GenericHttpFetcher}
  */
+@Deprecated
 public class GenericDocumentFetcher
         implements IHttpDocumentFetcher, IXMLConfigurable {
 

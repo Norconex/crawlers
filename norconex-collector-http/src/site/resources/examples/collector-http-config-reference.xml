@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2010-2017 Norconex Inc.
+   Copyright 2010-2018 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 <!-- This self-documented configuration file is meant to be used as a reference
      or starting point for a new configuration. 
-     It contains all core features offered in this release.  Sometimes
+     It contains most core features offered in this release.  Sometimes
      multiple implementations are available for a given feature. Refer 
      to site documentation for more options and complete description of 
      each features.
@@ -39,6 +39,7 @@
   #set($http      = "com.norconex.collector.http")
   #set($committer = "com.norconex.committer")
 
+  #set($httpFetcher       = "${http}.fetch.GenericHttpFetcher")
 
   #set($httpClientFactory = "${http}.client.impl.GenericHttpClientFactory")
   #set($filterExtension   = "${core}.filter.impl.ExtensionReferenceFilter")
@@ -206,6 +207,19 @@
          Default implementation is the following.
          -->
     <crawlDataStoreFactory class="$dataStoreFactory" />
+
+    <!-- One or more HTTP Fetchers, responsible for making HTTP requests
+         and fetching associated content. Fetchers are defined in execution 
+         order. If the first fails or does not support a given
+         URL, the next fetcher will try to fetch it, and so on.
+         Class must implement 
+         com.norconex.collector.http.fetch.IHttpFetcher
+         Default implementation is the following.
+      -->
+    <httpFetchers>
+      <fetcher class="$httpFetcher" maxRetries="3"/>
+    </httpFetchers>
+
 
     <!-- Initialize the HTTP client use to make connections.  Classes
          must implement com.norconex.collector.http.client.IHttpClientFactory.

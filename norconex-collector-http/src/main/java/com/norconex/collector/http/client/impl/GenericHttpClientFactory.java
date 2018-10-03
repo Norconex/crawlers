@@ -88,12 +88,13 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.client.IHttpClientFactory;
+import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.time.DurationParser;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -232,7 +233,9 @@ import com.norconex.commons.lang.xml.XML;
  * </pre>
  * @author Pascal Essiembre
  * @since 1.3.0
+ * @deprecated Since 3.0.0 use {@link GenericHttpFetcher}
  */
+@Deprecated
 public class GenericHttpClientFactory
         implements IHttpClientFactory, IXMLConfigurable {
 

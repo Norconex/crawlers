@@ -14,14 +14,13 @@
  */
 package com.norconex.collector.http.pipeline.committer;
 
-import org.apache.http.client.HttpClient;
-
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.DocumentPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 
 /**
  * @author Pascal Essiembre
@@ -53,8 +52,11 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
         return (HttpCrawlData) super.getCrawlData();
     }
 
-    public HttpClient getHttpClient() {
-        return getCrawler().getHttpClient();
+//    public HttpClient getHttpClient() {
+//        return getCrawler().getHttpClient();
+//    }
+    public HttpFetcherExecutor getHttpFetcherExecutor() {
+        return getCrawler().getHttpFetcherExecutor();
     }
 
     @Override

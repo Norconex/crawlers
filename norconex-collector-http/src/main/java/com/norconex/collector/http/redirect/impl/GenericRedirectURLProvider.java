@@ -38,8 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.redirect.IRedirectURLProvider;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
 /**

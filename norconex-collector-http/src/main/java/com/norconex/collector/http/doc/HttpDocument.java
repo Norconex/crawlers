@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,36 @@
 package com.norconex.collector.http.doc;
 
 import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.doc.ImporterDocument;
 
 //TODO consider dropping since it just brings HttpMetadata cast.
 public class HttpDocument extends ImporterDocument {
 
+    /**
+     *
+     * @param reference
+     * @param content
+     * @since 3.0.0
+     */
     public HttpDocument(String reference, CachedInputStream content) {
         super(reference, content, new HttpMetadata(reference));
     }
 
+    public HttpDocument(String reference, CachedInputStream content,
+            HttpMetadata metadata) {
+        super(reference, content, metadata);
+        // TODO Auto-generated constructor stub
+    }
+
+    public HttpDocument(String reference, CachedStreamFactory streamFactory) {
+        super(reference, streamFactory, new HttpMetadata(reference));
+        // TODO Auto-generated constructor stub
+    }
+
     public HttpDocument(ImporterDocument importerDocument) {
-        super(importerDocument.getReference(), 
-                importerDocument.getContent(),
+        super(importerDocument.getReference(),
+                importerDocument.getInputStream(),
                 new HttpMetadata(importerDocument.getMetadata()));
         setReference(importerDocument.getReference());
         setContentType(importerDocument.getContentType());

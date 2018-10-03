@@ -14,8 +14,6 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import org.apache.http.client.HttpClient;
-
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
@@ -23,7 +21,7 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.bean.BeanUtil;
@@ -74,8 +72,11 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
         return (HttpCrawlData) super.getCachedCrawlData();
     }
 
-    public HttpClient getHttpClient() {
-        return getCrawler().getHttpClient();
+//    public HttpClient getHttpClient() {
+//        return getCrawler().getHttpClient();
+//    }
+    public HttpFetcherExecutor getHttpFetcherExecutor() {
+        return getCrawler().getHttpFetcherExecutor();
     }
 
     @Override
@@ -83,10 +84,10 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
         return (HttpDocument) super.getDocument();
     }
 
-    public IHttpMetadataFetcher getHttpHeadersFetcher() {
-        return getConfig().getMetadataFetcher();
-    }
-
+//    public IHttpMetadataFetcher getHttpHeadersFetcher() {
+//        return getConfig().getMetadataFetcher();
+//    }
+//
     public ISitemapResolver getSitemapResolver() {
         return getCrawler().getSitemapResolver();
     }
@@ -110,7 +111,7 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     }
 
     public boolean isHttpHeadFetchEnabled() {
-        return getConfig().getMetadataFetcher() != null;
+        return getConfig().isFetchHttpHead();
     }
 
 }

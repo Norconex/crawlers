@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.client.impl;
+package com.norconex.collector.http.fetch.impl;
 
 import java.net.Socket;
 import java.security.cert.CertificateException;
@@ -26,9 +26,7 @@ import javax.net.ssl.X509ExtendedTrustManager;
  * ones with encryption algorithms deemed unsafe, self-signed, etc.
  * @author Pascal Essiembre
  * @since 2.4.0
- * @deprecated Since 3.0.0.
  */
-@Deprecated
 /*default*/ class TrustAllX509TrustManager extends X509ExtendedTrustManager {
     @Override
     public X509Certificate[] getAcceptedIssuers() {

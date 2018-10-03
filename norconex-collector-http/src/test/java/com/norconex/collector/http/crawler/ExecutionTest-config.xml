@@ -33,7 +33,9 @@
         <sitemap>${sitemap}</sitemap>
       #end
       </startURLs>
+<!-- DEPRECATED: 
       <workDir>${workDir}</workDir>
+      -->
       <maxDepth>${maxDepth}</maxDepth>
       <maxDocuments>${maxDocuments}</maxDocuments>
       <delay default="${delay}" />
@@ -77,6 +79,9 @@
 
       <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
         <directory>${workDir}/committed</directory>
+        ##if ($committerDir)
+        ##<directory>${committerDir}/committed</directory>
+        ###end
       </committer>
 
     </crawler>

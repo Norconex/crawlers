@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,7 +66,6 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.exec.ExecUtil;
 import com.norconex.commons.lang.exec.SystemCommand;
 import com.norconex.commons.lang.exec.SystemCommandException;
@@ -72,6 +73,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.InputStreamLineListener;
 import com.norconex.commons.lang.time.DurationParser;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.util.CharsetUtil;
@@ -326,7 +328,9 @@ import com.norconex.importer.util.CharsetUtil;
  * @author Pascal Essiembre
  * @see HttpClientProxyCollectorListener
  * @since 2.7.0
+ * @deprecated Since 3.0.0 use {@link WebDriverDocumentFetcher}
  */
+@Deprecated
 public class PhantomJSDocumentFetcher
         implements IHttpDocumentFetcher, IXMLConfigurable {
 
@@ -905,7 +909,7 @@ public class PhantomJSDocumentFetcher
         if (LOG.isTraceEnabled()) {
             LOG.trace("Rejected response content: {}",
                     FileUtils.readFileToString(
-                            p.outFile, StandardCharsets.UTF_8));
+                            p.outFile.toFile(), StandardCharsets.UTF_8));
         }
         if (notFoundStatusCodes.contains(statusCode)) {
             return new HttpFetchResponse(
@@ -927,22 +931,22 @@ public class PhantomJSDocumentFetcher
             return;
         }
 
-        if (!p.phantomScreenshotFile.isFile()) {
+        if (!p.phantomScreenshotFile.toFile().isFile()) {
             LOG.error("Screenshot file not created for {}", doc.getReference());
             return;
         }
 
         BufferedImage bi = null;
         try {
-            bi = ImageIO.read(p.phantomScreenshotFile);
+            bi = ImageIO.read(p.phantomScreenshotFile.toFile());
         } catch (IOException e) {
             LOG.error("Could not load screenshot for: \"{}", doc.getReference()
                     + "\". It was saved here: "
-                    + p.phantomScreenshotFile.getAbsolutePath(), e);
+                    + p.phantomScreenshotFile.toAbsolutePath(), e);
             return;
         }
         try {
-            FileUtil.delete(p.phantomScreenshotFile);
+            FileUtil.delete(p.phantomScreenshotFile.toFile());
         } catch (IOException e) {
             LOG.warn("Could not delete temp screenshot file: "
                     + p.phantomScreenshotFile, e);
@@ -1047,7 +1051,7 @@ public class PhantomJSDocumentFetcher
         cmdArgs.add("--ignore-ssl-errors=true");
         cmdArgs.add("--web-security=false");
         cmdArgs.add("--cookies-file="
-                + argQuote(p.phantomCookiesFile.getAbsolutePath()));
+                + argQuote(p.phantomCookiesFile.toAbsolutePath().toString()));
         cmdArgs.add("--load-images=" + isScreenshotEnabled());
         // Configure for HttpClient proxy if used.
         if (HttpClientProxy.isStarted()) {
@@ -1059,9 +1063,10 @@ public class PhantomJSDocumentFetcher
         if (!options.isEmpty()) {
             cmdArgs.addAll(options);
         }
-        cmdArgs.add(argQuote(p.phantomScriptFile.getAbsolutePath()));
+        cmdArgs.add(argQuote(p.phantomScriptFile.toAbsolutePath().toString()));
         cmdArgs.add(argQuote(p.url));                      // phantom.js arg 1
-        cmdArgs.add(argQuote(p.outFile.getAbsolutePath()));// phantom.js arg 2
+        cmdArgs.add(argQuote(
+                p.outFile.toAbsolutePath().toString()));   // phantom.js arg 2
         cmdArgs.add(Integer.toString(renderWaitTime));     // phantom.js arg 3
         if (HttpClientProxy.isStarted()) {                 // phantom.js arg 4
             cmdArgs.add(Integer.toString(HttpClientProxy.getId(httpClient)));
@@ -1072,7 +1077,8 @@ public class PhantomJSDocumentFetcher
         if (p.phantomScreenshotFile == null) {             // phantom.js arg 6
             cmdArgs.add(argQuote(""));
         } else {
-            cmdArgs.add(argQuote(p.phantomScreenshotFile.getAbsolutePath()));
+            cmdArgs.add(argQuote(
+                    p.phantomScreenshotFile.toAbsolutePath().toString()));
         }
         if (screenshotDimensions == null) {                // phantom.js arg 7
             cmdArgs.add(argQuote(""));
@@ -1305,11 +1311,11 @@ public class PhantomJSDocumentFetcher
 
     private static class PhantomJSArguments {
         private final String url;
-        private final File phantomTempdir;
-        private final File phantomCookiesFile;
-        private final File phantomScriptFile;
-        private final File phantomScreenshotFile;
-        private final File outFile;
+        private final Path phantomTempdir;
+        private final Path phantomCookiesFile;
+        private final Path phantomScriptFile;
+        private final Path phantomScreenshotFile;
+        private final Path outFile;
         private final String protocol;
 
         public PhantomJSArguments(
@@ -1322,16 +1328,16 @@ public class PhantomJSDocumentFetcher
             this.url = ref;
 
             this.phantomTempdir = doc.getContent().getCacheDirectory();
-            this.phantomScriptFile = new File(f.scriptPath);
-            this.phantomCookiesFile = new File(phantomTempdir, "cookies.txt");
+            this.phantomScriptFile = Paths.get(f.scriptPath);
+            this.phantomCookiesFile = phantomTempdir.resolve("cookies.txt");
             if (f.isScreenshotEnabled()) {
-                this.phantomScreenshotFile = new File(phantomTempdir,
+                this.phantomScreenshotFile = phantomTempdir.resolve(
                         Long.toString(TimeIdGenerator.next()) + ".png");
             } else {
                 this.phantomScreenshotFile = null;
             }
             // outFile is automatically deleted by framework when done with it.
-            this.outFile = new File(phantomTempdir,
+            this.outFile = phantomTempdir.resolve(
                     Long.toString(TimeIdGenerator.next()));
 
             String scheme = "http";

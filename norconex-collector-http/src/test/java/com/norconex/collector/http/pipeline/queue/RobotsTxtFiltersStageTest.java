@@ -18,16 +18,16 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
-import com.norconex.commons.lang.event.EventManager;
 
 /**
  * @author Pascal Essiembre
@@ -56,7 +56,7 @@ public class RobotsTxtFiltersStageTest {
         StandardRobotsTxtProvider provider = new StandardRobotsTxtProvider() {
             @Override
             public synchronized RobotsTxt getRobotsTxt(
-                    HttpClient httpClient, String url, String userAgent) {
+                    HttpFetcherExecutor fetcher, String url) {
                 try {
                     return parseRobotsTxt(IOUtils.toInputStream(robotTxt,
                             StandardCharsets.UTF_8), url, "test-crawler");
@@ -69,7 +69,7 @@ public class RobotsTxtFiltersStageTest {
         cfg.setRobotsTxtProvider(provider);
 
         HttpQueuePipelineContext ctx = new HttpQueuePipelineContext(
-                new HttpCrawler(cfg, new EventManager()),
+                new HttpCrawler(cfg, new HttpCollector()),
                 null, new HttpCrawlData(url, 0));
         RobotsTxtFiltersStage filterStage = new RobotsTxtFiltersStage();
         return filterStage.execute(ctx);

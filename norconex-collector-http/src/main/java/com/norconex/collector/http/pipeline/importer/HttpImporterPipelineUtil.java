@@ -125,7 +125,7 @@ import com.norconex.commons.lang.file.ContentType;
             try {
                 canURL = detector.detectFromContent(
                         reference,
-                        ctx.getDocument().getContent(),
+                        ctx.getDocument().getInputStream(),
                         ctx.getDocument().getContentType());
             } catch (IOException e) {
                 throw new CollectorException(

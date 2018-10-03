@@ -79,8 +79,8 @@ public final class HttpQueuePipeline
     /*default*/ static RobotsTxt getRobotsTxt(HttpQueuePipelineContext ctx) {
         if (!ctx.getConfig().isIgnoreRobotsTxt()) {
             return ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
-                    ctx.getHttpClient(), ctx.getCrawlData().getReference(),
-                    ctx.getConfig().getUserAgent());
+                    ctx.getCrawler().getHttpFetcherExecutor(),
+                    ctx.getCrawlData().getReference());
         } else {
             return null;
         }
@@ -114,7 +114,7 @@ public final class HttpQueuePipeline
                 }
             };
             sitemapResolver.resolveSitemaps(
-                    ctx.getHttpClient(), urlRoot,
+                    ctx.getCrawler().getHttpFetcherExecutor(), urlRoot,
                     robotsTxtLocations, urlAdder, false);
             return true;
         }

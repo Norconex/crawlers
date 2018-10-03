@@ -39,16 +39,16 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.fetch.HttpFetchResponse;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -153,7 +153,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
 
     @Override
     public void resolveSitemaps(
-            HttpClient httpClient, String urlRoot,
+            HttpFetcherExecutor fetcher, String urlRoot,
             List<String> sitemapLocations, SitemapURLAdder sitemapURLAdder,
             boolean startURLs) {
 
@@ -168,7 +168,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
             }
             LOG.debug("Sitemap locations: {}", uniqueLocations);
             for (String location : uniqueLocations) {
-                resolveLocation(location, httpClient,
+                resolveLocation(location, fetcher,
                         sitemapURLAdder, resolvedLocations);
             }
             sitemapStore.markResolved(urlRoot);
@@ -217,7 +217,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
         sitemapStore.close();
     }
 
-    private void resolveLocation(String location, HttpClient httpClient,
+    private void resolveLocation(String location, HttpFetcherExecutor fetcher,
             SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations) {
 
         if (resolvedLocations.contains(location)) {
@@ -230,25 +230,28 @@ public class StandardSitemapResolver implements ISitemapResolver {
             return;
         }
 
-        HttpGet method = null;
+        HttpDocument doc = null;
         try {
-            method = new HttpGet(location);
+//            HttpGet method = null;
+//            method = new HttpGet(location);
 
             // Execute the method.
-            HttpResponse response = httpClient.execute(method);
-            int statusCode = response.getStatusLine().getStatusCode();
+            doc = new HttpDocument(location, fetcher.getStreamFactory());
+//            HttpResponse response = httpClient.execute(method);
+            HttpFetchResponse response = fetcher.fetchDocument(doc);
+            int statusCode = response.getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 LOG.info("Resolving sitemap: {}", location);
-                InputStream is = response.getEntity().getContent();
+                InputStream is = doc.getInputStream();
                 String contentType =
-                        response.getFirstHeader("Content-Type").getValue();
+                        doc.getMetadata().getString("Content-Type");
                 if ("application/x-gzip".equals(contentType)
                         || "application/gzip".equals(contentType)) {
                     is = new GZIPInputStream(is);
                 }
                 File sitemapFile = inputStreamToTempFile(is);
                 IOUtils.closeQuietly(is);
-                parseLocation(sitemapFile, httpClient, sitemapURLAdder,
+                parseLocation(sitemapFile, fetcher, sitemapURLAdder,
                         resolvedLocations, location);
                 LOG.info("         Resolved: {}", location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
@@ -265,13 +268,22 @@ public class StandardSitemapResolver implements ISitemapResolver {
                         + "a parsing error (actual error: "
                         + "{}).", location, e.getMessage());
         } catch (Exception e) {
-            LOG.error("Cannot fetch sitemap: " + location
-                    + " (" + e.getMessage() + ")");
+            LOG.error("Cannot fetch sitemap: {} ({})",
+                    location, e.getMessage(), e);
         } finally {
             resolvedLocations.add(location);
-            if (method != null) {
-                method.releaseConnection();
+            if (doc != null) {
+                try {
+                    doc.dispose();
+                } catch (IOException e) {
+                    LOG.error("Could not dispose of sitemap file for: {}",
+                            location, e);
+                }
             }
+
+//            if (method != null) {
+//                method.releaseConnection();
+//            }
         }
     }
 
@@ -284,6 +296,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
         if (safeTempDir == null) {
             safeTempDir = FileUtils.getTempDirectory();
         }
+        safeTempDir.mkdirs();
         File tempFile = File.createTempFile("sitemap-", ".xml", safeTempDir);
         LOG.debug("Temporarily saving sitemap at: {}",
                 tempFile.getAbsolutePath());
@@ -292,7 +305,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
 
-    private void parseLocation(File sitemapFile, HttpClient httpClient,
+    private void parseLocation(File sitemapFile, HttpFetcherExecutor fetcher,
             SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations,
             String location) throws XMLStreamException, IOException {
 
@@ -318,7 +331,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 case XMLStreamConstants.CHARACTERS:
                     String value = xmlReader.getText();
                     if (parseState.sitemapIndex && parseState.loc) {
-                        resolveLocation(value, httpClient,
+                        resolveLocation(value, fetcher,
                                 sitemapURLAdder, resolvedLocations);
                         parseState.loc = false;
                     } else if (parseState.baseURL != null) {

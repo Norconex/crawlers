@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorEvent;
-import com.norconex.collector.core.crawler.ICrawlerConfig;
+import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.crawler.AbstractHttpTest;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
@@ -53,13 +53,13 @@ public class HttpCollectorTest extends AbstractHttpTest {
         GenericDelayResolver delay = new GenericDelayResolver();
         delay.setDefaultDelay(10);
         crawlerCfg.setDelayResolver(delay);
-        crawlerCfg.setWorkDir(folder.newFolder("multiRunTest").toPath());
 
         HttpCollectorConfig config = new HttpCollectorConfig();
         config.setId("test-http-collector");
+        config.setWorkDir(folder.newFolder("multiRunTest").toPath());
 //        config.setLogsDir(crawlerCfg.getWorkDir().toAbsolutePath());
 //        config.setProgressDir(crawlerCfg.getWorkDir().toAbsolutePath());
-        config.setCrawlerConfigs(new ICrawlerConfig[] {crawlerCfg});
+        config.setCrawlerConfigs(new CrawlerConfig[] {crawlerCfg});
 
         //TODO have abstract filter providing easy way to filter by event
         // type and event name.
@@ -76,10 +76,10 @@ public class HttpCollectorTest extends AbstractHttpTest {
 
 //        config.setCollectorListeners(new ICollectorLifeCycleListener() {
 //            @Override
-//            public void onCollectorStart(ICollector collector) {
+//            public void onCollectorStart(Collector collector) {
 //            }
 //            @Override
-//            public void onCollectorFinish(ICollector collector) {
+//            public void onCollectorFinish(Collector collector) {
 //                JobState state = collector.getJobSuite().getStatus().getState();
 //                assertTrue("Invalid state: " + state,
 //                        state == JobState.COMPLETED);

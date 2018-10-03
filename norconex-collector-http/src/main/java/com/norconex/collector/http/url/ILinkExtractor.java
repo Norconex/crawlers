@@ -1,4 +1,4 @@
-/* Copyright 2014 Norconex Inc.
+/* Copyright 2014-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 
 /**
  * Responsible for finding links in documents.  Links are URLs to be followed
@@ -29,7 +29,7 @@ import com.norconex.commons.lang.file.ContentType;
  * Implementing classes also implementing {@link IXMLConfigurable} should make
  * sure to name their XML tag "<code>extractor</code>", normally nested
  * in <code>linkExtractors</code> tags.
- * 
+ *
  * @author Pascal Essiembre
  */
 public interface ILinkExtractor {
@@ -45,7 +45,7 @@ public interface ILinkExtractor {
     Set<Link> extractLinks(
             InputStream input, String reference, ContentType contentType)
             throws IOException;
- 
+
     /**
      * Whether this link extraction should be executed for the given URL
      * and/or content type.

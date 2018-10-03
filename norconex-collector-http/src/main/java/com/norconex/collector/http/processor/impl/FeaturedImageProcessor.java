@@ -40,9 +40,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Mode;
@@ -55,13 +52,14 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CollectorMetadata;
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -391,7 +389,7 @@ public class FeaturedImageProcessor
         this.scaleQuality = scaleQuality;
     }
     @Override
-    public void processDocument(HttpClient httpClient, HttpDocument doc) {
+    public void processDocument(HttpFetcherExecutor fetcher, HttpDocument doc) {
         ensureInit();
 
         // Return if not valid content type
@@ -405,7 +403,7 @@ public class FeaturedImageProcessor
             // Obtain the image
             Document dom = Jsoup.parse(doc.getContent(),
                     doc.getContentEncoding(), doc.getReference());
-            ScaledImage img = findFeaturedImage(dom, httpClient, largest);
+            ScaledImage img = findFeaturedImage(dom, fetcher, largest);
 
             // Save the image
             if (img != null) {
@@ -462,7 +460,7 @@ public class FeaturedImageProcessor
     }
 
     private ScaledImage findFeaturedImage(
-            Document dom, HttpClient httpClient, boolean largest) {
+            Document dom, HttpFetcherExecutor fetcher, boolean largest) {
         Elements els;
         if (StringUtils.isNotBlank(domSelector)) {
             els = dom.select(domSelector);
@@ -473,7 +471,7 @@ public class FeaturedImageProcessor
         for (Iterator<Element> it = els.iterator(); it.hasNext();) {
             Element el = it.next();
             String imgURL = el.absUrl("src");
-            ScaledImage img = getImage(httpClient, imgURL);
+            ScaledImage img = getImage(fetcher, imgURL);
             if (img == null) {
                 continue;
             }
@@ -504,14 +502,14 @@ public class FeaturedImageProcessor
         this.initialized = true;
     }
 
-    private ScaledImage getImage(HttpClient httpClient, String url) {
+    private ScaledImage getImage(HttpFetcherExecutor fetcher, String url) {
         try {
             ScaledImage img = null;
             if (cache != null) {
                 img = cache.getImage(url);
             }
             if (img == null) {
-                BufferedImage bi = fetchImage(httpClient, url);
+                BufferedImage bi = fetchImage(fetcher, url);
                 if (bi == null) {
                     LOG.debug("Image is null: " + url);
                     return null;
@@ -579,14 +577,23 @@ public class FeaturedImageProcessor
     }
 
     // make synchronized?
-    private BufferedImage fetchImage(HttpClient httpClient, String url) {
-        HttpResponse response;
+    private BufferedImage fetchImage(HttpFetcherExecutor fetcher, String url) {
+//        HttpResponse response;
         InputStream is = null;
+
         try {
             URI uri = HttpURL.toURI(url);
-            response = httpClient.execute(new HttpGet(uri));
-            is = response.getEntity().getContent();
-            return ImageIO.read(is);
+
+//            HttpFetchResponse response = fetcher.fetchDocument(new HttpDocument(
+//                    uri.toString(), HttpCrawler.get().getStreamFactory()));
+            HttpDocument doc = fetcher.fetchDocument(url.toString());
+            BufferedImage bufImage = ImageIO.read(doc.getInputStream());
+            doc.dispose();
+            return bufImage;
+
+//            response = httpClient.execute(new HttpGet(uri));
+//            is = response.getEntity().getContent();
+//            return ImageIO.read(is);
         } catch (IOException e) {
             LOG.debug("Could not load image: {}", url, e);
         } finally {

@@ -14,13 +14,11 @@
  */
 package com.norconex.collector.http;
 
-import com.norconex.collector.core.AbstractCollector;
-import com.norconex.collector.core.AbstractCollectorConfig;
 import com.norconex.collector.core.AbstractCollectorLauncher;
-import com.norconex.collector.core.ICollector;
-import com.norconex.collector.core.ICollectorConfig;
-import com.norconex.collector.core.crawler.ICrawler;
-import com.norconex.collector.core.crawler.ICrawlerConfig;
+import com.norconex.collector.core.Collector;
+import com.norconex.collector.core.CollectorConfig;
+import com.norconex.collector.core.crawler.Crawler;
+import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 
@@ -34,7 +32,7 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
  * target sites will help you.
  * @author Pascal Essiembre
  */
-public class HttpCollector extends AbstractCollector {
+public class HttpCollector extends Collector {
 
     /**
      * Creates a non-configured HTTP collector.
@@ -59,12 +57,12 @@ public class HttpCollector extends AbstractCollector {
 	public static void main(String[] args) {
 	    new AbstractCollectorLauncher() {
 	        @Override
-	        protected ICollector createCollector(
-	                ICollectorConfig config) {
+	        protected Collector createCollector(
+	                CollectorConfig config) {
 	            return new HttpCollector((HttpCollectorConfig) config);
 	        }
 	        @Override
-	        protected Class<? extends AbstractCollectorConfig>
+	        protected Class<? extends CollectorConfig>
 	                getCollectorConfigClass() {
 	            return HttpCollectorConfig.class;
 	        }
@@ -78,7 +76,7 @@ public class HttpCollector extends AbstractCollector {
     }
 
     @Override
-    protected ICrawler createCrawler(ICrawlerConfig config) {
-        return new HttpCrawler((HttpCrawlerConfig) config, getEventManager());
+    protected Crawler createCrawler(CrawlerConfig config) {
+        return new HttpCrawler((HttpCrawlerConfig) config, this);
     }
 }

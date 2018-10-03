@@ -34,7 +34,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.crawler.ICrawler;
+import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorEvent;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
@@ -43,10 +43,10 @@ import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.collector.http.url.impl.TikaLinkExtractor;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.IEventListener;
 import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -265,7 +265,7 @@ public class URLStatusCrawlerEventListener
             outputFiles.put(null,
                     createOutFile(baseDir, collector.getId(), timestamp));
         } else {
-            for (ICrawler crawler : collector.getCrawlers()) {
+            for (Crawler crawler : collector.getCrawlers()) {
                 String id = crawler.getId();
                 if (crawlerIds.contains(id)) {
                     outputFiles.put(id, createOutFile(baseDir, id, timestamp));
@@ -302,7 +302,7 @@ public class URLStatusCrawlerEventListener
         }
 
     }
-    //TODO make sure AbstractCollector validates workdir is
+    //TODO make sure Collector validates workdir is
     // not null on startup.
     private Path getBaseDir(HttpCollector collector) {
         if (outputDir == null) {

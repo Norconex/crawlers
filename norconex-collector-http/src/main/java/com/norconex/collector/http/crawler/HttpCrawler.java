@@ -30,35 +30,30 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.RedirectStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.crawler.AbstractCrawler;
-import com.norconex.collector.core.crawler.ICrawler;
+import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.data.BaseCrawlData;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
+import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 import com.norconex.collector.http.pipeline.committer.HttpCommitterPipeline;
 import com.norconex.collector.http.pipeline.committer.HttpCommitterPipelineContext;
 import com.norconex.collector.http.pipeline.importer.HttpImporterPipeline;
 import com.norconex.collector.http.pipeline.importer.HttpImporterPipelineContext;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
-import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
-import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.doc.ImporterDocument;
 import com.norconex.importer.response.ImporterResponse;
@@ -70,21 +65,22 @@ import com.norconex.jef5.suite.JobSuite;
  * The HTTP Crawler.
  * @author Pascal Essiembre
  */
-public class HttpCrawler extends AbstractCrawler {
+public class HttpCrawler extends Crawler {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpCrawler.class);
 
-	private HttpClient httpClient;
+//	private HttpClient httpClient;
 	private ISitemapResolver sitemapResolver;
+	private HttpFetcherExecutor fetcherExecutor;
 
     /**
      * Constructor.
      * @param crawlerConfig HTTP crawler configuration
-     * @param eventManager event manager
+     * @param collector http collector this crawler belongs to
      */
 	public HttpCrawler(
-	        HttpCrawlerConfig crawlerConfig, EventManager eventManager) {
-		super(crawlerConfig, eventManager);
+	        HttpCrawlerConfig crawlerConfig, HttpCollector collector) {
+		super(crawlerConfig, collector);
 	}
 
     @Override
@@ -92,11 +88,15 @@ public class HttpCrawler extends AbstractCrawler {
         return (HttpCrawlerConfig) super.getCrawlerConfig();
     }
 
-    /**
-     * @return the httpClient
-     */
-    public HttpClient getHttpClient() {
-        return httpClient;
+//    /**
+//     * @return the httpClient
+//     */
+//    public HttpClient getHttpClient() {
+//        return httpClient;
+//    }
+
+    public HttpFetcherExecutor getHttpFetcherExecutor() {
+        return fetcherExecutor;
     }
 
     /**
@@ -120,8 +120,13 @@ public class HttpCrawler extends AbstractCrawler {
             ICrawlDataStore crawlDataStore, boolean resume) {
 
         logInitializationInformation();
-        initializeHTTPClient();
-        initializeRedirectionStrategy();
+//        initializeHTTPClient();
+        fetcherExecutor = new HttpFetcherExecutor(
+                getStreamFactory(), getCrawlerConfig().getHttpFetchers());
+
+
+
+//        initializeRedirectionStrategy();
 
         // We always initialize the sitemap resolver even if ignored
         // because sitemaps can be specified as start URLs.
@@ -212,7 +217,7 @@ public class HttpCrawler extends AbstractCrawler {
                     (List<String>) sitemapsPerRoots.get(urlRoot);
             if (sitemapResolver != null) {
                 sitemapResolver.resolveSitemaps(
-                        httpClient, urlRoot, locations, urlAdder, true);
+                        fetcherExecutor, urlRoot, locations, urlAdder, true);
             } else {
                 LOG.error("Sitemap resolver is null. Sitemaps defined as "
                         + "start URLs cannot be resolved.");
@@ -253,15 +258,15 @@ public class HttpCrawler extends AbstractCrawler {
         LOG.info("{}: Canonical links support: {}",
                 id, !getCrawlerConfig().isIgnoreCanonicalLinks());
 
-        String userAgent = getCrawlerConfig().getUserAgent();
-        if (StringUtils.isBlank(userAgent)) {
-            LOG.info("{}: User-Agent: <None specified>", id);
-            LOG.debug("It is recommended you identify yourself to web sites "
-                    + "by specifying a user agent "
-                    + "(https://en.wikipedia.org/wiki/User_agent)");
-        } else {
-            LOG.info("{}: User-Agent: {}", id, userAgent);
-        }
+//        String userAgent = getCrawlerConfig().getUserAgent();
+//        if (StringUtils.isBlank(userAgent)) {
+//            LOG.info("{}: User-Agent: <None specified>", id);
+//            LOG.debug("It is recommended you identify yourself to web sites "
+//                    + "by specifying a user agent "
+//                    + "(https://en.wikipedia.org/wiki/User_agent)");
+//        } else {
+//            LOG.info("{}: User-Agent: {}", id, userAgent);
+//        }
     }
 
     @Override
@@ -363,7 +368,7 @@ public class HttpCrawler extends AbstractCrawler {
     }
 
     @Override
-    protected void executeCommitterPipeline(ICrawler crawler,
+    protected void executeCommitterPipeline(Crawler crawler,
             ImporterDocument doc, ICrawlDataStore crawlDataStore,
             BaseCrawlData crawlData, BaseCrawlData cachedCrawlData) {
 
@@ -455,7 +460,7 @@ public class HttpCrawler extends AbstractCrawler {
         } catch (Exception e) {
             LOG.error("Could not stop sitemap store.");
         }
-        closeHttpClient();
+//        closeHttpClient();
     }
 
     private void metadataAddString(
@@ -465,42 +470,32 @@ public class HttpCrawler extends AbstractCrawler {
         }
     }
 
-    private void initializeHTTPClient() {
-        httpClient = getCrawlerConfig().getHttpClientFactory().createHTTPClient(
-                getCrawlerConfig().getUserAgent());
-	}
+//    private void initializeHTTPClient() {
+////        httpClient = getCrawlerConfig().getHttpClientFactory().createHTTPClient(
+////                getCrawlerConfig().getUserAgent());
+//	}
 
-    // Wraps redirection strategy to consider URLs as new documents to
-    // queue for processing.
-    private void initializeRedirectionStrategy() {
-        try {
-            Object chain = FieldUtils.readField(httpClient, "execChain", true);
-            Object redir = FieldUtils.readField(
-                    chain, "redirectStrategy", true);
-            if (redir instanceof RedirectStrategy) {
-                RedirectStrategy originalStrategy = (RedirectStrategy) redir;
-                RedirectStrategyWrapper strategyWrapper =
-                        new RedirectStrategyWrapper(originalStrategy,
-                                getCrawlerConfig().getRedirectURLProvider());
-                FieldUtils.writeField(
-                        chain, "redirectStrategy", strategyWrapper, true);
-            } else {
-                LOG.warn("Could not wrap RedirectStrategy to properly handle"
-                        + "redirects.");
-            }
-        } catch (Exception e) {
-            LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
-                    + "internal connection manager does not support it.");
-        }
-    }
-
-    private void closeHttpClient() {
-        if (httpClient instanceof CloseableHttpClient) {
-            try {
-                ((CloseableHttpClient) httpClient).close();
-            } catch (IOException e) {
-                LOG.error(getId() +  " Cannot close HttpClient.", e);
-            }
-        }
-    }
+//    // Wraps redirection strategy to consider URLs as new documents to
+//    // queue for processing.
+//    private void initializeRedirectionStrategy() {
+//        try {
+//            Object chain = FieldUtils.readField(httpClient, "execChain", true);
+//            Object redir = FieldUtils.readField(
+//                    chain, "redirectStrategy", true);
+//            if (redir instanceof RedirectStrategy) {
+//                RedirectStrategy originalStrategy = (RedirectStrategy) redir;
+//                RedirectStrategyWrapper strategyWrapper =
+//                        new RedirectStrategyWrapper(originalStrategy,
+//                                getCrawlerConfig().getRedirectURLProvider());
+//                FieldUtils.writeField(
+//                        chain, "redirectStrategy", strategyWrapper, true);
+//            } else {
+//                LOG.warn("Could not wrap RedirectStrategy to properly handle"
+//                        + "redirects.");
+//            }
+//        } catch (Exception e) {
+//            LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
+//                    + "internal connection manager does not support it.");
+//        }
+//    }
 }

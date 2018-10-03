@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,15 @@
  */
 package com.norconex.collector.http.fetch;
 
-import org.apache.http.client.HttpClient;
-
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpMetadata;
 
 /**
- * Fetches the HTTP document and its metadata (HTTP Headers).  The
- * document metadata is populated with the HTTP Headers and the document body
- * is saved to the document local file.
+ * Fetches HTTP resources.
  * @author Pascal Essiembre
- * @deprecated Since 3.0.0, use {@link IHttpFetcher}
+ * @since 3.0.0
  */
-@Deprecated
-public interface IHttpDocumentFetcher {
+public interface IHttpFetcher {
 
 	/**
 	 * Fetches HTTP document and saves it to a local file
@@ -34,6 +30,14 @@ public interface IHttpDocumentFetcher {
 	 * @param doc the document to fetch and save
 	 * @return fetch response
 	 */
-    HttpFetchResponse fetchDocument(HttpClient httpClient, HttpDocument doc);
+//    HttpFetchResponse fetchDocument(HttpDocument doc);
+//    HttpFetchResponse fetchHeaders(String url, HttpMetadata metadata);
+
+    String getUserAgent();
+    HttpFetchResponse fetchHeaders(String url, HttpMetadata httpHeaders);
+    HttpFetchResponse fetchDocument(HttpDocument doc);
+    // INSTEAD?  So we do not expose HttpDocument?
+//    HttpFetchResponse fetchDocument(
+//            String url, HttpMetadata httpHeaders, OutputStream content);
 
 }

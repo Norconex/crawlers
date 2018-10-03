@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.http.data.store.impl;
 
+import static com.norconex.collector.core.CollectorEvent.COLLECTOR_STARTED;
+import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STARTED;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
@@ -24,12 +26,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.norconex.collector.core.crawler.ICrawlerConfig;
+import com.norconex.collector.core.CollectorEvent;
+import com.norconex.collector.core.crawler.CrawlerConfig;
+import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
+import com.norconex.collector.http.HttpCollector;
+import com.norconex.collector.http.HttpCollectorConfig;
+import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentType;
 
 /**
@@ -47,7 +55,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     public final TemporaryFolder tempFolder = new TemporaryFolder();
 
     private ICrawlDataStore crawlStore;
-    private ICrawlerConfig crawlerConfig;
+    private HttpCrawlerConfig crawlerConfig;
 
     public ICrawlDataStore getCrawlDataStore() {
         return crawlStore;
@@ -55,10 +63,10 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     public void setCrawlDataStore(ICrawlDataStore db) {
         this.crawlStore = db;
     }
-    public ICrawlerConfig getCrawlerConfig() {
+    public CrawlerConfig getCrawlerConfig() {
         return crawlerConfig;
     }
-    public void setCrawlerConfig(ICrawlerConfig crawlerConfig) {
+    public void setCrawlerConfig(HttpCrawlerConfig crawlerConfig) {
         this.crawlerConfig = crawlerConfig;
     }
     public TemporaryFolder getTempfolder() {
@@ -69,6 +77,18 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     public void setup() throws Exception {
         crawlerConfig = createCrawlerConfig(getCrawlerId(), tempFolder);
         // the tempFolder is re-created at each test
+
+        HttpCollectorConfig colCfg = new HttpCollectorConfig();
+        colCfg.setWorkDir(tempFolder.newFolder().toPath());
+        colCfg.setCrawlerConfigs(crawlerConfig);
+        HttpCollector collector = new HttpCollector(colCfg);
+        collector.getCollectorConfig().setId("testCollectorId");
+        EventManager em = new EventManager();
+        em.addListenersFromScan(crawlerConfig);
+        em.fire(CollectorEvent.create(COLLECTOR_STARTED, collector));
+        em.fire(CrawlerEvent.create(
+                CRAWLER_STARTED, new HttpCrawler(crawlerConfig, collector)));
+
         crawlStore = createCrawlDataStore(crawlerConfig, tempFolder, false);
     }
 
@@ -79,11 +99,12 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         }
     }
 
-    protected ICrawlerConfig createCrawlerConfig(
+    protected HttpCrawlerConfig createCrawlerConfig(
             String crawlerId, TemporaryFolder tempFolder) {
         HttpCrawlerConfig config = new HttpCrawlerConfig();
         config.setId(crawlerId);
-        config.setWorkDir(tempFolder.getRoot().toPath());
+//        config.set
+//        config.setWorkDir(tempFolder.getRoot().toPath());
         return config;
     }
 
@@ -105,7 +126,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     }
 
     protected abstract ICrawlDataStore createCrawlDataStore(
-            ICrawlerConfig config, TemporaryFolder tempFolder, boolean resume);
+            CrawlerConfig config, TemporaryFolder tempFolder, boolean resume);
 
 
     //--- Tests ----------------------------------------------------------------

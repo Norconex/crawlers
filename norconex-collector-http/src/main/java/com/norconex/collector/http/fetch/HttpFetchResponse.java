@@ -31,6 +31,8 @@ public class HttpFetchResponse {
     private final CrawlState crawlState;
     private final int statusCode;
     private final String reasonPhrase;
+    private Class<? extends IHttpFetcher> fetcher;
+    private String userAgent;
 
     public HttpFetchResponse(
             CrawlState crawlState, int statusCode, String reasonPhrase) {
@@ -53,6 +55,23 @@ public class HttpFetchResponse {
     public String getReasonPhrase() {
         return reasonPhrase;
     }
+    public String getUserAgent() {
+        return userAgent;
+    }
+    public String getFetcherName() {
+        if (fetcher == null) {
+            return null;
+        }
+        return fetcher.getSimpleName();
+    }
+
+    /*package*/ void setFetcher(Class<? extends IHttpFetcher> fetcher) {
+        this.fetcher = fetcher;
+    }
+    /*package*/ void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
 
     @Override
     public boolean equals(final Object other) {

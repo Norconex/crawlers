@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import com.norconex.commons.lang.map.Properties;
 /**
  * Fetches the HTTP Header, typically via a HEAD request.
  * @author Pascal Essiembre
+ * @deprecated Since 3.0.0, use {@link IHttpFetcher}
  */
+@Deprecated
 public interface IHttpMetadataFetcher {
 
     /**
-     * Fetches the HTTP headers for a URL and stores it in the 
+     * Fetches the HTTP headers for a URL and stores it in the
      * provided {@link Properties}.
      * @param httpClient the HTTP Client
      * @param url the url from which to fetch the headers
@@ -34,5 +36,5 @@ public interface IHttpMetadataFetcher {
      */
     HttpFetchResponse fetchHTTPHeaders(
             HttpClient httpClient, String url, Properties metadata);
-	
+
 }

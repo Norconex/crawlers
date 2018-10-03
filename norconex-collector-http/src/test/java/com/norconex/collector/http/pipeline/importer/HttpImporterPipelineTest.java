@@ -20,11 +20,11 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
+import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 
 /**
@@ -43,7 +43,7 @@ public class HttpImporterPipelineTest {
                 new CachedStreamFactory(1000, 1000).newInputStream(
                         new ByteArrayInputStream(contentValid.getBytes())));
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
-                new HttpCrawler(new HttpCrawlerConfig(), new EventManager()),
+                new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
                 null, new HttpCrawlData(reference, 0), null, doc);
         Assert.assertTrue(
                 HttpImporterPipelineUtil.resolveCanonical(ctx, false));
@@ -56,7 +56,7 @@ public class HttpImporterPipelineTest {
                 new CachedStreamFactory(1, 1).newInputStream());
         doc.getMetadata().set("Link", "<" + reference + "> rel=\"canonical\"");
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
-                new HttpCrawler(new HttpCrawlerConfig(), new EventManager()),
+                new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
                 null, new HttpCrawlData(reference, 0), null, doc);
         Assert.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
     }
@@ -69,7 +69,7 @@ public class HttpImporterPipelineTest {
 
 
         ImporterPipelineContext ipc = new ImporterPipelineContext(
-                new HttpCrawler(new HttpCrawlerConfig(), new EventManager()),
+                new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
                 null, new HttpCrawlData(reference, 0), null, doc);
 
         new HttpImporterPipelineContext(ipc);

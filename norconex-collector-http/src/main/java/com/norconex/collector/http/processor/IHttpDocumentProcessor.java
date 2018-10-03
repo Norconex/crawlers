@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
  */
 package com.norconex.collector.http.processor;
 
-import org.apache.http.client.HttpClient;
-
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 
 /**
- * Custom processing (optional) performed on a document.  Can be used 
- * just before of after a document has been imported.  
+ * Custom processing (optional) performed on a document.  Can be used
+ * just before of after a document has been imported.
  * @author Pascal Essiembre
  * @since 2.8.0 (moved from "com.norconex.collector.http.doc" package)
  */
@@ -28,8 +27,8 @@ public interface IHttpDocumentProcessor {
 
 	/**
 	 * Processes a document.
-	 * @param httpClient HTTP Client
+	 * @param fetcher HTTP fetcher executor
 	 * @param doc the document
 	 */
-    void processDocument(HttpClient httpClient, HttpDocument doc);
+    void processDocument(HttpFetcherExecutor fetcher, HttpDocument doc);
 }

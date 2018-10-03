@@ -16,6 +16,7 @@ package com.norconex.collector.http.sitemap.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,15 +51,15 @@ public class SitemapStore {
 
     private long commitCounter;
 
-    public SitemapStore(HttpCrawlerConfig config, boolean resume) {
+    public SitemapStore(
+            HttpCrawlerConfig config, Path workDir, boolean resume) {
         super();
 
         String configId = config.getId();
 
         LOG.info("{}: Initializing sitemap store...", configId);
         this.config = config;
-        String dbDir = config.getWorkDir().toString()
-                + "/sitemaps/" + configId + "/";
+        String dbDir = workDir.toString() + "/sitemaps/" + configId + "/";
         try {
             FileUtils.forceMkdir(new File(dbDir));
         } catch (IOException e) {

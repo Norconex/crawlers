@@ -1,4 +1,4 @@
-/* Copyright 2015-2016 Norconex Inc.
+/* Copyright 2015-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,29 +27,31 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 
 /**
  * <p>Fetches (i.e. download for processing) a document.</p>
- * <p>Prior to 2.3.0, the code for this class was part of 
+ * <p>Prior to 2.3.0, the code for this class was part of
  * {@link HttpImporterPipeline}.
  * @author Pascal Essiembre
  * @since 2.3.0
  */
 /*default*/ class DocumentFetcherStage extends AbstractImporterStage {
-    
+
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
         HttpCrawlData crawlData = ctx.getCrawlData();
-        
-        HttpFetchResponse response =
-                ctx.getConfig().getDocumentFetcher().fetchDocument(
-                        ctx.getHttpClient(), ctx.getDocument());
 
+//        HttpFetchResponse response =
+//                ctx.getConfig().getDocumentFetcher().fetchDocument(
+//                        ctx.getHttpClient(), ctx.getDocument());
+        HttpFetchResponse response =
+                ctx.getHttpFetcherExecutor().fetchDocument(ctx.getDocument());
+//System.out.println("XXXXXXX RESPONSE IS: " + response);
         crawlData.setCrawlDate(new Date());
-        
+
         HttpImporterPipelineUtil.enhanceHTTPHeaders(
                 ctx.getDocument().getMetadata());
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
 
         crawlData.setContentType(ctx.getDocument().getContentType());
-        
+
         //-- Deal with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();
         if (StringUtils.isNotBlank(redirectURL)) {
@@ -57,11 +59,11 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
                     ctx, response, redirectURL);
             return false;
         }
-        
+
         CrawlState state = response.getCrawlState();
         crawlData.setState(state);
         if (state.isGoodState()) {
-            ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED, 
+            ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED,
                     crawlData, response);
         } else {
             String eventType = null;

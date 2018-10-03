@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Norconex Inc.
+/* Copyright 2013-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.github.fakemongo.Fongo;
-import com.norconex.collector.core.crawler.ICrawlerConfig;
+import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.data.store.impl.mongo.MongoCrawlDataStore;
 import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTest;
@@ -29,7 +29,8 @@ import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTes
 public class MongoCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 
     private Fongo fongo;
-    
+
+    @Override
     @Before
     public void setup() throws Exception {
         fongo = new Fongo("mongo server 1");
@@ -43,8 +44,8 @@ public class MongoCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 
     @Override
     protected ICrawlDataStore createCrawlDataStore(
-            ICrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
-        return new MongoCrawlDataStore(resume, 
+            CrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
+        return new MongoCrawlDataStore(resume,
                 fongo.getMongo(), "crawl-test", new MongoCrawlDataSerializer());
     }
 }

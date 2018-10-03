@@ -23,12 +23,18 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.crawler.Crawler;
+import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.crawler.CrawlerLifeCycleListener;
+import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.ISitemapResolverFactory;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -41,7 +47,9 @@ import com.norconex.commons.lang.xml.XML;
  * <pre>
  *  &lt;sitemapResolverFactory ignore="[false|true]" lenient="[false|true]"
  *     class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory"&gt;
+ *  <!-- TODO: Have this option?
  *     &lt;tempDir&gt;(where to store temp files)&lt;/tempDir&gt;
+ *    -->
  *     &lt;path&gt;
  *       (Optional path relative to URL root for a sitemap. Use a single empty
  *        "path" tag to rely instead on any sitemaps specified as start URLs or
@@ -64,15 +72,31 @@ import com.norconex.commons.lang.xml.XML;
  * @see StandardSitemapResolver
  */
 public class StandardSitemapResolverFactory
+        extends CrawlerLifeCycleListener
         implements ISitemapResolverFactory, IXMLConfigurable {
 
-//    private static final Logger LOG = LoggerFactory.getLogger(
-//            StandardSitemapResolverFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(
+            StandardSitemapResolverFactory.class);
 
     private Path tempDir;
+    private Path workDir;
     private final List<String> sitemapPaths =
             new ArrayList<>(StandardSitemapResolver.DEFAULT_SITEMAP_PATHS);
     private boolean lenient;
+
+
+    @Override
+    protected void crawlerStartup(CrawlerEvent<Crawler> event) {
+        if (tempDir == null) {
+            tempDir = event.getSource().getTempDir();
+        }
+        if (workDir == null) {
+            workDir = event.getSource().getWorkDir();
+        }
+    }
+//    @Override
+//    protected void crawlerShutdown(CrawlerEvent<Crawler> event) {
+//    }
 
     @Override
     public ISitemapResolver createSitemapResolver(
@@ -80,13 +104,13 @@ public class StandardSitemapResolverFactory
 
         Path resolvedTempDir = tempDir;
         if (resolvedTempDir == null) {
-            resolvedTempDir = config.getWorkDir();
-        }
-        if (resolvedTempDir == null) {
             resolvedTempDir = FileUtils.getTempDirectory().toPath();
+            LOG.info("Sitemap temporary directory: {}", resolvedTempDir);
         }
+        resolvedTempDir = resolvedTempDir.resolve("sitemap");
         StandardSitemapResolver sr = new StandardSitemapResolver(
-                resolvedTempDir, new SitemapStore(config, resume));
+                resolvedTempDir, new SitemapStore(
+                        config, HttpCrawler.get().getWorkDir(), resume));
         sr.setLenient(lenient);
         sr.setSitemapPaths(sitemapPaths);
         return sr;
@@ -151,9 +175,18 @@ public class StandardSitemapResolverFactory
         this.tempDir = tempDir;
     }
 
+    // Since 3.0.0
+    public Path getWorkDir() {
+        return workDir;
+    }
+    // Since 3.0.0
+    public void setWorkDir(Path workDir) {
+        this.workDir = workDir;
+    }
+
     @Override
     public void loadFromXML(XML xml) {
-        setTempDir(xml.getPath("tempDir", tempDir));
+//        setTempDir(xml.getPath("tempDir", tempDir));
         setLenient(xml.getBoolean("@lenient", lenient));
 
         //TODO make sure null can be set to clear the paths instead of this hack
@@ -190,7 +223,7 @@ public class StandardSitemapResolverFactory
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("lenient", lenient);
-        xml.addElement("tempDir", getTempDir());
+//        xml.addElement("tempDir", getTempDir());
 //        xml.addElementList("path", sitemapPaths);
 
         if (sitemapPaths.isEmpty()) {
@@ -219,15 +252,17 @@ public class StandardSitemapResolverFactory
 
     @Override
     public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
+        return EqualsBuilder.reflectionEquals(
+                this, other, "workDir", "tempDir");
     }
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+        return HashCodeBuilder.reflectionHashCode(this, "workDir", "tempDir");
     }
     @Override
     public String toString() {
         return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
+                ToStringStyle.SHORT_PREFIX_STYLE).setExcludeFieldNames(
+                        "workDir", "tempDir").toString();
     }
 }

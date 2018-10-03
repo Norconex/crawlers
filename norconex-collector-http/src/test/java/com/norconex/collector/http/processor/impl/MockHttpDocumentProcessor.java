@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  */
 package com.norconex.collector.http.processor.impl;
 
-import org.apache.http.client.HttpClient;
-
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.fetch.HttpFetcherExecutor;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 
 public class MockHttpDocumentProcessor implements IHttpDocumentProcessor {
 
     @Override
-    public void processDocument(HttpClient httpClient, HttpDocument doc) {
+    public void processDocument(HttpFetcherExecutor fetcher, HttpDocument doc) {
         // NOOP
     }
 }

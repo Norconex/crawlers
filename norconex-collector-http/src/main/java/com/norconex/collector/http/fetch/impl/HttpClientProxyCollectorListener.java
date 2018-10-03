@@ -21,8 +21,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.client.HttpClient;
 
 import com.norconex.collector.http.HttpCollectorEvent;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.event.IEventListener;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -52,6 +52,9 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  * @since 2.7.0
  */
+
+//TODO deprecate??
+
 public class HttpClientProxyCollectorListener
         implements IEventListener<HttpCollectorEvent>, IXMLConfigurable {
 

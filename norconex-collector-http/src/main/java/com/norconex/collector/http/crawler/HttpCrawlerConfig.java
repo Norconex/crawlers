@@ -26,7 +26,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
-import com.norconex.collector.core.crawler.AbstractCrawlerConfig;
+import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.client.IHttpClientFactory;
 import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
@@ -34,13 +34,13 @@ import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
+import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
+import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver;
-import com.norconex.collector.http.redirect.IRedirectURLProvider;
-import com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider;
 import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
@@ -60,7 +60,7 @@ import com.norconex.commons.lang.xml.XML;
  * HTTP Crawler configuration.
  * @author Pascal Essiembre
  */
-public class HttpCrawlerConfig extends AbstractCrawlerConfig {
+public class HttpCrawlerConfig extends CrawlerConfig {
 
     private int maxDepth = -1;
     private final List<String> startURLs = new ArrayList<>();
@@ -75,15 +75,19 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
 	private boolean keepOutOfScopeLinks;
+	private boolean fetchHttpHead;
 
-    private String userAgent;
-
+//    private String userAgent;
+//
     private URLCrawlScopeStrategy urlCrawlScopeStrategy =
             new URLCrawlScopeStrategy();
 
     private IURLNormalizer urlNormalizer = new GenericURLNormalizer();
 
     private IDelayResolver delayResolver = new GenericDelayResolver();
+
+    private final List<IHttpFetcher> httpFetchers =
+            new ArrayList<>(Arrays.asList(new GenericHttpFetcher()));
 
     private IHttpClientFactory httpClientFactory =
             new GenericHttpClientFactory();
@@ -94,8 +98,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private ICanonicalLinkDetector canonicalLinkDetector =
             new GenericCanonicalLinkDetector();
 
-    private IRedirectURLProvider redirectURLProvider =
-            new GenericRedirectURLProvider();
+//    private IRedirectURLProvider redirectURLProvider =
+//            new GenericRedirectURLProvider();
 
     private IHttpMetadataFetcher metadataFetcher;
 
@@ -122,6 +126,35 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
     public HttpCrawlerConfig() {
         super();
+    }
+
+
+    /**
+     * Gets whether to fetch HTTP response headers using an
+     * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4">
+     * HTTP HEAD</a> request.  That HTTP request is performed separately from
+     * a document download request. Usually useful when you need to filter
+     * documents based on HTTP header values, without downloading them first
+     * (e.g., to save bandwidth).
+     * When dealing with small documents on average, it may be best to
+     * avoid issuing two requests when a single one could do it.
+     * @return <code>true</code> if fetching HTTP response headers separately
+     * @since 3.0.0
+     */
+    public boolean isFetchHttpHead() {
+        return fetchHttpHead;
+    }
+    /**
+     * Sets whether to fetch HTTP response headers using an
+     * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4">
+     * HTTP HEAD</a> request.
+     * @param fetchHttpHead <code>true</code>
+     *        if fetching HTTP response headers separately
+     * @since 3.0.0
+     * @see #isFetchHttpHead()
+     */
+    public void setFetchHttpHead(boolean fetchHttpHead) {
+        this.fetchHttpHead = fetchHttpHead;
     }
 
     /**
@@ -249,23 +282,61 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return maxDepth;
     }
 
+    /**
+     * Gets HTTP fetchers.
+     * @return start URLs (never <code>null</code>)
+     * @since 3.0.0
+     */
+    public List<IHttpFetcher> getHttpFetchers() {
+        return Collections.unmodifiableList(httpFetchers);
+    }
+    /**
+     * Sets HTTP fetchers.
+     * @param httpFetchers list of HTTP fetchers
+     * @since 3.0.0
+     */
+    public void setHttpFetchers(IHttpFetcher... httpFetchers) {
+        setHttpFetchers(Arrays.asList(httpFetchers));
+    }
+    /**
+     * Sets HTTP fetchers.
+     * @param httpFetchers list of HTTP fetchers
+     * @since 3.0.0
+     */
+    public void setHttpFetchers(List<IHttpFetcher> httpFetchers) {
+        CollectionUtil.setAll(this.httpFetchers, httpFetchers);
+    }
+
+//    public IHttpFetcher getHttpFetcher() {
+//        return httpFetcher;
+//    }
+//    public void setHttpFetcher(IHttpFetcher httpFetcher) {
+//        this.httpFetcher = httpFetcher;
+//    }
+
+    @Deprecated
     public IHttpClientFactory getHttpClientFactory() {
         return httpClientFactory;
     }
+    @Deprecated
     public void setHttpClientFactory(IHttpClientFactory httpClientFactory) {
         this.httpClientFactory = httpClientFactory;
     }
 
+    @Deprecated
     public IHttpDocumentFetcher getDocumentFetcher() {
         return documentFetcher;
     }
+    @Deprecated
     public void setDocumentFetcher(IHttpDocumentFetcher documentFetcher) {
         this.documentFetcher = documentFetcher;
     }
 
+    @Deprecated
     public IHttpMetadataFetcher getMetadataFetcher() {
         return metadataFetcher;
     }
+    @Deprecated
     public void setMetadataFetcher(IHttpMetadataFetcher metadataFetcher) {
         this.metadataFetcher = metadataFetcher;
     }
@@ -473,12 +544,13 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         this.sitemapResolverFactory = sitemapResolverFactory;
     }
 
-    public String getUserAgent() {
-        return userAgent;
-    }
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
-    }
+//    // Make it part of HttpFetcher
+//    public String getUserAgent() {
+//        return userAgent;
+//    }
+//    public void setUserAgent(String userAgent) {
+//        this.userAgent = userAgent;
+//    }
 
     /**
      * Whether canonical links found in HTTP headers and in HTML files
@@ -520,23 +592,23 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         this.urlCrawlScopeStrategy = urlCrawlScopeStrategy;
     }
 
-    /**
-     * Gets the redirect URL provider.
-     * @return the redirect URL provider
-     * @since 2.4.0
-     */
-    public IRedirectURLProvider getRedirectURLProvider() {
-        return redirectURLProvider;
-    }
-    /**
-     * Sets the redirect URL provider
-     * @param redirectURLProvider redirect URL provider
-     * @since 2.4.0
-     */
-    public void setRedirectURLProvider(
-            IRedirectURLProvider redirectURLProvider) {
-        this.redirectURLProvider = redirectURLProvider;
-    }
+//    /**
+//     * Gets the redirect URL provider.
+//     * @return the redirect URL provider
+//     * @since 2.4.0
+//     */
+//    public IRedirectURLProvider getRedirectURLProvider() {
+//        return redirectURLProvider;
+//    }
+//    /**
+//     * Sets the redirect URL provider
+//     * @param redirectURLProvider redirect URL provider
+//     * @since 2.4.0
+//     */
+//    public void setRedirectURLProvider(
+//            IRedirectURLProvider redirectURLProvider) {
+//        this.redirectURLProvider = redirectURLProvider;
+//    }
 
     /**
      * Gets the recrawlable resolver.
@@ -558,10 +630,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
     @Override
     protected void saveCrawlerConfigToXML(XML xml) {
-        xml.addElement("userAgent", userAgent);
+//        xml.addElement("userAgent", userAgent);
         xml.addElement("maxDepth", maxDepth);
         xml.addElement("keepDownloads", keepDownloads);
 		xml.addElement("keepOutOfScopeLinks", keepOutOfScopeLinks);
+        xml.addElement("fetchHttpHead", fetchHttpHead);
 
 		XML startXML = xml.addElement("startURLs")
 		        .setAttribute("stayOnProtocol",
@@ -583,11 +656,13 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         xml.addElement("sitemapResolverFactory",
                 sitemapResolverFactory).setAttribute("ignore", ignoreSitemap);
         xml.addElement("canonicalLinkDetector", canonicalLinkDetector);
-        xml.addElement("redirectURLProvider", redirectURLProvider);
+//        xml.addElement("redirectURLProvider", redirectURLProvider);
         xml.addElement("recrawlableResolver", recrawlableResolver);
-        xml.addElement("metadataFetcher", metadataFetcher);
+
+        xml.addElementList("httpFetchers", "fetcher", httpFetchers);
+//        xml.addElement("metadataFetcher", metadataFetcher);
         xml.addElement("metadataChecksummer", metadataChecksummer);
-        xml.addElement("documentFetcher", documentFetcher);
+//        xml.addElement("documentFetcher", documentFetcher);
         xml.addElement("robotsMeta", robotsMetaProvider)
                 .setAttribute("ignore", ignoreRobotsMeta);
         xml.addElementList("linkExtractors", "extractor", linkExtractors);
@@ -624,22 +699,28 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 "canonicalLinkDetector/@ignore", ignoreCanonicalLinks));
 
         // Redirect URL Provider
-        setRedirectURLProvider(
-                xml.getObject("redirectURLProvider", redirectURLProvider));
+//        setRedirectURLProvider(
+//                xml.getObject("redirectURLProvider", redirectURLProvider));
 
         // Recrawlable resolver
         setRecrawlableResolver(
                 xml.getObject("recrawlableResolver", recrawlableResolver));
 
-        // HTTP Headers Fetcher
-        setMetadataFetcher(xml.getObject("metadataFetcher", metadataFetcher));
+        // HTTP Fetchers
+        setHttpFetchers(xml.getObjectList(
+                "httpFetchers/fetcher", httpFetchers));
+
+        xml.checkDeprecated("metadataFetcher", "httpFetchers/fetcher", true);
+//        // HTTP Headers Fetcher
+//        setMetadataFetcher(xml.getObject("metadataFetcher", metadataFetcher));
 
         // Metadata Checksummer
         setMetadataChecksummer(
                 xml.getObject("metadataChecksummer", metadataChecksummer));
 
         // HTTP Document Fetcher
-        setDocumentFetcher(xml.getObject("documentFetcher", documentFetcher));
+        xml.checkDeprecated("metadataFetcher", "httpFetchers/fetcher", true);
+//        setDocumentFetcher(xml.getObject("documentFetcher", documentFetcher));
 
         // RobotsMeta provider
         setRobotsMetaProvider(xml.getObject("robotsMeta", robotsMetaProvider));
@@ -660,11 +741,13 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
 
     private void loadSimpleSettings(XML xml) {
-        setUserAgent(xml.getString("userAgent", userAgent));
+//        setUserAgent(xml.getString("userAgent", userAgent));
         setUrlNormalizer(xml.getObject("urlNormalizer", urlNormalizer));
         setDelayResolver(xml.getObject("delay", delayResolver));
         setMaxDepth(xml.getInteger("maxDepth", maxDepth));
         setKeepDownloads(xml.getBoolean("keepDownloads", keepDownloads));
+        setFetchHttpHead(xml.getBoolean("fetchHttpHead", fetchHttpHead));
+
 		setKeepOutOfScopeLinks(
 		        xml.getBoolean("keepOutOfScopeLinks", keepOutOfScopeLinks));
         setIgnoreCanonicalLinks(xml.getBoolean(

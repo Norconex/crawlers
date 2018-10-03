@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,22 @@ package com.norconex.collector.http.client;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 
-import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.collector.http.fetch.IHttpFetcher;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 
 /**
- * Create (and initializes) an Apache {@link HttpClient} to be used for all 
- * HTTP requests this crawler will make.  If implementing 
+ * Create (and initializes) an Apache {@link HttpClient} to be used for all
+ * HTTP requests this crawler will make.  If implementing
  * {@link CloseableHttpClient} the crawler will take care of closing
  * it properly when crawling ends.
- * 
- * Implementors also implementing {@link IXMLConfigurable} must name their XML 
+ *
+ * Implementors also implementing {@link IXMLConfigurable} must name their XML
  * tag <code>httpClientFactory</code> to ensure it gets loaded properly.
  * @since 1.3.0
  * @author Pascal Essiembre
+ * @deprecated Since 3.0.0 use {@link IHttpFetcher}
  */
+@Deprecated
 public interface IHttpClientFactory {
 
     /**

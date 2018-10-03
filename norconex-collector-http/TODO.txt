@@ -1,5 +1,37 @@
 The following are either things to be done, or ideas to consider:
 
+- Try version 2.12.0 of apache xerces that came up in June 2018.
+
+- Where appropriate, remove the many places where we pass an collector or 
+  http config in favor of those classes being able to get it on startup or 
+  statically.
+
+- Remove stop() methods in a few classes and listen for crawler/collector
+  shutdown instead. 
+
+- Have CachedStreamFactory configurable on collector, and overwritable on 
+  crawlers and importers.
+  If not overwritten, the parent will be passed to its children.
+  Make sure they can be obtained statically (per instance)??
+
+- Have logging show thread name and make it crawler id (and stop adding 
+  it in logging statements found in many places).
+
+- Have a generic page describing password encryption and point all javadoc to
+  it (could be the javadoc page from Nx Commons Lang.
+
+- ChromeDriver:
+  1. Download latest chrome driver:
+     https://sites.google.com/a/chromium.org/chromedriver/downloads
+  2. Make sure you have chrome installed to default location, or 
+     specify custom location as per: 
+     https://sites.google.com/a/chromium.org/chromedriver/capabilities#TOC-Using-a-Chrome-executable-in-a-non-standard-location
+  3. Add ChromeDriver to Windows PATH or set system property in Java. E.g.:
+       System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
+
+- MAYBE: Upon encountering specific warnings, make command line interfactive
+  by default (unless headless detected) and provide option to turn off.
+
 - Optionally keep the URL trail or at least start URL for document:
   https://github.com/Norconex/collector-http/issues/514
 

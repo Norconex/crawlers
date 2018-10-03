@@ -238,11 +238,14 @@ public class ExecutionTest extends AbstractHttpTest {
         vars.set("startURL", startURL);
         vars.set("documentChecksummer", MD5DocumentChecksummer.class);
         vars.set("extraCrawlerConfig",
-                "<httpClientFactory>"
+                "<httpFetchers>"
+              + "<fetcher class=\"com.norconex.collector.http.fetch.impl."
+                        + "GenericHttpFetcher\">"
               + "<connectionTimeout>2000</connectionTimeout>"
               + "<socketTimeout>2000</socketTimeout>"
               + "<connectionRequestTimeout>2000</connectionRequestTimeout>"
-              + "</httpClientFactory>"
+              + "</fetcher>"
+              + "</httpFetchers>"
         );
 
         int exitValue = 0;

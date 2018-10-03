@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http;
 
-import com.norconex.collector.core.AbstractCollectorConfig;
+import com.norconex.collector.core.CollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.commons.lang.xml.XML;
 
@@ -22,7 +22,7 @@ import com.norconex.commons.lang.xml.XML;
  * HTTP Collector configuration.
  * @author Pascal Essiembre
  */
-public class HttpCollectorConfig extends AbstractCollectorConfig {
+public class HttpCollectorConfig extends CollectorConfig {
 
 	public HttpCollectorConfig() {
         super(HttpCrawlerConfig.class);

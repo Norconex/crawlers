@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
+import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.importer.doc.ImporterMetadata;
@@ -58,10 +58,10 @@ public class BasicFeaturesTest extends AbstractHttpTest {
     public void testRedirect() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=redirect");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
-        crawler.getCrawlerConfig().setMaxDepth(0);
+        getCrawlerConfig(collector, 0).setMaxDepth(0);
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
@@ -90,10 +90,10 @@ public class BasicFeaturesTest extends AbstractHttpTest {
     public void testMultiRedirects() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=multiRedirects");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
-        crawler.getCrawlerConfig().setMaxDepth(0);
+        getCrawlerConfig(collector, 0).setMaxDepth(0);
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
@@ -129,14 +129,16 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         //--- Starting with canonical ---
         collector = newHttpCollector1Crawler(
                 "/test?case=canonRedirLoop&type=canonical");
-        crawler = (HttpCrawler) collector.getCrawlers().get(0);
+
         collector.start(false);
 
+        crawler = (HttpCrawler) collector.getCrawlers().get(0);
         docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
         doc = docs.get(0);
-        content = IOUtils.toString(doc.getContent(), StandardCharsets.UTF_8);
+        content = IOUtils.toString(
+                doc.getInputStream(), StandardCharsets.UTF_8);
         assertTrue("Wrong content",
                 content.contains("Canonical-redirect circular reference"));
         assertTrue("Wrong reference",
@@ -149,14 +151,15 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         //-- Starting with redirect ---
         collector = newHttpCollector1Crawler(
                 "/test?case=canonRedirLoop&type=redirect");
-        crawler = (HttpCrawler) collector.getCrawlers().get(0);
         collector.start(false);
 
+        crawler = (HttpCrawler) collector.getCrawlers().get(0);
         docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
         doc = docs.get(0);
-        content = IOUtils.toString(doc.getContent(), StandardCharsets.UTF_8);
+        content = IOUtils.toString(
+                doc.getInputStream(), StandardCharsets.UTF_8);
         assertTrue("Wrong content",
                 content.contains("Canonical-redirect circular reference"));
         assertTrue("Wrong reference",
@@ -171,10 +174,10 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
     public void testBasicFeatures() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=basic&depth=0");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
-        crawler.getCrawlerConfig().setMaxDepth(10);
+        getCrawlerConfig(collector, 0).setMaxDepth(10);
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         testDepth(docs);
         for (HttpDocument httpDocument : docs) {
@@ -186,14 +189,14 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
     public void testKeepDownload() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test/a$dir/blah?case=keepDownloads");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
-        crawler.getCrawlerConfig().setMaxDepth(0);
-        crawler.getCrawlerConfig().setKeepDownloads(true);
+        getCrawlerConfig(collector, 0).setMaxDepth(0);
+        getCrawlerConfig(collector, 0).setKeepDownloads(true);
 //        String url = crawler.getCrawlerConfig().getStartURLs()[0];
         collector.start(false);
 
-        File downloadDir = crawler
-                .getCrawlerConfig().getWorkDir().resolve("downloads").toFile();
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
+        File downloadDir = crawler.getDownloadDir().toFile();
+
         final Mutable<File> downloadedFile = new MutableObject<>();
         FileUtil.visitAllFiles(downloadDir, file -> {
             if (downloadedFile.getValue() != null) {
@@ -214,10 +217,10 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
     public void testMaxURLs() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=basic&depth=0");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
-        crawler.getCrawlerConfig().setMaxDocuments(15);
+        getCrawlerConfig(collector, 0).setMaxDocuments(15);
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("URLs", docs, 15);
     }
@@ -226,17 +229,20 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
     public void testUserAgent() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=userAgent");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
-        crawler.getCrawlerConfig().setMaxDepth(0);
-        crawler.getCrawlerConfig().setUserAgent("Super Secret Agent");
+        getCrawlerConfig(collector, 0).setMaxDepth(0);
+        ((GenericHttpFetcher) getCrawlerConfig(collector, 0).getHttpFetchers()
+                .get(0)).getConfig().setUserAgent("Super Secret Agent");
+
+//        crawler.getCrawlerConfig().setUserAgent("Super Secret Agent");
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
         HttpDocument doc = docs.get(0);
         Assert.assertTrue("Wrong or undetected User-Agent.",
-                IOUtils.toString(doc.getContent(),
+                IOUtils.toString(doc.getInputStream(),
                         StandardCharsets.UTF_8).contains("Super Secret Agent"));
     }
 
@@ -244,7 +250,6 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
     public void testCanonicalLink() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=canonical");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         final MutableInt canCount = new MutableInt();
 
         collector.getEventManager().addListener(e -> {
@@ -255,6 +260,7 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
 
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
@@ -267,9 +273,9 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
     public void testSpecialURLs() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=specialURLs");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 4);
     }
@@ -281,19 +287,21 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         // but src must be followed.
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=script");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
+
         GenericLinkExtractor le = new GenericLinkExtractor();
         le.addLinkTag("script", "src");
-        crawler.getCrawlerConfig().setLinkExtractors(le);
+        getCrawlerConfig(collector, 0).setLinkExtractors(le);
+//        crawler.getCrawlerConfig().setLinkExtractors(le);
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
 
         assertListSize("document", docs, 2);
 
         for (HttpDocument doc : docs) {
             String content = IOUtils.toString(
-                    doc.getContent(), StandardCharsets.UTF_8);
+                    doc.getInputStream(), StandardCharsets.UTF_8);
             if (!doc.getReference().contains("script=true")) {
                 // first page
                 Assert.assertTrue("First page not crawled properly",
@@ -313,9 +321,9 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
     public void testZeroLength() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=zeroLength");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
     }
@@ -325,9 +333,9 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
     public void testContentTypeCharsetDefault() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=contentTypeCharset");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
         HttpDocument doc = docs.get(0);
@@ -341,13 +349,13 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
     public void testContentTypeCharsetDetect() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=contentTypeCharset");
-        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
-        GenericDocumentFetcher fetcher = (GenericDocumentFetcher)
-                crawler.getCrawlerConfig().getDocumentFetcher();
-        fetcher.setDetectContentType(true);
-        fetcher.setDetectCharset(true);
+        GenericHttpFetcher fetcher = (GenericHttpFetcher)
+                getCrawlerConfig(collector, 0).getHttpFetchers().get(0);
+        fetcher.getConfig().setDetectContentType(true);
+        fetcher.getConfig().setDetectCharset(true);
         collector.start(false);
 
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers().get(0);
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
         HttpDocument doc = docs.get(0);

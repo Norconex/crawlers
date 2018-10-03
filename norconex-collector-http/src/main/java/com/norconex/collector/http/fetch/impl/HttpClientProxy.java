@@ -53,6 +53,9 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
  * @author Pascal Essiembre
  * @since 2.7.0
  */
+
+//TODO deprecate??
+
 /*default*/ class HttpClientProxy extends HttpServlet {
 
     private static final long serialVersionUID = 6443306025065328217L;

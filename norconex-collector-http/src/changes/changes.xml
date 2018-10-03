@@ -8,6 +8,18 @@
   <body>
 
     <release version="3.0.0-SNAPSHOT" date="2018-??-??" description="Major release">
+      <action dev="essiembre" type="add">
+        New IHttpFetcher for making HTTP requests. Multiple instances
+        can now be specified and chained.  This replaces 
+        IHttpClientFactory, IHttpDocumentFetcher, and IHttpMetadataFetcher.
+      </action>
+      <action dev="essiembre" type="add">
+        New HttpCollectorEvent.
+      </action>
+      <action dev="essiembre" type="update">
+        PhantomJSDocumentFetcher now deprecated in favor of 
+        WebDriverHttpFetcher.
+      </action>
       <action dev="essiembre" type="update">
         Now using XML class from Norconex Commons Lang for loading/saving
         configuration.
@@ -24,14 +36,18 @@
       <action dev="essiembre" type="update">
         Lists are now replacing arrays in most places.
       </action>
-      <action dev="essiembre" type="remove">
-        Removed some code deprecated in releases before 3.0.0. 
-      </action>
       <action dev="essiembre" type="update">
         Path is used in addition/instead of File in many places.
       </action>
-      <action dev="essiembre" type="add">
-        New HttpCollectorEvent.
+      <action dev="essiembre" type="update">
+        Default working directory structure has been improved.
+      </action>
+      <action dev="essiembre" type="remove">
+        Removed some code deprecated in releases before 3.0.0. 
+      </action>
+      <action dev="essiembre" type="remove">
+        IHttpClientFactory, IHttpDocumentFetcher, and IHttpMetadataFetcher and
+        implementations were removed in favor of IHttpFetcher implementations. 
       </action>
     </release>
 

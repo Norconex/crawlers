@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2013-2017 Norconex Inc.
+   Copyright 2013-2018 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -89,6 +89,27 @@
         <artifactId>jetty-proxy</artifactId>
         <version>${jetty.version}</version>
     </dependency>
+    
+    <!-- Web Driver Dependencies  -->
+
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-chrome-driver</artifactId>
+      <version>3.9.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-support</artifactId>
+      <version>3.9.1</version>
+    </dependency>
+    <!-- For capturing http headers: -->
+    <dependency>
+      <groupId>net.lightbody.bmp</groupId>
+      <artifactId>browsermob-core</artifactId>
+      <version>2.1.5</version>
+    </dependency>
+
+    <!-- Other Dependencies  -->
 
     <dependency>
       <groupId>com.github.fakemongo</groupId>
@@ -102,18 +123,26 @@
       <version>1.9.5</version>
       <scope>test</scope>
     </dependency>
+    <!-- Logging Dependency. Replace to have your own.
+         MAYBE: add log4j support through assembly and leave those 
+         as tests?
+      -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
       <version>2.10.0</version>
+      <!--
       <scope>test</scope>
+      -->
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
       <version>2.10.0</version>
+      <!--
       <scope>test</scope>
-    </dependency>    
+      -->
+    </dependency>
     
     <dependency>
         <groupId>com.norconex.commons</groupId>

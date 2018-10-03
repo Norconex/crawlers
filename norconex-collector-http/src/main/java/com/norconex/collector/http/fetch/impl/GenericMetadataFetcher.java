@@ -41,9 +41,9 @@ import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -79,7 +79,9 @@ import com.norconex.commons.lang.xml.XML;
  * </pre>
  *
  * @author Pascal Essiembre
+ * @deprecated Since 3.0.0 use {@link GenericHttpFetcher}
  */
+@Deprecated
 public class GenericMetadataFetcher
         implements IHttpMetadataFetcher, IXMLConfigurable {
 

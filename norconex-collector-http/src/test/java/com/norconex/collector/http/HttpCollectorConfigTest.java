@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.crawler.ICrawlerConfig;
+import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.committer.core.impl.FileSystemCommitter;
 import com.norconex.commons.lang.xml.XML;
@@ -50,7 +50,7 @@ public class HttpCollectorConfigTest {
                 "http://www.example.com/1/", "http://www.example.com/2/");
         crawlerCfg.setStartURLsFiles(
                 Paths.get("/path/file1.txt"), Paths.get("/path/file2.txt"));
-        config.setCrawlerConfigs(new ICrawlerConfig[] {crawlerCfg});
+        config.setCrawlerConfigs(new CrawlerConfig[] {crawlerCfg});
 
         LOG.debug("Writing/Reading this: {}", config);
         XML.assertWriteRead(config, "httpcollector");
