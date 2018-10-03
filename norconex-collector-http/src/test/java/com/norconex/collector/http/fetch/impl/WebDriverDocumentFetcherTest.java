@@ -16,6 +16,7 @@ package com.norconex.collector.http.fetch.impl;
 
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -28,7 +29,7 @@ import com.norconex.commons.lang.Sleeper;
 //TODO merge http client with document fetcher.
 // have 1 doc fetcher and 1 http fetcher that can be the same or different.
 // have ability to specify different fetchers for different URL patterns.
-
+@Ignore
 public class WebDriverDocumentFetcherTest  {
 
     private static final Logger LOG =
