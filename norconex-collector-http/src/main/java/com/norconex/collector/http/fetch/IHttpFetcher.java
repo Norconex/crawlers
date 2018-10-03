@@ -24,12 +24,6 @@ import com.norconex.collector.http.doc.HttpMetadata;
  */
 public interface IHttpFetcher {
 
-	/**
-	 * Fetches HTTP document and saves it to a local file
-	 * @param httpClient the HTTP client
-	 * @param doc the document to fetch and save
-	 * @return fetch response
-	 */
 //    HttpFetchResponse fetchDocument(HttpDocument doc);
 //    HttpFetchResponse fetchHeaders(String url, HttpMetadata metadata);
 

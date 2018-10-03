@@ -531,6 +531,7 @@ public class GenericHttpFetcher
      * This method can be overwritten to return another type of request,
      * add HTTP headers, etc.
      * @param url URL to fetch
+     * @param head <code>true</code> to make an HTTP HEAD request
      * @return HTTP request
      */
     protected HttpRequestBase createUriRequest(String url, boolean head) {

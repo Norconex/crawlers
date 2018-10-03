@@ -79,7 +79,7 @@ public class StandardSitemapResolverFactory
             StandardSitemapResolverFactory.class);
 
     private Path tempDir;
-    private Path workDir;
+//    private Path workDir;
     private final List<String> sitemapPaths =
             new ArrayList<>(StandardSitemapResolver.DEFAULT_SITEMAP_PATHS);
     private boolean lenient;
@@ -90,9 +90,9 @@ public class StandardSitemapResolverFactory
         if (tempDir == null) {
             tempDir = event.getSource().getTempDir();
         }
-        if (workDir == null) {
-            workDir = event.getSource().getWorkDir();
-        }
+//        if (workDir == null) {
+//            workDir = event.getSource().getWorkDir();
+//        }
     }
 //    @Override
 //    protected void crawlerShutdown(CrawlerEvent<Crawler> event) {
@@ -155,7 +155,7 @@ public class StandardSitemapResolverFactory
     /**
      * Gets the directory where sitemap files are temporary stored
      * before they are parsed.  When <code>null</code> (default), temporary
-     * files are created directly under {@link HttpCrawlerConfig#getWorkDir()}.
+     * files are created directly under the crawler working directory.
      * the crawler working directory is also undefined, it will use the
      * system temporary directory, as returned by
      * {@link FileUtils#getTempDirectory()}.
@@ -175,14 +175,14 @@ public class StandardSitemapResolverFactory
         this.tempDir = tempDir;
     }
 
-    // Since 3.0.0
-    public Path getWorkDir() {
-        return workDir;
-    }
-    // Since 3.0.0
-    public void setWorkDir(Path workDir) {
-        this.workDir = workDir;
-    }
+//    // Since 3.0.0
+//    public Path getWorkDir() {
+//        return workDir;
+//    }
+//    // Since 3.0.0
+//    public void setWorkDir(Path workDir) {
+//        this.workDir = workDir;
+//    }
 
     @Override
     public void loadFromXML(XML xml) {
@@ -253,16 +253,16 @@ public class StandardSitemapResolverFactory
     @Override
     public boolean equals(final Object other) {
         return EqualsBuilder.reflectionEquals(
-                this, other, "workDir", "tempDir");
+                this, other, /*"workDir",*/ "tempDir");
     }
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this, "workDir", "tempDir");
+        return HashCodeBuilder.reflectionHashCode(this, /*"workDir",*/ "tempDir");
     }
     @Override
     public String toString() {
         return new ReflectionToStringBuilder(this,
                 ToStringStyle.SHORT_PREFIX_STYLE).setExcludeFieldNames(
-                        "workDir", "tempDir").toString();
+                        /*"workDir",*/ "tempDir").toString();
     }
 }

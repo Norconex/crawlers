@@ -22,9 +22,9 @@ import com.norconex.importer.doc.ImporterDocument;
 public class HttpDocument extends ImporterDocument {
 
     /**
-     *
-     * @param reference
-     * @param content
+     * Creates a new HTTP document.
+     * @param reference document reference
+     * @param content document content
      * @since 3.0.0
      */
     public HttpDocument(String reference, CachedInputStream content) {
