@@ -2,6 +2,9 @@ The following are either things to be done, or ideas to consider:
 
 - Try version 2.12.0 of apache xerces that came up in June 2018.
 
+- Pass cachedStream data to importer when not explicitely
+  set in importer config. 
+
 - Where appropriate, remove the many places where we pass an collector or 
   http config in favor of those classes being able to get it on startup or 
   statically.

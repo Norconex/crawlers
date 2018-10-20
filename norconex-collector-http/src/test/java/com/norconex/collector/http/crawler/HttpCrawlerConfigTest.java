@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.HttpCollectorConfig;
-import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
+import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.xml.XML;
@@ -54,13 +54,13 @@ public class HttpCrawlerConfigTest {
 
         HttpCrawlerConfig crawlerConfig =
                 (HttpCrawlerConfig) config.getCrawlerConfigs().get(0);
-        GenericHttpClientFactory clientFactory =
-                (GenericHttpClientFactory) crawlerConfig.getHttpClientFactory();
-        clientFactory.setRequestHeader("header1", "value1");
-        clientFactory.setRequestHeader("header2", "value2");
-        clientFactory.setProxyPasswordKey(new EncryptionKey(
+        GenericHttpFetcher fetcher =
+                (GenericHttpFetcher) crawlerConfig.getHttpFetchers().get(0);
+        fetcher.getConfig().setRequestHeader("header1", "value1");
+        fetcher.getConfig().setRequestHeader("header2", "value2");
+        fetcher.getConfig().setProxyPasswordKey(new EncryptionKey(
                 "C:\\keys\\myEncryptionKey.txt", EncryptionKey.Source.FILE));
-        clientFactory.setAuthPasswordKey(new EncryptionKey("my key"));
+        fetcher.getConfig().setAuthPasswordKey(new EncryptionKey("my key"));
 
         crawlerConfig.setStartURLsProviders(new MockStartURLsProvider());
 

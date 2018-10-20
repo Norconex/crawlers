@@ -28,6 +28,7 @@ import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.committer.core.impl.FileSystemCommitter;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLValidationException;
 
 
 /**
@@ -59,23 +60,22 @@ public class HttpCollectorConfigTest {
 
     @Test
     public void testValidation() throws IOException {
-//        CountingConsoleAppender appender = new CountingConsoleAppender();
-//        appender.startCountingFor(XMLConfigurationUtil.class, Level.WARN);
-//        try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
-//                "/validation/collector-http-full.xml"))) {
-//            XMLConfigurationUtil.loadFromXML(
-//                    new HttpCollectorConfig(), r);
-//        } finally {
-//            appender.stopCountingFor(XMLConfigurationUtil.class);
-//        }
-//        Assert.assertEquals("Validation warnings/errors were found.",
-//                0, appender.getCount());
+        try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
+                "/validation/collector-http-full.xml"))) {
+            new HttpCollectorConfig().loadFromXML(new XML(r));
+        } catch (XMLValidationException e) {
+            Assert.fail(e.getErrors().size()
+                    + "Validation warnings/errors were found.");
+        }
 
-          try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
-                  "/validation/collector-http-full.xml"))) {
-              Assert.assertTrue("Validation warnings/errors were found.",
-                      new XML(r).validate(HttpCollectorConfig.class).isEmpty());
-          }
+
+
+
+//          try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
+//                  "/validation/collector-http-full.xml"))) {
+//              Assert.assertTrue("Validation warnings/errors were found.",
+//                      new XML(r).validate(HttpCollectorConfig.class).isEmpty());
+//          }
     }
 
     // Test for: https://github.com/Norconex/collector-http/issues/326

@@ -44,7 +44,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Mode;
@@ -54,15 +53,13 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.doc.CollectorMetadata;
-import com.norconex.collector.http.client.IHttpClientFactory;
-import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
-import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
+import com.norconex.collector.http.fetch.IHttpFetcher;
+import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.collector.http.processor.impl.ScaledImage;
-import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -78,11 +75,20 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.util.CharsetUtil;
 
-//TODO consider sharing some image-processing logic with FeaturedImageProcessor.
-
 /**
+ * <h2>Deprecation notice</h2>
  * <p>
- * An alternative to the {@link GenericDocumentFetcher} which relies on an
+ * PhantomJS headless browser is no longer maintained by its owner.
+ * As such, starting with version 3.0.0, use of PhantomJSDocumentFetcher is
+ * strongly discouraged and HttpClientProxy support for it has been dropped.
+ * With more popular browsers (e.g. Chrome) now supporting operating
+ * in headless mode, we now have more stable options.  Please consider
+ * using {@link WebDriverHttpFetcher} instead when attempting to crawl
+ * a JavaScript-driven website.
+ * </p>
+ * <hr>
+ * <p>
+ * An alternative to the {@link GenericHttpFetcher} which relies on an
  * external <a href="http://phantomjs.org/">PhantomJS</a> installation
  * to fetch web pages.  While less efficient, this implementation is meant
  * to provide some way to crawl sites making heavy use of JavaScript to render
@@ -94,7 +100,7 @@ import com.norconex.importer.util.CharsetUtil;
  * <h3>Considerations</h3>
  * <p>
  * Relying on an external software to fetch pages is slower and not as
- * scalable and may be less stable. The use of {@link GenericDocumentFetcher}
+ * scalable and may be less stable. The use of {@link GenericHttpFetcher}
  * should be preferred whenever possible. Use at your own risk.
  * Use PhantomJS 2.1 (or possibly higher).
  * </p>
@@ -103,7 +109,7 @@ import com.norconex.importer.util.CharsetUtil;
  * <p>
  * It is usually only useful to use PhantomJS for HTML pages with JavaScript.
  * Other types of documents are fetched using an instance of
- * {@link GenericDocumentFetcher}
+ * {@link GenericHttpFetcher}
  * To find out if we are dealing with an HTML
  * documents, this fetcher needs to know the content type first.
  * By default, the content type
@@ -122,7 +128,7 @@ import com.norconex.importer.util.CharsetUtil;
  * <h4>Avoid double-downloads</h4>
  * <p>
  * To avoid downloading the document twice as described above, you can
- * configure a metadata fetcher (such as {@link GenericMetadataFetcher}).  This
+ * configure a metadata fetcher (such as {@link GenericHttpFetcher}).  This
  * will attempt get the content type by first making an HTTP HEAD request.
  * </p>
  * <p>
@@ -131,32 +137,6 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link #setReferencePattern(String)}.  Only URLs matching the provided
  * regular expression will be fetched by PhantomJS.  By default there is no
  * pattern for discriminating on URL references.
- * </p>
- *
- * <h3>How to maintain HTTP sessions</h3>
- * <p>
- * Normally, the HTTP crawler is meant to be used with Apache {@link HttpClient}
- * which is usually configured using {@link GenericHttpClientFactory}. Doing so
- * ensures HTTP sessions are maintained between each URL invocation.  This is
- * necessary for web sites expecting cookies or session information to be
- * carried over each requests as part of HTTP headers.
- * Unfortunately, session information
- * is not maintained between requests when invoking PhantomJS for each URLs.
- * This means Apache {@link HttpClient} is not used at all and configuring
- * {@link IHttpClientFactory} has no effect for fetching documents. As a result,
- * you may have trouble with specific web sites.
- * </p>
- * <p>
- * If that's the case, you may want to try adding the
- * {@link HttpClientProxyCollectorListener} to your collector configuration.
- * This will start an HTTP proxy and force PhantomJS to use it.  That proxy
- * will use {@link HttpClient} to fetch documents as you would normally expect
- * and you can full advantage of {@link GenericHttpClientFactory} (or
- * your own implementation of {@link IHttpClientFactory}). Using a proxy
- * with secure (<code>https</code>) requests may not always give expected
- * results either (e.g., screenshots maybe broken). If you run into issues
- * with a given site, try both approaches and pick the one that works best for
- * you.
  * </p>
  *
  * <h3>Taking screenshots of pages</h3>
@@ -326,13 +306,12 @@ import com.norconex.importer.util.CharsetUtil;
  *
  *
  * @author Pascal Essiembre
- * @see HttpClientProxyCollectorListener
  * @since 2.7.0
- * @deprecated Since 3.0.0 use {@link WebDriverDocumentFetcher}
+ * @deprecated Since 3.0.0 use {@link WebDriverHttpFetcher}
  */
 @Deprecated
 public class PhantomJSDocumentFetcher
-        implements IHttpDocumentFetcher, IXMLConfigurable {
+        implements IHttpFetcher, IXMLConfigurable {
 
     private static final Logger LOG = LoggerFactory.getLogger(
 			PhantomJSDocumentFetcher.class);
@@ -396,8 +375,10 @@ public class PhantomJSDocumentFetcher
     private String contentTypePattern = DEFAULT_CONTENT_TYPE_PATTERN;
     private String referencePattern;
 
-    private final GenericDocumentFetcher genericFetcher =
-            new GenericDocumentFetcher();
+    //TODO rely on fallback/chaining and do not use generic fetcher here?
+    //TODO remove proxy methods and document proxy is no longer supported
+    private final GenericHttpFetcher genericFetcher =
+            new GenericHttpFetcher();
 
     private boolean screenshotEnabled;
     private String screenshotStorageDiskDir =
@@ -575,7 +556,7 @@ public class PhantomJSDocumentFetcher
      */
     public void setValidStatusCodes(List<Integer> validStatusCodes) {
         CollectionUtil.setAll(this.validStatusCodes, validStatusCodes);
-        genericFetcher.setValidStatusCodes(validStatusCodes);
+        genericFetcher.getConfig().setValidStatusCodes(validStatusCodes);
     }
     /**
      * Gets valid HTTP response status codes.
@@ -584,7 +565,7 @@ public class PhantomJSDocumentFetcher
     public void setValidStatusCodes(int... validStatusCodes) {
         CollectionUtil.setAll(this.validStatusCodes,
                 ArrayUtils.toObject(validStatusCodes));
-        genericFetcher.setValidStatusCodes(validStatusCodes);
+        genericFetcher.getConfig().setValidStatusCodes(validStatusCodes);
     }
 
     /**
@@ -602,7 +583,7 @@ public class PhantomJSDocumentFetcher
     public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
         CollectionUtil.setAll(this.notFoundStatusCodes,
                 ArrayUtils.toObject(notFoundStatusCodes));
-        genericFetcher.setNotFoundStatusCodes(notFoundStatusCodes);
+        genericFetcher.getConfig().setNotFoundStatusCodes(notFoundStatusCodes);
     }
     /**
      * Sets HTTP status codes to be considered as "Not found" state.
@@ -612,7 +593,7 @@ public class PhantomJSDocumentFetcher
     public final void setNotFoundStatusCodes(
             List<Integer> notFoundStatusCodes) {
         CollectionUtil.setAll(this.notFoundStatusCodes, notFoundStatusCodes);
-        genericFetcher.setNotFoundStatusCodes(notFoundStatusCodes);
+        genericFetcher.getConfig().setNotFoundStatusCodes(notFoundStatusCodes);
     }
 
     public String getHeadersPrefix() {
@@ -620,21 +601,21 @@ public class PhantomJSDocumentFetcher
     }
     public void setHeadersPrefix(String headersPrefix) {
         this.headersPrefix = headersPrefix;
-        genericFetcher.setHeadersPrefix(headersPrefix);
+        genericFetcher.getConfig().setHeadersPrefix(headersPrefix);
     }
     public boolean isDetectContentType() {
         return detectContentType;
     }
     public void setDetectContentType(boolean detectContentType) {
         this.detectContentType = detectContentType;
-        genericFetcher.setDetectContentType(detectContentType);
+        genericFetcher.getConfig().setDetectContentType(detectContentType);
     }
     public boolean isDetectCharset() {
         return detectCharset;
     }
     public void setDetectCharset(boolean detectCharset) {
         this.detectCharset = detectCharset;
-        genericFetcher.setDetectCharset(detectCharset);
+        genericFetcher.getConfig().setDetectCharset(detectCharset);
     }
     public String getContentTypePattern() {
         return contentTypePattern;
@@ -792,9 +773,21 @@ public class PhantomJSDocumentFetcher
     public void setScreenshotScaleQuality(Quality screenshotScaleQuality) {
         this.screenshotScaleQuality = screenshotScaleQuality;
     }
+
+
     @Override
-	public HttpFetchResponse fetchDocument(
-	        HttpClient httpClient, HttpDocument doc) {
+    public String getUserAgent() {
+        // could not set
+        return null;
+    }
+    @Override
+    public HttpFetchResponse fetchHeaders(String url,
+            HttpMetadata httpHeaders) {
+        // TODO return UNSUPPORTED
+        return null;
+    }
+    @Override
+    public HttpFetchResponse fetchDocument(HttpDocument doc) {
 
         init();
         validate();
@@ -805,7 +798,7 @@ public class PhantomJSDocumentFetcher
             LOG.debug("URL does not match reference pattern. "
                     + "Using GenericDocumentFetcher for: "
                     + doc.getReference());
-            return genericFetcher.fetchDocument(httpClient, doc);
+            return genericFetcher.fetchDocument(doc);
         }
         // If content type is known and ct pattern does not match, use generic
         String contentType = getContentType(doc);
@@ -815,12 +808,12 @@ public class PhantomJSDocumentFetcher
             LOG.debug("Content type ({}) known before fetching and does not "
                     + "match pattern. Using GenericDocumentFetcher for: {}",
                     contentType, doc.getReference());
-            return genericFetcher.fetchDocument(httpClient, doc);
+            return genericFetcher.fetchDocument(doc);
         }
 
         // Fetch using PhantomJS
         try {
-            return fetchPhantomJSDocument(httpClient, doc);
+            return fetchPhantomJSDocument(doc);
         } catch (SystemCommandException | IOException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.error("Cannot fetch document: " + doc.getReference()
@@ -841,12 +834,11 @@ public class PhantomJSDocumentFetcher
         initialized = true;
     }
 
-    private HttpFetchResponse fetchPhantomJSDocument(
-                HttpClient httpClient, HttpDocument doc)
+    private HttpFetchResponse fetchPhantomJSDocument(HttpDocument doc)
                         throws IOException, SystemCommandException {
 
         PhantomJSArguments p = new PhantomJSArguments(this, doc);
-	    SystemCommand cmd = createPhantomJSCommand(p, httpClient);
+	    SystemCommand cmd = createPhantomJSCommand(p);
 
 	    CmdOutputGrabber output = new CmdOutputGrabber(
 	            cmd, doc.getMetadata(), getHeadersPrefix());
@@ -898,7 +890,7 @@ public class PhantomJSDocumentFetcher
                     + "after download, re-downloading with "
                     + "GenericDocumentFetcher for: {}",
                     contentType, doc.getReference());
-                return genericFetcher.fetchDocument(httpClient, doc);
+                return genericFetcher.fetchDocument(doc);
             }
 
             return new HttpFetchResponse(
@@ -1040,8 +1032,7 @@ public class PhantomJSDocumentFetcher
         return newImg;
     }
 
-    private SystemCommand createPhantomJSCommand(
-            PhantomJSArguments p, HttpClient httpClient) {
+    private SystemCommand createPhantomJSCommand(PhantomJSArguments p) {
         List<String> cmdArgs = new ArrayList<>();
         cmdArgs.add(exePath);
         cmdArgs.add("--ssl-protocol=any");
@@ -1054,12 +1045,12 @@ public class PhantomJSDocumentFetcher
                 + argQuote(p.phantomCookiesFile.toAbsolutePath().toString()));
         cmdArgs.add("--load-images=" + isScreenshotEnabled());
         // Configure for HttpClient proxy if used.
-        if (HttpClientProxy.isStarted()) {
-            cmdArgs.add("--proxy=" + HttpClientProxy.getProxyHost());
-
-            cmdArgs.add("--proxy-auth=bindId:"
-                    + HttpClientProxy.getId(httpClient));
-        }
+//        if (HttpClientProxy.isStarted()) {
+//            cmdArgs.add("--proxy=" + HttpClientProxy.getProxyHost());
+//
+//            cmdArgs.add("--proxy-auth=bindId:"
+//                    + HttpClientProxy.getId(httpClient));
+//        }
         if (!options.isEmpty()) {
             cmdArgs.addAll(options);
         }
@@ -1068,11 +1059,11 @@ public class PhantomJSDocumentFetcher
         cmdArgs.add(argQuote(
                 p.outFile.toAbsolutePath().toString()));   // phantom.js arg 2
         cmdArgs.add(Integer.toString(renderWaitTime));     // phantom.js arg 3
-        if (HttpClientProxy.isStarted()) {                 // phantom.js arg 4
-            cmdArgs.add(Integer.toString(HttpClientProxy.getId(httpClient)));
-        } else {
+//        if (HttpClientProxy.isStarted()) {                 // phantom.js arg 4
+//            cmdArgs.add(Integer.toString(HttpClientProxy.getId(httpClient)));
+//        } else {
             cmdArgs.add(Integer.toString(-1));
-        }
+//        }
         cmdArgs.add(p.protocol);                           // phantom.js arg 5
         if (p.phantomScreenshotFile == null) {             // phantom.js arg 6
             cmdArgs.add(argQuote(""));
@@ -1252,9 +1243,6 @@ public class PhantomJSDocumentFetcher
 
         // Screenshots
         xml.addElement("screenshotScaleQuality", screenshotScaleQuality);
-//                getScreenshotScaleQuality() != null
-//                ? getScreenshotScaleQuality().toString().toLowerCase()
-//                : null, true);
         xml.addElement("screenshotScaleDimensions", screenshotScaleDimensions);
         xml.addElement(
                 "screenshotStorageDiskField", screenshotStorageDiskField);
@@ -1264,30 +1252,8 @@ public class PhantomJSDocumentFetcher
         xml.addElement("screenshotZoomFactor", screenshotZoomFactor);
         xml.addDelimitedElementList("screenshotStorage", screenshotStorage);
 
-//        Storage[] storages = getScreenshotStorage();
-//        if (ArrayUtils.isNotEmpty(storages)) {
-//            String[] xmlStorages = new String[storages.length];
-//            for (int i = 0; i < storages.length; i++) {
-//                if (storages[i] != null) {
-//                    xmlStorages[i] = storages[i].toString().toLowerCase();
-//                }
-//            }
-//            xml.addElement("screenshotStorage",
-//                    StringUtils.join(xmlStorages, ','), true);
-//        }
-
         xml.addElement("screenshotStorageDiskDir", screenshotStorageDiskDir)
                 .setAttribute("structure", screenshotStorageDiskStructure);
-//        String structure = null;
-//        if (getScreenshotStorageDiskStructure() != null) {
-//            structure = getScreenshotStorageDiskStructure()
-//                    .toString().toLowerCase();
-//        }
-//        writer.writeAttribute(
-//                "structure", StringUtils.trimToEmpty(structure));
-//        writer.writeCharacters(StringUtils.trimToEmpty(
-//                getScreenshotStorageDiskDir()));
-//        writer.writeEndElement();
 
         xml.addElement("screenshotScaleStretch", screenshotScaleStretch);
         xml.addElement("screenshotImageFormat", screenshotImageFormat);
@@ -1322,9 +1288,9 @@ public class PhantomJSDocumentFetcher
                 PhantomJSDocumentFetcher f, HttpDocument doc) {
             super();
             String ref = doc.getReference();
-            if (HttpClientProxy.isStarted()) {
-                ref = ref.replaceFirst("^https", "http");
-            }
+//            if (HttpClientProxy.isStarted()) {
+//                ref = ref.replaceFirst("^https", "http");
+//            }
             this.url = ref;
 
             this.phantomTempdir = doc.getContent().getCacheDirectory();
@@ -1374,9 +1340,10 @@ public class PhantomJSDocumentFetcher
                 String value = StringUtils.substringAfter(line, "=");
 
                 // Redirect hack
-                if (HttpClientProxy.KEY_PROXY_REDIRECT.equals(key)) {
-                    this.redirect = value;
-                } else if (StringUtils.isNotBlank(headersPrefix)) {
+//                if (HttpClientProxy.KEY_PROXY_REDIRECT.equals(key)) {
+//                    this.redirect = value;
+//                } else
+                if (StringUtils.isNotBlank(headersPrefix)) {
                     key = headersPrefix + key;
                 }
                 if (metadata.getString(key) == null) {

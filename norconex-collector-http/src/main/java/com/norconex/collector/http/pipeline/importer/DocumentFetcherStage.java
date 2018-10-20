@@ -23,7 +23,7 @@ import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
-import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
+import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 
 /**
  * <p>Fetches (i.e. download for processing) a document.</p>

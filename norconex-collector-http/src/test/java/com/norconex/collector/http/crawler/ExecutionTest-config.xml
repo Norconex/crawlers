@@ -62,9 +62,9 @@
     #end
 
     #if ($crawlerListener)
-      <crawlerListeners>
+      <eventListeners>
         <listener class="${crawlerListener}"/>
-      </crawlerListeners>
+      </eventListeners>
     #end
 
     #if ($documentChecksummer)

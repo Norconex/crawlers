@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>JavaScript rendered site -- Main page</title>
+  <script>
+    function w(markup) {
+        document.write(markup);
+    }
+    function tagOpen(tagName) {
+        w('<' + tagName + '>');
+    }
+    function tagClose(tagName) {
+        w('</' + tagName + '>\n');
+    }
+    function link(path, label) {
+        w('<');w('a hr');w('ef');w('="');
+        w(path);w('">');w(label);w('</');w('a><br>');
+    }
+    function renderMe() {
+        tagOpen('h1');w('JavaS' + 'cript-rendered!');tagClose('h1');
+        tagOpen('ul');
+        tagOpen('li');link('vegetables.h' + 'tml', 'Vegetables');tagClose('li');
+        tagOpen('li');link('fruits.h' + 'tml', 'Fruits');tagClose('li');
+        tagOpen('li');link('tiny.p' + 'df', 'Tiny PDF');tagClose('li');
+        tagClose('ul');
+        tagOpen('div');
+        w('Imaginary footer.');
+        tagClose('div');
+    }
+  </script>
+</head>
+<body onload="renderMe();">
+
+  <p>
+    If you get this sentence only, you did not get 
+    JavaScript-rendered content.
+  </p>
+
+</body>
+</html>

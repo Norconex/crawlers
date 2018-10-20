@@ -1,4 +1,4 @@
-/* Copyright 2015-2016 Norconex Inc.
+/* Copyright 2015-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.redirect;
+package com.norconex.collector.http.fetch.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpRequest;
@@ -27,26 +27,26 @@ import org.apache.http.protocol.HttpContext;
  * <p>This class is used by each crawler instance to wrap the original redirect
  * strategy set on the {@link HttpClient} to make sure redirect
  * target URLs are handled as required.
- * Target URLs are treated as new URLs to potentially process, 
+ * Target URLs are treated as new URLs to potentially process,
  * while the original URL gets rejected.
  * </p>
  * @author Pascal Essiembre
  * @since 2.4.0
  */
 public class RedirectStrategyWrapper implements RedirectStrategy {
-    
+
     private static final ThreadLocal<String> REDIRECT_URL = new ThreadLocal<>();
 
     private final RedirectStrategy nested;
     private final IRedirectURLProvider redirectURLProvider;
-    
+
     public RedirectStrategyWrapper(
             RedirectStrategy nested, IRedirectURLProvider redirectURLProvider) {
         super();
         this.nested = nested;
         this.redirectURLProvider = redirectURLProvider;
     }
-    
+
     public static String getRedirectURL() {
         return REDIRECT_URL.get();
     }
@@ -60,7 +60,7 @@ public class RedirectStrategyWrapper implements RedirectStrategy {
     public static void setRedirectURL(String redirectUrl) {
         REDIRECT_URL.set(redirectUrl);
     }
-    
+
     /**
      * Gets the redirect URL provider.
      * @return the redirect URL provider
@@ -68,7 +68,7 @@ public class RedirectStrategyWrapper implements RedirectStrategy {
     public IRedirectURLProvider getRedirectURLProvider() {
         return redirectURLProvider;
     }
-    
+
     @Override
     public boolean isRedirected(
             final HttpRequest request,
@@ -86,14 +86,14 @@ public class RedirectStrategyWrapper implements RedirectStrategy {
         }
         return isRedirected;
     }
-    
+
     @Override
     public HttpUriRequest getRedirect(HttpRequest request,
             HttpResponse response, HttpContext context)
             throws ProtocolException {
         return nested.getRedirect(request, response, context);
     }
-    
+
     public RedirectStrategy getOriginalRedirectStrategy() {
         return nested;
     }

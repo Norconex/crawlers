@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider;
+import com.norconex.collector.http.fetch.util.GenericRedirectURLProvider;
 import com.norconex.commons.lang.xml.XML;
 
 public class GenericRedirectURLProviderTest {

@@ -401,7 +401,7 @@ public class FeaturedImageProcessor
 
         try {
             // Obtain the image
-            Document dom = Jsoup.parse(doc.getContent(),
+            Document dom = Jsoup.parse(doc.getInputStream(),
                     doc.getContentEncoding(), doc.getReference());
             ScaledImage img = findFeaturedImage(dom, fetcher, largest);
 
@@ -586,7 +586,7 @@ public class FeaturedImageProcessor
 
 //            HttpFetchResponse response = fetcher.fetchDocument(new HttpDocument(
 //                    uri.toString(), HttpCrawler.get().getStreamFactory()));
-            HttpDocument doc = fetcher.fetchDocument(url.toString());
+            HttpDocument doc = fetcher.fetchDocument(uri.toString());
             BufferedImage bufImage = ImageIO.read(doc.getInputStream());
             doc.dispose();
             return bufImage;

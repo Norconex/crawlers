@@ -1,3 +1,17 @@
+/* Copyright 2018 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.norconex.collector.http.fetch.impl;
 
 import java.nio.charset.Charset;
@@ -18,8 +32,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 
-import com.norconex.collector.http.redirect.IRedirectURLProvider;
-import com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider;
+import com.norconex.collector.http.fetch.util.GenericRedirectURLProvider;
+import com.norconex.collector.http.fetch.util.IRedirectURLProvider;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.encrypt.EncryptionKey;

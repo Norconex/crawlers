@@ -38,10 +38,17 @@
           <xs:element name="keepDownloads" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
           <xs:element name="keepOutOfScopeLinks" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
           <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
           <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="httpClientFactory" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="fetchHttpHead" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="httpFetchers" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:all>
+                <xs:element name="fetcher" 
+                    type="anyComplexRequiredClassType" minOccurs="1" maxOccurs="unbounded"/>
+              </xs:all>
+            </xs:complexType>
+          </xs:element>
           <xs:element name="robotsTxt" minOccurs="0" maxOccurs="1">
             <xs:complexType>
               <xs:complexContent> 
@@ -60,9 +67,7 @@
               </xs:complexContent>   
             </xs:complexType>
           </xs:element>
-          <xs:element name="redirectURLProvider" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="recrawlableResolver" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="metadataFetcher" type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="canonicalLinkDetector" minOccurs="0" maxOccurs="1">
             <xs:complexType>
               <xs:complexContent> 
@@ -73,7 +78,6 @@
             </xs:complexType>
           </xs:element>
           <xs:element name="metadataChecksummer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="documentFetcher" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="robotsMeta" minOccurs="0" maxOccurs="1">
             <xs:complexType>
               <xs:complexContent> 
@@ -117,5 +121,5 @@
   <xs:element name="urlsFile" substitutionGroup="startURLChoice" type="xs:string"/>
   <xs:element name="sitemap" substitutionGroup="startURLChoice" type="xs:string"/>
   <xs:element name="provider" substitutionGroup="startURLChoice" type="anyComplexRequiredClassType" />
-
+  
 </xs:schema>

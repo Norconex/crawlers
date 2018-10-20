@@ -21,11 +21,22 @@
      -->
 <httpcollector id="Test Collector HTTP Config">
 
+  <!-- NEW: -->
   <workDir>/workdir</workDir>
+  
 <!-- DEPRECATED:
   <progressDir>/progress</progressDir>
   <logsDir>/logs</logsDir>
  -->
+ 
+  <!-- NEW: -->
+  <eventListeners>
+    <listener class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener">
+      <statusCodes>404</statusCodes>
+      <outputDir>/tmp/path</outputDir>
+      <fileNamePrefix>broken-links</fileNamePrefix>
+    </listener>
+  </eventListeners>
 
   <crawlerDefaults>
     <startURLs stayOnDomain="false" stayOnPort="false" stayOnProtocol="false">
@@ -42,6 +53,11 @@
     <workDir>/tmp/111</workDir>
     <maxDocuments>111</maxDocuments>
     <orphansStrategy>PROCESS</orphansStrategy>
+    
+    <!-- NEW: -->
+    <fetchHttpHead>true</fetchHttpHead>
+    
+    <!-- DEPRECATED:
     <crawlerListeners>
       <listener class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener">
         <statusCodes>404</statusCodes>
@@ -49,7 +65,11 @@
         <fileNamePrefix>broken-links</fileNamePrefix>
       </listener>
     </crawlerListeners>
+     -->
+    
+    <!-- DEPRECATED (part of httpFetchers):
     <userAgent>Please identify your Crawler</userAgent>
+     -->
     <urlNormalizer disabled="false" class="com.norconex.collector.http.url.impl.GenericURLNormalizer">
       <normalizations>
         lowerCaseSchemeHost, upperCaseEscapeSequence, 
@@ -74,53 +94,71 @@
       <username>user</username>
       <password>pwd</password>
     </crawlDataStoreFactory>
+    
+    <!-- DEPRECATED:
     <httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">
-      <cookiesDisabled>true</cookiesDisabled>
-      <connectionTimeout>1</connectionTimeout>
-      <socketTimeout>2 minutes</socketTimeout>
-      <connectionRequestTimeout>3 min 30s</connectionRequestTimeout>
-      <connectionCharset>asdf</connectionCharset>
-      <expectContinueEnabled>true</expectContinueEnabled>
-      <maxRedirects>4</maxRedirects>
-      <localAddress>address</localAddress>
-      <maxConnections>5</maxConnections>
-      <maxConnectionsPerRoute>6</maxConnectionsPerRoute>
-      <maxConnectionIdleTime>7</maxConnectionIdleTime>
-      <maxConnectionInactiveTime>8</maxConnectionInactiveTime>
-      <trustAllSSLCertificates>true</trustAllSSLCertificates>
-      <sslProtocols>item1,item2</sslProtocols>
-      <proxyHost>host</proxyHost>
-      <proxyPort>9</proxyPort>
-      <proxyRealm>realm</proxyRealm>
-      <proxyScheme>scheme</proxyScheme>
-      <proxyUsername>username</proxyUsername>
-      <proxyPassword>pwd</proxyPassword>
-      <proxyPasswordKey>key</proxyPasswordKey>
-      <proxyPasswordKeySource>environment</proxyPasswordKeySource>
-      <authFormParams>
-        <param name="token1"></param>
-        <param name="token2">somevalue2</param>
-      </authFormParams>
-      <headers>
-        <header name="head1"></header>
-        <header name="head2">value2</header>
-      </headers>
-      <authMethod>digest</authMethod>
-      <authUsername>user</authUsername>
-      <authPassword>pass</authPassword>
-      <authPasswordKey>thekey</authPasswordKey>
-      <authPasswordKeySource>file</authPasswordKeySource>
-      <authUsernameField>userfield</authUsernameField>
-      <authPasswordField>pwdfield</authPasswordField>
-      <authURL>authURL</authURL>
-      <authFormCharset>authCharset</authFormCharset>
-      <authHostname>authHost</authHostname>
-      <authPort>9</authPort>
-      <authRealm>authRealm</authRealm>
-      <authWorkstation>authWorkstation</authWorkstation>
-      <authDomain>authDomain</authDomain>
-      <authPreemptive>true</authPreemptive>
+      ...
     </httpClientFactory>
+    -->
+    
+    <!-- NEW: -->
+    <httpFetchers>
+      <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
+          <userAgent>Here we crawl!</userAgent>
+          <cookiesDisabled>true</cookiesDisabled>
+          <connectionTimeout>1</connectionTimeout>
+          <socketTimeout>2 minutes</socketTimeout>
+          <connectionRequestTimeout>3 min 30s</connectionRequestTimeout>
+          <connectionCharset>US-ASCII</connectionCharset>
+          <expectContinueEnabled>true</expectContinueEnabled>
+          <maxRedirects>4</maxRedirects>
+          <redirectURLProvider fallbackCharset="UTF-8"/>
+          <localAddress>address</localAddress>
+          <maxConnections>5</maxConnections>
+          <maxConnectionsPerRoute>6</maxConnectionsPerRoute>
+          <maxConnectionIdleTime>7</maxConnectionIdleTime>
+          <maxConnectionInactiveTime>8</maxConnectionInactiveTime>
+          <trustAllSSLCertificates>true</trustAllSSLCertificates>
+          <sslProtocols>item1,item2</sslProtocols>
+          <proxyHost>host</proxyHost>
+          <proxyPort>9</proxyPort>
+          <proxyRealm>realm</proxyRealm>
+          <proxyScheme>scheme</proxyScheme>
+          <proxyUsername>username</proxyUsername>
+          <proxyPassword>pwd</proxyPassword>
+          <proxyPasswordKey>key</proxyPasswordKey>
+          <proxyPasswordKeySource>environment</proxyPasswordKeySource>
+          <headers>
+            <header name="head1"></header>
+            <header name="head2">value2</header>
+          </headers>
+          <authMethod>digest</authMethod>
+          <authUsername>user</authUsername>
+          <authPassword>pass</authPassword>
+          <authPasswordKey>thekey</authPasswordKey>
+          <authPasswordKeySource>file</authPasswordKeySource>
+          <authUsernameField>userfield</authUsernameField>
+          <authPasswordField>pwdfield</authPasswordField>
+          <authURL>authURL</authURL>
+          <authFormParams>
+            <param name="token1"></param>
+            <param name="token2">somevalue2</param>
+          </authFormParams>
+          <authFormCharset>UTF-8</authFormCharset>
+          <authHostname>authHost</authHostname>
+          <authPort>9</authPort>
+          <authRealm>authRealm</authRealm>
+          <authWorkstation>authWorkstation</authWorkstation>
+          <authDomain>authDomain</authDomain>
+          <authPreemptive>true</authPreemptive>
+          <validStatusCodes>200,201</validStatusCodes>
+          <notFoundStatusCodes>404,401</notFoundStatusCodes>
+          <headersPrefix>myprefix</headersPrefix>
+          <detectContentType>true</detectContentType>
+          <detectCharset>true</detectCharset>
+      </fetcher>
+    </httpFetchers>    
+    
     <referenceFilters>
       <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
           onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
@@ -136,8 +174,10 @@
       <path>/path1/</path>
       <path>/path2/</path>
     </sitemapResolverFactory>
-    <redirectURLProvider class="com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider"
+    <!-- DEPRECATED:
+    <redirectURLProvider class="com.norconex.collector.http.fetch.util.GenericRedirectURLProvider"
         fallbackCharset="UTF-8" />
+     -->
     <recrawlableResolver class="com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver"
              sitemapSupport="last" >
          <minFrequency applyTo="reference" caseSensitive="false" value="always" >
@@ -147,11 +187,14 @@
              text/html
          </minFrequency>
     </recrawlableResolver>
+    
+    <!-- DEPRECATED:
     <metadataFetcher class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" >
       <validStatusCodes>200,123</validStatusCodes>
       <notFoundStatusCodes>404,456</notFoundStatusCodes>
       <headersPrefix>prefix</headersPrefix>
     </metadataFetcher>
+     -->
     <metadataFilters>
       <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
           onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
@@ -168,13 +211,16 @@
     </canonicalLinkDetector>
     <metadataChecksummer 
         class="com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer"
-        disabled="false" keep="true" targetField="myfield" />    
+        disabled="false" keep="true" targetField="myfield" />
+        
+    <!-- DEPRECATED:
     <documentFetcher class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher"
         detectContentType="true" detectCharset="true">
       <validStatusCodes>200,123</validStatusCodes>
       <notFoundStatusCodes>404,456</notFoundStatusCodes>
       <headersPrefix>prefix</headersPrefix>
     </documentFetcher>
+     -->    
     <robotsMeta ignore="false" 
        class="com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider">
        <headersPrefix>prefix</headersPrefix>
@@ -212,7 +258,7 @@
         </tags>
       </extractor>
       <extractor class="com.norconex.collector.http.url.impl.RegexLinkExtractor"
-          maxURLLength="1234" charset="asdf">
+          maxURLLength="1234" charset="iso-8859-1">
         <applyToContentTypePattern>ct.*</applyToContentTypePattern>
         <applyToReferencePattern>ref.*</applyToReferencePattern>
         <linkExtractionPatterns>
@@ -259,14 +305,15 @@
          Importer project. -->
     <importer>
       <preParseHandlers>
-        <transformer class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
+        <!-- "transformer" DEPRECATED for "handler": -->
+        <handler class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
           <replace><fromValue>A</fromValue><toValue>B</toValue></replace>
-        </transformer>  
+        </handler>  
       </preParseHandlers>
       <postParseHandlers>
-        <transformer class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
+        <handler class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
           <replace><fromValue>C</fromValue><toValue>D</toValue></replace>
-        </transformer>  
+        </handler>  
       </postParseHandlers>    
     </importer>
 

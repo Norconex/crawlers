@@ -101,7 +101,8 @@ import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
-import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
+import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
+import com.norconex.collector.http.fetch.util.TrustAllX509TrustManager;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
@@ -116,9 +117,30 @@ import com.norconex.importer.util.CharsetUtil;
  * <p>
  * Default implementation of {@link IHttpFetcher}.
  * </p>
+ *
+ * <p>
+ * The "validStatusCodes" and "notFoundStatusCodes" elements expect a
+ * coma-separated list of HTTP response code.  If a code is added in both
+ * elements, the valid list takes precedence.
+ * </p>
+ *
+ * <h3>Content type and character encoding</h3>
+ * <p>
+ * The default way for the HTTP Collector to identify the content type
+ * and character encoding of a document is to rely on the
+ * "<a href="https://www.w3.org/Protocols/rfc1341/4_Content-Type.html">Content-Type</a>"
+ * HTTP response header.  Web servers can sometimes return invalid
+ * or missing content type and character encoding information.
+ * You can optionally decide not to trust web servers HTTP responses and have
+ * the collector perform its own content type and encoding detection.
+ * Such detection can be enabled with
+ * {@link GenericHttpFetcherConfig#setDetectContentType(boolean)}
+ * and {@link GenericHttpFetcherConfig#setDetectCharset(boolean)}.
+ * </p>
+ *
  * <h3>Password encryption in XML configuration:</h3>
  * <p>
- * As of 2.4.0, <code>proxyPassword</code> and <code>authPassword</code>
+ * <code>proxyPassword</code> and <code>authPassword</code>
  * can take a password that has been encrypted using {@link EncryptionUtil}.
  * In order for the password to be decrypted properly by the crawler, you need
  * to specify the encryption key used to encrypt it. The key can be stored
@@ -151,14 +173,15 @@ import com.norconex.importer.util.CharsetUtil;
  * </table>
  *
  * <p>
- * As of 2.7.0, XML configuration entries expecting millisecond durations
+ * XML configuration entries expecting millisecond durations
  * can be provided in human-readable format (English only), as per
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
  *
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory"&gt;
+ *  &lt;fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher"&gt;
+ *
  *      &lt;userAgent&gt;(Identify yourself!)&lt;/userAgent&gt;
  *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
  *      &lt;connectionTimeout&gt;(milliseconds)&lt;/connectionTimeout&gt;
@@ -230,7 +253,13 @@ import com.norconex.importer.util.CharsetUtil;
  *      &lt;authWorkstation&gt;...&lt;/authWorkstation&gt;
  *      &lt;authDomain&gt;...&lt;/authDomain&gt;
  *
- *  &lt;/httpClientFactory&gt;
+ *      &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
+ *      &lt;notFoundStatusCodes&gt;(defaults to 404)&lt;/notFoundStatusCodes&gt;
+ *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
+ *      &lt;detectContentType&gt;[false|true]&lt;/detectContentType&gt;
+ *      &lt;detectCharset&gt;[false|true]&lt;/detectCharset&gt;
+ *
+ *  &lt;/fetcher&gt;
  * </pre>
  *
  * <h4>Usage example:</h4>
@@ -905,6 +934,7 @@ public class GenericHttpFetcher
 
     @Override
     public void loadFromXML(XML xml) {
+        System.out.println("XML IS: " + xml);
         cfg.loadFromXML(xml);
     }
 

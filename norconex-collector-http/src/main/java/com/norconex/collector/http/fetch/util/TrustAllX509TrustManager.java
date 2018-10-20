@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.client.impl;
+package com.norconex.collector.http.fetch.util;
 
 import java.net.Socket;
 import java.security.cert.CertificateException;
@@ -26,10 +26,8 @@ import javax.net.ssl.X509ExtendedTrustManager;
  * ones with encryption algorithms deemed unsafe, self-signed, etc.
  * @author Pascal Essiembre
  * @since 2.4.0
- * @deprecated Since 3.0.0.
  */
-@Deprecated
-/*default*/ class TrustAllX509TrustManager extends X509ExtendedTrustManager {
+public class TrustAllX509TrustManager extends X509ExtendedTrustManager {
     @Override
     public X509Certificate[] getAcceptedIssuers() {
             return null;

@@ -382,13 +382,15 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
                 HttpMetadata.COLLECTOR_CONTENT_ENCODING);
 
         //Test actual values
-        Assert.assertEquals("Bad HTTP content-type", "text/html; charset=UTF-8",
-                meta.getString(HttpMetadata.HTTP_CONTENT_TYPE));
-        Assert.assertEquals("Bad Collection content-type.", "text/html",
-                meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE));
-        Assert.assertEquals("Bad char-encoding.",
-                StandardCharsets.UTF_8.toString(),
-                meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING));
+        Assert.assertTrue("Bad HTTP content-type",
+                "text/html; charset=UTF-8".equalsIgnoreCase(
+                        meta.getString(HttpMetadata.HTTP_CONTENT_TYPE)));
+        Assert.assertTrue("Bad Collection content-type.",
+                "text/html".equalsIgnoreCase(
+                        meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE)));
+        Assert.assertTrue("Bad char-encoding.",
+                StandardCharsets.UTF_8.toString().equalsIgnoreCase(
+                    meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING)));
     }
     private void assertListSize(String listName, List<?> list, int size) {
         Assert.assertEquals(

@@ -26,7 +26,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <site.baseurl/>
     <norconex-commons-lang.version>2.0.0-SNAPSHOT</norconex-commons-lang.version>
-    <jetty.version>9.2.20.v20161216</jetty.version>
+    <jetty.version>9.4.12.v20180830</jetty.version>
   </properties>
   <inceptionYear>2009</inceptionYear>
 

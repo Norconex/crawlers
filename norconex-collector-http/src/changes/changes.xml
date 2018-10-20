@@ -18,17 +18,22 @@
       </action>
       <action dev="essiembre" type="update">
         PhantomJSDocumentFetcher now deprecated in favor of 
-        WebDriverHttpFetcher.
+        WebDriverHttpFetcher which support using popular browsers.
       </action>
       <action dev="essiembre" type="update">
         Now using XML class from Norconex Commons Lang for loading/saving
         configuration.
       </action>
       <action dev="essiembre" type="update">
+        User-Agent no longer set directly on crawler config.  It can be set
+        on IHttpFetcher implementations that support it.
+      </action>
+      <action dev="essiembre" type="update">
         Now using SLF4J for logging.
       </action>
       <action dev="essiembre" type="update">
-        Dependency updates: Norconex Collector Core 2.0.0. 
+        Dependency updates: Norconex Collector Core 2.0.0, 
+        Jetty 9.4.12.v20180830.
       </action>
       <action dev="essiembre" type="update">
         Now requires Java 8 or higher.
@@ -47,7 +52,8 @@
       </action>
       <action dev="essiembre" type="remove">
         IHttpClientFactory, IHttpDocumentFetcher, and IHttpMetadataFetcher and
-        implementations were removed in favor of IHttpFetcher implementations. 
+        implementations were removed in favor of IHttpFetcher and
+        GenericHttpFetcher. 
       </action>
     </release>
 

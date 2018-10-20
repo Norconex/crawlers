@@ -16,9 +16,16 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:element name="httpClientFactory">
+  <xs:element name="fetcher">
     <xs:complexType>
       <xs:all>
+        <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="notFoundStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="detectContentType" type="xs:boolean"/>
+        <xs:element name="detectCharset" type="xs:boolean"/>
+        <xs:element name="redirectURLProvider" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
         <xs:element name="cookiesDisabled" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="connectionTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="socketTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -105,7 +112,7 @@
         <xs:element name="authDomain" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="authPreemptive" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
       </xs:all>
-      <xs:attribute name="class" type="xs:string"/>
+      <xs:attribute name="class" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
 
@@ -121,5 +128,12 @@
       <xs:enumeration value="PROPERTY"/>
     </xs:restriction>
   </xs:simpleType>
-
+  
+  <xs:complexType name="anyComplexOptionalClassType" mixed="true">
+    <xs:all>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:all>
+    <xs:attribute name="class" type="xs:string" use="optional"/>
+    <xs:anyAttribute processContents="lax"/>
+  </xs:complexType>  
 </xs:schema>

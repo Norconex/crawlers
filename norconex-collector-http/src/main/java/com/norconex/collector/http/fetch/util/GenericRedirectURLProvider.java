@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.redirect.impl;
+package com.norconex.collector.http.fetch.util;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -37,7 +37,6 @@ import org.apache.tika.utils.CharsetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.redirect.IRedirectURLProvider;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;

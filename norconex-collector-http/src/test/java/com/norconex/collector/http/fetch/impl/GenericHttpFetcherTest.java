@@ -17,26 +17,21 @@ package com.norconex.collector.http.fetch.impl;
 import java.io.IOException;
 
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.xml.XML;
 
-public class GenericDocumentFetcherTest  {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(GenericDocumentFetcherTest.class);
+public class GenericHttpFetcherTest  {
 
     @Test
     public void testWriteRead() throws IOException {
-        GenericDocumentFetcher f = new GenericDocumentFetcher();
-        f.setValidStatusCodes(200, 201, 202);
-        f.setNotFoundStatusCodes(404, 405);
-        f.setHeadersPrefix("blah");
-        f.setDetectCharset(true);
-        f.setDetectContentType(true);
-        LOG.debug("Writing/Reading this: {}", f);
+        GenericHttpFetcherConfig cfg = new GenericHttpFetcherConfig();
+        cfg.setValidStatusCodes(200, 201, 202);
+        cfg.setNotFoundStatusCodes(404, 405);
+        cfg.setHeadersPrefix("blah");
+        cfg.setDetectCharset(true);
+        cfg.setDetectContentType(true);
+
+        GenericHttpFetcher f = new GenericHttpFetcher(cfg);
         XML.assertWriteRead(f, "documentFetcher");
     }
-
 }

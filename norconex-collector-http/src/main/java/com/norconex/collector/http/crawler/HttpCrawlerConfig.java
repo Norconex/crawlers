@@ -28,15 +28,10 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
-import com.norconex.collector.http.client.IHttpClientFactory;
-import com.norconex.collector.http.client.impl.GenericHttpClientFactory;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.fetch.IHttpFetcher;
-import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
-import com.norconex.collector.http.fetch.impl.GenericDocumentFetcher;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
@@ -77,8 +72,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 	private boolean keepOutOfScopeLinks;
 	private boolean fetchHttpHead;
 
-//    private String userAgent;
-//
     private URLCrawlScopeStrategy urlCrawlScopeStrategy =
             new URLCrawlScopeStrategy();
 
@@ -89,19 +82,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     private final List<IHttpFetcher> httpFetchers =
             new ArrayList<>(Arrays.asList(new GenericHttpFetcher()));
 
-    private IHttpClientFactory httpClientFactory =
-            new GenericHttpClientFactory();
-
-    private IHttpDocumentFetcher documentFetcher =
-            new GenericDocumentFetcher();
-
     private ICanonicalLinkDetector canonicalLinkDetector =
             new GenericCanonicalLinkDetector();
-
-//    private IRedirectURLProvider redirectURLProvider =
-//            new GenericRedirectURLProvider();
-
-    private IHttpMetadataFetcher metadataFetcher;
 
     private final List<ILinkExtractor> linkExtractors =
             new ArrayList<>(Arrays.asList(new GenericLinkExtractor()));
@@ -307,40 +289,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         CollectionUtil.setAll(this.httpFetchers, httpFetchers);
     }
 
-//    public IHttpFetcher getHttpFetcher() {
-//        return httpFetcher;
-//    }
-//    public void setHttpFetcher(IHttpFetcher httpFetcher) {
-//        this.httpFetcher = httpFetcher;
-//    }
-
-    @Deprecated
-    public IHttpClientFactory getHttpClientFactory() {
-        return httpClientFactory;
-    }
-    @Deprecated
-    public void setHttpClientFactory(IHttpClientFactory httpClientFactory) {
-        this.httpClientFactory = httpClientFactory;
-    }
-
-    @Deprecated
-    public IHttpDocumentFetcher getDocumentFetcher() {
-        return documentFetcher;
-    }
-    @Deprecated
-    public void setDocumentFetcher(IHttpDocumentFetcher documentFetcher) {
-        this.documentFetcher = documentFetcher;
-    }
-
-    @Deprecated
-    public IHttpMetadataFetcher getMetadataFetcher() {
-        return metadataFetcher;
-    }
-    @Deprecated
-    public void setMetadataFetcher(IHttpMetadataFetcher metadataFetcher) {
-        this.metadataFetcher = metadataFetcher;
-    }
-
     /**
      * Gets the canonical link detector.
      * @return the canonical link detector, or <code>null</code> if none
@@ -544,14 +492,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         this.sitemapResolverFactory = sitemapResolverFactory;
     }
 
-//    // Make it part of HttpFetcher
-//    public String getUserAgent() {
-//        return userAgent;
-//    }
-//    public void setUserAgent(String userAgent) {
-//        this.userAgent = userAgent;
-//    }
-
     /**
      * Whether canonical links found in HTTP headers and in HTML files
      * &lt;head&gt; section should be ignored or processed. When processed
@@ -559,6 +499,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * processed.
      * @since 2.2.0
      * @return <code>true</code> if ignoring canonical links
+     * processed.
      */
     public boolean isIgnoreCanonicalLinks() {
         return ignoreCanonicalLinks;
@@ -567,7 +508,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * Sets whether canonical links found in HTTP headers and in HTML files
      * &lt;head&gt; section should be ignored or processed. If <code>true</code>
      * URL pages with a canonical URL pointer in them are not
-     * processed.
      * @since 2.2.0
      * @param ignoreCanonicalLinks <code>true</code> if ignoring canonical links
      */
@@ -592,24 +532,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         this.urlCrawlScopeStrategy = urlCrawlScopeStrategy;
     }
 
-//    /**
-//     * Gets the redirect URL provider.
-//     * @return the redirect URL provider
-//     * @since 2.4.0
-//     */
-//    public IRedirectURLProvider getRedirectURLProvider() {
-//        return redirectURLProvider;
-//    }
-//    /**
-//     * Sets the redirect URL provider
-//     * @param redirectURLProvider redirect URL provider
-//     * @since 2.4.0
-//     */
-//    public void setRedirectURLProvider(
-//            IRedirectURLProvider redirectURLProvider) {
-//        this.redirectURLProvider = redirectURLProvider;
-//    }
-
     /**
      * Gets the recrawlable resolver.
      * @return recrawlable resolver
@@ -630,7 +552,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 
     @Override
     protected void saveCrawlerConfigToXML(XML xml) {
-//        xml.addElement("userAgent", userAgent);
         xml.addElement("maxDepth", maxDepth);
         xml.addElement("keepDownloads", keepDownloads);
 		xml.addElement("keepOutOfScopeLinks", keepOutOfScopeLinks);
@@ -650,19 +571,15 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 
         xml.addElement("urlNormalizer", urlNormalizer);
         xml.addElement("delay", delayResolver);
-        xml.addElement("httpClientFactory", httpClientFactory);
         xml.addElement("robotsTxt", robotsTxtProvider)
                 .setAttribute("ignore", ignoreRobotsTxt);
         xml.addElement("sitemapResolverFactory",
                 sitemapResolverFactory).setAttribute("ignore", ignoreSitemap);
         xml.addElement("canonicalLinkDetector", canonicalLinkDetector);
-//        xml.addElement("redirectURLProvider", redirectURLProvider);
         xml.addElement("recrawlableResolver", recrawlableResolver);
 
         xml.addElementList("httpFetchers", "fetcher", httpFetchers);
-//        xml.addElement("metadataFetcher", metadataFetcher);
         xml.addElement("metadataChecksummer", metadataChecksummer);
-//        xml.addElement("documentFetcher", documentFetcher);
         xml.addElement("robotsMeta", robotsMetaProvider)
                 .setAttribute("ignore", ignoreRobotsMeta);
         xml.addElementList("linkExtractors", "extractor", linkExtractors);
@@ -676,10 +593,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     protected void loadCrawlerConfigFromXML(XML xml) {
         // Simple Settings
         loadSimpleSettings(xml);
-
-        // HTTP Client Factory
-        setHttpClientFactory(
-                xml.getObject("httpClientFactory", httpClientFactory));
 
         // RobotsTxt provider
         setRobotsTxtProvider(xml.getObject("robotsTxt", robotsTxtProvider));
@@ -698,10 +611,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "canonicalLinkDetector/@ignore", ignoreCanonicalLinks));
 
-        // Redirect URL Provider
-//        setRedirectURLProvider(
-//                xml.getObject("redirectURLProvider", redirectURLProvider));
-
         // Recrawlable resolver
         setRecrawlableResolver(
                 xml.getObject("recrawlableResolver", recrawlableResolver));
@@ -710,17 +619,9 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         setHttpFetchers(xml.getObjectList(
                 "httpFetchers/fetcher", httpFetchers));
 
-        xml.checkDeprecated("metadataFetcher", "httpFetchers/fetcher", true);
-//        // HTTP Headers Fetcher
-//        setMetadataFetcher(xml.getObject("metadataFetcher", metadataFetcher));
-
         // Metadata Checksummer
         setMetadataChecksummer(
                 xml.getObject("metadataChecksummer", metadataChecksummer));
-
-        // HTTP Document Fetcher
-        xml.checkDeprecated("metadataFetcher", "httpFetchers/fetcher", true);
-//        setDocumentFetcher(xml.getObject("documentFetcher", documentFetcher));
 
         // RobotsMeta provider
         setRobotsMetaProvider(xml.getObject("robotsMeta", robotsMetaProvider));
@@ -738,10 +639,26 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         // HTTP Post-Processors
         setPostImportProcessors(xml.getObjectList(
                 "postImportProcessors/processor", postImportProcessors));
+
+        // Removed version 2.x configuration options:
+        xml.checkDeprecated("httpClientFactory", "httpFetchers/fetcher", true);
+        xml.checkDeprecated("metadataFetcher", "httpFetchers/fetcher", true);
+        xml.checkDeprecated("documentFetcher", "httpFetchers/fetcher", true);
+        xml.checkDeprecated("redirectURLProvider",
+                "'redirectURLProvider' under 'httpFetchers/fetcher' for "
+                        + "com.norconex.collector.http.fetch.impl"
+                        + ".GenericHttpFetcher", true);
+        xml.checkDeprecated("userAgent",
+                "'userAgent' under 'httpFetchers/fetcher' for "
+                        + "com.norconex.collector.http.fetch.impl"
+                        + ".GenericHttpFetcher and possibly other fetchers",
+                        true);
+
+
+
     }
 
     private void loadSimpleSettings(XML xml) {
-//        setUserAgent(xml.getString("userAgent", userAgent));
         setUrlNormalizer(xml.getObject("urlNormalizer", urlNormalizer));
         setDelayResolver(xml.getObject("delay", delayResolver));
         setMaxDepth(xml.getInteger("maxDepth", maxDepth));

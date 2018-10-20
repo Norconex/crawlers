@@ -23,7 +23,7 @@ import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.HttpFetcherExecutor;
-import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
+import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 
 /**
  * <p>Fetches a document metadata (i.e. HTTP headers).</p>
