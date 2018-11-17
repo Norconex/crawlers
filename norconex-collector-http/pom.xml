@@ -73,7 +73,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.9.1</version>
+      <version>1.9.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.imgscalr</groupId>
