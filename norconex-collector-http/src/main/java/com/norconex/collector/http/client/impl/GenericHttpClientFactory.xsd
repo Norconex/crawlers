@@ -20,6 +20,16 @@
     <xs:complexType>
       <xs:all>
         <xs:element name="cookiesDisabled" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="cookieSpec" minOccurs="0" maxOccurs="1">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="default"/>
+              <xs:enumeration value="ignoreCookies"/>
+              <xs:enumeration value="standard"/>
+              <xs:enumeration value="standard-strict"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
         <xs:element name="connectionTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="socketTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="connectionRequestTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
