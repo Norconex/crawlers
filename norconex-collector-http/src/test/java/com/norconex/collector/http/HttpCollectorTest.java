@@ -38,14 +38,14 @@ import com.norconex.jef4.status.JobState;
  */
 public class HttpCollectorTest extends AbstractHttpTest {
 
-    private static final Logger LOG = 
+    private static final Logger LOG =
             LogManager.getLogger(HttpCollectorTest.class);
-    
+
     @Test
     public void testRerunInJVM() throws IOException, InterruptedException {
-         
+
         TemporaryFolder folder = getTempFolder();
-        
+
         HttpCrawlerConfig crawlerCfg = new HttpCrawlerConfig();
         crawlerCfg.setId("test-crawler");
         crawlerCfg.setCommitter(new NilCommitter());
@@ -55,7 +55,7 @@ public class HttpCollectorTest extends AbstractHttpTest {
         delay.setDefaultDelay(10);
         crawlerCfg.setDelayResolver(delay);
         crawlerCfg.setWorkDir(folder.newFolder("multiRunTest"));
-        
+
         HttpCollectorConfig config = new HttpCollectorConfig();
         config.setId("test-http-collector");
         config.setLogsDir(crawlerCfg.getWorkDir().getAbsolutePath());
@@ -67,21 +67,21 @@ public class HttpCollectorTest extends AbstractHttpTest {
             }
             @Override
             public void onCollectorFinish(ICollector collector) {
-                JobState state = collector.getJobSuite().getStatus().getState();
-                assertTrue("Invalid state: " + state, 
+                JobState state = ((HttpCollector) collector).getState();
+                assertTrue("Invalid state: " + state,
                         state == JobState.COMPLETED);
             }
         });
-        
+
         final HttpCollector collector = new HttpCollector(config);
-        
+
         collector.start(false);
         LOG.error("First normal run complete.");
 
-        
+
         collector.start(false);
         LOG.error("Second normal run complete.");
     }
-    
-    
+
+
 }

@@ -1,5 +1,11 @@
 The following are either things to be done, or ideas to consider:
 
+- Because the QueuePipeline can be invoked from anywhere, make the 
+  "inscope" check part of it instead of always forcing to check first.
+
+- Have an option that sends committer deletion requests at every rejection
+  (once per session per URLs).
+
 - Support custom arguments to the PhantomJS script file.
   https://github.com/Norconex/collector-http/issues/505
 
