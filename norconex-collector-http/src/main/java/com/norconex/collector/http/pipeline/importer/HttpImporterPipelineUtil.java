@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2018 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,7 +248,17 @@ import com.norconex.commons.lang.file.ContentType;
                 }
                 rejectRedirectDup("processed", sourceURL, redirectURL);
                 return;
+            //TODO improve this #533 hack in v3
+            } else if (HttpImporterPipeline.GOOD_REDIRECTS.contains(
+                    redirectURL)) {
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Redirect URL previously processed and was "
+                            + "valid, rejecting: " + redirectURL);
+                }
+                rejectRedirectDup("processed", sourceURL, redirectURL);
+                return;
             }
+
             requeue = true;
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Redirect URL encountered a second time, re-queue it "
@@ -278,6 +288,10 @@ import com.norconex.commons.lang.file.ContentType;
             store.queue(newData);
         } else if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
                 crawlData.getReference(), redirectURL)) {
+
+//            //TODO improve this #533 hack
+//            REDIRECTS.put(sourceURL, redirectURL);
+
             HttpQueuePipelineContext newContext =
                     new HttpQueuePipelineContext(
                             ctx.getCrawler(), store, newData);

@@ -19,6 +19,9 @@
         Discovered canonical URLs are now rejected if they are out of scope
         (not matching the stayOnXXX directives). 
       </action>
+      <action dev="essiembre" type="fix" issue="533">
+        Fixed good redirected URLs being committed twice in same crawl session.
+      </action>
     </release>
 
     <release version="2.8.1" date="2018-08-17" description="Maintenance release">

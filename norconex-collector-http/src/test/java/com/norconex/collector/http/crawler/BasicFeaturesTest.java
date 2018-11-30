@@ -49,9 +49,9 @@ import com.norconex.importer.doc.ImporterMetadata;
  */
 public class BasicFeaturesTest extends AbstractHttpTest {
 
-    private static final Logger LOG = 
+    private static final Logger LOG =
             LogManager.getLogger(BasicFeaturesTest.class);
-    
+
     /**
      * Constructor.
      */
@@ -65,14 +65,14 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
         crawler.getCrawlerConfig().setMaxDepth(0);
         collector.start(false);
-        
+
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
         HttpDocument doc = docs.get(0);
         String ref = doc.getReference();
 
-        List<String> urls = 
+        List<String> urls =
                 doc.getMetadata().getStrings(HttpMetadata.COLLECTOR_URL);
         LOG.debug("URLs:" + urls);
         assertListSize("URL", urls, 1);
@@ -89,7 +89,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         Assert.assertTrue("Invalid relative URL: " + inPageUrls.get(1),
                 inPageUrls.get(1).matches(".*/test/redirected/page[12].html"));
     }
-    
+
     @Test
     public void testMultiRedirects() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
@@ -97,7 +97,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
         crawler.getCrawlerConfig().setMaxDepth(0);
         collector.start(false);
-        
+
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
@@ -115,12 +115,12 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         Assert.assertTrue(trail.get(2).contains("count=2"));
         Assert.assertTrue(trail.get(3).contains("count=3"));
         Assert.assertTrue(trail.get(4).contains("count=4"));
-        
+
         // Test final URL:
         Assert.assertTrue(
                 "Invalid redirection URL: " + ref, ref.contains("count=5"));
     }
-    
+
     @Test
     public void testCanonicalRedirectLoop() throws IOException {
 
@@ -129,48 +129,48 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         List<HttpDocument> docs = null;
         HttpDocument doc = null;
         String content = null;
-        
+
         //--- Starting with canonical ---
         collector = newHttpCollector1Crawler(
                 "/test?case=canonRedirLoop&type=canonical");
         crawler = (HttpCrawler) collector.getCrawlers()[0];
         collector.start(false);
-        
+
         docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
         doc = docs.get(0);
         content = IOUtils.toString(doc.getContent(), StandardCharsets.UTF_8);
-        assertTrue("Wrong content", 
+        assertTrue("Wrong content",
                 content.contains("Canonical-redirect circular reference"));
-        assertTrue("Wrong reference", 
+        assertTrue("Wrong reference",
                 doc.getReference().contains("&type=canonical"));
-        
-LOG.warn("FINAL REF: " + doc.getReference());
-LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
+
+        LOG.info("FINAL REF: " + doc.getReference());
+        LOG.info("FINAL TRAIL:" + doc.getMetadata().getStrings(
         HttpMetadata.COLLECTOR_REDIRECT_TRAIL));
-        
+
         //-- Starting with redirect ---
         collector = newHttpCollector1Crawler(
                 "/test?case=canonRedirLoop&type=redirect");
         crawler = (HttpCrawler) collector.getCrawlers()[0];
         collector.start(false);
-        
+
         docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
-        
+
         doc = docs.get(0);
         content = IOUtils.toString(doc.getContent(), StandardCharsets.UTF_8);
-        assertTrue("Wrong content", 
+        assertTrue("Wrong content",
                 content.contains("Canonical-redirect circular reference"));
-        assertTrue("Wrong reference", 
+        assertTrue("Wrong reference",
                 doc.getReference().contains("&type=canonical"));
-        
-        LOG.warn("FINAL REF: " + doc.getReference());
-        LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
+
+        LOG.info("FINAL REF: " + doc.getReference());
+        LOG.info("FINAL TRAIL:" + doc.getMetadata().getStrings(
         HttpMetadata.COLLECTOR_REDIRECT_TRAIL));
-    }       
-    
+    }
+
     @Test
     public void testBasicFeatures() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
@@ -196,7 +196,7 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
 //        String url = crawler.getCrawlerConfig().getStartURLs()[0];
         collector.start(false);
 
-        File downloadDir = 
+        File downloadDir =
                 new File(crawler.getCrawlerConfig().getWorkDir(), "downloads");
         final Mutable<File> downloadedFile = new MutableObject<>();
         FileUtil.visitAllFiles(downloadDir, new IFileVisitor() {
@@ -216,7 +216,7 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
                 content.contains("<b>This</b> file <i>must</i> be saved as is, "
                         + "with this <span>formatting</span>"));
     }
-    
+
     @Test
     public void testMaxURLs() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
@@ -228,7 +228,7 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("URLs", docs, 15);
     }
-    
+
     @Test
     public void testUserAgent() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
@@ -237,16 +237,16 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         crawler.getCrawlerConfig().setMaxDepth(0);
         crawler.getCrawlerConfig().setUserAgent("Super Secret Agent");
         collector.start(false);
-        
+
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
         HttpDocument doc = docs.get(0);
-        Assert.assertTrue("Wrong or undetected User-Agent.", 
-                IOUtils.toString(doc.getContent(), 
+        Assert.assertTrue("Wrong or undetected User-Agent.",
+                IOUtils.toString(doc.getContent(),
                         StandardCharsets.UTF_8).contains("Super Secret Agent"));
     }
-    
+
     @Test
     public void testCanonicalLink() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
@@ -264,7 +264,7 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
             }
         }});
         collector.start(false);
-        
+
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
@@ -272,19 +272,19 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
                 2, canCount.intValue());
     }
 
-    
+
     @Test
     public void testSpecialURLs() throws IOException {
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=specialURLs");
         HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
         collector.start(false);
-        
+
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 4);
     }
-    
-    
+
+
     @Test
     public void testScriptTags() throws IOException {
         // Content of <script> tags must be stripped by GenericLinkExtractor
@@ -316,8 +316,8 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
                         content.contains("This must be crawled"));
             }
         }
-    }    
-    
+    }
+
     // related to https://github.com/Norconex/collector-http/issues/313
     @Test
     public void testZeroLength() throws IOException {
@@ -325,11 +325,11 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
                 "/test?case=zeroLength");
         HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
         collector.start(false);
-        
+
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
     }
-    
+
     // Next two related to https://github.com/Norconex/importer/issues/41
     @Test
     public void testContentTypeCharsetDefault() throws IOException {
@@ -341,8 +341,8 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
         HttpDocument doc = docs.get(0);
-        
-        Assert.assertEquals("application/javascript", 
+
+        Assert.assertEquals("application/javascript",
                 doc.getMetadata().getString(ImporterMetadata.DOC_CONTENT_TYPE));
         Assert.assertEquals("Big5", doc.getMetadata().getString(
                 ImporterMetadata.DOC_CONTENT_ENCODING));
@@ -352,7 +352,7 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         HttpCollector collector = newHttpCollector1Crawler(
                 "/test?case=contentTypeCharset");
         HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
-        GenericDocumentFetcher fetcher = (GenericDocumentFetcher) 
+        GenericDocumentFetcher fetcher = (GenericDocumentFetcher)
                 crawler.getCrawlerConfig().getDocumentFetcher();
         fetcher.setDetectContentType(true);
         fetcher.setDetectCharset(true);
@@ -361,35 +361,35 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
         HttpDocument doc = docs.get(0);
-        
-        Assert.assertEquals("text/html", 
+
+        Assert.assertEquals("text/html",
                 doc.getMetadata().getString(ImporterMetadata.DOC_CONTENT_TYPE));
-        Assert.assertEquals(StandardCharsets.UTF_8.toString(), 
+        Assert.assertEquals(StandardCharsets.UTF_8.toString(),
                 doc.getMetadata().getString(
                         ImporterMetadata.DOC_CONTENT_ENCODING));
     }
-    
-    
+
+
     private void testDepth(List<HttpDocument> docs) {
         // 0-depth + 10 others == 11 expected files
-        Assert.assertEquals("Did not crawl the right depth.", 11, docs.size()); 
+        Assert.assertEquals("Did not crawl the right depth.", 11, docs.size());
     }
     private void testValidMetadata(HttpDocument doc) {
         HttpMetadata meta = doc.getMetadata();
 
         //Test single value
-        assertOneValue(meta, 
+        assertOneValue(meta,
                 HttpMetadata.HTTP_CONTENT_TYPE,
                 HttpMetadata.COLLECTOR_CONTENT_TYPE,
                 HttpMetadata.COLLECTOR_CONTENT_ENCODING);
-        
+
         //Test actual values
-        Assert.assertEquals("Bad HTTP content-type", "text/html; charset=UTF-8", 
+        Assert.assertEquals("Bad HTTP content-type", "text/html; charset=UTF-8",
                 meta.getString(HttpMetadata.HTTP_CONTENT_TYPE));
-        Assert.assertEquals("Bad Collection content-type.", "text/html", 
+        Assert.assertEquals("Bad Collection content-type.", "text/html",
                 meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE));
-        Assert.assertEquals("Bad char-encoding.", 
-                StandardCharsets.UTF_8.toString(), 
+        Assert.assertEquals("Bad char-encoding.",
+                StandardCharsets.UTF_8.toString(),
                 meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING));
     }
     private void assertListSize(String listName, List<?> list, int size) {
