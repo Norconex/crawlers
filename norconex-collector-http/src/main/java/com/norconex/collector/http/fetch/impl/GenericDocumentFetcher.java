@@ -35,9 +35,12 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -63,19 +66,19 @@ import com.norconex.importer.util.CharsetUtil;
  * <h3>Content type and character encoding</h3>
  * <p>
  * The default behavior of the HTTP Collector to identify the content type
- * and character encoding of a document is to rely on the 
+ * and character encoding of a document is to rely on the
  * "<a href="https://www.w3.org/Protocols/rfc1341/4_Content-Type.html">Content-Type</a>"
  * HTTP response header.  Web servers can sometimes return invalid
  * or missing content type and character encoding information. Since 2.7.0,
- * you can optionally decide not to trust web servers HTTP responses and have 
+ * you can optionally decide not to trust web servers HTTP responses and have
  * the collector perform its own content type and encoding detection.
  * Such detection can be enabled with {@link #setDetectContentType(boolean)}
  * and {@link #setDetectCharset(boolean)}.
  * </p>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;documentFetcher  
+ *  &lt;documentFetcher
  *      class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher"
  *      detectContentType="[false|true]" detectCharset="[false|true]"&gt;
  *    &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
@@ -84,14 +87,14 @@ import com.norconex.importer.util.CharsetUtil;
  *  &lt;/documentFetcher&gt;
  * </pre>
  * <p>
- * The "validStatusCodes" and "notFoundStatusCodes" elements expect a 
+ * The "validStatusCodes" and "notFoundStatusCodes" elements expect a
  * coma-separated list of HTTP response code.  If a code is added in both
  * elements, the valid list takes precedence.
  * </p>
  * <p>
  * The "notFoundStatusCodes" element was added in 2.2.0.
  * </p>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following configures the document fetcher to not trust HTTP response
@@ -101,23 +104,26 @@ import com.norconex.importer.util.CharsetUtil;
  * <pre>
  *  &lt;documentFetcher detectContentType="true" detectCharset="true"/&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  */
-public class GenericDocumentFetcher 
+public class GenericDocumentFetcher
         implements IHttpDocumentFetcher, IXMLConfigurable {
 
     private static final Logger LOG = LogManager.getLogger(
 			GenericDocumentFetcher.class);
 
     private int[] validStatusCodes;
-    private int[] notFoundStatusCodes = 
+    private int[] notFoundStatusCodes =
             GenericMetadataFetcher.DEFAULT_NOT_FOUND_STATUS_CODES;
     private String headersPrefix;
     private boolean detectContentType;
     private boolean detectCharset;
-    private ContentTypeDetector contentTypeDetector = new ContentTypeDetector();
-    
+    private final ContentTypeDetector contentTypeDetector = new ContentTypeDetector();
+
+    private final AuthCache authCache = new BasicAuthCache();
+    private Object userToken;
+
     public GenericDocumentFetcher() {
         this(GenericMetadataFetcher.DEFAULT_VALID_STATUS_CODES);
     }
@@ -125,7 +131,7 @@ public class GenericDocumentFetcher
         super();
         setValidStatusCodes(validStatusCodes);
     }
-    
+
     public int[] getValidStatusCodes() {
         return ArrayUtils.clone(validStatusCodes);
     }
@@ -156,7 +162,7 @@ public class GenericDocumentFetcher
         this.headersPrefix = headersPrefix;
     }
     /**
-     * Gets whether content type is detected instead of relying on 
+     * Gets whether content type is detected instead of relying on
      * HTTP response header.
      * @return <code>true</code> to enable detection
      * @since 2.7.0
@@ -165,7 +171,7 @@ public class GenericDocumentFetcher
         return detectContentType;
     }
 	/**
-	 * Sets whether content type is detected instead of relying on 
+	 * Sets whether content type is detected instead of relying on
      * HTTP response header.
 	 * @param detectContentType <code>true</code> to enable detection
      * @since 2.7.0
@@ -174,7 +180,7 @@ public class GenericDocumentFetcher
         this.detectContentType = detectContentType;
     }
     /**
-     * Gets whether character encoding is detected instead of relying on 
+     * Gets whether character encoding is detected instead of relying on
      * HTTP response header.
      * @return <code>true</code> to enable detection
      * @since 2.7.0
@@ -183,7 +189,7 @@ public class GenericDocumentFetcher
         return detectCharset;
     }
     /**
-     * Sets whether character encoding is detected instead of relying on 
+     * Sets whether character encoding is detected instead of relying on
      * HTTP response header.
      * @param detectCharset <code>true</code> to enable detection
      * @since 2.7.0
@@ -191,7 +197,7 @@ public class GenericDocumentFetcher
     public void setDetectCharset(boolean detectCharset) {
         this.detectCharset = detectCharset;
     }
-    
+
     @Override
 	public HttpFetchResponse fetchDocument(
 	        HttpClient httpClient, HttpDocument doc) {
@@ -200,14 +206,22 @@ public class GenericDocumentFetcher
 	    HttpRequestBase method = null;
 	    try {
 	        method = createUriRequest(doc);
-	    	
+
+	        HttpClientContext ctx = HttpClientContext.create();
+	        // auth cache
+	        ctx.setAuthCache(authCache);
+	        // user token
+	        if (userToken != null) {
+	            ctx.setUserToken(userToken);
+	        }
+
 	        // Execute the method.
-            HttpResponse response = httpClient.execute(method);
+            HttpResponse response = httpClient.execute(method, ctx);
             int statusCode = response.getStatusLine().getStatusCode();
             String reason = response.getStatusLine().getReasonPhrase();
-            
+
             InputStream is = response.getEntity().getContent();
-            
+
             // VALID http response
             if (ArrayUtils.contains(validStatusCodes, statusCode)) {
                 //--- Fetch headers ---
@@ -222,13 +236,15 @@ public class GenericDocumentFetcher
                         doc.getMetadata().addString(name, header.getValue());
                     }
                 }
-                
+
                 //--- Fetch body
                 doc.setContent(doc.getContent().newInputStream(is));
-                
+
                 //read a copy to force caching and then close the HTTP stream
                 IOUtils.copy(doc.getContent(), new NullOutputStream());
-                
+
+                userToken = ctx.getUserToken();
+
                 performDetection(doc);
                 return new HttpFetchResponse(
                         HttpCrawlState.NEW, statusCode, reason);
@@ -245,7 +261,7 @@ public class GenericDocumentFetcher
                 int result = bis.read();
                 while(result != -1) {
                   result = bis.read();
-                }        
+                }
                 IOUtils.closeQuietly(bis);
             }
 
@@ -270,9 +286,9 @@ public class GenericDocumentFetcher
             if (method != null) {
                 method.releaseConnection();
             }
-        }  
+        }
 	}
-	
+
     private void performDetection(HttpDocument doc) throws IOException {
         if (detectContentType) {
             ContentType ct = contentTypeDetector.detect(
@@ -290,7 +306,7 @@ public class GenericDocumentFetcher
             }
         }
     }
-    
+
 	/**
 	 * Creates the HTTP request to be executed.  Default implementation
 	 * returns an {@link HttpGet} request around the document reference.
@@ -306,7 +322,7 @@ public class GenericDocumentFetcher
 	    }
 	    return new HttpGet(uri);
 	}
-	
+
     @Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
@@ -322,7 +338,7 @@ public class GenericDocumentFetcher
             }
         }
         setValidStatusCodes(intValidCodes);
-        
+
         String notFoundCodes = xml.getString("notFoundStatusCodes");
         int[] intNFCodes = notFoundStatusCodes;
         if (StringUtils.isNotBlank(notFoundCodes)) {
@@ -334,12 +350,12 @@ public class GenericDocumentFetcher
             }
         }
         setNotFoundStatusCodes(intNFCodes);
-        
+
         setHeadersPrefix(xml.getString("headersPrefix"));
         setDetectContentType(
                 xml.getBoolean("[@detectContentType]", isDetectContentType()));
         setDetectCharset(xml.getBoolean("[@detectCharset]", isDetectCharset()));
-        
+
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
@@ -351,9 +367,9 @@ public class GenericDocumentFetcher
                     "detectContentType", isDetectContentType());
             writer.writeAttributeBoolean("detectCharset", isDetectCharset());
 
-            writer.writeElementString("validStatusCodes", 
+            writer.writeElementString("validStatusCodes",
                     StringUtils.join(validStatusCodes, ','));
-            writer.writeElementString("notFoundStatusCodes", 
+            writer.writeElementString("notFoundStatusCodes",
                     StringUtils.join(notFoundStatusCodes, ','));
             writer.writeElementString("headersPrefix", headersPrefix);
 
@@ -361,9 +377,9 @@ public class GenericDocumentFetcher
             writer.flush();
         } catch (XMLStreamException e) {
             throw new IOException("Cannot save as XML.", e);
-        }        
+        }
     }
-    
+
     @Override
     public boolean equals(final Object other) {
         if (!(other instanceof GenericDocumentFetcher)) {

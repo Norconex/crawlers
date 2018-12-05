@@ -15,6 +15,9 @@
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 1.9.2-SNAPSHOT.
       </action>
+      <action dev="essiembre" type="update" issue="526">
+        Stateful support added for auth sessions (e.g., NTLM). 
+      </action>
       <action dev="essiembre" type="fix" issue="527">
         Discovered canonical URLs are now rejected if they are out of scope
         (not matching the stayOnXXX directives). 
