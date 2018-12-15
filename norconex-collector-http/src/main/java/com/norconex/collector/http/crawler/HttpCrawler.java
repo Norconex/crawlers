@@ -405,9 +405,9 @@ public class HttpCrawler extends AbstractCrawler {
         }
 
         // If never crawled before, URLs were extracted already, or cached
-        // version has no extracted, URLs, abort now.
+        // version has no extracted URLs, abort now.
         if (cachedData == null
-                || !ArrayUtils.isEmpty(httpData.getReferencedUrls())
+                || ArrayUtils.isNotEmpty(httpData.getReferencedUrls())
                 || ArrayUtils.isEmpty(httpCachedData.getReferencedUrls())) {
             return;
         }
@@ -416,8 +416,8 @@ public class HttpCrawler extends AbstractCrawler {
         // it was skipped, or in a temporary invalid state that prevents
         // accessing child links normally.
         CrawlState state = crawlData.getState();
-        if (!state.isSkipped() && !state.isOneOf(
-                CrawlState.BAD_STATUS, CrawlState.ERROR)) {
+        if (!state.isSkipped()
+                && !state.isOneOf(CrawlState.BAD_STATUS, CrawlState.ERROR)) {
             return;
         }
 
@@ -433,7 +433,7 @@ public class HttpCrawler extends AbstractCrawler {
             HttpCrawlData childData = new HttpCrawlData(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Queuing skipped document's child: "
+                LOG.debug("Queueing skipped document's child: "
                         + childData.getReference());
             }
             executeQueuePipeline(childData, store);

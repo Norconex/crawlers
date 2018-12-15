@@ -318,6 +318,40 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         }
     }
 
+    // related to https://github.com/Norconex/collector-http/issues/540
+    @Test
+    public void testJavaScriptURL() throws IOException {
+        // 1 of 2 links must be extracted, and two pages crawled in total
+        HttpCollector collector = newHttpCollector1Crawler(
+                "/test?case=jsURL");
+        HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
+        URLCrawlScopeStrategy scope = new URLCrawlScopeStrategy();
+        scope.setStayOnPort(true);
+        crawler.getCrawlerConfig().setUrlCrawlScopeStrategy(scope);
+        collector.start(false);
+
+        List<HttpDocument> docs = getCommitedDocuments(crawler);
+
+        assertListSize("document", docs, 2);
+
+        for (HttpDocument doc : docs) {
+            String content = IOUtils.toString(
+                    doc.getContent(), StandardCharsets.UTF_8);
+            if (!doc.getReference().contains("goodurl=true")) {
+                // first page
+                Assert.assertTrue("First page not crawled properly",
+                        content.contains("Must be crawled (1 of 2)"));
+                Assert.assertEquals("Only 1 URL should have been extracted.",
+                        1, doc.getMetadata().get(
+                                HttpMetadata.COLLECTOR_REFERENCED_URLS).size());
+            } else {
+                // second page
+                Assert.assertTrue("Script page not crawled properly",
+                        content.contains("Must be crawled (2 of 2)"));
+            }
+        }
+    }
+
     // related to https://github.com/Norconex/collector-http/issues/313
     @Test
     public void testZeroLength() throws IOException {

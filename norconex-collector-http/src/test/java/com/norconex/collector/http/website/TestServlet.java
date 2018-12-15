@@ -46,11 +46,11 @@ public class TestServlet extends HttpServlet {
 
     private static final long serialVersionUID = -4252570491708918968L;
     private static final Logger LOG = LogManager.getLogger(TestServlet.class);
-    
+
     private final Map<String, ITestCase> testCases = new HashMap<>();
-    
-    private final List<String> tokens = new ArrayList<String>();
-    
+
+    private final List<String> tokens = new ArrayList<>();
+
     /**
      * Constructor.
      */
@@ -73,8 +73,9 @@ public class TestServlet extends HttpServlet {
         testCases.put("contentTypeCharset", new ContentTypeCharsetTestCase());
         testCases.put("sitemap", new SitemapTestCase());
         testCases.put("merge", new MergeTestCase());
+        testCases.put("jsURL", new JavaScriptURLTestCase());
     }
-    
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -95,11 +96,12 @@ public class TestServlet extends HttpServlet {
     }
 
     interface ITestCase {
-        void doTestCase(HttpServletRequest req, 
+        void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp) throws Exception;
     }
     abstract class HtmlTestCase implements ITestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp) throws Exception {
             resp.setContentType("text/html");
             resp.setCharacterEncoding(StandardCharsets.UTF_8.toString());
@@ -109,18 +111,19 @@ public class TestServlet extends HttpServlet {
             doTestCase(req, resp, out);
             out.println("</html>");
         }
-        protected abstract void doTestCase(HttpServletRequest req, 
+        protected abstract void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception;
-        
+
     }
 
     class ListTestCases extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
             out.println("<h1>Available test cases.</h1>");
             out.println("<ul>");
             for (String testCaseKey : testCases.keySet()) {
-                out.println("<li><a href=\"?case=" + testCaseKey 
+                out.println("<li><a href=\"?case=" + testCaseKey
                         + "\">" + testCaseKey + "</a></li>");
             }
             out.println("</ul>");
@@ -128,7 +131,8 @@ public class TestServlet extends HttpServlet {
     }
 
     class BasicTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
             Properties params = new Properties();
             params.load(req.getParameterMap());
@@ -147,19 +151,20 @@ public class TestServlet extends HttpServlet {
                     + "\">Next depth is " + nextDepth + "</a>");
         }
     }
-    
+
     /**
      * The final URL of a redirect should be stored so relative links in it
      * are relative to final URL, not the first.  Github issue #17.
      */
     class RedirectTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
 
-            if (req.getPathInfo() == null 
+            if (req.getPathInfo() == null
                     || !req.getPathInfo().contains("redirected")) {
 //                System.out.println("path info is: " + req.getPathInfo());
-                resp.sendRedirect("http://localhost:" + req.getLocalPort() 
+                resp.sendRedirect("http://localhost:" + req.getLocalPort()
                         + "/test/redirected/page.html?case=redirect");
                 return;
             }
@@ -178,12 +183,13 @@ public class TestServlet extends HttpServlet {
      * can know where documents came from.
      */
     class MultiRedirectsTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
 
             int maxRedirects = 5;
             int count = NumberUtils.toInt(req.getParameter("count"), 0);
-            
+
             if (count < maxRedirects) {
                 resp.sendRedirect(
                         "/test?case=multiRedirects&count=" + (count + 1));
@@ -195,9 +201,10 @@ public class TestServlet extends HttpServlet {
                     + "<br>");
         }
     }
-    
+
     class UserAgentTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
             String userAgent = req.getHeader("User-Agent");
             out.println("<h1>User Agent test page</h1>");
@@ -206,7 +213,8 @@ public class TestServlet extends HttpServlet {
     }
 
     class KeepDownloadedFilesTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
 
             out.println("<h1>Keep downloaded files == true</h1>");
@@ -216,12 +224,13 @@ public class TestServlet extends HttpServlet {
     }
 
     class DeletedFilesTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
             String page = req.getParameter("page");
             String token = req.getParameter("token");
 
-            if (StringUtils.isNotBlank(page) 
+            if (StringUtils.isNotBlank(page)
                     &&  StringUtils.isNotBlank(token)) {
                 String pageToken = "page-" + page + "-" + token;
                 if (tokens.contains(pageToken)) {
@@ -233,7 +242,7 @@ public class TestServlet extends HttpServlet {
                     tokens.add(pageToken);
                 }
             }
-            
+
             if (StringUtils.isNotBlank(page)) {
                 out.println("<h1>Delete test page " + page + "</h1>");
                 out.println("<p>This page should give a 404 when accessed "
@@ -265,9 +274,10 @@ public class TestServlet extends HttpServlet {
     }
 
     class ModifiedFilesTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
-            
+
             String page = req.getParameter("page");
             // 2001-01-01T01:01:01 GMT
             long staticDate = 978310861000l;
@@ -315,12 +325,13 @@ public class TestServlet extends HttpServlet {
             }
         }
     }
-    
+
     class CanonicalTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
             String type = req.getParameter("type");
-            String canonicalURL = "http://localhost:" + req.getLocalPort() 
+            String canonicalURL = "http://localhost:" + req.getLocalPort()
                         + "/test?case=canonical";
 
             if ("httpheader".equals(type)) {
@@ -351,29 +362,30 @@ public class TestServlet extends HttpServlet {
             );
         }
     }
-    
-    // Canonical points to a page that redirects back to canonical    
+
+    // Canonical points to a page that redirects back to canonical
     class CanonicalRedirectLoopTestCase extends HtmlTestCase {
         private final MutableInt count = new MutableInt();
-        
-        public void doTestCase(HttpServletRequest req, 
+
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
-            
+
             if (count.intValue() == 10) {
                 resp.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         "Too many canonicals + redirects (loop).");
                 count.setValue(0);
                 return;
             }
-            
+
             count.increment();
             String type = req.getParameter("type");
-            String baseURL = "http://localhost:" + req.getLocalPort() 
+            String baseURL = "http://localhost:" + req.getLocalPort()
                     + "/test?case=canonRedirLoop";
-            
+
             if ("canonical".equals(type)) {
 LOG.warn(">>> Canonical requested, which points to redirect.");
-                resp.setHeader("Link", 
+                resp.setHeader("Link",
                         "<" + baseURL + "&type=redirect>; rel=\"canonical\"");
                 out.println("<h1>Canonical-redirect circular reference.</h1>"
                         + "<p>This page has a canonical URL in the HTTP header "
@@ -385,17 +397,18 @@ LOG.warn(">>> Redirect requested, which points to canonical.");
                 resp.sendRedirect(baseURL + "&type=canonical");
             }
         }
-    }    
-    
-    
+    }
+
+
     class SpecialURLTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
-            
+
             String page = req.getParameter("page");
-            
+
             out.println("<h1>Special URLs test page " + page + "</h1>");
-            
+
             if (StringUtils.isBlank(page)) {
                 out.println("<p>This page contains URLs with special characters "
                         + "that may potentially cause issues if not handled "
@@ -433,10 +446,33 @@ LOG.warn(">>> Redirect requested, which points to canonical.");
             }
         }
     }
-    
+
+    // Test case for https://github.com/Norconex/collector-http/issues/540
+    class JavaScriptURLTestCase extends HtmlTestCase {
+        @Override
+        public void doTestCase(HttpServletRequest req,
+                HttpServletResponse resp, PrintWriter out) throws Exception {
+            boolean isGoodUrl = Boolean.valueOf(req.getParameter("goodurl"));
+            if (!isGoodUrl) {
+                out.println("<h1>Page with a Javascript URL</h1>");
+                out.println("<a href=\"javascript:some_function("
+                        + "'some_arg', 'another_arg');\">Must be skipped</a>");
+                out.println("<a href=\"javascript&#x3a;abcd_Comments&#x28;true"
+                        + "&#x29;&#x3b;\">Must also be skipped</a>");
+                out.println("<a href=\"/test?case=jsURL&goodurl=true\">"
+                        + "Must be followed</a>");
+                out.println("Must be crawled (1 of 2)");
+            } else {
+                out.println("<h1>Page with a Javascript URL</h1>");
+                out.println("Must be crawled (2 of 2)");
+            }
+        }
+    }
+
     // Test case for https://github.com/Norconex/collector-http/issues/232
     class ScriptTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
             boolean isScript = Boolean.valueOf(req.getParameter("script"));
             if (!isScript) {
@@ -455,21 +491,23 @@ LOG.warn(">>> Redirect requested, which points to canonical.");
 
     // Test case for https://github.com/Norconex/collector-http/issues/313
     class ZeroLengthTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp) throws Exception {
             // returns nothing (empty)
         }
         @Override
         protected void doTestCase(
-                HttpServletRequest req, HttpServletResponse resp, 
+                HttpServletRequest req, HttpServletResponse resp,
                 PrintWriter out) throws Exception {
             // returns nothing (empty)
         }
     }
 
-    // child pages return after 1 minute when accessed for second time 
+    // child pages return after 1 minute when accessed for second time
     class TimeoutTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
             String page = req.getParameter("page");
             String token = req.getParameter("token");
@@ -505,15 +543,16 @@ LOG.warn(">>> Redirect requested, which points to canonical.");
             }
         }
     }
-    
+
     class IFrameTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
-            
+
             String page = req.getParameter("page");
-            
+
             out.println("<h1>IFrame test page " + page+ "</h1>");
-            
+
             if (StringUtils.isBlank(page)) {
                 out.println("<p>This page includes 2 &lt;iframe&gt; tags.</p>");
                 out.println("<iframe src=\"?case=iframe&amp;page=1\">"
@@ -540,15 +579,16 @@ LOG.warn(">>> Redirect requested, which points to canonical.");
             }
         }
     }
-    
+
     class MergeTestCase extends HtmlTestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
-            
+
             String page = req.getParameter("page");
-            
+
             if (StringUtils.isBlank(page)) {
-                String html = 
+                String html =
                           "<h1>Merge test page: Source page</h1>\n"
                         + "<head>\n"
                         + "<meta name=\"Sfield1\" content=\"Svalue1\">\n"
@@ -565,27 +605,28 @@ LOG.warn(">>> Redirect requested, which points to canonical.");
             } else {
                 out.println("<h1>Merge test page: Target page: "
                         + page + "</h1>");
-                String html = 
+                String html =
                           "<h1>Merge test page: Source page: " +page+ "</h1>\n"
                         + "<head>\n"
-                        + "<meta name=\"T1" + page 
+                        + "<meta name=\"T1" + page
                         + "\" content=\"tvalue1-" + page + "\">\n"
-                        + "<meta name=\"T2" + page 
+                        + "<meta name=\"T2" + page
                         + "\" content=\"tvalue2-" + page + "\">\n"
-                        + "<meta name=\"T3" + page 
+                        + "<meta name=\"T3" + page
                         + "\" content=\"tvalue3-" + page + "\">\n"
                         + "<head>\n"
                         + "<body>\n"
-                        + "<p>This target page " + page 
+                        + "<p>This target page " + page
                         + " includes metadata to test merging.</p>\n"
                         + "</body>\n";
                 out.println(html);
             }
         }
     }
-    
+
     class ContentTypeCharsetTestCase implements ITestCase {
-        public void doTestCase(HttpServletRequest req, 
+        @Override
+        public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp) throws Exception {
             resp.setContentType("application/javascript");
             resp.setCharacterEncoding("Big5");
@@ -602,21 +643,22 @@ LOG.warn(">>> Redirect requested, which points to canonical.");
             resp.getOutputStream().write(out.getBytes(StandardCharsets.UTF_8));
         }
     }
-    
+
     /**
      * The second time the sitemap has 1 less URL and that URL no longer
      * exists.
      */
     class SitemapTestCase implements ITestCase {
-        public void doTestCase(HttpServletRequest req, 
-                HttpServletResponse resp) throws Exception {    
+        @Override
+        public void doTestCase(HttpServletRequest req,
+                HttpServletResponse resp) throws Exception {
 
             int page = NumberUtils.toInt(req.getParameter("page"), -1);
             String token = req.getParameter("token");
-            
+
             // if page is blank, the request is for the sitemap
             if (page == -1) {
-                String baseLocURL = "http://localhost:" + req.getLocalPort() 
+                String baseLocURL = "http://localhost:" + req.getLocalPort()
                        + "/test?case=sitemap&amp;token=" + token + "&amp;page=";
                 Map<String, String> vars = new HashMap<>();
                 vars.put("loc1", baseLocURL + 1);
