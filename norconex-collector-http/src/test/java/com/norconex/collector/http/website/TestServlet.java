@@ -134,11 +134,23 @@ public class TestServlet extends HttpServlet {
         @Override
         public void doTestCase(HttpServletRequest req,
                 HttpServletResponse resp, PrintWriter out) throws Exception {
+
             Properties params = new Properties();
             params.load(req.getParameterMap());
             int depth = params.getInt("depth", 0);
             int prevDepth = depth - 1;
             int nextDepth = depth + 1;
+
+
+            // Added to test github.com #544
+            out.println("<head>");
+            out.println("<meta name=\"article:modified_time\" "
+                    + "content=\"2018-11-28T16:06:51\">");
+            out.println("</head>");
+            out.println("<body>");
+
+
+
             out.println("<h1>Basic features test page</h1>");
             out.println("<p>Tests: BasicFeaturesTest (depth, validMetadata), "
                     + "ExecutionTest</p>");
@@ -149,6 +161,8 @@ public class TestServlet extends HttpServlet {
             out.println("<b>This page is of depth: " + depth + "</b><br><br>");
             out.println("<a href=\"?case=basic&depth=" + nextDepth
                     + "\">Next depth is " + nextDepth + "</a>");
+
+            out.println("</body>");
         }
     }
 

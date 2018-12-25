@@ -63,7 +63,9 @@
     #end
 
     #if ($documentChecksummer)
-      <documentChecksummer class="${documentChecksummer}" />
+      <documentChecksummer class="${documentChecksummer}">
+        $!{documentChecksummerConfig}
+      </documentChecksummer>
     #else
       <documentChecksummer disabled="true" />
     #end

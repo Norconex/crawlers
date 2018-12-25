@@ -113,9 +113,9 @@
   </xs:complexType>
 
   <xs:element name="startURLChoice" abstract="true"/>
-  <xs:element name="url" substitutionGroup="startURLChoice" type="nonEmptyString"/>
-  <xs:element name="urlsFile" substitutionGroup="startURLChoice" type="nonEmptyString"/>
-  <xs:element name="sitemap" substitutionGroup="startURLChoice" type="nonEmptyString"/>
+  <xs:element name="url" substitutionGroup="startURLChoice" type="xs:string"/>
+  <xs:element name="urlsFile" substitutionGroup="startURLChoice" type="xs:string"/>
+  <xs:element name="sitemap" substitutionGroup="startURLChoice" type="xs:string"/>
   <xs:element name="provider" substitutionGroup="startURLChoice" type="anyComplexRequiredClassType" />
 
   <xs:simpleType name="nonEmptyString">
