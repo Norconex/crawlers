@@ -1,5 +1,19 @@
 The following are either things to be done, or ideas to consider:
 
+- Add ability to disable storing HTTP headers as metadata fields.
+
+- Add update.sh scripts to collectors (doing the same as install.sh script)
+
+- Provide generic way to access JSON APIs (using standard auth methods, 
+  ability to provide how to access next pages, etc).
+
+- Add a clean flag. 
+ 
+- Provide support for new popular auth methods.
+
+- Offer to overwrite httpFetcher-specified User-Agent directly on 
+  classes that needs it, like the Robots.txt related class.
+
 - Try version 2.12.0 of apache xerces that came up in June 2018.
 
 - Pass cachedStream data to importer when not explicitely

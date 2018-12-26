@@ -90,18 +90,27 @@
         <version>${jetty.version}</version>
     </dependency>
     
-    <!-- Web Driver Dependencies  -->
-
+    <!-- === Web Driver Dependencies === -->
+    
+    <!-- Could download drivers separately instead with
+         just selenimum-support artifact if not using many drivers
+         or do not want to package them all.
+         Could also use the selenium-server instead for grid
+         support and running server embedded.
+         https://www.seleniumhq.org/download/maven.jsp
+          -->
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-chrome-driver</artifactId>
-      <version>3.9.1</version>
+      <artifactId>selenium-java</artifactId>
+      <version>3.14.0</version>
     </dependency>
+    <!-- 
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-support</artifactId>
       <version>3.9.1</version>
     </dependency>
+    -->
     <!-- For capturing http headers: -->
     <dependency>
       <groupId>net.lightbody.bmp</groupId>
@@ -109,7 +118,25 @@
       <version>2.1.5</version>
     </dependency>
 
-    <!-- Other Dependencies  -->
+    <!-- Mark drivers are "provided" and document? -->
+    <!-- 
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-htmlunit-driver</artifactId>
+      <version>2.52.0</version>
+    </dependency>
+     -->
+    
+    <!-- 
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-chrome-driver</artifactId>
+      <version>3.9.1</version>
+    </dependency>
+     -->
+
+
+    <!-- === Other Dependencies === -->
 
     <dependency>
       <groupId>com.github.fakemongo</groupId>

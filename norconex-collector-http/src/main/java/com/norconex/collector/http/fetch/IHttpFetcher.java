@@ -28,6 +28,7 @@ public interface IHttpFetcher {
 //    HttpFetchResponse fetchHeaders(String url, HttpMetadata metadata);
 
     String getUserAgent();
+    boolean accept(HttpDocument doc);
     HttpFetchResponse fetchHeaders(String url, HttpMetadata httpHeaders);
     HttpFetchResponse fetchDocument(HttpDocument doc);
     // INSTEAD?  So we do not expose HttpDocument?

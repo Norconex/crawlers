@@ -14,11 +14,14 @@
         IHttpClientFactory, IHttpDocumentFetcher, and IHttpMetadataFetcher.
       </action>
       <action dev="essiembre" type="add">
+        New WebDriverHttpFetcher for using popular browsers in headless mode.
+      </action>
+      <action dev="essiembre" type="add">
         New HttpCollectorEvent.
       </action>
       <action dev="essiembre" type="update">
         PhantomJSDocumentFetcher now deprecated in favor of 
-        WebDriverHttpFetcher which support using popular browsers.
+        WebDriverHttpFetcher.
       </action>
       <action dev="essiembre" type="update">
         Now using XML class from Norconex Commons Lang for loading/saving

@@ -28,12 +28,12 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.ISitemapResolverFactory;
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.event.IEventListener;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
@@ -71,9 +71,10 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  * @see StandardSitemapResolver
  */
-public class StandardSitemapResolverFactory
-        extends CrawlerLifeCycleListener
-        implements ISitemapResolverFactory, IXMLConfigurable {
+public class StandardSitemapResolverFactory implements
+        ISitemapResolverFactory,
+        IXMLConfigurable,
+        IEventListener<CrawlerEvent<Crawler>> {
 
     private static final Logger LOG = LoggerFactory.getLogger(
             StandardSitemapResolverFactory.class);
@@ -84,19 +85,14 @@ public class StandardSitemapResolverFactory
             new ArrayList<>(StandardSitemapResolver.DEFAULT_SITEMAP_PATHS);
     private boolean lenient;
 
-
     @Override
-    protected void crawlerStartup(CrawlerEvent<Crawler> event) {
-        if (tempDir == null) {
-            tempDir = event.getSource().getTempDir();
+    public void accept(CrawlerEvent<Crawler> event) {
+        if (event.isCrawlerStartup()) {
+            if (tempDir == null) {
+                tempDir = event.getSource().getTempDir();
+            }
         }
-//        if (workDir == null) {
-//            workDir = event.getSource().getWorkDir();
-//        }
     }
-//    @Override
-//    protected void crawlerShutdown(CrawlerEvent<Crawler> event) {
-//    }
 
     @Override
     public ISitemapResolver createSitemapResolver(

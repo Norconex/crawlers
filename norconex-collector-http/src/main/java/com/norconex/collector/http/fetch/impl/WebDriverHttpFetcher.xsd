@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2018 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="../AbstractHttpFetcher.xsd"></xs:include>
+
+  <xs:element name="fetcher">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="browser" minOccurs="1" maxOccurs="1">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="chrome"/>
+              <xs:enumeration value="edge"/>
+              <xs:enumeration value="firefox"/>
+              <xs:enumeration value="opera"/>
+              <xs:enumeration value="safari"/>
+              <xs:enumeration value="CHROME"/>
+              <xs:enumeration value="EDGE"/>
+              <xs:enumeration value="FIREFOX"/>
+              <xs:enumeration value="OPERA"/>
+              <xs:enumeration value="SAFARI"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>        
+        <xs:element name="browserPath" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="driverPath" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="servicePort" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="driverProxyDisabled" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="driverProxyPort" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="capabilities" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="capability" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="name" type="xs:string"/>
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

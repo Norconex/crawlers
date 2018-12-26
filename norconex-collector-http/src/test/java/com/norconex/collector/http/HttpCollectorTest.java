@@ -65,8 +65,7 @@ public class HttpCollectorTest extends AbstractHttpTest {
         // type and event name.
         config.addEventListeners(e -> {
             if (e.is(HttpCollectorEvent.COLLECTOR_ENDED)) {
-                JobState state = ((CollectorEvent<?>) e).getSource()
-                        .getJobSuite().getRootStatus().getState();
+                JobState state = ((CollectorEvent<?>) e).getSource().getState();
                 assertEquals(JobState.COMPLETED, state);
             }
 

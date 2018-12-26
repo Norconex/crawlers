@@ -15,17 +15,24 @@
 package com.norconex.collector.http.server;
 
 import java.net.URL;
+import java.util.EnumSet;
 
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
 import javax.servlet.Servlet;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
  * @author Pascal Essiembre
  *
  */
+//TODO consider making part of Norconex Commons Lang?
 public class TestServerBuilder {
 
     private final HandlerList handlers = new HandlerList();
@@ -61,13 +68,31 @@ public class TestServerBuilder {
         handlers.addHandler(handler);
         return this;
     }
-    public TestServerBuilder addServlet(
-            Servlet servlet, String urlMapping) {
+
+
+    //TODO test below
+    public TestServerBuilder addServlet(Servlet servlet, String urlMapping) {
+        WebAppContext wac = new WebAppContext();
+        wac.setResourceBase("/");
+        wac.addServlet(new ServletHolder(servlet), urlMapping);
+        this.handlers.addHandler(wac);
         return this;
     }
     public TestServerBuilder addHandler(Handler handler) {
+        this.handlers.addHandler(handler);
         return this;
     }
+
+    public TestServerBuilder addFilter(Filter filter, String urlMapping) {
+        WebAppContext wac = new WebAppContext();
+        wac.setResourceBase("/");
+        wac.addFilter(new FilterHolder(filter),
+                urlMapping, EnumSet.allOf(DispatcherType.class));
+        this.handlers.addHandler(wac);
+        return this;
+    }
+
+
 
 
     /*

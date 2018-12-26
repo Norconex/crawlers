@@ -16,6 +16,8 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:include schemaLocation="../AbstractHttpFetcher.xsd"></xs:include>
+
   <xs:element name="fetcher">
     <xs:complexType>
       <xs:all>

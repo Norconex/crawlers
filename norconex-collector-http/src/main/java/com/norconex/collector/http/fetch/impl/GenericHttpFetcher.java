@@ -94,11 +94,11 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
@@ -108,7 +108,6 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.util.CharsetUtil;
@@ -182,7 +181,7 @@ import com.norconex.importer.util.CharsetUtil;
  * <pre>
  *  &lt;fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher"&gt;
  *
- *      &lt;userAgent&gt;(Identify yourself!)&lt;/userAgent&gt;
+ *      &lt;userAgent&gt;(identify yourself!)&lt;/userAgent&gt;
  *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
  *      &lt;connectionTimeout&gt;(milliseconds)&lt;/connectionTimeout&gt;
  *      &lt;socketTimeout&gt;(milliseconds)&lt;/socketTimeout&gt;
@@ -259,6 +258,14 @@ import com.norconex.importer.util.CharsetUtil;
  *      &lt;detectContentType&gt;[false|true]&lt;/detectContentType&gt;
  *      &lt;detectCharset&gt;[false|true]&lt;/detectCharset&gt;
  *
+ *      &lt;restrictions&gt;
+ *          &lt;restrictTo caseSensitive="[false|true]"
+ *                  field="(name of metadata field name to match)"&gt;
+ *              (regular expression of value to match)
+ *          &lt;/restrictTo&gt;
+ *          &lt;!-- multiple "restrictTo" tags allowed (only one needs to match) --&gt;
+ *      &lt;/restrictions&gt;
+ *
  *  &lt;/fetcher&gt;
  * </pre>
  *
@@ -281,9 +288,7 @@ import com.norconex.importer.util.CharsetUtil;
  * @since 3.0.0 (Merged from GenericDocumentFetcher and
  *        GenericHttpClientFactory.)
  */
-public class GenericHttpFetcher
-        extends CrawlerLifeCycleListener
-        implements IHttpFetcher, IXMLConfigurable {
+public class GenericHttpFetcher extends AbstractHttpFetcher {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(GenericHttpFetcher.class);
@@ -407,6 +412,12 @@ public class GenericHttpFetcher
 //          String url, HttpMetadata httpHeaders, OutputStream content) {
 
     // have a http response status that means "unsupported" and move directly to next in chain or fallback.
+
+    @Override
+    public boolean accept(HttpDocument doc) {
+        //TODO base it on restrictTo
+        return true;
+    }
 
     @Override
     public HttpFetchResponse fetchHeaders(String url, HttpMetadata headers) {
@@ -933,13 +944,13 @@ public class GenericHttpFetcher
     }
 
     @Override
-    public void loadFromXML(XML xml) {
-        System.out.println("XML IS: " + xml);
+    public void loadHttpFetcherFromXML(XML xml) {
+//        System.out.println("XML IS: " + xml);
         cfg.loadFromXML(xml);
     }
 
     @Override
-    public void saveToXML(XML xml) {
+    public void saveHttpFetcherToXML(XML xml) {
         cfg.saveToXML(xml);
     }
 

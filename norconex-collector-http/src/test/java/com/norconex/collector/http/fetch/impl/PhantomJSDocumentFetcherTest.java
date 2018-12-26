@@ -26,6 +26,7 @@ import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.Quality;
 import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.Storage;
 import com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher.StorageDiskStructure;
 import com.norconex.commons.lang.xml.XML;
+@Deprecated
 public class PhantomJSDocumentFetcherTest  {
 
     private static final Logger LOG =

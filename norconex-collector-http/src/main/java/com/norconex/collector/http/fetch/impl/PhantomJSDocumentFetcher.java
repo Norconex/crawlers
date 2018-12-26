@@ -56,8 +56,8 @@ import com.norconex.collector.core.doc.CollectorMetadata;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
-import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.collector.http.processor.impl.ScaledImage;
 import com.norconex.commons.lang.EqualsUtil;
@@ -70,7 +70,6 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.InputStreamLineListener;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.util.CharsetUtil;
@@ -83,7 +82,7 @@ import com.norconex.importer.util.CharsetUtil;
  * strongly discouraged and HttpClientProxy support for it has been dropped.
  * With more popular browsers (e.g. Chrome) now supporting operating
  * in headless mode, we now have more stable options.  Please consider
- * using WebDriverHttpFetcher instead when attempting to crawl
+ * using {@link WebDriverHttpFetcher} instead when attempting to crawl
  * a JavaScript-driven website.
  * </p>
  * <hr>
@@ -307,11 +306,10 @@ import com.norconex.importer.util.CharsetUtil;
  *
  * @author Pascal Essiembre
  * @since 2.7.0
- * @deprecated Since 3.0.0 use WebDriverHttpFetcher
+ * @deprecated Since 3.0.0 use {@link WebDriverHttpFetcher}
  */
 @Deprecated
-public class PhantomJSDocumentFetcher
-        implements IHttpFetcher, IXMLConfigurable {
+public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
 
     private static final Logger LOG = LoggerFactory.getLogger(
 			PhantomJSDocumentFetcher.class);
@@ -361,14 +359,7 @@ public class PhantomJSDocumentFetcher
     private int resourceTimeout = -1;
 
     private final List<String> options = new ArrayList<>();
-    private final List<Integer> validStatusCodes =
-            new ArrayList<>(DEFAULT_VALID_STATUS_CODES);
-    private final List<Integer> notFoundStatusCodes =
-            new ArrayList<>(DEFAULT_NOT_FOUND_STATUS_CODES);
 
-    private String headersPrefix;
-    private boolean detectContentType;
-    private boolean detectCharset;
     private final ContentTypeDetector contentTypeDetector =
             new ContentTypeDetector();
 
@@ -377,8 +368,8 @@ public class PhantomJSDocumentFetcher
 
     //TODO rely on fallback/chaining and do not use generic fetcher here?
     //TODO remove proxy methods and document proxy is no longer supported
-    private final GenericHttpFetcher genericFetcher =
-            new GenericHttpFetcher();
+    private final GenericHttpFetcherConfig fetcherConfig =
+            new GenericHttpFetcherConfig();
 
     private boolean screenshotEnabled;
     private String screenshotStorageDiskDir =
@@ -547,7 +538,7 @@ public class PhantomJSDocumentFetcher
     }
 
     public List<Integer> getValidStatusCodes() {
-        return Collections.unmodifiableList(validStatusCodes);
+        return fetcherConfig.getValidStatusCodes();
     }
     /**
      * Gets valid HTTP response status codes.
@@ -555,17 +546,14 @@ public class PhantomJSDocumentFetcher
      * @since 3.0.0
      */
     public void setValidStatusCodes(List<Integer> validStatusCodes) {
-        CollectionUtil.setAll(this.validStatusCodes, validStatusCodes);
-        genericFetcher.getConfig().setValidStatusCodes(validStatusCodes);
+        fetcherConfig.setValidStatusCodes(validStatusCodes);
     }
     /**
      * Gets valid HTTP response status codes.
      * @param validStatusCodes valid status codes
      */
     public void setValidStatusCodes(int... validStatusCodes) {
-        CollectionUtil.setAll(this.validStatusCodes,
-                ArrayUtils.toObject(validStatusCodes));
-        genericFetcher.getConfig().setValidStatusCodes(validStatusCodes);
+        fetcherConfig.setValidStatusCodes(validStatusCodes);
     }
 
     /**
@@ -574,16 +562,14 @@ public class PhantomJSDocumentFetcher
      * @return "Not found" codes
      */
     public List<Integer> getNotFoundStatusCodes() {
-        return Collections.unmodifiableList(notFoundStatusCodes);
+        return fetcherConfig.getNotFoundStatusCodes();
     }
     /**
      * Sets HTTP status codes to be considered as "Not found" state.
      * @param notFoundStatusCodes "Not found" codes
      */
     public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
-        CollectionUtil.setAll(this.notFoundStatusCodes,
-                ArrayUtils.toObject(notFoundStatusCodes));
-        genericFetcher.getConfig().setNotFoundStatusCodes(notFoundStatusCodes);
+        fetcherConfig.setNotFoundStatusCodes(notFoundStatusCodes);
     }
     /**
      * Sets HTTP status codes to be considered as "Not found" state.
@@ -592,30 +578,26 @@ public class PhantomJSDocumentFetcher
      */
     public final void setNotFoundStatusCodes(
             List<Integer> notFoundStatusCodes) {
-        CollectionUtil.setAll(this.notFoundStatusCodes, notFoundStatusCodes);
-        genericFetcher.getConfig().setNotFoundStatusCodes(notFoundStatusCodes);
+        fetcherConfig.setNotFoundStatusCodes(notFoundStatusCodes);
     }
 
     public String getHeadersPrefix() {
-        return headersPrefix;
+        return fetcherConfig.getHeadersPrefix();
     }
     public void setHeadersPrefix(String headersPrefix) {
-        this.headersPrefix = headersPrefix;
-        genericFetcher.getConfig().setHeadersPrefix(headersPrefix);
+        fetcherConfig.setHeadersPrefix(headersPrefix);
     }
     public boolean isDetectContentType() {
-        return detectContentType;
+        return fetcherConfig.isDetectContentType();
     }
     public void setDetectContentType(boolean detectContentType) {
-        this.detectContentType = detectContentType;
-        genericFetcher.getConfig().setDetectContentType(detectContentType);
+        fetcherConfig.setDetectContentType(detectContentType);
     }
     public boolean isDetectCharset() {
-        return detectCharset;
+        return fetcherConfig.isDetectCharset();
     }
     public void setDetectCharset(boolean detectCharset) {
-        this.detectCharset = detectCharset;
-        genericFetcher.getConfig().setDetectCharset(detectCharset);
+        fetcherConfig.setDetectCharset(detectCharset);
     }
     public String getContentTypePattern() {
         return contentTypePattern;
@@ -780,25 +762,15 @@ public class PhantomJSDocumentFetcher
         // could not set
         return null;
     }
-    @Override
-    public HttpFetchResponse fetchHeaders(String url,
-            HttpMetadata httpHeaders) {
-        // TODO return UNSUPPORTED
-        return null;
-    }
-    @Override
-    public HttpFetchResponse fetchDocument(HttpDocument doc) {
 
-        init();
-        validate();
-
-        // If there is a reference pattern and it does not match, use generic
+    @Override
+    public boolean accept(HttpDocument doc) {
+        // If there is a reference pattern and it does not match, reject
         if (StringUtils.isNotBlank(referencePattern)
                 && !isHTMLByReference(doc.getReference())) {
-            LOG.debug("URL does not match reference pattern. "
-                    + "Using GenericDocumentFetcher for: "
-                    + doc.getReference());
-            return genericFetcher.fetchDocument(doc);
+            LOG.debug("Reference pattern does not match for URL: {}",
+                    doc.getReference());
+            return false;
         }
         // If content type is known and ct pattern does not match, use generic
         String contentType = getContentType(doc);
@@ -806,10 +778,24 @@ public class PhantomJSDocumentFetcher
                 && StringUtils.isNotBlank(contentType)
                 && !isHTMLByContentType(contentType)) {
             LOG.debug("Content type ({}) known before fetching and does not "
-                    + "match pattern. Using GenericDocumentFetcher for: {}",
+                    + "match pattern for URL: {}",
                     contentType, doc.getReference());
-            return genericFetcher.fetchDocument(doc);
+            return false;
         }
+        return true;
+    }
+
+    @Override
+    public HttpFetchResponse fetchHeaders(String url,
+            HttpMetadata httpHeaders) {
+        // Not supported
+        return null;
+    }
+    @Override
+    public HttpFetchResponse fetchDocument(HttpDocument doc) {
+
+        init();
+        validate();
 
         // Fetch using PhantomJS
         try {
@@ -876,7 +862,8 @@ public class PhantomJSDocumentFetcher
         handleScreenshot(p, doc);
 
         // VALID response
-        if (exit == 0 && validStatusCodes.contains(statusCode)) {
+        if (exit == 0
+                && fetcherConfig.getValidStatusCodes().contains(statusCode)) {
             //--- Fetch body
             doc.setContent(doc.getContent().newInputStream(p.outFile));
             //read a copy to force caching
@@ -890,7 +877,8 @@ public class PhantomJSDocumentFetcher
                     + "after download, re-downloading with "
                     + "GenericDocumentFetcher for: {}",
                     contentType, doc.getReference());
-                return genericFetcher.fetchDocument(doc);
+                return null;
+//                return fetcherConfig.fetchDocument(doc);
             }
 
             return new HttpFetchResponse(
@@ -903,7 +891,7 @@ public class PhantomJSDocumentFetcher
                     FileUtils.readFileToString(
                             p.outFile.toFile(), StandardCharsets.UTF_8));
         }
-        if (notFoundStatusCodes.contains(statusCode)) {
+        if (fetcherConfig.getNotFoundStatusCodes().contains(statusCode)) {
             return new HttpFetchResponse(
                     HttpCrawlState.NOT_FOUND, statusCode, reason);
         }
@@ -1091,7 +1079,7 @@ public class PhantomJSDocumentFetcher
 
     //TODO Copied from GenericDocumentFetcher... should move to util class?
     private void performDetection(HttpDocument doc) throws IOException {
-        if (detectContentType) {
+        if (fetcherConfig.isDetectContentType()) {
             ContentType ct = contentTypeDetector.detect(
                     doc.getContent(), doc.getReference());
             if (ct != null) {
@@ -1099,7 +1087,7 @@ public class PhantomJSDocumentFetcher
                         HttpMetadata.COLLECTOR_CONTENT_TYPE, ct.toString());
             }
         }
-        if (detectCharset) {
+        if (fetcherConfig.isDetectCharset()) {
             String charset = CharsetUtil.detectCharset(doc.getContent());
             if (StringUtils.isNotBlank(charset)) {
                 doc.getMetadata().set(
@@ -1164,14 +1152,15 @@ public class PhantomJSDocumentFetcher
     private String getContentType(HttpDocument doc) {
         String ct = Objects.toString(doc.getContentType(), null);
         if (StringUtils.isBlank(ct)) {
-            ct = doc.getMetadata().getString(Objects.toString(headersPrefix, "")
-                    + HttpMetadata.HTTP_CONTENT_TYPE);
+            ct = doc.getMetadata().getString(Objects.toString(
+                    fetcherConfig.getHeadersPrefix(), "")
+                        + HttpMetadata.HTTP_CONTENT_TYPE);
         }
         return ct;
     }
 
     @Override
-    public void loadFromXML(XML xml) {
+    protected void loadHttpFetcherFromXML(XML xml) {
         setExePath(xml.getString("exePath", exePath));
         setScriptPath(xml.getString("scriptPath", scriptPath));
 
@@ -1180,13 +1169,16 @@ public class PhantomJSDocumentFetcher
         setResourceTimeout(xml.getDurationMillis(
                 "resourceTimeout", (long) resourceTimeout).intValue());
         setValidStatusCodes(xml.getDelimitedList(
-                "validStatusCodes", Integer.class, validStatusCodes));
+                "validStatusCodes", Integer.class,
+                fetcherConfig.getValidStatusCodes()));
         setNotFoundStatusCodes(xml.getDelimitedList(
-                "notFoundStatusCodes", Integer.class, notFoundStatusCodes));
-        setHeadersPrefix(xml.getString("headersPrefix", headersPrefix));
+                "notFoundStatusCodes", Integer.class,
+                fetcherConfig.getNotFoundStatusCodes()));
+        setHeadersPrefix(xml.getString("headersPrefix",
+                fetcherConfig.getHeadersPrefix()));
         setDetectContentType(
-                xml.getBoolean("@detectContentType", detectContentType));
-        setDetectCharset(xml.getBoolean("@detectCharset", detectCharset));
+                xml.getBoolean("@detectContentType", fetcherConfig.isDetectContentType()));
+        setDetectCharset(xml.getBoolean("@detectCharset", fetcherConfig.isDetectCharset()));
         setOptions(xml.getDelimitedStringList("options/opt", options));
         setReferencePattern(
                 xml.getString("referencePattern", referencePattern));
@@ -1223,9 +1215,10 @@ public class PhantomJSDocumentFetcher
                         screenshotStorageDiskStructure));
     }
     @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute("detectContentType", detectContentType);
-        xml.setAttribute("detectCharset", detectCharset);
+    protected void saveHttpFetcherToXML(XML xml) {
+        xml.setAttribute("detectContentType",
+                fetcherConfig.isDetectContentType());
+        xml.setAttribute("detectCharset", fetcherConfig.isDetectCharset());
         xml.setAttribute("screenshotEnabled", screenshotEnabled);
 
         xml.addElement("exePath", exePath);
@@ -1234,9 +1227,11 @@ public class PhantomJSDocumentFetcher
 //        if (resourceTimeout != -1) {
             xml.addElement("resourceTimeout", resourceTimeout);
 //        }
-        xml.addDelimitedElementList("validStatusCodes", validStatusCodes);
-        xml.addDelimitedElementList("notFoundStatusCodes", notFoundStatusCodes);
-        xml.addElement("headersPrefix", headersPrefix);
+        xml.addDelimitedElementList(
+                "validStatusCodes", fetcherConfig.getValidStatusCodes());
+        xml.addDelimitedElementList(
+                "notFoundStatusCodes", fetcherConfig.getNotFoundStatusCodes());
+        xml.addElement("headersPrefix", fetcherConfig.getHeadersPrefix());
         xml.addElementList("options", "opt", options);
         xml.addElement("referencePattern", referencePattern);
         xml.addElement("contentTypePattern", contentTypePattern);

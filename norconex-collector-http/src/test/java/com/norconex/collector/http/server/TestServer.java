@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Pascal Essiembre
  */
+//TODO consider making part of Norconex Commons Lang (not just as test)?
 public class TestServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestServer.class);
