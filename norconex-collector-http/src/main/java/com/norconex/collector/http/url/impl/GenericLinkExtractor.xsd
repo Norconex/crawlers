@@ -35,6 +35,8 @@
         </xs:element>
         <xs:element name="extractBetween" type="extractType" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="noExtractBetween" type="extractType" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="extractSelector" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="noExtractSelector" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="nofollow" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>

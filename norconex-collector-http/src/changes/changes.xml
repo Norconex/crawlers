@@ -8,6 +8,11 @@
   <body>
 
     <release version="2.8.2-SNAPSHOT" date="201?-??-??" description="Maintenance release">
+      <action dev="essiembre" type="add">
+        GenericLinkExtractor now supports using "selector-syntax" to identify
+        portions of an HTML document to include or exclude from URL
+        extraction. 
+      </action>
       <action dev="rustyx" type="update" issue="525">
         Switch default cookie specs from DEFAULT to STANDARD and can now be
         configured.

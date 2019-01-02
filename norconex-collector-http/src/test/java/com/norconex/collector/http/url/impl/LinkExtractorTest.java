@@ -50,7 +50,7 @@ public class LinkExtractorTest {
     public void testTikaLinkExtractor() throws IOException {
         testLinkExtraction(new TikaLinkExtractor());
     }
-    private void testLinkExtraction(ILinkExtractor extractor) 
+    private void testLinkExtraction(ILinkExtractor extractor)
             throws IOException {
         String baseURL = "http://www.example.com/";
         String baseDir = baseURL + "test/";
@@ -103,8 +103,8 @@ public class LinkExtractorTest {
                     "mailto:blah@blah.com"
             };
             expectedURLs = ArrayUtils.addAll(expectedURLs, additionalURLs);
-        }        
-        
+        }
+
         InputStream is = getClass().getResourceAsStream(
                 "LinkExtractorTest.html");
 
@@ -113,19 +113,19 @@ public class LinkExtractorTest {
         IOUtils.closeQuietly(is);
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL, 
+            assertTrue("Could not find expected URL: " + expectedURL,
                     contains(links, expectedURL));
         }
         for (String unexpectedURL : unexpectedURLs) {
-            assertFalse("Found unexpected URL: " + unexpectedURL, 
+            assertFalse("Found unexpected URL: " + unexpectedURL,
                     contains(links, unexpectedURL));
         }
 
-        Assert.assertEquals("Invalid number of links extracted.", 
+        Assert.assertEquals("Invalid number of links extracted.",
                 expectedURLs.length, links.size());
     }
-    
-    
+
+
     //--- BASE HREF Tests ------------------------------------------------------
     @Test
     public void testGenericBaseHrefLinkExtractor() throws IOException {
@@ -138,10 +138,10 @@ public class LinkExtractorTest {
         TikaLinkExtractor ex = new TikaLinkExtractor();
         testBaseHrefLinkExtraction(ex);
         //TODO TikaLinkExtractor does not support all the same test cases
-        // as the generic one.  Consider either updating it or deprecating it. 
+        // as the generic one.  Consider either updating it or deprecating it.
         //testRelativeBaseHrefLinkExtraction(ex);
     }
-    private void testBaseHrefLinkExtraction(ILinkExtractor extractor) 
+    private void testBaseHrefLinkExtraction(ILinkExtractor extractor)
             throws IOException {
         String docURL = "http://www.example.com/test/absolute/"
                 + "LinkBaseHrefTest.html";
@@ -155,20 +155,20 @@ public class LinkExtractorTest {
                 "http://www.sample.com/g/h/i.html",
                 "http://www.anotherhost.com/k/l/m.html",
         };
-        
-        InputStream is = 
+
+        InputStream is =
                 getClass().getResourceAsStream("LinkBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
                 is, docURL, ContentType.HTML);
         IOUtils.closeQuietly(is);
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL, 
+            assertTrue("Could not find expected URL: " + expectedURL,
                     contains(links, expectedURL));
         }
-        Assert.assertEquals("Invalid number of links extracted.", 
+        Assert.assertEquals("Invalid number of links extracted.",
                 expectedURLs.length, links.size());
     }
-    private void testRelativeBaseHrefLinkExtraction(ILinkExtractor extractor) 
+    private void testRelativeBaseHrefLinkExtraction(ILinkExtractor extractor)
             throws IOException {
         String docURL = "http://www.example.com/test/relative/"
                 + "LinkRelativeBaseHrefTest.html";
@@ -180,21 +180,21 @@ public class LinkExtractorTest {
                 "http://www.example.com/test/relative/path^blah.html",
                 "http://www.anotherhost.com/k/l/m.html",
         };
-        
-        InputStream is = 
+
+        InputStream is =
                 getClass().getResourceAsStream("LinkRelativeBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
                 is, docURL, ContentType.HTML);
         IOUtils.closeQuietly(is);
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL, 
+            assertTrue("Could not find expected URL: " + expectedURL,
                     contains(links, expectedURL));
         }
-        Assert.assertEquals("Invalid number of links extracted.", 
+        Assert.assertEquals("Invalid number of links extracted.",
                 expectedURLs.length, links.size());
-    }    
-    
-    //--- Referrer Data Tests --------------------------------------------------    
+    }
+
+    //--- Referrer Data Tests --------------------------------------------------
     @Test
     public void testGenericLinkKeepReferrer() throws IOException {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
@@ -217,11 +217,11 @@ public class LinkExtractorTest {
                     "3-yestitle-yestext.html", "3 Yes Text", "3 Yes Title"),
             keepReferrerLink("4-yestitle-notext.html", null, "4 Yes Title"),
             // Link 5 should not be there (no href).
-            keepReferrerLink("6-yestitle-yestexthtml.html", 
+            keepReferrerLink("6-yestitle-yestexthtml.html",
                     "[6]Yes Text", "6 Yes Title"),
-        };        
-        
-        InputStream is = 
+        };
+
+        InputStream is =
                 getClass().getResourceAsStream("LinkKeepReferrerTest.html");
         Set<Link> links = extractor.extractLinks(
                 is, "http://www.site.com/parent.html", ContentType.HTML);
@@ -229,7 +229,7 @@ public class LinkExtractorTest {
 
         Assert.assertEquals(expectedLinks.length, links.size());
         for (Link expectedLink : expectedLinks) {
-            assertTrue("Could not find expected link: " + expectedLink, 
+            assertTrue("Could not find expected link: " + expectedLink,
                     contains(links, expectedLink));
         }
     }
@@ -241,13 +241,13 @@ public class LinkExtractorTest {
         link.setText(text);
         link.setTitle(title);
         return link;
-    }    
+    }
 
-    //--- Extract/NoExtract Tests ----------------------------------------------    
+    //--- Extract/NoExtract Tests ----------------------------------------------
     @Test
     public void testExtractBetween() throws IOException {
         String baseURL = "http://www.example.com/";
-    
+
         // All these must be found
         String[] expectedURLs = {
                 baseURL + "include1.html",
@@ -266,35 +266,85 @@ public class LinkExtractorTest {
                 baseURL + "exclude6.html",
                 baseURL + "exclude7.html",
         };
-    
+
         // Only GenericLinkExtractor:
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         extractor.addExtractBetween("<include1>", "</include1>\\s+", true);
         extractor.addExtractBetween("<Include2>", "</Include2>\\s+", false);
         extractor.addNoExtractBetween("<exclude1>", "</exclude1>\\s+", true);
         extractor.addNoExtractBetween("<Exclude2>", "</Exclude2>\\s+", false);
-        
+
         Set<Link> links;
         try (InputStream is = getClass().getResourceAsStream(
                 "LinkExtractBetweenTest.html")) {
-            links = extractor.extractLinks(is, 
+            links = extractor.extractLinks(is,
                     baseURL + "LinkExtractBetweenTest.html", ContentType.HTML);
         }
-    
+
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL, 
+            assertTrue("Could not find expected URL: " + expectedURL,
                     contains(links, expectedURL));
         }
         for (String unexpectedURL : unexpectedURLs) {
-            assertFalse("Found unexpected URL: " + unexpectedURL, 
+            assertFalse("Found unexpected URL: " + unexpectedURL,
                     contains(links, unexpectedURL));
         }
-    
-        Assert.assertEquals("Invalid number of links extracted.", 
-                expectedURLs.length, links.size());        
+
+        Assert.assertEquals("Invalid number of links extracted.",
+                expectedURLs.length, links.size());
     }
-    
-    //--- Other Tests ----------------------------------------------------------    
+
+    @Test
+    public void testExtractSelector() throws IOException {
+        String baseURL = "http://www.example.com/";
+
+        // All these must be found
+        String[] expectedURLs = {
+                baseURL + "include1.html",
+                baseURL + "include2.html",
+                baseURL + "include3.html",
+                baseURL + "include4.html",
+                baseURL + "include5.html",
+        };
+        // All these must NOT be found
+        String[] unexpectedURLs = {
+                baseURL + "exclude1.html",
+                baseURL + "exclude2.html",
+                baseURL + "exclude3.html",
+                baseURL + "exclude4.html",
+                baseURL + "exclude5.html",
+                baseURL + "exclude6.html",
+                baseURL + "exclude7.html",
+        };
+
+        // Only GenericLinkExtractor:
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        extractor.addExtractSelectors("include1");
+        extractor.addExtractSelectors("include2");
+        extractor.addNoExtractSelectors("exclude1");
+        extractor.addNoExtractSelectors("exclude2");
+
+        Set<Link> links;
+        try (InputStream is = getClass().getResourceAsStream(
+                "LinkExtractBetweenTest.html")) {
+            links = extractor.extractLinks(is,
+                    baseURL + "LinkExtractBetweenTest.html", ContentType.HTML);
+        }
+
+        for (String expectedURL : expectedURLs) {
+            assertTrue("Could not find expected URL: " + expectedURL,
+                    contains(links, expectedURL));
+        }
+        for (String unexpectedURL : unexpectedURLs) {
+            assertFalse("Found unexpected URL: " + unexpectedURL,
+                    contains(links, unexpectedURL));
+        }
+
+        Assert.assertEquals("Invalid number of links extracted.",
+                expectedURLs.length, links.size());
+    }
+
+    //--- Other Tests ----------------------------------------------------------
     @Test
     public void testGenericWriteRead() throws IOException {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
@@ -321,14 +371,14 @@ public class LinkExtractorTest {
         Set<Link> links = extractor.extractLinks(
                 new ByteArrayInputStream(html.getBytes()),
                 docURL, ContentType.HTML);
-        
+
         Assert.assertEquals(
                 "Invalid number of links extracted.", 1, links.size());
         Assert.assertEquals(
                 "http://db-artmag.com/en/91/index.html",
                 links.iterator().next().getUrl());
-    }    
-    
+    }
+
     @Test
     public void testTikaWriteRead() throws IOException {
         TikaLinkExtractor extractor = new TikaLinkExtractor();
@@ -338,7 +388,7 @@ public class LinkExtractorTest {
         XMLConfigurationUtil.assertWriteRead(extractor);
     }
 
-    
+
     @Test
     public void testIssue188() throws IOException {
         String ref = "http://www.site.com/en/articles/articles.html"
@@ -353,7 +403,7 @@ public class LinkExtractorTest {
         input.close();
         Assert.assertTrue("URL not extracted: " + url, contains(links, url));
     }
-    
+
     @Test
     public void testIssue236() throws IOException {
         String url = "javascript:__doPostBack('MoreInfoList1$Pager','2')";
@@ -398,9 +448,9 @@ public class LinkExtractorTest {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
         input.close();
-        assertTrue("Could not find expected URL: " + url1, 
+        assertTrue("Could not find expected URL: " + url1,
                 contains(links, url1));
-        assertTrue("Could not find expected URL: " + url2, 
+        assertTrue("Could not find expected URL: " + url2,
                 contains(links, url2));
     }
     @Test
@@ -418,11 +468,11 @@ public class LinkExtractorTest {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
         input.close();
-        assertTrue("Could not find expected URL: " + url1, 
+        assertTrue("Could not find expected URL: " + url1,
                 contains(links, url1));
-        assertTrue("Could not find expected URL: " + url2, 
+        assertTrue("Could not find expected URL: " + url2,
                 contains(links, url2));
-        assertTrue("Could not find expected URL: " + url3, 
+        assertTrue("Could not find expected URL: " + url3,
                 contains(links, url3));
     }
 
