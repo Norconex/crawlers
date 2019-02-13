@@ -17,6 +17,7 @@ package com.norconex.collector.http.fetch.impl;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -56,6 +57,9 @@ public class WebDriverHttpFetcherTest  {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(WebDriverHttpFetcherTest.class);
+
+//    @Rule
+//    public final TemporaryFolder tempFolder = new TemporaryFolder();
 
     private static TestServer server = new TestServerBuilder()
             .addPackage("server/js-rendered")
@@ -143,6 +147,9 @@ public class WebDriverHttpFetcherTest  {
         fetcher.setDriverPath(driverPath);
         fetcher.setDriverProxyDisabled(false);
 
+        Path screenshotDir = Paths.get("./target/screenshots");
+        fetcher.getScreenshotHandler().setTargetDir(screenshotDir);
+
         try {
             // simulate crawler startup
             fetcher.crawlerStartup(null);
@@ -158,10 +165,11 @@ public class WebDriverHttpFetcherTest  {
         } finally {
             fetcher.crawlerShutdown(null);
         }
+        //Files.deleteIfExists(screenshotDir);
     }
 
     @Test
-    public void testFetchHeaders() throws IOException {
+    public void testGetHeadersFromDocFetch() throws IOException {
 
         // Test picking up headers
         Assume.assumeTrue("SKIPPING: " + browser.name()

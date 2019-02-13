@@ -14,20 +14,23 @@
  */
 package com.norconex.collector.http.fetch.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
@@ -42,14 +45,17 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.doc.CollectorMetadata;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.WebDriverHttpProxy.DriverResponse;
+import com.norconex.collector.http.fetch.util.DocImageHandler;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -136,6 +142,15 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     private static final Logger LOG = LoggerFactory.getLogger(
             WebDriverHttpFetcher.class);
 
+    public static final Path DEFAULT_SCREENSHOT_DIR =
+            Paths.get("./screenshots");
+    public static final String DEFAULT_SCREENSHOT_DIR_FIELD =
+            CollectorMetadata.COLLECTOR_PREFIX + "screenshot-path";
+    public static final String DEFAULT_SCREENSHOT_META_FIELD =
+            CollectorMetadata.COLLECTOR_PREFIX + "screenshot";
+
+    private CachedStreamFactory streamFactory;
+
     // Configurable:
     private WebDriverBrowser browser = WebDriverBrowser.FIREFOX;
     private Path driverPath;
@@ -148,6 +163,13 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     private boolean driverProxyDisabled;
     private int driverProxyPort; // default is 0 = any free port
     private final MutableCapabilities capabilities = new MutableCapabilities();
+
+    private boolean screenshotEnabled = true;
+
+    private final DocImageHandler screenshotHandler = new DocImageHandler(
+            DEFAULT_SCREENSHOT_DIR,
+            DEFAULT_SCREENSHOT_DIR_FIELD,
+            DEFAULT_SCREENSHOT_META_FIELD);
 
     //TODO add script support
     //TODO add screenshot support
@@ -217,11 +239,24 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     public MutableCapabilities getCapabilities() {
         return capabilities;
     }
+//    public ScreenshotConfig getScreenshotConfig() {
+//        return screenshotHandler.getScreenshotConfig();
+//    }
+
+    public DocImageHandler getScreenshotHandler() {
+        return screenshotHandler;
+    }
 
     @Override
     protected void crawlerStartup(CrawlerEvent<Crawler> event) {
         LOG.info("Starting {} driver service...", browser);
         System.setProperty("bmp.allowNativeDnsFallback", "true");
+
+        if (event != null) {
+            streamFactory = event.getSource().getStreamFactory();
+        } else {
+            streamFactory = new CachedStreamFactory();
+        }
 
         //TODO remove support for EDGE since it is so limited???
         if (browser == WebDriverBrowser.EDGE) {
@@ -253,6 +288,14 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             service.start();
             driver.set(new RemoteWebDriver(service.getUrl(), options));
 
+            //TODO check here if screenshot requested.
+            if (/* screenshotEnabled--FromConfig && */
+                    driver.get() instanceof TakesScreenshot) {
+                screenshotEnabled = true;
+                //TODO log error if screenshot is enabled but not supported
+                // by driver
+            }
+
             //TEST:
             //driver.manage().timeouts().pageLoadTimeout(3, TimeUnit.SECONDS);
 
@@ -282,8 +325,10 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
         Sleeper.sleepSeconds(5);
 
-        driver.get().quit();
-        driver.remove();
+        if (driver.get() != null) {
+            driver.get().quit();
+            driver.remove();
+        }
 
         if (service.isRunning()) {
             service.stop();
@@ -311,13 +356,73 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         doc.setInputStream(
                 fetchDocumentContent(driver.get(), doc.getReference()));
 
-        HttpFetchResponse response = null;
+        HttpFetchResponse response = resolveDriverResponse(doc);
 
+        //TODO handle screenshot even if response failed?
+        handleScreenshot(doc);
+
+
+        //read a copy to force caching and then close the HTTP stream
+        // NOT NEEDED to force caching since it is forced by setInputStream?
+//        try {
+//            IOUtils.copy(doc.getInputStream(), new NullOutputStream());
+//        } catch (IOException e) {
+//            throw new CollectorException("Could not read page content for: "
+//                    + doc.getReference(), e);
+//        }
+
+//      performDetection(doc);
+
+        if (response != null) {
+            return response;
+        }
+        return new HttpFetchResponse(HttpCrawlState.NEW, 200,
+                "No exception thrown, but real status code unknown. "
+              + "Capture headers for real status code.");
+    }
+
+
+    private void handleScreenshot(HttpDocument doc) {
+        if (!screenshotEnabled) {
+            return;
+        }
+
+        //TODO add support for taking a specific web element
+
+        try(InputStream in = streamFactory.newInputStream(
+                new ByteArrayInputStream(((TakesScreenshot) driver.get())
+                        .getScreenshotAs(OutputType.BYTES)))) {
+            screenshotHandler.handleImage(in, doc);
+        } catch (Exception e) {
+            LOG.error("Could not take screenshot of: {}",
+                    doc.getReference(), e);
+        }
+    }
+
+    // Overwrite to perform more advanced configuration/manipulation.
+    // thread-safe
+    protected InputStream fetchDocumentContent(WebDriver driver, String url) {
+        driver.get(url);
+//      Sleeper.sleepSeconds(3); // Let the user actually see something!
+        String pageSource = driver.getPageSource();
+        return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
+    }
+
+    private HttpFetchResponse resolveDriverResponse(HttpDocument doc) {
+        HttpFetchResponse response = null;
         DriverResponse driverResponse = headerProxy.unbind();
         if (driverResponse != null) {
             for (Entry<String, String> en : driverResponse.getHeaders()) {
                 doc.getMetadata().add(en.getKey(), en.getValue());
             }
+            response = toFetchResponse(driverResponse);
+        }
+        return response;
+    }
+
+    private HttpFetchResponse toFetchResponse(DriverResponse driverResponse) {
+        HttpFetchResponse response = null;
+        if (driverResponse != null) {
             //TODO validate status code
             int statusCode = driverResponse.getStatusCode();
             String reason = driverResponse.getReasonPhrase();
@@ -329,33 +434,23 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                         CrawlState.BAD_STATUS, statusCode, reason);
             }
         }
-
-        //read a copy to force caching and then close the HTTP stream
-        try {
-            IOUtils.copy(doc.getInputStream(), new NullOutputStream());
-        } catch (IOException e) {
-            throw new CollectorException("Could not read page content for: "
-                    + doc.getReference(), e);
-        }
-
-//      performDetection(doc);
-
-        if (response != null) {
-            return response;
-        }
-        return new HttpFetchResponse(HttpCrawlState.NEW, 200,
-                "No exception thrown. Real status code unknown. "
-              + "Capture headers for real status code.");
+        return response;
     }
 
-    // Overwrite to perform more advanced configuration/manipulation.
-    // thread-safe
-    protected InputStream fetchDocumentContent(WebDriver driver, String url) {
-        driver.get(url);
-//      Sleeper.sleepSeconds(3); // Let the user actually see something!
-        String pageSource = driver.getPageSource();
-        return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
-    }
+//    WebDriver augmentedDriver = new Augmenter().augment(driver);
+//    File screenshot = ((TakesScreenshot)augmentedDriver).
+//            getScreenshotAs(OutputType.FILE);
+//    public void takeScreenshotElement(WebElement element) throws IOException {
+//        WrapsDriver wrapsDriver = (WrapsDriver) element;
+//        File screenshot = ((TakesScreenshot) wrapsDriver.getWrappedDriver()).getScreenshotAs(OutputType.FILE);
+//        Rectangle rectangle = new Rectangle(element.getSize().width, element.getSize().height);
+//        Point location = element.getLocation();
+//        BufferedImage bufferedImage = ImageIO.read(screenshot);
+//        BufferedImage destImage = bufferedImage.getSubimage(location.x, location.y, rectangle.width, rectangle.height);
+//        ImageIO.write(destImage, "png", screenshot);
+//        File file = new File("//path//to");
+//        FileUtils.copyFile(screenshot, file);
+//    }
 
     @Override
     public void loadHttpFetcherFromXML(XML xml) {
@@ -372,6 +467,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                 "capabilities/capability", "@name", ".").entrySet()) {
             getCapabilities().setCapability(en.getKey(), en.getValue());
         }
+//        getScreenshotConfig().loadFromXML(xml);
     }
     @Override
     public void saveHttpFetcherToXML(XML xml) {
@@ -387,6 +483,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             capabXml.addElement("capability",
                     en.getValue()).setAttribute("name", en.getKey());
         }
+//        getScreenshotConfig().saveToXML(xml);
     }
 
     @Override
@@ -406,7 +503,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
 
     //TODO several things:
-    // - Support complext configuration via JavaScript?  Like authenticating
+    // - Support complex configuration via JavaScript?  Like authenticating
     //   scripts populating fields and submitting pages.
 
 

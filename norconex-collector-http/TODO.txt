@@ -1,5 +1,25 @@
 The following are either things to be done, or ideas to consider:
 
+
+- Add option to add certificates programmatically.
+  https://stackoverflow.com/questions/6755180/java-ssl-connect-add-server-cert-to-keystore-programmatically
+
+- Fix javadoc (including links) all over.
+
+- Use Norconex parent project for all collector projects
+
+- Switch to short semantic versioning on Github, and get rid of "develop"
+  branch concept (where master is trunk).
+
+- Have ability in XML to only create object (IXMLConfigurable) if any child
+  elements are defined (for optional config blocks). 
+
+- Add xdoclet or equivalent that could be extracted from java doc to build
+  online doc automatically/dynamically.
+
+- Add convenient way to point to another javadoc instead of repeating 
+  documentation (like repeating password encryption XML usage).
+
 - Add ability to disable storing HTTP headers as metadata fields.
 
 - Add update.sh scripts to collectors (doing the same as install.sh script)
