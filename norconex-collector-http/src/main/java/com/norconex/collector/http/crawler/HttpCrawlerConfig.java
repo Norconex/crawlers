@@ -69,43 +69,43 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  */
 public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
-    private static final Logger LOG = 
+    private static final Logger LOG =
             LogManager.getLogger(HttpCrawlerConfig.class);
-    
+
     private int maxDepth = -1;
     private String[] startURLs;
     private String[] startURLsFiles;
     private String[] startSitemapURLs;
     private IStartURLsProvider[] startURLsProviders;
-    
+
     private boolean ignoreRobotsTxt;
     private boolean ignoreRobotsMeta;
     private boolean ignoreSitemap;
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
 	private boolean keepOutOfScopeLinks;
-    
+
     private String userAgent;
 
-    private URLCrawlScopeStrategy urlCrawlScopeStrategy = 
+    private URLCrawlScopeStrategy urlCrawlScopeStrategy =
             new URLCrawlScopeStrategy();
-    
+
     private IURLNormalizer urlNormalizer = new GenericURLNormalizer();
 
     private IDelayResolver delayResolver = new GenericDelayResolver();
-    
+
     private IHttpClientFactory httpClientFactory =
             new GenericHttpClientFactory();
-    
+
     private IHttpDocumentFetcher documentFetcher =
             new GenericDocumentFetcher();
 
     private ICanonicalLinkDetector canonicalLinkDetector =
             new GenericCanonicalLinkDetector();
-    
-    private IRedirectURLProvider redirectURLProvider = 
+
+    private IRedirectURLProvider redirectURLProvider =
             new GenericRedirectURLProvider();
-    
+
     private IHttpMetadataFetcher metadataFetcher;
 
     private ILinkExtractor[] linkExtractors = new ILinkExtractor[] {
@@ -119,15 +119,15 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private ISitemapResolverFactory sitemapResolverFactory =
             new StandardSitemapResolverFactory();
 
-    private IMetadataChecksummer metadataChecksummer = 
+    private IMetadataChecksummer metadataChecksummer =
     		new LastModifiedMetadataChecksummer();
-	
+
     private IHttpDocumentProcessor[] preImportProcessors;
     private IHttpDocumentProcessor[] postImportProcessors;
 
-    private IRecrawlableResolver recrawlableResolver = 
-            new GenericRecrawlableResolver(); 
-    
+    private IRecrawlableResolver recrawlableResolver =
+            new GenericRecrawlableResolver();
+
     public HttpCrawlerConfig() {
         super();
     }
@@ -140,7 +140,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     /**
      * Gets the file paths of seed files containing URLs to be used as
-     * "start URLs".  Files are expected to have one URL per line. 
+     * "start URLs".  Files are expected to have one URL per line.
      * Blank lines and lines starting with # (comment) are ignored.
      * @return file paths of seed files containing URLs
      * @since 2.3.0
@@ -150,7 +150,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     /**
      * Sets the file paths of seed files containing URLs to be used as
-     * "start URLs". Files are expected to have one URL per line. 
+     * "start URLs". Files are expected to have one URL per line.
      * Blank lines and lines starting with # (comment) are ignored.
      * @param startURLsFiles file paths of seed files containing URLs
      * @since 2.3.0
@@ -233,7 +233,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     /**
      * Sets the canonical link detector. To disable canonical link detection,
-     * either pass a <code>null</code> argument, or invoke 
+     * either pass a <code>null</code> argument, or invoke
      * {@link #setIgnoreCanonicalLinks(boolean)} with a <code>true</code> value.
      * @param canonicalLinkDetector the canonical link detector
      * @since 2.2.0
@@ -312,7 +312,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         this.keepOutOfScopeLinks = keepOutOfScopeLinks;
     }
     /**
-     * Gets the metadata checksummer. Default implementation is 
+     * Gets the metadata checksummer. Default implementation is
      * {@link LastModifiedMetadataChecksummer} (since 2.2.0).
      * @return metadata checksummer
      */
@@ -337,7 +337,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
     /**
      * Whether to ignore sitemap detection and resolving for URLs processed.
-     * Sitemaps specified as start URLs 
+     * Sitemaps specified as start URLs
      * ({@link #getStartSitemapURLs()}) are never ignored.
      * @return <code>true</code> to ignore sitemaps
      */
@@ -345,8 +345,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return ignoreSitemap;
     }
     /**
-     * Sets whether to ignore sitemap detection and resolving for URLs 
-     * processed. Sitemaps specified as start URLs 
+     * Sets whether to ignore sitemap detection and resolving for URLs
+     * processed. Sitemaps specified as start URLs
      * ({@link #getStartSitemapURLs()}) are never ignored.
      * @param ignoreSitemap <code>true</code> to ignore sitemaps
      */
@@ -367,11 +367,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
     }
-    
+
     /**
      * Whether canonical links found in HTTP headers and in HTML files
      * &lt;head&gt; section should be ignored or processed. When processed
-     * (default), URL pages with a canonical URL pointer in them are not 
+     * (default), URL pages with a canonical URL pointer in them are not
      * processed.
      * @since 2.2.0
      * @return <code>true</code> if ignoring canonical links
@@ -382,7 +382,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     /**
      * Sets whether canonical links found in HTTP headers and in HTML files
      * &lt;head&gt; section should be ignored or processed. If <code>true</code>
-     * URL pages with a canonical URL pointer in them are not 
+     * URL pages with a canonical URL pointer in them are not
      * processed.
      * @since 2.2.0
      * @param ignoreCanonicalLinks <code>true</code> if ignoring canonical links
@@ -407,7 +407,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             URLCrawlScopeStrategy urlCrawlScopeStrategy) {
         this.urlCrawlScopeStrategy = urlCrawlScopeStrategy;
     }
-    
+
     /**
      * Gets the redirect URL provider.
      * @return the redirect URL provider
@@ -427,7 +427,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     }
 
     /**
-     * Gets the recrawlable resolver. 
+     * Gets the recrawlable resolver.
      * @return recrawlable resolver
      * @since 2.5.0
      */
@@ -456,11 +456,13 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 			writer.writeElementBoolean(
 			        "keepOutOfScopeLinks", isKeepOutOfScopeLinks());
             writer.writeStartElement("startURLs");
-            writer.writeAttributeBoolean("stayOnProtocol", 
+            writer.writeAttributeBoolean("stayOnProtocol",
                     urlCrawlScopeStrategy.isStayOnProtocol());
-            writer.writeAttributeBoolean("stayOnDomain", 
+            writer.writeAttributeBoolean("stayOnDomain",
                     urlCrawlScopeStrategy.isStayOnDomain());
-            writer.writeAttributeBoolean("stayOnPort", 
+            writer.writeAttributeBoolean("includeSubdomains",
+                    urlCrawlScopeStrategy.isIncludeSubdomains());
+            writer.writeAttributeBoolean("stayOnPort",
                     urlCrawlScopeStrategy.isStayOnPort());
             String[] urls = getStartURLs();
             if (urls != null) {
@@ -490,27 +492,27 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             out.flush();
             writer.writeEndElement();
             writer.flush();
-            
+
             writeObject(out, "urlNormalizer", getUrlNormalizer());
             writeObject(out, "delay", getDelayResolver());
             writeObject(out, "httpClientFactory", getHttpClientFactory());
-            writeObject(out, "robotsTxt", 
+            writeObject(out, "robotsTxt",
                     getRobotsTxtProvider(), isIgnoreRobotsTxt());
-            writeObject(out, "sitemapResolverFactory", 
+            writeObject(out, "sitemapResolverFactory",
                     getSitemapResolverFactory(), isIgnoreSitemap());
-            writeObject(out, "canonicalLinkDetector", 
+            writeObject(out, "canonicalLinkDetector",
                     getCanonicalLinkDetector());
             writeObject(out, "redirectURLProvider", getRedirectURLProvider());
             writeObject(out, "recrawlableResolver", getRecrawlableResolver());
             writeObject(out, "metadataFetcher", getMetadataFetcher());
             writeObject(out, "metadataChecksummer", getMetadataChecksummer());
             writeObject(out, "documentFetcher", getDocumentFetcher());
-            writeObject(out, "robotsMeta", 
+            writeObject(out, "robotsMeta",
                     getRobotsMetaProvider(), isIgnoreRobotsMeta());
             writeArray(out, "linkExtractors", "extractor", getLinkExtractors());
-            writeArray(out, "preImportProcessors", 
+            writeArray(out, "preImportProcessors",
                     "processor", getPreImportProcessors());
-            writeArray(out, "postImportProcessors", 
+            writeArray(out, "postImportProcessors",
                     "processor", getPostImportProcessors());
         } catch (XMLStreamException e) {
             throw new IOException(
@@ -538,10 +540,10 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 xml, "sitemapResolverFactory", getSitemapResolverFactory());
         setIgnoreSitemap(xml.getBoolean(
                 "sitemapResolverFactory[@ignore]", isIgnoreSitemap()));
-        
+
         List<HierarchicalConfiguration> maps = xml.configurationsAt("sitemap");
         if (sitemapFactory == null && maps != null && !maps.isEmpty()) {
-            SubnodeConfiguration xmlSitemap = 
+            SubnodeConfiguration xmlSitemap =
                     xml.configurationAt("sitemap");
             if (xmlSitemap != null) {
                 LOG.warn("The <sitemap ...> tag used as a crawler setting "
@@ -567,11 +569,11 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         //--- Redirect URL Provider --------------------------------------------
         setRedirectURLProvider(XMLConfigurationUtil.newInstance(xml,
                 "redirectURLProvider", getRedirectURLProvider()));
-        
+
         //--- Recrawlable resolver ---------------------------------------------
         setRecrawlableResolver(XMLConfigurationUtil.newInstance(xml,
                 "recrawlableResolver", getRecrawlableResolver()));
-        
+
         //--- HTTP Headers Fetcher ---------------------------------------------
         setMetadataFetcher(XMLConfigurationUtil.newInstance(xml,
                 "metadataFetcher", getMetadataFetcher()));
@@ -594,7 +596,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         ILinkExtractor[] linkExtractors = loadLinkExtractors(
                 xml, "linkExtractors.extractor");
         setLinkExtractors(defaultIfEmpty(linkExtractors, getLinkExtractors()));
-        
+
         //--- HTTP Pre-Processors ----------------------------------------------
         IHttpDocumentProcessor[] preProcFilters = loadProcessors(xml,
                 "preImportProcessors.processor");
@@ -622,33 +624,36 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "ignoreCanonicalLinks", isIgnoreCanonicalLinks()));
         urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
-                "startURLs[@stayOnProtocol]", 
+                "startURLs[@stayOnProtocol]",
                 urlCrawlScopeStrategy.isStayOnProtocol()));
         urlCrawlScopeStrategy.setStayOnDomain(xml.getBoolean(
-                "startURLs[@stayOnDomain]", 
+                "startURLs[@stayOnDomain]",
                 urlCrawlScopeStrategy.isStayOnDomain()));
+        urlCrawlScopeStrategy.setIncludeSubdomains(xml.getBoolean(
+                "startURLs[@includeSubdomains]",
+                urlCrawlScopeStrategy.isIncludeSubdomains()));
         urlCrawlScopeStrategy.setStayOnPort(xml.getBoolean(
-                "startURLs[@stayOnPort]", 
+                "startURLs[@stayOnPort]",
                 urlCrawlScopeStrategy.isStayOnPort()));
-        
+
         String[] startURLs = xml.getStringArray("startURLs.url");
         setStartURLs(defaultIfEmpty(startURLs, getStartURLs()));
-        
+
         String[] urlsFiles = xml.getStringArray("startURLs.urlsFile");
         setStartURLsFiles(defaultIfEmpty(urlsFiles, getStartURLsFiles()));
 
         String[] sitemapURLs = xml.getStringArray("startURLs.sitemap");
         setStartSitemapURLs(defaultIfEmpty(sitemapURLs, getStartSitemapURLs()));
-        
+
         IStartURLsProvider[] startURLsProviders = loadStartURLsProviders(xml);
         setStartURLsProviders(
                 defaultIfEmpty(startURLsProviders, getStartURLsProviders()));
     }
-    
+
     private IStartURLsProvider[] loadStartURLsProviders(
             XMLConfiguration xml) {
         List<IStartURLsProvider> providers = new ArrayList<>();
-        List<HierarchicalConfiguration> nodes = 
+        List<HierarchicalConfiguration> nodes =
                 xml.configurationsAt("startURLs.provider");
         for (HierarchicalConfiguration node : nodes) {
             IStartURLsProvider p = XMLConfigurationUtil.newInstance(node);
@@ -664,14 +669,14 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         List<HierarchicalConfiguration> filterNodes = xml
                 .configurationsAt(xmlPath);
         for (HierarchicalConfiguration filterNode : filterNodes) {
-            IHttpDocumentProcessor filter = 
+            IHttpDocumentProcessor filter =
                     XMLConfigurationUtil.newInstance(filterNode);
             filters.add(filter);
             LOG.info("HTTP document processor loaded: " + filter);
         }
         return filters.toArray(new IHttpDocumentProcessor[] {});
     }
-    
+
     private ILinkExtractor[] loadLinkExtractors(
             XMLConfiguration xml, String xmlPath) {
         List<ILinkExtractor> extractors = new ArrayList<>();
@@ -687,7 +692,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         }
         return extractors.toArray(new ILinkExtractor[] {});
     }
-    
+
     @Override
     public boolean equals(final Object other) {
         if (!(other instanceof HttpCrawlerConfig)) {
@@ -720,7 +725,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(linkExtractors, castOther.linkExtractors)
                 .append(robotsTxtProvider, castOther.robotsTxtProvider)
                 .append(robotsMetaProvider, castOther.robotsMetaProvider)
-                .append(sitemapResolverFactory, 
+                .append(sitemapResolverFactory,
                         castOther.sitemapResolverFactory)
                 .append(metadataChecksummer, castOther.metadataChecksummer)
                 .append(preImportProcessors, castOther.preImportProcessors)
@@ -796,5 +801,5 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("preImportProcessors", preImportProcessors)
                 .append("postImportProcessors", postImportProcessors)
                 .toString();
-    }  
+    }
 }

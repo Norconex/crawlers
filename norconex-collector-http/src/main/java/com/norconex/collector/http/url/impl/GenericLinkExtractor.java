@@ -791,7 +791,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             while (urlm.find()) {
                 String attribName = urlm.group(2);
                 // Will either match url1 (quoted) or url2 (unquoted).
-                String matchedUrl = urlm.start("url1") != -1
+                //String matchedUrl = urlm.start("url1") != -1 <-- Java 8
+                String matchedUrl = urlm.group("url1") != null
                         ? urlm.group("url1") : urlm.group("url2");
                 if (StringUtils.isBlank(matchedUrl)) {
                     continue;

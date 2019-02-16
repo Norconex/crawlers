@@ -1,5 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
+- Have ability to download and install committers from command line?
+
+- Have ability to do POST instead of GET for matching URLs.
+
 - Because the QueuePipeline can be invoked from anywhere, make the 
   "inscope" check part of it instead of always forcing to check first.
 

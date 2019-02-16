@@ -1,4 +1,4 @@
-/* Copyright 2015-2016 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ public class URLCrawlScopeStrategyTest {
         String diffPort = "http://example.com:81/diff/port.html";
         String sameSite = "http://example.com:80/diff/same.html";
         String noSchemeDiffDomain = "//server1.elsewhere.com";
-    
+
         URLCrawlScopeStrategy s = null;
 
         // No scope defined
@@ -39,7 +39,7 @@ public class URLCrawlScopeStrategyTest {
         Assert.assertTrue(s.isInScope(url, diffPort));
         Assert.assertTrue(s.isInScope(url, sameSite));
         Assert.assertTrue(s.isInScope(url, noSchemeDiffDomain));
-        
+
         // Protocol
         s = new URLCrawlScopeStrategy();
         s.setStayOnProtocol(true);
@@ -57,7 +57,7 @@ public class URLCrawlScopeStrategyTest {
         Assert.assertTrue(s.isInScope(url, diffPort));
         Assert.assertTrue(s.isInScope(url, sameSite));
         Assert.assertFalse(s.isInScope(url, noSchemeDiffDomain));
-        
+
         // Port
         s = new URLCrawlScopeStrategy();
         s.setStayOnPort(true);
@@ -67,7 +67,7 @@ public class URLCrawlScopeStrategyTest {
         Assert.assertTrue(s.isInScope(url, sameSite));
         Assert.assertTrue(s.isInScope(url, noSchemeDiffDomain));
 
-        
+
         // Protocol + Domain + Port
         s = new URLCrawlScopeStrategy();
         s.setStayOnProtocol(true);
@@ -80,4 +80,35 @@ public class URLCrawlScopeStrategyTest {
         Assert.assertFalse(s.isInScope(url, noSchemeDiffDomain));
     }
 
+    @Test
+    public void testStayOnDomainDepthStrategy() throws IOException {
+        String sub0 = "http://example.com/test0.html";
+        String sub1 = "http://sub1.example.com/test1.html";
+        String sub2 = "http://sub2.sub1.example.com/test2.html";
+        String sub3 = "http://sub3.sub2.sub1.example.com/test3.html";
+        String sub4 = "http://different.com/testd.html";
+
+        URLCrawlScopeStrategy s = new URLCrawlScopeStrategy();
+
+        // Same or not
+        s.setStayOnDomain(false);
+        Assert.assertTrue(s.isInScope(sub0, sub1));
+        Assert.assertTrue(s.isInScope(sub1, sub2));
+        Assert.assertTrue(s.isInScope(sub0, sub3));
+        Assert.assertTrue(s.isInScope(sub1, sub3));
+        Assert.assertTrue(s.isInScope(sub2, sub2));
+        Assert.assertTrue(s.isInScope(sub3, sub1));
+        Assert.assertTrue(s.isInScope(sub1, sub4));
+
+        // Same or any sub-domain
+        s.setStayOnDomain(true);
+        s.setIncludeSubdomains(true);
+        Assert.assertTrue(s.isInScope(sub0, sub1));
+        Assert.assertTrue(s.isInScope(sub1, sub2));
+        Assert.assertTrue(s.isInScope(sub0, sub3));
+        Assert.assertTrue(s.isInScope(sub1, sub3));
+        Assert.assertTrue(s.isInScope(sub2, sub2));
+        Assert.assertFalse(s.isInScope(sub3, sub1));
+        Assert.assertFalse(s.isInScope(sub1, sub4));
+    }
 }

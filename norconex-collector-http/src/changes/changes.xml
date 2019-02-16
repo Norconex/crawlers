@@ -7,7 +7,11 @@
   </properties>
   <body>
 
-    <release version="2.8.2-SNAPSHOT" date="201?-??-??" description="Maintenance release">
+    <release version="2.8.2-SNAPSHOT" date="2019-??-??" description="Maintenance release">
+      <action dev="essiembre" type="add">
+        Added "includeSubdomains" to start URL group to consider subdomains 
+        as being the same as any URL domain when "stayOnDomain" is true. 
+      </action>
       <action dev="essiembre" type="add">
         GenericLinkExtractor now supports using "selector-syntax" to identify
         portions of an HTML document to include or exclude from URL
@@ -18,7 +22,7 @@
         configured.
       </action>
       <action dev="essiembre" type="update">
-        Dependency updates: Norconex Collector Core 1.9.2-SNAPSHOT,
+        Dependency updates: Norconex Collector Core 1.9.2,
         Norconex Commons Lang 1.15.1.
       </action>
       <action dev="essiembre" type="update" issue="526">

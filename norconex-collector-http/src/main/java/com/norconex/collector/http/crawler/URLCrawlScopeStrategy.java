@@ -1,4 +1,4 @@
-/* Copyright 2015 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.http.crawler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -47,11 +48,12 @@ public class URLCrawlScopeStrategy {
             LogManager.getLogger(URLCrawlScopeStrategy.class);
 
     private boolean stayOnDomain;
+    private boolean includeSubdomains;
     private boolean stayOnPort;
     private boolean stayOnProtocol = false;
 
     /**
-     * Whether the crawler should always stay on the same domain name as
+     * Gets whether the crawler should always stay on the same domain name as
      * the domain for each URL specified as a start URL.  By default (false)
      * the crawler will try follow any discovered links not otherwise rejected
      * by other settings (like regular filtering rules you may have).
@@ -70,7 +72,25 @@ public class URLCrawlScopeStrategy {
     }
 
     /**
-     * Whether the crawler should always stay on the same port as
+     * Gets whether sub-domains are considered to be the same as a URL domain.
+     * Only applicable when "stayOnDomain" is <code>true</code>.
+     * @return <code>true</code> if including sub-domains
+     * @since 2.8.2
+     */
+    public boolean isIncludeSubdomains() {
+        return includeSubdomains;
+    }
+    /**
+     * Sets whether sub-domains are considered to be the same as a URL domain.
+     * Only applicable when "stayOnDomain" is <code>true</code>.
+     * @param includeSubdomains <code>true</code> to include sub-domains
+     * @since 2.8.2
+     */
+    public void setIncludeSubdomains(boolean includeSubdomains) {
+        this.includeSubdomains = includeSubdomains;
+    }
+    /**
+     * Gets whether the crawler should always stay on the same port as
      * the port for each URL specified as a start URL.  By default (false)
      * the crawler will try follow any discovered links not otherwise rejected
      * by other settings (like regular filtering rules you may have).
@@ -89,7 +109,7 @@ public class URLCrawlScopeStrategy {
     }
 
     /**
-     * Whether the crawler should always stay on the same protocol as
+     * Gets whether the crawler should always stay on the same protocol as
      * the protocol for each URL specified as a start URL.  By default (false)
      * the crawler will try follow any discovered links not otherwise rejected
      * by other settings (like regular filtering rules you may have).
@@ -131,8 +151,8 @@ public class URLCrawlScopeStrategy {
                 }
                 return false;
             }
-            if (stayOnDomain && !inScope.getHost().equalsIgnoreCase(
-                    candidate.getHost())) {
+            if (stayOnDomain
+                    && !isOnDomain(inScope.getHost(), candidate.getHost())) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Rejected domain for: " + candidateURL);
                 }
@@ -151,6 +171,16 @@ public class URLCrawlScopeStrategy {
         }
     }
 
+    private boolean isOnDomain(String inScope, String candidate) {
+        // if domains are the same, we are good. Covers zero depth too.
+        if (inScope.equalsIgnoreCase(candidate)) {
+            return true;
+        }
+
+        // if accepting sub-domains, check if it ends the same.
+        return includeSubdomains
+                && StringUtils.endsWithIgnoreCase(candidate, "." + inScope);
+    }
 
     @Override
     public boolean equals(final Object other) {
@@ -161,6 +191,7 @@ public class URLCrawlScopeStrategy {
         return new EqualsBuilder()
                 .append(stayOnProtocol, castOther.stayOnProtocol)
                 .append(stayOnDomain, castOther.stayOnDomain)
+                .append(includeSubdomains, castOther.includeSubdomains)
                 .append(stayOnPort, castOther.stayOnPort)
                 .isEquals();
     }
@@ -170,6 +201,7 @@ public class URLCrawlScopeStrategy {
         return new HashCodeBuilder()
                 .append(stayOnProtocol)
                 .append(stayOnDomain)
+                .append(includeSubdomains)
                 .append(stayOnPort)
                 .toHashCode();
     }
@@ -179,6 +211,7 @@ public class URLCrawlScopeStrategy {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .append("stayOnProtocol", stayOnProtocol)
                 .append("stayOnDomain", stayOnDomain)
+                .append("includeSubdomains", includeSubdomains)
                 .append("stayOnPort", stayOnPort)
                 .toString();
     }
