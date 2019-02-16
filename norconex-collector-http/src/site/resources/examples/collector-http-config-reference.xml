@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2010-2017 Norconex Inc.
+   Copyright 2010-2019 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@
          point to one or more URLs files (i.e., seed lists), or
          point to a sitemap.xml. If the list of URLs needs to be dynamically
          built, you can use one or more custom IStartURLsProvider.  -->    
-    <startURLs stayOnDomain="false" stayOnPort="false" stayOnProtocol="false">
+    <startURLs stayOnDomain="false" includeSubdomains="true" stayOnPort="false" stayOnProtocol="false">
       <url>http://www.example.com</url>
       <url>http://www.sample.com</url>
       <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
