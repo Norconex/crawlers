@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -115,7 +114,7 @@ public class LinkExtractorTest {
 
         Set<Link> links = extractor.extractLinks(
                 is, docURL, ContentType.HTML);
-        IOUtils.closeQuietly(is);
+        is.close();
 
         for (String expectedURL : expectedURLs) {
             assertTrue("Could not find expected URL: " + expectedURL,
@@ -165,7 +164,7 @@ public class LinkExtractorTest {
                 getClass().getResourceAsStream("LinkBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
                 is, docURL, ContentType.HTML);
-        IOUtils.closeQuietly(is);
+        is.close();
         for (String expectedURL : expectedURLs) {
             assertTrue("Could not find expected URL: " + expectedURL,
                     contains(links, expectedURL));
@@ -190,7 +189,7 @@ public class LinkExtractorTest {
                 getClass().getResourceAsStream("LinkRelativeBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
                 is, docURL, ContentType.HTML);
-        IOUtils.closeQuietly(is);
+        is.close();
         for (String expectedURL : expectedURLs) {
             assertTrue("Could not find expected URL: " + expectedURL,
                     contains(links, expectedURL));
@@ -230,7 +229,7 @@ public class LinkExtractorTest {
                 getClass().getResourceAsStream("LinkKeepReferrerTest.html");
         Set<Link> links = extractor.extractLinks(
                 is, "http://www.site.com/parent.html", ContentType.HTML);
-        IOUtils.closeQuietly(is);
+        is.close();
 
         Assert.assertEquals(expectedLinks.length, links.size());
         for (Link expectedLink : expectedLinks) {

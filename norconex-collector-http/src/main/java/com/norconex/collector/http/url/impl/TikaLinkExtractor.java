@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -123,7 +122,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         HtmlParser parser = new HtmlParser();
         try {
             parser.parse(is, linkHandler, metadata, parseContext);
-            IOUtils.closeQuietly(is);
+            is.close();
             List<Link> tikaLinks = linkHandler.getLinks();
             Set<com.norconex.collector.http.url.Link> nxLinks =
                     new HashSet<>(tikaLinks.size());

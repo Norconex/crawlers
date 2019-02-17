@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -67,7 +66,7 @@ public class RegexLinkExtractorTest {
 
         Set<Link> links = extractor.extractLinks(
                 is, docURL, ContentType.TEXT);
-        IOUtils.closeQuietly(is);
+        is.close();
 
         for (String expectedURL : expectedURLs) {
             assertTrue("Could not find expected URL: " + expectedURL,

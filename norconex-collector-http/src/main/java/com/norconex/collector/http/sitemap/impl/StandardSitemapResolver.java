@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -250,7 +249,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                     is = new GZIPInputStream(is);
                 }
                 File sitemapFile = inputStreamToTempFile(is);
-                IOUtils.closeQuietly(is);
+                is.close();
                 parseLocation(sitemapFile, fetcher, sitemapURLAdder,
                         resolvedLocations, location);
                 LOG.info("         Resolved: {}", location);

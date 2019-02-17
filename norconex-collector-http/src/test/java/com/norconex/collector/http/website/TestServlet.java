@@ -31,7 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -649,7 +649,7 @@ LOG.warn(">>> Redirect requested, which points to canonical.");
                 }
                 String xml = IOUtils.toString(getClass().getResourceAsStream(
                         "sitemap.xml"), StandardCharsets.UTF_8);
-                xml = StrSubstitutor.replace(xml, vars);
+                xml = StringSubstitutor.replace(xml, vars);
                 resp.setContentType("application/xml");
                 resp.setCharacterEncoding("UTF-8");
                 resp.getWriter().println(xml);

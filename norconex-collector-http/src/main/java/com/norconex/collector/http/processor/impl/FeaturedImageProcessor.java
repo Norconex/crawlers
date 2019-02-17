@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,7 +33,6 @@ import java.util.Objects;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -579,7 +577,7 @@ public class FeaturedImageProcessor
     // make synchronized?
     private BufferedImage fetchImage(HttpFetcherExecutor fetcher, String url) {
 //        HttpResponse response;
-        InputStream is = null;
+//        InputStream is = null;
 
         try {
             URI uri = HttpURL.toURI(url);
@@ -596,8 +594,8 @@ public class FeaturedImageProcessor
 //            return ImageIO.read(is);
         } catch (IOException e) {
             LOG.debug("Could not load image: {}", url, e);
-        } finally {
-            IOUtils.closeQuietly(is);
+//        } finally {
+//            IOUtils.closeQuietly(is);
         }
         LOG.debug("Image was not recognized: {}", url);
         return null;

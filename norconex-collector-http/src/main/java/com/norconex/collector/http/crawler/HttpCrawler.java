@@ -15,7 +15,6 @@
 package com.norconex.collector.http.crawler;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -172,9 +171,8 @@ public class HttpCrawler extends Crawler {
 
         int urlCount = 0;
         for (Path urlsFile : urlsFiles) {
-            LineIterator it = null;
-            try (InputStream is = Files.newInputStream(urlsFile)) {
-                it = IOUtils.lineIterator(is, StandardCharsets.UTF_8);
+            try (LineIterator it = IOUtils.lineIterator(
+                    Files.newInputStream(urlsFile), StandardCharsets.UTF_8)) {
                 while (it.hasNext()) {
                     String startURL = StringUtils.trimToNull(it.nextLine());
                     if (startURL != null && !startURL.startsWith("#")) {
@@ -186,8 +184,6 @@ public class HttpCrawler extends Crawler {
             } catch (IOException e) {
                 throw new CollectorException(
                         "Could not process URLs file: " + urlsFile, e);
-            } finally {
-                LineIterator.closeQuietly(it);
             }
         }
         return urlCount;

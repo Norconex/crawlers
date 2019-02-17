@@ -1,4 +1,4 @@
-/* Copyright 2018 Norconex Inc.
+/* Copyright 2018-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -496,7 +496,9 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("Rejected response content: "
                             + IOUtils.toString(is, StandardCharsets.UTF_8));
-                    IOUtils.closeQuietly(is);
+                    if (is != null) {
+                        try { is.close(); } catch (IOException e) { /*NOOP*/ }
+                    }
                 } else {
                     // read response anyway to be safer, but ignore content
                     BufferedInputStream bis = new BufferedInputStream(is);
@@ -504,7 +506,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                     while(result != -1) {
                       result = bis.read();
                     }
-                    IOUtils.closeQuietly(bis);
+                    try { bis.close(); } catch (IOException e) { /*NOOP*/ }
                 }
             }
 

@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class XMLFeedLinkExtractorTest {
                 extractor.accepts(docURL, ct));
 
         Set<Link> links = extractor.extractLinks(is, docURL, ct);
-        IOUtils.closeQuietly(is);
+        is.close();
 
         for (String expectedURL : expectedURLs) {
             assertTrue("Could not find expected URL: " + expectedURL,
@@ -99,7 +99,7 @@ public class XMLFeedLinkExtractorTest {
 
 
         Set<Link> links = extractor.extractLinks(is, docURL, ct);
-        IOUtils.closeQuietly(is);
+        is.close();
 
         for (String expectedURL : expectedURLs) {
             assertTrue("Could not find expected URL: " + expectedURL,
