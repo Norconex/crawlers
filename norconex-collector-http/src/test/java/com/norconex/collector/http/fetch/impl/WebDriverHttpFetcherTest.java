@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -187,6 +188,20 @@ public class WebDriverHttpFetcherTest  {
             LOG.debug("'/headers' META: " + doc.getMetadata());
             Assert.assertEquals(
                     "test_value", doc.getMetadata().getString("TEST_KEY"));
+        } finally {
+            fetcher.crawlerShutdown(null);
+        }
+    }
+
+    @Test
+    public void testResolvingUserAgent() throws IOException {
+        WebDriverHttpFetcher fetcher = createFetcher();
+        try {
+            fetcher.crawlerStartup(null);
+            String userAgent = fetcher.getUserAgent();
+            LOG.debug("User agent: {}", userAgent);
+            Assert.assertTrue("Could not resolve user agent.",
+                    StringUtils.isNotBlank(userAgent));
         } finally {
             fetcher.crawlerShutdown(null);
         }

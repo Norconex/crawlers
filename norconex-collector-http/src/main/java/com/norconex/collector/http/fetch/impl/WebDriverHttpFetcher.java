@@ -93,7 +93,8 @@ import com.norconex.commons.lang.xml.XML;
  *      &lt;servicePort&gt;(default is 0 = random free port)&lt;/servicePort&gt;
  *
  *      &lt;!-- Optionally setup an HTTP proxy that allows to set and capture
- *           HTTP headers --&gt;
+ *           HTTP headers. For advanced use only. Not recommended
+ *           for regular usage. --&gt;
  *      &lt;httpAdapter&gt;
  *          &lt;port&gt;(default is 0 = random free port)"&lt;/port&gt;
  *          &lt;userAgent&gt;(optionally overwrite browser user agent)&lt;/userAgent&gt;
