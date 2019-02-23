@@ -15,6 +15,7 @@
       </action>
       <action dev="essiembre" type="add">
         New WebDriverHttpFetcher for using popular browsers in headless mode.
+        Ideal for Javascript-driven websites and taking screenshots.
       </action>
       <action dev="essiembre" type="add">
         New HttpCollectorEvent.

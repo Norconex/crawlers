@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -20,6 +22,8 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.img.MutableImage;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
+import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.handler.transformer.impl.ImageTransformer;
 
 /**
@@ -28,7 +32,7 @@ import com.norconex.importer.handler.transformer.impl.ImageTransformer;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class DocImageHandler {
+public class DocImageHandler implements IXMLConfigurable {
 
     private static final Logger LOG = LoggerFactory.getLogger(
             DocImageHandler.class);
@@ -37,8 +41,7 @@ public class DocImageHandler {
     public enum DirStructure { URL2PATH, DATE, DATETIME }
     public static final String DEFAULT_IMAGE_FORMAT = "png";
 
-//    public static final String DEFAULT_DISK_DIR = "./media";
-    public static final List<Target> DEFAULT_TYPES =
+    protected static final List<Target> DEFAULT_TYPES =
             Arrays.asList(Target.DIRECTORY) ;
 
     private final List<Target> targets = new ArrayList<>(DEFAULT_TYPES);
@@ -103,6 +106,59 @@ public class DocImageHandler {
         CollectionUtil.setAll(this.targets, targets);
     }
 
+    public String getImageFormat() {
+        return imageFormat;
+    }
+    public void setImageFormat(String imageFormat) {
+        this.imageFormat = imageFormat;
+    }
+
+    public void handleImage(InputStream imageStream, HttpDocument doc) {
+
+        //TODO check for null and:
+        //  1. apply defaults?  2, log error?  3. throw error?
+
+        try {
+            String format = Optional.ofNullable(
+                    imageFormat).orElse(DEFAULT_IMAGE_FORMAT);
+            MutableImage img = new MutableImage(imageStream);
+            imgTransformer.transformImage(img);
+
+            if (targets.contains(Target.METADATA)) {
+                Objects.requireNonNull(
+                        targetMetaField, "'targetMetaField'' must not be null");
+                doc.getMetadata().add(
+                        targetMetaField, img.toBase64String(format));
+            }
+            if (targets.contains(Target.DIRECTORY)) {
+                Objects.requireNonNull(
+                        targetDirField, "'targetDirField'' must not be null");
+                Objects.requireNonNull(
+                        targetDir, "'targetDir'' must not be null");
+                File dir = targetDir.toFile();
+                String ref = doc.getReference();
+                String ext = "." + format;
+                File imageFile = null;
+                if (targetDirStructure == DirStructure.URL2PATH) {
+                    imageFile = new File(FileUtil.createURLDirs(
+                            dir, ref, true).getAbsolutePath() + ext);
+                } else if (targetDirStructure == DirStructure.DATE) {
+                    imageFile = new File(FileUtil.createDateDirs(dir),
+                            TimeIdGenerator.next() + ext);
+                } else { // DATETIME (Default)
+                    imageFile = new File(FileUtil.createDateTimeDirs(dir),
+                            TimeIdGenerator.next() + ext);
+                }
+                img.write(imageFile.toPath(), format);
+                doc.getMetadata().add(
+                        targetDirField, imageFile.getCanonicalPath());
+            }
+        } catch (Exception e) {
+            LOG.error("Could not take screenshot of: {}",
+                    doc.getReference(), e);
+        }
+    }
+
     @Override
     public boolean equals(final Object other) {
         return EqualsBuilder.reflectionEquals(this, other);
@@ -117,45 +173,24 @@ public class DocImageHandler {
                 this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 
-    public void handleImage(InputStream imageStream, HttpDocument doc) {
-        //if (!screenshotEnabled) {
-        //    return;
-        //}
+    @Override
+    public void loadFromXML(XML xml) {
+        setTargets(xml.getDelimitedEnumList("targets", Target.class, targets));
+        setTargetDir(xml.getPath("targetDir", targetDir));
+        setTargetDirField(xml.getString("targetDirField", targetDirField));
+        setTargetDirStructure(xml.getEnum(
+                "targetDirStructure", DirStructure.class, targetDirStructure));
+        setTargetMetaField(xml.getString("targetMetaField", targetMetaField));
+        setImageFormat(xml.getString("imageFormat", imageFormat));
+    }
 
-        //TODO check for null and:
-        //  1. apply defaults?  2, log error?  3. throw error?
-
-        try {
-            MutableImage img = new MutableImage(imageStream);
-
-            imgTransformer.transformImage(img);
-
-            if (targets.contains(Target.METADATA)) {
-                doc.getMetadata().add(
-                        targetMetaField, img.toBase64String(imageFormat));
-            }
-            if (targets.contains(Target.DIRECTORY)) {
-                File dir = targetDir.toFile();
-                String ref = doc.getReference();
-                String ext = "." + imageFormat;
-                File imageFile = null;
-                if (targetDirStructure == DirStructure.URL2PATH) {
-                    imageFile = new File(FileUtil.createURLDirs(
-                            dir, ref, true).getAbsolutePath() + ext);
-                } else if (targetDirStructure == DirStructure.DATE) {
-                    imageFile = new File(FileUtil.createDateDirs(dir),
-                            TimeIdGenerator.next() + ext);
-                } else { // DATETIME
-                    imageFile = new File(FileUtil.createDateTimeDirs(dir),
-                            TimeIdGenerator.next() + ext);
-                }
-                img.write(imageFile.toPath(), imageFormat);
-                doc.getMetadata().add(
-                        targetDirField, imageFile.getCanonicalPath());
-            }
-        } catch (Exception e) {
-            LOG.error("Could not take screenshot of: {}",
-                    doc.getReference(), e);
-        }
+    @Override
+    public void saveToXML(XML xml) {
+        xml.addDelimitedElementList("targets", targets);
+        xml.addElement("targetDir", targetDir);
+        xml.addElement("targetDirField", targetDirField);
+        xml.addElement("targetDirStructure", targetDirStructure);
+        xml.addElement("targetMetaField", targetMetaField);
+        xml.addElement("imageFormat", imageFormat);
     }
 }

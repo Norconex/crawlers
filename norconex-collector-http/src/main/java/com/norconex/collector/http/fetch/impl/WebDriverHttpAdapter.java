@@ -1,4 +1,4 @@
-/* Copyright 2018 Norconex Inc.
+/* Copyright 2018-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@ package com.norconex.collector.http.fetch.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.littleshoot.proxy.HttpFiltersSource;
 import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
@@ -37,82 +40,83 @@ import net.lightbody.bmp.util.HttpMessageContents;
 import net.lightbody.bmp.util.HttpMessageInfo;
 
 /**
- * Used to captured HTTP response headers, when enabled.
+ * <p>
+ * Used to set and capture HTTP request/response headers, when enabled.
+ * </p>
+ * <p>
+ * <b>EXPERIMENTAL:</b> The use of this class is experimental.
+ * It is known to not be supported properly
+ * with some web drivers and/or browsers. It can even be ignored altogether
+ * by some web drivers.  It is discouraged for normal use,
+ * and is disabled by default.
+ * </p>
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class WebDriverHttpProxy {
+public class WebDriverHttpAdapter {
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            WebDriverHttpProxy.class);
+            WebDriverHttpAdapter.class);
 
     private final ThreadLocal<FilterAndSource> tlocal = new ThreadLocal<>();
-
-    private BrowserMobProxyServer proxy;
-
+    private BrowserMobProxyServer mobProxy;
 
     public void bind(String url) {
-        if (proxy == null) {
+        if (mobProxy == null) {
             return;
         }
 
         FilterAndSource fs = tlocal.get();
         if (fs != null) {
             throw new IllegalStateException("A URL is already bound to "
-                    + "the WebDriver header proxy: " + fs.filter.url);
+                    + "WebDriverHttpAdapter on this thread: " + fs.filter.url);
         }
 
-        DriverResponse f = new DriverResponse(url);
+        DriverResponseFilter f = new DriverResponseFilter(url);
         HttpFiltersSource s = new ResponseFilterAdapter.FilterSource(f);
         tlocal.set(new FilterAndSource(f, s));
-        proxy.addLastHttpFilterFactory(s);
+        mobProxy.addLastHttpFilterFactory(s);
     }
 
-    public DriverResponse unbind() {
-        if (proxy == null) {
+    public DriverResponseFilter unbind() {
+        if (mobProxy == null) {
             return null;
         }
         FilterAndSource fs = tlocal.get();
         if (fs == null) {
             return null;
         }
-//        List<Map.Entry<String, String>> headers = fs.filter.getHeaders();
-        proxy.getFilterFactories().remove(fs.source);
+        mobProxy.getFilterFactories().remove(fs.source);
         tlocal.remove();
         return fs.filter;
     }
-//    public List<Map.Entry<String, String>> unbind() {
-//        if (proxy == null) {
-//            return Collections.emptyList();
-//        }
-//        FilterAndSource fs = tlocal.get();
-//        if (fs == null) {
-//            return Collections.emptyList();
-//        }
-//        List<Map.Entry<String, String>> headers = fs.filter.getHeaders();
-//        proxy.getFilterFactories().remove(fs.source);
-//        tlocal.remove();
-//        return headers;
-//    }
 
-    public void start(MutableCapabilities options, int port, String userAgent) {
-        proxy = new BrowserMobProxyServer();
-        proxy.setTrustAllServers(true);
-//        proxy.addResponseFilter((response, contents, messageInfo) -> {
-//            LOG.info(response.getStatus() + " => " + messageInfo.getOriginalUrl());
-//            LOG.info("       => " + messageInfo.getUrl());
-//            LOG.info("HEADERS:");
-//            for (Entry<String, String> entry : response.headers()) {
-//                LOG.info("    " + entry.getKey() + " => " + entry.getValue());
-//            }
-//        });
+    public void start(MutableCapabilities options) {
+        start(options, null);
+    }
+    public void start(
+            MutableCapabilities options, WebDriverHttpAdapterConfig config) {
+        Objects.requireNonNull("'options' must not be null");
 
-        if (StringUtils.isNotBlank(userAgent)) {
-            proxy.addHeader("User-Agent", userAgent);
+        WebDriverHttpAdapterConfig cfg = Optional.ofNullable(
+                config).orElseGet(WebDriverHttpAdapterConfig::new);
+
+        mobProxy = new BrowserMobProxyServer();
+        mobProxy.setTrustAllServers(true);
+
+        // request headers
+        config.getRequestHeaders().entrySet().forEach(
+                en -> mobProxy.addHeader(en.getKey(), en.getValue()));
+
+        // User agent
+        if (StringUtils.isNotBlank(cfg.getUserAgent())) {
+            mobProxy.addHeader("User-Agent", cfg.getUserAgent());
         }
 
-        proxy.start(port);
-        int actualPort = proxy.getPort();
+        mobProxy.start(cfg.getPort());
+
+
+        int actualPort = mobProxy.getPort();
         LOG.info("Proxy started on port {} "
                 + "for HTTP response header capture.", actualPort);
 
@@ -125,42 +129,44 @@ public class WebDriverHttpProxy {
             profile.setAcceptUntrustedCertificates(true);
             profile.setAssumeUntrustedCertificateIssuer(true);
             profile.setPreference("network.proxy.http", "localhost");
-            profile.setPreference("network.proxy.http_port", proxy.getPort());
+            profile.setPreference("network.proxy.http_port", actualPort);
             profile.setPreference("network.proxy.ssl", "localhost");
-            profile.setPreference("network.proxy.ssl_port", proxy.getPort());
+            profile.setPreference("network.proxy.ssl_port", actualPort);
             profile.setPreference("network.proxy.type", 1);
             profile.setPreference("network.proxy.no_proxies_on", "");
             options.setCapability(FirefoxDriver.PROFILE, profile);
+        } else if (options instanceof ChromeOptions && LOG.isDebugEnabled()) {
+            System.setProperty("webdriver.chrome.verboseLogging", "true");
         }
         options.setCapability(CapabilityType.PROXY,
-                ClientUtil.createSeleniumProxy(proxy));
+                ClientUtil.createSeleniumProxy(mobProxy));
     }
 
     public void stop() {
-        if (proxy != null && proxy.isStarted()) {
-            proxy.stop();
-            proxy = null;
+        if (mobProxy != null && mobProxy.isStarted()) {
+            mobProxy.stop();
+            mobProxy = null;
         }
     }
 
     private class FilterAndSource {
-        private final DriverResponse filter;
+        private final DriverResponseFilter filter;
         private final HttpFiltersSource source;
         public FilterAndSource(
-                DriverResponse filter, HttpFiltersSource source) {
+                DriverResponseFilter filter, HttpFiltersSource source) {
             super();
             this.filter = filter;
             this.source = source;
         }
     }
 
-    public static class DriverResponse implements ResponseFilter {
+    public static class DriverResponseFilter implements ResponseFilter {
         private final List<Map.Entry<String, String>> headers =
                 new ArrayList<>();
         private int statusCode;
         private String reasonPhrase;
         private final String url;
-        public DriverResponse(String url) {
+        public DriverResponseFilter(String url) {
             super();
             this.url = url;
         }
@@ -172,13 +178,6 @@ public class WebDriverHttpProxy {
                 statusCode = response.getStatus().code();
                 reasonPhrase = response.getStatus().reasonPhrase();
             }
-
-//            LOG.info(response.getStatus() + " => " + messageInfo.getOriginalUrl());
-//            LOG.info("       => " + messageInfo.getUrl());
-//            LOG.info("HEADERS:");
-//            for (Entry<String, String> entry : response.headers()) {
-//                LOG.info("    " + entry.getKey() + " => " + entry.getValue());
-//            }
         }
         public List<Map.Entry<String, String>> getHeaders() {
             return headers;

@@ -1,4 +1,4 @@
-/* Copyright 2018 Norconex Inc.
+/* Copyright 2018-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -58,9 +59,6 @@ public class WebDriverHttpFetcherTest  {
     private static final Logger LOG =
             LoggerFactory.getLogger(WebDriverHttpFetcherTest.class);
 
-//    @Rule
-//    public final TemporaryFolder tempFolder = new TemporaryFolder();
-
     private static TestServer server = new TestServerBuilder()
             .addPackage("server/js-rendered")
             .addServlet(new HttpServlet() {
@@ -72,8 +70,6 @@ public class WebDriverHttpFetcherTest  {
                     resp.addHeader("TEST_KEY", "test_value");
                     resp.getWriter().write("HTTP headers test. "
                             + "TEST_KEY should be found in HTTP headers");
-                    super.doGet(req, resp);
-
                 }
             }, "/headers")
             .build();
@@ -82,8 +78,8 @@ public class WebDriverHttpFetcherTest  {
 //  https://chromedriver.storage.googleapis.com/2.43/chromedriver_mac64.zip
     private static final Path chromeDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://chromedriver.storage.googleapis.com/"
-                    + "2.43/chromedriver_win32.zip!/chromedriver.exe",
-                    "chromedriver-2.43.exe"))
+                    + "73.0.3683.20/chromedriver_win32.zip!/chromedriver.exe",
+                    "chromedriver-73.0.3683.20.exe"))
             .get();
 
 //  https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-win64.zip
@@ -138,26 +134,12 @@ public class WebDriverHttpFetcherTest  {
 
 
     @Test
-    public void testWebDriverFetcher() throws IOException {
-
-        // Optional, if not specified, WebDriver will search your
-        // path for chromedriver.
-        WebDriverHttpFetcher fetcher = new WebDriverHttpFetcher();
-        fetcher.setBrowser(browser);
-        fetcher.setDriverPath(driverPath);
-        fetcher.setDriverProxyDisabled(false);
-
-        Path screenshotDir = Paths.get("./target/screenshots");
-        fetcher.getScreenshotHandler().setTargetDir(screenshotDir);
-
+    public void testFetchingJsGeneratedContent() throws IOException {
+        WebDriverHttpFetcher fetcher = createFetcher();
         try {
             // simulate crawler startup
             fetcher.crawlerStartup(null);
-
-            HttpDocument doc = null;
-
-            // Test picking up javascript-generated content
-            doc = fetch(fetcher, "/");
+            HttpDocument doc = fetch(fetcher, "/");
             LOG.debug("'/' META: " + doc.getMetadata());
             Assert.assertThat(IOUtils.toString(
                     doc.getInputStream(), StandardCharsets.UTF_8),
@@ -165,21 +147,38 @@ public class WebDriverHttpFetcherTest  {
         } finally {
             fetcher.crawlerShutdown(null);
         }
-        //Files.deleteIfExists(screenshotDir);
+    }
+
+    // Remove ignore to manually test that screenshots are generated
+    @Ignore
+    @Test
+    public void testTakeScreenshots() throws IOException {
+        WebDriverHttpFetcher fetcher = createFetcher();
+
+        WebDriverScreenshotHandler h = new WebDriverScreenshotHandler();
+        h.setTargetDir(Paths.get("./target/screenshots"));
+        h.setCssSelector("#applePicture");
+        fetcher.setScreenshotHandler(h);
+
+        try {
+            fetcher.crawlerStartup(null);
+            fetch(fetcher, "/apple.html");
+        } finally {
+            fetcher.crawlerShutdown(null);
+        }
     }
 
     @Test
-    public void testGetHeadersFromDocFetch() throws IOException {
+    public void testFetchingHeadersUsingAdapter() throws IOException {
 
         // Test picking up headers
         Assume.assumeTrue("SKIPPING: " + browser.name()
                 + " does not support setting proxy to obtain headers.",
                 isProxySupported(browser));
 
-        WebDriverHttpFetcher fetcher = new WebDriverHttpFetcher();
-        fetcher.setBrowser(browser);
-        fetcher.setDriverPath(driverPath);
-        fetcher.setDriverProxyDisabled(false);
+        WebDriverHttpFetcher fetcher = createFetcher();
+        WebDriverHttpAdapterConfig cfg = new WebDriverHttpAdapterConfig();
+        fetcher.setHttpAdapterConfig(cfg);
 
         try {
             // simulate crawler startup
@@ -193,10 +192,17 @@ public class WebDriverHttpFetcherTest  {
         }
     }
 
+    private WebDriverHttpFetcher createFetcher() {
+        WebDriverHttpFetcher fetcher = new WebDriverHttpFetcher();
+        fetcher.setBrowser(browser);
+        fetcher.setDriverPath(driverPath);
+        return fetcher;
+    }
+
 
     private HttpDocument fetch(WebDriverHttpFetcher fetcher, String urlPath) {
         HttpDocument doc = new HttpDocument(
-                "http://127.0.0.1:" + server.getPort() + urlPath,
+                "http://localhost:" + server.getPort() + urlPath,
                 new CachedStreamFactory(10000, 10000).newInputStream());
         /*HttpFetchResponse response = */ fetcher.fetchDocument(doc);
         return doc;
@@ -214,65 +220,7 @@ public class WebDriverHttpFetcherTest  {
     // Returns false for browsers not supporting setting proxies, which
     // is required to capture headers.
     private boolean isProxySupported(WebDriverBrowser browser) {
-        return browser != WebDriverBrowser.EDGE;
+        return browser != WebDriverBrowser.EDGE
+                && browser != WebDriverBrowser.CHROME;
     }
-
-
-
-//    @Test
-//    public void testChromeDriver() throws IOException {
-//        Assume.assumeNotNull(driverPath.getResource());
-//
-//
-//        // Optional, if not specified, WebDriver will search your path for chromedriver.
-//        System.setProperty(
-//                "webdriver.chrome.driver", driverPath.getResource().toString());
-//        ChromeOptions options = new ChromeOptions();
-//        options.setHeadless(true);
-//        WebDriver driver = new ChromeDriver(options);
-//        driver.get("http://127.0.0.1:" + server.getPort() + "/");
-////        driver.get("http://www.google.com?q=test");
-////        WebElement searchBox = driver.findElement(By.name("q"));
-////        searchBox.sendKeys("ChromeDriver");
-////        searchBox.submit();
-////        Thread.sleep(5000);  // Let the user actually see something!
-//
-//
-//        Assert.assertThat(driver.getPageSource(),
-//                CoreMatchers.containsString("JavaScript-rendered!"));
-//
-////        System.out.println("SOURCE:\n" + driver.getPageSource());
-//
-//        driver.quit();
-//
-//    }
-
-//    @Test
-//    public void testGetPDF() throws IOException {
-//        Assume.assumeNotNull(chromeDriverPath);
-//
-//        // Optional, if not specified, WebDriver will search your path for chromedriver.
-//        System.setProperty(
-//                "webdriver.chrome.driver", chromeDriverPath.toString());
-//        ChromeOptions options = new ChromeOptions();
-//        options.setHeadless(true);
-//        options.setCapability("pdfjs.disabled", true);
-//        WebDriver driver = new ChromeDriver(options);
-//        driver.get("http://127.0.0.1:" + server.getPort() + "/tiny.pdf");
-////        driver.get("http://www.google.com?q=test");
-//        Sleeper.sleepSeconds(5); // Let the user actually see something!
-////        WebElement searchBox = driver.findElement(By.name("q"));
-////        searchBox.sendKeys("ChromeDriver");
-////        searchBox.submit();
-////        Thread.sleep(5000);  // Let the user actually see something!
-//
-//
-////        Assert.assertThat(driver.getPageSource(),
-////                CoreMatchers.containsString("JavaScript-rendered!"));
-//
-//        System.out.println("SOURCE:\n" + driver.getPageSource());
-//
-//        driver.quit();
-//
-//    }
 }
