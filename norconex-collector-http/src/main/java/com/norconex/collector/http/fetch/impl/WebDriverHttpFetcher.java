@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.apache.commons.io.IOUtils;
@@ -31,6 +32,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriver.Timeouts;
 import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
@@ -92,6 +94,46 @@ import com.norconex.commons.lang.xml.XML;
  *      &lt;driverPath&gt;(driver executable or blank to detect)&lt;/driverPath&gt;
  *      &lt;servicePort&gt;(default is 0 = random free port)&lt;/servicePort&gt;
  *
+ *      &lt;!-- Optional browser capabilities supported by the web driver. --&gt;
+ *      &lt;capabilities&gt;
+ *          &lt;capability name="(capability name)"&gt;(capability value)&lt;/capability&gt;
+ *          &lt;!-- multiple "capability" tags allowed --&gt;
+ *      &lt;/capabilities&gt;
+ *
+ *      &lt;!-- Optionally take screenshots of each web pages. --&gt;
+ *      &lt;screenshot&gt;
+ *          &lt;capability name="(capability name)"&gt;(capability value)&lt;/capability&gt;
+ *          &lt;!-- multiple "capability" tags allowed --&gt;
+ *      &lt;/screenshot&gt;
+ *
+ *      &lt;initScript&gt;
+ *          (Optional JavaScript code to be run during this class initialization.)
+ *      &lt;/initScript&gt;
+ *      &lt;pageScript&gt;
+ *          (Optional JavaScript code to be run after each pages are loaded.)
+ *      &lt;/pageScript&gt;
+ *
+ *      &lt;!-- Timeouts, in milliseconds, or human-readable format (English).
+ *         - Default is zero (not set).
+ *         --&gt;
+ *      &lt;pageLoadTimeout&gt;
+ *          (Max wait time for a page to load before throwing an error.)
+ *      &lt;/pageLoadTimeout&gt;
+ *      &lt;implicitlyWait&gt;
+ *          (Wait for that long for the page to finish rendering.)
+ *      &lt;/implicitlyWait&gt;
+ *      &lt;scriptTimeout&gt;
+ *          (Max wait time for a scripts to execute before throwing an error.)
+ *      &lt;/scriptTimeout&gt;
+ *
+ *      &lt;restrictions&gt;
+ *          &lt;restrictTo caseSensitive="[false|true]"
+ *                  field="(name of metadata field name to match)"&gt;
+ *              (regular expression of value to match)
+ *          &lt;/restrictTo&gt;
+ *          &lt;!-- multiple "restrictTo" tags allowed (only one needs to match) --&gt;
+ *      &lt;/restrictions&gt;
+ *
  *      &lt;!-- Optionally setup an HTTP proxy that allows to set and capture
  *           HTTP headers. For advanced use only. Not recommended
  *           for regular usage. --&gt;
@@ -105,26 +147,6 @@ import com.norconex.commons.lang.xml.XML;
  *              &lt;!-- You can repeat this header tag as needed. --&gt;
  *          &lt;/headers&gt;
  *      &lt;/httpAdapter&gt;
- *
- *      &lt;!-- Optional browser capabilities supported by the web driver. --&gt;
- *      &lt;capabilities&gt;
- *          &lt;capability name="(capability name)"&gt;(capability value)&lt;/capability&gt;
- *          &lt;!-- multiple "capability" tags allowed --&gt;
- *      &lt;/capabilities&gt;
- *
- *      &lt;!-- Optionally take screenshots of each web pages. --&gt;
- *      &lt;screenshot&gt;
- *          &lt;capability name="(capability name)"&gt;(capability value)&lt;/capability&gt;
- *          &lt;!-- multiple "capability" tags allowed --&gt;
- *      &lt;/screenshot&gt;
- *
- *      &lt;restrictions&gt;
- *          &lt;restrictTo caseSensitive="[false|true]"
- *                  field="(name of metadata field name to match)"&gt;
- *              (regular expression of value to match)
- *          &lt;/restrictTo&gt;
- *          &lt;!-- multiple "restrictTo" tags allowed (only one needs to match) --&gt;
- *      &lt;/restrictions&gt;
  *
  *  &lt;/fetcher&gt;
  * </pre>
@@ -170,7 +192,12 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
     private Dimension windowSize;
 
-    //TODO add script support
+    private String initScript;
+    private String pageScript;
+
+    private long pageLoadTimeout;
+    private long implicitlyWait;
+    private long scriptTimeout;
 
     private DriverService service;
     private final ThreadLocal<WebDriver> driverTL = new ThreadLocal<>();
@@ -214,9 +241,6 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     public String getUserAgent() {
         return userAgent;
     }
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
-    }
 
     public WebDriverHttpAdapterConfig getHttpAdapterConfig() {
         return httpAdapterConfig;
@@ -246,7 +270,40 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         this.windowSize = windowSize;
     }
 
+    public String getInitScript() {
+        return initScript;
+    }
+    public void setInitScript(String initScript) {
+        this.initScript = initScript;
+    }
 
+    public String getPageScript() {
+        return pageScript;
+    }
+    public void setPageScript(String pageScript) {
+        this.pageScript = pageScript;
+    }
+
+    public long getPageLoadTimeout() {
+        return pageLoadTimeout;
+    }
+    public void setPageLoadTimeout(long pageLoadTimeout) {
+        this.pageLoadTimeout = pageLoadTimeout;
+    }
+
+    public long getImplicitlyWait() {
+        return implicitlyWait;
+    }
+    public void setImplicitlyWait(long implicitlyWait) {
+        this.implicitlyWait = implicitlyWait;
+    }
+
+    public long getScriptTimeout() {
+        return scriptTimeout;
+    }
+    public void setScriptTimeout(long scriptTimeout) {
+        this.scriptTimeout = scriptTimeout;
+    }
 
     @Override
     protected void crawlerStartup(CrawlerEvent<Crawler> event) {
@@ -290,14 +347,8 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             service = serviceBuilder.usingPort(servicePort).build();
             service.start();
 
-
-//            driver.set(new ChromeDriver((ChromeDriverService) service, options));
             WebDriver driver = new RemoteWebDriver(service.getUrl(), options);
             driverTL.set(driver);
-
-
-//            driver.get().manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-
 
             if (windowSize != null) {
                 driver.manage().window().setSize(
@@ -305,12 +356,26 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                                 windowSize.width, windowSize.height));
             }
 
+            Timeouts timeouts = driver.manage().timeouts();
+            if (pageLoadTimeout != 0) {
+                timeouts.pageLoadTimeout(
+                        pageLoadTimeout, TimeUnit.MILLISECONDS);
+            }
+            if (implicitlyWait != 0) {
+                timeouts.implicitlyWait(implicitlyWait, TimeUnit.MILLISECONDS);
+            }
+            if (scriptTimeout != 0) {
+                timeouts.setScriptTimeout(scriptTimeout, TimeUnit.MILLISECONDS);
+            }
+
             if (StringUtils.isBlank(userAgent)) {
                 userAgent = (String) ((JavascriptExecutor) driver).executeScript(
                         "return navigator.userAgent;");
             }
-            //TEST:
-            //driver.manage().timeouts().pageLoadTimeout(3, TimeUnit.SECONDS);
+
+            if (StringUtils.isNotBlank(initScript)) {
+                ((JavascriptExecutor) driver).executeScript(initScript);
+            }
 
         } catch (IOException e) {
             //TODO if exception, check if driver and browser were specified
@@ -392,7 +457,9 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     // thread-safe
     protected InputStream fetchDocumentContent(WebDriver driver, String url) {
         driver.get(url);
-//      Sleeper.sleepSeconds(3); // Let the user actually see something!
+        if (StringUtils.isNotBlank(pageScript)) {
+            ((JavascriptExecutor) driver).executeScript(pageScript);
+        }
         String pageSource = driver.getPageSource();
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
@@ -428,14 +495,11 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         return response;
     }
 
-
-
     @Override
     public void loadHttpFetcherFromXML(XML xml) {
         setBrowser(xml.getEnum("browser", WebDriverBrowser.class, browser));
         setDriverPath(xml.getPath("driverPath", driverPath));
         setBrowserPath(xml.getPath("browserPath", browserPath));
-        setUserAgent(xml.getString("userAgent", userAgent));
         setServicePort(xml.getInteger("servicePort", servicePort));
 
         xml.getXML("httpAdapter").ifDefined(x -> {
@@ -455,13 +519,21 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                 "capabilities/capability", "@name", ".").entrySet()) {
             getCapabilities().setCapability(en.getKey(), en.getValue());
         }
+
+        setWindowSize(xml.getDimension("windowSize", windowSize));
+        setInitScript(xml.getString("initScript", initScript));
+        setPageScript(xml.getString("pageScript", pageScript));
+        setPageLoadTimeout(
+                xml.getDurationMillis("pageLoadTimeout", pageLoadTimeout));
+        setImplicitlyWait(
+                xml.getDurationMillis("implicitlyWait", implicitlyWait));
+        setScriptTimeout(xml.getDurationMillis("scriptTimeout", scriptTimeout));
     }
     @Override
     public void saveHttpFetcherToXML(XML xml) {
         xml.addElement("browser", browser);
         xml.addElement("driverPath", driverPath);
         xml.addElement("browserPath", browserPath);
-        xml.addElement("userAgent", userAgent);
         xml.addElement("servicePort", servicePort);
 
         if (httpAdapterConfig != null) {
@@ -477,6 +549,13 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             capabXml.addElement("capability",
                     en.getValue()).setAttribute("name", en.getKey());
         }
+
+        xml.addElement("windowSize", windowSize);
+        xml.addElement("initScript", initScript);
+        xml.addElement("pageScript", pageScript);
+        xml.addElement("pageLoadTimeout", pageLoadTimeout);
+        xml.addElement("implicitlyWait", implicitlyWait);
+        xml.addElement("scriptTimeout", scriptTimeout);
     }
 
     @Override
@@ -492,12 +571,4 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         return new ReflectionToStringBuilder(
                 this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
-
-
-
-    //TODO several things:
-    // - Support complex configuration via JavaScript?  Like authenticating
-    //   scripts populating fields and submitting pages.
-
-
 }

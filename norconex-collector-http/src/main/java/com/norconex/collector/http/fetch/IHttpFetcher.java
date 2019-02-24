@@ -24,6 +24,8 @@ import com.norconex.collector.http.doc.HttpMetadata;
  */
 public interface IHttpFetcher {
 
+    //TODO have HEAD, GET, POST methods instead?
+
 //    HttpFetchResponse fetchDocument(HttpDocument doc);
 //    HttpFetchResponse fetchHeaders(String url, HttpMetadata metadata);
 

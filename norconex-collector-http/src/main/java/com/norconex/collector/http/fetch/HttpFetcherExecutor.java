@@ -37,6 +37,12 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
  */
 public class HttpFetcherExecutor {
 
+    //TODO by default, continue to next if unsupported status is returned.
+    //  But have options to configure so that it continue if exception
+    // or continue if null
+
+    //TODO have GET HEAD and POST methods on fetchers.
+
     //TODO Have retry attempts here, or on each fetcher (more control)?
 
     //TODO check ONCE if user agent is provided and log a warning if not

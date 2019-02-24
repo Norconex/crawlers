@@ -194,6 +194,25 @@ public class WebDriverHttpFetcherTest  {
     }
 
     @Test
+    public void testPageScript() throws IOException {
+        WebDriverHttpFetcher fetcher = createFetcher();
+        fetcher.setPageScript(
+                "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
+        try {
+            fetcher.crawlerStartup(null);
+            HttpDocument doc = fetch(fetcher, "/orange.html");
+
+            String h1 = IOUtils.toString(doc.getInputStream(),
+                    StandardCharsets.UTF_8).replaceFirst(
+                            "(?s).*<h1>(.*?)</h1>.*", "$1");
+            LOG.debug("New H1: " + h1);
+            Assert.assertEquals("Melon", h1);
+        } finally {
+            fetcher.crawlerShutdown(null);
+        }
+    }
+
+    @Test
     public void testResolvingUserAgent() throws IOException {
         WebDriverHttpFetcher fetcher = createFetcher();
         try {
