@@ -42,6 +42,7 @@
         <xs:element name="maxConnectionIdleTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxConnectionInactiveTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="trustAllSSLCertificates" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="disableSNI" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="sslProtocols" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="proxyHost" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="proxyPort" type="xs:int" minOccurs="0" maxOccurs="1"/>

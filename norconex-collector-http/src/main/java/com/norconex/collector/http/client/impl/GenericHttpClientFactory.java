@@ -28,18 +28,11 @@ import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
+import javax.net.ssl.*;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.codec.binary.Base64;
@@ -163,7 +156,10 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *
  *      &lt;!-- Be warned: trusting all certificates is usually a bad idea. --&gt;
  *      &lt;trustAllSSLCertificates&gt;[false|true]&lt;/trustAllSSLCertificates&gt;
- *      
+ *
+ *      &lt;!-- Since 2.8.2, you can disable SNI --&gt;
+ *      &lt;disableSNI&gt;[false|true]&lt;/disableSNI&gt;
+ *
  *      &lt;!-- Since 2.6.2, you can specify SSL/TLS protocols to use --&gt;
  *      &lt;sslProtocols&gt;(coma-separated list)&lt;/sslProtocols&gt;
  *
@@ -301,6 +297,7 @@ public class GenericHttpClientFactory
     private String authDomain;
     private boolean authPreemptive;
     private String cookieSpec = CookieSpecs.STANDARD;
+    private boolean disableSNI = false;
     private boolean trustAllSSLCertificates;
     private String proxyHost;
     private int proxyPort;
@@ -618,6 +615,20 @@ public class GenericHttpClientFactory
                 }
                 
                 sslParams.setEndpointIdentificationAlgorithm("HTTPS");
+
+                if (disableSNI) {
+                    // Disabling SNI extension introduced in Java 7 is necessary
+                    // to avoid SSLProtocolException: handshake alert:  unrecognized_name
+                    // for some sites with wrong Virtual Host - config.
+                    // Described here:
+                    // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7127374
+                    // Instead of using the SystemProperty to disable SNI, follow the approach from here
+                    // https://github.com/lightbody/browsermob-proxy/issues/117#issuecomment-141363454
+                    // and disable SNI for this SSLConnectionSocketFactory only
+                    LOG.debug("SSL: Disabling SNI Extension for this httpClientFactory.");
+                    sslParams.setServerNames(Collections.emptyList());
+                }
+
                 socket.setSSLParameters(sslParams);
             }
         };
@@ -629,16 +640,6 @@ public class GenericHttpClientFactory
         }
         LOG.info("SSL: Trusting all certificates.");
         
-        //TODO consider moving some of the below settings at the collector
-        //level since they affect the whole JVM.
-        
-        // Disabling SNI extension introduced in Java 7 is necessary 
-        // to avoid SSLProtocolException: handshake alert:  unrecognized_name
-        // Described here: 
-        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7127374
-        LOG.debug("SSL: Disabling SNI Extension using system property.");
-        System.setProperty("jsse.enableSNIExtension", "false");
-
         // Use a trust strategy that always returns true
         SSLContext sslcontext;
         try {
@@ -699,6 +700,8 @@ public class GenericHttpClientFactory
         maxConnections = xml.getInt("maxConnections", maxConnections);
         trustAllSSLCertificates = xml.getBoolean(
                 "trustAllSSLCertificates", trustAllSSLCertificates);
+        disableSNI = xml.getBoolean(
+                "disableSNI", disableSNI);;
         localAddress = xml.getString("localAddress", localAddress);
         maxConnectionsPerRoute = xml.getInt(
                 "maxConnectionsPerRoute", maxConnectionsPerRoute);
@@ -797,6 +800,8 @@ public class GenericHttpClientFactory
             writer.writeElementInteger("maxConnections", maxConnections);
             writer.writeElementBoolean(
                     "trustAllSSLCertificates", trustAllSSLCertificates);
+            writer.writeElementBoolean(
+                    "disableSNI", disableSNI);
             writer.writeElementInteger(
                     "maxConnectionsPerRoute", maxConnectionsPerRoute);
             writer.writeElementInteger(
@@ -1165,6 +1170,26 @@ public class GenericHttpClientFactory
      */
     public void setTrustAllSSLCertificates(boolean trustAllSSLCertificates) {
         this.trustAllSSLCertificates = trustAllSSLCertificates;
+    }
+
+    /**
+     * Whether to disable SNI (affects only "https" connections).
+     * @since 2.8.2
+     * @return <code>true</code> if SNI is disabled
+     */
+    public boolean isDisableSNI() {
+        return trustAllSSLCertificates;
+    }
+    /**
+     * Sets whether to disable SNI.
+     * This may be needed to connect to SSL hosts with a bad virtual host configuration, that do not understand
+     * server names passed in the SSL protocol (in difference to only pass these in the HTTP headers only).
+     * The default is <code>false</code>
+     * @since 2.8.2
+     * @param disableSNI <code>true</code> if SNI is disabled
+     */
+    public void setDisableSNI(boolean disableSNI) {
+        this.disableSNI = disableSNI;
     }
 
     /**
@@ -1630,6 +1655,7 @@ public class GenericHttpClientFactory
                 .append(authPreemptive, other.authPreemptive)
                 .append(cookieSpec, other.cookieSpec)
                 .append(trustAllSSLCertificates, other.trustAllSSLCertificates)
+                .append(disableSNI, other.disableSNI)
                 .append(proxyHost, other.proxyHost)
                 .append(proxyPort, other.proxyPort)
                 .append(proxyScheme, other.proxyScheme)
@@ -1675,6 +1701,7 @@ public class GenericHttpClientFactory
                 .append(authPreemptive)
                 .append(cookieSpec)
                 .append(trustAllSSLCertificates)
+                .append(disableSNI)
                 .append(proxyHost)
                 .append(proxyPort)
                 .append(proxyScheme)
@@ -1718,6 +1745,7 @@ public class GenericHttpClientFactory
                 .append("authPreemptive", authPreemptive)
                 .append("cookieSpec", cookieSpec)
                 .append("trustAllSSLCertificates", trustAllSSLCertificates)
+                .append("disableSNI", disableSNI)
                 .append("proxyHost", proxyHost)
                 .append("proxyPort", proxyPort)
                 .append("proxyScheme", proxyScheme)
