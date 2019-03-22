@@ -87,16 +87,12 @@ import com.norconex.commons.lang.file.ContentType;
             }
         }
 
-        if (StringUtils.isBlank(colCE)) {
-            // Grab charset form HTTP Content-Type
-            String ce = null;
-            if (httpCT != null && httpCT.contains("charset")) {
-                ce = StringUtils.trimToNull(
-                        StringUtils.substringAfter(httpCT, "charset="));
-            }
-
-            if (ce != null) {
-                meta.addString(HttpMetadata.COLLECTOR_CONTENT_ENCODING, ce);
+            if (StringUtils.isBlank(colCE)) {
+                // Grab charset form HTTP Content-Type
+                String ce = Objects.toString(parsedCT.getCharset(), null);
+                if (ce != null) {
+                    meta.addString(HttpMetadata.COLLECTOR_CONTENT_ENCODING, ce);
+                }
             }
         }
     }
