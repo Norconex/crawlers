@@ -14,14 +14,6 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import java.io.IOException;
-import java.util.Arrays;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
@@ -35,6 +27,14 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.file.ContentType;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author Pascal Essiembre
@@ -79,13 +79,17 @@ import com.norconex.commons.lang.file.ContentType;
             }
         }
 
-        if (StringUtils.isBlank(colCT)) {
-            String ct = StringUtils.trimToNull(
-                    StringUtils.substringBefore(httpCT, ";"));
-            if (ct != null) {
-                meta.addString(HttpMetadata.COLLECTOR_CONTENT_TYPE, ct);
+        if (StringUtils.isNotBlank(httpCT)) {
+            // delegate parsing of content-type honoring various forms
+            // https://tools.ietf.org/html/rfc7231#section-3.1.1
+            org.apache.http.entity.ContentType parsedCT = org.apache.http.entity.ContentType.parse(httpCT);
+
+            if (StringUtils.isBlank(colCT)) {
+                String ct = parsedCT.getMimeType();
+                if (ct != null) {
+                    meta.addString(HttpMetadata.COLLECTOR_CONTENT_TYPE, ct);
+                }
             }
-        }
 
             if (StringUtils.isBlank(colCE)) {
                 // Grab charset form HTTP Content-Type
