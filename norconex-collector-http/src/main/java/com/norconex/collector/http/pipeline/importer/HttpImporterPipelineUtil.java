@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,8 @@ import java.util.Objects;
         if (StringUtils.isNotBlank(httpCT)) {
             // delegate parsing of content-type honoring various forms
             // https://tools.ietf.org/html/rfc7231#section-3.1.1
-            org.apache.http.entity.ContentType parsedCT = org.apache.http.entity.ContentType.parse(httpCT);
+            org.apache.http.entity.ContentType parsedCT = 
+                    org.apache.http.entity.ContentType.parse(httpCT);
 
             if (StringUtils.isBlank(colCT)) {
                 String ct = parsedCT.getMimeType();

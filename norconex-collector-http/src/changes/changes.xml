@@ -33,6 +33,9 @@
       <action dev="essiembre" type="update" issue="526">
         Stateful support added for auth sessions (e.g., NTLM). 
       </action>
+      <action dev="martin-huber" type="fix" issue="578">
+        Fix quoted mediatype from content type.
+      </action>
       <action dev="essiembre" type="fix" issue="540">
         Fixed exceptions in URLCrawlScopeStrategy#isInScope(...) ending the 
         crawler execution. 
