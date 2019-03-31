@@ -8,6 +8,11 @@
   <body>
 
     <release version="2.8.2-SNAPSHOT" date="2019-??-??" description="Maintenance release">
+      <action dev="essiembre" type="add" issue="479">
+        Added new normalization rules to GenericURLNormalizer: 
+        removeQueryString, lowerCase, lowerCasePath, lowerCaseQuery, 
+        lowerCaseQueryParameterNames, lowerCaseQueryParameterValues. 
+      </action>
       <action dev="essiembre" type="add" issue="563">
         Added "includeSubdomains" to start URL group to consider subdomains 
         as being the same as any URL domain when "stayOnDomain" is true. 

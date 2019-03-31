@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,20 +44,20 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 /**
  * <p>
  * Generic implementation of {@link IURLNormalizer} that should satisfy
- * most URL normalization needs.  This implementation relies on 
- * {@link URLNormalizer}.  Please refer to it for complete documentation and 
- * examples. 
+ * most URL normalization needs.  This implementation relies on
+ * {@link URLNormalizer}.  Please refer to it for complete documentation and
+ * examples.
  * </p>
  * <p>
  * This class is in effect by default. To skip its usage, you
- * can explicitly set the URL Normalizer to <code>null</code> in the 
- * {@link HttpCrawlerConfig}, or you can disable it using 
+ * can explicitly set the URL Normalizer to <code>null</code> in the
+ * {@link HttpCrawlerConfig}, or you can disable it using
  * {@link #setDisabled(boolean)}.
  * </p>
  * <p>
- * By default, this class removes the URL fragment and applies these 
+ * By default, this class removes the URL fragment and applies these
  * <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a>
- * normalizations: 
+ * normalizations:
  * </p>
  * <ul>
  *   <li>Converting the scheme and host to lower case</li>
@@ -68,8 +68,8 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </ul>
  * <p>
  * To overwrite this default, you have to specify a new list of normalizations
- * to apply, via the {@link #setNormalizations(Normalization...)} method, 
- * or via XML configuration.  Each 
+ * to apply, via the {@link #setNormalizations(Normalization...)} method,
+ * or via XML configuration.  Each
  * normalizations is identified by a code name.  The following is the
  * complete code name list for supported normalizations.  Click on any code
  * name to get a full description from {@link URLNormalizer}:
@@ -88,7 +88,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#removeDuplicateSlashes() removeDuplicateSlashes}</li>
  *   <li>{@link URLNormalizer#removeEmptyParameters() removeEmptyParameters}</li>
  *   <li>{@link URLNormalizer#removeFragment() removeFragment}</li>
- *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li> 
+ *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li>
  *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
  *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
  *   <li>{@link URLNormalizer#removeTrailingHash() removeTrailingHash} (since 2.7.0)</li>
@@ -98,19 +98,28 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#sortQueryParameters() sortQueryParameters}</li>
  *   <li>{@link URLNormalizer#unsecureScheme() unsecureScheme}</li>
  *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
+ *   <li>{@link URLNormalizer#removeQueryString() removeQueryString} (since 2.8.2)</li>
+ *   <li>{@link URLNormalizer#lowerCase() lowerCase} (since 2.8.2)</li>
+ *   <li>{@link URLNormalizer#lowerCasePath() lowerCasePath} (since 2.8.2)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.8.2)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQueryParameterNames()
+ *        lowerCaseQueryParameterNames} (since 2.8.2)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQueryParameterValues()
+ *        lowerCaseQueryParameterValues} (since 2.8.2)</li>
  * </ul>
+ *
  * <p>
- *   In addition, this class allows you to specify any number of URL 
+ *   In addition, this class allows you to specify any number of URL
  *   value replacements using regular expressions.
  * </p>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;urlNormalizer
  *      class="com.norconex.collector.http.url.impl.GenericURLNormalizer"
  *      disabled="[false|true]"&gt;
  *    &lt;normalizations&gt;
- *      (normalization code names, coma separated) 
+ *      (normalization code names, coma separated)
  *    &lt;/normalizations&gt;
  *    &lt;replacements&gt;
  *      &lt;replace&gt;
@@ -123,7 +132,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </pre>
  * <p>
  * Since 2.7.2, having an empty "normalizations" tag will effectively remove
- * any normalizations rules previously set (like default ones).  
+ * any normalizations rules previously set (like default ones).
  * Not having the tag
  * at all will keep existing/default normalizations.
  * </p>
@@ -132,14 +141,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * The following adds a normalization to add "www." to URL domains when
  * missing, to the default set of normalizations. It also add custom
  * URL "search-and-replace" to remove any "&amp;view=print" strings from URLs
- * as well as replace "&amp;type=summary" with "&amp;type=full". 
+ * as well as replace "&amp;type=summary" with "&amp;type=full".
  * </p>
  * <pre>
  *  &lt;urlNormalizer class="com.norconex.collector.http.url.impl.GenericURLNormalizer"&gt;
  *    &lt;normalizations&gt;
  *        removeFragment, lowerCaseSchemeHost, upperCaseEscapeSequence,
- *        decodeUnreservedCharacters, removeDefaultPort, 
- *        encodeNonURICharacters, addWWW 
+ *        decodeUnreservedCharacters, removeDefaultPort,
+ *        encodeNonURICharacters, addWWW
  *    &lt;/normalizations&gt;
  *    &lt;replacements&gt;
  *      &lt;replace&gt;&lt;match&gt;&amp;amp;view=print&lt;/match&gt;&lt;/replace&gt;
@@ -156,7 +165,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
     private static final Logger LOG = LogManager.getLogger(
             GenericURLNormalizer.class);
-  
+
     public enum Normalization {
         addDirectoryTrailingSlash,
         addDomainTrailingSlash,
@@ -164,34 +173,40 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
          * @deprecated Since 2.6.0, use {@link #addDirectoryTrailingSlash}
          */
         @Deprecated
-        addTrailingSlash, 
-        addWWW, 
-        decodeUnreservedCharacters, 
+        addTrailingSlash,
+        addWWW,
+        decodeUnreservedCharacters,
         encodeNonURICharacters,
         encodeSpaces,
+        lowerCase,
+        lowerCasePath,
+        lowerCaseQuery,
+        lowerCaseQueryParameterNames,
+        lowerCaseQueryParameterValues,
         lowerCaseSchemeHost,
-        removeDefaultPort, 
-        removeDirectoryIndex, 
-        removeDotSegments, 
-        removeDuplicateSlashes, 
-        removeEmptyParameters, 
-        removeFragment, 
+        removeDefaultPort,
+        removeDirectoryIndex,
+        removeDotSegments,
+        removeDuplicateSlashes,
+        removeEmptyParameters,
+        removeFragment,
+        removeQueryString,
         removeSessionIds,
-        removeTrailingQuestionMark, 
-        removeTrailingSlash, 
-        removeTrailingHash, 
-        removeWWW, 
-        replaceIPWithDomainName, 
-        secureScheme, 
-        sortQueryParameters, 
-        unsecureScheme, 
-        upperCaseEscapeSequence, 
+        removeTrailingQuestionMark,
+        removeTrailingSlash,
+        removeTrailingHash,
+        removeWWW,
+        replaceIPWithDomainName,
+        secureScheme,
+        sortQueryParameters,
+        unsecureScheme,
+        upperCaseEscapeSequence,
     }
-    
+
     private final List<Normalization> normalizations = new ArrayList<>();
     private final List<Replace> replaces = new ArrayList<>();
     private boolean disabled;
-    
+
     public GenericURLNormalizer() {
         super();
         setNormalizations(
@@ -208,7 +223,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         if (disabled) {
             return url;
         }
-        
+
         URLNormalizer normalizer = new URLNormalizer(url);
         for (Normalization n : normalizations) {
             try {
@@ -231,7 +246,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         }
         return normedURL;
     }
-    
+
     public Normalization[] getNormalizations() {
         return normalizations.toArray(new Normalization[] {});
     }
@@ -247,7 +262,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         this.replaces.clear();
         this.replaces.addAll(Arrays.asList(replaces));
     }
-    
+
     /**
      * Whether this URL Normalizer is disabled or not.
      * @return <code>true</code> if disabled
@@ -267,11 +282,11 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
 
     @Override
     public void loadFromXML(Reader in) {
-        
+
         XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        
+
         setDisabled(xml.getBoolean("[@disabled]", disabled));
-        
+
         if (xml.containsKey("normalizations")) {
             normalizations.clear();
             String xmlNorms = xml.getString("normalizations");
@@ -285,8 +300,8 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
                 }
             }
         }
-        
-        List<HierarchicalConfiguration> xmlReplaces = 
+
+        List<HierarchicalConfiguration> xmlReplaces =
                 xml.configurationsAt("replacements.replace");
         if (!replaces.isEmpty()) {
             replaces.clear();
@@ -301,7 +316,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
     @Override
     public void saveToXML(Writer out) throws IOException {
         try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out); 
+            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
             writer.writeStartElement("urlNormalizer");
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttributeBoolean("disabled", isDisabled());
@@ -357,7 +372,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
                 .append("normalizations", normalizations)
                 .append("replaces", replaces)
                 .toString();
-    }        
+    }
 
     public static class Replace {
         private final String match;
@@ -402,6 +417,6 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
                     .append("match", match)
                     .append("replacement", replacement)
                     .toString();
-        }        
+        }
     }
 }
