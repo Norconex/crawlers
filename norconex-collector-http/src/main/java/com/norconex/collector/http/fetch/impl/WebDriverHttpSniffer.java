@@ -53,10 +53,10 @@ import net.lightbody.bmp.util.HttpMessageInfo;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class WebDriverHttpAdapter {
+public class WebDriverHttpSniffer {
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            WebDriverHttpAdapter.class);
+            WebDriverHttpSniffer.class);
 
     private final ThreadLocal<FilterAndSource> tlocal = new ThreadLocal<>();
     private BrowserMobProxyServer mobProxy;
@@ -95,11 +95,11 @@ public class WebDriverHttpAdapter {
         start(options, null);
     }
     public void start(
-            MutableCapabilities options, WebDriverHttpAdapterConfig config) {
+            MutableCapabilities options, WebDriverHttpSnifferConfig config) {
         Objects.requireNonNull("'options' must not be null");
 
-        WebDriverHttpAdapterConfig cfg = Optional.ofNullable(
-                config).orElseGet(WebDriverHttpAdapterConfig::new);
+        WebDriverHttpSnifferConfig cfg = Optional.ofNullable(
+                config).orElseGet(WebDriverHttpSnifferConfig::new);
 
         mobProxy = new BrowserMobProxyServer();
         mobProxy.setTrustAllServers(true);

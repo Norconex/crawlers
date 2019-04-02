@@ -28,7 +28,8 @@ import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.fetch.HttpFetchResponse;
+import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
+import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
@@ -193,7 +194,7 @@ import com.norconex.commons.lang.file.ContentType;
     // instance (to avoid redirect dups).
     public static synchronized void queueRedirectURL(
             HttpImporterPipelineContext ctx,
-            HttpFetchResponse response,
+            IHttpFetchResponse response,
             String redirectURL) {
         ICrawlDataStore store = ctx.getCrawlDataStore();
         HttpCrawlData crawlData = ctx.getCrawlData();
@@ -229,10 +230,12 @@ import com.norconex.commons.lang.file.ContentType;
 
         //--- Fresh URL, queue it! ---
         crawlData.setState(HttpCrawlState.REDIRECT);
-        HttpFetchResponse newResponse = new HttpFetchResponse(
-                HttpCrawlState.REDIRECT,
-                response.getStatusCode(),
-                response.getReasonPhrase() + " (" + redirectURL + ")");
+        //TODO instead of copying like this use builder with withXXX methods
+        IHttpFetchResponse newResponse = new HttpFetchResponseBuilder(response)
+                .setCrawlState(HttpCrawlState.REDIRECT)
+                .setReasonPhrase(response.getReasonPhrase()
+                        + " (" + redirectURL + ")")
+                .build();
         ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED,
                 crawlData, newResponse);
 

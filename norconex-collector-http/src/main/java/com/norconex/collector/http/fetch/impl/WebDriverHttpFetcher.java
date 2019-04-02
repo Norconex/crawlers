@@ -45,13 +45,13 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
-import com.norconex.collector.http.fetch.HttpFetchResponse;
-import com.norconex.collector.http.fetch.impl.WebDriverHttpAdapter.DriverResponseFilter;
+import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
+import com.norconex.collector.http.fetch.IHttpFetchResponse;
+import com.norconex.collector.http.fetch.impl.WebDriverHttpSniffer.DriverResponseFilter;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -76,7 +76,7 @@ import com.norconex.commons.lang.xml.XML;
  * <h3>HTTP Headers</h3>
  * <p>
  * By default, web drivers do not expose HTTP headers.  If you want to
- * capture them, configure the "httpAdapter". A proxy service
+ * capture them, configure the "httpSniffer". A proxy service
  * will be started to monitor HTTP traffic and store HTTP headers.
  * </p>
  * <p>
@@ -137,7 +137,7 @@ import com.norconex.commons.lang.xml.XML;
  *      &lt;!-- Optionally setup an HTTP proxy that allows to set and capture
  *           HTTP headers. For advanced use only. Not recommended
  *           for regular usage. --&gt;
- *      &lt;httpAdapter&gt;
+ *      &lt;httpSniffer&gt;
  *          &lt;port&gt;(default is 0 = random free port)"&lt;/port&gt;
  *          &lt;userAgent&gt;(optionally overwrite browser user agent)&lt;/userAgent&gt;
  *
@@ -146,7 +146,7 @@ import com.norconex.commons.lang.xml.XML;
  *              &lt;header name="(header name)"&gt;(header value)&lt;/header&gt;
  *              &lt;!-- You can repeat this header tag as needed. --&gt;
  *          &lt;/headers&gt;
- *      &lt;/httpAdapter&gt;
+ *      &lt;/httpSniffer&gt;
  *
  *  &lt;/fetcher&gt;
  * </pre>
@@ -184,8 +184,8 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     private String userAgent;
     private int servicePort;   // default is 0 = any free port
 
-    private WebDriverHttpAdapter httpAdapter;
-    private WebDriverHttpAdapterConfig httpAdapterConfig;
+    private WebDriverHttpSniffer httpSniffer;
+    private WebDriverHttpSnifferConfig httpSnifferConfig;
     private WebDriverScreenshotHandler screenshotHandler;
 
     private final MutableCapabilities capabilities = new MutableCapabilities();
@@ -242,13 +242,13 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         return userAgent;
     }
 
-    public WebDriverHttpAdapterConfig getHttpAdapterConfig() {
-        return httpAdapterConfig;
+    public WebDriverHttpSnifferConfig getHttpSnifferConfig() {
+        return httpSnifferConfig;
     }
 
-    public void setHttpAdapterConfig(
-            WebDriverHttpAdapterConfig httpAdapterConfig) {
-        this.httpAdapterConfig = httpAdapterConfig;
+    public void setHttpSnifferConfig(
+            WebDriverHttpSnifferConfig httpSnifferConfig) {
+        this.httpSnifferConfig = httpSnifferConfig;
     }
 
     public MutableCapabilities getCapabilities() {
@@ -334,10 +334,10 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
             options.merge(capabilities);
 
-            if (httpAdapterConfig != null) {
-                httpAdapter = new WebDriverHttpAdapter();
-                httpAdapter.start(options, httpAdapterConfig);
-                userAgent = httpAdapterConfig.getUserAgent();
+            if (httpSnifferConfig != null) {
+                httpSniffer = new WebDriverHttpSniffer();
+                httpSniffer.start(options, httpSnifferConfig);
+                userAgent = httpSnifferConfig.getUserAgent();
             }
 
             Builder<?,?> serviceBuilder = browser.createServiceBuilder();
@@ -411,33 +411,35 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         if (service != null && service.isRunning()) {
             service.stop();
         }
-        if (httpAdapter != null) {
-            httpAdapter.stop();
+        if (httpSniffer != null) {
+            httpSniffer.stop();
         }
     }
 
     @Override
-    public HttpFetchResponse fetchHeaders(
+    public IHttpFetchResponse fetchHeaders(
             String url, HttpMetadata httpHeaders) {
         //TODO rely on proxy request filter to transform to a HEAD request?
-        return new HttpFetchResponse(CrawlState.UNSUPPORTED, -1,
-                "Headers can only be retrived with #fetchDocument instead, "
-                + "when driverProxyEnabled is true.");
+
+        return HttpFetchResponseBuilder.unsupported()
+                .setReasonPhrase("Headers can only be retrived with "
+                        + "#fetchDocument instead, when driverProxyEnabled "
+                        + "is true.").build();
     }
 
     @Override
-    public HttpFetchResponse fetchDocument(HttpDocument doc) {
+    public IHttpFetchResponse fetchDocument(HttpDocument doc) {
 
 	    LOG.debug("Fetching document: {}", doc.getReference());
 
-	    if (httpAdapter != null) {
-	        httpAdapter.bind(doc.getReference());
+	    if (httpSniffer != null) {
+	        httpSniffer.bind(doc.getReference());
 	    }
 
         doc.setInputStream(
                 fetchDocumentContent(driverTL.get(), doc.getReference()));
 
-        HttpFetchResponse response = resolveDriverResponse(doc);
+        IHttpFetchResponse response = resolveDriverResponse(doc);
 
         if (screenshotHandler != null) {
             screenshotHandler.takeScreenshot(driverTL.get(), doc);
@@ -448,9 +450,13 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         if (response != null) {
             return response;
         }
-        return new HttpFetchResponse(HttpCrawlState.NEW, 200,
-                "No exception thrown, but real status code unknown. "
-              + "Capture headers for real status code.");
+        return new HttpFetchResponseBuilder()
+                .setCrawlState(HttpCrawlState.NEW)
+                .setStatusCode(200)
+                .setReasonPhrase("No exception thrown, but real status code "
+                        + "unknown. Capture headers for real status code.")
+                .setUserAgent(getUserAgent())
+                .build();
     }
 
     // Overwrite to perform more advanced configuration/manipulation.
@@ -464,12 +470,13 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
 
-    private HttpFetchResponse resolveDriverResponse(HttpDocument doc) {
-        HttpFetchResponse response = null;
-        if (httpAdapter != null) {
-            DriverResponseFilter driverResponseFilter = httpAdapter.unbind();
+    private IHttpFetchResponse resolveDriverResponse(HttpDocument doc) {
+        IHttpFetchResponse response = null;
+        if (httpSniffer != null) {
+            DriverResponseFilter driverResponseFilter = httpSniffer.unbind();
             if (driverResponseFilter != null) {
-                for (Entry<String, String> en : driverResponseFilter.getHeaders()) {
+                for (Entry<String, String> en :
+                        driverResponseFilter.getHeaders()) {
                     doc.getMetadata().add(en.getKey(), en.getValue());
                 }
                 response = toFetchResponse(driverResponseFilter);
@@ -478,18 +485,22 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         return response;
     }
 
-    private HttpFetchResponse toFetchResponse(DriverResponseFilter driverResponseFilter) {
-        HttpFetchResponse response = null;
+    private IHttpFetchResponse toFetchResponse(
+            DriverResponseFilter driverResponseFilter) {
+        IHttpFetchResponse response = null;
         if (driverResponseFilter != null) {
             //TODO validate status code
             int statusCode = driverResponseFilter.getStatusCode();
             String reason = driverResponseFilter.getReasonPhrase();
+
+            HttpFetchResponseBuilder b = new HttpFetchResponseBuilder()
+                    .setStatusCode(statusCode)
+                    .setReasonPhrase(reason)
+                    .setUserAgent(getUserAgent());
             if (statusCode >= 200 && statusCode < 300) {
-                response = new HttpFetchResponse(
-                        HttpCrawlState.NEW, statusCode, reason);
+                response = b.setCrawlState(HttpCrawlState.NEW).build();
             } else {
-                response = new HttpFetchResponse(
-                        CrawlState.BAD_STATUS, statusCode, reason);
+                response = b.setCrawlState(HttpCrawlState.BAD_STATUS).build();
             }
         }
         return response;
@@ -502,10 +513,10 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         setBrowserPath(xml.getPath("browserPath", browserPath));
         setServicePort(xml.getInteger("servicePort", servicePort));
 
-        xml.getXML("httpAdapter").ifDefined(x -> {
-            WebDriverHttpAdapterConfig cfg = new WebDriverHttpAdapterConfig();
+        xml.getXML("httpSniffer").ifDefined(x -> {
+            WebDriverHttpSnifferConfig cfg = new WebDriverHttpSnifferConfig();
             cfg.loadFromXML(x);
-            setHttpAdapterConfig(cfg);
+            setHttpSnifferConfig(cfg);
         });
 
         xml.getXML("screenshot").ifDefined(x -> {
@@ -536,8 +547,8 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         xml.addElement("browserPath", browserPath);
         xml.addElement("servicePort", servicePort);
 
-        if (httpAdapterConfig != null) {
-            httpAdapterConfig.saveToXML(xml.addElement("httpAdapter"));
+        if (httpSnifferConfig != null) {
+            httpSnifferConfig.saveToXML(xml.addElement("httpSniffer"));
         }
 
         if (screenshotHandler != null) {

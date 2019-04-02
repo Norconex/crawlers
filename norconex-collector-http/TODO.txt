@@ -1,6 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
 
+- Do lib dups check on startup.
+
 - Add option to add certificates programmatically.
   https://stackoverflow.com/questions/6755180/java-ssl-connect-add-server-cert-to-keystore-programmatically
 

@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Norconex Inc.
+/* Copyright 2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,16 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.processor.impl;
+package com.norconex.collector.http.fetch;
 
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.fetch.HttpFetchClient;
-import com.norconex.collector.http.processor.IHttpDocumentProcessor;
+//TODO delete this?
 
-public class MockHttpDocumentProcessor implements IHttpDocumentProcessor {
 
-    @Override
-    public void processDocument(HttpFetchClient fetcher, HttpDocument doc) {
-        // NOOP
-    }
+/**
+ * Possible HTTP Fetch methods.
+ * @author Pascal Essiembre
+ * @since 3.0.0
+ */
+public enum HttpFetchMethod {
+    HEAD,
+    GET,
+    POST
 }

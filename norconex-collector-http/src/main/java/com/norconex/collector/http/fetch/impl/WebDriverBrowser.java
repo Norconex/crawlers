@@ -76,6 +76,7 @@ public enum WebDriverBrowser {
             return new GeckoDriverService.Builder();
         }
     },
+    /** Unsupported. */
     EDGE() {
         @Override
         public MutableCapabilities createCapabilities(Path browserPath) {

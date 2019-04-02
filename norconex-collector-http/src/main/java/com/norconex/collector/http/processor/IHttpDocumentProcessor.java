@@ -15,7 +15,7 @@
 package com.norconex.collector.http.processor;
 
 import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.fetch.HttpFetcherExecutor;
+import com.norconex.collector.http.fetch.HttpFetchClient;
 
 /**
  * Custom processing (optional) performed on a document.  Can be used
@@ -30,5 +30,5 @@ public interface IHttpDocumentProcessor {
 	 * @param fetcher HTTP fetcher executor
 	 * @param doc the document
 	 */
-    void processDocument(HttpFetcherExecutor fetcher, HttpDocument doc);
+    void processDocument(HttpFetchClient fetcher, HttpDocument doc);
 }

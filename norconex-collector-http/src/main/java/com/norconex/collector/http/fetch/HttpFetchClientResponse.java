@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,64 +14,64 @@
  */
 package com.norconex.collector.http.fetch;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.norconex.collector.core.data.CrawlState;
 
 /**
- * Hold HTTP response information obtained from fetching a document.
+ * Hold HTTP response information obtained from fetching a document
+ * using HttpFetchClient.
  * @author Pascal Essiembre
- * @since 2.2.0
+ * @since 3.0.0
  */
-public class HttpFetchResponse {
+public class HttpFetchClientResponse implements IHttpFetchResponse {
 
-    private final CrawlState crawlState;
-    private final int statusCode;
-    private final String reasonPhrase;
-    private Class<? extends IHttpFetcher> fetcher;
-    private String userAgent;
+    private final List<Pair<IHttpFetchResponse, IHttpFetcher>> responses =
+            new ArrayList<>();
 
-    public HttpFetchResponse(
-            CrawlState crawlState, int statusCode, String reasonPhrase) {
+    public HttpFetchClientResponse() {
         super();
-        this.crawlState = crawlState;
-        this.statusCode = statusCode;
-        this.reasonPhrase = reasonPhrase;
-        if (crawlState == null) {
-            throw new IllegalArgumentException(
-                    "Crawl state argument cannot be null.");
-        }
     }
 
+    public void addResponse(IHttpFetchResponse resp, IHttpFetcher fetcher) {
+        this.responses.add(0, new ImmutablePair<>(resp, fetcher));
+    }
+
+    @Override
     public CrawlState getCrawlState() {
-        return crawlState;
+        return lastResponse().map(
+                IHttpFetchResponse::getCrawlState).orElse(null);
     }
+    @Override
     public int getStatusCode() {
-        return statusCode;
+        return lastResponse().map(IHttpFetchResponse::getStatusCode).orElse(0);
     }
+    @Override
     public String getReasonPhrase() {
-        return reasonPhrase;
+        return lastResponse().map(
+                IHttpFetchResponse::getReasonPhrase).orElse(null);
     }
+    @Override
     public String getUserAgent() {
-        return userAgent;
+        return lastResponse().map(
+                IHttpFetchResponse::getUserAgent).orElse(null);
     }
-    public String getFetcherName() {
-        if (fetcher == null) {
-            return null;
+
+    private Optional<IHttpFetchResponse> lastResponse() {
+        if (responses.isEmpty()) {
+            return Optional.empty();
         }
-        return fetcher.getSimpleName();
+        return Optional.ofNullable(responses.get(0).getLeft());
     }
-
-    /*package*/ void setFetcher(Class<? extends IHttpFetcher> fetcher) {
-        this.fetcher = fetcher;
-    }
-    /*package*/ void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
-    }
-
 
     @Override
     public boolean equals(final Object other) {

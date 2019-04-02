@@ -21,8 +21,8 @@ import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.fetch.HttpFetchResponse;
-import com.norconex.collector.http.fetch.HttpFetcherExecutor;
+import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 
 /**
@@ -43,12 +43,12 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
         HttpCrawlData crawlData = ctx.getCrawlData();
 
         //IHttpMetadataFetcher headersFetcher = ctx.getHttpHeadersFetcher();
-        HttpFetcherExecutor fetcher = ctx.getHttpFetcherExecutor();
+        HttpFetchClient fetcher = ctx.getHttpFetcherExecutor();
 
         HttpMetadata metadata = ctx.getMetadata();
 //        Properties headers = new Properties(metadata.isCaseInsensitiveKeys());
 
-        HttpFetchResponse response = fetcher.fetchHeaders(
+        IHttpFetchResponse response = fetcher.fetchHeaders(
                 crawlData.getReference(), metadata);
 
 //        metadata.putAll(headers);

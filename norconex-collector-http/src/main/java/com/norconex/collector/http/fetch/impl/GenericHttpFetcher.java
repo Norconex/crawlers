@@ -94,12 +94,12 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
-import com.norconex.collector.http.fetch.HttpFetchResponse;
+import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
+import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.collector.http.fetch.util.TrustAllX509TrustManager;
@@ -420,15 +420,15 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public HttpFetchResponse fetchHeaders(String url, HttpMetadata headers) {
+    public IHttpFetchResponse fetchHeaders(String url, HttpMetadata headers) {
         return fetch(url, headers, null, true);
     }
 
     @Override
-    public HttpFetchResponse fetchDocument(HttpDocument doc) {
+    public IHttpFetchResponse fetchDocument(HttpDocument doc) {
         MutableObject<CachedInputStream> is =
                 new MutableObject<>(doc.getInputStream());
-        HttpFetchResponse response = fetch(
+        IHttpFetchResponse response = fetch(
                 doc.getReference(), doc.getMetadata(), is, false);
 
 //        IOUtils.copy(is.getValue(), new NullOutputStream());
@@ -438,8 +438,11 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         return response;
     }
 
-    private HttpFetchResponse fetch(String url, HttpMetadata metadata,
+    private IHttpFetchResponse fetch(String url, HttpMetadata metadata,
             MutableObject<CachedInputStream> stream, boolean head) {
+
+        HttpFetchResponseBuilder responseBuilder =
+                new HttpFetchResponseBuilder();
 
         //TODO replace signature with Writer class.
         LOG.debug("Fetching document: {}", url);
@@ -451,6 +454,10 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
             int statusCode = response.getStatusLine().getStatusCode();
             String reason = response.getStatusLine().getReasonPhrase();
+
+            responseBuilder.setStatusCode(statusCode);
+            responseBuilder.setReasonPhrase(reason);
+            responseBuilder.setUserAgent(cfg.getUserAgent());
 
             InputStream is = null;
             if (!head) {
@@ -487,8 +494,9 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
 //                    performDetection(doc);
                 }
-                return new HttpFetchResponse(
-                        HttpCrawlState.NEW, statusCode, reason);
+                return responseBuilder
+                        .setCrawlState(HttpCrawlState.NEW)
+                        .build();
             }
 
             if (!head) {
@@ -511,14 +519,19 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             }
 
             if (cfg.getNotFoundStatusCodes().contains(statusCode)) {
-                return new HttpFetchResponse(
-                        HttpCrawlState.NOT_FOUND, statusCode, reason);
+                return responseBuilder
+                        .setCrawlState(HttpCrawlState.NOT_FOUND)
+                        .build();
             }
-            LOG.debug("Unsupported HTTP Response: "
-                    + response.getStatusLine());
-            return new HttpFetchResponse(
-                    CrawlState.BAD_STATUS, statusCode, reason);
+            LOG.debug("Unsupported HTTP Response: {}",
+                    response.getStatusLine());
+            return responseBuilder
+                    .setCrawlState(HttpCrawlState.BAD_STATUS)
+                    .build();
         } catch (Exception e) {
+            //TODO set exception on response instead?
+
+
             LOG.info("Cannot fetch document: {}  ({})",
                     url, e.getMessage(), e);
 

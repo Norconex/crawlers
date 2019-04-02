@@ -1,4 +1,4 @@
-/* Copyright 2018 Norconex Inc.
+/* Copyright 2018-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,13 +35,11 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class HttpFetcherExecutor {
+public class HttpFetchClient {
 
     //TODO by default, continue to next if unsupported status is returned.
     //  But have options to configure so that it continue if exception
     // or continue if null
-
-    //TODO have GET HEAD and POST methods on fetchers.
 
     //TODO Have retry attempts here, or on each fetcher (more control)?
 
@@ -51,7 +49,7 @@ public class HttpFetcherExecutor {
     private final List<IHttpFetcher> fetchers = new ArrayList<>();
     private final CachedStreamFactory streamFactory;
 
-    public HttpFetcherExecutor(
+    public HttpFetchClient(
             CachedStreamFactory streamFactory,
             List<IHttpFetcher> httpFetchers) {
         Objects.requireNonNull(
@@ -68,27 +66,29 @@ public class HttpFetcherExecutor {
         return streamFactory;
     }
 
-    public HttpFetchResponse fetchHeaders(String url, HttpMetadata headers) {
+
+    public IHttpFetchResponse fetchHeaders(String url, HttpMetadata headers) {
         return fetch(fetcher -> fetcher.fetchHeaders(url, headers));
     }
-    public HttpFetchResponse fetchDocument(HttpDocument doc) {
+    public IHttpFetchResponse fetchDocument(HttpDocument doc) {
         return fetch(fetcher -> fetcher.fetchDocument(doc));
     }
+
     public HttpDocument fetchDocument(String url) {
         HttpDocument doc = new HttpDocument(url, streamFactory);
         fetch(fetcher -> fetcher.fetchDocument(doc));
         return doc;
     }
-
-    //TODO add a method to IHttpFetcher that simply return a normal input
-    // stream?
-
-    public HttpFetchResponse fetchDocumentContent(String url, OutputStream out)
-            throws IOException {
+    public IHttpFetchResponse fetchDocument(String url, OutputStream out)
+            throws HttpFetchException {
         HttpDocument doc = new HttpDocument(url, streamFactory);
-        HttpFetchResponse resp = fetch(fetcher -> fetcher.fetchDocument(doc));
-        IOUtils.copy(doc.getInputStream(), out);
-        doc.dispose();
+        IHttpFetchResponse resp = fetch(fetcher -> fetcher.fetchDocument(doc));
+        try {
+            IOUtils.copy(doc.getInputStream(), out);
+            doc.dispose();
+        } catch (IOException e) {
+            throw new HttpFetchException("Could not fetch: " + url, e);
+        }
         return resp;
     }
 //    //TODO how about disposing the input stream here?  shall we have this method?
@@ -96,19 +96,17 @@ public class HttpFetcherExecutor {
 //        return fetchDocument(url).getInputStream();
 //    }
 
-    private HttpFetchResponse fetch(
-            Function<IHttpFetcher, HttpFetchResponse> supplier) {
-        HttpFetchResponse response = null;
+    private IHttpFetchResponse fetch(
+            Function<IHttpFetcher, IHttpFetchResponse> supplier) {
+        HttpFetchClientResponse clientResponse = new HttpFetchClientResponse();
         for (IHttpFetcher fetcher : fetchers) {
-//System.out.println("XXXXXXX FETCHER: " + fetcher);
-            response = supplier.apply(fetcher);
-            if (response != null /*&& response.getCrawlState() == OK*/) {
-                response.setFetcher(fetcher.getClass());
-                response.setUserAgent(fetcher.getUserAgent());
+            IHttpFetchResponse fetchResponse = supplier.apply(fetcher);
+            if (fetchResponse != null /*&& response.getCrawlState() == OK*/) {
+                clientResponse.addResponse(fetchResponse, fetcher);
                 break;
             }
         }
 //System.out.println("XXXXXXX RESPONSE: " + response);
-        return response;
+        return clientResponse;
     }
 }

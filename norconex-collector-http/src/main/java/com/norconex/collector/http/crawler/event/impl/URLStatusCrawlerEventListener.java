@@ -39,7 +39,8 @@ import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorEvent;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
-import com.norconex.collector.http.fetch.HttpFetchResponse;
+import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
+import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.collector.http.url.impl.TikaLinkExtractor;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -236,8 +237,8 @@ public class URLStatusCrawlerEventListener
         }
 
         HttpCrawlerEvent e = ((HttpCrawlerEvent) event);
-        if (e.getSubject() instanceof HttpFetchResponse) {
-            HttpFetchResponse response = (HttpFetchResponse) e.getSubject();
+        if (e.getSubject() instanceof HttpFetchResponseBuilder) {
+            IHttpFetchResponse response = (IHttpFetchResponse) e.getSubject();
             if (parsedCodes.isEmpty()
                     || parsedCodes.contains(response.getStatusCode())) {
                 Path outFile = outputFiles.get(

@@ -27,12 +27,14 @@ import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
+//TODO merge with WebDriverHttpSniffer given usage should be rare.
+
 /**
- * Configuration for {@link WebDriverHttpAdapter}.
+ * Configuration for {@link WebDriverHttpSniffer}.
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class WebDriverHttpAdapterConfig implements IXMLConfigurable {
+public class WebDriverHttpSnifferConfig implements IXMLConfigurable {
 
     private int port;
     private String userAgent;
@@ -78,10 +80,10 @@ public class WebDriverHttpAdapterConfig implements IXMLConfigurable {
 
     @Override
     public boolean equals(final Object obj) {
-        if (!(obj instanceof WebDriverHttpAdapterConfig)) {
+        if (!(obj instanceof WebDriverHttpSnifferConfig)) {
             return false;
         }
-        WebDriverHttpAdapterConfig other = (WebDriverHttpAdapterConfig) obj;
+        WebDriverHttpSnifferConfig other = (WebDriverHttpSnifferConfig) obj;
         return EqualsBuilder.reflectionEquals(
                 this, other, "requestHeaders")
                 && EqualsUtil.equalsMap(requestHeaders, other.requestHeaders);

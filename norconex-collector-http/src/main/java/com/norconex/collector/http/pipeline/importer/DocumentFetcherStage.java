@@ -22,7 +22,7 @@ import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
-import com.norconex.collector.http.fetch.HttpFetchResponse;
+import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 
 /**
@@ -41,7 +41,7 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 //        HttpFetchResponse response =
 //                ctx.getConfig().getDocumentFetcher().fetchDocument(
 //                        ctx.getHttpClient(), ctx.getDocument());
-        HttpFetchResponse response =
+        IHttpFetchResponse response =
                 ctx.getHttpFetcherExecutor().fetchDocument(ctx.getDocument());
 //System.out.println("XXXXXXX RESPONSE IS: " + response);
         crawlData.setCrawlDate(new Date());

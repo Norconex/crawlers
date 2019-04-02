@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,16 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.processor.impl;
+package com.norconex.collector.http.fetch;
 
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.fetch.HttpFetchClient;
-import com.norconex.collector.http.processor.IHttpDocumentProcessor;
+import com.norconex.collector.core.data.CrawlState;
 
-public class MockHttpDocumentProcessor implements IHttpDocumentProcessor {
+/**
+ *
+ * @author Pascal Essiembre
+ * @since 3.0.0
+ */
+public interface IHttpFetchResponse {
 
-    @Override
-    public void processDocument(HttpFetchClient fetcher, HttpDocument doc) {
-        // NOOP
-    }
+    CrawlState getCrawlState();
+
+    int getStatusCode();
+
+    String getReasonPhrase();
+
+    String getUserAgent();
+
+    //TODO Exception getException();  ???
+
+
 }

@@ -1,4 +1,4 @@
-/* Copyright 2018 Norconex Inc.
+/* Copyright 2018-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,30 @@ import com.norconex.collector.http.doc.HttpMetadata;
  */
 public interface IHttpFetcher {
 
-    //TODO have HEAD, GET, POST methods instead?
+    //TODO have HttpMethod enum class (POST, GET, etc)
+    //TODO modify this interface to have:
+    //     HttpFetchResponse fetch(HttpMethod method, HttpDocument doc);
+    //     and one of:
+    //         boolean accept(HttpDocument doc);
+    //           or HttpFetchResponse.UNSUPPORTED (singleton?)
 
-//    HttpFetchResponse fetchDocument(HttpDocument doc);
-//    HttpFetchResponse fetchHeaders(String url, HttpMetadata metadata);
 
     String getUserAgent();
+
+    //TODO remove this method?
     boolean accept(HttpDocument doc);
-    HttpFetchResponse fetchHeaders(String url, HttpMetadata httpHeaders);
-    HttpFetchResponse fetchDocument(HttpDocument doc);
+
+
+    IHttpFetchResponse fetchHeaders(String url, HttpMetadata httpHeaders); // throw HttpFetchException
+    IHttpFetchResponse fetchDocument(HttpDocument doc);  // throw HttpFetchException
     // INSTEAD?  So we do not expose HttpDocument?
 //    HttpFetchResponse fetchDocument(
 //            String url, HttpMetadata httpHeaders, OutputStream content);
+
+
+
+
+    //TODO have an collector.HttpFetcherClient (renaming from HttpFetcherExecutor)
+    // which is comprised of one or many collector.IHttpFetcher
 
 }

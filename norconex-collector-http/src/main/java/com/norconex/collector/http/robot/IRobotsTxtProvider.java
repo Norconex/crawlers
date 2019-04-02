@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.robot;
 
-import com.norconex.collector.http.fetch.HttpFetcherExecutor;
+import com.norconex.collector.http.fetch.HttpFetchClient;
 
 /**
  * Given a URL, extract any "robots.txt" rules. Implementations are expected
@@ -32,7 +32,7 @@ public interface IRobotsTxtProvider {
 //     * @param userAgent the User-Agent to match ourselves with the robot rules
      * @return robots.txt rules
      */
-    RobotsTxt getRobotsTxt(HttpFetcherExecutor fetcher, String url);
+    RobotsTxt getRobotsTxt(HttpFetchClient fetcher, String url);
 //    RobotsTxt getRobotsTxt(HttpFetcherExecutor fetcher, String url, String userAgent);
 
 }

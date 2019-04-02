@@ -49,6 +49,8 @@ import com.norconex.commons.lang.OSResource;
 import com.norconex.commons.lang.file.WebFile;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 
+//TODO if EDGE fails, log an error and Assume false (ignore the test).
+
 //TODO merge http client with document fetcher.
 // have 1 doc fetcher and 1 http fetcher that can be the same or different.
 // have ability to specify different fetchers for different URL patterns.
@@ -178,8 +180,8 @@ public class WebDriverHttpFetcherTest  {
                 isProxySupported(browser));
 
         WebDriverHttpFetcher fetcher = createFetcher();
-        WebDriverHttpAdapterConfig cfg = new WebDriverHttpAdapterConfig();
-        fetcher.setHttpAdapterConfig(cfg);
+        WebDriverHttpSnifferConfig cfg = new WebDriverHttpSnifferConfig();
+        fetcher.setHttpSnifferConfig(cfg);
 
         try {
             // simulate crawler startup

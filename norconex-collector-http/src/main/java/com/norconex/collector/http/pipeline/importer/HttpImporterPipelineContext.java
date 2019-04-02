@@ -21,7 +21,7 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.fetch.HttpFetcherExecutor;
+import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.bean.BeanUtil;
@@ -75,7 +75,7 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
 //    public HttpClient getHttpClient() {
 //        return getCrawler().getHttpClient();
 //    }
-    public HttpFetcherExecutor getHttpFetcherExecutor() {
+    public HttpFetchClient getHttpFetcherExecutor() {
         return getCrawler().getHttpFetcherExecutor();
     }
 

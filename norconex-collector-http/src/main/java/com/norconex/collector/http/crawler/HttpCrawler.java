@@ -44,7 +44,7 @@ import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.fetch.HttpFetcherExecutor;
+import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.pipeline.committer.HttpCommitterPipeline;
 import com.norconex.collector.http.pipeline.committer.HttpCommitterPipelineContext;
 import com.norconex.collector.http.pipeline.importer.HttpImporterPipeline;
@@ -70,7 +70,7 @@ public class HttpCrawler extends Crawler {
 
 //	private HttpClient httpClient;
 	private ISitemapResolver sitemapResolver;
-	private HttpFetcherExecutor fetcherExecutor;
+	private HttpFetchClient fetcherExecutor;
 
     /**
      * Constructor.
@@ -94,7 +94,7 @@ public class HttpCrawler extends Crawler {
 //        return httpClient;
 //    }
 
-    public HttpFetcherExecutor getHttpFetcherExecutor() {
+    public HttpFetchClient getHttpFetcherExecutor() {
         return fetcherExecutor;
     }
 
@@ -120,7 +120,7 @@ public class HttpCrawler extends Crawler {
 
         logInitializationInformation();
 //        initializeHTTPClient();
-        fetcherExecutor = new HttpFetcherExecutor(
+        fetcherExecutor = new HttpFetchClient(
                 getStreamFactory(), getCrawlerConfig().getHttpFetchers());
 
 

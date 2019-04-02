@@ -51,13 +51,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.doc.CollectorMetadata;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
-import com.norconex.collector.http.fetch.HttpFetchResponse;
+import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
+import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.collector.http.processor.impl.ScaledImage;
 import com.norconex.commons.lang.EqualsUtil;
@@ -786,13 +786,13 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public HttpFetchResponse fetchHeaders(String url,
+    public IHttpFetchResponse fetchHeaders(String url,
             HttpMetadata httpHeaders) {
         // Not supported
-        return null;
+        return HttpFetchResponseBuilder.unsupported().build();
     }
     @Override
-    public HttpFetchResponse fetchDocument(HttpDocument doc) {
+    public IHttpFetchResponse fetchDocument(HttpDocument doc) {
 
         init();
         validate();
@@ -820,8 +820,8 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         initialized = true;
     }
 
-    private HttpFetchResponse fetchPhantomJSDocument(HttpDocument doc)
-                        throws IOException, SystemCommandException {
+    private IHttpFetchResponse fetchPhantomJSDocument(HttpDocument doc)
+            throws IOException, SystemCommandException {
 
         PhantomJSArguments p = new PhantomJSArguments(this, doc);
 	    SystemCommand cmd = createPhantomJSCommand(p);
@@ -835,6 +835,13 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
 
         int statusCode = output.getStatusCode();
         String reason = output.getStatusText();
+
+        HttpFetchResponseBuilder responseBuilder =
+                new HttpFetchResponseBuilder()
+                        .setStatusCode(statusCode)
+                        .setReasonPhrase(reason)
+                        .setUserAgent(getUserAgent());
+
 
         // set Content-Type HTTP metadata obtained from CONTENTTYPE output
         // if not obtained via regular headers
@@ -880,9 +887,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                 return null;
 //                return fetcherConfig.fetchDocument(doc);
             }
-
-            return new HttpFetchResponse(
-                    HttpCrawlState.NEW, statusCode, reason);
+            return responseBuilder.setCrawlState(HttpCrawlState.NEW).build();
         }
 
         // INVALID response
@@ -892,16 +897,20 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                             p.outFile.toFile(), StandardCharsets.UTF_8));
         }
         if (fetcherConfig.getNotFoundStatusCodes().contains(statusCode)) {
-            return new HttpFetchResponse(
-                    HttpCrawlState.NOT_FOUND, statusCode, reason);
+            return responseBuilder.setCrawlState(
+                    HttpCrawlState.NOT_FOUND).build();
         }
         if (exit != 0) {
-            return new HttpFetchResponse(CrawlState.BAD_STATUS, exit,
-                    "PhantomJS execution failed with exit code " + exit);
+            return responseBuilder
+                    .setCrawlState(HttpCrawlState.BAD_STATUS)
+                    .setStatusCode(exit)
+                    .setReasonPhrase(
+                            "PhantomJS execution failed with exit code " + exit)
+                    .build();
         }
         LOG.debug("Unsupported HTTP Response: {}", reason);
-        return new HttpFetchResponse(
-                CrawlState.BAD_STATUS, statusCode, reason);
+        return responseBuilder.setCrawlState(
+                HttpCrawlState.BAD_STATUS).build();
 	}
 
     private void handleScreenshot(PhantomJSArguments p, HttpDocument doc) {

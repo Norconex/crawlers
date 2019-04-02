@@ -20,7 +20,7 @@ import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.fetch.HttpFetcherExecutor;
+import com.norconex.collector.http.fetch.HttpFetchClient;
 
 /**
  * @author Pascal Essiembre
@@ -55,7 +55,7 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
 //    public HttpClient getHttpClient() {
 //        return getCrawler().getHttpClient();
 //    }
-    public HttpFetcherExecutor getHttpFetcherExecutor() {
+    public HttpFetchClient getHttpFetcherExecutor() {
         return getCrawler().getHttpFetcherExecutor();
     }
 

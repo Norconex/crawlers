@@ -46,8 +46,8 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.fetch.HttpFetchResponse;
-import com.norconex.collector.http.fetch.HttpFetcherExecutor;
+import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -152,7 +152,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
 
     @Override
     public void resolveSitemaps(
-            HttpFetcherExecutor fetcher, String urlRoot,
+            HttpFetchClient fetcher, String urlRoot,
             List<String> sitemapLocations, SitemapURLAdder sitemapURLAdder,
             boolean startURLs) {
 
@@ -216,7 +216,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
         sitemapStore.close();
     }
 
-    private void resolveLocation(String location, HttpFetcherExecutor fetcher,
+    private void resolveLocation(String location, HttpFetchClient fetcher,
             SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations) {
 
         if (resolvedLocations.contains(location)) {
@@ -237,7 +237,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
             // Execute the method.
             doc = new HttpDocument(location, fetcher.getStreamFactory());
 //            HttpResponse response = httpClient.execute(method);
-            HttpFetchResponse response = fetcher.fetchDocument(doc);
+            IHttpFetchResponse response = fetcher.fetchDocument(doc);
             int statusCode = response.getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 LOG.info("Resolving sitemap: {}", location);
@@ -304,7 +304,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
 
-    private void parseLocation(File sitemapFile, HttpFetcherExecutor fetcher,
+    private void parseLocation(File sitemapFile, HttpFetchClient fetcher,
             SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations,
             String location) throws XMLStreamException, IOException {
 

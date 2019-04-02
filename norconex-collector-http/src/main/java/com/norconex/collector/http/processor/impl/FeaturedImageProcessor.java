@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CollectorMetadata;
 import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.fetch.HttpFetcherExecutor;
+import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
@@ -387,7 +387,7 @@ public class FeaturedImageProcessor
         this.scaleQuality = scaleQuality;
     }
     @Override
-    public void processDocument(HttpFetcherExecutor fetcher, HttpDocument doc) {
+    public void processDocument(HttpFetchClient fetcher, HttpDocument doc) {
         ensureInit();
 
         // Return if not valid content type
@@ -458,7 +458,7 @@ public class FeaturedImageProcessor
     }
 
     private ScaledImage findFeaturedImage(
-            Document dom, HttpFetcherExecutor fetcher, boolean largest) {
+            Document dom, HttpFetchClient fetcher, boolean largest) {
         Elements els;
         if (StringUtils.isNotBlank(domSelector)) {
             els = dom.select(domSelector);
@@ -500,7 +500,7 @@ public class FeaturedImageProcessor
         this.initialized = true;
     }
 
-    private ScaledImage getImage(HttpFetcherExecutor fetcher, String url) {
+    private ScaledImage getImage(HttpFetchClient fetcher, String url) {
         try {
             ScaledImage img = null;
             if (cache != null) {
@@ -575,7 +575,7 @@ public class FeaturedImageProcessor
     }
 
     // make synchronized?
-    private BufferedImage fetchImage(HttpFetcherExecutor fetcher, String url) {
+    private BufferedImage fetchImage(HttpFetchClient fetcher, String url) {
 //        HttpResponse response;
 //        InputStream is = null;
 

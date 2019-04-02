@@ -17,7 +17,7 @@ package com.norconex.collector.http.sitemap;
 import java.util.List;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.fetch.HttpFetcherExecutor;
+import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.sitemap.impl.StandardSitemapResolver;
 
 
@@ -63,7 +63,7 @@ public interface ISitemapResolver {
      * @param startURLs whether the sitemapLocations provided (if any) are
      *        start URLs (defined in {@link HttpCrawlerConfig#getStartSitemapURLs()})
      */
-    void resolveSitemaps(HttpFetcherExecutor httpFetcher, String urlRoot,
+    void resolveSitemaps(HttpFetchClient httpFetcher, String urlRoot,
             List<String> sitemapLocations, SitemapURLAdder sitemapURLAdder,
             boolean startURLs);
 
