@@ -65,8 +65,11 @@
   <!-- Location where internal progress files are stored. -->
   <progressDir>$workdir\progress</progressDir>
 
-  <!-- Location where logs are stored. -->
-  <logsDir>$workdir\logs</logsDir>
+  <!-- Location where logs are stored.
+       File-based logging is by default managed by the collector. 
+       To have it unmanaged and rely on log4j.properties settings only,
+       set "unmanaged" to "true". -->
+  <logsDir unmanaged="false">$workdir\logs</logsDir>
 
   <!-- One or more optional listeners to be notified when the collector
        starts or finishes.  Class must implement 
