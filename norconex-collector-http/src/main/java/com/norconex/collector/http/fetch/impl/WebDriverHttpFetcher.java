@@ -317,11 +317,11 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         }
 
         //TODO remove support for EDGE since it is so limited???
-        if (browser == WebDriverBrowser.EDGE) {
-            LOG.warn("Using Microsoft Edge is not recommended if you want "
-                   + "to capture HTTP headers, use multiple threads, be "
-                   + "fully headless, or change its 'User-Agent'.");
-        }
+//        if (browser == WebDriverBrowser.EDGE) {
+//            LOG.warn("Using Microsoft Edge is not recommended if you want "
+//                   + "to capture HTTP headers, use multiple threads, be "
+//                   + "fully headless, or change its 'User-Agent'.");
+//        }
 
         try {
             MutableCapabilities options =

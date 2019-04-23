@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 
     private final List<IHttpFetcher> httpFetchers =
             new ArrayList<>(Arrays.asList(new GenericHttpFetcher()));
+    private int httpFetchersMaxRetries;
+    private long httpFetchersRetryDelay;
 
     private ICanonicalLinkDetector canonicalLinkDetector =
             new GenericCanonicalLinkDetector();
@@ -287,6 +289,43 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      */
     public void setHttpFetchers(List<IHttpFetcher> httpFetchers) {
         CollectionUtil.setAll(this.httpFetchers, httpFetchers);
+    }
+    /**
+     * Gets the maximum number of times an HTTP fetcher will re-attempt fetching
+     * a resource in case of failures.  Default is zero (won't retry).
+     * @return number of times
+     * @since 3.0.0
+     */
+    public int getHttpFetchersMaxRetries() {
+        return httpFetchersMaxRetries;
+    }
+    /**
+     * Sets the maximum number of times an HTTP fetcher will re-attempt fetching
+     * a resource in case of failures.
+     * @param httpFetchersMaxRetries maximum number of retries
+     * @since 3.0.0
+     */
+    public void setHttpFetchersMaxRetries(int httpFetchersMaxRetries) {
+        this.httpFetchersMaxRetries = httpFetchersMaxRetries;
+    }
+    /**
+     * Gets how long to wait before a failing HTTP fetcher re-attempts fetching
+     * a resource in case of failures (in milliseconds).
+     * Default is zero (no delay).
+     * @return retry delay
+     * @since 3.0.0
+     */
+    public long getHttpFetchersRetryDelay() {
+        return httpFetchersRetryDelay;
+    }
+    /**
+     * Sets how long to wait before a failing HTTP fetcher re-attempts fetching
+     * a resource in case of failures (in milliseconds).
+     * @param httpFetchersRetryDelay retry delay
+     * @since 3.0.0
+     */
+    public void setHttpFetchersRetryDelay(long httpFetchersRetryDelay) {
+        this.httpFetchersRetryDelay = httpFetchersRetryDelay;
     }
 
     /**
@@ -578,7 +617,11 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         xml.addElement("canonicalLinkDetector", canonicalLinkDetector);
         xml.addElement("recrawlableResolver", recrawlableResolver);
 
-        xml.addElementList("httpFetchers", "fetcher", httpFetchers);
+        xml.addElement("httpFetchers")
+                .setAttribute("maxRetries", httpFetchersMaxRetries)
+                .setAttribute("retryDelay", httpFetchersRetryDelay)
+                .addElementList("fetcher", httpFetchers);
+
         xml.addElement("metadataChecksummer", metadataChecksummer);
         xml.addElement("robotsMeta", robotsMetaProvider)
                 .setAttribute("ignore", ignoreRobotsMeta);
@@ -618,6 +661,10 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         // HTTP Fetchers
         setHttpFetchers(xml.getObjectList(
                 "httpFetchers/fetcher", httpFetchers));
+        setHttpFetchersMaxRetries(xml.getInteger(
+                "httpFetchers/@maxRetries", httpFetchersMaxRetries));
+        setHttpFetchersRetryDelay(xml.getDurationMillis(
+                "httpFetchers/@retryDelay", httpFetchersRetryDelay));
 
         // Metadata Checksummer
         setMetadataChecksummer(

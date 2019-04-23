@@ -47,6 +47,8 @@
                 <xs:element name="fetcher" 
                     type="anyComplexRequiredClassType" minOccurs="1" maxOccurs="unbounded"/>
               </xs:all>
+              <xs:attribute name="maxRetries" type="xs:int"/>
+              <xs:attribute name="retryDelay" type="xs:string"/>
             </xs:complexType>
           </xs:element>
           <xs:element name="robotsTxt" minOccurs="0" maxOccurs="1">

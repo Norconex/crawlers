@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 //                ctx.getConfig().getDocumentFetcher().fetchDocument(
 //                        ctx.getHttpClient(), ctx.getDocument());
         IHttpFetchResponse response =
-                ctx.getHttpFetcherExecutor().fetchDocument(ctx.getDocument());
+                ctx.getHttpFetchClient().fetchDocument(ctx.getDocument());
 //System.out.println("XXXXXXX RESPONSE IS: " + response);
         crawlData.setCrawlDate(new Date());
 

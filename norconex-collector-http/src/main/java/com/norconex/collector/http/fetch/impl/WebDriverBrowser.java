@@ -20,8 +20,6 @@ import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeDriverService;
-import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.opera.OperaDriverService;
@@ -77,16 +75,16 @@ public enum WebDriverBrowser {
         }
     },
     /** Unsupported. */
-    EDGE() {
-        @Override
-        public MutableCapabilities createCapabilities(Path browserPath) {
-            return new EdgeOptions();
-        }
-        @Override
-        public Builder<?, ?> createServiceBuilder() {
-            return new EdgeDriverService.Builder();
-        }
-    },
+//    EDGE() {
+//        @Override
+//        public MutableCapabilities createCapabilities(Path browserPath) {
+//            return new EdgeOptions();
+//        }
+//        @Override
+//        public Builder<?, ?> createServiceBuilder() {
+//            return new EdgeDriverService.Builder();
+//        }
+//    },
     SAFARI() {
         @Override
         public MutableCapabilities createCapabilities(Path browserPath) {

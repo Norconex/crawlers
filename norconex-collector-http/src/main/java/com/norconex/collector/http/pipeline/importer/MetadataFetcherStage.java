@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Norconex Inc.
+/* Copyright 2016-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
         HttpCrawlData crawlData = ctx.getCrawlData();
 
         //IHttpMetadataFetcher headersFetcher = ctx.getHttpHeadersFetcher();
-        HttpFetchClient fetcher = ctx.getHttpFetcherExecutor();
+        HttpFetchClient fetcher = ctx.getHttpFetchClient();
 
         HttpMetadata metadata = ctx.getMetadata();
 //        Properties headers = new Properties(metadata.isCaseInsensitiveKeys());

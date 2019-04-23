@@ -1,5 +1,9 @@
 The following are either things to be done, or ideas to consider:
 
+- Add ability to export crawlstore in neutral format to switch from one to 
+  another.
+
+- Remove MultiCommitter in favor of supporting multiple committers natively.
 
 - Do lib dups check on startup.
 

@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,8 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
 //    public HttpClient getHttpClient() {
 //        return getCrawler().getHttpClient();
 //    }
-    public HttpFetchClient getHttpFetcherExecutor() {
-        return getCrawler().getHttpFetcherExecutor();
+    public HttpFetchClient getHttpFetchClient() {
+        return getCrawler().getHttpFetchClient();
     }
 
     @Override

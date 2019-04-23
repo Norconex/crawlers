@@ -95,12 +95,12 @@ public class WebDriverHttpFetcherTest  {
                     "geckodriver-0.23.exe"))
             .get();
 
-    private static final Path edgeDriverPath = new OSResource<Path>()
-            .win(WebFile.create("https://download.microsoft.com/download/F/8/A/"
-                    + "F8AF50AB-3C3A-4BC4-8773-DC27B32988DD/"
-                    + "MicrosoftWebDriver.exe",
-                    "edgedriver-6.17134.exe"))
-            .get();
+//    private static final Path edgeDriverPath = new OSResource<Path>()
+//            .win(WebFile.create("https://download.microsoft.com/download/F/8/A/"
+//                    + "F8AF50AB-3C3A-4BC4-8773-DC27B32988DD/"
+//                    + "MicrosoftWebDriver.exe",
+//                    "edgedriver-6.17134.exe"))
+//            .get();
 
     private final WebDriverBrowser browser;
     private final Path driverPath;
@@ -117,7 +117,7 @@ public class WebDriverHttpFetcherTest  {
         return Arrays.asList(new Object[][]{
                 {WebDriverBrowser.FIREFOX, firefoxDriverPath},
                 {WebDriverBrowser.CHROME, chromeDriverPath},
-                {WebDriverBrowser.EDGE, edgeDriverPath},
+//                {WebDriverBrowser.EDGE, edgeDriverPath},
         });
     }
 
@@ -172,7 +172,7 @@ public class WebDriverHttpFetcherTest  {
     }
 
     @Test
-    public void testFetchingHeadersUsingAdapter() throws IOException {
+    public void testFetchingHeadersUsingSniffer() throws IOException {
 
         // Test picking up headers
         Assume.assumeTrue("SKIPPING: " + browser.name()
@@ -256,7 +256,7 @@ public class WebDriverHttpFetcherTest  {
     // Returns false for browsers not supporting setting proxies, which
     // is required to capture headers.
     private boolean isProxySupported(WebDriverBrowser browser) {
-        return browser != WebDriverBrowser.EDGE
-                && browser != WebDriverBrowser.CHROME;
+        return /*browser != WebDriverBrowser.EDGE
+                && */ browser != WebDriverBrowser.CHROME;
     }
 }

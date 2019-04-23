@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ public interface IRobotsTxtProvider {
     /**
      * Gets robots.txt rules.
      * This method signature changed in 1.3 to include the userAgent.
-     * @param fetcher http fetcher executor to grab robots.txt
+     * @param fetchClient http fetcher executor to grab robots.txt
      * @param url the URL to derive the robots.txt from
 //     * @param userAgent the User-Agent to match ourselves with the robot rules
      * @return robots.txt rules
      */
-    RobotsTxt getRobotsTxt(HttpFetchClient fetcher, String url);
+    RobotsTxt getRobotsTxt(HttpFetchClient fetchClient, String url);
 //    RobotsTxt getRobotsTxt(HttpFetcherExecutor fetcher, String url, String userAgent);
 
 }

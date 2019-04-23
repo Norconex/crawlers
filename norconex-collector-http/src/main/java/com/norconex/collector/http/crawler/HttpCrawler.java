@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public class HttpCrawler extends Crawler {
 
 //	private HttpClient httpClient;
 	private ISitemapResolver sitemapResolver;
-	private HttpFetchClient fetcherExecutor;
+	private HttpFetchClient fetchClient;
 
     /**
      * Constructor.
@@ -94,8 +94,8 @@ public class HttpCrawler extends Crawler {
 //        return httpClient;
 //    }
 
-    public HttpFetchClient getHttpFetcherExecutor() {
-        return fetcherExecutor;
+    public HttpFetchClient getHttpFetchClient() {
+        return fetchClient;
     }
 
     /**
@@ -118,10 +118,14 @@ public class HttpCrawler extends Crawler {
             JobStatusUpdater statusUpdater, JobSuite suite,
             ICrawlDataStore crawlDataStore, boolean resume) {
 
+        HttpCrawlerConfig cfg = getCrawlerConfig();
+
         logInitializationInformation();
 //        initializeHTTPClient();
-        fetcherExecutor = new HttpFetchClient(
-                getStreamFactory(), getCrawlerConfig().getHttpFetchers());
+        fetchClient = new HttpFetchClient(
+                getStreamFactory(), cfg.getHttpFetchers(),
+                cfg.getHttpFetchersMaxRetries(),
+                cfg.getHttpFetchersRetryDelay());
 
 
 
@@ -129,10 +133,9 @@ public class HttpCrawler extends Crawler {
 
         // We always initialize the sitemap resolver even if ignored
         // because sitemaps can be specified as start URLs.
-        if (getCrawlerConfig().getSitemapResolverFactory() != null) {
-            this.sitemapResolver =
-                    getCrawlerConfig().getSitemapResolverFactory()
-                            .createSitemapResolver(getCrawlerConfig(), resume);
+        if (cfg.getSitemapResolverFactory() != null) {
+            this.sitemapResolver = cfg.getSitemapResolverFactory()
+                    .createSitemapResolver(cfg, resume);
         }
 
         if (!resume) {
@@ -213,7 +216,7 @@ public class HttpCrawler extends Crawler {
                     (List<String>) sitemapsPerRoots.get(urlRoot);
             if (sitemapResolver != null) {
                 sitemapResolver.resolveSitemaps(
-                        fetcherExecutor, urlRoot, locations, urlAdder, true);
+                        fetchClient, urlRoot, locations, urlAdder, true);
             } else {
                 LOG.error("Sitemap resolver is null. Sitemaps defined as "
                         + "start URLs cannot be resolved.");

@@ -27,6 +27,7 @@ import org.apache.commons.io.IOUtils;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 
 /**
@@ -48,10 +49,13 @@ public class HttpFetchClient {
 
     private final List<IHttpFetcher> fetchers = new ArrayList<>();
     private final CachedStreamFactory streamFactory;
+    private final int maxRetries;
+    private final long retryDelay;
 
     public HttpFetchClient(
             CachedStreamFactory streamFactory,
-            List<IHttpFetcher> httpFetchers) {
+            List<IHttpFetcher> httpFetchers,
+            int maxRetries, long retryDelay) {
         Objects.requireNonNull(
                 streamFactory, "'streamFactory' must not be null.");
         this.streamFactory = streamFactory;
@@ -60,6 +64,8 @@ public class HttpFetchClient {
         } else {
             this.fetchers.addAll(httpFetchers);
         }
+        this.maxRetries = maxRetries;
+        this.retryDelay = retryDelay;
     }
 
     public CachedStreamFactory getStreamFactory() {
@@ -98,15 +104,27 @@ public class HttpFetchClient {
 
     private IHttpFetchResponse fetch(
             Function<IHttpFetcher, IHttpFetchResponse> supplier) {
-        HttpFetchClientResponse clientResponse = new HttpFetchClientResponse();
+        HttpFetchClientResponse allResponses = new HttpFetchClientResponse();
         for (IHttpFetcher fetcher : fetchers) {
-            IHttpFetchResponse fetchResponse = supplier.apply(fetcher);
-            if (fetchResponse != null /*&& response.getCrawlState() == OK*/) {
-                clientResponse.addResponse(fetchResponse, fetcher);
-                break;
+            for (int retryCount = 0; retryCount <= maxRetries; retryCount++) {
+                if (retryCount > 0) {
+                    Sleeper.sleepMillis(retryDelay);
+                }
+
+                // fetch:
+                IHttpFetchResponse fetchResponse = supplier.apply(fetcher);
+                if (fetchResponse == null) {
+                    fetchResponse =
+                            HttpFetchResponseBuilder.unsupported().build();
+                }
+                allResponses.addResponse(fetchResponse, fetcher);
+
+                if (fetchResponse.getCrawlState() != null
+                        && fetchResponse.getCrawlState().isGoodState()) {
+                    return allResponses;
+                }
             }
         }
-//System.out.println("XXXXXXX RESPONSE: " + response);
-        return clientResponse;
+        return allResponses;
     }
 }

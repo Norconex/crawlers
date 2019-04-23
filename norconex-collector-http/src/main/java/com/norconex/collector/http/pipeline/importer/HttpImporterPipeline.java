@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ public class HttpImporterPipeline
                 if (!ctx.getConfig().isIgnoreRobotsTxt()) {
                     delayResolver.delay(
                             ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
-                                    ctx.getHttpFetcherExecutor(),
+                                    ctx.getHttpFetchClient(),
                                     ctx.getCrawlData().getReference()),
                             ctx.getCrawlData().getReference());
                 } else {
@@ -220,7 +220,7 @@ public class HttpImporterPipeline
                 for (IHttpDocumentProcessor preProc :
                         ctx.getConfig().getPreImportProcessors()) {
                     preProc.processDocument(
-                            ctx.getHttpFetcherExecutor(), ctx.getDocument());
+                            ctx.getHttpFetchClient(), ctx.getDocument());
                     ctx.fireCrawlerEvent(
                             HttpCrawlerEvent.DOCUMENT_PREIMPORTED,
                             ctx.getCrawlData(), preProc);

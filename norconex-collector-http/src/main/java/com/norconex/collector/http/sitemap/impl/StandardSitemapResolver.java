@@ -65,7 +65,7 @@ import com.norconex.commons.lang.file.FileUtil;
  * possible port).
  * </p>
  * <p>
- * The Sitemap specifications dictates that a sitemap.xml file defined
+ * The Sitemap specification dictates that a sitemap.xml file defined
  * in a sub-directory applies only to URLs found in that sub-directory and
  * its children. This behavior is respected by default.  Setting lenient
  * to <code>true</code> no longer honors this restriction.

@@ -10,7 +10,7 @@
     <release version="3.0.0-SNAPSHOT" date="2018-??-??" description="Major release">
       <action dev="essiembre" type="add">
         New IHttpFetcher for making HTTP requests. Multiple instances
-        can now be specified and chained.  This replaces 
+        can now be specified and tried in sequence.  This replaces 
         IHttpClientFactory, IHttpDocumentFetcher, and IHttpMetadataFetcher.
       </action>
       <action dev="essiembre" type="add">

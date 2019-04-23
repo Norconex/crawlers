@@ -102,7 +102,7 @@
     -->
     
     <!-- NEW: -->
-    <httpFetchers>
+    <httpFetchers maxRetries="5" retryDelay="10 seconds">
       <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
           <userAgent>Here we crawl!</userAgent>
           <cookiesDisabled>true</cookiesDisabled>
