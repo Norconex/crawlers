@@ -48,7 +48,7 @@ public class HttpCrawlerConfigTest {
 
         XML xml = new ConfigurationLoader().loadXML(Paths.get(
                 "src/site/resources/examples/complex/complex-config.xml"));
-        xml.configure(config);
+        xml.populate(config);
 //        new XML(new ConfigurationLoader().loadXML(
 //                ).configure(config);
 
