@@ -65,7 +65,7 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
  * </p>
  *
  * <p>
- * As of 2.8.2, you can enable SSL.
+ * As of 2.9.0, you can enable SSL.
  * </p>
  *
  * <h4>Usage example:</h4>

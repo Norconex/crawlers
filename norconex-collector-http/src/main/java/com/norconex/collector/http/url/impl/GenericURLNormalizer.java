@@ -98,14 +98,14 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *   <li>{@link URLNormalizer#sortQueryParameters() sortQueryParameters}</li>
  *   <li>{@link URLNormalizer#unsecureScheme() unsecureScheme}</li>
  *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
- *   <li>{@link URLNormalizer#removeQueryString() removeQueryString} (since 2.8.2)</li>
- *   <li>{@link URLNormalizer#lowerCase() lowerCase} (since 2.8.2)</li>
- *   <li>{@link URLNormalizer#lowerCasePath() lowerCasePath} (since 2.8.2)</li>
- *   <li>{@link URLNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.8.2)</li>
+ *   <li>{@link URLNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCase() lowerCase} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCasePath() lowerCasePath} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.9.0)</li>
  *   <li>{@link URLNormalizer#lowerCaseQueryParameterNames()
- *        lowerCaseQueryParameterNames} (since 2.8.2)</li>
+ *        lowerCaseQueryParameterNames} (since 2.9.0)</li>
  *   <li>{@link URLNormalizer#lowerCaseQueryParameterValues()
- *        lowerCaseQueryParameterValues} (since 2.8.2)</li>
+ *        lowerCaseQueryParameterValues} (since 2.9.0)</li>
  * </ul>
  *
  * <p>

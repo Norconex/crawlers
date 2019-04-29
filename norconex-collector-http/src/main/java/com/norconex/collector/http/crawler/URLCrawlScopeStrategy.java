@@ -75,7 +75,7 @@ public class URLCrawlScopeStrategy {
      * Gets whether sub-domains are considered to be the same as a URL domain.
      * Only applicable when "stayOnDomain" is <code>true</code>.
      * @return <code>true</code> if including sub-domains
-     * @since 2.8.2
+     * @since 2.9.0
      */
     public boolean isIncludeSubdomains() {
         return includeSubdomains;
@@ -84,7 +84,7 @@ public class URLCrawlScopeStrategy {
      * Sets whether sub-domains are considered to be the same as a URL domain.
      * Only applicable when "stayOnDomain" is <code>true</code>.
      * @param includeSubdomains <code>true</code> to include sub-domains
-     * @since 2.8.2
+     * @since 2.9.0
      */
     public void setIncludeSubdomains(boolean includeSubdomains) {
         this.includeSubdomains = includeSubdomains;

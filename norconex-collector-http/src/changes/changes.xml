@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.8.2-SNAPSHOT" date="2019-??-??" description="Maintenance release">
+    <release version="2.9.0-SNAPSHOT" date="2019-??-??" description="Feature release">
       <action dev="essiembre" type="add" issue="593">
         From Collector Core update, added "unmanaged" attribute to "logsDir" 
         configuration option to prevent the collector from managing its 
@@ -37,6 +37,10 @@
       </action>
       <action dev="essiembre" type="update" issue="526">
         Stateful support added for auth sessions (e.g., NTLM). 
+      </action>
+      <action dev="essiembre" type="fix" issue="597">
+        Fixed GenericRecrawlableResolver large frequency units resulting in 
+        those minimum frequencies not being respected. 
       </action>
       <action dev="martin-huber" type="fix" issue="578">
         Fix quoted mediatype from content type.

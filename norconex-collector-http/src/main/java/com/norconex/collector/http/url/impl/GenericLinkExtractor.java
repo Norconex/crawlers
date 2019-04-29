@@ -200,7 +200,7 @@ import com.norconex.importer.util.CharsetUtil;
  * extraction is identified first, and content to exclude is done on that
  * subset.
  * </p>
- * <p><b>Since 2.8.2</b>, you can further limit link extraction to specific
+ * <p><b>Since 2.9.0</b>, you can further limit link extraction to specific
  * area by using
  * <a href="https://jsoup.org/cookbook/extracting-data/selector-syntax">selector-syntax</a>
  * to do so, with
@@ -503,7 +503,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * Gets the selectors matching the portions of a document to be considered
      * for link extraction.
      * @return selectors
-     * @since 2.8.2
+     * @since 2.9.0
      */
     public String[] getExtractSelectors() {
         return extractSelectors.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
@@ -512,7 +512,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * Sets the selectors matching the portions of a document to be considered
      * for link extraction.
      * @param selectors selectors
-     * @since 2.8.2
+     * @since 2.9.0
      */
     public void setExtractSelectors(String... selectors) {
         this.extractSelectors.clear();
@@ -522,7 +522,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * Adds selectors matching the portions of a document to be considered
      * for link extraction.
      * @param selectors selectors
-     * @since 2.8.2
+     * @since 2.9.0
      */
     public void addExtractSelectors(String... selectors) {
         this.extractSelectors.addAll(Arrays.asList(selectors));
@@ -532,7 +532,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * Gets the selectors matching the portions of a document to be excluded
      * from link extraction.
      * @return selectors
-     * @since 2.8.2
+     * @since 2.9.0
      */
     public String[] getNoExtractSelectors() {
         return noExtractSelectors.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
@@ -541,7 +541,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * Sets the selectors matching the portions of a document to be excluded
      * from link extraction.
      * @param selectors selectors
-     * @since 2.8.2
+     * @since 2.9.0
      */
     public void setNoExtractSelectors(String... selectors) {
         this.noExtractSelectors.clear();
@@ -551,7 +551,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      * Adds selectors matching the portions of a document to be excluded
      * from link extraction.
      * @param selectors selectors
-     * @since 2.8.2
+     * @since 2.9.0
      */
     public void addNoExtractSelectors(String... selectors) {
         this.noExtractSelectors.addAll(Arrays.asList(selectors));
