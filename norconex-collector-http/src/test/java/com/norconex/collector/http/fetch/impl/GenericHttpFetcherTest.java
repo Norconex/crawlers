@@ -32,6 +32,6 @@ public class GenericHttpFetcherTest  {
         cfg.setDetectContentType(true);
 
         GenericHttpFetcher f = new GenericHttpFetcher(cfg);
-        XML.assertWriteRead(f, "documentFetcher");
+        XML.assertWriteRead(f, "fetcher");
     }
 }

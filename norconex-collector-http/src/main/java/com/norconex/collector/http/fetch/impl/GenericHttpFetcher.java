@@ -960,7 +960,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
     @Override
     public void loadHttpFetcherFromXML(XML xml) {
-//        System.out.println("XML IS: " + xml);
         cfg.loadFromXML(xml);
     }
 

@@ -963,8 +963,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
                 "notFoundStatusCodes", Integer.class, notFoundStatusCodes));
         setHeadersPrefix(xml.getString("headersPrefix"));
         setDetectContentType(
-                xml.getBoolean("@detectContentType", detectContentType));
-        setDetectCharset(xml.getBoolean("@detectCharset", detectCharset));
+                xml.getBoolean("detectContentType", detectContentType));
+        setDetectCharset(xml.getBoolean("detectCharset", detectCharset));
 
         userAgent = xml.getString("userAgent", userAgent);
         cookiesDisabled = xml.getBoolean("cookiesDisabled", cookiesDisabled);
@@ -1030,8 +1030,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
 
     @Override
     public void saveToXML(XML xml) {
-        xml.setAttribute("detectContentType", detectContentType);
-        xml.setAttribute("detectCharset", detectCharset);
+        xml.addElement("detectContentType", detectContentType);
+        xml.addElement("detectCharset", detectCharset);
         xml.addDelimitedElementList("validStatusCodes", validStatusCodes);
         xml.addDelimitedElementList("notFoundStatusCodes", notFoundStatusCodes);
         xml.addElement("headersPrefix", headersPrefix);

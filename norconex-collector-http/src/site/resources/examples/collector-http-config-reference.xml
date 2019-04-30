@@ -39,7 +39,7 @@
   #set($http      = "com.norconex.collector.http")
   #set($committer = "com.norconex.committer")
 
-  #set($httpFetcher       = "${http}.fetch.GenericHttpFetcher")
+  #set($httpFetcher       = "${http}.fetch.impl.GenericHttpFetcher")
 
   #set($httpClientFactory = "${http}.client.impl.GenericHttpClientFactory")
   #set($filterExtension   = "${core}.filter.impl.ExtensionReferenceFilter")
@@ -217,7 +217,7 @@
          Default implementation is the following.
       -->
     <httpFetchers>
-      <fetcher class="$httpFetcher" maxRetries="3"/>
+      <fetcher class="$httpFetcher" maxRetries="0"/>
     </httpFetchers>
 
 
