@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Norconex Inc.
+/* Copyright 2014-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  */
 package com.norconex.collector.http.data.store.impl.mvstore;
 
-import java.io.File;
+import java.nio.file.Path;
 
-import org.junit.Before;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
 
 import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
@@ -26,17 +25,17 @@ import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTes
 
 public class MVStoreCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 
-    private File store;
+    private Path store;
 
     @Override
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
-        store = getTempfolder().newFolder();
+        store = getTempfolder();
         super.setup();
     }
     @Override
     protected ICrawlDataStore createCrawlDataStore(
-            CrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
-        return new MVStoreCrawlDataStore(store.getPath(), resume);
+            CrawlerConfig config, Path tempFolder, boolean resume) {
+        return new MVStoreCrawlDataStore(store.toString(), resume);
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2015-2016 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package com.norconex.collector.http.crawler;
 
 import java.io.IOException;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class URLCrawlScopeStrategyTest {
 
@@ -29,55 +29,55 @@ public class URLCrawlScopeStrategyTest {
         String diffPort = "http://example.com:81/diff/port.html";
         String sameSite = "http://example.com:80/diff/same.html";
         String noSchemeDiffDomain = "//server1.elsewhere.com";
-    
+
         URLCrawlScopeStrategy s = null;
 
         // No scope defined
         s = new URLCrawlScopeStrategy();
-        Assert.assertTrue(s.isInScope(url, diffProtocol));
-        Assert.assertTrue(s.isInScope(url, diffDomain));
-        Assert.assertTrue(s.isInScope(url, diffPort));
-        Assert.assertTrue(s.isInScope(url, sameSite));
-        Assert.assertTrue(s.isInScope(url, noSchemeDiffDomain));
-        
+        Assertions.assertTrue(s.isInScope(url, diffProtocol));
+        Assertions.assertTrue(s.isInScope(url, diffDomain));
+        Assertions.assertTrue(s.isInScope(url, diffPort));
+        Assertions.assertTrue(s.isInScope(url, sameSite));
+        Assertions.assertTrue(s.isInScope(url, noSchemeDiffDomain));
+
         // Protocol
         s = new URLCrawlScopeStrategy();
         s.setStayOnProtocol(true);
-        Assert.assertFalse(s.isInScope(url, diffProtocol));
-        Assert.assertTrue(s.isInScope(url, diffDomain));
-        Assert.assertTrue(s.isInScope(url, diffPort));
-        Assert.assertTrue(s.isInScope(url, sameSite));
-        Assert.assertTrue(s.isInScope(url, noSchemeDiffDomain));
+        Assertions.assertFalse(s.isInScope(url, diffProtocol));
+        Assertions.assertTrue(s.isInScope(url, diffDomain));
+        Assertions.assertTrue(s.isInScope(url, diffPort));
+        Assertions.assertTrue(s.isInScope(url, sameSite));
+        Assertions.assertTrue(s.isInScope(url, noSchemeDiffDomain));
 
         // Domain
         s = new URLCrawlScopeStrategy();
         s.setStayOnDomain(true);
-        Assert.assertTrue(s.isInScope(url, diffProtocol));
-        Assert.assertFalse(s.isInScope(url, diffDomain));
-        Assert.assertTrue(s.isInScope(url, diffPort));
-        Assert.assertTrue(s.isInScope(url, sameSite));
-        Assert.assertFalse(s.isInScope(url, noSchemeDiffDomain));
-        
+        Assertions.assertTrue(s.isInScope(url, diffProtocol));
+        Assertions.assertFalse(s.isInScope(url, diffDomain));
+        Assertions.assertTrue(s.isInScope(url, diffPort));
+        Assertions.assertTrue(s.isInScope(url, sameSite));
+        Assertions.assertFalse(s.isInScope(url, noSchemeDiffDomain));
+
         // Port
         s = new URLCrawlScopeStrategy();
         s.setStayOnPort(true);
-        Assert.assertFalse(s.isInScope(url, diffProtocol)); // https = 443
-        Assert.assertTrue(s.isInScope(url, diffDomain));
-        Assert.assertFalse(s.isInScope(url, diffPort));
-        Assert.assertTrue(s.isInScope(url, sameSite));
-        Assert.assertTrue(s.isInScope(url, noSchemeDiffDomain));
+        Assertions.assertFalse(s.isInScope(url, diffProtocol)); // https = 443
+        Assertions.assertTrue(s.isInScope(url, diffDomain));
+        Assertions.assertFalse(s.isInScope(url, diffPort));
+        Assertions.assertTrue(s.isInScope(url, sameSite));
+        Assertions.assertTrue(s.isInScope(url, noSchemeDiffDomain));
 
-        
+
         // Protocol + Domain + Port
         s = new URLCrawlScopeStrategy();
         s.setStayOnProtocol(true);
         s.setStayOnDomain(true);
         s.setStayOnPort(true);
-        Assert.assertFalse(s.isInScope(url, diffProtocol));
-        Assert.assertFalse(s.isInScope(url, diffDomain));
-        Assert.assertFalse(s.isInScope(url, diffPort));
-        Assert.assertTrue(s.isInScope(url, sameSite));
-        Assert.assertFalse(s.isInScope(url, noSchemeDiffDomain));
+        Assertions.assertFalse(s.isInScope(url, diffProtocol));
+        Assertions.assertFalse(s.isInScope(url, diffDomain));
+        Assertions.assertFalse(s.isInScope(url, diffPort));
+        Assertions.assertTrue(s.isInScope(url, sameSite));
+        Assertions.assertFalse(s.isInScope(url, noSchemeDiffDomain));
     }
 
 }

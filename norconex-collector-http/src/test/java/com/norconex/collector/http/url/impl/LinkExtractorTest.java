@@ -14,8 +14,8 @@
  */
 package com.norconex.collector.http.url.impl;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -23,8 +23,8 @@ import java.io.InputStream;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,16 +117,19 @@ public class LinkExtractorTest {
         is.close();
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL,
-                    contains(links, expectedURL));
+            assertTrue(
+                    contains(links, expectedURL),
+                "Could not find expected URL: " + expectedURL);
         }
         for (String unexpectedURL : unexpectedURLs) {
-            assertFalse("Found unexpected URL: " + unexpectedURL,
-                    contains(links, unexpectedURL));
+            assertFalse(
+                    contains(links, unexpectedURL),
+                "Found unexpected URL: " + unexpectedURL);
         }
 
-        Assert.assertEquals("Invalid number of links extracted.",
-                expectedURLs.length, links.size());
+        Assertions.assertEquals(
+                expectedURLs.length, links.size(),
+                "Invalid number of links extracted.");
     }
 
 
@@ -166,11 +169,13 @@ public class LinkExtractorTest {
                 is, docURL, ContentType.HTML);
         is.close();
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL,
-                    contains(links, expectedURL));
+            assertTrue(
+                    contains(links, expectedURL),
+                "Could not find expected URL: " + expectedURL);
         }
-        Assert.assertEquals("Invalid number of links extracted.",
-                expectedURLs.length, links.size());
+        Assertions.assertEquals(
+                expectedURLs.length, links.size(),
+                "Invalid number of links extracted.");
     }
     private void testRelativeBaseHrefLinkExtraction(ILinkExtractor extractor)
             throws IOException {
@@ -191,11 +196,13 @@ public class LinkExtractorTest {
                 is, docURL, ContentType.HTML);
         is.close();
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL,
-                    contains(links, expectedURL));
+            assertTrue(
+                    contains(links, expectedURL),
+                "Could not find expected URL: " + expectedURL);
         }
-        Assert.assertEquals("Invalid number of links extracted.",
-                expectedURLs.length, links.size());
+        Assertions.assertEquals(
+                expectedURLs.length, links.size(),
+                "Invalid number of links extracted.");
     }
 
     //--- Referrer Data Tests --------------------------------------------------
@@ -231,10 +238,11 @@ public class LinkExtractorTest {
                 is, "http://www.site.com/parent.html", ContentType.HTML);
         is.close();
 
-        Assert.assertEquals(expectedLinks.length, links.size());
+        Assertions.assertEquals(expectedLinks.length, links.size());
         for (Link expectedLink : expectedLinks) {
-            assertTrue("Could not find expected link: " + expectedLink,
-                    contains(links, expectedLink));
+            assertTrue(
+                    contains(links, expectedLink),
+                "Could not find expected link: " + expectedLink);
         }
     }
     private Link keepReferrerLink(
@@ -286,16 +294,19 @@ public class LinkExtractorTest {
         }
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL,
-                    contains(links, expectedURL));
+            assertTrue(
+                    contains(links, expectedURL),
+                "Could not find expected URL: " + expectedURL);
         }
         for (String unexpectedURL : unexpectedURLs) {
-            assertFalse("Found unexpected URL: " + unexpectedURL,
-                    contains(links, unexpectedURL));
+            assertFalse(
+                    contains(links, unexpectedURL),
+                "Found unexpected URL: " + unexpectedURL);
         }
 
-        Assert.assertEquals("Invalid number of links extracted.",
-                expectedURLs.length, links.size());
+        Assertions.assertEquals(
+                expectedURLs.length, links.size(),
+                "Invalid number of links extracted.");
     }
 
     //--- Other Tests ----------------------------------------------------------
@@ -326,9 +337,9 @@ public class LinkExtractorTest {
                 new ByteArrayInputStream(html.getBytes()),
                 docURL, ContentType.HTML);
 
-        Assert.assertEquals(
-                "Invalid number of links extracted.", 1, links.size());
-        Assert.assertEquals(
+        Assertions.assertEquals( 1, links.size(),
+                "Invalid number of links extracted.");
+        Assertions.assertEquals(
                 "http://db-artmag.com/en/91/index.html",
                 links.iterator().next().getUrl());
     }
@@ -355,7 +366,8 @@ public class LinkExtractorTest {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
         input.close();
-        Assert.assertTrue("URL not extracted: " + url, contains(links, url));
+        Assertions.assertTrue(contains(links, url),
+                "URL not extracted: " + url);
     }
 
     @Test
@@ -370,7 +382,8 @@ public class LinkExtractorTest {
         Set<Link> links = extractor.extractLinks(
                 input, "N/A", ContentType.HTML);
         input.close();
-        Assert.assertTrue("URL not extracted: " + url, contains(links, url));
+        Assertions.assertTrue(contains(links, url),
+                "URL not extracted: " + url);
     }
 
     // Related to https://github.com/Norconex/collector-http/pull/312
@@ -385,7 +398,8 @@ public class LinkExtractorTest {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
         input.close();
-        Assert.assertTrue("URL not extracted: " + url, contains(links, url));
+        Assertions.assertTrue(contains(links, url),
+                "URL not extracted: " + url);
     }
 
     //Test for: https://github.com/Norconex/collector-http/issues/423
@@ -402,10 +416,12 @@ public class LinkExtractorTest {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
         input.close();
-        assertTrue("Could not find expected URL: " + url1,
-                contains(links, url1));
-        assertTrue("Could not find expected URL: " + url2,
-                contains(links, url2));
+        assertTrue(
+                contains(links, url1),
+                "Could not find expected URL: " + url1);
+        assertTrue(
+                contains(links, url2),
+                "Could not find expected URL: " + url2);
     }
     @Test
     public void testBadQuotingURL() throws IOException {
@@ -422,12 +438,15 @@ public class LinkExtractorTest {
         GenericLinkExtractor extractor = new GenericLinkExtractor();
         Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
         input.close();
-        assertTrue("Could not find expected URL: " + url1,
-                contains(links, url1));
-        assertTrue("Could not find expected URL: " + url2,
-                contains(links, url2));
-        assertTrue("Could not find expected URL: " + url3,
-                contains(links, url3));
+        assertTrue(
+                contains(links, url1),
+                "Could not find expected URL: " + url1);
+        assertTrue(
+                contains(links, url2),
+                "Could not find expected URL: " + url2);
+        assertTrue(
+                contains(links, url3),
+                "Could not find expected URL: " + url3);
     }
 
     private boolean contains(Set<Link> links, String url) {

@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Norconex Inc.
+/* Copyright 2014-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.crawler;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,8 +26,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +37,7 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.ImporterMetadata;
 
 /**
@@ -73,17 +74,20 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         LOG.debug("URLs:" + urls);
         assertListSize("URL", urls, 1);
 
-        Assert.assertTrue("Invalid redirection URL: " + ref,
-                ref.contains("/test/redirected/page.html?case=redirect"));
+        Assertions.assertTrue(
+                ref.contains("/test/redirected/page.html?case=redirect"),
+                "Invalid redirection URL: " + ref);
 
         List<String> inPageUrls = doc.getMetadata().getStrings(
                 HttpMetadata.COLLECTOR_REFERENCED_URLS);
         assertListSize("referenced URLs", inPageUrls, 2);
 
-        Assert.assertTrue("Invalid relative URL: " + inPageUrls.get(0),
-                inPageUrls.get(0).matches(".*/test/redirected/page[12].html"));
-        Assert.assertTrue("Invalid relative URL: " + inPageUrls.get(1),
-                inPageUrls.get(1).matches(".*/test/redirected/page[12].html"));
+        Assertions.assertTrue(
+                inPageUrls.get(0).matches(".*/test/redirected/page[12].html"),
+                "Invalid relative URL: " + inPageUrls.get(0));
+        Assertions.assertTrue(
+                inPageUrls.get(1).matches(".*/test/redirected/page[12].html"),
+                "Invalid relative URL: " + inPageUrls.get(1));
     }
 
     @Test
@@ -106,15 +110,15 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         assertListSize("URL", trail, 5);
 
         // Test the trail order:
-        Assert.assertFalse(trail.get(0).contains("count"));
-        Assert.assertTrue(trail.get(1).contains("count=1"));
-        Assert.assertTrue(trail.get(2).contains("count=2"));
-        Assert.assertTrue(trail.get(3).contains("count=3"));
-        Assert.assertTrue(trail.get(4).contains("count=4"));
+        Assertions.assertFalse(trail.get(0).contains("count"));
+        Assertions.assertTrue(trail.get(1).contains("count=1"));
+        Assertions.assertTrue(trail.get(2).contains("count=2"));
+        Assertions.assertTrue(trail.get(3).contains("count=3"));
+        Assertions.assertTrue(trail.get(4).contains("count=4"));
 
         // Test final URL:
-        Assert.assertTrue(
-                "Invalid redirection URL: " + ref, ref.contains("count=5"));
+        Assertions.assertTrue( ref.contains("count=5"),
+                "Invalid redirection URL: " + ref);
     }
 
     @Test
@@ -137,12 +141,16 @@ public class BasicFeaturesTest extends AbstractHttpTest {
         assertListSize("document", docs, 1);
 
         doc = docs.get(0);
-        content = IOUtils.toString(
-                doc.getInputStream(), StandardCharsets.UTF_8);
-        assertTrue("Wrong content",
-                content.contains("Canonical-redirect circular reference"));
-        assertTrue("Wrong reference",
-                doc.getReference().contains("&type=canonical"));
+        try (CachedInputStream is = doc.getInputStream()) {
+            content = IOUtils.toString(is, StandardCharsets.UTF_8);
+            is.dispose();
+        }
+        assertTrue(
+                content.contains("Canonical-redirect circular reference"),
+                "Wrong content");
+        assertTrue(
+                doc.getReference().contains("&type=canonical"),
+                "Wrong reference");
 
 LOG.warn("FINAL REF: " + doc.getReference());
 LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
@@ -158,12 +166,16 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         assertListSize("document", docs, 1);
 
         doc = docs.get(0);
-        content = IOUtils.toString(
-                doc.getInputStream(), StandardCharsets.UTF_8);
-        assertTrue("Wrong content",
-                content.contains("Canonical-redirect circular reference"));
-        assertTrue("Wrong reference",
-                doc.getReference().contains("&type=canonical"));
+        try (CachedInputStream is = doc.getInputStream()) {
+            content = IOUtils.toString(is, StandardCharsets.UTF_8);
+            is.dispose();
+        }
+        assertTrue(
+                content.contains("Canonical-redirect circular reference"),
+                "Wrong content");
+        assertTrue(
+                doc.getReference().contains("&type=canonical"),
+                "Wrong reference");
 
         LOG.warn("FINAL REF: " + doc.getReference());
         LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
@@ -208,9 +220,10 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         });
         String content = FileUtils.readFileToString(
                 downloadedFile.getValue(), StandardCharsets.UTF_8);
-        Assert.assertTrue("Invalid or missing download file.",
+        Assertions.assertTrue(
                 content.contains("<b>This</b> file <i>must</i> be saved as is, "
-                        + "with this <span>formatting</span>"));
+                        + "with this <span>formatting</span>"),
+                "Invalid or missing download file.");
     }
 
     @Test
@@ -241,9 +254,12 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         assertListSize("document", docs, 1);
 
         HttpDocument doc = docs.get(0);
-        Assert.assertTrue("Wrong or undetected User-Agent.",
-                IOUtils.toString(doc.getInputStream(),
-                        StandardCharsets.UTF_8).contains("Super Secret Agent"));
+        try (CachedInputStream is = doc.getInputStream()) {
+            Assertions.assertTrue(IOUtils.toString(is,
+                    StandardCharsets.UTF_8).contains("Super Secret Agent"),
+                    "Wrong or undetected User-Agent.");
+            is.dispose();
+        }
     }
 
     @Test
@@ -264,8 +280,9 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         List<HttpDocument> docs = getCommitedDocuments(crawler);
         assertListSize("document", docs, 1);
 
-        Assert.assertEquals("Wrong number of canonical link rejection.",
-                2, canCount.intValue());
+        Assertions.assertEquals(
+                2, canCount.intValue(),
+                "Wrong number of canonical link rejection.");
     }
 
 
@@ -300,18 +317,23 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         assertListSize("document", docs, 2);
 
         for (HttpDocument doc : docs) {
-            String content = IOUtils.toString(
-                    doc.getInputStream(), StandardCharsets.UTF_8);
-            if (!doc.getReference().contains("script=true")) {
-                // first page
-                Assert.assertTrue("First page not crawled properly",
-                        content.contains("View the source"));
-                Assert.assertTrue("Did not strip inside of <script>",
-                        !content.contains("THIS_MUST_BE_STRIPPED"));
-            } else {
-                // second page
-                Assert.assertTrue("Script page not crawled properly",
-                        content.contains("This must be crawled"));
+            try (CachedInputStream is = doc.getInputStream()) {
+                String content = IOUtils.toString(is, StandardCharsets.UTF_8);
+                is.dispose();
+                if (!doc.getReference().contains("script=true")) {
+                    // first page
+                    Assertions.assertTrue(
+                            content.contains("View the source"),
+                    "First page not crawled properly");
+                    Assertions.assertTrue(
+                            !content.contains("THIS_MUST_BE_STRIPPED"),
+                    "Did not strip inside of <script>");
+                } else {
+                    // second page
+                    Assertions.assertTrue(
+                            content.contains("This must be crawled"),
+                    "Script page not crawled properly");
+                }
             }
         }
     }
@@ -340,9 +362,10 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         assertListSize("document", docs, 1);
         HttpDocument doc = docs.get(0);
 
-        Assert.assertEquals("application/javascript",
-                doc.getMetadata().getString(ImporterMetadata.DOC_CONTENT_TYPE));
-        Assert.assertEquals("Big5", doc.getMetadata().getString(
+        Assertions.assertEquals(
+                doc.getMetadata().getString(ImporterMetadata.DOC_CONTENT_TYPE),
+                "application/javascript");
+        Assertions.assertEquals("Big5", doc.getMetadata().getString(
                 ImporterMetadata.DOC_CONTENT_ENCODING));
     }
     @Test
@@ -360,9 +383,9 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
         assertListSize("document", docs, 1);
         HttpDocument doc = docs.get(0);
 
-        Assert.assertEquals("text/html",
+        Assertions.assertEquals("text/html",
                 doc.getMetadata().getString(ImporterMetadata.DOC_CONTENT_TYPE));
-        Assert.assertEquals(StandardCharsets.UTF_8.toString(),
+        Assertions.assertEquals(StandardCharsets.UTF_8.toString(),
                 doc.getMetadata().getString(
                         ImporterMetadata.DOC_CONTENT_ENCODING));
     }
@@ -370,7 +393,8 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
 
     private void testDepth(List<HttpDocument> docs) {
         // 0-depth + 10 others == 11 expected files
-        Assert.assertEquals("Did not crawl the right depth.", 11, docs.size());
+        Assertions.assertEquals( 11, docs.size(),
+                "Did not crawl the right depth.");
     }
     private void testValidMetadata(HttpDocument doc) {
         HttpMetadata meta = doc.getMetadata();
@@ -382,24 +406,29 @@ LOG.warn("FINAL TRAIL:" + doc.getMetadata().getStrings(
                 HttpMetadata.COLLECTOR_CONTENT_ENCODING);
 
         //Test actual values
-        Assert.assertTrue("Bad HTTP content-type",
+        Assertions.assertTrue(
                 "text/html; charset=UTF-8".equalsIgnoreCase(
-                        meta.getString(HttpMetadata.HTTP_CONTENT_TYPE)));
-        Assert.assertTrue("Bad Collection content-type.",
+                        meta.getString(HttpMetadata.HTTP_CONTENT_TYPE)),
+                "Bad HTTP content-type");
+        Assertions.assertTrue(
                 "text/html".equalsIgnoreCase(
-                        meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE)));
-        Assert.assertTrue("Bad char-encoding.",
+                        meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE)),
+                "Bad Collection content-type.");
+        Assertions.assertTrue(
                 StandardCharsets.UTF_8.toString().equalsIgnoreCase(
-                    meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING)));
+                    meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING)),
+                "Bad char-encoding.");
     }
     private void assertListSize(String listName, List<?> list, int size) {
-        Assert.assertEquals(
-                "Wrong " + listName + " list size.", size, list.size());
+        Assertions.assertEquals( size, list.size(),
+
+                "Wrong " + listName + " list size.");
     }
     private void assertOneValue(HttpMetadata meta, String... fields) {
         for (String field : fields) {
-            Assert.assertEquals(field + " does not contain strickly 1 value.",
-                    1, meta.getStrings(field).size());
+            Assertions.assertEquals(
+                    1, meta.getStrings(field).size(),
+                field + " does not contain strickly 1 value.");
         }
     }
 

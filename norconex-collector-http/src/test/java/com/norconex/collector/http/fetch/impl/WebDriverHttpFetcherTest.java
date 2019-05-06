@@ -15,11 +15,14 @@
 package com.norconex.collector.http.fetch.impl;
 
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -28,17 +31,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.CoreMatchers;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +55,6 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 // have ability to specify different fetchers for different URL patterns.
 //@Ignore
 
-@RunWith(value = Parameterized.class)
 public class WebDriverHttpFetcherTest  {
 
     private static final Logger LOG =
@@ -102,61 +100,68 @@ public class WebDriverHttpFetcherTest  {
 //                    "edgedriver-6.17134.exe"))
 //            .get();
 
-    private final WebDriverBrowser browser;
-    private final Path driverPath;
+//    private final WebDriverBrowser browser;
+//    private final Path driverPath;
 
 
-    public WebDriverHttpFetcherTest(WebDriverBrowser browser, Path driverPath) {
-        super();
-        this.browser = browser;
-        this.driverPath = driverPath;
+//    public WebDriverHttpFetcherTest(WebDriverBrowser browser, Path driverPath) {
+//        super();
+//        this.browser = browser;
+//        this.driverPath = driverPath;
+//    }
+
+//    static Stream<Object[]> browsersProvider() {
+//        return Stream.of(
+//                new Object[]{WebDriverBrowser.FIREFOX, firefoxDriverPath},
+//                new Object[]{WebDriverBrowser.CHROME, chromeDriverPath}
+////              {WebDriverBrowser.EDGE, edgeDriverPath},
+//        );
+//    }
+    static Stream<WebDriverHttpFetcher> browsersProvider() {
+        return Stream.of(
+                createFetcher(WebDriverBrowser.FIREFOX, firefoxDriverPath),
+                createFetcher(WebDriverBrowser.CHROME, chromeDriverPath)
+//              {WebDriverBrowser.EDGE, edgeDriverPath},
+        );
     }
 
-    @Parameters(name = "{index}: {0}")
-    public static Collection<Object[]> browsers() {
-        return Arrays.asList(new Object[][]{
-                {WebDriverBrowser.FIREFOX, firefoxDriverPath},
-                {WebDriverBrowser.CHROME, chromeDriverPath},
-//                {WebDriverBrowser.EDGE, edgeDriverPath},
-        });
-    }
-
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() throws IOException {
         server.start();
     }
-    @AfterClass
+    @AfterAll
     public static void afterClass() throws IOException {
         server.stop();
     }
-    @Before
-    public void before() throws IOException {
-        Assume.assumeTrue("SKIPPING: No driver for " + browser.name(),
-                isDriverPresent(driverPath));
-    }
+//    @BeforeEach
+//    public void before() throws IOException {
+//        Assumptions.assumeTrue(
+//                isDriverPresent(driverPath),
+//                "SKIPPING: No driver for " + browser.name());
+//    }
 
 
-    @Test
-    public void testFetchingJsGeneratedContent() throws IOException {
-        WebDriverHttpFetcher fetcher = createFetcher();
+    @ExtensionTest
+    public void testFetchingJsGeneratedContent(
+            WebDriverHttpFetcher fetcher) throws IOException {
         try {
             // simulate crawler startup
             fetcher.crawlerStartup(null);
             HttpDocument doc = fetch(fetcher, "/");
             LOG.debug("'/' META: " + doc.getMetadata());
-            Assert.assertThat(IOUtils.toString(
-                    doc.getInputStream(), StandardCharsets.UTF_8),
-                    CoreMatchers.containsString("JavaScript-rendered!"));
+            Assertions.assertTrue(IOUtils.toString(
+                    doc.getInputStream(), StandardCharsets.UTF_8).contains(
+                            "JavaScript-rendered!"));
         } finally {
             fetcher.crawlerShutdown(null);
         }
     }
 
     // Remove ignore to manually test that screenshots are generated
-    @Ignore
-    @Test
-    public void testTakeScreenshots() throws IOException {
-        WebDriverHttpFetcher fetcher = createFetcher();
+    @Disabled
+    @ExtensionTest
+    public void testTakeScreenshots(
+            WebDriverHttpFetcher fetcher) throws IOException {
 
         WebDriverScreenshotHandler h = new WebDriverScreenshotHandler();
         h.setTargetDir(Paths.get("./target/screenshots"));
@@ -171,15 +176,16 @@ public class WebDriverHttpFetcherTest  {
         }
     }
 
-    @Test
-    public void testFetchingHeadersUsingSniffer() throws IOException {
+    @ExtensionTest
+    public void testFetchingHeadersUsingSniffer(
+            WebDriverHttpFetcher fetcher) throws IOException {
 
         // Test picking up headers
-        Assume.assumeTrue("SKIPPING: " + browser.name()
-                + " does not support setting proxy to obtain headers.",
-                isProxySupported(browser));
+        Assumptions.assumeTrue(
+                isProxySupported(fetcher.getBrowser()),
+                "SKIPPING: " + fetcher.getBrowser().name()
+                + " does not support setting proxy to obtain headers.");
 
-        WebDriverHttpFetcher fetcher = createFetcher();
         WebDriverHttpSnifferConfig cfg = new WebDriverHttpSnifferConfig();
         fetcher.setHttpSnifferConfig(cfg);
 
@@ -188,16 +194,17 @@ public class WebDriverHttpFetcherTest  {
             fetcher.crawlerStartup(null);
             HttpDocument doc = fetch(fetcher, "/headers");
             LOG.debug("'/headers' META: " + doc.getMetadata());
-            Assert.assertEquals(
+            Assertions.assertEquals(
                     "test_value", doc.getMetadata().getString("TEST_KEY"));
         } finally {
             fetcher.crawlerShutdown(null);
         }
     }
 
-    @Test
-    public void testPageScript() throws IOException {
-        WebDriverHttpFetcher fetcher = createFetcher();
+    @ExtensionTest
+    public void testPageScript(
+            WebDriverHttpFetcher fetcher) throws IOException {
+
         fetcher.setPageScript(
                 "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
         try {
@@ -208,27 +215,29 @@ public class WebDriverHttpFetcherTest  {
                     StandardCharsets.UTF_8).replaceFirst(
                             "(?s).*<h1>(.*?)</h1>.*", "$1");
             LOG.debug("New H1: " + h1);
-            Assert.assertEquals("Melon", h1);
+            Assertions.assertEquals("Melon", h1);
         } finally {
             fetcher.crawlerShutdown(null);
         }
     }
 
-    @Test
-    public void testResolvingUserAgent() throws IOException {
-        WebDriverHttpFetcher fetcher = createFetcher();
+    @ExtensionTest
+    public void testResolvingUserAgent(
+            WebDriverHttpFetcher fetcher) throws IOException {
         try {
             fetcher.crawlerStartup(null);
             String userAgent = fetcher.getUserAgent();
             LOG.debug("User agent: {}", userAgent);
-            Assert.assertTrue("Could not resolve user agent.",
-                    StringUtils.isNotBlank(userAgent));
+            Assertions.assertTrue(
+                    StringUtils.isNotBlank(userAgent),
+                    "Could not resolve user agent.");
         } finally {
             fetcher.crawlerShutdown(null);
         }
     }
 
-    private WebDriverHttpFetcher createFetcher() {
+    private static WebDriverHttpFetcher createFetcher(
+            WebDriverBrowser browser, Path driverPath) {
         WebDriverHttpFetcher fetcher = new WebDriverHttpFetcher();
         fetcher.setBrowser(browser);
         fetcher.setDriverPath(driverPath);
@@ -244,19 +253,27 @@ public class WebDriverHttpFetcherTest  {
         return doc;
     }
 
-    private boolean isDriverPresent(Path driverPath) {
-        try {
-            return driverPath != null && driverPath.toFile().exists();
-        } catch (Exception e) {
-            LOG.debug("Could not verify driver presence at: {}. Error: {}",
-                    driverPath, e.getMessage());
-            return false;
-        }
-    }
+//    private boolean isDriverPresent(Path driverPath) {
+//        try {
+//            return driverPath != null && driverPath.toFile().exists();
+//        } catch (Exception e) {
+//            LOG.debug("Could not verify driver presence at: {}. Error: {}",
+//                    driverPath, e.getMessage());
+//            return false;
+//        }
+//    }
     // Returns false for browsers not supporting setting proxies, which
     // is required to capture headers.
     private boolean isProxySupported(WebDriverBrowser browser) {
         return /*browser != WebDriverBrowser.EDGE
                 && */ browser != WebDriverBrowser.CHROME;
+    }
+
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @ParameterizedTest(name = "browser: {0}")
+//    @ParameterizedTest(name = "{index}: {0}")
+    @MethodSource("browsersProvider")
+    @interface ExtensionTest {
     }
 }

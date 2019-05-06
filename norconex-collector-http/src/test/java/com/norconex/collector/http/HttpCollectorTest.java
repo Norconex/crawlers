@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  */
 package com.norconex.collector.http;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,10 +41,11 @@ public class HttpCollectorTest extends AbstractHttpTest {
     private static final Logger LOG =
             LoggerFactory.getLogger(HttpCollectorTest.class);
 
+    @TempDir
+    Path folder;
+
     @Test
     public void testRerunInJVM() throws IOException, InterruptedException {
-
-        TemporaryFolder folder = getTempFolder();
 
         HttpCrawlerConfig crawlerCfg = new HttpCrawlerConfig();
         crawlerCfg.setId("test-crawler");
@@ -56,9 +58,7 @@ public class HttpCollectorTest extends AbstractHttpTest {
 
         HttpCollectorConfig config = new HttpCollectorConfig();
         config.setId("test-http-collector");
-        config.setWorkDir(folder.newFolder("multiRunTest").toPath());
-//        config.setLogsDir(crawlerCfg.getWorkDir().toAbsolutePath());
-//        config.setProgressDir(crawlerCfg.getWorkDir().toAbsolutePath());
+        config.setWorkDir(folder.resolve("multiRunTest"));
         config.setCrawlerConfigs(new CrawlerConfig[] {crawlerCfg});
 
         //TODO have abstract filter providing easy way to filter by event
@@ -68,22 +68,7 @@ public class HttpCollectorTest extends AbstractHttpTest {
                 JobState state = ((CollectorEvent<?>) e).getSource().getState();
                 assertEquals(JobState.COMPLETED, state);
             }
-
-//            JobState state = collector.getJobSuite().getStatus().getState();
-
         });
-
-//        config.setCollectorListeners(new ICollectorLifeCycleListener() {
-//            @Override
-//            public void onCollectorStart(Collector collector) {
-//            }
-//            @Override
-//            public void onCollectorFinish(Collector collector) {
-//                JobState state = collector.getJobSuite().getStatus().getState();
-//                assertTrue("Invalid state: " + state,
-//                        state == JobState.COMPLETED);
-//            }
-//        });
 
         final HttpCollector collector = new HttpCollector(config);
 
@@ -94,6 +79,4 @@ public class HttpCollectorTest extends AbstractHttpTest {
         collector.start(false);
         LOG.debug("Second normal run complete.");
     }
-
-
 }

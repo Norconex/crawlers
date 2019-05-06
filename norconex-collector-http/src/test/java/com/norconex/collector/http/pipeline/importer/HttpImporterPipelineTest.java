@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package com.norconex.collector.http.pipeline.importer;
 
 import java.io.ByteArrayInputStream;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.HttpCollector;
@@ -45,7 +45,7 @@ public class HttpImporterPipelineTest {
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
                 null, new HttpCrawlData(reference, 0), null, doc);
-        Assert.assertTrue(
+        Assertions.assertTrue(
                 HttpImporterPipelineUtil.resolveCanonical(ctx, false));
     }
 
@@ -58,7 +58,7 @@ public class HttpImporterPipelineTest {
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
                 null, new HttpCrawlData(reference, 0), null, doc);
-        Assert.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
+        Assertions.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
     }
 
     @Test
@@ -82,6 +82,6 @@ public class HttpImporterPipelineTest {
 //target->        HttpImporterPipelineContext
 
 
-//        Assert.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
+//        Assertions.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
     }
 }

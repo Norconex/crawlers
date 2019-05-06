@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Paths;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class HttpCollectorConfigTest {
                 "/validation/collector-http-full.xml"))) {
             new HttpCollectorConfig().loadFromXML(new XML(r));
         } catch (XMLValidationException e) {
-            Assert.fail(e.getErrors().size()
+            Assertions.fail(e.getErrors().size()
                     + "Validation warnings/errors were found.");
         }
 
@@ -73,7 +73,7 @@ public class HttpCollectorConfigTest {
 
 //          try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
 //                  "/validation/collector-http-full.xml"))) {
-//              Assert.assertTrue("Validation warnings/errors were found.",
+//              Assertions.assertTrue("Validation warnings/errors were found.",
 //                      new XML(r).validate(HttpCollectorConfig.class).isEmpty());
 //          }
     }
@@ -82,25 +82,31 @@ public class HttpCollectorConfigTest {
     @Test
     public void testCrawlerDefaults() throws IOException {
         HttpCollectorConfig config = TestUtil.loadCollectorConfig(getClass());
-        Assert.assertEquals(2, config.getCrawlerConfigs().size());
+        Assertions.assertEquals(2, config.getCrawlerConfigs().size());
 
         // Make sure crawler defaults are applied properly.
         HttpCrawlerConfig cc1 =
                 (HttpCrawlerConfig) config.getCrawlerConfigs().get(0);
-        Assert.assertFalse("stayOnDomain 1 must be false",
-                cc1.getURLCrawlScopeStrategy().isStayOnDomain());
-        Assert.assertFalse("stayOnPort 1 must be false",
-                cc1.getURLCrawlScopeStrategy().isStayOnPort());
-        Assert.assertTrue("stayOnProtocol 1 must be true",
-                cc1.getURLCrawlScopeStrategy().isStayOnProtocol());
+        Assertions.assertFalse(
+                cc1.getURLCrawlScopeStrategy().isStayOnDomain(),
+                "stayOnDomain 1 must be false");
+        Assertions.assertFalse(
+                cc1.getURLCrawlScopeStrategy().isStayOnPort(),
+                "stayOnPort 1 must be false");
+        Assertions.assertTrue(
+                cc1.getURLCrawlScopeStrategy().isStayOnProtocol(),
+                "stayOnProtocol 1 must be true");
 
         HttpCrawlerConfig cc2 =
                 (HttpCrawlerConfig) config.getCrawlerConfigs().get(1);
-        Assert.assertTrue("stayOnDomain 2 must be true",
-                cc2.getURLCrawlScopeStrategy().isStayOnDomain());
-        Assert.assertTrue("stayOnPort 2 must be true",
-                cc2.getURLCrawlScopeStrategy().isStayOnPort());
-        Assert.assertTrue("stayOnProtocol 2 must be true",
-                cc2.getURLCrawlScopeStrategy().isStayOnProtocol());
+        Assertions.assertTrue(
+                cc2.getURLCrawlScopeStrategy().isStayOnDomain(),
+                "stayOnDomain 2 must be true");
+        Assertions.assertTrue(
+                cc2.getURLCrawlScopeStrategy().isStayOnPort(),
+                "stayOnPort 2 must be true");
+        Assertions.assertTrue(
+                cc2.getURLCrawlScopeStrategy().isStayOnProtocol(),
+                "stayOnProtocol 2 must be true");
     }
 }

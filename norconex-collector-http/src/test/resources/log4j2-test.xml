@@ -10,16 +10,16 @@
     </Console>
   </Appenders>
   <Loggers>
-    <Logger name="com.norconex.collector.http" level="DEBUG" additivity="false">
+    <Logger name="com.norconex.collector.http" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.collector.core" level="DEBUG" additivity="false">
+    <Logger name="com.norconex.collector.core" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.importer" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.commons.lang" level="DEBUG" additivity="false">
+    <Logger name="com.norconex.commons.lang" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.apache" level="WARN" additivity="false">

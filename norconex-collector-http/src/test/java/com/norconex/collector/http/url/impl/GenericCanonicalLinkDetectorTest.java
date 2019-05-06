@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package com.norconex.collector.http.url.impl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,13 +47,15 @@ public class GenericCanonicalLinkDetectorTest {
         // Test absolute
         metadata.set("Link", "<" + canonURL + "> rel=\"canonical\"");
         url = d.detectFromMetadata(reference, metadata);
-        Assert.assertEquals("Invalid absolute canonical URL", canonURL, url);
+        Assertions.assertEquals(
+                canonURL, url, "Invalid absolute canonical URL");
 
         // Test relative
         String relCanonical = "/canonical.pdf";
         metadata.set("Link", "<" + relCanonical + "> rel=\"canonical\"");
         url = d.detectFromMetadata(reference, metadata);
-        Assert.assertEquals("Invalid relative canonical URL", canonURL, url);
+        Assertions.assertEquals(
+                canonURL, url, "Invalid relative canonical URL");
     }
 
     @Test
@@ -69,7 +71,7 @@ public class GenericCanonicalLinkDetectorTest {
                 + "</head><body>Nothing of interest in body</body></html>";
         url = d.detectFromContent(reference,  new ByteArrayInputStream(
                 contentValid.getBytes()), ContentType.HTML);
-        Assert.assertEquals("Invalid <link> form <head>", canonURL, url);
+        Assertions.assertEquals(canonURL, url, "Invalid <link> form <head>");
 
         // Invalid location for link tag
         String contentInvalid = "<html><head><title>Test</title>\n"
@@ -78,7 +80,7 @@ public class GenericCanonicalLinkDetectorTest {
                 + "</body></html>";
         url = d.detectFromContent(reference,  new ByteArrayInputStream(
                 contentInvalid.getBytes()), ContentType.HTML);
-        Assert.assertNull("Canonical link should be null.",  url);
+        Assertions.assertNull(url, "Canonical link should be null.");
     }
 
     @Test
@@ -96,7 +98,7 @@ public class GenericCanonicalLinkDetectorTest {
                 + "</head><body>Nothing of interest in body</body></html>";
         url = d.detectFromContent(reference,  new ByteArrayInputStream(
                 contentValid.getBytes()), ContentType.HTML);
-        Assert.assertEquals(unescapedCanonicalUrl, url);
+        Assertions.assertEquals(unescapedCanonicalUrl, url);
     }
 
     // Testing that single quotes within double quotes do no break extraction
@@ -116,7 +118,7 @@ public class GenericCanonicalLinkDetectorTest {
                 + "</head><body>Nothing of interest in body</body></html>";
         extractedUrl = d.detectFromContent(reference,  new ByteArrayInputStream(
                 contentValid.getBytes()), ContentType.HTML);
-        Assert.assertEquals(targetUrl, extractedUrl);
+        Assertions.assertEquals(targetUrl, extractedUrl);
     }
 
     @Test

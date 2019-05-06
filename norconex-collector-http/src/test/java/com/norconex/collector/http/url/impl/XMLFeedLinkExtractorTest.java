@@ -14,15 +14,15 @@
  */
 package com.norconex.collector.http.url.impl;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,19 +59,22 @@ public class XMLFeedLinkExtractorTest {
 
         ContentType ct = new ContentTypeDetector().detect(is);
 
-        Assert.assertTrue("Atom file not accepted.",
-                extractor.accepts(docURL, ct));
+        Assertions.assertTrue(
+                extractor.accepts(docURL, ct),
+                "Atom file not accepted.");
 
         Set<Link> links = extractor.extractLinks(is, docURL, ct);
         is.close();
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL,
-                    contains(links, expectedURL));
+            assertTrue(
+                    contains(links, expectedURL),
+                "Could not find expected URL: " + expectedURL);
         }
 
-        Assert.assertEquals("Invalid number of links extracted.",
-                expectedURLs.length, links.size());
+        Assertions.assertEquals(
+                expectedURLs.length, links.size(),
+                "Invalid number of links extracted.");
     }
 
     @Test
@@ -94,20 +97,23 @@ public class XMLFeedLinkExtractorTest {
 
         ContentType ct = new ContentTypeDetector().detect(is);
 
-        Assert.assertTrue("RSS file not accepted.",
-                extractor.accepts(docURL, ct));
+        Assertions.assertTrue(
+                extractor.accepts(docURL, ct),
+                "RSS file not accepted.");
 
 
         Set<Link> links = extractor.extractLinks(is, docURL, ct);
         is.close();
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL,
-                    contains(links, expectedURL));
+            assertTrue(
+                    contains(links, expectedURL),
+                "Could not find expected URL: " + expectedURL);
         }
 
-        Assert.assertEquals("Invalid number of links extracted.",
-                expectedURLs.length, links.size());
+        Assertions.assertEquals(
+                expectedURLs.length, links.size(),
+                "Invalid number of links extracted.");
     }
 
     @Test

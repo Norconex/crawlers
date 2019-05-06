@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  */
 package com.norconex.collector.http.robot.impl;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.robot.RobotsMeta;
@@ -52,7 +52,8 @@ public class StandardRobotsMetaProviderTest {
         RobotsMeta robotsMeta = p.getRobotsMeta(
                 docReader, docURL, ContentType.HTML, metadata);
 
-        assertTrue("Robots meta should be noindex nofollow.",
-                robotsMeta.isNofollow() && robotsMeta.isNoindex());
+        assertTrue(
+                robotsMeta.isNofollow() && robotsMeta.isNoindex(),
+                "Robots meta should be noindex nofollow.");
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,19 +57,19 @@ public class GenericDelayResolverTest {
 
         schedule = new DelaySchedule(
                 "Mon to Wed", "1 to 15", "13:00 to 14:00", 0);
-        Assert.assertTrue(schedule.isDateTimeInSchedule(
+        Assertions.assertTrue(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-03T13:30")));
-        Assert.assertFalse(schedule.isDateTimeInSchedule(
+        Assertions.assertFalse(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-03T1:30")));
 
         schedule = new DelaySchedule(
                 "Fri to Tue", "25 to 5", "22:00 to 6:00", 0);
-        Assert.assertTrue(schedule.isDateTimeInSchedule(
+        Assertions.assertTrue(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-01T23:30")));
 
         schedule = new DelaySchedule(
                 "Sat to Tue", "25 to 1", "23:30 to 23:30", 0);
-        Assert.assertTrue(schedule.isDateTimeInSchedule(
+        Assertions.assertTrue(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-01T23:30")));
 
     }

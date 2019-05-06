@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.url.impl;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,8 +22,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Set;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,12 +69,14 @@ public class RegexLinkExtractorTest {
         is.close();
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL,
-                    contains(links, expectedURL));
+            assertTrue(
+                    contains(links, expectedURL),
+                "Could not find expected URL: " + expectedURL);
         }
 
-        Assert.assertEquals("Invalid number of links extracted.",
-                expectedURLs.length, links.size());
+        Assertions.assertEquals(
+                expectedURLs.length, links.size(),
+                "Invalid number of links extracted.");
     }
 
     @Test
@@ -101,12 +103,14 @@ public class RegexLinkExtractorTest {
         }
 
         for (String expectedURL : expectedURLs) {
-            assertTrue("Could not find expected URL: " + expectedURL,
-                    contains(links, expectedURL));
+            assertTrue(
+                    contains(links, expectedURL),
+                "Could not find expected URL: " + expectedURL);
         }
 
-        Assert.assertEquals("Invalid number of links extracted.",
-                expectedURLs.length, links.size());
+        Assertions.assertEquals(
+                expectedURLs.length, links.size(),
+                "Invalid number of links extracted.");
     }
 
 

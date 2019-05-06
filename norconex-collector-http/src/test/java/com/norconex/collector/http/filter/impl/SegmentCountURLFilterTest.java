@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@ package com.norconex.collector.http.filter.impl;
 
 import java.io.IOException;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,7 @@ public class SegmentCountURLFilterTest {
     SegmentCountURLFilter f;
     String url;
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         f = null;
         url = null;
@@ -45,32 +45,41 @@ public class SegmentCountURLFilterTest {
         //--- Test proper segment counts ---
         url = "http://www.example.com/one/two/three/four/five/page.html";
         f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE);
-        Assert.assertFalse("URL wrongfully rejected.", f.acceptReference(url));
+        Assertions.assertFalse(f.acceptReference(url),
+                "URL wrongfully rejected.");
         f = new SegmentCountURLFilter(6, OnMatch.EXCLUDE);
-        Assert.assertFalse("URL wrongfully accepted.", f.acceptReference(url));
+        Assertions.assertFalse(f.acceptReference(url),
+                "URL wrongfully accepted.");
         f = new SegmentCountURLFilter(7, OnMatch.EXCLUDE);
-        Assert.assertTrue("URL wrongfully rejected.", f.acceptReference(url));
+        Assertions.assertTrue( f.acceptReference(url),
+                "URL wrongfully rejected.");
 
         //--- Test proper duplicate counts ---
         url = "http://www.example.com/aa/bb/aa/cc/bb/aa/aa/bb/cc/dd.html";
         f = new SegmentCountURLFilter(3, OnMatch.EXCLUDE, true);
-        Assert.assertFalse("URL wrongfully rejected.", f.acceptReference(url));
+        Assertions.assertFalse(f.acceptReference(url),
+                "URL wrongfully rejected.");
         f = new SegmentCountURLFilter(4, OnMatch.EXCLUDE, true);
-        Assert.assertFalse("URL wrongfully accepted.", f.acceptReference(url));
+        Assertions.assertFalse(f.acceptReference(url),
+                "URL wrongfully accepted.");
         f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE, true);
-        Assert.assertTrue("URL wrongfully rejected.", f.acceptReference(url));
+        Assertions.assertTrue(f.acceptReference(url),
+                "URL wrongfully rejected.");
 
         //--- Test custom separator (query string ---
         url = "http://www.example.com/one/two_three|four-five/page.html";
         f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE);
         f.setSeparator("[/_|-]");
-        Assert.assertFalse("URL wrongfully rejected.", f.acceptReference(url));
+        Assertions.assertFalse(f.acceptReference(url),
+                "URL wrongfully rejected.");
         f = new SegmentCountURLFilter(6, OnMatch.EXCLUDE);
         f.setSeparator("[/_|-]");
-        Assert.assertFalse("URL wrongfully accepted.", f.acceptReference(url));
+        Assertions.assertFalse(f.acceptReference(url),
+                "URL wrongfully accepted.");
         f = new SegmentCountURLFilter(7, OnMatch.EXCLUDE);
         f.setSeparator("[/_|-]");
-        Assert.assertTrue("URL wrongfully rejected.", f.acceptReference(url));
+        Assertions.assertTrue(f.acceptReference(url),
+                "URL wrongfully rejected.");
     }
 
     @Test

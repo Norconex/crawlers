@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Norconex Inc.
+/* Copyright 2013-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  */
 package com.norconex.collector.http.data.store.impl.mongo;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.github.fakemongo.Fongo;
 import com.norconex.collector.core.crawler.CrawlerConfig;
@@ -31,7 +32,7 @@ public class MongoCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
     private Fongo fongo;
 
     @Override
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         fongo = new Fongo("mongo server 1");
         super.setup();
@@ -44,7 +45,7 @@ public class MongoCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 
     @Override
     protected ICrawlDataStore createCrawlDataStore(
-            CrawlerConfig config, TemporaryFolder tempFolder, boolean resume) {
+            CrawlerConfig config, Path tempFolder, boolean resume) {
         return new MongoCrawlDataStore(resume,
                 fongo.getMongo(), "crawl-test", new MongoCrawlDataSerializer());
     }

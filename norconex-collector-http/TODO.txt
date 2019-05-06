@@ -1,5 +1,7 @@
 The following are either things to be done, or ideas to consider:
 
+- Eliminate CachedInputStream.dispose() in favor of close() to be consistent?
+
 - Add ability to export crawlstore in neutral format to switch from one to 
   another.
 

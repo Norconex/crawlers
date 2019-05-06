@@ -20,7 +20,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 
 import org.apache.commons.lang3.ClassUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import com.norconex.commons.lang.xml.XML;
 
@@ -70,18 +70,9 @@ public final class TestUtil {
             InputStream xmlStream) throws IOException {
 
         try (Reader r = new InputStreamReader(xmlStream)) {
-            Assert.assertTrue("Validation warnings/errors were found.",
-                    new XML(r).validate().isEmpty());
+            Assertions.assertTrue(
+                    new XML(r).validate().isEmpty(),
+                "Validation warnings/errors were found.");
         }
-
-//        CountingConsoleAppender appender = new CountingConsoleAppender();
-//        appender.startCountingFor(XMLConfigurationUtil.class, Level.WARN);
-//        try (Reader r = new InputStreamReader(xmlStream)) {
-//            XMLConfigurationUtil.newInstance(r);
-//        } finally {
-//            appender.stopCountingFor(XMLConfigurationUtil.class);
-//        }
-//        Assert.assertEquals("Validation warnings/errors were found.",
-//                0, appender.getCount());
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
@@ -93,12 +93,12 @@ public class StandardRobotsTxtProviderTest {
                 parseRobotRule("mister-crawler", robotTxt5).get(1));
         assertStartsWith("Robots.txt -> Allow: /open/",
                 parseRobotRule("mister-crawler", robotTxt5).get(2));
-        Assert.assertEquals(3,
+        Assertions.assertEquals(3,
                 parseRobotRule("mister-crawler", robotTxt5).size());
 
-        Assert.assertTrue(
+        Assertions.assertTrue(
                 parseRobotRule("mister-crawler", robotTxt6).isEmpty());
-        Assert.assertTrue(
+        Assertions.assertTrue(
                 parseRobotRule("mister-crawler", robotTxt7).isEmpty());
     }
 
@@ -156,13 +156,13 @@ public class StandardRobotsTxtProviderTest {
             String startsWith, IReferenceFilter robotRule) {
         String rule = StringUtils.substring(
                 robotRule.toString(), 0, startsWith.length());
-        Assert.assertEquals(startsWith, rule);
+        Assertions.assertEquals(startsWith, rule);
     }
 
     private void assertMatch(
             String url, IReferenceFilter robotRule, Boolean match) {
         RegexReferenceFilter regexFilter = (RegexReferenceFilter) robotRule;
-        Assert.assertEquals(
+        Assertions.assertEquals(
                 match,
                 url.matches(regexFilter.getRegex()));
     }

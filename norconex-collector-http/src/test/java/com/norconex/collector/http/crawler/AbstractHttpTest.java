@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Norconex Inc.
+/* Copyright 2014-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@ package com.norconex.collector.http.crawler;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,10 +26,9 @@ import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
@@ -37,6 +38,7 @@ import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.website.TestWebServer;
 import com.norconex.committer.core.impl.FileSystemCommitter;
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.io.CachedInputStream;
 
 public abstract class AbstractHttpTest {
 
@@ -45,11 +47,11 @@ public abstract class AbstractHttpTest {
     //Note: @Rule was not working for deleting folder since the webapp
     // still had a hold on the file.
     //private static TemporaryFolder tempFolder = new TemporaryFolder();
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    @TempDir
+    Path tempFolder;
 
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() throws IOException {
 //        tempFolder.create();
         new Thread() {
@@ -69,7 +71,7 @@ public abstract class AbstractHttpTest {
         Sleeper.sleepSeconds(5);
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() throws Exception {
         SERVER.stop();
 //        tempFolder.delete();
@@ -86,7 +88,7 @@ public abstract class AbstractHttpTest {
 //        FileUtil.delete(tempFolder.getRoot());
 //    }
 
-    protected /*static*/ TemporaryFolder getTempFolder() {
+    protected Path getTempFolder() {
         return tempFolder;
     }
 
@@ -120,17 +122,22 @@ public abstract class AbstractHttpTest {
             String basePath = StringUtils.removeEnd(
                     file.getAbsolutePath(),
                     FileSystemCommitter.EXTENSION_CONTENT);
-            meta.loadFromProperties(FileUtils.openInputStream(
-                    new File(basePath + ".meta")));
+            try (InputStream is = FileUtils.openInputStream(
+                    new File(basePath + ".meta"))) {
+                meta.loadFromProperties(is);
+            }
             String reference = FileUtils.readFileToString(
                     new File(basePath + ".ref"), StandardCharsets.UTF_8);
 
-            HttpDocument doc = new HttpDocument(
-                    reference, crawler.getStreamFactory().newInputStream(file));
-            // remove previous reference to avoid duplicates
-            doc.getMetadata().remove(HttpMetadata.COLLECTOR_URL);
-            doc.getMetadata().loadFromMap(meta);
-            docs.add(doc);
+            try (CachedInputStream is =
+                    crawler.getStreamFactory().newInputStream(file)) {
+                HttpDocument doc = new HttpDocument(reference, is);
+                // remove previous reference to avoid duplicates
+                doc.getMetadata().remove(HttpMetadata.COLLECTOR_URL);
+                doc.getMetadata().loadFromMap(meta);
+                docs.add(doc);
+
+            }
         }
         return docs;
     }
@@ -154,15 +161,15 @@ public abstract class AbstractHttpTest {
 
 //        File progressDir = tempFolder.newFolder("progress" + UUID.randomUUID());
 //        File logsDir = tempFolder.newFolder("logs" + UUID.randomUUID());
-        File workdir = tempFolder.newFolder("workdir" + UUID.randomUUID());
-        File committerDir = tempFolder.newFolder(
+        Path workdir = tempFolder.resolve("workdir" + UUID.randomUUID());
+        Path committerDir = tempFolder.resolve(
                 "committedFiles_" + UUID.randomUUID());
-        colConfig.setWorkDir(workdir.toPath());
+        colConfig.setWorkDir(workdir);
 
         //--- Committer ---
         //ICommitter committer = new NilCommitter();
         FileSystemCommitter committer = new FileSystemCommitter();
-        committer.setDirectory(committerDir.getAbsolutePath());
+        committer.setDirectory(committerDir.toAbsolutePath().toString());
 
         //--- Crawler ---
         HttpCrawlerConfig httpConfig = new HttpCrawlerConfig();

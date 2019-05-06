@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Norconex Inc.
+/* Copyright 2016-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
@@ -43,12 +43,15 @@ public class RobotsTxtFiltersStageTest {
               + "Disallow: /rejectMost/*\n"
               + "Allow: /rejectMost/butNotThisOne/*\n";
 
-        Assert.assertFalse("Matches Disallow", testAllow(robotTxt,
-                "http://rejected.com/rejectMost/blah.html"));
-        Assert.assertTrue("Matches Disallow AND Allow", testAllow(robotTxt,
-                "http://accepted.com/rejectMost/butNotThisOne/blah.html"));
-        Assert.assertTrue("No match in robot.txt", testAllow(robotTxt,
-                "http://accepted.com/notListed/blah.html"));
+        Assertions.assertFalse( testAllow(robotTxt,
+                "http://rejected.com/rejectMost/blah.html"),
+                "Matches Disallow");
+        Assertions.assertTrue( testAllow(robotTxt,
+                "http://accepted.com/rejectMost/butNotThisOne/blah.html"),
+                "Matches Disallow AND Allow");
+        Assertions.assertTrue( testAllow(robotTxt,
+                "http://accepted.com/notListed/blah.html"),
+                "No match in robot.txt");
 
     }
     private boolean testAllow(

@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  */
 package com.norconex.collector.http.crawler;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.nio.file.Path;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -30,12 +30,11 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Java;
-import org.apache.tools.ant.types.Path;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
@@ -66,11 +65,11 @@ public class ExecutionTest extends AbstractHttpTest {
     public static final boolean ENABLE_RECOVERY_TESTS =
             Boolean.getBoolean("enableRecoveryTests");
 
-    private File workDir;
-    private File committedDir;
-    private File progressDir;
-    private File varsFile;
-    private File configFile;;
+    private Path workDir;
+    private Path committedDir;
+    private Path progressDir;
+    private Path varsFile;
+    private Path configFile;;
     private Properties vars;
 
     /**
@@ -79,7 +78,7 @@ public class ExecutionTest extends AbstractHttpTest {
     public ExecutionTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void notifyOfRecoveryTests() {
         if (!ENABLE_RECOVERY_TESTS) {
             System.out.println("Recovery tests are disabled in "
@@ -91,13 +90,13 @@ public class ExecutionTest extends AbstractHttpTest {
         }
     }
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
-        workDir = getTempFolder().newFolder();
-        committedDir = new File(workDir, "committed");
-        progressDir = new File(workDir, "progress");
-        varsFile = getTempFolder().newFile("test.properties");
-        configFile = getTempFolder().newFile("test.cfg");
+        workDir = getTempFolder();
+        committedDir = workDir.resolve("committed");
+        progressDir = workDir.resolve("progress");
+        varsFile = workDir.resolve("test.properties");
+        configFile = workDir.resolve("test.cfg");
 
         vars = new Properties();
         vars.set("startURL", newUrl("/test?case=basic&amp;depth=0"));
@@ -106,11 +105,11 @@ public class ExecutionTest extends AbstractHttpTest {
         vars.set("maxDocuments", 10);
         vars.set("delay", 0);
     }
-    @After
+    @AfterEach
     public void tearDown() throws IOException {
-        FileUtil.delete(varsFile);
-        FileUtil.delete(configFile);
-        FileUtil.delete(workDir);
+        FileUtil.delete(varsFile.toFile());
+        FileUtil.delete(configFile.toFile());
+        FileUtil.delete(workDir.toFile());
         vars.clear();
         workDir = null;
         committedDir = null;
@@ -132,11 +131,13 @@ public class ExecutionTest extends AbstractHttpTest {
 
         // Test once and make sure we get 4 additions in total.
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
-        Assert.assertEquals("Wrong number of added files.",
-                4, countAddedFiles());
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+        Assertions.assertEquals(
+                4, countAddedFiles(),
+                "Wrong number of added files.");
         ageProgress(progressDir);
-        FileUtil.delete(committedDir);
+        FileUtil.delete(committedDir.toFile());
 
         // Test twice and make sure we get 1 add (3 unmodified), because:
         // Page 1 has new modified date, we check content. Content is same.
@@ -144,11 +145,13 @@ public class ExecutionTest extends AbstractHttpTest {
         // Page 3 has new modified date, so we check content.
         // Content is modified.
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
-        Assert.assertEquals("Wrong number of modified files.",
-                1, countAddedFiles());
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+        Assertions.assertEquals(
+                1, countAddedFiles(),
+                "Wrong number of modified files.");
         ageProgress(progressDir);
-        FileUtil.delete(committedDir);
+        FileUtil.delete(committedDir.toFile());
 
         //TODO test with just header checksum, then with just content checksum?
     }
@@ -166,33 +169,42 @@ public class ExecutionTest extends AbstractHttpTest {
 
         // Test once and make sure we get 4 additions in total.
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
-        Assert.assertEquals("Wrong number of added files.",
-                4, countAddedFiles());
-        Assert.assertEquals("Wrong number of deleted files.",
-                0, countDeletedFiles());
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+        Assertions.assertEquals(
+                4, countAddedFiles(),
+                "Wrong number of added files.");
+        Assertions.assertEquals(
+                0, countDeletedFiles(),
+                "Wrong number of deleted files.");
         ageProgress(progressDir);
-        FileUtil.delete(committedDir);
+        FileUtil.delete(committedDir.toFile());
 
         // Test twice and make sure we get 0 add (1 unmodified)
         // and 3 pages to delete.
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
-        Assert.assertEquals("Wrong number of added files.",
-                0, countAddedFiles());
-        Assert.assertEquals("Wrong number of deleted files.",
-                3, countDeletedFiles());
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+        Assertions.assertEquals(
+                0, countAddedFiles(),
+                "Wrong number of added files.");
+        Assertions.assertEquals(
+                3, countDeletedFiles(),
+                "Wrong number of deleted files.");
         ageProgress(progressDir);
-        FileUtil.delete(committedDir);
+        FileUtil.delete(committedDir.toFile());
 
         // Test a third time and make sure we get 0 add (1 unmodified)
         // and 3 new pages.
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
-        Assert.assertEquals("Wrong number of added files.",
-                3, countAddedFiles());
-        Assert.assertEquals("Wrong number of deleted files.",
-                0, countDeletedFiles());
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+        Assertions.assertEquals(
+                3, countAddedFiles(),
+                "Wrong number of added files.");
+        Assertions.assertEquals(
+                0, countDeletedFiles(),
+                "Wrong number of deleted files.");
     }
 
     //Test for https://github.com/Norconex/collector-http/issues/390
@@ -209,24 +221,30 @@ public class ExecutionTest extends AbstractHttpTest {
 
         // Test once and make sure we get 3 additions in total.
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
-        Assert.assertEquals("Wrong number of added files.",
-                3, countAddedFiles());
-        Assert.assertEquals("Wrong number of deleted files.",
-                0, countDeletedFiles());
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+        Assertions.assertEquals(
+                3, countAddedFiles(),
+                "Wrong number of added files.");
+        Assertions.assertEquals(
+                0, countDeletedFiles(),
+                "Wrong number of deleted files.");
         ageProgress(progressDir);
-        FileUtil.delete(committedDir);
+        FileUtil.delete(committedDir.toFile());
 
         // Test twice and make sure we get 1 add, 2 unmodified and
         // 1 pages deleted, regardless of delay specified in sitemap.
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
-        Assert.assertEquals("Wrong number of added files.",
-                1, countAddedFiles());
-        Assert.assertEquals("Wrong number of deleted files.",
-                1, countDeletedFiles());
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+        Assertions.assertEquals(
+                1, countAddedFiles(),
+                "Wrong number of added files.");
+        Assertions.assertEquals(
+                1, countDeletedFiles(),
+                "Wrong number of deleted files.");
         ageProgress(progressDir);
-        FileUtil.delete(committedDir);
+        FileUtil.delete(committedDir.toFile());
     }
 
     //Test for https://github.com/Norconex/collector-http/issues/316
@@ -252,21 +270,25 @@ public class ExecutionTest extends AbstractHttpTest {
 
         // Test once and make sure we get 3 additions in total.
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
-        Assert.assertEquals("Wrong number of added files.",
-                3, countAddedFiles());
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+        Assertions.assertEquals(
+                3, countAddedFiles(),
+                "Wrong number of added files.");
         ageProgress(progressDir);
-        FileUtil.delete(committedDir);
+        FileUtil.delete(committedDir.toFile());
 
         // Test twice and make sure we get 2 modified child docs even if
         // master times out (as opposed to consider child as orphans to be
         // deleted.
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong exit value.", 0, exitValue);
-        Assert.assertEquals("Wrong number of modified files.",
-                2, countAddedFiles());
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+        Assertions.assertEquals(
+                2, countAddedFiles(),
+                "Wrong number of modified files.");
         ageProgress(progressDir);
-        FileUtil.delete(committedDir);
+        FileUtil.delete(committedDir.toFile());
     }
 
     @Test
@@ -295,8 +317,9 @@ public class ExecutionTest extends AbstractHttpTest {
                 try {
                     System.out.println("Starting collector.");
                     int returnValue = runCollector("start", vars);
-                    Assert.assertEquals("Wrong first return value.", 0,
-                            returnValue);
+                    Assertions.assertEquals( 0,
+                            returnValue,
+                "Wrong first return value.");
                 } catch (IOException | XMLStreamException e) {
                     throw new RuntimeException(e);
                 }
@@ -307,14 +330,16 @@ public class ExecutionTest extends AbstractHttpTest {
 
         System.out.println("Requesting collector to stop.");
         int returnValue = runCollector("stop", null);
-        Assert.assertEquals("Wrong stop return value.", 0, returnValue);
+        Assertions.assertEquals( 0, returnValue,
+                "Wrong stop return value.");
 
         newCrawl.join();
 
         int fileCount = countAddedFiles();
-        Assert.assertTrue("Should not have had time to process more than "
-                + "2 or 3 files (processed " + fileCount + ").",
-                fileCount > 1 && fileCount < 4);
+        Assertions.assertTrue(
+                fileCount > 1 && fileCount < 4,
+                "Should not have had time to process more than "
+                + "2 or 3 files (processed " + fileCount + ").");
 
         ageProgress(progressDir);
         vars.set("delay", 0);
@@ -322,17 +347,21 @@ public class ExecutionTest extends AbstractHttpTest {
         //--- Resume after stop ---
         if (resume) {
             int exitValue = runCollector("resume", vars);
-            Assert.assertEquals("Wrong exit value.", 0, exitValue);
-            Assert.assertEquals("Wrong number of committed files after resume.",
-                    10, countAddedFiles());
+            Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+            Assertions.assertEquals(
+                    10, countAddedFiles(),
+                "Wrong number of committed files after resume.");
         //--- Start after stop ---
         } else {
-            FileUtil.delete(committedDir);
+            FileUtil.delete(committedDir.toFile());
             vars.set("maxDocuments", 2);
             int exitValue = runCollector("start", vars);
-            Assert.assertEquals("Wrong exit value.", 0, exitValue);
-            Assert.assertEquals("Wrong number of committed files after start.",
-                    2, countAddedFiles());
+            Assertions.assertEquals( 0, exitValue,
+                "Wrong exit value.");
+            Assertions.assertEquals(
+                    2, countAddedFiles(),
+                "Wrong number of committed files after start.");
         }
     }
 
@@ -378,12 +407,14 @@ public class ExecutionTest extends AbstractHttpTest {
         //--- Crash start run ---
         System.out.println("\n--- Crash start run ---");
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong crash exit value.",
-                JVMCrasher.CRASH_EXIT_VALUE, exitValue);
+        Assertions.assertEquals(
+                JVMCrasher.CRASH_EXIT_VALUE, exitValue,
+                "Wrong crash exit value.");
         // JVMCrasher crashes after 7th *fetch*, so only 6 should have been
         // committed.
-        Assert.assertEquals("Wrong number of committed files after JVM crash.",
-                6, countAddedFiles());
+        Assertions.assertEquals(
+                6, countAddedFiles(),
+                "Wrong number of committed files after JVM crash.");
         ageProgress(progressDir);
 
 
@@ -393,9 +424,11 @@ public class ExecutionTest extends AbstractHttpTest {
             System.out.println("\n--- Resume run ---");
             exitValue = runCollector("resume", vars);
 
-            Assert.assertEquals("Wrong resume exit value.", 0, exitValue);
-            Assert.assertEquals("Wrong number of committed files after resume.",
-                    10, countAddedFiles());
+            Assertions.assertEquals( 0, exitValue,
+                "Wrong resume exit value.");
+            Assertions.assertEquals(
+                    10, countAddedFiles(),
+                "Wrong number of committed files after resume.");
             ageProgress(progressDir);
         }
 
@@ -404,16 +437,18 @@ public class ExecutionTest extends AbstractHttpTest {
         System.out.println("\n--- Good start run ---");
         vars.set("maxDocuments", 5);
         exitValue = runCollector("start", vars);
-        Assert.assertEquals("Wrong start exit value.", 0, exitValue);
+        Assertions.assertEquals( 0, exitValue,
+                "Wrong start exit value.");
         // Since we are not clearing previous committed files, 5 is added
         // to docs gathered so far.
         int expected = 11;
         if (resume) {
             expected = 15;
         }
-        Assert.assertEquals(
-                "Wrong number of committed files after straight run.",
-                expected, countAddedFiles());
+        Assertions.assertEquals(
+                expected, countAddedFiles(),
+
+                "Wrong number of committed files after straight run.");
         ageProgress(progressDir);
     }
 
@@ -425,16 +460,18 @@ public class ExecutionTest extends AbstractHttpTest {
         return countFiles(committedDir,
                 FileSystemCommitter.FILE_SUFFIX_REMOVE + ".ref");
     }
-    private int countFiles(File dir, String suffix) {
+    private int countFiles(Path dir, String suffix) {
         final MutableInt count = new MutableInt();
-        FileUtil.visitAllFiles(dir, file -> count.increment(), FileFilterUtils.suffixFileFilter(suffix));
+        FileUtil.visitAllFiles(dir.toFile(), file -> count.increment(),
+                FileFilterUtils.suffixFileFilter(suffix));
         return count.intValue();
     }
 
     // Age progress files to fool activity tracker so we can restart right away.
-    private void ageProgress(File progressDir) {
+    private void ageProgress(Path progressDir) {
         final long age = System.currentTimeMillis() - (10 * 1000);
-        FileUtil.visitAllFiles(progressDir, file -> file.setLastModified(age));
+        FileUtil.visitAllFiles(
+                progressDir.toFile(), file -> file.setLastModified(age));
     }
 
     private int runCollector(String action, Properties configVars)
@@ -442,17 +479,17 @@ public class ExecutionTest extends AbstractHttpTest {
 
         // Config + variables
         if (configVars != null) {
-            try (Writer w = new FileWriter(varsFile)) {
+            try (Writer w = new FileWriter(varsFile.toFile())) {
                 configVars.storeToProperties(w, "");
             }
             try (InputStream is = getClass().getResourceAsStream(
                     "ExecutionTest-config.xml")) {
-                FileUtils.copyInputStreamToFile(is, configFile);
+                FileUtils.copyInputStreamToFile(is, configFile.toFile());
             }
         }
 
         Project project = new Project();
-        project.setBaseDir(getTempFolder().getRoot());
+        project.setBaseDir(getTempFolder().getRoot().toFile());
         project.init();
         DefaultLogger logger = new DefaultLogger();
         project.addBuildListener(logger);
@@ -474,10 +511,10 @@ public class ExecutionTest extends AbstractHttpTest {
             javaTask.setFork(true);
             javaTask.setFailonerror(true);
             javaTask.setClassname(HttpCollector.class.getName());
-            javaTask.setClasspath(
-                    new Path(project, SystemUtils.JAVA_CLASS_PATH));
+            javaTask.setClasspath(new org.apache.tools.ant.types.Path(
+                    project, SystemUtils.JAVA_CLASS_PATH));
             String args = "-a " + action
-                    + " -c \"" + configFile.getAbsolutePath()
+                    + " -c \"" + configFile.toAbsolutePath().toFile()
                     + "\" -v \"" + varsFile + "\"";
             javaTask.getCommandLine().createArgument().setLine(args);
             javaTask.init();

@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@ package com.norconex.collector.http.data.store.impl;
 
 import static com.norconex.collector.core.CollectorEvent.COLLECTOR_STARTED;
 import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STARTED;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.nio.file.Path;
 import java.util.Date;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.crawler.CrawlerConfig;
@@ -51,8 +51,8 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         System.setProperty("derby.system.durability", "test");
     }
 
-    @Rule
-    public final TemporaryFolder tempFolder = new TemporaryFolder();
+    @TempDir
+    Path tempFolder;
 
     private ICrawlDataStore crawlStore;
     private HttpCrawlerConfig crawlerConfig;
@@ -69,17 +69,17 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     public void setCrawlerConfig(HttpCrawlerConfig crawlerConfig) {
         this.crawlerConfig = crawlerConfig;
     }
-    public TemporaryFolder getTempfolder() {
+    public Path getTempfolder() {
         return tempFolder;
     }
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         crawlerConfig = createCrawlerConfig(getCrawlerId(), tempFolder);
         // the tempFolder is re-created at each test
 
         HttpCollectorConfig colCfg = new HttpCollectorConfig();
-        colCfg.setWorkDir(tempFolder.newFolder().toPath());
+        colCfg.setWorkDir(tempFolder);
         colCfg.setCrawlerConfigs(crawlerConfig);
         HttpCollector collector = new HttpCollector(colCfg);
         collector.getCollectorConfig().setId("testCollectorId");
@@ -92,7 +92,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         crawlStore = createCrawlDataStore(crawlerConfig, tempFolder, false);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         if (crawlStore != null) {
             crawlStore.close();
@@ -100,7 +100,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     }
 
     protected HttpCrawlerConfig createCrawlerConfig(
-            String crawlerId, TemporaryFolder tempFolder) {
+            String crawlerId, Path tempFolder) {
         HttpCrawlerConfig config = new HttpCrawlerConfig();
         config.setId(crawlerId);
 //        config.set
@@ -126,7 +126,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     }
 
     protected abstract ICrawlDataStore createCrawlDataStore(
-            CrawlerConfig config, TemporaryFolder tempFolder, boolean resume);
+            CrawlerConfig config, Path tempFolder, boolean resume);
 
 
     //--- Tests ----------------------------------------------------------------
