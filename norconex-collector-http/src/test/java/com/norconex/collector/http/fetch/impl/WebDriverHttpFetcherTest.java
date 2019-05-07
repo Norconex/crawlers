@@ -54,7 +54,6 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 // have 1 doc fetcher and 1 http fetcher that can be the same or different.
 // have ability to specify different fetchers for different URL patterns.
 //@Ignore
-
 public class WebDriverHttpFetcherTest  {
 
     private static final Logger LOG =
@@ -100,23 +99,6 @@ public class WebDriverHttpFetcherTest  {
 //                    "edgedriver-6.17134.exe"))
 //            .get();
 
-//    private final WebDriverBrowser browser;
-//    private final Path driverPath;
-
-
-//    public WebDriverHttpFetcherTest(WebDriverBrowser browser, Path driverPath) {
-//        super();
-//        this.browser = browser;
-//        this.driverPath = driverPath;
-//    }
-
-//    static Stream<Object[]> browsersProvider() {
-//        return Stream.of(
-//                new Object[]{WebDriverBrowser.FIREFOX, firefoxDriverPath},
-//                new Object[]{WebDriverBrowser.CHROME, chromeDriverPath}
-////              {WebDriverBrowser.EDGE, edgeDriverPath},
-//        );
-//    }
     static Stream<WebDriverHttpFetcher> browsersProvider() {
         return Stream.of(
                 createFetcher(WebDriverBrowser.FIREFOX, firefoxDriverPath),
@@ -133,17 +115,11 @@ public class WebDriverHttpFetcherTest  {
     public static void afterClass() throws IOException {
         server.stop();
     }
-//    @BeforeEach
-//    public void before() throws IOException {
-//        Assumptions.assumeTrue(
-//                isDriverPresent(driverPath),
-//                "SKIPPING: No driver for " + browser.name());
-//    }
-
 
     @ExtensionTest
     public void testFetchingJsGeneratedContent(
             WebDriverHttpFetcher fetcher) throws IOException {
+        assumeDriverPresent(fetcher);
         try {
             // simulate crawler startup
             fetcher.crawlerStartup(null);
@@ -162,7 +138,7 @@ public class WebDriverHttpFetcherTest  {
     @ExtensionTest
     public void testTakeScreenshots(
             WebDriverHttpFetcher fetcher) throws IOException {
-
+        assumeDriverPresent(fetcher);
         WebDriverScreenshotHandler h = new WebDriverScreenshotHandler();
         h.setTargetDir(Paths.get("./target/screenshots"));
         h.setCssSelector("#applePicture");
@@ -179,6 +155,7 @@ public class WebDriverHttpFetcherTest  {
     @ExtensionTest
     public void testFetchingHeadersUsingSniffer(
             WebDriverHttpFetcher fetcher) throws IOException {
+        assumeDriverPresent(fetcher);
 
         // Test picking up headers
         Assumptions.assumeTrue(
@@ -204,6 +181,7 @@ public class WebDriverHttpFetcherTest  {
     @ExtensionTest
     public void testPageScript(
             WebDriverHttpFetcher fetcher) throws IOException {
+        assumeDriverPresent(fetcher);
 
         fetcher.setPageScript(
                 "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
@@ -224,6 +202,8 @@ public class WebDriverHttpFetcherTest  {
     @ExtensionTest
     public void testResolvingUserAgent(
             WebDriverHttpFetcher fetcher) throws IOException {
+        assumeDriverPresent(fetcher);
+
         try {
             fetcher.crawlerStartup(null);
             String userAgent = fetcher.getUserAgent();
@@ -243,7 +223,15 @@ public class WebDriverHttpFetcherTest  {
         fetcher.setDriverPath(driverPath);
         return fetcher;
     }
-
+    private static boolean isDriverPresent(Path driverPath) {
+        try {
+            return driverPath != null && driverPath.toFile().exists();
+        } catch (Exception e) {
+            LOG.debug("Could not verify driver presence at: {}. Error: {}",
+                    driverPath, e.getMessage());
+            return false;
+        }
+    }
 
     private HttpDocument fetch(WebDriverHttpFetcher fetcher, String urlPath) {
         HttpDocument doc = new HttpDocument(
@@ -253,15 +241,7 @@ public class WebDriverHttpFetcherTest  {
         return doc;
     }
 
-//    private boolean isDriverPresent(Path driverPath) {
-//        try {
-//            return driverPath != null && driverPath.toFile().exists();
-//        } catch (Exception e) {
-//            LOG.debug("Could not verify driver presence at: {}. Error: {}",
-//                    driverPath, e.getMessage());
-//            return false;
-//        }
-//    }
+
     // Returns false for browsers not supporting setting proxies, which
     // is required to capture headers.
     private boolean isProxySupported(WebDriverBrowser browser) {
@@ -269,10 +249,16 @@ public class WebDriverHttpFetcherTest  {
                 && */ browser != WebDriverBrowser.CHROME;
     }
 
+    private void assumeDriverPresent(WebDriverHttpFetcher fetcher) {
+        Assumptions.assumeTrue(fetcher != null);
+        Assumptions.assumeTrue(
+                isDriverPresent(fetcher.getDriverPath()),
+                "SKIPPING: No driver found for " + fetcher.getBrowser().name());
+    }
+
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @ParameterizedTest(name = "browser: {0}")
-//    @ParameterizedTest(name = "{index}: {0}")
     @MethodSource("browsersProvider")
     @interface ExtensionTest {
     }
