@@ -79,6 +79,11 @@
     <listener class="YourClass"/>
   </collectorListeners>
 
+  <!-- Maximum number of crawlers to run at once. Only useful when you have
+       multiple crawlers defined. Default is unlimited.
+       -->
+  <maxParallelCrawlers>-1</maxParallelCrawlers>
+
   <!-- All crawler configuration options can be specified as default 
        (including start URLs).  Settings defined here will be inherited by 
        all individual crawlers defined further down, unless overwritten.
