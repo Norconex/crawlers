@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,15 @@
  */
 package com.norconex.collector.http.doc;
 
+import static com.norconex.collector.http.doc.HttpMetadata.COLLECTOR_URL;
+
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.doc.ImporterDocument;
 
 //TODO consider dropping since it just brings HttpMetadata cast.
+
+//TODO forcing to pass COLLECTOR_URL that way is best?
 public class HttpDocument extends ImporterDocument {
 
     /**
@@ -34,18 +38,18 @@ public class HttpDocument extends ImporterDocument {
     public HttpDocument(String reference, CachedInputStream content,
             HttpMetadata metadata) {
         super(reference, content, metadata);
-        // TODO Auto-generated constructor stub
+        getMetadata().set(COLLECTOR_URL, reference);
     }
 
     public HttpDocument(String reference, CachedStreamFactory streamFactory) {
         super(reference, streamFactory, new HttpMetadata(reference));
-        // TODO Auto-generated constructor stub
     }
 
     public HttpDocument(ImporterDocument importerDocument) {
         super(importerDocument.getReference(),
                 importerDocument.getInputStream(),
                 new HttpMetadata(importerDocument.getMetadata()));
+        getMetadata().set(COLLECTOR_URL, importerDocument.getReference());
         setReference(importerDocument.getReference());
         setContentType(importerDocument.getContentType());
         setContentEncoding(importerDocument.getContentEncoding());

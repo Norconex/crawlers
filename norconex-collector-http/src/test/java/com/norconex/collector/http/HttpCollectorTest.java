@@ -50,7 +50,7 @@ public class HttpCollectorTest extends AbstractHttpTest {
         HttpCrawlerConfig crawlerCfg = new HttpCrawlerConfig();
         crawlerCfg.setId("test-crawler");
         crawlerCfg.setCommitter(new NilCommitter());
-        String startURL = newUrl("/test?case=modifiedFiles");
+        String startURL = null;//newUrl("/test?case=modifiedFiles");
         crawlerCfg.setStartURLs(startURL);
         GenericDelayResolver delay = new GenericDelayResolver();
         delay.setDefaultDelay(10);

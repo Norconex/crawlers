@@ -18,10 +18,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Path;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.junit.jupiter.api.Assertions;
 
+import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
+import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
+import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.delay.impl.GenericDelayResolver;
+import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.xml.XML;
 
 
@@ -74,5 +80,70 @@ public final class TestUtil {
                     new XML(r).validate().isEmpty(),
                 "Validation warnings/errors were found.");
         }
+    }
+
+    //TODO move to HttpCollectorTestFactory or TestBuilder that returns a
+    // test facade object with convinient test/getter methods.
+
+    /**
+     * Gets a single-crawler configuration that uses a {@link MemoryCommitter}
+     * to store documents. Both the collector and its unique crawler are
+     * guaranteed to have unique ids (UUID).
+     * @param id collector id
+     * @param workdir working directory
+     * @param startURLs start URLs
+     * @return HTTP Collector configuration
+     * @throws IOException
+     */
+    public static HttpCollectorConfig newMemoryCollectorConfig(
+            String id, Path workdir, String... startURLs) throws IOException {
+        //--- Collector ---
+        HttpCollectorConfig colConfig = new HttpCollectorConfig();
+        colConfig.setId("Unit Test HTTP Collector " + id);
+
+        colConfig.setWorkDir(workdir);
+
+        MemoryCommitter committer = new MemoryCommitter();
+
+        //--- Crawler ---
+        HttpCrawlerConfig httpConfig = new HttpCrawlerConfig();
+        httpConfig.setId("Unit Test HTTP Crawler " + id);
+        httpConfig.setStartURLs(startURLs);
+        httpConfig.setNumThreads(1);
+        GenericDelayResolver resolver = new GenericDelayResolver();
+        resolver.setDefaultDelay(0);
+        httpConfig.setDelayResolver(resolver);
+        httpConfig.setIgnoreCanonicalLinks(true);
+        httpConfig.setIgnoreRobotsMeta(true);
+        httpConfig.setIgnoreRobotsTxt(true);
+        httpConfig.setIgnoreSitemap(true);
+        httpConfig.setCommitter(committer);
+
+        LastModifiedMetadataChecksummer metaChecksum =
+                new LastModifiedMetadataChecksummer();
+        metaChecksum.setDisabled(true);
+        httpConfig.setMetadataChecksummer(metaChecksum);
+        MD5DocumentChecksummer docChecksum = new MD5DocumentChecksummer();
+        docChecksum.setDisabled(true);
+        httpConfig.setDocumentChecksummer(docChecksum);
+
+        colConfig.setCrawlerConfigs(httpConfig);
+        return colConfig;
+    }
+
+
+    /**
+     * Gets a single-crawler that uses a {@link MemoryCommitter} to store
+     * documents.
+     * @param id collector id
+     * @param workdir working directory
+     * @param startURLs start URLs
+     * @return HTTP Collector
+     * @throws IOException
+     */
+    public static HttpCollector newMemoryCollector(
+            String id, Path workdir, String... startURLs) throws IOException {
+        return new HttpCollector(
+                newMemoryCollectorConfig(id, workdir, startURLs));
     }
 }

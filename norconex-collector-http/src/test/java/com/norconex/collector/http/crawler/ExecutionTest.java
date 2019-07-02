@@ -30,20 +30,14 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Java;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
 import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory;
 import com.norconex.collector.http.HttpCollector;
-import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory;
 import com.norconex.committer.core.impl.FileSystemCommitter;
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.map.Properties;
 
@@ -72,298 +66,52 @@ public class ExecutionTest extends AbstractHttpTest {
     private Path configFile;;
     private Properties vars;
 
-    /**
-     * Constructor.
-     */
-    public ExecutionTest() {
-    }
-
-    @BeforeAll
-    public static void notifyOfRecoveryTests() {
-        if (!ENABLE_RECOVERY_TESTS) {
-            System.out.println("Recovery tests are disabled in "
-                    + ExecutionTest.class.getCanonicalName()
-                    + ". To enable them, set -DenableRecoveryTests=true");
-        } else {
-            System.out.println("Recovery tests are enabled in "
-                    + ExecutionTest.class.getCanonicalName() + ".");
-        }
-    }
-
-    @BeforeEach
-    public void setup() throws IOException {
-        workDir = getTempFolder();
-        committedDir = workDir.resolve("committed");
-        progressDir = workDir.resolve("progress");
-        varsFile = workDir.resolve("test.properties");
-        configFile = workDir.resolve("test.cfg");
-
-        vars = new Properties();
-        vars.set("startURL", newUrl("/test?case=basic&amp;depth=0"));
-        vars.set("workDir", workDir);
-        vars.set("maxDepth", 10);
-        vars.set("maxDocuments", 10);
-        vars.set("delay", 0);
-    }
-    @AfterEach
-    public void tearDown() throws IOException {
-        FileUtil.delete(varsFile.toFile());
-        FileUtil.delete(configFile.toFile());
-        FileUtil.delete(workDir.toFile());
-        vars.clear();
-        workDir = null;
-        committedDir = null;
-        progressDir = null;
-        vars = null;
-        varsFile = null;
-        configFile = null;
-    }
-
-    @Test
-    public void testWebPageModificationDetection()
-            throws IOException, XMLStreamException {
-        String startURL = newUrl("/test?case=modifiedFiles");
-        vars.set("startURL", startURL);
-        vars.set("metadataChecksummer", LastModifiedMetadataChecksummer.class);
-        vars.set("documentChecksummer", MD5DocumentChecksummer.class);
-
-        int exitValue = 0;
-
-        // Test once and make sure we get 4 additions in total.
-        exitValue = runCollector("start", vars);
-        Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-        Assertions.assertEquals(
-                4, countAddedFiles(),
-                "Wrong number of added files.");
-        ageProgress(progressDir);
-        FileUtil.delete(committedDir.toFile());
-
-        // Test twice and make sure we get 1 add (3 unmodified), because:
-        // Page 1 has new modified date, we check content. Content is same.
-        // Page 2 has same modified date, we do not go further (ignore content).
-        // Page 3 has new modified date, so we check content.
-        // Content is modified.
-        exitValue = runCollector("start", vars);
-        Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-        Assertions.assertEquals(
-                1, countAddedFiles(),
-                "Wrong number of modified files.");
-        ageProgress(progressDir);
-        FileUtil.delete(committedDir.toFile());
-
-        //TODO test with just header checksum, then with just content checksum?
-    }
-
-    @Test
-    public void testWebPageDeletionDetection()
-            throws IOException, XMLStreamException {
-        String startURL = newUrl("/test?case=deletedFiles&amp;token="
-                + System.currentTimeMillis());
-        vars.set("startURL", startURL);
-        vars.set("metadataChecksummer", LastModifiedMetadataChecksummer.class);
-        vars.set("documentChecksummer", MD5DocumentChecksummer.class);
-
-        int exitValue = 0;
-
-        // Test once and make sure we get 4 additions in total.
-        exitValue = runCollector("start", vars);
-        Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-        Assertions.assertEquals(
-                4, countAddedFiles(),
-                "Wrong number of added files.");
-        Assertions.assertEquals(
-                0, countDeletedFiles(),
-                "Wrong number of deleted files.");
-        ageProgress(progressDir);
-        FileUtil.delete(committedDir.toFile());
-
-        // Test twice and make sure we get 0 add (1 unmodified)
-        // and 3 pages to delete.
-        exitValue = runCollector("start", vars);
-        Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-        Assertions.assertEquals(
-                0, countAddedFiles(),
-                "Wrong number of added files.");
-        Assertions.assertEquals(
-                3, countDeletedFiles(),
-                "Wrong number of deleted files.");
-        ageProgress(progressDir);
-        FileUtil.delete(committedDir.toFile());
-
-        // Test a third time and make sure we get 0 add (1 unmodified)
-        // and 3 new pages.
-        exitValue = runCollector("start", vars);
-        Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-        Assertions.assertEquals(
-                3, countAddedFiles(),
-                "Wrong number of added files.");
-        Assertions.assertEquals(
-                0, countDeletedFiles(),
-                "Wrong number of deleted files.");
-    }
-
-    //Test for https://github.com/Norconex/collector-http/issues/390
-    @Test
-    public void testSitemapDelayWithURLDeletion()
-            throws IOException, XMLStreamException {
-        String sitemapURL = newUrl("/test?case=sitemap&amp;token="
-                + System.currentTimeMillis());
-        vars.set("sitemap", sitemapURL);
-        vars.set("startURL", (String) null);
-        vars.set("orphansStrategy", "PROCESS");
-
-        int exitValue = 0;
-
-        // Test once and make sure we get 3 additions in total.
-        exitValue = runCollector("start", vars);
-        Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-        Assertions.assertEquals(
-                3, countAddedFiles(),
-                "Wrong number of added files.");
-        Assertions.assertEquals(
-                0, countDeletedFiles(),
-                "Wrong number of deleted files.");
-        ageProgress(progressDir);
-        FileUtil.delete(committedDir.toFile());
-
-        // Test twice and make sure we get 1 add, 2 unmodified and
-        // 1 pages deleted, regardless of delay specified in sitemap.
-        exitValue = runCollector("start", vars);
-        Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-        Assertions.assertEquals(
-                1, countAddedFiles(),
-                "Wrong number of added files.");
-        Assertions.assertEquals(
-                1, countDeletedFiles(),
-                "Wrong number of deleted files.");
-        ageProgress(progressDir);
-        FileUtil.delete(committedDir.toFile());
-    }
-
-    //Test for https://github.com/Norconex/collector-http/issues/316
-    @Test
-    public void testWebPageTimeout()
-            throws IOException, XMLStreamException {
-        String startURL = newUrl("/test?case=timeout&amp;token="
-                + System.currentTimeMillis());
-        vars.set("startURL", startURL);
-        vars.set("documentChecksummer", MD5DocumentChecksummer.class);
-        vars.set("extraCrawlerConfig",
-                "<httpFetchers>"
-              + "<fetcher class=\"com.norconex.collector.http.fetch.impl."
-                        + "GenericHttpFetcher\">"
-              + "<connectionTimeout>2000</connectionTimeout>"
-              + "<socketTimeout>2000</socketTimeout>"
-              + "<connectionRequestTimeout>2000</connectionRequestTimeout>"
-              + "</fetcher>"
-              + "</httpFetchers>"
-        );
-
-        int exitValue = 0;
-
-        // Test once and make sure we get 3 additions in total.
-        exitValue = runCollector("start", vars);
-        Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-        Assertions.assertEquals(
-                3, countAddedFiles(),
-                "Wrong number of added files.");
-        ageProgress(progressDir);
-        FileUtil.delete(committedDir.toFile());
-
-        // Test twice and make sure we get 2 modified child docs even if
-        // master times out (as opposed to consider child as orphans to be
-        // deleted.
-        exitValue = runCollector("start", vars);
-        Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-        Assertions.assertEquals(
-                2, countAddedFiles(),
-                "Wrong number of modified files.");
-        ageProgress(progressDir);
-        FileUtil.delete(committedDir.toFile());
-    }
-
-    @Test
-    public void testStartAfterStopped()
-            throws IOException, XMLStreamException, InterruptedException {
-        testAfterStopped(false);
-    }
-
-    @Test
-    public void testResumeAfterStopped()
-            throws IOException, XMLStreamException, InterruptedException {
-        testAfterStopped(true);
-    }
-    private void testAfterStopped(boolean resume)
-            throws IOException, XMLStreamException, InterruptedException {
-
-        if (!ENABLE_RECOVERY_TESTS) {
-            return;
-        }
-
-        vars.set("delay", 5000);
-
-        Thread newCrawl = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    System.out.println("Starting collector.");
-                    int returnValue = runCollector("start", vars);
-                    Assertions.assertEquals( 0,
-                            returnValue,
-                "Wrong first return value.");
-                } catch (IOException | XMLStreamException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        newCrawl.start();
-        Sleeper.sleepSeconds(10);
-
-        System.out.println("Requesting collector to stop.");
-        int returnValue = runCollector("stop", null);
-        Assertions.assertEquals( 0, returnValue,
-                "Wrong stop return value.");
-
-        newCrawl.join();
-
-        int fileCount = countAddedFiles();
-        Assertions.assertTrue(
-                fileCount > 1 && fileCount < 4,
-                "Should not have had time to process more than "
-                + "2 or 3 files (processed " + fileCount + ").");
-
-        ageProgress(progressDir);
-        vars.set("delay", 0);
-
-        //--- Resume after stop ---
-        if (resume) {
-            int exitValue = runCollector("resume", vars);
-            Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-            Assertions.assertEquals(
-                    10, countAddedFiles(),
-                "Wrong number of committed files after resume.");
-        //--- Start after stop ---
-        } else {
-            FileUtil.delete(committedDir.toFile());
-            vars.set("maxDocuments", 2);
-            int exitValue = runCollector("start", vars);
-            Assertions.assertEquals( 0, exitValue,
-                "Wrong exit value.");
-            Assertions.assertEquals(
-                    2, countAddedFiles(),
-                "Wrong number of committed files after start.");
-        }
-    }
+//    /**
+//     * Constructor.
+//     */
+//    public ExecutionTest() {
+//    }
+//
+//    @BeforeAll
+//    public static void notifyOfRecoveryTests() {
+//        if (!ENABLE_RECOVERY_TESTS) {
+//            System.out.println("Recovery tests are disabled in "
+//                    + ExecutionTest.class.getCanonicalName()
+//                    + ". To enable them, set -DenableRecoveryTests=true");
+//        } else {
+//            System.out.println("Recovery tests are enabled in "
+//                    + ExecutionTest.class.getCanonicalName() + ".");
+//        }
+//    }
+//
+//    @BeforeEach
+//    public void setup() throws IOException {
+//        workDir = getTempFolder();
+//        committedDir = workDir.resolve("committed");
+//        progressDir = workDir.resolve("progress");
+//        varsFile = workDir.resolve("test.properties");
+//        configFile = workDir.resolve("test.cfg");
+//
+//        vars = new Properties();
+//        vars.set("startURL", newUrl("/test?case=basic&amp;depth=0"));
+//        vars.set("workDir", workDir);
+//        vars.set("maxDepth", 10);
+//        vars.set("maxDocuments", 10);
+//        vars.set("delay", 0);
+//    }
+//    @AfterEach
+//    public void tearDown() throws IOException {
+//        FileUtil.delete(varsFile.toFile());
+//        FileUtil.delete(configFile.toFile());
+//        FileUtil.delete(workDir.toFile());
+//        vars.clear();
+//        workDir = null;
+//        committedDir = null;
+//        progressDir = null;
+//        vars = null;
+//        varsFile = null;
+//        configFile = null;
+//    }
 
     @Test
     public void testStartAfterJvmCrash()
@@ -489,7 +237,7 @@ public class ExecutionTest extends AbstractHttpTest {
         }
 
         Project project = new Project();
-        project.setBaseDir(getTempFolder().getRoot().toFile());
+//        project.setBaseDir(getTempFolder().getRoot().toFile());
         project.init();
         DefaultLogger logger = new DefaultLogger();
         project.addBuildListener(logger);

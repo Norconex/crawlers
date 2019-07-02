@@ -14,12 +14,16 @@
  */
 package com.norconex.collector.http.server;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.norconex.commons.lang.Sleeper;
 
 /**
  * @author Pascal Essiembre
@@ -83,6 +87,16 @@ public class TestServer {
                 }
             }
         }.start();
+        StopWatch timer = new StopWatch();
+        timer.start();
+        while (!server.isStarted()) {
+            Sleeper.sleepMillis(100);
+            if (timer.getTime(TimeUnit.SECONDS) > 10) {
+                throw new RuntimeException(
+                        "Could not start server after 10 seconds. Aborting.");
+            }
+        }
+        timer.stop();
     }
 
     public void stop() {
@@ -92,6 +106,7 @@ public class TestServer {
             Runtime.getRuntime().removeShutdownHook(shutdownHook);
             shutdownHook = null;
             server = null;
+            port = 0;
         } catch (Exception e) {
             throw new RuntimeException("Could not stop test server.", e);
         }

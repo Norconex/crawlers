@@ -16,10 +16,13 @@
     <Logger name="com.norconex.collector.core" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.importer" level="INFO" additivity="false">
+    <Logger name="com.norconex.importer" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.commons.lang" level="INFO" additivity="false">
+    <Logger name="com.norconex.commons.lang" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.jef" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.apache" level="WARN" additivity="false">
@@ -28,7 +31,23 @@
     <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Root level="INFO">
+
+    <!-- Events -->
+    <Logger name="CollectorEvent" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="HttpCollectorEvent" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="HttpCrawlerEvent" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+
+    <Root level="WARN">
       <AppenderRef ref="Console"/>
     </Root>
   </Loggers>

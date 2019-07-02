@@ -116,7 +116,7 @@ public class WebDriverHttpFetcherTest  {
         server.stop();
     }
 
-    @ExtensionTest
+    @BrowserTest
     public void testFetchingJsGeneratedContent(
             WebDriverHttpFetcher fetcher) throws IOException {
         assumeDriverPresent(fetcher);
@@ -135,7 +135,7 @@ public class WebDriverHttpFetcherTest  {
 
     // Remove ignore to manually test that screenshots are generated
     @Disabled
-    @ExtensionTest
+    @BrowserTest
     public void testTakeScreenshots(
             WebDriverHttpFetcher fetcher) throws IOException {
         assumeDriverPresent(fetcher);
@@ -152,7 +152,7 @@ public class WebDriverHttpFetcherTest  {
         }
     }
 
-    @ExtensionTest
+    @BrowserTest
     public void testFetchingHeadersUsingSniffer(
             WebDriverHttpFetcher fetcher) throws IOException {
         assumeDriverPresent(fetcher);
@@ -178,7 +178,7 @@ public class WebDriverHttpFetcherTest  {
         }
     }
 
-    @ExtensionTest
+    @BrowserTest
     public void testPageScript(
             WebDriverHttpFetcher fetcher) throws IOException {
         assumeDriverPresent(fetcher);
@@ -199,7 +199,7 @@ public class WebDriverHttpFetcherTest  {
         }
     }
 
-    @ExtensionTest
+    @BrowserTest
     public void testResolvingUserAgent(
             WebDriverHttpFetcher fetcher) throws IOException {
         assumeDriverPresent(fetcher);
@@ -260,6 +260,6 @@ public class WebDriverHttpFetcherTest  {
     @Retention(RetentionPolicy.RUNTIME)
     @ParameterizedTest(name = "browser: {0}")
     @MethodSource("browsersProvider")
-    @interface ExtensionTest {
+    @interface BrowserTest {
     }
 }

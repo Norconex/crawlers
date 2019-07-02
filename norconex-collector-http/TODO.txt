@@ -1,6 +1,15 @@
 The following are either things to be done, or ideas to consider:
 
+- Allow storing document/metadata checksummers as null (instead or same as 
+  disabled).
+
+- <referenceFilters> should be urlFilters to avoid conflict with
+  Importer equivalent?
+
 - Eliminate CachedInputStream.dispose() in favor of close() to be consistent?
+
+- Add a reference filter that matches URLs with the same segment repeated
+  X consecutive times.
 
 - Add ability to export crawlstore in neutral format to switch from one to 
   another.
