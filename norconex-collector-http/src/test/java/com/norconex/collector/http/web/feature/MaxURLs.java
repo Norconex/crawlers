@@ -12,29 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.web.features;
+package com.norconex.collector.http.web.feature;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
 import com.norconex.committer.core.impl.MemoryCommitter;
 
 /**
- * Test that MaxDepth setting is respected.
+ * Test that MaxURLs setting is respected.
  * @author Pascal Essiembre
  */
-public class MaxDepth extends AbstractInfiniteDepthTestFeature {
+public class MaxURLs extends AbstractInfiniteDepthTestFeature {
 
     @Override
-    protected void doConfigureCralwer(HttpCrawlerConfig cfg)
+    protected void doConfigureCralwer(HttpCrawlerConfig crawlerConfig)
             throws Exception {
-        cfg.setStartURLs(cfg.getStartURLs().get(0) + "?depth=0");
-        cfg.setMaxDepth(10);
+        crawlerConfig.setMaxDocuments(15);
     }
 
     @Override
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
-        // 0-depth + 10 others == 11 expected files
-        assertListSize("document", committer.getAddOperations(), 11);
+        assertListSize("URLs", committer.getAddOperations(), 15);
     }
 }

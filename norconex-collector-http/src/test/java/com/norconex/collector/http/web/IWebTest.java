@@ -23,7 +23,7 @@ import com.norconex.collector.http.HttpCollectorConfig;
 /**
  * @author Pascal Essiembre
  */
-public interface ITestFeature {
+public interface IWebTest {
 
     String getPath();
     /**
@@ -41,6 +41,7 @@ public interface ITestFeature {
 
     void configureCollector(HttpCollectorConfig collectorConfig)
             throws Exception;
+    void startCollector(HttpCollector collector) throws Exception;
     void service(HttpServletRequest req, HttpServletResponse resp)
             throws Exception;
     void test(HttpCollector collector) throws Exception;

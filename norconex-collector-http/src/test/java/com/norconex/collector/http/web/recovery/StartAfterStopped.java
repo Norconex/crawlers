@@ -42,7 +42,6 @@ public class StartAfterStopped extends AbstractInfiniteDepthTestFeature {
         return 2;
     }
 
-
     @Override
     protected void doConfigureCollector(HttpCollectorConfig cfg)
             throws Exception {
@@ -77,6 +76,11 @@ public class StartAfterStopped extends AbstractInfiniteDepthTestFeature {
         } else {
             cfg.setMaxDocuments(10);
         }
+    }
+
+    @Override
+    public void startCollector(HttpCollector collector) throws Exception {
+        collector.start(isResuming());
     }
 
     @Override

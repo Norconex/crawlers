@@ -41,7 +41,7 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 /**
  * @author Pascal Essiembre
  */
-public abstract class AbstractTestFeature implements ITestFeature {
+public abstract class AbstractTestFeature implements IWebTest {
 
     private int currentRunIndex = 0;
 
@@ -64,7 +64,7 @@ public abstract class AbstractTestFeature implements ITestFeature {
     }
 
     @Override
-    public final void configureCollector(HttpCollectorConfig collectorConfig)
+    public void configureCollector(HttpCollectorConfig collectorConfig)
             throws Exception {
         doConfigureCollector(collectorConfig);
         if (!CollectionUtils.isEmpty(collectorConfig.getCrawlerConfigs())) {
@@ -103,7 +103,12 @@ public abstract class AbstractTestFeature implements ITestFeature {
     }
 
     @Override
-    public final void test(HttpCollector collector)
+    public void startCollector(HttpCollector collector) throws Exception {
+        collector.start(false);
+    }
+
+    @Override
+    public void test(HttpCollector collector)
             throws Exception {
         doTest(collector);
         if (!CollectionUtils.isEmpty(collector.getCrawlers())) {
@@ -171,6 +176,29 @@ public abstract class AbstractTestFeature implements ITestFeature {
     }
     protected boolean isFifthRun() {
         return currentRunIndex == 4;
+    }
+
+    protected final HttpCrawler getCrawler(HttpCollector collector) {
+        if (CollectionUtils.isEmpty(collector.getCrawlers())) {
+            return null;
+        }
+        return (HttpCrawler) collector.getCrawlers().get(0);
+    }
+    protected final HttpCrawlerConfig getCrawlerConfig(
+            HttpCollector collector) {
+        if (CollectionUtils.isEmpty(
+                collector.getCollectorConfig().getCrawlerConfigs())) {
+            return null;
+        }
+        return (HttpCrawlerConfig)
+                collector.getCollectorConfig().getCrawlerConfigs().get(0);
+    }
+    protected final ICommitter getCommitter(HttpCollector collector) {
+        HttpCrawlerConfig cfg = getCrawlerConfig(collector);
+        if (cfg == null) {
+            return null;
+        }
+        return cfg.getCommitter();
     }
 
     @Override

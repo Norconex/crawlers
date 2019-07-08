@@ -18,9 +18,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -30,6 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,25 +42,26 @@ import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.TestUtil;
 import com.norconex.collector.http.server.TestServer;
 import com.norconex.collector.http.server.TestServerBuilder;
-import com.norconex.collector.http.web.features.CanonicalLink;
-import com.norconex.collector.http.web.features.CanonicalRedirectLoop;
-import com.norconex.collector.http.web.features.ContentTypeCharset;
-import com.norconex.collector.http.web.features.FileNotFoundDeletion;
-import com.norconex.collector.http.web.features.KeepDownloads;
-import com.norconex.collector.http.web.features.MaxDepth;
-import com.norconex.collector.http.web.features.MaxURLs;
-import com.norconex.collector.http.web.features.ModifiedFiles;
-import com.norconex.collector.http.web.features.MultiRedirect;
-import com.norconex.collector.http.web.features.Redirect;
-import com.norconex.collector.http.web.features.RedirectCanonicalLoop;
-import com.norconex.collector.http.web.features.ScriptTags;
-import com.norconex.collector.http.web.features.SitemapURLDeletion;
-import com.norconex.collector.http.web.features.SpecialURLs;
-import com.norconex.collector.http.web.features.Timeout;
-import com.norconex.collector.http.web.features.UserAgent;
-import com.norconex.collector.http.web.features.ValidMetadata;
-import com.norconex.collector.http.web.features.ZeroLength;
+import com.norconex.collector.http.web.feature.CanonicalLink;
+import com.norconex.collector.http.web.feature.CanonicalRedirectLoop;
+import com.norconex.collector.http.web.feature.ContentTypeCharset;
+import com.norconex.collector.http.web.feature.FileNotFoundDeletion;
+import com.norconex.collector.http.web.feature.KeepDownloads;
+import com.norconex.collector.http.web.feature.MaxDepth;
+import com.norconex.collector.http.web.feature.MaxURLs;
+import com.norconex.collector.http.web.feature.ModifiedFiles;
+import com.norconex.collector.http.web.feature.MultiRedirect;
+import com.norconex.collector.http.web.feature.Redirect;
+import com.norconex.collector.http.web.feature.RedirectCanonicalLoop;
+import com.norconex.collector.http.web.feature.ScriptTags;
+import com.norconex.collector.http.web.feature.SitemapURLDeletion;
+import com.norconex.collector.http.web.feature.SpecialURLs;
+import com.norconex.collector.http.web.feature.Timeout;
+import com.norconex.collector.http.web.feature.UserAgent;
+import com.norconex.collector.http.web.feature.ValidMetadata;
+import com.norconex.collector.http.web.feature.ZeroLength;
 import com.norconex.collector.http.web.recovery.ResumeAfterStopped;
+import com.norconex.collector.http.web.recovery.StartAfterJvmCrash;
 import com.norconex.collector.http.web.recovery.StartAfterStopped;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.FileUtil;
@@ -71,12 +70,14 @@ import com.norconex.commons.lang.file.FileUtil;
 /**
  * @author Pascal Essiembre
  */
-public class HttpCrawlerFeatureTest {
+public class HttpCrawlerWebTest {
 
     private static final Logger LOG =
-            LoggerFactory.getLogger(HttpCrawlerFeatureTest.class);
+            LoggerFactory.getLogger(HttpCrawlerWebTest.class);
 
-    private static final List<ITestFeature> FEATURES = Arrays.asList(
+
+    private static final Map<String, IWebTest> FEATURES_BY_PATH = toMap(
+
         // Misc. feature tests
         new Redirect(),
         new MultiRedirect(),
@@ -98,17 +99,20 @@ public class HttpCrawlerFeatureTest {
         new ValidMetadata(),
 
         // Recovery-related tests
-        // TODO make a separate test provider method for those?
         new StartAfterStopped(),
-        new ResumeAfterStopped()
+        new ResumeAfterStopped(),
+        new StartAfterJvmCrash()
+//        new ResumeAfterJvmCrashMvStore(),
+//        new ResumeAfterJvmCrashDerby(),
+//        new ResumeAfterJvmCrashH2()
     );
-    private static final Map<String, ITestFeature> FEATURES_BY_PATH =
-            new HashMap<>();
-    static {
-        for (ITestFeature feature : FEATURES) {
-            FEATURES_BY_PATH.put(feature.getPath(), feature);
-        }
-    }
+    //    private static final Map<String, ITestFeature> FEATURES_BY_PATH = toMap();
+//            new HashMap<>();
+//    static {
+//        for (ITestFeature feature : FEATURES) {
+//            FEATURES_BY_PATH.put(feature.getPath(), feature);
+//        }
+//    }
 
     private static TestServer server = new TestServerBuilder()
             .addServlet(new HttpServlet() {
@@ -129,7 +133,7 @@ public class HttpCrawlerFeatureTest {
                 return;
             }
 
-            ITestFeature feature = FEATURES_BY_PATH.get(path);
+            IWebTest feature = FEATURES_BY_PATH.get(path);
             if (feature == null) {
                 throw new ServletException(
                         "Test feature/path does not exist: " + path);
@@ -170,25 +174,28 @@ public class HttpCrawlerFeatureTest {
     }
 
     @ParameterizedTest(name = "feature: {0}")
-    @MethodSource("featuresProvider")
-    public void testFeature(ITestFeature feature) throws Exception {
+    @MethodSource(value= {
+            "featuresProvider"
+    })
+    public void testFeature(IWebTest feature) throws Exception {
         String uuid = UUID.randomUUID().toString();
         Path workdir = tempFolder.resolve("workdir" + uuid);
         String startURL = serverBaseURL + feature.getPath();
         for (int i = 0; i < feature.numberOfRun(); i++) {
+            LOG.info("Test run #{}.", i+1);
             feature.initCurrentRunIndex(i);
             HttpCollectorConfig cfg =
                     TestUtil.newMemoryCollectorConfig(uuid, workdir, startURL);
             feature.configureCollector(cfg);
             HttpCollector collector = new HttpCollector(cfg);
-            collector.start(false);
+            feature.startCollector(collector);
             feature.test(collector);
             ageFiles(workdir);
         }
     }
 
-    static Stream<ITestFeature> featuresProvider() {
-        return FEATURES.stream();
+    static Stream<IWebTest> featuresProvider() {
+        return FEATURES_BY_PATH.values().stream();
     }
 
     private static void htmlIndexPage(
@@ -199,13 +206,20 @@ public class HttpCrawlerFeatureTest {
         PrintWriter out = resp.getWriter();
         out.println("<html style=\"font-family:Arial, "
                 + "Helvetica, sans-serif;\"><body>");
-        out.println("<h1>Available test features.</h1>");
+        out.println("<h1>Available test</h1>");
+        out.println("<h3>Feature tests</h3>");
         out.println("<ul>");
-        for (ITestFeature feature : FEATURES) {
-            out.println("<li><a href=\"" + feature.getPath()
-                    + "\">" + feature.getPath() + "</a></li>");
+        for (String path : FEATURES_BY_PATH.keySet()) {
+            out.println("<li><a href=\"" + path + "\">" + path + "</a></li>");
         }
         out.println("</ul>");
+
+//        out.println("<h3>Recovery tests</h3>");
+//        out.println("<ul>");
+//        for (String path : RECOVERY_BY_PATH.keySet()) {
+//            out.println("<li><a href=\"" + path + "\">" + path + "</a></li>");
+//        }
+//        out.println("</ul>");
         out.println("</body></html>");
     }
 
@@ -216,5 +230,12 @@ public class HttpCrawlerFeatureTest {
                 dir.toFile(), file -> file.setLastModified(age));
         // sleep 1 second to make sure new dir is created with new timestamp.
         Sleeper.sleepSeconds(1);
+    }
+    private static final Map<String, IWebTest> toMap(IWebTest... tfs) {
+        Map<String, IWebTest> map = new ListOrderedMap<>();
+        for (IWebTest tf : tfs) {
+            map.put(tf.getPath(), tf);
+        }
+        return map;
     }
 }

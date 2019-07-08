@@ -66,7 +66,8 @@ import com.norconex.jef5.suite.JobSuite;
  */
 public class HttpCrawler extends Crawler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HttpCrawler.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(HttpCrawler.class);
 
 //	private HttpClient httpClient;
 	private ISitemapResolver sitemapResolver;

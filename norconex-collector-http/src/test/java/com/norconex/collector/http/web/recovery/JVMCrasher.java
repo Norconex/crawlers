@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.crawler;
+package com.norconex.collector.http.web.recovery;
 
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.commons.lang.event.Event;

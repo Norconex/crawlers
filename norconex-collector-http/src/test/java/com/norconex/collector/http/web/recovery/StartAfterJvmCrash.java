@@ -12,27 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.web.features;
+package com.norconex.collector.http.web.recovery;
 
-import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import java.nio.file.Paths;
+
+import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
+import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory;
 
 /**
- * Test that MaxURLs setting is respected.
+ * Test that the right amount of docs are crawled after stoping
+ * and starting the collector.
  * @author Pascal Essiembre
  */
-public class MaxURLs extends AbstractInfiniteDepthTestFeature {
+public class StartAfterJvmCrash extends AbstractTestJvmCrash {
 
     @Override
-    protected void doConfigureCralwer(HttpCrawlerConfig crawlerConfig)
-            throws Exception {
-        crawlerConfig.setMaxDocuments(15);
+    protected boolean isResuming() {
+        return false;
     }
-
     @Override
-    protected void doTestMemoryCommitter(MemoryCommitter committer)
-            throws Exception {
-        assertListSize("URLs", committer.getAddOperations(), 15);
+    protected ICrawlDataStoreFactory createCrawlDataStore() {
+        MVStoreCrawlDataStoreFactory f = new MVStoreCrawlDataStoreFactory();
+        f.setStoreDir(Paths.get("mvstore"));
+        return f;
     }
 }

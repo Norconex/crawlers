@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.crawler.CrawlerConfig;
-import com.norconex.collector.http.crawler.AbstractHttpTest;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.committer.core.impl.NilCommitter;
@@ -36,7 +35,7 @@ import com.norconex.jef5.status.JobState;
 /**
  * @author Pascal Essiembre
  */
-public class HttpCollectorTest extends AbstractHttpTest {
+public class HttpCollectorTest {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(HttpCollectorTest.class);
