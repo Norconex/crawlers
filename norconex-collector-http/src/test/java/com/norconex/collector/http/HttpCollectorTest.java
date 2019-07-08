@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ import com.norconex.jef5.status.JobState;
 /**
  * @author Pascal Essiembre
  */
+@Disabled
 public class HttpCollectorTest {
 
     private static final Logger LOG =

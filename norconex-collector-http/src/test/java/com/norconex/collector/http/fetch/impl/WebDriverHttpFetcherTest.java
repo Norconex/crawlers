@@ -54,6 +54,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 // have 1 doc fetcher and 1 http fetcher that can be the same or different.
 // have ability to specify different fetchers for different URL patterns.
 //@Ignore
+@Disabled
 public class WebDriverHttpFetcherTest  {
 
     private static final Logger LOG =
