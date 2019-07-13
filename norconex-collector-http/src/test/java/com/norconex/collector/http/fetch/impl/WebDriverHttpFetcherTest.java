@@ -53,8 +53,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 //TODO merge http client with document fetcher.
 // have 1 doc fetcher and 1 http fetcher that can be the same or different.
 // have ability to specify different fetchers for different URL patterns.
-//@Ignore
-@Disabled
+//@Disabled
 public class WebDriverHttpFetcherTest  {
 
     private static final Logger LOG =
@@ -71,6 +70,7 @@ public class WebDriverHttpFetcherTest  {
                     resp.addHeader("TEST_KEY", "test_value");
                     resp.getWriter().write("HTTP headers test. "
                             + "TEST_KEY should be found in HTTP headers");
+                    resp.flushBuffer();
                 }
             }, "/headers")
             .build();
@@ -79,8 +79,8 @@ public class WebDriverHttpFetcherTest  {
 //  https://chromedriver.storage.googleapis.com/2.43/chromedriver_mac64.zip
     private static final Path chromeDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://chromedriver.storage.googleapis.com/"
-                    + "73.0.3683.20/chromedriver_win32.zip!/chromedriver.exe",
-                    "chromedriver-73.0.3683.20.exe"))
+                    + "75.0.3770.90/chromedriver_win32.zip!/chromedriver.exe",
+                    "chromedriver-75.0.3770.90.exe"))
             .get();
 
 //  https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-win64.zip
@@ -89,8 +89,8 @@ public class WebDriverHttpFetcherTest  {
     private static final Path firefoxDriverPath = new OSResource<Path>()
             .win(WebFile.create(
                     "https://github.com/mozilla/geckodriver/releases/download/"
-                  + "v0.23.0/geckodriver-v0.23.0-win64.zip!/geckodriver.exe",
-                    "geckodriver-0.23.exe"))
+                  + "v0.24.0/geckodriver-v0.24.0-win64.zip!/geckodriver.exe",
+                    "geckodriver-0.24.exe"))
             .get();
 
 //    private static final Path edgeDriverPath = new OSResource<Path>()
@@ -238,7 +238,7 @@ public class WebDriverHttpFetcherTest  {
         HttpDocument doc = new HttpDocument(
                 "http://localhost:" + server.getPort() + urlPath,
                 new CachedStreamFactory(10000, 10000).newInputStream());
-        /*HttpFetchResponse response = */ fetcher.fetchDocument(doc);
+        /*IHttpFetchResponse response = */ fetcher.fetchDocument(doc);
         return doc;
     }
 
@@ -246,8 +246,9 @@ public class WebDriverHttpFetcherTest  {
     // Returns false for browsers not supporting setting proxies, which
     // is required to capture headers.
     private boolean isProxySupported(WebDriverBrowser browser) {
-        return /*browser != WebDriverBrowser.EDGE
-                && */ browser != WebDriverBrowser.CHROME;
+        return true;
+//        return /*browser != WebDriverBrowser.EDGE
+//                && */ browser != WebDriverBrowser.CHROME;
     }
 
     private void assumeDriverPresent(WebDriverHttpFetcher fetcher) {

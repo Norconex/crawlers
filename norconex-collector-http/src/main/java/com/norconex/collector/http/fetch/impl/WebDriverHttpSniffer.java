@@ -115,7 +115,6 @@ public class WebDriverHttpSniffer {
 
         mobProxy.start(cfg.getPort());
 
-
         int actualPort = mobProxy.getPort();
         LOG.info("Proxy started on port {} "
                 + "for HTTP response header capture.", actualPort);
@@ -134,9 +133,19 @@ public class WebDriverHttpSniffer {
             profile.setPreference("network.proxy.ssl_port", actualPort);
             profile.setPreference("network.proxy.type", 1);
             profile.setPreference("network.proxy.no_proxies_on", "");
+            // Required since FF v67 to enable a localhost proxy:
+            // https://bugzilla.mozilla.org/show_bug.cgi?id=1535581
+            profile.setPreference(
+                    "network.proxy.allow_hijacking_localhost", true);
             options.setCapability(FirefoxDriver.PROFILE, profile);
-        } else if (options instanceof ChromeOptions && LOG.isDebugEnabled()) {
-            System.setProperty("webdriver.chrome.verboseLogging", "true");
+        } else if (options instanceof ChromeOptions) {
+            ChromeOptions chromeOptions = (ChromeOptions) options;
+            // Required since Chrome v72 to enable a localhost proxy:
+            // https://bugs.chromium.org/p/chromium/issues/detail?id=899126#c15
+            chromeOptions.addArguments("--proxy-bypass-list=<-loopback>");
+            if  (LOG.isDebugEnabled()) {
+                System.setProperty("webdriver.chrome.verboseLogging", "true");
+            }
         }
         options.setCapability(CapabilityType.PROXY,
                 ClientUtil.createSeleniumProxy(mobProxy));

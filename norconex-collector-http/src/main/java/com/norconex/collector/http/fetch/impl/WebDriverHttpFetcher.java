@@ -308,7 +308,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     @Override
     protected void crawlerStartup(CrawlerEvent<Crawler> event) {
         LOG.info("Starting {} driver service...", browser);
-        System.setProperty("bmp.allowNativeDnsFallback", "true");
+        //System.setProperty("bmp.allowNativeDnsFallback", "true");
 
         if (event != null) {
             streamFactory = event.getSource().getStreamFactory();
