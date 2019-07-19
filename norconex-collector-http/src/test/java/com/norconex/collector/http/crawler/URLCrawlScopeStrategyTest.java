@@ -80,4 +80,35 @@ public class URLCrawlScopeStrategyTest {
         Assertions.assertFalse(s.isInScope(url, noSchemeDiffDomain));
     }
 
+    @Test
+    public void testStayOnDomainDepthStrategy() throws IOException {
+        String sub0 = "http://example.com/test0.html";
+        String sub1 = "http://sub1.example.com/test1.html";
+        String sub2 = "http://sub2.sub1.example.com/test2.html";
+        String sub3 = "http://sub3.sub2.sub1.example.com/test3.html";
+        String sub4 = "http://different.com/testd.html";
+
+        URLCrawlScopeStrategy s = new URLCrawlScopeStrategy();
+
+        // Same or not
+        s.setStayOnDomain(false);
+        Assertions.assertTrue(s.isInScope(sub0, sub1));
+        Assertions.assertTrue(s.isInScope(sub1, sub2));
+        Assertions.assertTrue(s.isInScope(sub0, sub3));
+        Assertions.assertTrue(s.isInScope(sub1, sub3));
+        Assertions.assertTrue(s.isInScope(sub2, sub2));
+        Assertions.assertTrue(s.isInScope(sub3, sub1));
+        Assertions.assertTrue(s.isInScope(sub1, sub4));
+
+        // Same or any sub-domain
+        s.setStayOnDomain(true);
+        s.setIncludeSubdomains(true);
+        Assertions.assertTrue(s.isInScope(sub0, sub1));
+        Assertions.assertTrue(s.isInScope(sub1, sub2));
+        Assertions.assertTrue(s.isInScope(sub0, sub3));
+        Assertions.assertTrue(s.isInScope(sub1, sub3));
+        Assertions.assertTrue(s.isInScope(sub2, sub2));
+        Assertions.assertFalse(s.isInScope(sub3, sub1));
+        Assertions.assertFalse(s.isInScope(sub1, sub4));
+    }
 }

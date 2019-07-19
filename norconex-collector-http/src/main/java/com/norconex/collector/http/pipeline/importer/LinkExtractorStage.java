@@ -14,11 +14,11 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -47,71 +47,47 @@ import com.norconex.commons.lang.io.CachedInputStream;
 
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
+        Set<Link> links = extractLinks(ctx);
+        if (links.isEmpty()) {
+            return true;
+        }
+
+
         String reference = ctx.getCrawlData().getReference();
-
-        List<ILinkExtractor> extractors = ctx.getConfig().getLinkExtractors();
-        if (extractors.isEmpty()) {
-            LOG.debug("No configured link extractor.  No links will be "
-                    + "detected.");
-            return true;
-        }
-
-        if (ctx.getRobotsMeta() != null
-                && ctx.getRobotsMeta().isNofollow()) {
-            LOG.debug("No URLs extracted due to Robots nofollow rule "
-                    + "for URL: {}", reference);
-            return true;
-        }
-
-        Set<Link> links = new HashSet<>();
-        CachedInputStream is = ctx.getContent();
-        ContentType ct = ctx.getDocument().getContentType();
-        for (ILinkExtractor extractor : extractors) {
-            if (extractor.accepts(reference, ct)) {
-                try {
-                    links.addAll(extractor.extractLinks(is, reference, ct));
-                } catch (IOException e) {
-                    LOG.error("Could not extract links from: " + reference, e);
-                } finally {
-                    is.rewind();
-                }
-            }
-        }
 
         Set<String> uniqueExtractedURLs = new HashSet<>();
         Set<String> uniqueQueuedURLs = new HashSet<>();
         Set<String> uniqueOutOfScopeURLs = new HashSet<>();
         if (links != null) {
             for (Link link : links) {
-                if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                        reference, link.getUrl())) {
-                    try {
-                        String queuedURL = queueURL(
-                                link, ctx, uniqueExtractedURLs);
-                        if (StringUtils.isNotBlank(queuedURL)) {
-                            uniqueQueuedURLs.add(queuedURL);
+                try {
+                    if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+                            reference, link.getUrl())) {
+                            String queuedURL = queueURL(
+                                    link, ctx, uniqueExtractedURLs);
+                            if (StringUtils.isNotBlank(queuedURL)) {
+                                uniqueQueuedURLs.add(queuedURL);
+                            }
+                    } else  {
+                        if (LOG.isTraceEnabled()) {
+                            LOG.trace("URL not in crawl scope: "
+                                    + link.getUrl() + " (keep: "
+                                    + ctx.getConfig().isKeepOutOfScopeLinks()
+                                    + ")");
                         }
-                    } catch (Exception e) {
-                        LOG.warn("Could not queue extracted URL \""
-                                + link.getUrl() + "\".", e);
+                        if(ctx.getConfig().isKeepOutOfScopeLinks()) {
+                            uniqueOutOfScopeURLs.add(link.getUrl());
+                        }
                     }
-                } else  {
-                    if (LOG.isTraceEnabled()) {
-                        LOG.trace("URL not in crawl scope: "
-                                + link.getUrl() + " (keep: "
-                                + ctx.getConfig().isKeepOutOfScopeLinks()
-                                + ")");
-                    }
-                    if(ctx.getConfig().isKeepOutOfScopeLinks()) {
-                        uniqueOutOfScopeURLs.add(link.getUrl());
-                    }
+                } catch (Exception e) {
+                    LOG.warn("Could not queue extracted URL \""
+                            + link.getUrl() + "\".", e);
                 }
             }
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("uniqueQueuedURLs count: "
-                    + uniqueQueuedURLs.size() + ".");
+            LOG.debug("uniqueQueuedURLs count: {}.", uniqueQueuedURLs.size());
         }
         if (!uniqueQueuedURLs.isEmpty()) {
             String[] referencedUrls =
@@ -134,6 +110,45 @@ import com.norconex.commons.lang.io.CachedInputStream;
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED,
                 ctx.getCrawlData(), uniqueQueuedURLs);
         return true;
+    }
+
+    private Set<Link> extractLinks(HttpImporterPipelineContext ctx) {
+        String reference = ctx.getCrawlData().getReference();
+        List<ILinkExtractor> extractors = ctx.getConfig().getLinkExtractors();
+        if (extractors.isEmpty()) {
+            LOG.debug("No configured link extractor.  No links will be "
+                    + "detected.");
+            return SetUtils.emptySet();
+        }
+
+        if (ctx.getRobotsMeta() != null
+                && ctx.getRobotsMeta().isNofollow()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No URLs extracted due to Robots nofollow rule "
+                        + "for URL: {}", reference);
+            }
+            return SetUtils.emptySet();
+        }
+
+        Set<Link> links = new HashSet<>();
+        CachedInputStream is = ctx.getContent();
+        ContentType ct = ctx.getDocument().getContentType();
+        for (ILinkExtractor extractor : extractors) {
+            if (extractor.accepts(reference, ct)) {
+                try {
+                    Set<Link> extracted =
+                            extractor.extractLinks(is, reference, ct);
+                    if (extracted != null) {
+                        links.addAll(extracted);
+                    }
+                } catch (Exception e) {
+                    LOG.error("Could not extract links from: " + reference, e);
+                } finally {
+                    is.rewind();
+                }
+            }
+        }
+        return links;
     }
 
     // Executes HttpQueuePipeline if URL not already processed in that page

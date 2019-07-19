@@ -166,7 +166,7 @@ public class GenericURLNormallizerTest {
         try (Reader r = new StringReader(xml)) {
             n.loadFromXML(new XML(r));
         }
-        assertEquals(0, n.getNormalizations().length);
+        assertEquals(0, n.getNormalizations().size());
 
         // no <normalizations> tag means use defaults
         n = new GenericURLNormalizer();
@@ -174,7 +174,7 @@ public class GenericURLNormallizerTest {
         try (Reader r = new StringReader(xml)) {
             n.loadFromXML(new XML(r));
         }
-        assertEquals(6, n.getNormalizations().length);
+        assertEquals(6, n.getNormalizations().size());
 
         // normal... just a few
         n = new GenericURLNormalizer();
@@ -184,6 +184,6 @@ public class GenericURLNormallizerTest {
         try (Reader r = new StringReader(xml)) {
             n.loadFromXML(new XML(r));
         }
-        assertEquals(2, n.getNormalizations().length);
+        assertEquals(2, n.getNormalizations().size());
     }
 }

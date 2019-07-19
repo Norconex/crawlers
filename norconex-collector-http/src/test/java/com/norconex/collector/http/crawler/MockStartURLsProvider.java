@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@ package com.norconex.collector.http.crawler;
 import java.util.Iterator;
 
 import org.apache.commons.collections4.iterators.ObjectArrayIterator;
-
-import com.norconex.collector.http.crawler.IStartURLsProvider;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class MockStartURLsProvider implements IStartURLsProvider {
 
@@ -29,12 +31,18 @@ public class MockStartURLsProvider implements IStartURLsProvider {
                 "http://www.provided2.com",
                 "http://www.provided3.com");
     }
-    
+
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        return MockStartURLsProvider.class.equals(obj.getClass());
+    public boolean equals(final Object other) {
+        return EqualsBuilder.reflectionEquals(this, other);
+    }
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+    @Override
+    public String toString() {
+        return new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

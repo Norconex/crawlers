@@ -57,7 +57,7 @@ public class XMLFeedLinkExtractorTest {
         InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
                 "XMLFeedLinkExtractorTest.atom"));
 
-        ContentType ct = new ContentTypeDetector().detect(is);
+        ContentType ct = ContentTypeDetector.detect(is);
 
         Assertions.assertTrue(
                 extractor.accepts(docURL, ct),
@@ -95,7 +95,7 @@ public class XMLFeedLinkExtractorTest {
         InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
                 "XMLFeedLinkExtractorTest.rss"));
 
-        ContentType ct = new ContentTypeDetector().detect(is);
+        ContentType ct = ContentTypeDetector.detect(is);
 
         Assertions.assertTrue(
                 extractor.accepts(docURL, ct),

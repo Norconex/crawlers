@@ -601,6 +601,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 		                urlCrawlScopeStrategy.isStayOnProtocol())
                 .setAttribute("stayOnDomain",
                         urlCrawlScopeStrategy.isStayOnDomain())
+                .setAttribute("includeSubdomains",
+                        urlCrawlScopeStrategy.isIncludeSubdomains())
                 .setAttribute("stayOnPort",
                         urlCrawlScopeStrategy.isStayOnPort());
 		startXML.addElementList("url", startURLs);
@@ -700,9 +702,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                         + "com.norconex.collector.http.fetch.impl"
                         + ".GenericHttpFetcher and possibly other fetchers",
                         true);
-
-
-
     }
 
     private void loadSimpleSettings(XML xml) {
@@ -722,6 +721,9 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         urlCrawlScopeStrategy.setStayOnDomain(xml.getBoolean(
                 "startURLs/@stayOnDomain",
                 urlCrawlScopeStrategy.isStayOnDomain()));
+        urlCrawlScopeStrategy.setIncludeSubdomains(xml.getBoolean(
+                "startURLs/@includeSubdomains",
+                urlCrawlScopeStrategy.isIncludeSubdomains()));
         urlCrawlScopeStrategy.setStayOnPort(xml.getBoolean(
                 "startURLs/@stayOnPort",
                 urlCrawlScopeStrategy.isStayOnPort()));

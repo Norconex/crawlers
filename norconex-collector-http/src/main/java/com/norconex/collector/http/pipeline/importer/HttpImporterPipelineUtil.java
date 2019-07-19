@@ -16,6 +16,7 @@ package com.norconex.collector.http.pipeline.importer;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -79,24 +80,25 @@ import com.norconex.commons.lang.file.ContentType;
             }
         }
 
-        if (StringUtils.isBlank(colCT)) {
-            String ct = StringUtils.trimToNull(
-                    StringUtils.substringBefore(httpCT, ";"));
-            if (ct != null) {
-                meta.add(HttpMetadata.COLLECTOR_CONTENT_TYPE, ct);
-            }
-        }
+        if (StringUtils.isNotBlank(httpCT)) {
+            // delegate parsing of content-type honoring various forms
+            // https://tools.ietf.org/html/rfc7231#section-3.1.1
+            org.apache.http.entity.ContentType parsedCT =
+                    org.apache.http.entity.ContentType.parse(httpCT);
 
-        if (StringUtils.isBlank(colCE)) {
-            // Grab charset form HTTP Content-Type
-            String ce = null;
-            if (httpCT != null && httpCT.contains("charset")) {
-                ce = StringUtils.trimToNull(
-                        StringUtils.substringAfter(httpCT, "charset="));
+            if (StringUtils.isBlank(colCT)) {
+                String ct = parsedCT.getMimeType();
+                if (ct != null) {
+                    meta.add(HttpMetadata.COLLECTOR_CONTENT_TYPE, ct);
+                }
             }
 
-            if (ce != null) {
-                meta.add(HttpMetadata.COLLECTOR_CONTENT_ENCODING, ce);
+            if (StringUtils.isBlank(colCE)) {
+                // Grab charset form HTTP Content-Type
+                String ce = Objects.toString(parsedCT.getCharset(), null);
+                if (ce != null) {
+                    meta.add(HttpMetadata.COLLECTOR_CONTENT_ENCODING, ce);
+                }
             }
         }
     }
@@ -170,17 +172,36 @@ import com.norconex.commons.lang.file.ContentType;
                 return true;
             }
 
-            // Call Queue pipeline on Canonical URL
-            LOG.debug("Canonical URL detected is different than document "
-                  + "URL. Document will be rejected while canonical URL "
-                  + "will be queued for processing: {}", canURL);
             HttpCrawlData newData = (HttpCrawlData) crawlData.clone();
             newData.setReference(canURL);
             newData.setReferrerReference(reference);
 
-            HttpQueuePipelineContext newContext = new HttpQueuePipelineContext(
-                    ctx.getCrawler(), ctx.getCrawlDataStore(), newData);
-            new HttpQueuePipeline().execute(newContext);
+            if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+                    crawlData.getReference(), canURL)) {
+                // Call Queue pipeline on Canonical URL
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Canonical URL detected is different than "
+                        + "document URL. Document will be rejected while "
+                        + "canonical URL will be queued for processing: "
+                        + canURL);
+                }
+
+                HttpQueuePipelineContext newContext =
+                        new HttpQueuePipelineContext(
+                                ctx.getCrawler(),
+                                ctx.getCrawlDataStore(),
+                                newData);
+                new HttpQueuePipeline().execute(newContext);
+            } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Canonical URL not in scope: " + canURL);
+                }
+                newData.setState(HttpCrawlState.REJECTED);
+                ctx.fireCrawlerEvent(
+                        HttpCrawlerEvent.REJECTED_FILTER, newData,
+                        ctx.getConfig().getURLCrawlScopeStrategy());
+            }
+
             crawlData.setState(HttpCrawlState.REJECTED);
             ctx.fireCrawlerEvent(
                     HttpCrawlerEvent.REJECTED_NONCANONICAL,
@@ -221,7 +242,17 @@ import com.norconex.commons.lang.file.ContentType;
                         + "rejecting: {}", redirectURL);
                 rejectRedirectDup("processed", sourceURL, redirectURL);
                 return;
+            //TODO improve this #533 hack in v3
+            } else if (HttpImporterPipeline.GOOD_REDIRECTS.contains(
+                    redirectURL)) {
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("Redirect URL previously processed and was "
+                            + "valid, rejecting: " + redirectURL);
+                }
+                rejectRedirectDup("processed", sourceURL, redirectURL);
+                return;
             }
+
             requeue = true;
             LOG.debug("Redirect URL encountered a second time, re-queue it "
                     + "again (once) in case it came from a circular "

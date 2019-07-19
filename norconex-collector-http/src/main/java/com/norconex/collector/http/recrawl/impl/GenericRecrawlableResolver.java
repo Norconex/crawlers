@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Norconex Inc.
+/* Copyright 2016-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.norconex.collector.http.recrawl.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,7 @@ import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 import com.norconex.collector.http.recrawl.PreviousCrawlData;
 import com.norconex.collector.http.sitemap.SitemapChangeFrequency;
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
@@ -253,24 +256,39 @@ public class GenericRecrawlableResolver
             return isRecrawlableFromFrequency(cf, prevData, "custom");
         }
 
-        int millis;
+        long millis;
         if (NumberUtils.isDigits(value)) {
-            millis = NumberUtils.toInt(value);
+            millis = NumberUtils.toLong(value);
         } else {
-            millis = (int) new DurationParser().parseToMillis(value);
+            millis = new DurationParser().parse(value).toMillis();
         }
-        DateTime minCrawlDate = new DateTime(prevData.getCrawlDate());
-        minCrawlDate = minCrawlDate.plusMillis(millis);
-        if (minCrawlDate.isBeforeNow()) {
-            LOG.debug("Recrawl suggested according to custom "
-                    + "directive (min frequency < elapsed "
-                    + "time since {}) for: {}",
-                    prevData.getCrawlDate(), prevData.getReference());
+        DateTime lastCrawlDate = new DateTime(prevData.getCrawlDate());
+        DateTime minCrawlDate = lastCrawlDate.plus(millis);
+        DateTime now = DateTime.now();
+        if (minCrawlDate.isBefore(now)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format(
+                        "Recrawlable according to custom directive "
+                      + "(required elasped time '%s' "
+                      + "< actual elasped time '%s' since '%s'): %s",
+                      formatDuration(millis),
+                      formatDuration(lastCrawlDate, now),
+                      formatDate(lastCrawlDate),
+                      prevData.getReference()));
+            }
             return true;
         }
-        LOG.debug("No recrawl suggested according to custom directive "
-                + "(min frequency >= elapsed time since {}) for: {}",
-                prevData.getCrawlDate(), prevData.getReference());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format(
+                    "Not recrawlable according to custom directive "
+                  + "(required elasped time '%s' "
+                  + ">= actual elasped time '%s' "
+                  + "since '%s'): %s",
+                  formatDuration(millis),
+                  formatDuration(lastCrawlDate, now),
+                  formatDate(lastCrawlDate),
+                  prevData.getReference()));
+        }
         return false;
     }
 
@@ -280,17 +298,28 @@ public class GenericRecrawlableResolver
         // than the the document last crawl date, recrawl it (otherwise don't).
         if (hasSitemapLastModified(prevData)) {
             DateTime lastModified = new DateTime(prevData.getSitemapLastMod());
+            DateTime lastCrawled = new DateTime(prevData.getCrawlDate());
             LOG.debug("Sitemap last modified date is "
                     + lastModified + " for: " + prevData.getReference());
-            if (lastModified.isAfter(prevData.getCrawlDate().getTime())) {
-                LOG.debug("Recrawl suggested according to sitemap directive "
-                        + "(last modified > last crawl date) for: {}",
-                        prevData.getReference());
+            if (lastModified.isAfter(lastCrawled)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format(
+                            "Recrawlable according to sitemap directive "
+                          + "(last modified '%s' > last crawled '%s'): %s",
+                          formatDate(lastModified),
+                          formatDate(lastCrawled),
+                          prevData.getReference()));
+                }
                 return true;
             }
-            LOG.debug("No recrawl suggested according to sitemap directive "
-                    + "(last modified <= last crawl date) for: {}",
-                    prevData.getReference());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format(
+                        "Not recrawlable according to sitemap directive "
+                      + "(last modified '%s' <= last crawled '%s'): %s",
+                      formatDate(lastModified),
+                      formatDate(lastCrawled),
+                      prevData.getReference()));
+            }
             return false;
         }
 
@@ -321,6 +350,7 @@ public class GenericRecrawlableResolver
             return false;
         }
 
+        DateTime lastCrawlDate = new DateTime(prevData.getCrawlDate());
         DateTime minCrawlDate = new DateTime(prevData.getCrawlDate());
         switch (cf) {
         case HOURLY:
@@ -342,22 +372,48 @@ public class GenericRecrawlableResolver
             break;
         }
 
-        if (minCrawlDate.isBeforeNow()) {
+        DateTime now = DateTime.now();
+        if (minCrawlDate.isBefore(now)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Recrawl suggested according to " + context
-                        + " directive (change frequency < elapsed time since "
-                        + prevData.getCrawlDate() + ") for: "
-                        + prevData.getReference());
+                LOG.debug(String.format(
+                        "Recrawlable according to %s directive "
+                      + "(required elasped time '%s' "
+                      + "< actual elasped time '%s' since '%s'): %s",
+                      context,
+                      formatDuration(lastCrawlDate, minCrawlDate),
+                      formatDuration(lastCrawlDate, now),
+                      formatDate(lastCrawlDate),
+                      prevData.getReference()));
             }
             return true;
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("No recrawl suggested according to " + context
-                    + " directive (change frequency >= elapsed time since "
-                    + prevData.getCrawlDate() + ") for: "
-                    + prevData.getReference());
+            LOG.debug(String.format(
+                    "Not recrawlable according to %s directive "
+                  + "(required elasped time '%s' "
+                  + ">= actual elasped time '%s' since '%s'): %s",
+                  context,
+                  formatDuration(lastCrawlDate, minCrawlDate),
+                  formatDuration(lastCrawlDate, now),
+                  formatDate(lastCrawlDate),
+                  prevData.getReference()));
         }
         return false;
+    }
+
+    private String formatDate(DateTime date) {
+        return date.toString("yyyy-MM-dd'T'HH:mm:ss");
+    }
+    private String formatDuration(DateTime start, DateTime end) {
+        return formatDuration(new Duration(start, end));
+    }
+    private String formatDuration(Duration duration) {
+        return formatDuration(duration.getMillis());
+    }
+    private String formatDuration(long millis) {
+        return new DurationFormatter()
+                .withLocale(Locale.ENGLISH)
+                .format(millis);
     }
 
     public static class MinFrequency {

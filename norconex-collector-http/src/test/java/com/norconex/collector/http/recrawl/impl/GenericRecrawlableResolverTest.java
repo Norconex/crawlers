@@ -15,13 +15,18 @@
 package com.norconex.collector.http.recrawl.impl;
 
 import java.io.IOException;
+import java.util.Date;
 
+import org.joda.time.DateTime;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.http.recrawl.PreviousCrawlData;
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver.MinFrequency;
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver.SitemapSupport;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.xml.XML;
 public class GenericRecrawlableResolverTest {
 
@@ -41,5 +46,57 @@ public class GenericRecrawlableResolverTest {
 
         LOG.debug("Writing/Reading this: {}", r);
         XML.assertWriteRead(r, "recrawlableResolver");
+    }
+
+    // Test for: https://github.com/Norconex/collector-http/issues/597
+    @Test
+    public void testCustomFrequency() throws IOException {
+        GenericRecrawlableResolver r = new GenericRecrawlableResolver();
+        r.setSitemapSupport(SitemapSupport.NEVER);
+
+        Date now = new Date();
+
+        DateTime prevCrawlDate = new DateTime(now);
+        prevCrawlDate = prevCrawlDate.minusDays(10);
+
+        PreviousCrawlData prevCrawl = new PreviousCrawlData();
+        prevCrawl.setContentType(ContentType.HTML);
+        prevCrawl.setReference("http://example.com");
+        prevCrawl.setCrawlDate(prevCrawlDate.toDate());
+
+
+
+        MinFrequency f = null;
+
+        // Delay has not yet passed
+        f = new MinFrequency("reference", "120 days", ".*");
+        r.setMinFrequencies(f);
+        Assertions.assertFalse(r.isRecrawlable(prevCrawl));
+
+        // Delay has passed
+        f = new MinFrequency("reference", "5 days", ".*");
+        r.setMinFrequencies(f);
+        Assertions.assertTrue(r.isRecrawlable(prevCrawl));
+    }
+
+    @Test
+    public void testCustomFrequencyFromXML() throws IOException {
+        String xml = "<recrawlableResolver class=\""
+                + "com.norconex.collector.http.recrawl.impl."
+                + "GenericRecrawlableResolver\" sitemapSupport=\"never\">"
+                + "<minFrequency applyTo=\"reference\" value=\"120 days\">"
+                + ".*</minFrequency>"
+                + "</recrawlableResolver>";
+        GenericRecrawlableResolver r = new GenericRecrawlableResolver();
+        r.loadFromXML(new XML(xml));
+
+        DateTime prevCrawlDate = new DateTime();
+        prevCrawlDate = prevCrawlDate.minusDays(10);
+        PreviousCrawlData prevCrawl = new PreviousCrawlData();
+        prevCrawl.setContentType(ContentType.HTML);
+        prevCrawl.setReference("http://example.com");
+        prevCrawl.setCrawlDate(prevCrawlDate.toDate());
+
+        Assertions.assertFalse(r.isRecrawlable(prevCrawl));
     }
 }

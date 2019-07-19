@@ -58,6 +58,8 @@
             </xs:all>
           </xs:complexType>
         </xs:element>
+      </xs:all>
+      <xs:attribute name="class" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
 

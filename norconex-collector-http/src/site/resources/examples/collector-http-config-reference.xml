@@ -73,7 +73,11 @@
     <listener class="YourClass"/>
   </eventListeners>
   
-  
+  <!-- Maximum number of crawlers to run at once. Only useful when you have
+       multiple crawlers defined. Default is unlimited.
+       -->
+  <maxParallelCrawlers>-1</maxParallelCrawlers>
+
   <!-- All crawler configuration options (except for the crawler "id") 
        can be set here as default to prevent repeating them.
        Settings defined here will be inherited by all individual crawlers 

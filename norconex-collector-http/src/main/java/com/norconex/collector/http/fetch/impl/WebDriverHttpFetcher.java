@@ -513,13 +513,13 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         setBrowserPath(xml.getPath("browserPath", browserPath));
         setServicePort(xml.getInteger("servicePort", servicePort));
 
-        xml.getXML("httpSniffer").ifDefined(x -> {
+        xml.ifXML("httpSniffer", x -> {
             WebDriverHttpSnifferConfig cfg = new WebDriverHttpSnifferConfig();
             cfg.loadFromXML(x);
             setHttpSnifferConfig(cfg);
         });
 
-        xml.getXML("screenshot").ifDefined(x -> {
+        xml.ifXML("screenshot", x -> {
             WebDriverScreenshotHandler h =
                     new WebDriverScreenshotHandler(streamFactory);
             h.loadFromXML(x);

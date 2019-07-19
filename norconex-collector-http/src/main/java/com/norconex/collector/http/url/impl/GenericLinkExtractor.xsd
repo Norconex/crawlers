@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2017 Norconex Inc.
+   Copyright 2017-2019 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -35,6 +35,15 @@
         </xs:element>
         <xs:element name="extractBetween" type="extractType" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element name="noExtractBetween" type="extractType" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="extractSelector" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="noExtractSelector" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="nofollow" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="regexUrl" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
       </xs:all>
       <xs:attribute name="class" type="xs:string" use="required"/>
       <xs:attribute name="maxURLLength" type="xs:int"/>

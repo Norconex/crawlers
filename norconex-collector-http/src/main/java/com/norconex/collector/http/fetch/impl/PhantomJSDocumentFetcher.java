@@ -360,9 +360,6 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
 
     private final List<String> options = new ArrayList<>();
 
-    private final ContentTypeDetector contentTypeDetector =
-            new ContentTypeDetector();
-
     private String contentTypePattern = DEFAULT_CONTENT_TYPE_PATTERN;
     private String referencePattern;
 
@@ -1089,7 +1086,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     //TODO Copied from GenericDocumentFetcher... should move to util class?
     private void performDetection(HttpDocument doc) throws IOException {
         if (fetcherConfig.isDetectContentType()) {
-            ContentType ct = contentTypeDetector.detect(
+            ContentType ct = ContentTypeDetector.detect(
                     doc.getContent(), doc.getReference());
             if (ct != null) {
                 doc.getMetadata().set(

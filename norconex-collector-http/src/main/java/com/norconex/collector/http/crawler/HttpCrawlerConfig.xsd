@@ -16,14 +16,14 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:include schemaLocation="/com/norconex/collector/core/crawler/AbstractCrawlerConfig.xsd"></xs:include>
+  <xs:include schemaLocation="/com/norconex/collector/core/crawler/CrawlerConfig.xsd"></xs:include>
 
   <xs:element name="crawlerDefaults" type="HttpCrawlerConfigType"/>
   <xs:element name="crawler" type="HttpCrawlerConfigType"/>
 
   <xs:complexType name="HttpCrawlerConfigType">
     <xs:complexContent> 
-      <xs:extension base="AbstractCrawlerConfig">
+      <xs:extension base="CrawlerConfig">
         <xs:all>
           <xs:element name="startURLs" minOccurs="0" maxOccurs="1">
             <xs:complexType>
@@ -31,6 +31,7 @@
                 <xs:element ref="startURLChoice" minOccurs="1" maxOccurs="unbounded"/>
               </xs:all>
               <xs:attribute name="stayOnDomain" type="xs:boolean"/>
+              <xs:attribute name="includeSubdomains" type="xs:boolean"/>
               <xs:attribute name="stayOnPort" type="xs:boolean"/>
               <xs:attribute name="stayOnProtocol" type="xs:boolean"/>
             </xs:complexType>

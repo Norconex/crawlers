@@ -309,6 +309,56 @@ public class LinkExtractorTest {
                 "Invalid number of links extracted.");
     }
 
+    @Test
+    public void testExtractSelector() throws IOException {
+        String baseURL = "http://www.example.com/";
+
+        // All these must be found
+        String[] expectedURLs = {
+                baseURL + "include1.html",
+                baseURL + "include2.html",
+                baseURL + "include3.html",
+                baseURL + "include4.html",
+                baseURL + "include5.html",
+        };
+        // All these must NOT be found
+        String[] unexpectedURLs = {
+                baseURL + "exclude1.html",
+                baseURL + "exclude2.html",
+                baseURL + "exclude3.html",
+                baseURL + "exclude4.html",
+                baseURL + "exclude5.html",
+                baseURL + "exclude6.html",
+                baseURL + "exclude7.html",
+        };
+
+        // Only GenericLinkExtractor:
+        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        extractor.addExtractSelectors("include1");
+        extractor.addExtractSelectors("include2");
+        extractor.addNoExtractSelectors("exclude1");
+        extractor.addNoExtractSelectors("exclude2");
+
+        Set<Link> links;
+        try (InputStream is = getClass().getResourceAsStream(
+                "LinkExtractBetweenTest.html")) {
+            links = extractor.extractLinks(is,
+                    baseURL + "LinkExtractBetweenTest.html", ContentType.HTML);
+        }
+
+        for (String expectedURL : expectedURLs) {
+            Assertions.assertTrue(contains(links, expectedURL),
+                    "Could not find expected URL: " + expectedURL);
+        }
+        for (String unexpectedURL : unexpectedURLs) {
+            Assertions.assertFalse(contains(links, unexpectedURL),
+                    "Found unexpected URL: " + unexpectedURL);
+        }
+
+        Assertions.assertEquals(expectedURLs.length, links.size(),
+                "Invalid number of links extracted.");
+    }
+
     //--- Other Tests ----------------------------------------------------------
     @Test
     public void testGenericWriteRead() throws IOException {

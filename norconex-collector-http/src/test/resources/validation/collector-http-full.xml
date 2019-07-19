@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2017-2018 Norconex Inc.
+   Copyright 2017-2019 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@
   </eventListeners>
 
   <crawlerDefaults>
-    <startURLs stayOnDomain="false" stayOnPort="false" stayOnProtocol="false">
+    <startURLs stayOnDomain="true" includeSubdomains="true" stayOnPort="true" stayOnProtocol="true">
       <url>http://www.example.com</url>
       <url>http://www.sample.com</url>
       <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>

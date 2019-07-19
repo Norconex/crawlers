@@ -45,7 +45,9 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsExclude;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -61,22 +63,24 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.RedirectStrategy;
-import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -324,11 +328,12 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
     };
 
-
     private final GenericHttpFetcherConfig cfg;
     private HttpClient httpClient;
-    private final transient ContentTypeDetector contentTypeDetector =
-            new ContentTypeDetector();
+    @HashCodeExclude
+    @EqualsExclude
+    private final AuthCache authCache = new BasicAuthCache();
+    private Object userToken;
 
     public GenericHttpFetcher() {
         this(new GenericHttpFetcherConfig());
@@ -346,34 +351,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     public HttpClient getHttpClient() {
         return httpClient;
     }
-
-
-
-//    @Override
-//    protected void collectorStartup(CollectorEvent<Collector> event) {
-//        this.httpClient = createHttpClient();
-//        initializeRedirectionStrategy();
-//
-//        String userAgent = cfg.getUserAgent();
-//        if (StringUtils.isBlank(userAgent)) {
-//            LOG.info("User-Agent: <None specified>");
-//            LOG.debug("It is recommended you identify yourself to web sites "
-//                    + "by specifying a user agent "
-//                    + "(https://en.wikipedia.org/wiki/User_agent)");
-//        } else {
-//            LOG.info("User-Agent: {}", userAgent);
-//        }
-//    }
-//    @Override
-//    protected void collectorShutdown(CollectorEvent<Collector> event) {
-//        if (httpClient instanceof CloseableHttpClient) {
-//            try {
-//                ((CloseableHttpClient) httpClient).close();
-//            } catch (IOException e) {
-//                LOG.error("Cannot close HttpClient.", e);
-//            }
-//        }
-//    }
 
     @Override
     protected void crawlerStartup(CrawlerEvent<Crawler> event) {
@@ -407,12 +384,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         return cfg.getUserAgent();
     }
 
-//  @Override
-//  public HttpFetchResponse fetchDocument(
-//          String url, HttpMetadata httpHeaders, OutputStream content) {
-
-    // have a http response status that means "unsupported" and move directly to next in chain or fallback.
-
     @Override
     public boolean accept(HttpDocument doc) {
         //TODO base it on restrictTo
@@ -430,9 +401,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 new MutableObject<>(doc.getInputStream());
         IHttpFetchResponse response = fetch(
                 doc.getReference(), doc.getMetadata(), is, false);
-
-//        IOUtils.copy(is.getValue(), new NullOutputStream());
-
         doc.setInputStream(is.getValue());
         performDetection(doc);
         return response;
@@ -448,9 +416,16 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         LOG.debug("Fetching document: {}", url);
         HttpRequestBase method = createUriRequest(url, head);
         try {
+            HttpClientContext ctx = HttpClientContext.create();
+            // auth cache
+            ctx.setAuthCache(authCache);
+            // user token
+            if (userToken != null) {
+                ctx.setUserToken(userToken);
+            }
 
             // Execute the method.
-            HttpResponse response = httpClient.execute(method);
+            HttpResponse response = httpClient.execute(method, ctx);
 
             int statusCode = response.getStatusLine().getStatusCode();
             String reason = response.getStatusLine().getReasonPhrase();
@@ -483,17 +458,14 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                     //--- Fetch body
                     CachedInputStream content = stream.getValue()
                             .getStreamFactory().newInputStream(is);
-//                    doc.setInputStream(is);
-//                    IOUtils.copy(is, doc.getOutputStream());
-//                    IOUtils.copy(is, content);
-//                    doc.setContent(doc.getContent().newInputStream(is));
-    //
-                    //read a copy to force caching and then close the HTTP stream
+                    //read a copy to force caching and then close the stream
                     IOUtils.copy(content, new NullOutputStream());
                     stream.setValue(content);
-
 //                    performDetection(doc);
                 }
+
+                userToken = ctx.getUserToken();
+
                 return responseBuilder
                         .setCrawlState(HttpCrawlState.NEW)
                         .build();
@@ -530,18 +502,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                     .build();
         } catch (Exception e) {
             //TODO set exception on response instead?
-
-
             LOG.info("Cannot fetch document: {}  ({})",
                     url, e.getMessage(), e);
-
-//            if (LOG.isDebugEnabled()) {
-//                LOG.info("Cannot fetch document: " + doc.getReference()
-//                        + " (" + e.getMessage() + ")", e);
-//            } else {
-//                LOG.info("Cannot fetch document: " + doc.getReference()
-//                        + " (" + e.getMessage() + ")");
-//            }
             throw new CollectorException(e);
         } finally {
             if (method != null) {
@@ -556,7 +518,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     private void performDetection(HttpDocument doc) {
         try {
             if (cfg.isDetectContentType()) {
-                ContentType ct = contentTypeDetector.detect(
+                ContentType ct = ContentTypeDetector.detect(
                         doc.getInputStream(), doc.getReference());
                 if (ct != null) {
                     doc.getMetadata().set(
@@ -768,12 +730,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 .setSocketTimeout(cfg.getSocketTimeout())
                 .setConnectionRequestTimeout(cfg.getConnectionRequestTimeout())
                 .setMaxRedirects(cfg.getMaxRedirects())
-                .setExpectContinueEnabled(cfg.isExpectContinueEnabled());
-        if (cfg.isCookiesDisabled()) {
-            builder.setCookieSpec(CookieSpecs.IGNORE_COOKIES);
-        } else {
-            builder.setCookieSpec(CookieSpecs.DEFAULT);
-        }
+                .setExpectContinueEnabled(cfg.isExpectContinueEnabled())
+                .setCookieSpec(cfg.getCookieSpec());
         if (cfg.getMaxRedirects() <= 0) {
             builder.setRedirectsEnabled(false);
         }

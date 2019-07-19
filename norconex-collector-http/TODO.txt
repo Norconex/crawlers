@@ -1,5 +1,7 @@
 The following are either things to be done, or ideas to consider:
 
+- Move changes.xml to project root folder to make it obvious?
+
 - Allow storing document/metadata checksummers as null (instead or same as 
   disabled).
 
@@ -88,6 +90,19 @@ The following are either things to be done, or ideas to consider:
 
 - Optionally keep the URL trail or at least start URL for document:
   https://github.com/Norconex/collector-http/issues/514
+
+- Form authentication: add ability to first parse a login page, look for 
+  login form, and pass all its input field to the login request.
+
+- Have ability to download and install committers from command line?
+
+- Have ability to do POST instead of GET for matching URLs.
+
+- Because the QueuePipeline can be invoked from anywhere, make the 
+  "inscope" check part of it instead of always forcing to check first.
+
+- Have an option that sends committer deletion requests at every rejection
+  (once per session per URLs).
 
 - Support custom arguments to the PhantomJS script file.
   https://github.com/Norconex/collector-http/issues/505

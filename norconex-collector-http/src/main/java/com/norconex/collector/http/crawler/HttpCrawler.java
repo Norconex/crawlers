@@ -396,6 +396,12 @@ public class HttpCrawler extends Crawler {
         HttpCrawlData httpData = (HttpCrawlData) crawlData;
         HttpCrawlData httpCachedData = (HttpCrawlData) cachedData;
 
+        //TODO improve this #533 hack in v3
+        if (httpData.getState().isNewOrModified()
+                && !httpData.getRedirectTrail().isEmpty()) {
+            HttpImporterPipeline.GOOD_REDIRECTS.add(httpData.getReference());
+        }
+
         // If never crawled before, URLs were extracted already, or cached
         // version has no extracted, URLs, abort now.
         if (cachedData == null
@@ -415,7 +421,7 @@ public class HttpCrawler extends Crawler {
 
         // OK, let's do this
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Queuing referenced URLs of {}",
+            LOG.debug("Queueing referenced URLs of {}",
                     crawlData.getReference());
         }
 
@@ -426,7 +432,7 @@ public class HttpCrawler extends Crawler {
             HttpCrawlData childData = new HttpCrawlData(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Queuing skipped document's child: "
+                LOG.debug("Queueing skipped document's child: "
                         + childData.getReference());
             }
             executeQueuePipeline(childData, store);

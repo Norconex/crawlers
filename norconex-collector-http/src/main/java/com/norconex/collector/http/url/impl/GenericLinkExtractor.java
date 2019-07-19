@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Norconex Inc.
+/* Copyright 2014-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,18 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsExclude;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.tika.utils.CharsetUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,6 +147,11 @@ import com.norconex.importer.util.CharsetUtil;
  * To force its extraction (and ensure it is followed) you can set
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * </p>
+ * <p>
+ * <b>Since 2.6.0</b> it is possible to treat all the links in certain pages
+ * as "nofollow" links. Link extraction is essentially skipped for URLs matching
+ * the patterns set in {@link #setNofollowPatterns(List)}.
+ * </p>
  *
  * <h3>URL Fragments</h3>
  * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
@@ -186,6 +196,13 @@ import com.norconex.importer.util.CharsetUtil;
  * extraction is identified first, and content to exclude is done on that
  * subset.
  * </p>
+ * <p><b>Since 2.9.0</b>, you can further limit link extraction to specific
+ * area by using
+ * <a href="https://jsoup.org/cookbook/extracting-data/selector-syntax">selector-syntax</a>
+ * to do so, with
+ * {@link #setExtractSelectors(String...)} and
+ * {@link #setNoExtractSelectors(String...)}.
+ * </p>
  *
  * <h3>XML configuration usage:</h3>
  * <pre>
@@ -222,6 +239,14 @@ import com.norconex.importer.util.CharsetUtil;
  *          &lt;end&gt;(regex)&lt;/end&gt;
  *      &lt;/noExtractBetween&gt;
  *      &lt;!-- you can have multiple noExtractBetween entries --&gt;
+ *
+ *      &lt;!-- Only extract URLs matching the following selectors. --&gt;
+ *      &lt;extractSelector&gt;(selector)&lt;/extractSelector&gt;
+ *      &lt;!-- you can have multiple extractSelector entries --&gt;
+ *
+ *      &lt;!-- Do not extract URLs matching the following selectors. --&gt;
+ *      &lt;noExtractSelector&gt;(selector)&lt;/noExtractSelector&gt;
+ *      &lt;!-- you can have multiple noExtractSelector entries --&gt;
  *
  *  &lt;/extractor&gt;
  * </pre>
@@ -283,12 +308,17 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     private boolean ignoreNofollow;
     private final Properties tagAttribs = new Properties(true);
-    transient private Pattern tagPattern;
-    transient private String charset;
-    transient private boolean commentsEnabled;
+    @HashCodeExclude
+    @EqualsExclude
+    private Pattern tagPattern;
+    private String charset;
+    private boolean commentsEnabled;
 
-    transient private final List<RegexPair> extractBetweens = new ArrayList<>();
-    transient private final List<RegexPair> noExtractBetweens = new ArrayList<>();
+    private final List<String> extractSelectors = new ArrayList<>();
+    private final List<String> noExtractSelectors = new ArrayList<>();
+    private final List<RegexPair> extractBetweens = new ArrayList<>();
+    private final List<RegexPair> noExtractBetweens = new ArrayList<>();
+    private final List<Pattern> nofollowPatterns = new ArrayList<>();
 
     public GenericLinkExtractor() {
         super();
@@ -314,6 +344,12 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         // Do not extract if not a supported content type
         if (!cTypes.contains(contentType)) {
             return Collections.emptySet();
+        }
+
+        for (Pattern p : nofollowPatterns) {
+            if (p.matcher(reference).matches()) {
+                return null;
+            }
         }
 
         // Do it, extract Links
@@ -489,6 +525,94 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     public void addNoExtractBetween(
             String start, String end, boolean caseSensitive) {
         this.noExtractBetweens.add(new RegexPair(start, end, caseSensitive));
+    }
+
+    /**
+     * Gets the selectors matching the portions of a document to be considered
+     * for link extraction.
+     * @return selectors
+     * @since 2.9.0
+     */
+    public List<String> getExtractSelectors() {
+        return Collections.unmodifiableList(extractSelectors);
+    }
+    /**
+     * Sets the selectors matching the portions of a document to be considered
+     * for link extraction.
+     * @param selectors selectors
+     * @since 2.9.0
+     */
+    public void setExtractSelectors(String... selectors) {
+        CollectionUtil.setAll(this.extractSelectors, selectors);
+    }
+    /**
+     * Adds selectors matching the portions of a document to be considered
+     * for link extraction.
+     * @param selectors selectors
+     * @since 2.9.0
+     */
+    public void addExtractSelectors(String... selectors) {
+        this.extractSelectors.addAll(Arrays.asList(selectors));
+    }
+
+    /**
+     * Gets the selectors matching the portions of a document to be excluded
+     * from link extraction.
+     * @return selectors
+     * @since 2.9.0
+     */
+    public List<String> getNoExtractSelectors() {
+        return Collections.unmodifiableList(noExtractSelectors);
+    }
+    /**
+     * Sets the selectors matching the portions of a document to be excluded
+     * from link extraction.
+     * @param selectors selectors
+     * @since 2.9.0
+     */
+    public void setNoExtractSelectors(String... selectors) {
+        CollectionUtil.setAll(this.noExtractSelectors, selectors);
+    }
+    /**
+     * Adds selectors matching the portions of a document to be excluded
+     * from link extraction.
+     * @param selectors selectors
+     * @since 2.9.0
+     */
+    public void addNoExtractSelectors(String... selectors) {
+        this.noExtractSelectors.addAll(Arrays.asList(selectors));
+    }
+
+    /**
+     * Gets the patterns of references for which link extraction is disabled.
+     * @return nofollow regex patterns
+     * @since 2.9.0
+     */
+    public List<String> getNofollowPatterns() {
+        List<String> list = new ArrayList<>(nofollowPatterns.size());
+        for (Pattern pattern : nofollowPatterns) {
+            list.add(pattern.pattern());
+        }
+        return list;
+    }
+    /**
+     * Sets the patterns of references for which link extraction is disabled.
+     * @param patterns the list of regex URL patterns
+     * @since 2.9.0
+     */
+    public void setNofollowPatterns(List<String> patterns) {
+        nofollowPatterns.clear();
+        for (String regex : patterns) {
+            nofollowPatterns.add(Pattern.compile(regex));
+        }
+    }
+    /**
+     * Adds a pattern for references for which link extraction is disabled.
+     * @param regex the regex URL pattern
+     * @since 2.9.0
+     */
+    public void addNofollowPatterns(String regex) {
+        nofollowPatterns.add(Pattern.compile(regex));
     }
 
     /**
@@ -717,62 +841,86 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private String excludeUnwantedContent(String content) {
         String newContent = content;
         if (!extractBetweens.isEmpty()) {
-            newContent = excludeUnwantedContent(newContent, true);
+            newContent = applyExtractBetweens(newContent);
         }
         if (!noExtractBetweens.isEmpty()) {
-            newContent = excludeUnwantedContent(newContent, false);
+            newContent = applyNoExtractBetweens(newContent);
+        }
+        if (!extractSelectors.isEmpty()) {
+            newContent = applyExtractSelectors(newContent);
+        }
+        if (!noExtractSelectors.isEmpty()) {
+            newContent = applyNoExtractSelectors(newContent);
         }
         return newContent;
     }
-    private String excludeUnwantedContent(String content, boolean keepMatch) {
-        StringBuilder newContent = new StringBuilder();
-        if (!keepMatch) {
-            newContent.append(content);
-        }
-        List<RegexPair> pairs;
-        if (keepMatch) {
-            pairs = extractBetweens;
-        } else {
-            pairs = noExtractBetweens;
-        }
-        for (RegexPair pair : pairs) {
-            int flags = Pattern.DOTALL;
-            if (!pair.isCaseSensitive()) {
-                flags = flags | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+
+    private String applyExtractBetweens(String content) {
+        StringBuilder b = new StringBuilder();
+        for (RegexPair regexPair : extractBetweens) {
+            for (Pair<Integer, Integer> pair :
+                    matchBetweens(content, regexPair)) {
+                b.append(content.substring(pair.getLeft(), pair.getRight()));
             }
-            List<Pair<Integer, Integer>> matches = new ArrayList<>();
-            Pattern leftPattern = Pattern.compile(pair.getStart(), flags);
-            Matcher leftMatch = leftPattern.matcher(content);
-            while (leftMatch.find()) {
-                Pattern rightPattern = Pattern.compile(pair.getEnd(), flags);
-                Matcher rightMatch = rightPattern.matcher(content);
-                if (rightMatch.find(leftMatch.end())) {
-                    matches.add(new ImmutablePair<>(
-                            leftMatch.start(), rightMatch.end()));
-                } else {
-                    break;
-                }
-            }
-            excludeUnwantedContent(newContent, content, matches, keepMatch);
         }
-        return newContent.toString();
+        return b.toString();
     }
-    private void excludeUnwantedContent(
-            StringBuilder newContent, String content,
-            List<Pair<Integer, Integer>> matches, boolean keepMatch) {
-        if (keepMatch) {
-            for (Pair<Integer, Integer> pair : matches) {
-                newContent.append(
-                        content.substring(pair.getLeft(), pair.getRight()));
-            }
-        } else {
+    private String applyNoExtractBetweens(String content) {
+        StringBuilder b = new StringBuilder(content);
+        for (RegexPair regexPair : noExtractBetweens) {
+            List<Pair<Integer, Integer>> matches =
+                    matchBetweens(content, regexPair);
             for (int i = matches.size() -1; i >= 0; i--) {
                 Pair<Integer, Integer> pair = matches.get(i);
-                newContent.delete(pair.getLeft(), pair.getRight());
+                b.delete(pair.getLeft(), pair.getRight());
             }
         }
+        return b.toString();
+    }
+    private List<Pair<Integer, Integer>> matchBetweens(
+            String content, RegexPair pair) {
+        int flags = Pattern.DOTALL;
+        if (!pair.isCaseSensitive()) {
+            flags = flags | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+        }
+        List<Pair<Integer, Integer>> matches = new ArrayList<>();
+        Pattern leftPattern = Pattern.compile(pair.getStart(), flags);
+        Matcher leftMatch = leftPattern.matcher(content);
+        while (leftMatch.find()) {
+            Pattern rightPattern = Pattern.compile(pair.getEnd(), flags);
+            Matcher rightMatch = rightPattern.matcher(content);
+            if (rightMatch.find(leftMatch.end())) {
+                matches.add(new ImmutablePair<>(
+                        leftMatch.start(), rightMatch.end()));
+            } else {
+                break;
+            }
+        }
+        return matches;
     }
 
+    private String applyExtractSelectors(String content) {
+        StringBuilder b = new StringBuilder();
+        Document doc = Jsoup.parse(content);
+        for (String selector : extractSelectors) {
+            for (Element element : doc.select(selector)) {
+                if (b.length() > 0) {
+                    b.append(" ");
+                }
+                b.append(element.html());
+            }
+        }
+        return b.toString();
+    }
+    private String applyNoExtractSelectors(String content) {
+        Document doc = Jsoup.parse(content);
+        for (String selector : noExtractSelectors) {
+            for (Element element : doc.select(selector)) {
+                element.remove();
+            }
+        }
+        return doc.toString();
+    }
     //--- Extract meta refresh -------------------------------------------------
     private static final Pattern META_EQUIV_REFRESH_PATTERN = Pattern.compile(
             "(^|\\W+)http-equiv\\s*=\\s*[\"']{0,1}refresh[\"']{0,1}",
@@ -818,6 +966,11 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
         // Decode HTML entities.
         url = StringEscapeUtils.unescapeHtml4(url);
+
+        // Revalidate after unescaping
+        if (!isValidNewURL(url)) {
+            return null;
+        }
 
         if (url.startsWith("//")) {
             // this is URL relative to protocol
@@ -897,18 +1050,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                 }
             }
         }
-//        List<HierarchicalConfiguration> tagNodes =
-//                xml.configurationsAt("tags.tag");
-//        if (!tagNodes.isEmpty()) {
-//            clearLinkTags();
-//            for (HierarchicalConfiguration tagNode : tagNodes) {
-//                String name = tagNode.getString("@name", null);
-//                String attr = tagNode.getString("@attribute", null);
-//                if (StringUtils.isNotBlank(name)) {
-//                    addLinkTag(name, attr);
-//                }
-//            }
-//        }
 
         // extract between
         List<XML> xmlBetweens = xml.getXMLList("extractBetween");
@@ -921,17 +1062,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                         xmlBetween.getBoolean("@caseSensitive", false));
             }
         }
-//        List<HierarchicalConfiguration> extractNodes =
-//                xml.configurationsAt("extractBetween");
-//        if (!extractNodes.isEmpty()) {
-//            extractBetweens.clear();
-//            for (HierarchicalConfiguration node : extractNodes) {
-//                addExtractBetween(
-//                        node.getString("start", null),
-//                        node.getString("end", null),
-//                        node.getBoolean("@caseSensitive", false));
-//            }
-//        }
 
         // no extract between
         List<XML> xmlNoBetweens = xml.getXMLList("noExtractBetween");
@@ -944,17 +1074,24 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
                         xmlNoBetween.getBoolean("@caseSensitive", false));
             }
         }
-//        List<HierarchicalConfiguration> noExtractNodes =
-//                xml.configurationsAt("noExtractBetween");
-//        if (!noExtractNodes.isEmpty()) {
-//            noExtractBetweens.clear();
-//            for (HierarchicalConfiguration node : noExtractNodes) {
-//                addNoExtractBetween(
-//                        node.getString("start", null),
-//                        node.getString("end", null),
-//                        node.getBoolean("@caseSensitive", false));
-//            }
-//        }
+
+        // extract selector
+        List<String> extractSelList = xml.getStringList("extractSelector");
+        if (!extractSelList.isEmpty()) {
+            CollectionUtil.setAll(this.extractSelectors, extractSelList);
+        }
+
+        // no extract selector
+        List<String> noExtractSelList = xml.getStringList("noExtractSelector");
+        if (!noExtractSelList.isEmpty()) {
+            CollectionUtil.setAll(this.noExtractSelectors, noExtractSelList);
+        }
+
+        // no extraction in these pages
+        nofollowPatterns.clear();
+        for (String regex : xml.getStringList("nofollow/regexUrl")) {
+            nofollowPatterns.add(Pattern.compile(regex));
+        }
     }
     @Override
     public void saveToXML(XML xml) {
@@ -964,18 +1101,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         xml.setAttribute("charset", charset);
         xml.addDelimitedElementList("contentTypes", contentTypes);
         xml.addDelimitedElementList("schemes", schemes);
-
-        // Content Types
-//        if (!ArrayUtils.isEmpty(getContentTypes())) {
-//            xml.addElement("contentTypes",
-//                    StringUtils.join(getContentTypes(), ','));
-//        }
-
-        // Schemes
-//        if (!ArrayUtils.isEmpty(getSchemes())) {
-//            xml.addElement("schemes",
-//                    StringUtils.join(getSchemes(), ','));
-//        }
 
         // Tags
         XML xmlTags = xml.addElement("tags");
@@ -988,18 +1113,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             }
         }
 
-//        writer.writeStartElement("tags");
-//        for (Map.Entry<String, List<String>> entry :
-//                tagAttribs.entrySet()) {
-//            for (String attrib : entry.getValue()) {
-//                writer.writeStartElement("tag");
-//                writer.writeAttributeString("name", entry.getKey());
-//                writer.writeAttributeString("attribute", attrib);
-//                writer.writeEndElement();
-//            }
-//        }
-//        writer.writeEndElement();
-
         // extract between
         for (RegexPair pair : extractBetweens) {
             XML xmlBetween = xml.addElement("extractBetween")
@@ -1007,14 +1120,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             xmlBetween.addElement("start", pair.getStart());
             xmlBetween.addElement("end", pair.getEnd());
         }
-//        for (RegexPair pair : extractBetweens) {
-//            writer.writeStartElement("extractBetween");
-//            writer.writeAttributeBoolean(
-//                    "caseSensitive", pair.isCaseSensitive());
-//            xml.addElement("start", pair.getStart());
-//            xml.addElement("end", pair.getEnd());
-//            writer.writeEndElement();
-//        }
 
         // no extract between
         for (RegexPair pair : noExtractBetweens) {
@@ -1023,14 +1128,20 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             xmlNoBetween.addElement("start", pair.getStart());
             xmlNoBetween.addElement("end", pair.getEnd());
         }
-//        for (RegexPair pair : noExtractBetweens) {
-//            writer.writeStartElement("noExtractBetween");
-//            writer.writeAttributeBoolean(
-//                    "caseSensitive", pair.isCaseSensitive());
-//            xml.addElement("start", pair.getStart());
-//            xml.addElement("end", pair.getEnd());
-//            writer.writeEndElement();
-//        }
+
+        // extract selector
+        xml.addElementList("extractSelector", extractSelectors);
+
+        // no extract selector
+        xml.addElementList("noExtractSelector", noExtractSelectors);
+
+        // no extraction in these pages
+        if (!nofollowPatterns.isEmpty()) {
+            XML nofolXML = xml.addElement("nofollow");
+            for (Pattern regex : nofollowPatterns) {
+                nofolXML.addElement("regexUrl", regex.pattern());
+            }
+        }
     }
 
     //TODO delete this class and use HttpURL#toAbsolute() instead?
@@ -1063,9 +1174,8 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             documentBase =
                     scheme + path.replaceFirst("(.*?)([\\?\\#])(.*)", "$1");
 
-            LOG.trace("DOCUMENT URL ----> {}", documentUrl);
-            LOG.trace("  BASE RELATIVE -> {}", relativeBase);
-            LOG.trace("  BASE ABSOLUTE -> {}", absoluteBase);
+            LOG.trace("DOCUMENT URL: {}  BASE RELATIVE: {}  BASE ABSOLUTE: {}",
+                    documentUrl, relativeBase, absoluteBase);
         }
     }
 
@@ -1091,11 +1201,11 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         }
         @Override
         public boolean equals(final Object other) {
-            return EqualsBuilder.reflectionEquals(this, other, false);
+            return EqualsBuilder.reflectionEquals(this, other);
         }
         @Override
         public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this, false);
+            return HashCodeBuilder.reflectionHashCode(this);
         }
         @Override
         public String toString() {
@@ -1106,16 +1216,15 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
     @Override
     public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other, "tagPattern");
+        return EqualsBuilder.reflectionEquals(this, other);
     }
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this, "tagPattern");
+        return HashCodeBuilder.reflectionHashCode(this);
     }
     @Override
     public String toString() {
         return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .setExcludeFieldNames("tagPattern").toString();
+                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

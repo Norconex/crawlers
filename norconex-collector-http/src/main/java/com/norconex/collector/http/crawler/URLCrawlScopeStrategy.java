@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.http.crawler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -47,6 +48,7 @@ public class URLCrawlScopeStrategy {
             LoggerFactory.getLogger(URLCrawlScopeStrategy.class);
 
     private boolean stayOnDomain;
+    private boolean includeSubdomains;
     private boolean stayOnPort;
     private boolean stayOnProtocol = false;
 
@@ -70,7 +72,26 @@ public class URLCrawlScopeStrategy {
     }
 
     /**
-     * Whether the crawler should always stay on the same port as
+     * Gets whether sub-domains are considered to be the same as a URL domain.
+     * Only applicable when "stayOnDomain" is <code>true</code>.
+     * @return <code>true</code> if including sub-domains
+     * @since 2.9.0
+     */
+    public boolean isIncludeSubdomains() {
+        return includeSubdomains;
+    }
+    /**
+     * Sets whether sub-domains are considered to be the same as a URL domain.
+     * Only applicable when "stayOnDomain" is <code>true</code>.
+     * @param includeSubdomains <code>true</code> to include sub-domains
+     * @since 2.9.0
+     */
+    public void setIncludeSubdomains(boolean includeSubdomains) {
+        this.includeSubdomains = includeSubdomains;
+    }
+
+    /**
+     * Gets whether the crawler should always stay on the same port as
      * the port for each URL specified as a start URL.  By default (false)
      * the crawler will try follow any discovered links not otherwise rejected
      * by other settings (like regular filtering rules you may have).
@@ -115,28 +136,51 @@ public class URLCrawlScopeStrategy {
             return true;
         }
 
-        HttpURL inScope = new HttpURL(inScopeURL);
-        HttpURL candidate;
-        if (candidateURL.startsWith("//")) {
-            candidate = new HttpURL(inScope.getProtocol() + ':' + candidateURL);
-        } else {
-            candidate = new HttpURL(candidateURL);
-        }
-        if (stayOnProtocol && !inScope.getProtocol().equalsIgnoreCase(
-                candidate.getProtocol())) {
-            LOG.debug("Rejected protocol for: {}", candidateURL);
+        try {
+            HttpURL inScope = new HttpURL(inScopeURL);
+            HttpURL candidate;
+            if (candidateURL.startsWith("//")) {
+                candidate = new HttpURL(
+                        inScope.getProtocol() + ':' + candidateURL);
+            } else {
+                candidate = new HttpURL(candidateURL);
+            }
+            if (stayOnProtocol && !inScope.getProtocol().equalsIgnoreCase(
+                    candidate.getProtocol())) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Rejected protocol for: {}", candidateURL);
+                }
+                return false;
+            }
+            if (stayOnDomain
+                    && !isOnDomain(inScope.getHost(), candidate.getHost())) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Rejected domain for: {}", candidateURL);
+                }
+                return false;
+            }
+            if (stayOnPort && inScope.getPort() != candidate.getPort()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Rejected port for: {}", candidateURL);
+                }
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            LOG.debug("Unsupported URL \"{}\".", candidateURL, e);
             return false;
         }
-        if (stayOnDomain && !inScope.getHost().equalsIgnoreCase(
-                candidate.getHost())) {
-            LOG.debug("Rejected domain for: {}", candidateURL);
-            return false;
+    }
+
+    private boolean isOnDomain(String inScope, String candidate) {
+        // if domains are the same, we are good. Covers zero depth too.
+        if (inScope.equalsIgnoreCase(candidate)) {
+            return true;
         }
-        if (stayOnPort && inScope.getPort() != candidate.getPort()) {
-            LOG.debug("Rejected port for: {}", candidateURL);
-            return false;
-        }
-        return true;
+
+        // if accepting sub-domains, check if it ends the same.
+        return includeSubdomains
+                && StringUtils.endsWithIgnoreCase(candidate, "." + inScope);
     }
 
     @Override

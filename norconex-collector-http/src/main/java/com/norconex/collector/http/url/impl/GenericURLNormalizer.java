@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package com.norconex.collector.http.url.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -91,6 +92,14 @@ import com.norconex.commons.lang.xml.XML;
  *   <li>{@link URLNormalizer#sortQueryParameters() sortQueryParameters}</li>
  *   <li>{@link URLNormalizer#unsecureScheme() unsecureScheme}</li>
  *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
+ *   <li>{@link URLNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCase() lowerCase} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCasePath() lowerCasePath} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQueryParameterNames()
+ *        lowerCaseQueryParameterNames} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQueryParameterValues()
+ *        lowerCaseQueryParameterValues} (since 2.9.0)</li>
  * </ul>
  * <p>
  *   In addition, this class allows you to specify any number of URL
@@ -150,6 +159,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
     private static final Logger LOG = LoggerFactory.getLogger(
             GenericURLNormalizer.class);
 
+    //TODO Make upper case, with EnumConverter stripping nonAlphanum
     public enum Normalization {
         addDirectoryTrailingSlash,
         addDomainTrailingSlash,
@@ -157,6 +167,11 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         decodeUnreservedCharacters,
         encodeNonURICharacters,
         encodeSpaces,
+        lowerCase,
+        lowerCasePath,
+        lowerCaseQuery,
+        lowerCaseQueryParameterNames,
+        lowerCaseQueryParameterValues,
         lowerCaseSchemeHost,
         removeDefaultPort,
         removeDirectoryIndex,
@@ -164,6 +179,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         removeDuplicateSlashes,
         removeEmptyParameters,
         removeFragment,
+        removeQueryString,
         removeSessionIds,
         removeTrailingQuestionMark,
         removeTrailingSlash,
@@ -220,20 +236,24 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         return normedURL;
     }
 
-    public Normalization[] getNormalizations() {
-        return normalizations.toArray(new Normalization[] {});
+    public List<Normalization> getNormalizations() {
+        return Collections.unmodifiableList(normalizations);
     }
     public void setNormalizations(Normalization... normalizations) {
-        this.normalizations.clear();
-        this.normalizations.addAll(Arrays.asList(normalizations));
+        setNormalizations(Arrays.asList(normalizations));
+    }
+    public void setNormalizations(List<Normalization> normalizations) {
+        CollectionUtil.setAll(this.normalizations, normalizations);
     }
 
-    public Replace[] getReplaces() {
-        return replaces.toArray(new Replace[] {});
+    public List<Replace> getReplaces() {
+        return Collections.unmodifiableList(replaces);
     }
     public void setReplaces(Replace... replaces) {
-        this.replaces.clear();
-        this.replaces.addAll(Arrays.asList(replaces));
+        setReplaces(Arrays.asList(replaces));
+    }
+    public void setReplaces(List<Replace> replaces) {
+        CollectionUtil.setAll(this.replaces, replaces);
     }
 
     /**
@@ -269,25 +289,6 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
                             s -> Normalization.valueOf(s.trim())));
         }
 
-
-//        xml.getDelimitedStringList("normalizations").stream().map(
-//                s -> Normalization.valueOf(s.trim())).collect(Collectors.toList());
-//
-//        if (xml.contains("normalizations")) {
-//            normalizations.clear();
-//            xxx
-//            String xmlNorms = xml.getString("normalizations");
-//            if (StringUtils.isNotBlank(xmlNorms)) {
-//                for (String norm : StringUtils.split(xmlNorms, ',')) {
-//                    try {
-//                        normalizations.add(Normalization.valueOf(norm.trim()));
-//                    } catch (Exception e) {
-//                        LOG.error("Invalid normalization: '" + norm + "'.", e);
-//                    }
-//                }
-//            }
-//        }
-
         List<XML> xmlReplaces = xml.getXMLList("replacements/replace");
         if (!xmlReplaces.isEmpty()) {
             replaces.clear();
@@ -297,17 +298,6 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
             String replacement = xmlReplace.getString("replacement", "");
             replaces.add(new Replace(match, replacement));
         }
-
-//        List<HierarchicalConfiguration> xmlReplaces =
-//                xml.configurationsAt("replacements.replace");
-//        if (!replaces.isEmpty()) {
-//            replaces.clear();
-//        }
-//        for (HierarchicalConfiguration node : xmlReplaces) {
-//             String match = node.getString("match", "");
-//             String replacement = node.getString("replacement", "");
-//             replaces.add(new Replace(match, replacement));
-//        }
     }
 
     @Override
@@ -321,19 +311,6 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
                 xmlReplace.addElement("match", replace.getMatch());
                 xmlReplace.addElement("replacement", replace.getReplacement());
             }
-
-//            writer.writeStartElement("replacements");
-//            for (Replace replace : replaces) {
-//                writer.writeStartElement("replace");
-//                writer.writeStartElement("match");
-//                writer.writeCharacters(replace.getMatch());
-//                writer.writeEndElement();
-//                writer.writeStartElement("replacement");
-//                writer.writeCharacters(replace.getReplacement());
-//                writer.writeEndElement();
-//                writer.writeEndElement();
-//            }
-//            writer.writeEndElement();
         }
     }
 

@@ -24,13 +24,13 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
  * Mongo implementation of {@link ICrawlDataStoreFactory}.
  * </p>
  * <p>
- * As of 2.7.0, <code>password</code> can take a password that has been 
- * encrypted using {@link EncryptionUtil} (or command-line encrypt.[bat|sh]). 
+ * As of 2.7.0, <code>password</code> can take a password that has been
+ * encrypted using {@link EncryptionUtil} (or command-line encrypt.[bat|sh]).
  * See for {@link AbstractMongoCrawlDataStoreFactory} details.
  * </p>
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;crawlDataStoreFactory  
+ *  &lt;crawlDataStoreFactory
  *      class="com.norconex.collector.http.data.store.impl.mongo.MongoCrawlDataStoreFactory"&gt;
  *      &lt;host&gt;(Optional Mongo server hostname. Default to localhost)&lt;/host&gt;
  *      &lt;port&gt;(Optional Mongo port. Default to 27017)&lt;/port&gt;
@@ -40,49 +40,56 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
  *      &lt;cachedCollectionName&gt;(Custom "cached" collection name)&lt;/cachedCollectionName&gt;
  *      &lt;referencesCollectionName&gt;(Custom "references" collection name)&lt;/referencesCollectionName&gt;
  *      &lt;mechanism&gt;(Optional authentication mechanism)&lt;/mechanism&gt;
+ *      &lt;sslEnabled&gt;[false|true]&lt;/sslEnabled&gt;
+ *      &lt;sslInvalidHostNameAllowed&gt;[false|true]&lt;/sslInvalidHostNameAllowed&gt;
+ *
  *      &lt;!-- Use the following if password is encrypted. --&gt;
  *      &lt;passwordKey&gt;(the encryption key or a reference to it)&lt;/passwordKey&gt;
  *      &lt;passwordKeySource&gt;[key|file|environment|property]&lt;/passwordKeySource&gt;
  *  &lt;/crawlDataStoreFactory&gt;
  * </pre>
  * <p>
- * If "username" is not provided, no authentication will be attempted. 
- * The "username" must be a valid user that has the "readWrite" role over 
+ * If "username" is not provided, no authentication will be attempted.
+ * The "username" must be a valid user that has the "readWrite" role over
  * the database (set with "dbname").
  * </p>
  * <p>
- * As of 2.7.1, it is now possible to specify which MongoDB mechanism to use 
+ * As of 2.7.1, it is now possible to specify which MongoDB mechanism to use
  * for authentication. Refer to {@link AbstractMongoCrawlDataStoreFactory}
  * for available options.
  * </p>
  * <p>
- * As of 2.8.0, you can define your own collection names with 
- * {@link #setReferencesCollectionName(String)} and 
+ * As of 2.8.0, you can define your own collection names with
+ * {@link #setReferencesCollectionName(String)} and
  * {@link #setCachedCollectionName(String)}.
  * </p>
- * 
+ *
+ * <p>
+ * As of 2.9.0, you can enable SSL.
+ * </p>
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following points to a Mongo installation with host name "localhost",
  * port 1234, and a Mongo database called "MyCrawl".
  * </p>
  * <pre>
- *  &lt;crawlDataStoreFactory  
+ *  &lt;crawlDataStoreFactory
  *      class="com.norconex.collector.http.data.store.impl.mongo.MongoCrawlDataStoreFactory"&gt;
  *      &lt;host&gt;localhost&lt;/host&gt;
  *      &lt;port&gt;1234&lt;/port&gt;
  *      &lt;dbname&gt;MyCrawl&lt;/dbname&gt;
  *  &lt;/crawlDataStoreFactory&gt;
- * </pre> 
- * 
+ * </pre>
+ *
  * @author Pascal Essiembre
  */
-public class MongoCrawlDataStoreFactory 
+public class MongoCrawlDataStoreFactory
         extends AbstractMongoCrawlDataStoreFactory {
 
     @Override
     protected IMongoSerializer createMongoSerializer() {
         return new MongoCrawlDataSerializer();
     }
-    
+
 }

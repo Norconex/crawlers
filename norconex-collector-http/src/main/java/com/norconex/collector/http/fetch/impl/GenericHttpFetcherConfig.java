@@ -1,4 +1,4 @@
-/* Copyright 2018 Norconex Inc.
+/* Copyright 2018-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 
 import com.norconex.collector.http.fetch.util.GenericRedirectURLProvider;
@@ -82,7 +83,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private String authWorkstation;
     private String authDomain;
     private boolean authPreemptive;
-    private boolean cookiesDisabled;
+    private String cookieSpec = CookieSpecs.STANDARD;
     private boolean trustAllSSLCertificates;
     private String proxyHost;
     private int proxyPort;
@@ -398,18 +399,16 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     }
 
     /**
-     * Whether cookie support is disabled.
-     * @return <code>true</code> if disabled
+     * @return the cookieSpec to use as defined in {@link CookieSpecs}
      */
-    public boolean isCookiesDisabled() {
-        return cookiesDisabled;
+    public String getCookieSpec() {
+        return cookieSpec;
     }
     /**
-     * Sets whether cookie support is disabled.
-     * @param cookiesDisabled <code>true</code> if disabled
+     * @param cookieSpec the cookieSpec to use as defined in {@link CookieSpecs}
      */
-    public void setCookiesDisabled(boolean cookiesDisabled) {
-        this.cookiesDisabled = cookiesDisabled;
+    public void setCookieSpec(String cookieSpec) {
+        this.cookieSpec = cookieSpec;
     }
 
     /**
@@ -967,7 +966,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         setDetectCharset(xml.getBoolean("detectCharset", detectCharset));
 
         userAgent = xml.getString("userAgent", userAgent);
-        cookiesDisabled = xml.getBoolean("cookiesDisabled", cookiesDisabled);
+        cookieSpec = xml.getString("cookieSpec", cookieSpec);
         authMethod = xml.getString("authMethod", authMethod);
         authUsernameField =
                 xml.getString("authUsernameField", authUsernameField);
@@ -1037,7 +1036,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         xml.addElement("headersPrefix", headersPrefix);
 
         xml.addElement("userAgent", userAgent);
-        xml.addElement("cookiesDisabled", cookiesDisabled);
+        xml.addElement("cookieSpec", cookieSpec);
         xml.addElement("authMethod", authMethod);
         xml.addElement("authUsername", authUsername);
         xml.addElement("authPassword", authPassword);

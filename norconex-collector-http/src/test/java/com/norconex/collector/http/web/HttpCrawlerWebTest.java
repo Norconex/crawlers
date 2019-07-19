@@ -46,6 +46,7 @@ import com.norconex.collector.http.web.feature.CanonicalLink;
 import com.norconex.collector.http.web.feature.CanonicalRedirectLoop;
 import com.norconex.collector.http.web.feature.ContentTypeCharset;
 import com.norconex.collector.http.web.feature.FileNotFoundDeletion;
+import com.norconex.collector.http.web.feature.JavaScriptURL;
 import com.norconex.collector.http.web.feature.KeepDownloads;
 import com.norconex.collector.http.web.feature.MaxDepth;
 import com.norconex.collector.http.web.feature.MaxURLs;
@@ -57,11 +58,11 @@ import com.norconex.collector.http.web.feature.ScriptTags;
 import com.norconex.collector.http.web.feature.SitemapURLDeletion;
 import com.norconex.collector.http.web.feature.SpecialURLs;
 import com.norconex.collector.http.web.feature.Timeout;
+import com.norconex.collector.http.web.feature.UnmodifiedMeta;
 import com.norconex.collector.http.web.feature.UserAgent;
 import com.norconex.collector.http.web.feature.ValidMetadata;
 import com.norconex.collector.http.web.feature.ZeroLength;
 import com.norconex.collector.http.web.recovery.ResumeAfterStopped;
-import com.norconex.collector.http.web.recovery.StartAfterJvmCrash;
 import com.norconex.collector.http.web.recovery.StartAfterStopped;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.FileUtil;
@@ -97,11 +98,13 @@ public class HttpCrawlerWebTest {
         new SitemapURLDeletion(),
         new MaxDepth(),
         new ValidMetadata(),
+        new JavaScriptURL(),
+        new UnmodifiedMeta(),
 
         // Recovery-related tests
         new StartAfterStopped(),
-        new ResumeAfterStopped(),
-        new StartAfterJvmCrash()
+        new ResumeAfterStopped()
+//        new StartAfterJvmCrash()
 //        new ResumeAfterJvmCrashMvStore(),
 //        new ResumeAfterJvmCrashDerby(),
 //        new ResumeAfterJvmCrashH2()

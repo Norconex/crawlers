@@ -16,12 +16,12 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:include schemaLocation="../core/AbstractCollectorConfig.xsd"></xs:include>
+  <xs:include schemaLocation="../core/CollectorConfig.xsd"></xs:include>
   
   <xs:element name="httpcollector">
     <xs:complexType>
       <xs:complexContent> 
-        <xs:extension base="AbstractCollectorConfig"/> 
+        <xs:extension base="CollectorConfig"/> 
       </xs:complexContent>
     </xs:complexType>
   </xs:element>

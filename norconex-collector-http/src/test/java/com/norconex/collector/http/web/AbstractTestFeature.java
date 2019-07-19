@@ -137,7 +137,13 @@ public abstract class AbstractTestFeature implements IWebTest {
     }
 
     protected void printHtmlHeader(PrintWriter out) {
-        out.println("<html><body style=\"font-family:Arial, "
+        out.println("<html>"
+                // Added date to test #544
+                + "<head>"
+                + "<meta name=\"article:modified_time\" "
+                + "content=\"2018-11-28T16:06:51\">"
+                + "</head>"
+                + "<body style=\"font-family:Arial, "
                 + "Helvetica, sans-serif;\">");
     }
     protected void printHtmlFooter(PrintWriter out) {
