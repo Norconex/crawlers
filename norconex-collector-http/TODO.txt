@@ -1,5 +1,8 @@
 The following are either things to be done, or ideas to consider:
 
+- Form authentication: add ability to first parse a login page, look for 
+  login form, and pass all its input field to the login request.
+
 - Have ability to download and install committers from command line?
 
 - Have ability to do POST instead of GET for matching URLs.

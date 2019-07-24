@@ -560,7 +560,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     /**
      * Gets the patterns of references for which link extraction is disabled.
      * @return nofollow regex patterns
-     * @since 2.6.0
+     * @since 2.9.0
      */
     public List<String> getNofollowPatterns() {
         List<String> list = new ArrayList<>(nofollowPatterns.size());
@@ -572,7 +572,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     /**
      * Sets the patterns of references for which link extraction is disabled.
      * @param patterns the list of regex URL patterns
-     * @since 2.6.0
+     * @since 2.9.0
      */
     public void setNofollowPatterns(List<String> patterns) {
         nofollowPatterns.clear();
@@ -583,7 +583,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     /**
      * Adds a pattern for references for which link extraction is disabled.
      * @param regex the regex URL pattern
-     * @since 2.6.0
+     * @since 2.9.0
      */
     public void addNofollowPatterns(String regex) {
         nofollowPatterns.add(Pattern.compile(regex));
