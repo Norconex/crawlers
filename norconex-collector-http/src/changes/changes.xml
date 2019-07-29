@@ -32,7 +32,7 @@
         configured.
       </action>
       <action dev="essiembre" type="update">
-        Dependency updates: Norconex Collector Core 1.9.2,
+        Dependency updates: Norconex Collector Core 1.10.0,
         Norconex Commons Lang 1.15.1.
       </action>
       <action dev="essiembre" type="update" issue="526">
