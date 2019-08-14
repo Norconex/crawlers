@@ -1,3 +1,13 @@
+
+LAST MERGE FROM MASTER
+======================
+
+2019-07-24
+
+
+TODO:
+==============
+
 The following are either things to be done, or ideas to consider:
 
 - Move changes.xml to project root folder to make it obvious?

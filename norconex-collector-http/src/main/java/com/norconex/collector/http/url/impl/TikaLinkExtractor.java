@@ -16,8 +16,6 @@ package com.norconex.collector.http.url.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,14 +38,13 @@ import org.apache.tika.parser.html.HtmlMapper;
 import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.Link;
 import org.apache.tika.sax.LinkContentHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
@@ -84,9 +81,6 @@ import com.norconex.commons.lang.xml.XML;
  * @see GenericLinkExtractor
  */
 public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
-
-    private static final Logger LOG = LoggerFactory.getLogger(
-            TikaLinkExtractor.class);
 
     private static final List<ContentType> DEFAULT_CONTENT_TYPES =
             Collections.unmodifiableList(Arrays.asList(
@@ -226,17 +220,7 @@ public class TikaLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
 
     private String resolve(String docURL, String extractedURL) {
-        try {
-            URI uri = new URI(extractedURL);
-            if(uri.getScheme() == null) {
-                uri = new URI(docURL).resolve(extractedURL);
-            }
-            return uri.toString();
-        } catch (URISyntaxException e) {
-            LOG.info("Could not resolve extracted URL: \"" + extractedURL
-                    + "\" from document \"" + docURL + "\".");
-        }
-        return null;
+        return HttpURL.toAbsolute(docURL, extractedURL);
     }
 
     @Override
