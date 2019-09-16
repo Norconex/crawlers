@@ -14,14 +14,13 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.bean.BeanUtil;
@@ -37,19 +36,19 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
 
     /**
      * Constructor creating a copy of supplied context.
-     * @param copiable the item to be copied
+     * @param ipc the item to be copied
      * @since 2.8.0
      */
-    public HttpImporterPipelineContext(ImporterPipelineContext copiable) {
-        super(copiable.getCrawler(), copiable.getCrawlDataStore());
-        BeanUtil.copyProperties(this, copiable);
+    public HttpImporterPipelineContext(ImporterPipelineContext ipc) {
+        super(ipc.getCrawler());
+        BeanUtil.copyProperties(this, ipc);
     }
 
     public HttpImporterPipelineContext(
-            HttpCrawler crawler, ICrawlDataStore crawlDataStore,
-            HttpCrawlData crawlData, HttpCrawlData cachedCrawlData,
+            HttpCrawler crawler,
+            HttpCrawlReference crawlRef, HttpCrawlReference cachedCrawlRef,
             HttpDocument doc) {
-        super(crawler, crawlDataStore, crawlData, cachedCrawlData, doc);
+        super(crawler, crawlRef, cachedCrawlRef, doc);
     }
 
     @Override
@@ -63,13 +62,13 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     }
 
     @Override
-    public HttpCrawlData getCrawlData() {
-        return (HttpCrawlData) super.getCrawlData();
+    public HttpCrawlReference getCrawlReference() {
+        return (HttpCrawlReference) super.getCrawlReference();
     }
 
     @Override
-    public HttpCrawlData getCachedCrawlData() {
-        return (HttpCrawlData) super.getCachedCrawlData();
+    public HttpCrawlReference getCachedCrawlReference() {
+        return (HttpCrawlReference) super.getCachedCrawlReference();
     }
 
 //    public HttpClient getHttpClient() {

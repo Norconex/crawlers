@@ -10,6 +10,15 @@ TODO:
 
 The following are either things to be done, or ideas to consider:
 
+- Replace sitemap storage to use new data store engine from crawler.
+
+- Document that the data store can be used for anything now, not just crawl data.
+
+- Document all migration changes.
+
+- CrawlReference is casted to HttpCrawlReference in many places.
+  Use generic in Collector Core to prevent casting?
+
 - Move changes.xml to project root folder to make it obvious?
 
 - Allow storing document/metadata checksummers as null (instead or same as 

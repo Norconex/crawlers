@@ -14,14 +14,16 @@
  */
 package com.norconex.collector.http.web.recovery;
 
-import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
-import com.norconex.collector.http.data.store.impl.jdbc.JDBCCrawlDataStoreFactory;
+import org.junit.jupiter.api.Disabled;
+
+import com.norconex.collector.core.store.IDataStoreEngine;
 
 /**
  * Test that the right amount of docs are crawled after crashing the JVM
  * and resuming the collector.  Using Derby as crawl store.
  * @author Pascal Essiembre
  */
+@Disabled
 public class ResumeAfterJvmCrashH2 extends AbstractTestJvmCrash {
     //TODO keep?
 
@@ -30,8 +32,8 @@ public class ResumeAfterJvmCrashH2 extends AbstractTestJvmCrash {
         return true;
     }
     @Override
-    protected ICrawlDataStoreFactory createCrawlDataStore() {
+    protected IDataStoreEngine createDataStoreEngine() {
         //H2??
-        return new JDBCCrawlDataStoreFactory();
+        return null;//return new JDBCCrawlDataStoreEngine();
     }
 }

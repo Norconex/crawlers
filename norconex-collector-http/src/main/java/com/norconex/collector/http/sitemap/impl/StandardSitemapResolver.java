@@ -44,10 +44,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -403,7 +403,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
         if("sitemap".equalsIgnoreCase(tag)) {
             parseState.sitemapIndex = true;
         } else if("url".equalsIgnoreCase(tag)){
-            parseState.baseURL = new HttpCrawlData("", 0);
+            parseState.baseURL = new HttpCrawlReference("", 0);
         } else if("loc".equalsIgnoreCase(tag)){
             parseState.loc = true;
         } else if("lastmod".equalsIgnoreCase(tag)){
@@ -454,7 +454,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
     private static class ParseState {
-        private HttpCrawlData baseURL = null;
+        private HttpCrawlReference baseURL = null;
         private boolean sitemapIndex = false;
         private boolean loc = false;
         private boolean lastmod = false;

@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.fetch;
 
-import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.reference.CrawlState;
 
 /**
  *

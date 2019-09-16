@@ -98,7 +98,6 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
@@ -107,6 +106,7 @@ import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.collector.http.fetch.util.TrustAllX509TrustManager;
+import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
@@ -433,6 +433,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             responseBuilder.setStatusCode(statusCode);
             responseBuilder.setReasonPhrase(reason);
             responseBuilder.setUserAgent(cfg.getUserAgent());
+
+//System.err.println((head ? "HEAD" : "GET") + ": " + response.getStatusLine() + "  ==>  " + url);
 
             InputStream is = null;
             if (!head) {

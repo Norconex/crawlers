@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.data;
+package com.norconex.collector.http.reference;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,8 +23,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.core.data.BaseCrawlData;
-import com.norconex.collector.core.data.ICrawlData;
+import com.norconex.collector.core.reference.CrawlReference;
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.url.HttpURL;
@@ -33,7 +32,7 @@ import com.norconex.commons.lang.url.HttpURL;
  * A URL being crawled holding relevant crawl information.
  * @author Pascal Essiembre
  */
-public class HttpCrawlData extends BaseCrawlData {
+public class HttpCrawlReference extends CrawlReference {
 
     private static final long serialVersionUID = -2219206220476107409L;
 
@@ -54,16 +53,16 @@ public class HttpCrawlData extends BaseCrawlData {
     /**
      * Constructor.
      */
-    public HttpCrawlData() {
+    public HttpCrawlReference() {
         super();
     }
     /**
      * Constructor
-     * @param crawlData initialized this instance this data
+     * @param crawlRef initialized this instance this data
      */
-    public HttpCrawlData(ICrawlData crawlData) {
-        if (crawlData != null) {
-            BeanUtil.copyProperties(this, crawlData);
+    public HttpCrawlReference(CrawlReference crawlRef) {
+        if (crawlRef != null) {
+            BeanUtil.copyProperties(this, crawlRef);
         }
     }
 
@@ -72,7 +71,7 @@ public class HttpCrawlData extends BaseCrawlData {
      * @param url URL being crawled
      * @param depth URL depth
      */
-    public HttpCrawlData(String url, int depth) {
+    public HttpCrawlReference(String url, int depth) {
         super();
         setReference(url);
         setDepth(depth);
@@ -199,14 +198,14 @@ public class HttpCrawlData extends BaseCrawlData {
     public List<String> getReferencedUrls() {
         return Collections.unmodifiableList(referencedUrls);
     }
-    /**
-     * Sets URLs referenced by this one.
-     * @param referencedUrls referenced URLs
-     * @since 2.6.0
-     */
-    public void setReferencedUrls(String... referencedUrls) {
-        CollectionUtil.setAll(this.referencedUrls, referencedUrls);
-    }
+//    /**
+//     * Sets URLs referenced by this one.
+//     * @param referencedUrls referenced URLs
+//     * @since 2.6.0
+//     */
+//    public void setReferencedUrls(String... referencedUrls) {
+//        CollectionUtil.setAll(this.referencedUrls, referencedUrls);
+//    }
     /**
      * Sets URLs referenced by this one.
      * @param referencedUrls referenced URLs
@@ -224,14 +223,14 @@ public class HttpCrawlData extends BaseCrawlData {
     public List<String> getRedirectTrail() {
         return Collections.unmodifiableList(redirectTrail);
     }
-    /**
-     * Sets the trail of URLs that were redirected up to this one.
-     * @param redirectTrail URL redirection trail to this one
-     * @since 2.8.0
-     */
-    public void setRedirectTrail(String... redirectTrail) {
-        CollectionUtil.setAll(this.redirectTrail, redirectTrail);
-    }
+//    /**
+//     * Sets the trail of URLs that were redirected up to this one.
+//     * @param redirectTrail URL redirection trail to this one
+//     * @since 2.8.0
+//     */
+//    public void setRedirectTrail(String... redirectTrail) {
+//        CollectionUtil.setAll(this.redirectTrail, redirectTrail);
+//    }
     /**
      * Sets the trail of URLs that were redirected up to this one.
      * @param redirectTrail URL redirection trail to this one

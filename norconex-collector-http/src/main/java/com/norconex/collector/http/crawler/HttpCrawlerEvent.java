@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Norconex Inc.
+/* Copyright 2014-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package com.norconex.collector.http.crawler;
 
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.data.ICrawlData;
+import com.norconex.collector.core.reference.CrawlReference;
 
 /**
  * An HTTP Crawler Event.
@@ -41,28 +41,28 @@ public class HttpCrawlerEvent extends CrawlerEvent<HttpCrawler> {
      * New crawler event.
      * @param name event name
      * @param source crawler responsible for triggering the event
-     * @param crawlData information about a document being crawled
+     * @param crawlRef information about a document being crawled
      * @param subject other relevant source related to the event
      * @param exception exception tied to this event (may be <code>null</code>)
      */
     public HttpCrawlerEvent(String name, HttpCrawler source,
-            ICrawlData crawlData, Object subject, Throwable exception) {
-        super(name, source, crawlData, subject, exception);
+            CrawlReference crawlRef, Object subject, Throwable exception) {
+        super(name, source, crawlRef, subject, exception);
     }
 
     public static HttpCrawlerEvent create(String name, HttpCrawler crawler) {
         return create(name, crawler, null);
     }
     public static HttpCrawlerEvent create(
-            String name, HttpCrawler crawler, ICrawlData crawlData) {
-        return create(name, crawler, crawlData, null, null);
+            String name, HttpCrawler crawler, CrawlReference crawlRef) {
+        return create(name, crawler, crawlRef, null, null);
     }
     public static HttpCrawlerEvent create(String name, HttpCrawler crawler,
-            ICrawlData crawlData, Object subject) {
-        return create(name, crawler, crawlData, subject, null);
+            CrawlReference crawlRef, Object subject) {
+        return create(name, crawler, crawlRef, subject, null);
     }
     public static HttpCrawlerEvent create(String name, HttpCrawler crawler,
-            ICrawlData crawlData, Object subject, Throwable exception) {
-        return new HttpCrawlerEvent(name, crawler, crawlData, subject, exception);
+            CrawlReference crawlRef, Object subject, Throwable exception) {
+        return new HttpCrawlerEvent(name, crawler, crawlRef, subject, exception);
     }
 }

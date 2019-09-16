@@ -14,16 +14,16 @@
  */
 package com.norconex.collector.http.web.recovery;
 
-import java.nio.file.Paths;
+import org.junit.jupiter.api.Disabled;
 
-import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
-import com.norconex.collector.core.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory;
+import com.norconex.collector.core.store.IDataStoreEngine;
 
 /**
  * Test that the right amount of docs are crawled after stoping
  * and starting the collector.
  * @author Pascal Essiembre
  */
+@Disabled
 public class StartAfterJvmCrash extends AbstractTestJvmCrash {
 
     @Override
@@ -31,9 +31,10 @@ public class StartAfterJvmCrash extends AbstractTestJvmCrash {
         return false;
     }
     @Override
-    protected ICrawlDataStoreFactory createCrawlDataStore() {
-        MVStoreCrawlDataStoreFactory f = new MVStoreCrawlDataStoreFactory();
-        f.setStoreDir(Paths.get("mvstore"));
-        return f;
+    protected IDataStoreEngine createDataStoreEngine() {
+        return null;
+//        MVStoreCrawlDataStoreEngine f = new MVStoreCrawlDataStoreEngine();
+//        f.setStoreDir(Paths.get("mvstore"));
+//        return f;
     }
 }

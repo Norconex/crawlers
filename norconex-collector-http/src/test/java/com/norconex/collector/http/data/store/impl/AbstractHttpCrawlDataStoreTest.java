@@ -18,7 +18,9 @@ import static com.norconex.collector.core.CollectorEvent.COLLECTOR_STARTED;
 import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STARTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Date;
 
 import org.junit.jupiter.api.AfterEach;
@@ -29,14 +31,14 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.data.CrawlState;
-import com.norconex.collector.core.data.ICrawlData;
-import com.norconex.collector.core.data.store.ICrawlDataStore;
+import com.norconex.collector.core.reference.CrawlReference;
+import com.norconex.collector.core.reference.CrawlReferenceService;
+import com.norconex.collector.core.reference.CrawlState;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentType;
 
@@ -54,14 +56,14 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     @TempDir
     Path tempFolder;
 
-    private ICrawlDataStore crawlStore;
+    private CrawlReferenceService crawlReferenceService;
     private HttpCrawlerConfig crawlerConfig;
 
-    public ICrawlDataStore getCrawlDataStore() {
-        return crawlStore;
+    public CrawlReferenceService getCrawlReferenceService() {
+        return crawlReferenceService;
     }
-    public void setCrawlDataStore(ICrawlDataStore db) {
-        this.crawlStore = db;
+    public void setCrawlReferenceService(CrawlReferenceService crs) {
+        this.crawlReferenceService = crs;
     }
     public CrawlerConfig getCrawlerConfig() {
         return crawlerConfig;
@@ -89,13 +91,13 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         em.fire(CrawlerEvent.create(
                 CRAWLER_STARTED, new HttpCrawler(crawlerConfig, collector)));
 
-        crawlStore = createCrawlDataStore(crawlerConfig, tempFolder, false);
+        crawlReferenceService = createCrawlDataStore(crawlerConfig, tempFolder, false);
     }
 
     @AfterEach
     public void tearDown() throws Exception {
-        if (crawlStore != null) {
-            crawlStore.close();
+        if (crawlReferenceService != null) {
+            crawlReferenceService.close();
         }
     }
 
@@ -108,14 +110,14 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         return config;
     }
 
-    protected void resetDatabase(boolean resume) {
-        if (crawlStore != null) {
-            crawlStore.close();
+    protected void resetDatabase(boolean resume) throws IOException {
+        if (crawlReferenceService != null) {
+            crawlReferenceService.close();
         }
-        crawlStore = createCrawlDataStore(
+        crawlReferenceService = createCrawlDataStore(
                 getCrawlerConfig(), getTempfolder(), resume);
     }
-    protected void moveProcessedToCache() {
+    protected void moveProcessedToCache() throws IOException {
         // Resetting the database with the "resume" option disabled will
         // transfer all the processed references to the cache for most
         // implementations.
@@ -125,7 +127,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         return getClass().getSimpleName();
     }
 
-    protected abstract ICrawlDataStore createCrawlDataStore(
+    protected abstract CrawlReferenceService createCrawlDataStore(
             CrawlerConfig config, Path tempFolder, boolean resume);
 
 
@@ -134,17 +136,17 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     @Test
     public void testWriteReadNulls() throws Exception {
         String ref = "http://testrefnulls.com";
-        HttpCrawlData dataIn = new HttpCrawlData(ref, 1);
-        crawlStore.processed(dataIn);
+        HttpCrawlReference dataIn = new HttpCrawlReference(ref, 1);
+        crawlReferenceService.processed(dataIn);
         moveProcessedToCache();
-        ICrawlData dataOut = crawlStore.getCached(ref);
+        CrawlReference dataOut = crawlReferenceService.getCached(ref).get();
         assertEquals(dataIn, dataOut);
     }
 
     @Test
     public void testWriteReadNoNulls() throws Exception {
         String url = "http://testurlnonulls.com";
-        HttpCrawlData dataIn = new HttpCrawlData(url, 1);
+        HttpCrawlReference dataIn = new HttpCrawlReference(url, 1);
         dataIn.setState(CrawlState.MODIFIED);
         dataIn.setMetaChecksum("metaChecksum");
         dataIn.setContentChecksum("contentChecksum");
@@ -160,11 +162,12 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         dataIn.setSitemapChangeFreq("weekly");
         dataIn.setSitemapLastMod(123L);
         dataIn.setSitemapPriority(0.5f);
-        dataIn.setReferencedUrls("url1", "url2", "url3", "url4", "url5");
-        getCrawlDataStore().processed(dataIn);
+        dataIn.setReferencedUrls(
+                Arrays.asList("url1", "url2", "url3", "url4", "url5"));
+        crawlReferenceService.processed(dataIn);
         moveProcessedToCache();
-        HttpCrawlData dataOut =
-                (HttpCrawlData) getCrawlDataStore().getCached(url);
+        HttpCrawlReference dataOut =
+                (HttpCrawlReference) crawlReferenceService.getCached(url).get();
         assertEquals(dataIn, dataOut);
     }
 }

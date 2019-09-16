@@ -80,7 +80,10 @@ public class StartAfterStopped extends AbstractInfiniteDepthTestFeature {
 
     @Override
     public void startCollector(HttpCollector collector) throws Exception {
-        collector.start(isResuming());
+        if (!isResuming()) {
+            collector.clean();
+        }
+        collector.start();
     }
 
     @Override
@@ -90,7 +93,8 @@ public class StartAfterStopped extends AbstractInfiniteDepthTestFeature {
         if (isFirstRun()) {
             assertListSize("document", committer.getAddOperations(), 3);
         } else if (isResuming()) {
-            assertListSize("document", committer.getAddOperations(), 10);
+            // since 3 were crawled on first run, now should be remaining 7
+            assertListSize("document", committer.getAddOperations(), 7);
         } else {
             assertListSize("document", committer.getAddOperations(), 2);
         }

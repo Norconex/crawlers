@@ -1,4 +1,4 @@
-/* Copyright 2018 Norconex Inc.
+/* Copyright 2018-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.norconex.collector.http.fetch;
 
 import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_FINISHED;
-import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RESUMED;
 import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STARTED;
 import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STOPPED;
 
@@ -98,7 +97,7 @@ public abstract class AbstractHttpFetcher implements
     }
     public final boolean isCrawlerStartup(Event<?> event) {
         return event instanceof CrawlerEvent
-                && event.is(CRAWLER_STARTED, CRAWLER_RESUMED);
+                && event.is(CRAWLER_STARTED);
     }
     public final boolean isCrawlerShutdown(Event<?> event) {
         return event instanceof CrawlerEvent

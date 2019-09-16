@@ -14,13 +14,12 @@
  */
 package com.norconex.collector.http.pipeline.committer;
 
-import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.DocumentPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 
 /**
  * @author Pascal Essiembre
@@ -30,11 +29,10 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
 
     public HttpCommitterPipelineContext(
             HttpCrawler crawler,
-            ICrawlDataStore crawlDataStore,
             HttpDocument doc,
-            HttpCrawlData crawlData,
-            HttpCrawlData cachedCrawlData) {
-        super(crawler, crawlDataStore, crawlData, cachedCrawlData, doc);
+            HttpCrawlReference crawlRef,
+            HttpCrawlReference cachedCrawlRef) {
+        super(crawler, crawlRef, cachedCrawlRef, doc);
     }
 
     @Override
@@ -48,13 +46,10 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
     }
 
     @Override
-    public HttpCrawlData getCrawlData() {
-        return (HttpCrawlData) super.getCrawlData();
+    public HttpCrawlReference getCrawlReference() {
+        return (HttpCrawlReference) super.getCrawlReference();
     }
 
-//    public HttpClient getHttpClient() {
-//        return getCrawler().getHttpClient();
-//    }
     public HttpFetchClient getHttpFetchClient() {
         return getCrawler().getHttpFetchClient();
     }

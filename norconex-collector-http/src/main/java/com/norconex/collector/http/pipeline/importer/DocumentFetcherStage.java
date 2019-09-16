@@ -18,12 +18,12 @@ import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.reference.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlData;
-import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
+import com.norconex.collector.http.reference.HttpCrawlReference;
+import com.norconex.collector.http.reference.HttpCrawlState;
 
 /**
  * <p>Fetches (i.e. download for processing) a document.</p>
@@ -36,21 +36,18 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
-        HttpCrawlData crawlData = ctx.getCrawlData();
+        HttpCrawlReference crawlRef = ctx.getCrawlReference();
 
-//        HttpFetchResponse response =
-//                ctx.getConfig().getDocumentFetcher().fetchDocument(
-//                        ctx.getHttpClient(), ctx.getDocument());
         IHttpFetchResponse response =
                 ctx.getHttpFetchClient().fetchDocument(ctx.getDocument());
-//System.out.println("XXXXXXX RESPONSE IS: " + response);
-        crawlData.setCrawlDate(new Date());
+
+        crawlRef.setCrawlDate(new Date());
 
         HttpImporterPipelineUtil.enhanceHTTPHeaders(
                 ctx.getDocument().getMetadata());
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
 
-        crawlData.setContentType(ctx.getDocument().getContentType());
+        crawlRef.setContentType(ctx.getDocument().getContentType());
 
         //-- Deal with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();
@@ -61,10 +58,10 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
         }
 
         CrawlState state = response.getCrawlState();
-        crawlData.setState(state);
+        crawlRef.setState(state);
         if (state.isGoodState()) {
             ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED,
-                    crawlData, response);
+                    crawlRef, response);
         } else {
             String eventType = null;
             if (state.isOneOf(HttpCrawlState.NOT_FOUND)) {
@@ -72,7 +69,7 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
             } else {
                 eventType = HttpCrawlerEvent.REJECTED_BAD_STATUS;
             }
-            ctx.fireCrawlerEvent(eventType, crawlData, response);
+            ctx.fireCrawlerEvent(eventType, crawlRef, response);
             return false;
         }
         return true;

@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorEvent;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.collector.http.url.impl.TikaLinkExtractor;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -244,9 +244,10 @@ public class URLStatusCrawlerEventListener
                 Path outFile = outputFiles.get(
                         combined ? null : e.getSource().getId());
                 if (outFile != null) {
-                    HttpCrawlData crawlData = (HttpCrawlData) e.getCrawlData();
-                    writeLine(outFile, crawlData.getReferrerReference(),
-                            crawlData.getReference(),
+                    HttpCrawlReference crawlRef = 
+                            (HttpCrawlReference) e.getCrawlReference();
+                    writeLine(outFile, crawlRef.getReferrerReference(),
+                            crawlRef.getReference(),
                             Integer.toString(response.getStatusCode()),
                             response.getReasonPhrase(),
                             true);

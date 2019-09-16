@@ -87,13 +87,13 @@
       <schedule dayOfWeek="from Saturday to Sunday"
           dayOfMonth="from 11 to 28" time="from 6:00 to 7:30">20000</schedule>
     </delay>    
-    <crawlDataStoreFactory class="com.norconex.collector.http.data.store.impl.mongo.MongoCrawlDataStoreFactory">
+    <dataStoreEngine class="com.norconex.collector.core.store.impl.nitrite.NitriteDataStoreEngine">
       <host>localhost</host>
       <port>1234</port>
       <dbname>dbName</dbname>
       <username>user</username>
       <password>pwd</password>
-    </crawlDataStoreFactory>
+    </dataStoreEngine>
     
     <!-- DEPRECATED:
     <httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">

@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,10 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.Link;
 import com.norconex.commons.lang.file.ContentType;
@@ -53,7 +54,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
 
 
-        String reference = ctx.getCrawlData().getReference();
+        String reference = ctx.getCrawlReference().getReference();
 
         Set<String> uniqueExtractedURLs = new HashSet<>();
         Set<String> uniqueQueuedURLs = new HashSet<>();
@@ -94,7 +95,8 @@ import com.norconex.commons.lang.io.CachedInputStream;
                     uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
             ctx.getMetadata().add(
                     HttpMetadata.COLLECTOR_REFERENCED_URLS, referencedUrls);
-            ctx.getCrawlData().setReferencedUrls(referencedUrls);
+            ctx.getCrawlReference().setReferencedUrls(
+                    Arrays.asList(referencedUrls));
         }
 
         if (LOG.isDebugEnabled()) {
@@ -108,12 +110,12 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
 
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED,
-                ctx.getCrawlData(), uniqueQueuedURLs);
+                ctx.getCrawlReference(), uniqueQueuedURLs);
         return true;
     }
 
     private Set<Link> extractLinks(HttpImporterPipelineContext ctx) {
-        String reference = ctx.getCrawlData().getReference();
+        String reference = ctx.getCrawlReference().getReference();
         List<ILinkExtractor> extractors = ctx.getConfig().getLinkExtractors();
         if (extractors.isEmpty()) {
             LOG.debug("No configured link extractor.  No links will be "
@@ -160,15 +162,14 @@ import com.norconex.commons.lang.io.CachedInputStream;
         // i.e., those properly formatted.  If we do so, can it prevent
         // weird/custom URLs that some link extractors may find valid?
         if (uniqueExtractedURLs.add(link.getUrl())) {
-            HttpCrawlData newURL = new HttpCrawlData(
-                    link.getUrl(), ctx.getCrawlData().getDepth() + 1);
+            HttpCrawlReference newURL = new HttpCrawlReference(
+                    link.getUrl(), ctx.getCrawlReference().getDepth() + 1);
             newURL.setReferrerReference(link.getReferrer());
             newURL.setReferrerLinkTag(link.getTag());
             newURL.setReferrerLinkText(link.getText());
             newURL.setReferrerLinkTitle(link.getTitle());
             HttpQueuePipelineContext newContext =
-                    new HttpQueuePipelineContext(ctx.getCrawler(),
-                            ctx.getCrawlDataStore(), newURL);
+                    new HttpQueuePipelineContext(ctx.getCrawler(), newURL);
             new HttpQueuePipeline().execute(newContext);
             String afterQueueURL = newURL.getReference();
             if (LOG.isDebugEnabled()

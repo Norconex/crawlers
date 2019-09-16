@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import com.norconex.collector.core.pipeline.BasePipelineContext;
 import com.norconex.collector.core.pipeline.queue.QueueReferenceStage;
 import com.norconex.collector.core.pipeline.queue.ReferenceFiltersStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlData;
-import com.norconex.collector.http.data.HttpCrawlState;
+import com.norconex.collector.http.reference.HttpCrawlReference;
+import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
@@ -59,17 +59,17 @@ public final class HttpQueuePipeline
         @Override
         public boolean executeStage(HttpQueuePipelineContext ctx) {
             if (ctx.getConfig().getMaxDepth() != -1
-                    && ctx.getCrawlData().getDepth()
+                    && ctx.getCrawlReference().getDepth()
                             > ctx.getConfig().getMaxDepth()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("URL too deep to process ("
-                            + ctx.getCrawlData().getDepth() + "): "
-                            + ctx.getCrawlData().getReference());
+                            + ctx.getCrawlReference().getDepth() + "): "
+                            + ctx.getCrawlReference().getReference());
                 }
-                ctx.getCrawlData().setState(HttpCrawlState.TOO_DEEP);
+                ctx.getCrawlReference().setState(HttpCrawlState.TOO_DEEP);
                 ctx.fireCrawlerEvent(
                         HttpCrawlerEvent.REJECTED_TOO_DEEP,
-                        ctx.getCrawlData(), ctx.getCrawlData().getDepth());
+                        ctx.getCrawlReference(), ctx.getCrawlReference().getDepth());
                 return false;
             }
             return true;
@@ -80,7 +80,7 @@ public final class HttpQueuePipeline
         if (!ctx.getConfig().isIgnoreRobotsTxt()) {
             return ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
                     ctx.getCrawler().getHttpFetchClient(),
-                    ctx.getCrawlData().getReference());
+                    ctx.getCrawlReference().getReference());
         } else {
             return null;
         }
@@ -94,7 +94,7 @@ public final class HttpQueuePipeline
                     || ctx.getSitemapResolver() == null) {
                 return true;
             }
-            String urlRoot = ctx.getCrawlData().getUrlRoot();
+            String urlRoot = ctx.getCrawlReference().getUrlRoot();
             List<String> robotsTxtLocations = new ArrayList<>();
             RobotsTxt robotsTxt = getRobotsTxt(ctx);
             if (robotsTxt != null) {
@@ -104,12 +104,10 @@ public final class HttpQueuePipeline
 
             SitemapURLAdder urlAdder = new SitemapURLAdder() {
                 @Override
-                public void add(HttpCrawlData reference) {
+                public void add(HttpCrawlReference reference) {
                     HttpQueuePipelineContext context =
                             new HttpQueuePipelineContext(
-                                    ctx.getCrawler(),
-                                    ctx.getCrawlDataStore(),
-                                    reference);
+                                    ctx.getCrawler(), reference);
                     new HttpQueuePipeline().execute(context);
                 }
             };
@@ -126,12 +124,12 @@ public final class HttpQueuePipeline
         public boolean executeStage(HttpQueuePipelineContext ctx) {
             if (ctx.getConfig().getUrlNormalizer() != null) {
                 String url = ctx.getConfig().getUrlNormalizer().normalizeURL(
-                        ctx.getCrawlData().getReference());
+                        ctx.getCrawlReference().getReference());
                 if (url == null) {
-                    ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                    ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
                     return false;
                 }
-                ctx.getCrawlData().setReference(url);
+                ctx.getCrawlReference().setReference(url);
             }
             return true;
         }

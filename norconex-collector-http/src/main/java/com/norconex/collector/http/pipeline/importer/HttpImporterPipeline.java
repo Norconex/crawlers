@@ -26,9 +26,9 @@ import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineUtil;
 import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
+import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
@@ -91,11 +91,11 @@ public class HttpImporterPipeline
                     delayResolver.delay(
                             ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
                                     ctx.getHttpFetchClient(),
-                                    ctx.getCrawlData().getReference()),
-                            ctx.getCrawlData().getReference());
+                                    ctx.getCrawlReference().getReference()),
+                            ctx.getCrawlReference().getReference());
                 } else {
                     delayResolver.delay(
-                            null, ctx.getCrawlData().getReference());
+                            null, ctx.getCrawlReference().getReference());
                 }
             }
             return true;
@@ -110,12 +110,12 @@ public class HttpImporterPipeline
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (ctx.getConfig().isFetchHttpHead()
                     && ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             //TODO check if fetching headers is enabled before (like above)
             if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                    ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             return true;
@@ -165,18 +165,18 @@ public class HttpImporterPipeline
                 Reader reader = ctx.getContentReader();
                 ctx.setRobotsMeta(
                         ctx.getConfig().getRobotsMetaProvider().getRobotsMeta(
-                                reader, ctx.getCrawlData().getReference(),
+                                reader, ctx.getCrawlReference().getReference(),
                                 ctx.getDocument().getContentType(),
                                 ctx.getMetadata()));
                 reader.close();
 
                 ctx.fireCrawlerEvent(
                         HttpCrawlerEvent.CREATED_ROBOTS_META,
-                        ctx.getCrawlData(),
+                        ctx.getCrawlReference(),
                         ctx.getRobotsMeta());
             } catch (IOException e) {
                 throw new CollectorException("Cannot create RobotsMeta for : "
-                                + ctx.getCrawlData().getReference(), e);
+                                + ctx.getCrawlReference().getReference(), e);
             }
             return true;
         }
@@ -193,9 +193,9 @@ public class HttpImporterPipeline
 
                 ctx.fireCrawlerEvent(
                         HttpCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX,
-                        ctx.getCrawlData(),
+                        ctx.getCrawlReference(),
                         ctx.getRobotsMeta());
-                ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             return canIndex;
@@ -209,7 +209,7 @@ public class HttpImporterPipeline
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (!ctx.getConfig().isFetchHttpHead()) {
                 if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                    ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
                     return false;
                 }
             }
@@ -229,7 +229,7 @@ public class HttpImporterPipeline
                             ctx.getHttpFetchClient(), ctx.getDocument());
                     ctx.fireCrawlerEvent(
                             HttpCrawlerEvent.DOCUMENT_PREIMPORTED,
-                            ctx.getCrawlData(), preProc);
+                            ctx.getCrawlReference(), preProc);
                 }
             }
             return true;

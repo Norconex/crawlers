@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.data;
+package com.norconex.collector.http.reference;
 
-import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.reference.CrawlState;
 
 /**
  * Represents a URL crawling status.

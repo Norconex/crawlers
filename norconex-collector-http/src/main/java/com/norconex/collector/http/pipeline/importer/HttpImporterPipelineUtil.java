@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.data.store.ICrawlDataStore;
+import com.norconex.collector.core.reference.CrawlReference.Stage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlData;
-import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
+import com.norconex.collector.http.reference.HttpCrawlReference;
+import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.file.ContentType;
@@ -116,8 +116,8 @@ import com.norconex.commons.lang.file.ContentType;
 
         ICanonicalLinkDetector detector =
                 ctx.getConfig().getCanonicalLinkDetector();
-        HttpCrawlData crawlData = ctx.getCrawlData();
-        String reference = crawlData.getReference();
+        HttpCrawlReference crawlRef = ctx.getCrawlReference();
+        String reference = crawlRef.getReference();
 
         String canURL = null;
         if (fromMeta) {
@@ -164,20 +164,20 @@ import com.norconex.commons.lang.file.ContentType;
 
             // if circling back here again, we are in a loop, process
             // it regardless
-            if (crawlData.getRedirectTrail().contains(normalizedCanURL)) {
+            if (crawlRef.getRedirectTrail().contains(normalizedCanURL)) {
                 LOG.warn("Circular reference between redirect and canonical "
                       + "URL detected. Will ignore canonical directive and "
                       + "process URL: \"{}\". Redirect trail: {}", reference,
-                      Arrays.toString(crawlData.getRedirectTrail().toArray()));
+                      Arrays.toString(crawlRef.getRedirectTrail().toArray()));
                 return true;
             }
 
-            HttpCrawlData newData = (HttpCrawlData) crawlData.clone();
+            HttpCrawlReference newData = (HttpCrawlReference) crawlRef.clone();
             newData.setReference(canURL);
             newData.setReferrerReference(reference);
 
             if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                    crawlData.getReference(), canURL)) {
+                    crawlRef.getReference(), canURL)) {
                 // Call Queue pipeline on Canonical URL
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Canonical URL detected is different than "
@@ -187,10 +187,7 @@ import com.norconex.commons.lang.file.ContentType;
                 }
 
                 HttpQueuePipelineContext newContext =
-                        new HttpQueuePipelineContext(
-                                ctx.getCrawler(),
-                                ctx.getCrawlDataStore(),
-                                newData);
+                        new HttpQueuePipelineContext(ctx.getCrawler(), newData);
                 new HttpQueuePipeline().execute(newContext);
             } else {
                 if (LOG.isDebugEnabled()) {
@@ -202,10 +199,10 @@ import com.norconex.commons.lang.file.ContentType;
                         ctx.getConfig().getURLCrawlScopeStrategy());
             }
 
-            crawlData.setState(HttpCrawlState.REJECTED);
+            crawlRef.setState(HttpCrawlState.REJECTED);
             ctx.fireCrawlerEvent(
                     HttpCrawlerEvent.REJECTED_NONCANONICAL,
-                    crawlData, detector);
+                    crawlRef, detector);
             return false;
         }
         return true;
@@ -217,27 +214,28 @@ import com.norconex.commons.lang.file.ContentType;
             HttpImporterPipelineContext ctx,
             IHttpFetchResponse response,
             String redirectURL) {
-        ICrawlDataStore store = ctx.getCrawlDataStore();
-        HttpCrawlData crawlData = ctx.getCrawlData();
-        String sourceURL =  crawlData.getReference();
+        HttpCrawlReference crawlRef = ctx.getCrawlReference();
+        String sourceURL =  crawlRef.getReference();
+        Stage redirectStage = ctx.getCrawlReferenceService()
+                .getProcessingStage(redirectURL);
 
         boolean requeue = false;
 
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?
-        if (store.isActive(redirectURL)) {
+        if (Stage.ACTIVE.is(redirectStage)) {
             rejectRedirectDup("being processed", sourceURL, redirectURL);
             return;
-        } else if (store.isQueued(redirectURL)) {
+        } else if (Stage.QUEUED.is(redirectStage)) {
             rejectRedirectDup("queued", sourceURL, redirectURL);
             return;
-        } else if (store.isProcessed(redirectURL)) {
+        } else if (Stage.PROCESSED.is(redirectStage)) {
             // If part of redirect trail, allow a second queueing
             // but not more.  This in case redirecting back to self is
             // part of a normal flow (e.g. weird login).
             // If already queued twice, we treat as a loop
             // and we reject.
-            if (crawlData.getRedirectTrail().contains(redirectURL)) {
+            if (crawlRef.getRedirectTrail().contains(redirectURL)) {
                 LOG.trace("Redirect encountered for 3rd time, "
                         + "rejecting: {}", redirectURL);
                 rejectRedirectDup("processed", sourceURL, redirectURL);
@@ -260,7 +258,7 @@ import com.norconex.commons.lang.file.ContentType;
         }
 
         //--- Fresh URL, queue it! ---
-        crawlData.setState(HttpCrawlState.REDIRECT);
+        crawlRef.setState(HttpCrawlState.REDIRECT);
         //TODO instead of copying like this use builder with withXXX methods
         IHttpFetchResponse newResponse = new HttpFetchResponseBuilder(response)
                 .setCrawlState(HttpCrawlState.REDIRECT)
@@ -268,23 +266,22 @@ import com.norconex.commons.lang.file.ContentType;
                         + " (" + redirectURL + ")")
                 .build();
         ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED,
-                crawlData, newResponse);
+                crawlRef, newResponse);
 
-        HttpCrawlData newData = new HttpCrawlData(
-                redirectURL, crawlData.getDepth());
-        newData.setReferrerReference(crawlData.getReferrerReference());
-        newData.setReferrerLinkTag(crawlData.getReferrerLinkTag());
-        newData.setReferrerLinkText(crawlData.getReferrerLinkText());
-        newData.setReferrerLinkTitle(crawlData.getReferrerLinkTitle());
-        newData.setRedirectTrail(crawlData.getRedirectTrail());
+        HttpCrawlReference newData = new HttpCrawlReference(
+                redirectURL, crawlRef.getDepth());
+        newData.setReferrerReference(crawlRef.getReferrerReference());
+        newData.setReferrerLinkTag(crawlRef.getReferrerLinkTag());
+        newData.setReferrerLinkText(crawlRef.getReferrerLinkText());
+        newData.setReferrerLinkTitle(crawlRef.getReferrerLinkTitle());
+        newData.setRedirectTrail(crawlRef.getRedirectTrail());
         newData.addRedirectURL(sourceURL);
         if (requeue) {
-            store.queue(newData);
+            ctx.getCrawlReferenceService().queue(newData);
         } else if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                crawlData.getReference(), redirectURL)) {
+                crawlRef.getReference(), redirectURL)) {
             HttpQueuePipelineContext newContext =
-                    new HttpQueuePipelineContext(
-                            ctx.getCrawler(), store, newData);
+                    new HttpQueuePipelineContext(ctx.getCrawler(), newData);
             new HttpQueuePipeline().execute(newContext);
         } else {
             LOG.debug("URL redirect target not in scope: {}", redirectURL);

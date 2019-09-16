@@ -19,7 +19,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.reference.CrawlState;
 
 /**
  * Builder facilitating creation of an HTTP fetch response.

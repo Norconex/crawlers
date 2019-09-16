@@ -19,7 +19,6 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.servlet.ServletException;
@@ -65,6 +64,7 @@ import com.norconex.collector.http.web.feature.ZeroLength;
 import com.norconex.collector.http.web.recovery.ResumeAfterStopped;
 import com.norconex.collector.http.web.recovery.StartAfterStopped;
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.file.FileUtil;
 
 //TODO make this reusable by passing a list of ITestFeature?
@@ -181,7 +181,7 @@ public class HttpCrawlerWebTest {
             "featuresProvider"
     })
     public void testFeature(IWebTest feature) throws Exception {
-        String uuid = UUID.randomUUID().toString();
+        String uuid = Long.toString(TimeIdGenerator.next());// UUID.randomUUID().toString();
         Path workdir = tempFolder.resolve("workdir" + uuid);
         String startURL = serverBaseURL + feature.getPath();
         for (int i = 0; i < feature.numberOfRun(); i++) {

@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  */
 package com.norconex.collector.http.pipeline.queue;
 
-import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.core.pipeline.BasePipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 
 /**
@@ -28,14 +27,10 @@ import com.norconex.collector.http.sitemap.ISitemapResolver;
 public class HttpQueuePipelineContext extends BasePipelineContext {
 
     public HttpQueuePipelineContext(
-            HttpCrawler crawler, ICrawlDataStore refStore,
-            HttpCrawlData crawlData) {
-        super(crawler, refStore, crawlData);
+            HttpCrawler crawler,
+            HttpCrawlReference crawlRef) {
+        super(crawler, crawlRef);
     }
-
-//    public final HttpClient getHttpClient() {
-//        return getCrawler().getHttpClient();
-//    }
 
     public ISitemapResolver getSitemapResolver() {
         return getCrawler().getSitemapResolver();
@@ -47,8 +42,8 @@ public class HttpQueuePipelineContext extends BasePipelineContext {
     }
 
     @Override
-    public HttpCrawlData getCrawlData() {
-        return (HttpCrawlData) super.getCrawlData();
+    public HttpCrawlReference getCrawlReference() {
+        return (HttpCrawlReference) super.getCrawlReference();
     }
 
     @Override

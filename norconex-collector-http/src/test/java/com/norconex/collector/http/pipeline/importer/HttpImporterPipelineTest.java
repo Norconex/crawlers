@@ -23,8 +23,8 @@ import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 
 /**
@@ -44,7 +44,7 @@ public class HttpImporterPipelineTest {
                         new ByteArrayInputStream(contentValid.getBytes())));
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-                null, new HttpCrawlData(reference, 0), null, doc);
+                new HttpCrawlReference(reference, 0), null, doc);
         Assertions.assertTrue(
                 HttpImporterPipelineUtil.resolveCanonical(ctx, false));
     }
@@ -57,7 +57,7 @@ public class HttpImporterPipelineTest {
         doc.getMetadata().set("Link", "<" + reference + "> rel=\"canonical\"");
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-                null, new HttpCrawlData(reference, 0), null, doc);
+                new HttpCrawlReference(reference, 0), null, doc);
         Assertions.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
     }
 
@@ -70,7 +70,7 @@ public class HttpImporterPipelineTest {
 
         ImporterPipelineContext ipc = new ImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-                null, new HttpCrawlData(reference, 0), null, doc);
+                new HttpCrawlReference(reference, 0), null, doc);
 
         new HttpImporterPipelineContext(ipc);
 //        HttpImporterPipelineContext hipc = new HttpImporterPipelineContext(

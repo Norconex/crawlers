@@ -104,7 +104,7 @@ public abstract class AbstractTestFeature implements IWebTest {
 
     @Override
     public void startCollector(HttpCollector collector) throws Exception {
-        collector.start(false);
+        collector.start();
     }
 
     @Override

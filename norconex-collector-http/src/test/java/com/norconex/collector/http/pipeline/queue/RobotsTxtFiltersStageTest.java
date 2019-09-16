@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
 
@@ -73,7 +73,7 @@ public class RobotsTxtFiltersStageTest {
 
         HttpQueuePipelineContext ctx = new HttpQueuePipelineContext(
                 new HttpCrawler(cfg, new HttpCollector()),
-                null, new HttpCrawlData(url, 0));
+                new HttpCrawlReference(url, 0));
         RobotsTxtFiltersStage filterStage = new RobotsTxtFiltersStage();
         return filterStage.execute(ctx);
     }

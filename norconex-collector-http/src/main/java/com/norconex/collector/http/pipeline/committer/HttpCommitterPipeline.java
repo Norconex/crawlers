@@ -45,7 +45,7 @@ public class HttpCommitterPipeline
                     postProc.processDocument(
                             ctx.getHttpFetchClient(), ctx.getDocument());
                     ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_POSTIMPORTED,
-                            ctx.getCrawlData(), postProc);
+                            ctx.getCrawlReference(), postProc);
                 }
             }
             return true;

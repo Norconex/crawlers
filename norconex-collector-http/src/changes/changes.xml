@@ -20,6 +20,9 @@
       <action dev="essiembre" type="add">
         New HttpCollectorEvent.
       </action>
+      <action dev="essiembre" type="remove">
+        New "reference" package. 
+      </action>
       <action dev="essiembre" type="update">
         PhantomJSDocumentFetcher now deprecated in favor of 
         WebDriverHttpFetcher.
@@ -58,6 +61,14 @@
         IHttpClientFactory, IHttpDocumentFetcher, and IHttpMetadataFetcher and
         implementations were removed in favor of IHttpFetcher and
         GenericHttpFetcher. 
+      </action>
+      <action dev="essiembre" type="remove">
+        Removed "data" package (and its classes) in favor of "reference" 
+        package. 
+      </action>
+      <action dev="essiembre" type="remove">
+        Remove all previously available crawl store implementions in favor
+        of new NitriteDataStore.
       </action>
     </release>
 

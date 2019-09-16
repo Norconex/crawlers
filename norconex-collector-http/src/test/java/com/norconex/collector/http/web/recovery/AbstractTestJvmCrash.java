@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.data.store.ICrawlDataStoreFactory;
+import com.norconex.collector.core.store.IDataStoreEngine;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
@@ -52,7 +52,7 @@ public abstract class AbstractTestJvmCrash
 
     protected abstract boolean isResuming();
 
-    protected abstract ICrawlDataStoreFactory createCrawlDataStore();
+    protected abstract IDataStoreEngine createDataStoreEngine();
 
     @Override
     public int numberOfRun() {
@@ -66,7 +66,7 @@ public abstract class AbstractTestJvmCrash
         cfg.setStartURLs(cfg.getStartURLs().get(0) + "?depth=0");
         cfg.addEventListeners(new JVMCrasher());
         cfg.setCommitter(new FileSystemCommitter());
-        cfg.setCrawlDataStoreFactory(createCrawlDataStore());
+        cfg.setDataStoreEngine(createDataStoreEngine());
 
         if (isFirstRun()) {
             cfg.setMaxDocuments(10);

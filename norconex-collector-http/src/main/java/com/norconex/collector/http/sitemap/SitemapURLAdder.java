@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.sitemap;
 
-import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 
 
 // THIS is a wrapper class where add( ) will add a URL found in sitemap file
@@ -50,12 +50,12 @@ public abstract class SitemapURLAdder {
         if (changefreq != null) {
             setChangeFreq = changefreq.toString().toLowerCase();
         }
-        HttpCrawlData baseURL = new HttpCrawlData(url, 0);
+        HttpCrawlReference baseURL = new HttpCrawlReference(url, 0);
         baseURL.setSitemapChangeFreq(setChangeFreq);
         baseURL.setSitemapLastMod(lastmod);
         baseURL.setSitemapPriority(setPriority);
         add(baseURL);
     }
     
-    public abstract void add(HttpCrawlData baseURL);
+    public abstract void add(HttpCrawlReference baseURL);
 }

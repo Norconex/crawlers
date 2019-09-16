@@ -1,4 +1,4 @@
-/* Copyright 2016 Norconex Inc.
+/* Copyright 2016-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlData;
-import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 import com.norconex.collector.http.recrawl.PreviousCrawlData;
+import com.norconex.collector.http.reference.HttpCrawlReference;
+import com.norconex.collector.http.reference.HttpCrawlState;
 
 /**
  * <p>Determines whether to recrawl a document or not.</p>
@@ -29,10 +29,10 @@ import com.norconex.collector.http.recrawl.PreviousCrawlData;
  * @since 2.5.0
  */
 /*default*/ class RecrawlableResolverStage extends AbstractImporterStage {
-    
-    private static final Logger LOG = 
+
+    private static final Logger LOG =
             LoggerFactory.getLogger(RecrawlableResolverStage.class);
-    
+
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
         IRecrawlableResolver rr = ctx.getConfig().getRecrawlableResolver();
@@ -41,14 +41,14 @@ import com.norconex.collector.http.recrawl.PreviousCrawlData;
             return true;
         }
 
-        HttpCrawlData cachedData = ctx.getCachedCrawlData();
+        HttpCrawlReference cachedData = ctx.getCachedCrawlReference();
         if (cachedData == null) {
             // this document was not previously crawled so process it.
             return true;
         }
 
-        HttpCrawlData currentData = ctx.getCrawlData();
-        
+        HttpCrawlReference currentData = ctx.getCrawlReference();
+
         PreviousCrawlData prevData = new PreviousCrawlData();
         prevData.setReference(cachedData.getReference());
         prevData.setContentType(cachedData.getContentType());
@@ -56,7 +56,7 @@ import com.norconex.collector.http.recrawl.PreviousCrawlData;
         prevData.setSitemapChangeFreq(currentData.getSitemapChangeFreq());
         prevData.setSitemapLastMod(currentData.getSitemapLastMod());
         prevData.setSitemapPriority(currentData.getSitemapPriority());
-        
+
         boolean isRecrawlable = rr.isRecrawlable(prevData);
         if (!isRecrawlable) {
             if (LOG.isDebugEnabled()) {

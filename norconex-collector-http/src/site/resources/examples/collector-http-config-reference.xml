@@ -54,7 +54,7 @@
   #set($sitemapFactory    = "${http}.sitemap.impl.StandardSitemapResolverFactory")
   #set($metaChecksummer   = "${http}.checksum.impl.HttpMetadataChecksummer")
   #set($docChecksummer    = "${core}.checksum.impl.MD5DocumentChecksummer")
-  #set($dataStoreFactory  = "${core}.data.store.impl.mvstore.MVStoreCrawlDataStoreFactory")
+  #set($dataStoreEngine   = "${core}.store.impl.nitrite.NitriteDataStoreEngine")
   #set($spoiledStrategy   = "${core}.spoil.impl.GenericSpoiledReferenceStrategizer")
   #set($fsCommitter       = "${committer}.core.impl.FileSystemCommitter")
   
@@ -219,7 +219,7 @@
            com.norconex.collector.core.data.store.ICrawlURLDatabaseFactory.  
            Default implementation is the following.
            -->
-      <crawlDataStoreFactory class="$dataStoreFactory" />
+      <crawlDataStoreEngine class="$dataStoreEngine" />
   
       <!-- One or more HTTP Fetchers, responsible for making HTTP requests
            and fetching associated content. Fetchers are defined in execution 

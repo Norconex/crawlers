@@ -73,11 +73,11 @@ public class HttpCollectorTest {
 
         final HttpCollector collector = new HttpCollector(config);
 
-        collector.start(false);
+        collector.start();
         LOG.debug("First normal run complete.");
 
 
-        collector.start(false);
+        collector.start();
         LOG.debug("Second normal run complete.");
     }
 }

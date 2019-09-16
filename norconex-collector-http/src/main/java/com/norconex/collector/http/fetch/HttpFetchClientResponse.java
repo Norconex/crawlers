@@ -25,7 +25,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.reference.CrawlState;
 
 /**
  * Hold HTTP response information obtained from fetching a document

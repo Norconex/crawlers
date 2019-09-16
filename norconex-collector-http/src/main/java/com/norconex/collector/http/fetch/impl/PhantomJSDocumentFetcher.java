@@ -52,7 +52,6 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doc.CollectorMetadata;
-import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
@@ -60,6 +59,7 @@ import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.collector.http.processor.impl.ScaledImage;
+import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;

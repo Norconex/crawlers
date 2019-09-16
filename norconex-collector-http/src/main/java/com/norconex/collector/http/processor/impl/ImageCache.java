@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Norconex Inc.
+/* Copyright 2017-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.data.store.CrawlDataStoreException;
+import com.norconex.collector.core.store.DataStoreException;
 
 /**
  * Caches images. This class should not be instantiated more than once
@@ -55,10 +55,9 @@ public class ImageCache {
         this.cacheDir = dir;
         try {
             Files.createDirectories(dir);
-//            FileUtils.forceMkdir(dir);
             LOG.debug("Image cache directory: {}", dir);
         } catch (IOException e) {
-            throw new CrawlDataStoreException(
+            throw new DataStoreException(
                     "Cannot create image cache directory: "
                             + dir.toAbsolutePath(), e);
         }

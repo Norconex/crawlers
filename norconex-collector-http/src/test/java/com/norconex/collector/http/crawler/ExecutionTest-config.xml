@@ -49,10 +49,10 @@
       <orphansStrategy>${orphansStrategy}</orphansStrategy>
     #end
 
-    #if ($crawlDataStoreFactory)
-      <crawlDataStoreFactory class="${crawlDataStoreFactory}">
-        <database>$!{crawlDataStoreFactoryDatabase}</database>
-      </crawlDataStoreFactory>
+    #if ($crawlDataStoreEngine)
+      <crawlDataStoreEngine class="${crawlDataStoreEngine}">
+        <database>$!{crawlDataStoreEngineDatabase}</database>
+      </crawlDataStoreEngine>
     #end
 
     #if ($metadataChecksummer)

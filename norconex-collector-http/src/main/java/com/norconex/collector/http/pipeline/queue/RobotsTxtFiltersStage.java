@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Norconex Inc.
+/* Copyright 2016-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlState;
+import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.collector.http.robot.IRobotsTxtFilter;
 import com.norconex.collector.http.robot.RobotsTxt;
 
@@ -47,12 +47,12 @@ import com.norconex.collector.http.robot.RobotsTxt;
         if (!ctx.getConfig().isIgnoreRobotsTxt()) {
             IRobotsTxtFilter filter = findRejectingRobotsFilter(ctx);
             if (filter != null) {
-                ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
                 ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_ROBOTS_TXT,
-                        ctx.getCrawlData(), filter);
+                        ctx.getCrawlReference(), filter);
                 LOG.debug("REJECTED by robots.txt. "
                         + ". Reference={} Filter={}",
-                        ctx.getCrawlData().getReference(), filter);
+                        ctx.getCrawlReference().getReference(), filter);
                 return false;
             }
         }
@@ -74,7 +74,7 @@ import com.norconex.collector.http.robot.RobotsTxt;
         }
         List<IRobotsTxtFilter> disallowFilters = robotsTxt.getDisallowFilters();
         List<IRobotsTxtFilter> allowFilters = robotsTxt.getAllowFilters();
-        String url = ctx.getCrawlData().getReference();
+        String url = ctx.getCrawlReference().getReference();
 
         for (IRobotsTxtFilter df : disallowFilters) {
             if (!df.acceptReference(url)) {
