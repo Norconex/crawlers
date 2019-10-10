@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,7 +41,7 @@ import com.norconex.collector.http.reference.HttpCrawlState;
         IHttpFetchResponse response =
                 ctx.getHttpFetchClient().fetchDocument(ctx.getDocument());
 
-        crawlRef.setCrawlDate(new Date());
+        crawlRef.setCrawlDate(LocalDateTime.now());
 
         HttpImporterPipelineUtil.enhanceHTTPHeaders(
                 ctx.getDocument().getMetadata());

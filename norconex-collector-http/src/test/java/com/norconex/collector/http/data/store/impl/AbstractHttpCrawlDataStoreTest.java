@@ -20,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Date;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,7 +151,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         dataIn.setMetaChecksum("metaChecksum");
         dataIn.setContentChecksum("contentChecksum");
         dataIn.setContentType(ContentType.PDF);
-        dataIn.setCrawlDate(new Date());
+        dataIn.setCrawlDate(LocalDateTime.now());
         dataIn.setOriginalReference("originalReference");
         dataIn.setParentRootReference("parentRootReference");
         dataIn.setReferrerLinkTag("referrerLinkTag");

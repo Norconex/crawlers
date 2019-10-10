@@ -15,9 +15,8 @@
 package com.norconex.collector.http.recrawl.impl;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDateTime;
 
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -54,17 +53,12 @@ public class GenericRecrawlableResolverTest {
         GenericRecrawlableResolver r = new GenericRecrawlableResolver();
         r.setSitemapSupport(SitemapSupport.NEVER);
 
-        Date now = new Date();
-
-        DateTime prevCrawlDate = new DateTime(now);
-        prevCrawlDate = prevCrawlDate.minusDays(10);
+        LocalDateTime prevCrawlDate = LocalDateTime.now().minusDays(10);
 
         PreviousCrawlData prevCrawl = new PreviousCrawlData();
         prevCrawl.setContentType(ContentType.HTML);
         prevCrawl.setReference("http://example.com");
-        prevCrawl.setCrawlDate(prevCrawlDate.toDate());
-
-
+        prevCrawl.setCrawlDate(prevCrawlDate);
 
         MinFrequency f = null;
 
@@ -90,12 +84,11 @@ public class GenericRecrawlableResolverTest {
         GenericRecrawlableResolver r = new GenericRecrawlableResolver();
         r.loadFromXML(new XML(xml));
 
-        DateTime prevCrawlDate = new DateTime();
-        prevCrawlDate = prevCrawlDate.minusDays(10);
+        LocalDateTime prevCrawlDate = LocalDateTime.now().minusDays(10);
         PreviousCrawlData prevCrawl = new PreviousCrawlData();
         prevCrawl.setContentType(ContentType.HTML);
         prevCrawl.setReference("http://example.com");
-        prevCrawl.setCrawlDate(prevCrawlDate.toDate());
+        prevCrawl.setCrawlDate(prevCrawlDate);
 
         Assertions.assertFalse(r.isRecrawlable(prevCrawl));
     }

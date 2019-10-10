@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.recrawl;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -32,7 +32,7 @@ public class PreviousCrawlData {
 
     private String reference;
     private ContentType contentType;
-    private Date crawlDate;
+    private LocalDateTime crawlDate;
     private Long sitemapLastMod;
     private String sitemapChangeFreq;
     private Float sitemapPriority;
@@ -49,10 +49,10 @@ public class PreviousCrawlData {
     public void setContentType(ContentType contentType) {
         this.contentType = contentType;
     }
-    public Date getCrawlDate() {
+    public LocalDateTime getCrawlDate() {
         return crawlDate;
     }
-    public void setCrawlDate(Date crawlDate) {
+    public void setCrawlDate(LocalDateTime crawlDate) {
         this.crawlDate = crawlDate;
     }
     public Long getSitemapLastMod() {
