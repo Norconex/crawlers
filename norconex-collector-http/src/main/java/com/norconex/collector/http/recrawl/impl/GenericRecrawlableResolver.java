@@ -14,6 +14,9 @@
  */
 package com.norconex.collector.http.recrawl.impl;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,8 +30,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 import com.norconex.collector.http.recrawl.PreviousCrawlData;
 import com.norconex.collector.http.sitemap.SitemapChangeFrequency;
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.time.DateUtil;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
@@ -262,32 +264,31 @@ public class GenericRecrawlableResolver
         } else {
             millis = new DurationParser().parse(value).toMillis();
         }
-        DateTime lastCrawlDate = new DateTime(prevData.getCrawlDate());
-        DateTime minCrawlDate = lastCrawlDate.plus(millis);
-        DateTime now = DateTime.now();
+        LocalDateTime lastCrawlDate = prevData.getCrawlDate();
+        LocalDateTime minCrawlDate = lastCrawlDate.plus(
+                millis, ChronoField.MILLI_OF_DAY.getBaseUnit());
+        LocalDateTime now = LocalDateTime.now();
         if (minCrawlDate.isBefore(now)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format(
-                        "Recrawlable according to custom directive "
-                      + "(required elasped time '%s' "
-                      + "< actual elasped time '%s' since '%s'): %s",
+                LOG.debug("Recrawlable according to custom directive "
+                      + "(required elasped time '{}' "
+                      + "< actual elasped time '{}' since '{}'): {}",
                       formatDuration(millis),
                       formatDuration(lastCrawlDate, now),
-                      formatDate(lastCrawlDate),
-                      prevData.getReference()));
+                      lastCrawlDate,
+                      prevData.getReference());
             }
             return true;
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format(
-                    "Not recrawlable according to custom directive "
-                  + "(required elasped time '%s' "
-                  + ">= actual elasped time '%s' "
-                  + "since '%s'): %s",
+            LOG.debug("Not recrawlable according to custom directive "
+                  + "(required elasped time '{}' "
+                  + ">= actual elasped time '{}' "
+                  + "since '{}'): {}",
                   formatDuration(millis),
                   formatDuration(lastCrawlDate, now),
-                  formatDate(lastCrawlDate),
-                  prevData.getReference()));
+                  lastCrawlDate,
+                  prevData.getReference());
         }
         return false;
     }
@@ -297,28 +298,23 @@ public class GenericRecrawlableResolver
         // If sitemap specifies a last modified date and it is more recent
         // than the the document last crawl date, recrawl it (otherwise don't).
         if (hasSitemapLastModified(prevData)) {
-            DateTime lastModified = new DateTime(prevData.getSitemapLastMod());
-            DateTime lastCrawled = new DateTime(prevData.getCrawlDate());
-            LOG.debug("Sitemap last modified date is "
-                    + lastModified + " for: " + prevData.getReference());
+            LocalDateTime lastModified =
+                    DateUtil.toLocalDateTime(prevData.getSitemapLastMod());
+            LocalDateTime lastCrawled = prevData.getCrawlDate();
+            LOG.debug("Sitemap last modified date is {} for: {}",
+                    lastModified, prevData.getReference());
             if (lastModified.isAfter(lastCrawled)) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format(
-                            "Recrawlable according to sitemap directive "
-                          + "(last modified '%s' > last crawled '%s'): %s",
-                          formatDate(lastModified),
-                          formatDate(lastCrawled),
-                          prevData.getReference()));
+                    LOG.debug("Recrawlable according to sitemap directive "
+                          + "(last modified '{}' > last crawled '{}'): {}",
+                          lastModified, lastCrawled, prevData.getReference());
                 }
                 return true;
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format(
-                        "Not recrawlable according to sitemap directive "
-                      + "(last modified '%s' <= last crawled '%s'): %s",
-                      formatDate(lastModified),
-                      formatDate(lastCrawled),
-                      prevData.getReference()));
+                LOG.debug("Not recrawlable according to sitemap directive "
+                      + "(last modified '{}' > last crawled '{}'): {}",
+                      lastModified, lastCrawled, prevData.getReference());
             }
             return false;
         }
@@ -350,8 +346,8 @@ public class GenericRecrawlableResolver
             return false;
         }
 
-        DateTime lastCrawlDate = new DateTime(prevData.getCrawlDate());
-        DateTime minCrawlDate = new DateTime(prevData.getCrawlDate());
+        LocalDateTime lastCrawlDate = prevData.getCrawlDate();
+        LocalDateTime minCrawlDate = prevData.getCrawlDate();
         switch (cf) {
         case HOURLY:
             minCrawlDate = minCrawlDate.plusHours(1);
@@ -372,7 +368,7 @@ public class GenericRecrawlableResolver
             break;
         }
 
-        DateTime now = DateTime.now();
+        LocalDateTime now = LocalDateTime.now();
         if (minCrawlDate.isBefore(now)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format(
@@ -382,7 +378,7 @@ public class GenericRecrawlableResolver
                       context,
                       formatDuration(lastCrawlDate, minCrawlDate),
                       formatDuration(lastCrawlDate, now),
-                      formatDate(lastCrawlDate),
+                      lastCrawlDate,
                       prevData.getReference()));
             }
             return true;
@@ -395,20 +391,17 @@ public class GenericRecrawlableResolver
                   context,
                   formatDuration(lastCrawlDate, minCrawlDate),
                   formatDuration(lastCrawlDate, now),
-                  formatDate(lastCrawlDate),
+                  lastCrawlDate,
                   prevData.getReference()));
         }
         return false;
     }
 
-    private String formatDate(DateTime date) {
-        return date.toString("yyyy-MM-dd'T'HH:mm:ss");
-    }
-    private String formatDuration(DateTime start, DateTime end) {
-        return formatDuration(new Duration(start, end));
+    private String formatDuration(LocalDateTime start, LocalDateTime end) {
+        return formatDuration(Duration.between(start, end));
     }
     private String formatDuration(Duration duration) {
-        return formatDuration(duration.getMillis());
+        return formatDuration(duration.toMillis());
     }
     private String formatDuration(long millis) {
         return new DurationFormatter()
