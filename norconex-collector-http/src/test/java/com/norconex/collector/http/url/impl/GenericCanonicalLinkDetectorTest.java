@@ -36,6 +36,26 @@ public class GenericCanonicalLinkDetectorTest {
     private static final Logger LOG = LoggerFactory.getLogger(
             GenericCanonicalLinkDetectorTest.class);
 
+    // Test for: https://github.com/Norconex/collector-http/issues/646
+    @Test
+    public void testMultipleLinkValueFromMetadata() throws IOException {
+        String reference = "http://www.example.com/file.pdf";
+        GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
+        HttpMetadata metadata = new HttpMetadata(reference);
+        String canonURL = "http://www.example.com/cano,ni;cal.pdf";
+        String url = null;
+
+        // Test "Link:" with multiple values
+        metadata.set("Link",
+                "<http://www.example.com/images/logo.png>; rel=\"image_src\","
+              + "<" + canonURL + ">; rel=\"canonical\","
+              + "<http://www.example.com/short/1234>; rel=\"shortlink\","
+              + "<" + canonURL + ">; rel=\"hreflang_en\"");
+        url = d.detectFromMetadata(reference, metadata);
+        Assertions.assertEquals(
+                canonURL, url, "Canonical URL not detected properly.");
+    }
+
     @Test
     public void testDetectFromMetadata() throws IOException {
         String reference = "http://www.example.com/file.pdf";

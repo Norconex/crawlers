@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,10 +132,14 @@ public class GenericCanonicalLinkDetector
     @Override
     public String detectFromMetadata(String reference, HttpMetadata metadata) {
         String link = StringUtils.trimToNull(metadata.getString("Link"));
-        if (link != null && link.toLowerCase().matches(
-                ".*rel\\s*=\\s*([\"'])canonical\\1.*")) {
-            link = StringUtils.substringBetween(link, "<", ">");
-            return toAbsolute(reference, link);
+        if (link != null) {
+            Matcher m = Pattern.compile(
+                    "<([^>]+)>\\s*;\\s*rel\\s*=\\s*\"([^\"]+)\"").matcher(link);
+            while (m.find()) {
+                if ("canonical".equalsIgnoreCase(m.group(2))) {
+                    return toAbsolute(reference, m.group(1));
+                }
+            }
         }
         return null;
     }
