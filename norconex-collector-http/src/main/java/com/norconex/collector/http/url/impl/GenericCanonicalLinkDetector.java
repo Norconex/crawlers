@@ -47,21 +47,21 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
  * <p>Generic canonical link detector. It detects links from the HTTP headers
- * as well as HTML files.  Good canonical reference documentation can be found 
+ * as well as HTML files.  Good canonical reference documentation can be found
  * on this <a href="https://support.google.com/webmasters/answer/139066">
  * Google Webmaster Tools help page</a>.</p>
- * 
+ *
  * <h3>HTTP Headers</h3>
  * <p>This detector will look for a metadata field (normally obtained
- * from the HTTP Headers) name called "Link" with a 
+ * from the HTTP Headers) name called "Link" with a
  * value following this pattern:</p>
  * <pre>
  * &lt;http://www.example.com/sample.pdf&gt; rel="canonical"
  * </pre>
  * <p>All documents will be verified for a canonical link (not just HTML).</p>
- * 
+ *
  * <h3>Document content</h3>
- * <p>This detector will look within the HTML &lt;head&gt; tags for a 
+ * <p>This detector will look within the HTML &lt;head&gt; tags for a
  * &lt;link&gt; tag following this pattern:</p>
  * <pre>
  * &lt;link rel="canonical" href="https://www.example.com/sample" /&gt;
@@ -73,10 +73,10 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </pre>
  * <p>You can specify your own content types as long as they contain HTML
  * text.</p>
- * 
+ *
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;canonicalLinkDetector 
+ *  &lt;canonicalLinkDetector
  *          class="com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector"
  *          ignore="(false|true)"&gt;
  *      &lt;contentTypes&gt;
@@ -85,7 +85,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *      &lt;/contentTypes&gt;
  *  &lt;/canonicalLinkDetector&gt;
  * </pre>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following example ignores canonical link resolution.
@@ -93,23 +93,23 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <pre>
  *  &lt;canonicalLinkDetector ignore="true"/&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  * @since 2.2.0
  */
-public class GenericCanonicalLinkDetector 
+public class GenericCanonicalLinkDetector
         implements ICanonicalLinkDetector, IXMLConfigurable {
 
-    private static final ContentType[] DEFAULT_CONTENT_TYPES = 
+    private static final ContentType[] DEFAULT_CONTENT_TYPES =
             new ContentType[] {
         ContentType.HTML,
         ContentType.valueOf("application/xhtml+xml"),
         ContentType.valueOf("vnd.wap.xhtml+xml"),
         ContentType.valueOf("x-asp"),
     };
-    
+
     private ContentType[] contentTypes = DEFAULT_CONTENT_TYPES;
-    
+
 
     public ContentType[] getContentTypes() {
         return contentTypes;
@@ -122,34 +122,36 @@ public class GenericCanonicalLinkDetector
     public String detectFromMetadata(String reference, HttpMetadata metadata) {
         String link = StringUtils.trimToNull(metadata.getString("Link"));
         if (link != null) {
-            if (link.toLowerCase().matches(
-                    ".*rel\\s*=\\s*([\"'])canonical\\1.*")) {
-                link = StringUtils.substringBetween(link, "<", ">");
-                return toAbsolute(reference, link);
+            Matcher m = Pattern.compile(
+                    "<([^>]+)>\\s*;\\s*rel\\s*=\\s*\"([^\"]+)\"").matcher(link);
+            while (m.find()) {
+                if ("canonical".equalsIgnoreCase(m.group(2))) {
+                    return toAbsolute(reference, m.group(1));
+                }
             }
         }
         return null;
     }
 
-    private static final Pattern PATTERN_TAG = 
+    private static final Pattern PATTERN_TAG =
             Pattern.compile("<\\s*(\\w+.*?)[/\\s]*>", Pattern.DOTALL);
     private static final int PATTERN_TAG_GROUP = 1;
-    private static final Pattern PATTERN_NAME = 
+    private static final Pattern PATTERN_NAME =
             Pattern.compile("^(\\w+)", Pattern.DOTALL);
     private static final int PATTERN_NAME_GROUP = 1;
-    private static final Pattern PATTERN_REL = 
-            Pattern.compile("\\srel\\s*=\\s*([\"'])\\s*canonical\\s*\\1", 
+    private static final Pattern PATTERN_REL =
+            Pattern.compile("\\srel\\s*=\\s*([\"'])\\s*canonical\\s*\\1",
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-    private static final Pattern PATTERN_URL = 
-            Pattern.compile("\\shref\\s*=\\s*([\"'])\\s*(.*?)\\s*\\1", 
+    private static final Pattern PATTERN_URL =
+            Pattern.compile("\\shref\\s*=\\s*([\"'])\\s*(.*?)\\s*\\1",
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
     private static final int PATTERN_URL_GROUP = 2;
-    
+
     @Override
     public String detectFromContent(
             String reference, InputStream is, ContentType contentType)
                     throws IOException {
-        
+
         ContentType[] cTypes = contentTypes;
         if (ArrayUtils.isEmpty(cTypes)) {
             cTypes = DEFAULT_CONTENT_TYPES;
@@ -175,7 +177,7 @@ public class GenericCanonicalLinkDetector
                             && PATTERN_REL.matcher(tag).find()) {
                         Matcher urlMatcher = PATTERN_URL.matcher(tag);
                         if (urlMatcher.find()) {
-                            return toAbsolute(reference, 
+                            return toAbsolute(reference,
                                     urlMatcher.group(PATTERN_URL_GROUP));
                         }
                         return null;
@@ -188,7 +190,7 @@ public class GenericCanonicalLinkDetector
         }
         return null;
     }
-    
+
     private String toAbsolute(String pageReference, String link) {
         if (link == null) {
             return null;
@@ -196,7 +198,7 @@ public class GenericCanonicalLinkDetector
         if (link.matches("^https{0,1}://")) {
             return link;
         }
-        return URIUtils.resolve(URI.create(pageReference), 
+        return URIUtils.resolve(URI.create(pageReference),
                 StringEscapeUtils.unescapeHtml4(link)).toString();
     }
 
@@ -209,7 +211,7 @@ public class GenericCanonicalLinkDetector
             setContentTypes(cts);
         }
     }
-    
+
     @Override
     public void saveToXML(Writer out) throws IOException {
         try {
@@ -219,7 +221,7 @@ public class GenericCanonicalLinkDetector
 
             // Content Types
             if (!ArrayUtils.isEmpty(getContentTypes())) {
-                writer.writeElementString("contentTypes", 
+                writer.writeElementString("contentTypes",
                         StringUtils.join(getContentTypes(), ','));
             }
 
@@ -230,7 +232,7 @@ public class GenericCanonicalLinkDetector
             throw new IOException("Cannot save as XML.", e);
         }
     }
-    
+
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
@@ -242,8 +244,8 @@ public class GenericCanonicalLinkDetector
         if (!(other instanceof GenericCanonicalLinkDetector)) {
             return false;
         }
-        
-        GenericCanonicalLinkDetector castOther = 
+
+        GenericCanonicalLinkDetector castOther =
                 (GenericCanonicalLinkDetector) other;
         return new EqualsBuilder()
                 .append(contentTypes, castOther.contentTypes)

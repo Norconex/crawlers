@@ -38,6 +38,10 @@
       <action dev="essiembre" type="update" issue="526">
         Stateful support added for auth sessions (e.g., NTLM). 
       </action>
+      <action dev="essiembre" type="fix" issue="646">
+        Fixed GenericCanonicalLinkDetector not handling properly HTTP Response
+        "Link" Header with multiple values. 
+      </action>
       <action dev="essiembre" type="fix" issue="597">
         Fixed GenericRecrawlableResolver large frequency units resulting in 
         those minimum frequencies not being respected. 
