@@ -134,7 +134,7 @@ public class GenericCanonicalLinkDetector
         String link = StringUtils.trimToNull(metadata.getString("Link"));
         if (link != null) {
             Matcher m = Pattern.compile(
-                    "<([^>]+)>\\s*;\\s*rel\\s*=\\s*\"([^\"]+)\"").matcher(link);
+                    "<([^>]+)>\\s*;?\\s*rel\\s*=\\s*\"([^\"]+)\"").matcher(link);
             while (m.find()) {
                 if ("canonical".equalsIgnoreCase(m.group(2))) {
                     return toAbsolute(reference, m.group(1));
