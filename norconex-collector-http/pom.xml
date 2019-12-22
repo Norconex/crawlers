@@ -19,14 +19,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
-  <version>2.9.0-SNAPSHOT</version>
+  <version>2.9.0</version>
   <name>Norconex HTTP Collector</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <site.baseurl/>
-    <norconex-commons-lang.version>1.15.1-SNAPSHOT</norconex-commons-lang.version>
+    <norconex-commons-lang.version>1.15.1</norconex-commons-lang.version>
     <jetty.version>9.2.20.v20161216</jetty.version>
   </properties>
   <inceptionYear>2009</inceptionYear>
@@ -73,7 +73,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
+      <version>1.10.0</version>
     </dependency>
     <dependency>
       <groupId>org.imgscalr</groupId>
