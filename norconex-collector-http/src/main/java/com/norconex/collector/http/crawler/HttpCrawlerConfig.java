@@ -640,53 +640,58 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         loadSimpleSettings(xml);
 
         // RobotsTxt provider
-        setRobotsTxtProvider(xml.getObject("robotsTxt", robotsTxtProvider));
+        setRobotsTxtProvider(xml.getObjectImpl(
+                IRobotsTxtProvider.class, "robotsTxt", robotsTxtProvider));
         setIgnoreRobotsTxt(
                 xml.getBoolean("robotsTxt/@ignore", ignoreRobotsTxt));
 
         // Sitemap Resolver
-        setSitemapResolverFactory(xml.getObject(
+        setSitemapResolverFactory(xml.getObjectImpl(
+                ISitemapResolverFactory.class,
                 "sitemapResolverFactory", sitemapResolverFactory));
         setIgnoreSitemap(xml.getBoolean(
                 "sitemapResolverFactory/@ignore", ignoreSitemap));
 
         // Canonical Link Detector
-        setCanonicalLinkDetector(
-                xml.getObject("canonicalLinkDetector", canonicalLinkDetector));
+        setCanonicalLinkDetector(xml.getObjectImpl(ICanonicalLinkDetector.class,
+                "canonicalLinkDetector", canonicalLinkDetector));
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "canonicalLinkDetector/@ignore", ignoreCanonicalLinks));
 
         // Recrawlable resolver
-        setRecrawlableResolver(
-                xml.getObject("recrawlableResolver", recrawlableResolver));
+        setRecrawlableResolver(xml.getObjectImpl(IRecrawlableResolver.class,
+                "recrawlableResolver", recrawlableResolver));
 
         // HTTP Fetchers
-        setHttpFetchers(xml.getObjectList(
-                "httpFetchers/fetcher", httpFetchers));
+        setHttpFetchers(xml.getObjectListImpl(
+                IHttpFetcher.class, "httpFetchers/fetcher", httpFetchers));
         setHttpFetchersMaxRetries(xml.getInteger(
                 "httpFetchers/@maxRetries", httpFetchersMaxRetries));
         setHttpFetchersRetryDelay(xml.getDurationMillis(
                 "httpFetchers/@retryDelay", httpFetchersRetryDelay));
 
         // Metadata Checksummer
-        setMetadataChecksummer(
-                xml.getObject("metadataChecksummer", metadataChecksummer));
+        setMetadataChecksummer(xml.getObjectImpl(IMetadataChecksummer.class,
+                "metadataChecksummer", metadataChecksummer));
 
         // RobotsMeta provider
-        setRobotsMetaProvider(xml.getObject("robotsMeta", robotsMetaProvider));
+        setRobotsMetaProvider(xml.getObjectImpl(
+                IRobotsMetaProvider.class, "robotsMeta", robotsMetaProvider));
         setIgnoreRobotsMeta(
                 xml.getBoolean("robotsMeta/@ignore", ignoreRobotsMeta));
 
         // Link Extractors
-        setLinkExtractors(xml.getObjectList(
+        setLinkExtractors(xml.getObjectListImpl(ILinkExtractor.class,
                 "linkExtractors/extractor", linkExtractors));
 
         // HTTP Pre-Processors
-        setPreImportProcessors(xml.getObjectList(
+        setPreImportProcessors(xml.getObjectListImpl(
+                IHttpDocumentProcessor.class,
                 "preImportProcessors/processor", preImportProcessors));
 
         // HTTP Post-Processors
-        setPostImportProcessors(xml.getObjectList(
+        setPostImportProcessors(xml.getObjectListImpl(
+                IHttpDocumentProcessor.class,
                 "postImportProcessors/processor", postImportProcessors));
 
         // Removed version 2.x configuration options:
@@ -705,8 +710,10 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     }
 
     private void loadSimpleSettings(XML xml) {
-        setUrlNormalizer(xml.getObject("urlNormalizer", urlNormalizer));
-        setDelayResolver(xml.getObject("delay", delayResolver));
+        setUrlNormalizer(xml.getObjectImpl(
+                IURLNormalizer.class, "urlNormalizer", urlNormalizer));
+        setDelayResolver(xml.getObjectImpl(
+                IDelayResolver.class, "delay", delayResolver));
         setMaxDepth(xml.getInteger("maxDepth", maxDepth));
         setKeepDownloads(xml.getBoolean("keepDownloads", keepDownloads));
         setFetchHttpHead(xml.getBoolean("fetchHttpHead", fetchHttpHead));
@@ -732,8 +739,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 xml.getPathList("startURLs/urlsFile", startURLsFiles));
         setStartSitemapURLs(
                 xml.getStringList("startURLs/sitemap", startSitemapURLs));
-        setStartURLsProviders(
-                xml.getObjectList("startURLs/provider", startURLsProviders));
+        setStartURLsProviders(xml.getObjectListImpl(IStartURLsProvider.class,
+                "startURLs/provider", startURLsProviders));
     }
 
     @Override

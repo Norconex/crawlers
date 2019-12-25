@@ -1022,8 +1022,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
                 "headers/header", "@name", ".", requestHeaders));
         setAuthFormParams(xml.getStringMap(
                 "authFormParams/param", "@name", ".", authFormParams));
-        setRedirectURLProvider(
-                xml.getObject("redirectURLProvider", redirectURLProvider));
+        setRedirectURLProvider(xml.getObjectImpl(IRedirectURLProvider.class,
+                "redirectURLProvider", redirectURLProvider));
 
     }
 

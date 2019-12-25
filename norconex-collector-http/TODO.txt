@@ -10,6 +10,8 @@ TODO:
 
 The following are either things to be done, or ideas to consider:
 
+- Enforce naming convention where possible (e.g. disabled vs ignored).
+
 - Replace sitemap storage to use new data store engine from crawler.
 
 - Document that the data store can be used for anything now, not just crawl data.
