@@ -168,12 +168,12 @@
               onMatch="exclude" count="5" duplicate="false" separator="/" />
     </referenceFilters>    
     <robotsTxt ignore="false" class="com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider"/>
-    <sitemapResolverFactory ignore="false" lenient="true" 
-        class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory">
+    <sitemapResolver ignore="false" lenient="true" 
+        class="com.norconex.collector.http.sitemap.impl.GenericSitemapResolver">
       <tempDir>/tmp/</tempDir>
       <path>/path1/</path>
       <path>/path2/</path>
-    </sitemapResolverFactory>
+    </sitemapResolver>
     <!-- DEPRECATED:
     <redirectURLProvider class="com.norconex.collector.http.fetch.util.GenericRedirectURLProvider"
         fallbackCharset="UTF-8" />

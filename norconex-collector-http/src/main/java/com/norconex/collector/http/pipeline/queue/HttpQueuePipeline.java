@@ -24,11 +24,9 @@ import com.norconex.collector.core.pipeline.BasePipelineContext;
 import com.norconex.collector.core.pipeline.queue.QueueReferenceStage;
 import com.norconex.collector.core.pipeline.queue.ReferenceFiltersStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
-import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
@@ -102,18 +100,23 @@ public final class HttpQueuePipeline
             }
             final ISitemapResolver sitemapResolver = ctx.getSitemapResolver();
 
-            SitemapURLAdder urlAdder = new SitemapURLAdder() {
-                @Override
-                public void add(HttpCrawlReference reference) {
-                    HttpQueuePipelineContext context =
-                            new HttpQueuePipelineContext(
-                                    ctx.getCrawler(), reference);
-                    new HttpQueuePipeline().execute(context);
-                }
-            };
+//            SitemapURLAdder urlAdder = new SitemapURLAdder() {
+//                @Override
+//                public void add(HttpCrawlReference reference) {
+//                    HttpQueuePipelineContext context =
+//                            new HttpQueuePipelineContext(
+//                                    ctx.getCrawler(), reference);
+//                    new HttpQueuePipeline().execute(context);
+//                }
+//            };
             sitemapResolver.resolveSitemaps(
                     ctx.getCrawler().getHttpFetchClient(), urlRoot,
-                    robotsTxtLocations, urlAdder, false);
+                    robotsTxtLocations, (ref) -> {
+                        HttpQueuePipelineContext context =
+                                new HttpQueuePipelineContext(
+                                        ctx.getCrawler(), ref);
+                        new HttpQueuePipeline().execute(context);
+                    }, false);
             return true;
         }
     }

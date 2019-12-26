@@ -40,8 +40,8 @@ import com.norconex.collector.http.robot.IRobotsMetaProvider;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
 import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
-import com.norconex.collector.http.sitemap.ISitemapResolverFactory;
-import com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory;
+import com.norconex.collector.http.sitemap.ISitemapResolver;
+import com.norconex.collector.http.sitemap.impl.GenericSitemapResolver;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
@@ -94,8 +94,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
             new StandardRobotsTxtProvider();
     private IRobotsMetaProvider robotsMetaProvider =
             new StandardRobotsMetaProvider();
-    private ISitemapResolverFactory sitemapResolverFactory =
-            new StandardSitemapResolverFactory();
+    private ISitemapResolver sitemapResolver = new GenericSitemapResolver();
 
     private IMetadataChecksummer metadataChecksummer =
     		new LastModifiedMetadataChecksummer();
@@ -523,12 +522,11 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         this.ignoreSitemap = ignoreSitemap;
     }
 
-    public ISitemapResolverFactory getSitemapResolverFactory() {
-        return sitemapResolverFactory;
+    public ISitemapResolver getSitemapResolver() {
+        return sitemapResolver;
     }
-    public void setSitemapResolverFactory(
-            ISitemapResolverFactory sitemapResolverFactory) {
-        this.sitemapResolverFactory = sitemapResolverFactory;
+    public void setSitemapResolver(ISitemapResolver sitemapResolver) {
+        this.sitemapResolver = sitemapResolver;
     }
 
     /**
@@ -614,8 +612,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         xml.addElement("delay", delayResolver);
         xml.addElement("robotsTxt", robotsTxtProvider)
                 .setAttribute("ignore", ignoreRobotsTxt);
-        xml.addElement("sitemapResolverFactory",
-                sitemapResolverFactory).setAttribute("ignore", ignoreSitemap);
+        xml.addElement("sitemapResolver",
+                sitemapResolver).setAttribute("ignore", ignoreSitemap);
         xml.addElement("canonicalLinkDetector", canonicalLinkDetector);
         xml.addElement("recrawlableResolver", recrawlableResolver);
 
@@ -646,11 +644,11 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 xml.getBoolean("robotsTxt/@ignore", ignoreRobotsTxt));
 
         // Sitemap Resolver
-        setSitemapResolverFactory(xml.getObjectImpl(
-                ISitemapResolverFactory.class,
-                "sitemapResolverFactory", sitemapResolverFactory));
+        setSitemapResolver(xml.getObjectImpl(
+                ISitemapResolver.class,
+                "sitemapResolver", sitemapResolver));
         setIgnoreSitemap(xml.getBoolean(
-                "sitemapResolverFactory/@ignore", ignoreSitemap));
+                "sitemapResolver/@ignore", ignoreSitemap));
 
         // Canonical Link Detector
         setCanonicalLinkDetector(xml.getObjectImpl(ICanonicalLinkDetector.class,

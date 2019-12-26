@@ -278,7 +278,7 @@ public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
         setDisabled(xml.getBoolean("@disabled", disabled));
 
         //TODO be consistant how to clear defaults... similar issue as with
-        //StandardSitemapResolverFactory
+        //GenericSitemapResolver
         List<String> norms = xml.getStringList("normalizations");
         if (norms.size() == 1 && norms.get(0).equals("")) {
             CollectionUtil.setAll(

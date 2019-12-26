@@ -41,7 +41,7 @@
       <delay default="${delay}" />
       <numThreads>1</numThreads>
 
-      <sitemapResolverFactory ignore="true" />
+      <sitemapResolver ignore="true" />
       <robotsTxt ignore="true" />
       <robotsMeta ignore="true" />
 

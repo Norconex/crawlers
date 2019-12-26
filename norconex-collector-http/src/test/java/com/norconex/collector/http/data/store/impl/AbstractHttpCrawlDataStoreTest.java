@@ -14,8 +14,8 @@
  */
 package com.norconex.collector.http.data.store.impl;
 
-import static com.norconex.collector.core.CollectorEvent.COLLECTOR_STARTED;
-import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STARTED;
+import static com.norconex.collector.core.CollectorEvent.COLLECTOR_RUN_BEGIN;
+import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RUN_BEGIN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -87,9 +87,9 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         collector.getCollectorConfig().setId("testCollectorId");
         EventManager em = new EventManager();
         em.addListenersFromScan(crawlerConfig);
-        em.fire(CollectorEvent.create(COLLECTOR_STARTED, collector));
+        em.fire(CollectorEvent.create(COLLECTOR_RUN_BEGIN, collector));
         em.fire(CrawlerEvent.create(
-                CRAWLER_STARTED, new HttpCrawler(crawlerConfig, collector)));
+                CRAWLER_RUN_BEGIN, new HttpCrawler(crawlerConfig, collector)));
 
         crawlReferenceService = createCrawlDataStore(crawlerConfig, tempFolder, false);
     }

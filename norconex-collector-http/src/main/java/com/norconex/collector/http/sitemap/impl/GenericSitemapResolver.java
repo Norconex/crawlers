@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.XMLInputFactory;
@@ -43,15 +45,22 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.crawler.Crawler;
+import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.crawler.CrawlerLifeCycleListener;
+import com.norconex.collector.core.store.IDataStore;
+import com.norconex.collector.core.store.SimpleValue;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doc.HttpDocument;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
-import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.commons.lang.xml.IXMLConfigurable;
+import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
@@ -70,7 +79,6 @@ import com.norconex.commons.lang.file.FileUtil;
  * its children. This behavior is respected by default.  Setting lenient
  * to <code>true</code> no longer honors this restriction.
  * </p>
- * <h3>Since 2.3.0</h3>
  * <p>
  * Paths relative to URL roots can be specified and an attempt will be made
  * to load and parse any sitemap found at those locations for each root URLs
@@ -95,30 +103,72 @@ import com.norconex.commons.lang.file.FileUtil;
  * {@link FileUtils#getTempDirectoryPath()}.
  * </p>
  * @author Pascal Essiembre
+ * @since 3.0.0 (merged fro StandardSitemapResolver*)
  */
-public class StandardSitemapResolver implements ISitemapResolver {
+public class GenericSitemapResolver
+        extends CrawlerLifeCycleListener
+        implements ISitemapResolver, IXMLConfigurable {
+
+
+
+    //TODO remove factory and use DataStoreEngine instead of mvstore
+
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            StandardSitemapResolver.class);
+            GenericSitemapResolver.class);
 
     public static final List<String> DEFAULT_SITEMAP_PATHS =
             Collections.unmodifiableList(Arrays.asList(
                     "/sitemap.xml", "/sitemap_index.xml"));
 
-    private final SitemapStore sitemapStore;
+    private Path tempDir;
+    private IDataStore<SimpleValue> resolvedURLRoots;
+
     private final Set<String> activeURLRoots =
             Collections.synchronizedSet(new HashSet<String>());
 
     private boolean lenient;
     private boolean stopped;
-    private Path tempDir;
     private final List<String> sitemapPaths =
             new ArrayList<>(DEFAULT_SITEMAP_PATHS);
 
-    public StandardSitemapResolver(Path tempDir, SitemapStore sitemapStore) {
-        super();
-        this.tempDir = tempDir;
-        this.sitemapStore = sitemapStore;
+    @Override
+    protected void onCrawlerRunBegin(CrawlerEvent<Crawler> event) {
+        tempDir = Optional.ofNullable(tempDir).orElseGet(
+                () -> event.getSource().getTempDir());
+        resolvedURLRoots = Optional.ofNullable(resolvedURLRoots).orElseGet(
+                () -> event.getSource().getDataStoreEngine().openStore(
+                        "generic-sitemap", SimpleValue.class));
+    }
+    @Override
+    protected void onCrawlerStopBegin(CrawlerEvent<Crawler> event) {
+        stopped = true;
+    }
+    @Override
+    protected void onCrawlerEvent(CrawlerEvent<Crawler> event) {
+        if (event.is(CrawlerEvent.CRAWLER_RUN_END,
+                CrawlerEvent.CRAWLER_STOP_END)) {
+            Optional.ofNullable(resolvedURLRoots).ifPresent((c) -> {
+                c.clear();
+                c.close();
+            });
+            deleteTemp();
+        }
+    }
+    @Override
+    protected void onCrawlerCleanBegin(CrawlerEvent<Crawler> event) {
+        deleteTemp();
+    }
+
+    private void deleteTemp() {
+        Optional.ofNullable(tempDir).ifPresent(dir -> {
+            try {
+                FileUtil.delete(dir.toFile());
+            } catch (IOException e) {
+                throw new CollectorException("Could not delete sitemap "
+                        + "temporary directory: " + dir, e);
+            }
+        });
     }
 
     /**
@@ -126,7 +176,6 @@ public class StandardSitemapResolver implements ISitemapResolver {
      * locate and resolve sitemaps. Default paths are
      * "/sitemap.xml" and "/sitemap-index.xml".
      * @return sitemap paths.
-     * @since 2.3.0
      */
     public List<String> getSitemapPaths() {
         return Collections.unmodifiableList(sitemapPaths);
@@ -135,7 +184,6 @@ public class StandardSitemapResolver implements ISitemapResolver {
      * Sets the URL paths, relative to the URL root, from which to try
      * locate and resolve sitemaps.
      * @param sitemapPaths sitemap paths.
-     * @since 2.3.0
      */
     public void setSitemapPaths(String... sitemapPaths) {
         CollectionUtil.setAll(this.sitemapPaths, sitemapPaths);
@@ -144,7 +192,6 @@ public class StandardSitemapResolver implements ISitemapResolver {
      * Sets the URL paths, relative to the URL root, from which to try
      * locate and resolve sitemaps.
      * @param sitemapPaths sitemap paths.
-     * @since 3.0.0
      */
     public void setSitemapPaths(List<String> sitemapPaths) {
         CollectionUtil.setAll(this.sitemapPaths, sitemapPaths);
@@ -153,8 +200,15 @@ public class StandardSitemapResolver implements ISitemapResolver {
     @Override
     public void resolveSitemaps(
             HttpFetchClient fetcher, String urlRoot,
-            List<String> sitemapLocations, SitemapURLAdder sitemapURLAdder,
+            List<String> sitemapLocations,
+            Consumer<HttpCrawlReference> sitemapURLConsumer,
             boolean startURLs) {
+
+
+        //TODO replace url adder with Consumer
+
+
+
 
         if (isResolutionRequired(urlRoot)) {
             final Set<String> resolvedLocations = new HashSet<>();
@@ -168,16 +222,17 @@ public class StandardSitemapResolver implements ISitemapResolver {
             LOG.debug("Sitemap locations: {}", uniqueLocations);
             for (String location : uniqueLocations) {
                 resolveLocation(location, fetcher,
-                        sitemapURLAdder, resolvedLocations);
+                        sitemapURLConsumer, resolvedLocations);
             }
-            sitemapStore.markResolved(urlRoot);
+            resolvedURLRoots.save(new SimpleValue(urlRoot));
+//            sitemapStore.markResolved(urlRoot);
             activeURLRoots.remove(urlRoot);
         }
     }
 
     private synchronized boolean isResolutionRequired(String urlRoot) {
         if (activeURLRoots.contains(urlRoot)
-                || sitemapStore.isResolved(urlRoot)) {
+                || resolvedURLRoots.existsById(urlRoot)) {
             LOG.trace("Sitemap locations were already processed or are "
                     + "being processed for URL root: {}", urlRoot);
             return false;
@@ -196,7 +251,6 @@ public class StandardSitemapResolver implements ISitemapResolver {
     /**
      * Gets the directory where temporary sitemap files are written.
      * @return directory
-     * @since 2.3.0
      */
     public Path getTempDir() {
         return tempDir;
@@ -204,20 +258,27 @@ public class StandardSitemapResolver implements ISitemapResolver {
     /**
      * Sets the directory where temporary sitemap files are written.
      * @param tempDir directory
-     * @since 2.3.0
      */
     public void setTempDir(Path tempDir) {
         this.tempDir = tempDir;
     }
 
-    @Override
-    public void stop() {
-        this.stopped = true;
-        sitemapStore.close();
+    public IDataStore<SimpleValue> getDataStore() {
+        return resolvedURLRoots;
+    }
+    public void setDataStore(IDataStore<SimpleValue> dataStore) {
+        this.resolvedURLRoots = dataStore;
     }
 
+//    @Override
+//    public void stop() {
+//        this.stopped = true;
+////        resolvedURLRoots.close();
+//    }
+
     private void resolveLocation(String location, HttpFetchClient fetcher,
-            SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations) {
+            Consumer<HttpCrawlReference> sitemapURLConsumer,
+            Set<String> resolvedLocations) {
 
         if (resolvedLocations.contains(location)) {
             return;
@@ -250,7 +311,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 }
                 File sitemapFile = inputStreamToTempFile(is);
                 is.close();
-                parseLocation(sitemapFile, fetcher, sitemapURLAdder,
+                parseLocation(sitemapFile, fetcher, sitemapURLConsumer,
                         resolvedLocations, location);
                 LOG.info("         Resolved: {}", location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
@@ -305,7 +366,8 @@ public class StandardSitemapResolver implements ISitemapResolver {
 
 
     private void parseLocation(File sitemapFile, HttpFetchClient fetcher,
-            SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations,
+            Consumer<HttpCrawlReference> sitemapURLConsumer,
+            Set<String> resolvedLocations,
             String location) throws XMLStreamException, IOException {
 
         try (FileInputStream fis = new FileInputStream(sitemapFile)) {
@@ -331,7 +393,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                     String value = xmlReader.getText();
                     if (parseState.sitemapIndex && parseState.loc) {
                         resolveLocation(value, fetcher,
-                                sitemapURLAdder, resolvedLocations);
+                                sitemapURLConsumer, resolvedLocations);
                         parseState.loc = false;
                     } else if (parseState.baseURL != null) {
                         parseCharacters(parseState, value);
@@ -340,7 +402,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 case XMLStreamConstants.END_ELEMENT:
                     tag = xmlReader.getLocalName();
                     parseEndElement(
-                            sitemapURLAdder, parseState, locationDir, tag);
+                            sitemapURLConsumer, parseState, locationDir, tag);
                     break;
                 }
                 if (!xmlReader.hasNext()) {
@@ -352,14 +414,15 @@ public class StandardSitemapResolver implements ISitemapResolver {
         FileUtil.delete(sitemapFile);
     }
 
-    private void parseEndElement(SitemapURLAdder sitemapURLAdder,
+    private void parseEndElement(
+            Consumer<HttpCrawlReference> sitemapURLConsumer,
             ParseState parseState, String locationDir, String tag) {
         if ("sitemap".equalsIgnoreCase(tag)) {
             parseState.sitemapIndex = false;
         } else if("url".equalsIgnoreCase(tag)
                 && parseState.baseURL.getReference() != null){
             if (isRelaxed(parseState, locationDir)) {
-                sitemapURLAdder.add(parseState.baseURL);
+                sitemapURLConsumer.accept(parseState.baseURL);
             }
             LOG.debug("Sitemap URL invalid for location directory."
                     + " URL: {}  Location directory: {}",
@@ -437,6 +500,73 @@ public class StandardSitemapResolver implements ISitemapResolver {
         }
         return uniqueLocations;
     }
+
+    @Override
+    public void loadFromXML(XML xml) {
+        setTempDir(xml.getPath("tempDir", tempDir));
+        setLenient(xml.getBoolean("@lenient", lenient));
+
+        //TODO make sure null can be set to clear the paths instead of this hack
+        List<String> paths = xml.getStringList("path");
+        if (paths.size() == 1 && paths.get(0).equals("")) {
+            setSitemapPaths((List<String>) null);
+        } else if (!paths.isEmpty()) {
+            setSitemapPaths(paths);
+        }
+//        setSitemapPaths(xml.getStringList("path", sitemapPaths));
+//
+//
+//
+//        String[] paths = xml.getList(
+//                "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+//        if (!ArrayUtils.isEmpty(paths)) {
+//            // not empty but if empty after removing blank ones, consider
+//            // empty (we want no path)
+//            List<String> cleanPaths = new ArrayList<>(paths.length);
+//            for (String path : paths) {
+//                if (StringUtils.isNotBlank(path)) {
+//                    cleanPaths.add(path);
+//                }
+//            }
+//            if (cleanPaths.isEmpty()) {
+//                setSitemapPaths(ArrayUtils.EMPTY_STRING_ARRAY);
+//            } else {
+//                setSitemapPaths(
+//                        cleanPaths.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+//            }
+//        }
+    }
+
+    @Override
+    public void saveToXML(XML xml) {
+        xml.setAttribute("lenient", lenient);
+        xml.addElement("tempDir", getTempDir());
+//        xml.addElementList("path", sitemapPaths);
+
+        if (sitemapPaths.isEmpty()) {
+            xml.addElement("path", "");
+        } else {
+            xml.addElementList("path", sitemapPaths);
+        }
+
+        //TODO make sure null can be set to clear the paths
+        // could be done for list if always wrapping lists in parent tag
+        // that when present but empty, means null.
+
+
+//        if (ArrayUtils.isEmpty(sitemapPaths)) {
+//            writer.writeStartElement("path");
+//            writer.writeCharacters("");
+//            writer.writeEndElement();
+//        } else {
+//            for (String path : sitemapPaths) {
+//                writer.writeStartElement("path");
+//                writer.writeCharacters(path);
+//                writer.writeEndElement();
+//            }
+//        }
+    }
+
 
     @Override
     public boolean equals(final Object other) {

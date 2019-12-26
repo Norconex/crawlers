@@ -52,7 +52,7 @@ public class StartAfterStopped extends AbstractInfiniteDepthTestFeature {
             final MutableInt addCount = new MutableInt();
             cfg.addEventListeners(e -> {
                 if (e.getSource() instanceof HttpCollector
-                        && e.is(HttpCollectorEvent.COLLECTOR_STARTED)) {
+                        && e.is(HttpCollectorEvent.COLLECTOR_RUN_BEGIN)) {
                     col.setValue((HttpCollector) e.getSource());
                 } else if (e.is(HttpCrawlerEvent.DOCUMENT_COMMITTED_ADD)) {
                     if (addCount.incrementAndGet() == 3) {

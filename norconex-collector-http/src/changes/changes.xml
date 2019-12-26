@@ -70,6 +70,9 @@
         Remove all previously available crawl store implementions in favor
         of new NitriteDataStore.
       </action>
+      <action dev="essiembre" type="remove">
+        ISitemapResolverFactory removed in favor of ISitemapResolver.
+      </action>
     </release>
 
   </body>

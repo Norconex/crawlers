@@ -217,7 +217,7 @@
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
-      <url>${site.baseurl}/collectors/collector-http/latest</url>
+      <url>${site.baseurl}/collectors/collector-http/v3</url>
     </site>
   </distributionManagement>
   
@@ -271,7 +271,7 @@
           <show>protected</show>
           <nodeprecated>false</nodeprecated>
           <source>1.8</source>
-          <detectLinks>false</detectLinks>
+          <detectLinks>true</detectLinks>
           <links>
             <link>https://www.norconex.com/product/commons-lang/apidocs/</link>
             <link>https://www.norconex.com/jef/api/latest/apidocs/</link>
@@ -301,7 +301,7 @@
     </plugins>
   </reporting>  
 
-  <url>https://www.norconex.com/collectors/collector-http</url>
+  <url>https://www.norconex.com/collectors/collector-http/v3</url>
   <description>Norconex HTTP Collector is a web spider, or crawler that aims to be very flexible, easy to extend, and portable</description>
   <issueManagement>
     <system>GitHub</system>

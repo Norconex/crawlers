@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2019 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
 package com.norconex.collector.http.sitemap;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.fetch.HttpFetchClient;
-import com.norconex.collector.http.sitemap.impl.StandardSitemapResolver;
+import com.norconex.collector.http.reference.HttpCrawlReference;
 
 
 /**
@@ -48,7 +49,6 @@ import com.norconex.collector.http.sitemap.impl.StandardSitemapResolver;
  * </p>
  *
  * @author Pascal Essiembre
- * @see StandardSitemapResolver
  */
 public interface ISitemapResolver {
 
@@ -59,19 +59,20 @@ public interface ISitemapResolver {
      *        files if needed
      * @param urlRoot the URL root for which to resolve the sitemap
      * @param sitemapLocations sitemap locations to resolve
-     * @param sitemapURLAdder where to store retrieved site map URLs
+     * @param sitemapURLConsumer where to store retrieved site map URLs
      * @param startURLs whether the sitemapLocations provided (if any) are
      *        start URLs (defined in {@link HttpCrawlerConfig#getStartSitemapURLs()})
      */
     void resolveSitemaps(HttpFetchClient httpFetcher, String urlRoot,
-            List<String> sitemapLocations, SitemapURLAdder sitemapURLAdder,
+            List<String> sitemapLocations,
+            Consumer<HttpCrawlReference> sitemapURLConsumer,
             boolean startURLs);
 
-    /**
-     * Stops any ongoing sitemap resolution.  Some sitemaps can be huge,
-     * and they may take a while to process.  Upon the crawler receiving a
-     * stop request, this method will be invoked and implementors should
-     * try to exit cleanly without much delay.
-     */
-    void stop();
+//    /**
+//     * Stops any ongoing sitemap resolution.  Some sitemaps can be huge,
+//     * and they may take a while to process.  Upon the crawler receiving a
+//     * stop request, this method will be invoked and implementors should
+//     * try to exit cleanly without much delay.
+//     */
+//    void stop();
 }

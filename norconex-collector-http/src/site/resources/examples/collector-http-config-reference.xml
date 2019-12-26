@@ -51,7 +51,7 @@
   #set($canonLinkDetector = "${http}.url.impl.GenericCanonicalLinkDetector")
   #set($urlNormalizer     = "${http}.url.impl.GenericURLNormalizer")
   #set($delayResolver     = "${http}.delay.impl.GenericDelayResolver")
-  #set($sitemapFactory    = "${http}.sitemap.impl.StandardSitemapResolverFactory")
+  #set($sitemapFactory    = "${http}.sitemap.impl.GenericSitemapResolver")
   #set($metaChecksummer   = "${http}.checksum.impl.HttpMetadataChecksummer")
   #set($docChecksummer    = "${core}.checksum.impl.MD5DocumentChecksummer")
   #set($dataStoreEngine   = "${core}.store.impl.nitrite.NitriteDataStoreEngine")
@@ -251,10 +251,9 @@
       <!-- Loads sitemap.xml URLs and adds adds them to URLs to process.
            Default implementation is the following.
            -->
-      <sitemapResolverFactory 
-            ignore="false" lenient="false" class="$sitemapFactory">
+      <sitemapResolver ignore="false" lenient="false" class="$sitemapFactory">
         <path>/blogs/sitemap.xml</path>
-      </sitemapResolverFactory>
+      </sitemapResolver>
       
       <!-- Provides the target URL to use when a redirect is encountered.
            Classes must implement *.redirect.IRedirectURLProvider.

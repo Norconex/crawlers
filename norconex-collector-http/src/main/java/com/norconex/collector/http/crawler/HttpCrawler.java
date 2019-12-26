@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -50,11 +51,9 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
-import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.doc.ImporterDocument;
 import com.norconex.importer.response.ImporterResponse;
-import com.norconex.jef5.status.JobStatus;
 import com.norconex.jef5.status.JobStatusUpdater;
 import com.norconex.jef5.suite.JobSuite;
 
@@ -96,13 +95,13 @@ public class HttpCrawler extends Crawler {
         return sitemapResolver;
     }
 
-    @Override
-    public void stop(JobStatus jobStatus, JobSuite suite) {
-        super.stop(jobStatus, suite);
-        if (sitemapResolver != null) {
-            sitemapResolver.stop();
-        }
-    }
+//    @Override
+//    public void stop(JobStatus jobStatus, JobSuite suite) {
+//        super.stop(jobStatus, suite);
+//        if (sitemapResolver != null) {
+//            sitemapResolver.stop();
+//        }
+//    }
 
     @Override
     protected void prepareExecution(
@@ -119,10 +118,10 @@ public class HttpCrawler extends Crawler {
 
         // We always initialize the sitemap resolver even if ignored
         // because sitemaps can be specified as start URLs.
-        if (cfg.getSitemapResolverFactory() != null) {
-            this.sitemapResolver = cfg.getSitemapResolverFactory()
-                    .createSitemapResolver(cfg, resume);
-        }
+//        if (cfg.getSitemapResolverFactory() != null) {
+            this.sitemapResolver = cfg.getSitemapResolver();
+//                    .createSitemapResolver(cfg, resume);
+//        }
 
         if (!resume) {
             queueStartURLs();
@@ -189,12 +188,9 @@ public class HttpCrawler extends Crawler {
         }
 
         final MutableInt urlCount = new MutableInt();
-        SitemapURLAdder urlAdder = new SitemapURLAdder() {
-            @Override
-            public void add(HttpCrawlReference reference) {
-                executeQueuePipeline(reference);
+        Consumer<HttpCrawlReference> urlConsumer = (ref) -> {
+                executeQueuePipeline(ref);
                 urlCount.increment();
-            }
         };
         // Process each URL root group separately
         for (String  urlRoot : sitemapsPerRoots.keySet()) {
@@ -202,7 +198,7 @@ public class HttpCrawler extends Crawler {
                     (List<String>) sitemapsPerRoots.get(urlRoot);
             if (sitemapResolver != null) {
                 sitemapResolver.resolveSitemaps(
-                        fetchClient, urlRoot, locations, urlAdder, true);
+                        fetchClient, urlRoot, locations, urlConsumer, true);
             } else {
                 LOG.error("Sitemap resolver is null. Sitemaps defined as "
                         + "start URLs cannot be resolved.");
@@ -450,9 +446,9 @@ public class HttpCrawler extends Crawler {
     protected void cleanupExecution(JobStatusUpdater statusUpdater,
             JobSuite suite) {
         try {
-            if (sitemapResolver != null) {
-                sitemapResolver.stop();
-            }
+//            if (sitemapResolver != null) {
+//                sitemapResolver.stop();
+//            }
         } catch (Exception e) {
             LOG.error("Could not stop sitemap store.");
         }

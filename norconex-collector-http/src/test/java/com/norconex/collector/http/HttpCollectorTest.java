@@ -65,7 +65,7 @@ public class HttpCollectorTest {
         //TODO have abstract filter providing easy way to filter by event
         // type and event name.
         config.addEventListeners(e -> {
-            if (e.is(HttpCollectorEvent.COLLECTOR_ENDED)) {
+            if (e.is(HttpCollectorEvent.COLLECTOR_RUN_END)) {
                 JobState state = ((CollectorEvent<?>) e).getSource().getState();
                 assertEquals(JobState.COMPLETED, state);
             }

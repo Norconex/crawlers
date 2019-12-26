@@ -227,7 +227,7 @@ public class URLStatusCrawlerEventListener
 
     @Override
     public void accept(Event<?> event) {
-        if (event.is(HttpCollectorEvent.COLLECTOR_STARTED)) {
+        if (event.is(HttpCollectorEvent.COLLECTOR_RUN_BEGIN)) {
             init(((HttpCollectorEvent) event).getSource());
             return;
         }

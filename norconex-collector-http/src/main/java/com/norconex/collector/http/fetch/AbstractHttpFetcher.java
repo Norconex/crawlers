@@ -14,9 +14,9 @@
  */
 package com.norconex.collector.http.fetch;
 
-import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_FINISHED;
-import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STARTED;
-import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STOPPED;
+import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RUN_END;
+import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RUN_BEGIN;
+import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STOP_END;
 
 import java.util.List;
 
@@ -97,11 +97,11 @@ public abstract class AbstractHttpFetcher implements
     }
     public final boolean isCrawlerStartup(Event<?> event) {
         return event instanceof CrawlerEvent
-                && event.is(CRAWLER_STARTED);
+                && event.is(CRAWLER_RUN_BEGIN);
     }
     public final boolean isCrawlerShutdown(Event<?> event) {
         return event instanceof CrawlerEvent
-                && event.is(CRAWLER_FINISHED, CRAWLER_STOPPED);
+                && event.is(CRAWLER_RUN_END, CRAWLER_STOP_END);
     }
 
     /**

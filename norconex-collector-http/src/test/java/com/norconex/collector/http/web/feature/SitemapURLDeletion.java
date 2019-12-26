@@ -14,8 +14,6 @@
  */
 package com.norconex.collector.http.web.feature;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +22,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.http.HttpStatus;
@@ -32,6 +29,7 @@ import org.apache.http.HttpStatus;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.ResourceLoader;
 
 /**
  * The second time the sitemap has 1 less URL and that URL no longer
@@ -71,8 +69,7 @@ public class SitemapURLDeletion extends AbstractTestFeature {
             } else {
                 vars.put("loc3", baseLocURL + 33);
             }
-            String xml = IOUtils.toString(getClass().getResourceAsStream(
-                    getClass().getSimpleName() + ".xml"), UTF_8);
+            String xml = ResourceLoader.getXmlString(getClass());
             xml = StringSubstitutor.replace(xml, vars);
             resp.setContentType("application/xml");
             resp.setCharacterEncoding("UTF-8");
