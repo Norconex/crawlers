@@ -119,6 +119,7 @@
           <maxConnectionIdleTime>7</maxConnectionIdleTime>
           <maxConnectionInactiveTime>8</maxConnectionInactiveTime>
           <trustAllSSLCertificates>true</trustAllSSLCertificates>
+          <disableSNI>true</disableSNI>
           <sslProtocols>item1,item2</sslProtocols>
           <proxyHost>host</proxyHost>
           <proxyPort>9</proxyPort>

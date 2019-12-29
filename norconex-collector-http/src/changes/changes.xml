@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="3.0.0-SNAPSHOT" date="2018-??-??" description="Major release">
+    <release version="3.0.0-SNAPSHOT" date="2020-??-??" description="Major release">
       <action dev="essiembre" type="add">
         New IHttpFetcher for making HTTP requests. Multiple instances
         can now be specified and tried in sequence.  This replaces 
@@ -19,6 +19,14 @@
       </action>
       <action dev="essiembre" type="add">
         New HttpCollectorEvent.
+      </action>
+      <action dev="essiembre" type="add">
+        New GenericHttpFetcher, replacing GenericHttpClientFactory and 
+        GenericHttpDocumentFetcher.
+      </action>
+      <action dev="martin-huber" type="add" issue="577">
+        New "disableSNI" crawler configuration option to disable Server Name 
+        Indication.
       </action>
       <action dev="essiembre" type="remove">
         New "reference" package. 

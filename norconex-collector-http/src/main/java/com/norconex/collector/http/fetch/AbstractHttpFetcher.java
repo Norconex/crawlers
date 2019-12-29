@@ -14,8 +14,8 @@
  */
 package com.norconex.collector.http.fetch;
 
-import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RUN_END;
 import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RUN_BEGIN;
+import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RUN_END;
 import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STOP_END;
 
 import java.util.List;
@@ -95,6 +95,10 @@ public abstract class AbstractHttpFetcher implements
             crawlerShutdown(event);
         }
     }
+
+
+
+    //TODO remove these empty methods given it can be added as needed.
     public final boolean isCrawlerStartup(Event<?> event) {
         return event instanceof CrawlerEvent
                 && event.is(CRAWLER_RUN_BEGIN);

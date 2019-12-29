@@ -103,13 +103,13 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
     private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
     private int maxConnectionInactiveTime;
+    private boolean disableSNI;
     private final List<String> sslProtocols = new ArrayList<>();
     private final Map<String, String> requestHeaders = new HashMap<>();
     private final Map<String, String> authFormParams = new HashMap<>();
     private String userAgent;
     private IRedirectURLProvider redirectURLProvider =
             new GenericRedirectURLProvider();
-
 
     /**
      * Gets the redirect URL provider.
@@ -863,6 +863,23 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     }
 
     /**
+     * Gets whether Server Name Indication (SNI) is disabled.
+     * @return <code>true</code> if disabled
+     * @since 3.0.0
+     */
+    public boolean isDisableSNI() {
+        return disableSNI;
+    }
+    /**
+     * Sets whether Server Name Indication (SNI) is disabled.
+     * @param disableSNI <code>true</code> if disabled
+     * @since 3.0.0
+     */
+    public void setDisableSNI(boolean disableSNI) {
+        this.disableSNI = disableSNI;
+    }
+
+    /**
      * Gets the supported SSL/TLS protocols.  Default is <code>null</code>,
      * which means it will use those provided/configured by your Java
      * platform.
@@ -1007,6 +1024,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         maxConnections = xml.getInteger("maxConnections", maxConnections);
         trustAllSSLCertificates = xml.getBoolean(
                 "trustAllSSLCertificates", trustAllSSLCertificates);
+        disableSNI = xml.getBoolean("disableSNI", disableSNI);;
         localAddress = xml.getString("localAddress", localAddress);
         maxConnectionsPerRoute = xml.getInteger(
                 "maxConnectionsPerRoute", maxConnectionsPerRoute);
@@ -1067,6 +1085,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         xml.addElement("localAddress", localAddress);
         xml.addElement("maxConnections", maxConnections);
         xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
+        xml.addElement("disableSNI", disableSNI);
         xml.addElement("maxConnectionsPerRoute", maxConnectionsPerRoute);
         xml.addElement("maxConnectionIdleTime", maxConnectionIdleTime);
         xml.addElement("maxConnectionInactiveTime", maxConnectionInactiveTime);

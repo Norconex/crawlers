@@ -29,6 +29,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -182,96 +183,98 @@ import com.norconex.importer.util.CharsetUtil;
  * </p>
  *
  * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher"&gt;
+ * <pre>{@code
+ * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
  *
- *      &lt;userAgent&gt;(identify yourself!)&lt;/userAgent&gt;
- *      &lt;cookiesDisabled&gt;[false|true]&lt;/cookiesDisabled&gt;
- *      &lt;connectionTimeout&gt;(milliseconds)&lt;/connectionTimeout&gt;
- *      &lt;socketTimeout&gt;(milliseconds)&lt;/socketTimeout&gt;
- *      &lt;connectionRequestTimeout&gt;(milliseconds)&lt;/connectionRequestTimeout&gt;
- *      &lt;connectionCharset&gt;...&lt;/connectionCharset&gt;
- *      &lt;expectContinueEnabled&gt;[false|true]&lt;/expectContinueEnabled&gt;
- *      &lt;maxRedirects&gt;...&lt;/maxRedirects&gt;
- *      &lt;redirectURLProvider&gt;(implementation handling redirects)&lt;/redirectURLProvider&gt;
- *      &lt;localAddress&gt;...&lt;/localAddress&gt;
- *      &lt;maxConnections&gt;...&lt;/maxConnections&gt;
- *      &lt;maxConnectionsPerRoute&gt;...&lt;/maxConnectionsPerRoute&gt;
- *      &lt;maxConnectionIdleTime&gt;(milliseconds)&lt;/maxConnectionIdleTime&gt;
- *      &lt;maxConnectionInactiveTime&gt;(milliseconds)&lt;/maxConnectionInactiveTime&gt;
+ *     <userAgent>(identify yourself!)</userAgent>
+ *     <cookiesDisabled>[false|true]</cookiesDisabled>
+ *     <connectionTimeout>(milliseconds)</connectionTimeout>
+ *     <socketTimeout>(milliseconds)</socketTimeout>
+ *     <connectionRequestTimeout>(milliseconds)</connectionRequestTimeout>
+ *     <connectionCharset>...</connectionCharset>
+ *     <expectContinueEnabled>[false|true]</expectContinueEnabled>
+ *     <maxRedirects>...</maxRedirects>
+ *     <redirectURLProvider>(implementation handling redirects)</redirectURLProvider>
+ *     <localAddress>...</localAddress>
+ *     <maxConnections>...</maxConnections>
+ *     <maxConnectionsPerRoute>...</maxConnectionsPerRoute>
+ *     <maxConnectionIdleTime>(milliseconds)</maxConnectionIdleTime>
+ *     <maxConnectionInactiveTime>(milliseconds)</maxConnectionInactiveTime>
  *
- *      &lt;!-- Be warned: trusting all certificates is usually a bad idea. --&gt;
- *      &lt;trustAllSSLCertificates&gt;[false|true]&lt;/trustAllSSLCertificates&gt;
+ *     <!-- Be warned: trusting all certificates is usually a bad idea. -->
+ *     <trustAllSSLCertificates>[false|true]</trustAllSSLCertificates>
  *
- *      &lt;!-- Since 2.6.2, you can specify SSL/TLS protocols to use --&gt;
- *      &lt;sslProtocols&gt;(coma-separated list)&lt;/sslProtocols&gt;
+ *     <!-- You can specify SSL/TLS protocols to use -->
+ *     <sslProtocols>(coma-separated list)</sslProtocols>
  *
- *      &lt;proxyHost&gt;...&lt;/proxyHost&gt;
- *      &lt;proxyPort&gt;...&lt;/proxyPort&gt;
- *      &lt;proxyRealm&gt;...&lt;/proxyRealm&gt;
- *      &lt;proxyScheme&gt;...&lt;/proxyScheme&gt;
- *      &lt;proxyUsername&gt;...&lt;/proxyUsername&gt;
- *      &lt;proxyPassword&gt;...&lt;/proxyPassword&gt;
- *      &lt;!-- Use the following if password is encrypted. --&gt;
- *      &lt;proxyPasswordKey&gt;(the encryption key or a reference to it)&lt;/proxyPasswordKey&gt;
- *      &lt;proxyPasswordKeySource&gt;[key|file|environment|property]&lt;/proxyPasswordKeySource&gt;
+ *     <!-- Disable Server Name Indication (SNI) -->
+ *     <disableSNI>[false|true]</disableSNI>
  *
- *      &lt;!-- HTTP request headers passed on every HTTP requests --&gt;
- *      &lt;headers&gt;
- *          &lt;header name="(header name)"&gt;(header value)&lt;/header&gt;
- *          &lt;!-- You can repeat this header tag as needed. --&gt;
- *      &lt;/headers&gt;
+ *     <proxyHost>...</proxyHost>
+ *     <proxyPort>...</proxyPort>
+ *     <proxyRealm>...</proxyRealm>
+ *     <proxyScheme>...</proxyScheme>
+ *     <proxyUsername>...</proxyUsername>
+ *     <proxyPassword>...</proxyPassword>
+ *     <!-- Use the following if password is encrypted. -->
+ *     <proxyPasswordKey>(the encryption key or a reference to it)</proxyPasswordKey>
+ *     <proxyPasswordKeySource>[key|file|environment|property]</proxyPasswordKeySource>
  *
- *      &lt;authMethod&gt;[form|basic|digest|ntlm|spnego|kerberos]&lt;/authMethod&gt;
+ *     <!-- HTTP request headers passed on every HTTP requests -->
+ *     <headers>
+ *         <header name="(header name)">(header value)</header>
+ *         <!-- You can repeat this header tag as needed. -->
+ *     </headers>
  *
- *      &lt;!-- These apply to any authentication mechanism --&gt;
- *      &lt;authUsername&gt;...&lt;/authUsername&gt;
- *      &lt;authPassword&gt;...&lt;/authPassword&gt;
- *      &lt;!-- Use the following if password is encrypted. --&gt;
- *      &lt;authPasswordKey&gt;(the encryption key or a reference to it)&lt;/authPasswordKey&gt;
- *      &lt;authPasswordKeySource&gt;[key|file|environment|property]&lt;/authPasswordKeySource&gt;
+ *     <authMethod>[form|basic|digest|ntlm|spnego|kerberos]</authMethod>
  *
- *      &lt;!-- These apply to FORM authentication --&gt;
- *      &lt;authUsernameField&gt;...&lt;/authUsernameField&gt;
- *      &lt;authPasswordField&gt;...&lt;/authPasswordField&gt;
- *      &lt;authURL&gt;...&lt;/authURL&gt;
- *      &lt;authFormCharset&gt;...&lt;/authFormCharset&gt;
- *      &lt;!-- Extra form parameters required to authenticate (since 2.8.0) --&gt;
- *      &lt;authFormParams&gt;
- *          &lt;param name="(param name)"&gt;(param value)&lt;/param&gt;
- *          &lt;!-- You can repeat this param tag as needed. --&gt;
- *      &lt;/authFormParams&gt;
+ *     <!-- These apply to any authentication mechanism -->
+ *     <authUsername>...</authUsername>
+ *     <authPassword>...</authPassword>
+ *     <!-- Use the following if password is encrypted. -->
+ *     <authPasswordKey>(the encryption key or a reference to it)</authPasswordKey>
+ *     <authPasswordKeySource>[key|file|environment|property]</authPasswordKeySource>
  *
- *      &lt;!-- These apply to both BASIC and DIGEST authentication --&gt;
- *      &lt;authHostname&gt;...&lt;/authHostname&gt;
- *      &lt;authPort&gt;...&lt;/authPort&gt;
- *      &lt;authRealm&gt;...&lt;/authRealm&gt;
+ *     <!-- These apply to FORM authentication -->
+ *     <authUsernameField>...</authUsernameField>
+ *     <authPasswordField>...</authPasswordField>
+ *     <authURL>...</authURL>
+ *     <authFormCharset>...</authFormCharset>
+ *     <!-- Extra form parameters required to authenticate (since 2.8.0) -->
+ *     <authFormParams>
+ *         <param name="(param name)">(param value)</param>
+ *         <!-- You can repeat this param tag as needed. -->
+ *     </authFormParams>
  *
- *      &lt;!-- This applies to BASIC authentication --&gt;
- *      &lt;authPreemptive&gt;[false|true]&lt;/authPreemptive&gt;
+ *     <!-- These apply to both BASIC and DIGEST authentication -->
+ *     <authHostname>...</authHostname>
+ *     <authPort>...</authPort>
+ *     <authRealm>...</authRealm>
  *
- *      &lt;!-- These apply to NTLM authentication --&gt;
- *      &lt;authHostname&gt;...&lt;/authHostname&gt;
- *      &lt;authPort&gt;...&lt;/authPort&gt;
- *      &lt;authWorkstation&gt;...&lt;/authWorkstation&gt;
- *      &lt;authDomain&gt;...&lt;/authDomain&gt;
+ *     <!-- This applies to BASIC authentication -->
+ *     <authPreemptive>[false|true]</authPreemptive>
  *
- *      &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
- *      &lt;notFoundStatusCodes&gt;(defaults to 404)&lt;/notFoundStatusCodes&gt;
- *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
- *      &lt;detectContentType&gt;[false|true]&lt;/detectContentType&gt;
- *      &lt;detectCharset&gt;[false|true]&lt;/detectCharset&gt;
+ *     <!-- These apply to NTLM authentication -->
+ *     <authHostname>...</authHostname>
+ *     <authPort>...</authPort>
+ *     <authWorkstation>...</authWorkstation>
+ *     <authDomain>...</authDomain>
  *
- *      &lt;restrictions&gt;
- *          &lt;restrictTo caseSensitive="[false|true]"
- *                  field="(name of metadata field name to match)"&gt;
- *              (regular expression of value to match)
- *          &lt;/restrictTo&gt;
- *          &lt;!-- multiple "restrictTo" tags allowed (only one needs to match) --&gt;
- *      &lt;/restrictions&gt;
+ *     <validStatusCodes>(defaults to 200)</validStatusCodes>
+ *     <notFoundStatusCodes>(defaults to 404)</notFoundStatusCodes>
+ *     <headersPrefix>(string to prefix headers)</headersPrefix>
+ *     <detectContentType>[false|true]</detectContentType>
+ *     <detectCharset>[false|true]</detectCharset>
  *
- *  &lt;/fetcher&gt;
- * </pre>
+ *     <restrictions>
+ *         <restrictTo caseSensitive="[false|true]"
+ *                 field="(name of metadata field name to match)">
+ *             (regular expression of value to match)
+ *         </restrictTo>
+ *         <!-- multiple "restrictTo" tags allowed (only one needs to match) -->
+ *     </restrictions>
+ * </fetcher>
+ * }</pre>
  *
  * <h4>Usage example:</h4>
  * <p>
@@ -279,15 +282,16 @@ import com.norconex.importer.util.CharsetUtil;
  * The website uses an HTML form with a username and password fields called
  * "loginUser" and "loginPwd".
  * </p>
- * <pre>
- *  &lt;httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory"&gt;
- *      &lt;authUsername&gt;joeUser&lt;/authUsername&gt;
- *      &lt;authPassword&gt;joePasword&lt;/authPassword&gt;
- *      &lt;authUsernameField&gt;loginUser&lt;/authUsernameField&gt;
- *      &lt;authPasswordField&gt;loginPwd&lt;/authPasswordField&gt;
- *      &lt;authURL&gt;http://www.example.com/login&lt;/authURL&gt;
- *  &lt;/httpClientFactory&gt;
- * </pre>
+ * <pre>{@code
+ * <httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">
+ *     <authUsername>joeUser</authUsername>
+ *     <authPassword>joePasword</authPassword>
+ *     <authUsernameField>loginUser</authUsernameField>
+ *     <authPasswordField>loginPwd</authPasswordField>
+ *     <authURL>http://www.example.com/login</authURL>
+ * </httpClientFactory>
+ * }</pre>
+ *
  * @author Pascal Essiembre
  * @since 3.0.0 (Merged from GenericDocumentFetcher and
  *        GenericHttpClientFactory.)
@@ -860,6 +864,23 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 }
 
                 sslParams.setEndpointIdentificationAlgorithm("HTTPS");
+
+                if (cfg.isDisableSNI()) {
+                    // Disabling SNI extension introduced in Java 7 is necessary
+                    // to avoid
+                    // SSLProtocolException: handshake alert: unrecognized_name
+                    // for some sites with wrong Virtual Host - config.
+                    // Described here:
+                    // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7127374
+                    // Instead of using the SystemProperty to disable SNI,
+                    // follow the approach from here
+                    // https://github.com/lightbody/browsermob-proxy/issues/117#issuecomment-141363454
+                    // and disable SNI for this SSLConnectionSocketFactory only
+                    LOG.debug("SSL: Disabling SNI Extension for this "
+                            + "httpClientFactory.");
+                    sslParams.setServerNames(Collections.emptyList());
+                }
+
                 socket.setSSLParameters(sslParams);
             }
         };
@@ -870,16 +891,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             return null;
         }
         LOG.info("SSL: Trusting all certificates.");
-
-        //TODO consider moving some of the below settings at the collector
-        //level since they affect the whole JVM.
-
-        // Disabling SNI extension introduced in Java 7 is necessary
-        // to avoid SSLProtocolException: handshake alert:  unrecognized_name
-        // Described here:
-        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7127374
-        LOG.debug("SSL: Disabling SNI Extension using system property.");
-        System.setProperty("jsse.enableSNIExtension", "false");
 
         // Use a trust strategy that always returns true
         SSLContext sslcontext;
