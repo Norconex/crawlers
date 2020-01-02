@@ -98,7 +98,7 @@ public abstract class AbstractHttpFetcher implements
 
 
 
-    //TODO remove these empty methods given it can be added as needed.
+    //TODO remove these empty methods given it can be added as needed?
     public final boolean isCrawlerStartup(Event<?> event) {
         return event instanceof CrawlerEvent
                 && event.is(CRAWLER_RUN_BEGIN);

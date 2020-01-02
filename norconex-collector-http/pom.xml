@@ -211,6 +211,7 @@
           </execution>
         </executions>
       </plugin>
+
     </plugins>
   </build>
   
@@ -220,86 +221,6 @@
       <url>${site.baseurl}/collectors/collector-http/v3</url>
     </site>
   </distributionManagement>
-  
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.7</version>
-        <configuration>
-          <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
-          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-        </configuration>
-        <reportSets>
-          <reportSet>
-            <reports>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.10.2</version>
-        <configuration>
-          <overview>${basedir}/src/main/javadoc/overview.html</overview>
-          <header><![CDATA[
-            <style>div.aboutLanguage .siteLink {font-size: 2em;}</style>
-            <span class="siteLink">
-              <a href="https://www.norconex.com/collectors/collector-http">Norconex HTTP Collector</a>
-            </span>
-            ]]>
-          </header>
-          <footer><![CDATA[
-            <script type="text/javascript">
-              var _gaq = _gaq || [];
-              _gaq.push(['_setAccount', 'UA-23162620-1']);
-              _gaq.push(['_setDomainName', 'norconex.com']);
-              _gaq.push(['_trackPageview']);
-              (function() {
-                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-              })();
-            </script>
-            <a style="font-size: 1.4em;" href="https://github.com/norconex/collector-http/issues">Submit an Issue</a>
-            &nbsp;&nbsp;|&nbsp;&nbsp; 
-            <a style="font-size: 1.4em;" href="https://www.norconex.com">www.norconex.com</a>
-            ]]>
-          </footer>
-          <show>protected</show>
-          <nodeprecated>false</nodeprecated>
-          <source>1.8</source>
-          <detectLinks>true</detectLinks>
-          <links>
-            <link>https://www.norconex.com/product/commons-lang/apidocs/</link>
-            <link>https://www.norconex.com/jef/api/latest/apidocs/</link>
-            <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
-            <link>https://www.norconex.com/collectors/committer-core/latest/apidocs/</link>
-            <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
-            <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
-            <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
-            <link>https://api.mongodb.com/java/current/</link>
-            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.5/</link>
-            <link>http://www.joda.org/joda-time/apidocs/</link>
-            <link>https://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/</link>
-            <link>https://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
-          </links>          
-        </configuration>
-        <reportSets>
-          <reportSet>
-            <id>default</id>
-            <configuration>
-            </configuration>
-            <reports>
-              <report>javadoc</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
-  </reporting>  
 
   <url>https://www.norconex.com/collectors/collector-http/v3</url>
   <description>Norconex HTTP Collector is a web spider, or crawler that aims to be very flexible, easy to extend, and portable</description>
