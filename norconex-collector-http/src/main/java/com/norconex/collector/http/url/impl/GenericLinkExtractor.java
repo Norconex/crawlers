@@ -697,7 +697,7 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             if (values.isEmpty()) {
                 tagAttribs.remove(tagName);
             } else {
-                tagAttribs.set(tagName, values);
+                tagAttribs.setList(tagName, values);
             }
         }
         resetTagPattern();

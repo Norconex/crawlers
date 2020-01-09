@@ -1,16 +1,20 @@
-
-LAST MERGE FROM MASTER
-======================
-
-2019-10-27
-
-
 TODO:
 ==============
 
 The following are either things to be done, or ideas to consider:
 
+- Add "export config" flag to command line to write to file generated config 
+  (for distribution).
+
+- Create a class holding constants for frequent XML config attributes. 
+
 - Enforce naming convention where possible (e.g. disabled vs ignored).
+
+- GenericHttpFetcher: rename "headers" to "requestHeaders", rename 
+  "headersPrefix" to "responseHeadersPrefix" and add:
+  responseHeadersDiscard.  No need to add responseHeadersOnSet since
+  http headers are the first thing obtained (or do it since we could get
+  both HEAD and GET headers).
 
 - Replace sitemap storage to use new data store engine from crawler.
 

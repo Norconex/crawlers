@@ -1,4 +1,4 @@
-/* Copyright 2018-2019 Norconex Inc.
+/* Copyright 2018-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -294,7 +294,7 @@ import com.norconex.importer.util.CharsetUtil;
  *
  * @author Pascal Essiembre
  * @since 3.0.0 (Merged from GenericDocumentFetcher and
- *        GenericHttpClientFactory.)
+ *        GenericHttpClientFactory)
  */
 public class GenericHttpFetcher extends AbstractHttpFetcher {
 
@@ -544,9 +544,12 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 }
             }
         } catch (IOException e) {
-            LOG.warn("Cannont perform charset type detection.", e);
+            LOG.warn("Cannot perform charset type detection.", e);
         }
     }
+
+    //TODO Offer global PropertySetter option when adding headers and/or other fields
+
 
     /**
      * Creates the HTTP request to be executed.  Default implementation

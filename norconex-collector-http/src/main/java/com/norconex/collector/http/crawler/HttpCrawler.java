@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,7 +330,7 @@ public class HttpCrawler extends Crawler {
 
         // Add possible redirect trail
         if (!httpData.getRedirectTrail().isEmpty()) {
-            metadata.set(HttpMetadata.COLLECTOR_REDIRECT_TRAIL,
+            metadata.setList(HttpMetadata.COLLECTOR_REDIRECT_TRAIL,
                     httpData.getRedirectTrail());
         }
     }
