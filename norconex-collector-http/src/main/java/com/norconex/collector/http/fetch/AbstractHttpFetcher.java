@@ -140,7 +140,7 @@ public abstract class AbstractHttpFetcher implements
             XML restrictsXML = xml.addElement("restrictions");
             for (PropertyMatcher restrict : restrictions) {
                 PropertyMatcher.saveToXML(
-                        restrict, restrictsXML.addElement("restrictTo"));
+                        restrictsXML.addElement("restrictTo"), restrict);
             }
         }
     }
