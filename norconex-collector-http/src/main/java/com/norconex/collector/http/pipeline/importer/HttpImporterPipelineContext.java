@@ -131,7 +131,7 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     }
     /**
      * Sets whether http headers were already fetched successfully.
-     * @param headersFetched <code>true</code> if fetched successfully
+     * @param httpHeadSuccessful <code>true</code> if fetched successfully
      * @since 2.9.1
      */
     public void setHttpHeadSuccessful(boolean httpHeadSuccessful) {
