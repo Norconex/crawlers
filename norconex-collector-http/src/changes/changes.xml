@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="2.9.1-SNAPSHOT" date="2020-??-??" description="Maintenance release">
+      <action dev="essiembre" type="update" issue="655">
+        Can now decide to re-process headers as part of document fetching
+        when metadata fetcher fails.
+      </action>    
+    </release>
+
     <release version="2.9.0" date="2019-12-22" description="Feature release">
       <action dev="essiembre" type="add" issue="593">
         From Collector Core update, added "unmanaged" attribute to "logsDir" 

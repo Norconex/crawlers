@@ -63,7 +63,15 @@
           </xs:element>
           <xs:element name="redirectURLProvider" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="recrawlableResolver" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="metadataFetcher" type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="metadataFetcher" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:complexContent> 
+                <xs:extension base="anyComplexRequiredClassType"> 
+                  <xs:attribute name="skipOnBadStatus" type="xs:boolean"/>              
+                </xs:extension> 
+              </xs:complexContent>   
+            </xs:complexType>
+          </xs:element>
           <xs:element name="canonicalLinkDetector" minOccurs="0" maxOccurs="1">
             <xs:complexType>
               <xs:complexContent> 

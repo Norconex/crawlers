@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,8 @@ import com.norconex.importer.Importer;
 public class HttpImporterPipelineContext extends ImporterPipelineContext {
 
     private RobotsMeta robotsMeta;
-    
+    private boolean httpHeadSuccessful;
+
     /**
      * Constructor creating a copy of supplied context.
      * @param copiable the item to be copied
@@ -53,10 +54,10 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
             throw new CollectorException("Could not copy importer context.", e);
         }
     }
-    
+
     public HttpImporterPipelineContext(
-            HttpCrawler crawler, ICrawlDataStore crawlDataStore, 
-            HttpCrawlData crawlData, HttpCrawlData cachedCrawlData, 
+            HttpCrawler crawler, ICrawlDataStore crawlDataStore,
+            HttpCrawlData crawlData, HttpCrawlData cachedCrawlData,
             HttpDocument doc) {
         super(crawler, crawlDataStore, crawlData, cachedCrawlData, doc);
     }
@@ -70,17 +71,17 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     public HttpCrawlerConfig getConfig() {
         return getCrawler().getCrawlerConfig();
     }
-    
+
     @Override
     public HttpCrawlData getCrawlData() {
         return (HttpCrawlData) super.getCrawlData();
     }
-    
+
     @Override
     public HttpCrawlData getCachedCrawlData() {
         return (HttpCrawlData) super.getCachedCrawlData();
     }
-    
+
     public HttpClient getHttpClient() {
         return getCrawler().getHttpClient();
     }
@@ -97,11 +98,11 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     public ISitemapResolver getSitemapResolver() {
         return getCrawler().getSitemapResolver();
     }
-    
+
     public HttpMetadata getMetadata() {
         return getDocument().getMetadata();
     }
-    
+
     public Importer getImporter() {
         return getCrawler().getImporter();
     }
@@ -119,6 +120,21 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     public boolean isHttpHeadFetchEnabled() {
         return getConfig().getMetadataFetcher() != null;
     }
-    
+
+    /**
+     * Gets whether http headers were already fetched successfully.
+     * @return <code>true</code> if fetched successfully
+     * @since 2.9.1
+     */
+    public boolean isHttpHeadSuccessful() {
+        return httpHeadSuccessful;
+    }
+    /**
+     * Sets whether http headers were already fetched successfully.
+     * @param headersFetched <code>true</code> if fetched successfully
+     * @since 2.9.1
+     */
+    public void setHttpHeadSuccessful(boolean httpHeadSuccessful) {
+        this.httpHeadSuccessful = httpHeadSuccessful;
+    }
 }
-              

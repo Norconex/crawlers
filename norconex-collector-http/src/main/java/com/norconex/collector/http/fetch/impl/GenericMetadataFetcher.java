@@ -42,8 +42,8 @@ import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
@@ -54,35 +54,36 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * </p>
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;metadataFetcher 
- *      class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" &gt;
+ *  &lt;metadataFetcher
+ *      class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher"
+ *      skipOnBadStatus="[false|true]" &gt;
  *      &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
  *      &lt;notFoundStatusCodes&gt;(defaults to 404)&lt;/notFoundStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
  *  &lt;/metadataFetcher&gt;
  * </pre>
  * <p>
- * The "validStatusCodes" and "notFoundStatusCodes" elements expect a 
+ * The "validStatusCodes" and "notFoundStatusCodes" elements expect a
  * coma-separated list of HTTP response code.  If a code is added in both
  * elements, the valid list takes precedence.
  * </p>
  * <p>
  * The "notFoundStatusCodes" element was added in 2.6.0.
  * </p>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following configures a crawler to use this fetcher with the default
  * settings.
  * </p>
  * <pre>
- *  &lt;metadataFetcher 
+ *  &lt;metadataFetcher
  *      class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" /&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  */
-public class GenericMetadataFetcher 
+public class GenericMetadataFetcher
         implements IHttpMetadataFetcher, IXMLConfigurable {
 
     private static final Logger LOG = LogManager.getLogger(
@@ -127,7 +128,7 @@ public class GenericMetadataFetcher
      */
     public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
         this.notFoundStatusCodes = ArrayUtils.clone(notFoundStatusCodes);
-    }    
+    }
 	public String getHeadersPrefix() {
         return headersPrefix;
     }
@@ -141,12 +142,12 @@ public class GenericMetadataFetcher
         HttpRequestBase method = null;
 	    try {
 	        method = createUriRequest(url);
-	        
+
 	        // Execute the method.
 	        HttpResponse response = httpClient.execute(method);
 	        int statusCode = response.getStatusLine().getStatusCode();
 	        String reason = response.getStatusLine().getReasonPhrase();
-	        
+
             // VALID http response
             if (ArrayUtils.contains(validStatusCodes, statusCode)) {
                 //--- Fetch headers ---
@@ -185,9 +186,9 @@ public class GenericMetadataFetcher
 	        if (method != null) {
 	            method.releaseConnection();
 	        }
-        }  
+        }
 	}
-	
+
     /**
      * Creates the HTTP request to be executed.  Default implementation
      * returns an {@link HttpHead} request around the provided URL.
@@ -202,11 +203,11 @@ public class GenericMetadataFetcher
         }
         return new HttpHead(uri);
     }
-    
+
     @Override
     public void loadFromXML(Reader in) {
         XMLConfiguration xml = XMLConfigurationUtil.newXMLConfiguration(in);
-        
+
         String validCodes = xml.getString("validStatusCodes");
         int[] intValidCodes = validStatusCodes;
         if (StringUtils.isNotBlank(validCodes)) {
@@ -217,8 +218,8 @@ public class GenericMetadataFetcher
                 intValidCodes[i] = Integer.parseInt(code);
             }
         }
-        setValidStatusCodes(intValidCodes);        
-        
+        setValidStatusCodes(intValidCodes);
+
         String notFoundCodes = xml.getString("notFoundStatusCodes");
         int[] intNFCodes = notFoundStatusCodes;
         if (StringUtils.isNotBlank(notFoundCodes)) {
@@ -230,22 +231,22 @@ public class GenericMetadataFetcher
             }
         }
         setNotFoundStatusCodes(intNFCodes);
-        
+
         setHeadersPrefix(xml.getString("headersPrefix"));
     }
     @Override
     public void saveToXML(Writer out) throws IOException {
         try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);         
+            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
             writer.writeStartElement("metadataFetcher");
             writer.writeAttribute("class", getClass().getCanonicalName());
 
-            writer.writeElementString("validStatusCodes", 
+            writer.writeElementString("validStatusCodes",
                     StringUtils.join(validStatusCodes, ','));
-            writer.writeElementString("notFoundStatusCodes", 
+            writer.writeElementString("notFoundStatusCodes",
                     StringUtils.join(notFoundStatusCodes, ','));
             writer.writeElementString("headersPrefix", headersPrefix);
-            
+
             writer.writeEndElement();
             writer.flush();
             writer.close();
@@ -253,7 +254,7 @@ public class GenericMetadataFetcher
             throw new IOException("Cannot save as XML.", e);
         }
     }
-    
+
     @Override
     public boolean equals(final Object other) {
         if (!(other instanceof GenericMetadataFetcher)) {

@@ -1,4 +1,4 @@
-/* Copyright 2016 Norconex Inc.
+/* Copyright 2016-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
 package com.norconex.collector.http.pipeline.importer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
 import com.norconex.collector.core.data.CrawlState;
-import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
-import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpMetadataFetcher;
@@ -28,13 +29,16 @@ import com.norconex.commons.lang.map.Properties;
 
 /**
  * <p>Fetches a document metadata (i.e. HTTP headers).</p>
- * <p>Prior to 2.6.0, the code for this class was part of 
+ * <p>Prior to 2.6.0, the code for this class was part of
  * {@link HttpImporterPipeline}.
  * @author Pascal Essiembre
  * @since 2.6.0
  */
 /*default*/ class MetadataFetcherStage extends AbstractImporterStage {
-    
+
+    private static final Logger LOG = LogManager.getLogger(
+            MetadataFetcherStage.class);
+
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
         if (!ctx.isHttpHeadFetchEnabled()) {
@@ -52,10 +56,10 @@ import com.norconex.commons.lang.map.Properties;
                 ctx.getHttpClient(), crawlData.getReference(), headers);
 
         metadata.putAll(headers);
-        
+
         HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
-        
+
         //-- Deal with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();
         if (StringUtils.isNotBlank(redirectURL)) {
@@ -66,19 +70,30 @@ import com.norconex.commons.lang.map.Properties;
 
         CrawlState state = response.getCrawlState();
         crawlData.setState(state);
+
+        // Good state
         if (state.isGoodState()) {
-            ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_METADATA_FETCHED, 
+            ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_METADATA_FETCHED,
                     crawlData, response);
-        } else {
-            String eventType = null;
-            if (state.isOneOf(HttpCrawlState.NOT_FOUND)) {
-                eventType = HttpCrawlerEvent.REJECTED_NOTFOUND;
-            } else {
-                eventType = HttpCrawlerEvent.REJECTED_BAD_STATUS;
-            }
-            ctx.fireCrawlerEvent(eventType, crawlData, response);
-            return false;
+            ctx.setHttpHeadSuccessful(true);
+            return true;
         }
-        return true;
+
+        // Bad state
+        String eventType = null;
+        if (state.isOneOf(CrawlState.NOT_FOUND)) {
+            eventType = CrawlerEvent.REJECTED_NOTFOUND;
+        } else {
+            eventType = CrawlerEvent.REJECTED_BAD_STATUS;
+            // A bad status could be happening only on HEAD requests
+            // so we optionally skip fetching instead of rejecting the document
+            if (ctx.getConfig().isSkipMetaFetcherOnBadStatus()) {
+                LOG.warn("Bad HTTP response when fetching metadata: "
+                        + response);
+                return true;
+            }
+        }
+        ctx.fireCrawlerEvent(eventType, crawlData, response);
+        return false;
     }
 }

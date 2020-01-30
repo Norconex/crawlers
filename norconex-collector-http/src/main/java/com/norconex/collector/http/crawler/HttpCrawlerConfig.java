@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package com.norconex.collector.http.crawler;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +85,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
 	private boolean keepOutOfScopeLinks;
+	private boolean skipMetaFetcherOnBadStatus;
 
     private String userAgent;
 
@@ -444,6 +446,32 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         this.recrawlableResolver = recrawlableResolver;
     }
 
+    /**
+     * Gets whether to skip metadata fetching activities instead of
+     * rejecting a document on bad status.
+     * @return <code>true</code> if skipping
+     * @since 2.9.1
+     */
+    public boolean isSkipMetaFetcherOnBadStatus() {
+        return skipMetaFetcherOnBadStatus;
+    }
+    /**
+     * Sets whether to skip metadata fetching activities instead of
+     * rejecting a document on bad status. If <code>true</code>, upon
+     * receiving a bad HTTP status code, activities such as metadata filtering,
+     * canonical URL resolution and metadata checksum creation are all skipped.
+     * When applicable, those activites will be performed after the document
+     * fetcher also had a chance to download metadata. Setting this flag to
+     * <code>true</code> can be useful when the HTTP HEAD method is not
+     * supported by some sites or pages.
+     * @param skipMetaFetcherOnBadStatus <code>true</code> if skipping
+     * @since 2.9.1
+     */
+    public void setSkipMetaFetcherOnBadStatus(
+            boolean skipMetaFetcherOnBadStatus) {
+        this.skipMetaFetcherOnBadStatus = skipMetaFetcherOnBadStatus;
+    }
+
     @Override
     protected void saveCrawlerConfigToXML(Writer out) throws IOException {
         try {
@@ -504,7 +532,21 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                     getCanonicalLinkDetector());
             writeObject(out, "redirectURLProvider", getRedirectURLProvider());
             writeObject(out, "recrawlableResolver", getRecrawlableResolver());
-            writeObject(out, "metadataFetcher", getMetadataFetcher());
+
+
+            //--- Metadata fetcher ---------------------------------------------
+            out.flush();
+            writer.flush();
+            StringWriter metaOut = new StringWriter();
+            writeObject(metaOut, "metadataFetcher", getMetadataFetcher());
+            String metaXML = metaOut.toString();
+            metaXML = metaXML.replaceFirst("^(<metadataFetcher)",
+                    "$1 skipOnBadStatus=\"" + isSkipMetaFetcherOnBadStatus()
+                    + "\"");
+            out.write(metaXML);
+            out.flush();
+
+            //------------------------------------------------------------------
             writeObject(out, "metadataChecksummer", getMetadataChecksummer());
             writeObject(out, "documentFetcher", getDocumentFetcher());
             writeObject(out, "robotsMeta",
@@ -575,6 +617,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 "recrawlableResolver", getRecrawlableResolver()));
 
         //--- HTTP Headers Fetcher ---------------------------------------------
+        setSkipMetaFetcherOnBadStatus(xml.getBoolean(
+                "metadataFetcher[@skipOnBadStatus]",
+                isSkipMetaFetcherOnBadStatus()));
         setMetadataFetcher(XMLConfigurationUtil.newInstance(xml,
                 "metadataFetcher", getMetadataFetcher()));
 
@@ -712,6 +757,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(keepDownloads, castOther.keepDownloads)
                 .append(keepOutOfScopeLinks, castOther.keepOutOfScopeLinks)
                 .append(ignoreCanonicalLinks, castOther.ignoreCanonicalLinks)
+                .append(skipMetaFetcherOnBadStatus,
+                        castOther.skipMetaFetcherOnBadStatus)
                 .append(userAgent, castOther.userAgent)
                 .append(urlCrawlScopeStrategy, castOther.urlCrawlScopeStrategy)
                 .append(urlNormalizer, castOther.urlNormalizer)
@@ -748,6 +795,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(keepDownloads)
                 .append(keepOutOfScopeLinks)
                 .append(ignoreCanonicalLinks)
+                .append(skipMetaFetcherOnBadStatus)
                 .append(userAgent)
                 .append(urlCrawlScopeStrategy)
                 .append(urlNormalizer)
@@ -783,6 +831,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("keepDownloads", keepDownloads)
                 .append("keepOutOfScopeLinks", keepOutOfScopeLinks)
                 .append("ignoreCanonicalLinks", ignoreCanonicalLinks)
+                .append("skipMetaFetcherOnBadStatus",
+                        skipMetaFetcherOnBadStatus)
                 .append("userAgent", userAgent)
                 .append("urlCrawlScopeStrategy", urlCrawlScopeStrategy)
                 .append("urlNormalizer", urlNormalizer)

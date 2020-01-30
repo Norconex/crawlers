@@ -21,9 +21,10 @@
       <xs:all>
         <xs:element name="validStatusCodes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
         <xs:element name="notFoundStatusCodes" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="headersPrefix" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="headersPrefix" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>        
       </xs:all>
       <xs:attribute name="class" type="xs:string" use="required"/>
+      <xs:attribute name="skipOnBadStatus" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
 

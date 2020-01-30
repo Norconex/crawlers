@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import java.io.Reader;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.crawler.event.CrawlerEvent;
+import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.core.pipeline.importer.DocumentFiltersStage;
 import com.norconex.collector.core.pipeline.importer.ImportModuleStage;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineUtil;
 import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.pipeline.Pipeline;
@@ -109,9 +110,9 @@ public class HttpImporterPipeline
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
-            if (ctx.getHttpHeadersFetcher() != null
+            if (ctx.isHttpHeadSuccessful()
                     && ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                ctx.getCrawlData().setState(CrawlState.REJECTED);
                 return false;
             }
             return true;
@@ -124,7 +125,7 @@ public class HttpImporterPipeline
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             // Return right away if http headers are not fetched
-            if (!ctx.isHttpHeadFetchEnabled()) {
+            if (!ctx.isHttpHeadSuccessful()) {
                 return true;
             }
             return HttpImporterPipelineUtil.resolveCanonical(ctx, true);
@@ -191,7 +192,7 @@ public class HttpImporterPipeline
                         HttpCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX,
                         ctx.getCrawlData(),
                         ctx.getRobotsMeta());
-                ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                ctx.getCrawlData().setState(CrawlState.REJECTED);
                 return false;
             }
             return canIndex;
@@ -203,9 +204,9 @@ public class HttpImporterPipeline
             extends AbstractImporterStage {
         @Override
         public boolean executeStage(HttpImporterPipelineContext ctx) {
-            if (ctx.getHttpHeadersFetcher() == null) {
+            if (!ctx.isHttpHeadSuccessful()) {
                 if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getCrawlData().setState(HttpCrawlState.REJECTED);
+                    ctx.getCrawlData().setState(CrawlState.REJECTED);
                     return false;
                 }
             }
@@ -225,7 +226,7 @@ public class HttpImporterPipeline
                             ctx.getHttpClient(), ctx.getDocument());
 
                     ctx.getCrawler().fireCrawlerEvent(
-                            HttpCrawlerEvent.DOCUMENT_PREIMPORTED,
+                            CrawlerEvent.DOCUMENT_PREIMPORTED,
                             ctx.getCrawlData(), preProc);
                 }
             }
