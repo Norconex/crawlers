@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,9 +58,11 @@ public class HttpCrawlerConfigTest {
                 (GenericHttpFetcher) crawlerConfig.getHttpFetchers().get(0);
         fetcher.getConfig().setRequestHeader("header1", "value1");
         fetcher.getConfig().setRequestHeader("header2", "value2");
-        fetcher.getConfig().setProxyPasswordKey(new EncryptionKey(
-                "C:\\keys\\myEncryptionKey.txt", EncryptionKey.Source.FILE));
-        fetcher.getConfig().setAuthPasswordKey(new EncryptionKey("my key"));
+        fetcher.getConfig().getProxySettings().getCredentials().setPasswordKey(
+                new EncryptionKey("C:\\keys\\myEncryptionKey.txt",
+                        EncryptionKey.Source.FILE));
+        fetcher.getConfig().getAuthCredentials().setPasswordKey(
+                new EncryptionKey("my key"));
 
         crawlerConfig.setStartURLsProviders(new MockStartURLsProvider());
 

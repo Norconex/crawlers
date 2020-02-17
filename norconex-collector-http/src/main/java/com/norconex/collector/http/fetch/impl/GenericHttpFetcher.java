@@ -111,6 +111,7 @@ import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
@@ -142,39 +143,7 @@ import com.norconex.importer.util.CharsetUtil;
  * and {@link GenericHttpFetcherConfig#setDetectCharset(boolean)}.
  * </p>
  *
- * <h3>Password encryption in XML configuration:</h3>
- * <p>
- * <code>proxyPassword</code> and <code>authPassword</code>
- * can take a password that has been encrypted using {@link EncryptionUtil}.
- * In order for the password to be decrypted properly by the crawler, you need
- * to specify the encryption key used to encrypt it. The key can be stored
- * in a few supported locations and a combination of
- * <code>[auth|proxy]PasswordKey</code>
- * and <code>[auth|proxy]PasswordKeySource</code> must be specified to properly
- * locate the key. The supported sources are:
- * </p>
- * <table border="1" summary="">
- *   <tr>
- *     <th><code>[...]PasswordKeySource</code></th>
- *     <th><code>[...]PasswordKey</code></th>
- *   </tr>
- *   <tr>
- *     <td><code>key</code></td>
- *     <td>The actual encryption key.</td>
- *   </tr>
- *   <tr>
- *     <td><code>file</code></td>
- *     <td>Path to a file containing the encryption key.</td>
- *   </tr>
- *   <tr>
- *     <td><code>environment</code></td>
- *     <td>Name of an environment variable containing the key.</td>
- *   </tr>
- *   <tr>
- *     <td><code>property</code></td>
- *     <td>Name of a JVM system property containing the key.</td>
- *   </tr>
- * </table>
+ * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
  *
  * <p>
  * XML configuration entries expecting millisecond durations
@@ -182,8 +151,7 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>{@code
+ * {@nx.xml.usage
  * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
  *
  *     <userAgent>(identify yourself!)</userAgent>
@@ -210,15 +178,9 @@ import com.norconex.importer.util.CharsetUtil;
  *     <!-- Disable Server Name Indication (SNI) -->
  *     <disableSNI>[false|true]</disableSNI>
  *
- *     <proxyHost>...</proxyHost>
- *     <proxyPort>...</proxyPort>
- *     <proxyRealm>...</proxyRealm>
- *     <proxyScheme>...</proxyScheme>
- *     <proxyUsername>...</proxyUsername>
- *     <proxyPassword>...</proxyPassword>
- *     <!-- Use the following if password is encrypted. -->
- *     <proxyPasswordKey>(the encryption key or a reference to it)</proxyPasswordKey>
- *     <proxyPasswordKeySource>[key|file|environment|property]</proxyPasswordKeySource>
+ *     <proxySettings>
+ *       {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
+ *     </proxySettings>
  *
  *     <!-- HTTP request headers passed on every HTTP requests -->
  *     <headers>
@@ -229,11 +191,9 @@ import com.norconex.importer.util.CharsetUtil;
  *     <authMethod>[form|basic|digest|ntlm|spnego|kerberos]</authMethod>
  *
  *     <!-- These apply to any authentication mechanism -->
- *     <authUsername>...</authUsername>
- *     <authPassword>...</authPassword>
- *     <!-- Use the following if password is encrypted. -->
- *     <authPasswordKey>(the encryption key or a reference to it)</authPasswordKey>
- *     <authPasswordKeySource>[key|file|environment|property]</authPasswordKeySource>
+ *     <authCredentials>
+ *       {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
+ *     </authCredentials>
  *
  *     <!-- These apply to FORM authentication -->
  *     <authUsernameField>...</authUsernameField>
@@ -247,8 +207,10 @@ import com.norconex.importer.util.CharsetUtil;
  *     </authFormParams>
  *
  *     <!-- These apply to both BASIC and DIGEST authentication -->
- *     <authHostname>...</authHostname>
- *     <authPort>...</authPort>
+ *     <authHost>
+ *       {@nx.include com.norconex.commons.lang.net.Host@nx.xml.usage}
+ *     </authHost>
+ *
  *     <authRealm>...</authRealm>
  *
  *     <!-- This applies to BASIC authentication -->
@@ -274,15 +236,9 @@ import com.norconex.importer.util.CharsetUtil;
  *         <!-- multiple "restrictTo" tags allowed (only one needs to match) -->
  *     </restrictions>
  * </fetcher>
- * }</pre>
+ * }
  *
- * <h4>Usage example:</h4>
- * <p>
- * The following will authenticate the crawler to a web site before crawling.
- * The website uses an HTML form with a username and password fields called
- * "loginUser" and "loginPwd".
- * </p>
- * <pre>{@code
+ * {@nx.xml.example
  * <httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">
  *     <authUsername>joeUser</authUsername>
  *     <authPassword>joePasword</authPassword>
@@ -290,12 +246,18 @@ import com.norconex.importer.util.CharsetUtil;
  *     <authPasswordField>loginPwd</authPasswordField>
  *     <authURL>http://www.example.com/login</authURL>
  * </httpClientFactory>
- * }</pre>
+ * }
+ * <p>
+ * The above example will authenticate the crawler to a web site before
+ * crawling. The website uses an HTML form with a username and password
+ * fields called "loginUser" and "loginPwd".
+ * </p>
  *
  * @author Pascal Essiembre
  * @since 3.0.0 (Merged from GenericDocumentFetcher and
  *        GenericHttpClientFactory)
  */
+@SuppressWarnings("javadoc")
 public class GenericHttpFetcher extends AbstractHttpFetcher {
 
     private static final Logger LOG =
@@ -639,10 +601,11 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         HttpPost post = new HttpPost(cfg.getAuthURL());
 
         List<NameValuePair> formparams = new ArrayList<>();
+        formparams.add(new BasicNameValuePair(cfg.getAuthUsernameField(),
+                cfg.getAuthCredentials().getUsername()));
         formparams.add(new BasicNameValuePair(
-                cfg.getAuthUsernameField(), cfg.getAuthUsername()));
-        formparams.add(new BasicNameValuePair(
-                cfg.getAuthPasswordField(), cfg.getAuthPassword()));
+                cfg.getAuthPasswordField(),
+                EncryptionUtil.decryptPassword(cfg.getAuthCredentials())));
 
         for (String name : cfg.getAuthFormParamNames()) {
             formparams.add(new BasicNameValuePair(
@@ -650,7 +613,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
 
         LOG.info("Performing FORM authentication at \"{}\" (username={}; p"
-                + "assword=*****)", cfg.getAuthURL(), cfg.getAuthUsername());
+                + "assword=*****)", cfg.getAuthURL(),
+                cfg.getAuthCredentials().getUsername());
         try {
             UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
                     formparams, cfg.getAuthFormCharset());
@@ -705,7 +669,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         // together and we add the preemptive authentication directly
         // in the default HTTP headers.
         if (cfg.isAuthPreemptive()) {
-            if (StringUtils.isBlank(cfg.getAuthUsername())) {
+            if (StringUtils.isBlank(cfg.getAuthCredentials().getUsername())) {
                 LOG.warn("Preemptive authentication is enabled while no "
                         + "username was provided.");
                 return headers;
@@ -715,9 +679,10 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                         + "method other than \"Basic\" may not produce the "
                         + "expected outcome.");
             }
-            String password = EncryptionUtil.decrypt(
-                    cfg.getAuthPassword(), cfg.getAuthPasswordKey());
-            String auth = cfg.getAuthUsername() + ":" + password;
+            String password = EncryptionUtil.decryptPassword(
+                    cfg.getAuthCredentials());
+            String auth = cfg.getAuthCredentials().getUsername()
+                    + ":" + password;
             byte[] encodedAuth = Base64.encodeBase64(
                     auth.getBytes(StandardCharsets.ISO_8859_1));
             String authHeader = "Basic " + new String(encodedAuth);
@@ -756,48 +721,61 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         return builder.build();
     }
     protected HttpHost createProxy() {
-        if (StringUtils.isNotBlank(cfg.getProxyHost())) {
-            return new HttpHost(cfg.getProxyHost(),
-                    cfg.getProxyPort(), cfg.getProxyScheme());
+        if (cfg.getProxySettings().isSet()) {
+            return new HttpHost(
+                    cfg.getProxySettings().getHost().getName(),
+                    cfg.getProxySettings().getHost().getPort(),
+                    cfg.getProxySettings().getScheme());
         }
         return null;
     }
     protected CredentialsProvider createCredentialsProvider() {
         CredentialsProvider credsProvider = null;
+
         //--- Proxy ---
-        if (StringUtils.isNotBlank(cfg.getProxyUsername())) {
-            String password = EncryptionUtil.decrypt(
-                    cfg.getProxyPassword(), cfg.getProxyPasswordKey());
+        ProxySettings proxy = cfg.getProxySettings();
+        if (proxy.isSet() && proxy.getCredentials().isSet()) {
+            String password = EncryptionUtil.decryptPassword(
+                    proxy.getCredentials());
             credsProvider = new BasicCredentialsProvider();
-            credsProvider.setCredentials(new AuthScope(cfg.getProxyHost(),
-                    cfg.getProxyPort(), cfg.getProxyRealm()),
+            credsProvider.setCredentials(new AuthScope(
+                    proxy.getHost().getName(),
+                    proxy.getHost().getPort(),
+                    proxy.getRealm()),
                     new UsernamePasswordCredentials(
-                            cfg.getProxyUsername(), password));
+                            proxy.getCredentials().getUsername(),
+                            password));
         }
+
         //--- Auth ---
-        if (StringUtils.isNotBlank(cfg.getAuthUsername())
-                && !AUTH_METHOD_FORM.equalsIgnoreCase(cfg.getAuthMethod())) {
+        if (cfg.getAuthCredentials().isSet()
+                && !AUTH_METHOD_FORM.equalsIgnoreCase(cfg.getAuthMethod())
+                && cfg.getAuthHost() != null) {
             if (credsProvider == null) {
                 credsProvider = new BasicCredentialsProvider();
             }
             Credentials creds = null;
-            String password = EncryptionUtil.decrypt(
-                    cfg.getAuthPassword(), cfg.getAuthPasswordKey());
+            String password = EncryptionUtil.decryptPassword(
+                    cfg.getAuthCredentials());
             if (AUTH_METHOD_NTLM.equalsIgnoreCase(cfg.getAuthMethod())) {
-                creds = new NTCredentials(cfg.getAuthUsername(), password,
-                        cfg.getAuthWorkstation(), cfg.getAuthDomain());
+                creds = new NTCredentials(
+                        cfg.getAuthCredentials().getUsername(),
+                        password,
+                        cfg.getAuthWorkstation(),
+                        cfg.getAuthDomain());
             } else {
                 creds = new UsernamePasswordCredentials(
-                        cfg.getAuthUsername(), password);
+                        cfg.getAuthCredentials().getUsername(),
+                        password);
             }
             credsProvider.setCredentials(new AuthScope(
-                    cfg.getAuthHostname(), cfg.getAuthPort(),
+                    cfg.getAuthHost().getName(), cfg.getAuthHost().getPort(),
                     cfg.getAuthRealm(), cfg.getAuthMethod()), creds);
         }
         return credsProvider;
     }
     protected ConnectionConfig createConnectionConfig() {
-        if (StringUtils.isNotBlank(cfg.getProxyUsername())) {
+        if (cfg.getProxySettings().getCredentials().isSet()) {
             return ConnectionConfig.custom()
                     .setCharset(Consts.UTF_8)
                     .build();

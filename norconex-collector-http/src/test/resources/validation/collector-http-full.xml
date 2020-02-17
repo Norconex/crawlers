@@ -308,12 +308,12 @@
       <preParseHandlers>
         <!-- "transformer" DEPRECATED for "handler": -->
         <handler class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
-          <replace><fromValue>A</fromValue><toValue>B</toValue></replace>
+          <replace><valueMatcher>A</valueMatcher><toValue>B</toValue></replace>
         </handler>  
       </preParseHandlers>
       <postParseHandlers>
         <handler class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
-          <replace><fromValue>C</fromValue><toValue>D</toValue></replace>
+          <replace><valueMatcher>C</valueMatcher><toValue>D</toValue></replace>
         </handler>  
       </postParseHandlers>    
     </importer>

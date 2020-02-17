@@ -52,14 +52,7 @@
         <xs:element name="trustAllSSLCertificates" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="disableSNI" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="sslProtocols" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyHost" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyPort" type="xs:int" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyRealm" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyScheme" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyUsername" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyPassword" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyPasswordKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="proxyPasswordKeySource" type="passwordKeySourceType" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="proxySettings" minOccurs="0" maxOccurs="1"/>
         <xs:element name="authFormParams" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
@@ -109,10 +102,7 @@
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
-        <xs:element name="authUsername" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authPassword" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authPasswordKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authPasswordKeySource" type="passwordKeySourceType" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authCredentials" type="CredentialsType" minOccurs="0" maxOccurs="1"/>
         <xs:element name="authUsernameField" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="authPasswordField" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="authURL" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -127,7 +117,7 @@
       <xs:attribute name="class" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
-
+<!-- 
   <xs:simpleType name="passwordKeySourceType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="key"/>
@@ -140,6 +130,7 @@
       <xs:enumeration value="PROPERTY"/>
     </xs:restriction>
   </xs:simpleType>
+ -->
   
   <xs:complexType name="anyComplexOptionalClassType" mixed="true">
     <xs:all>

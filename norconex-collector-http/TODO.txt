@@ -8,6 +8,10 @@ The following are either things to be done, or ideas to consider:
 
 - Create a class holding constants for frequent XML config attributes. 
 
+- Consider porting the HttpImporterPipelineContext#httpHeadSuccessful update
+  to continue processing a doc if HTTP HEAD fails.
+  https://github.com/Norconex/collector-http/issues/655
+
 - Enforce naming convention where possible (e.g. disabled vs ignored).
 
 - GenericHttpFetcher: rename "headers" to "requestHeaders", rename 

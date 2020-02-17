@@ -1,4 +1,4 @@
-/* Copyright 2018-2019 Norconex Inc.
+/* Copyright 2018-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -37,15 +36,16 @@ import com.norconex.collector.http.fetch.util.GenericRedirectURLProvider;
 import com.norconex.collector.http.fetch.util.IRedirectURLProvider;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.encrypt.EncryptionKey;
-import com.norconex.commons.lang.encrypt.EncryptionUtil;
+import com.norconex.commons.lang.net.Host;
+import com.norconex.commons.lang.net.ProxySettings;
+import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
 /**
- *
+ * Generic HTTP Fetcher configuration.
  * @author Pascal Essiembre
- * @since 3.0.0 (extracted from GenericHttpClientFactory and
+ * @since 3.0.0 (adapted from GenericHttpClientFactory and
  *        GenericDocumentFetcher from version 2.x)
  */
 public class GenericHttpFetcherConfig implements IXMLConfigurable {
@@ -72,12 +72,9 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private String authMethod;
     private String authURL;
     private String authUsernameField;
-    private String authUsername;
     private String authPasswordField;
-    private String authPassword;
-    private EncryptionKey authPasswordKey;
-    private String authHostname;
-    private int authPort = -1;
+    private final Credentials authCredentials = new Credentials();
+    private Host authHost;
     private String authRealm;
     private Charset authFormCharset = StandardCharsets.UTF_8;
     private String authWorkstation;
@@ -85,13 +82,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private boolean authPreemptive;
     private String cookieSpec = CookieSpecs.STANDARD;
     private boolean trustAllSSLCertificates;
-    private String proxyHost;
-    private int proxyPort;
-    private String proxyScheme;
-    private String proxyUsername;
-    private String proxyPassword;
-    private EncryptionKey proxyPasswordKey;
-    private String proxyRealm;
+    private final ProxySettings proxySettings = new ProxySettings();
     private int connectionTimeout = DEFAULT_TIMEOUT;
     private int socketTimeout = DEFAULT_TIMEOUT;
     private int connectionRequestTimeout = DEFAULT_TIMEOUT;
@@ -114,7 +105,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Gets the redirect URL provider.
      * @return the redirect URL provider
-     * @since 2.4.0
      */
     public IRedirectURLProvider getRedirectURLProvider() {
         return redirectURLProvider;
@@ -122,7 +112,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Sets the redirect URL provider
      * @param redirectURLProvider redirect URL provider
-     * @since 2.4.0
      */
     public void setRedirectURLProvider(
             IRedirectURLProvider redirectURLProvider) {
@@ -135,7 +124,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Gets valid HTTP response status codes.
      * @param validStatusCodes valid status codes
-     * @since 3.0.0
      */
     public void setValidStatusCodes(List<Integer> validStatusCodes) {
         CollectionUtil.setAll(this.validStatusCodes, validStatusCodes);
@@ -153,7 +141,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Gets HTTP status codes to be considered as "Not found" state.
      * Default is 404.
      * @return "Not found" codes
-     * @since 2.2.0
      */
     public List<Integer> getNotFoundStatusCodes() {
         return Collections.unmodifiableList(notFoundStatusCodes);
@@ -161,7 +148,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Sets HTTP status codes to be considered as "Not found" state.
      * @param notFoundStatusCodes "Not found" codes
-     * @since 2.2.0
      */
     public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
         CollectionUtil.setAll(this.notFoundStatusCodes,
@@ -170,7 +156,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Sets HTTP status codes to be considered as "Not found" state.
      * @param notFoundStatusCodes "Not found" codes
-     * @since 3.0.0
      */
     public final void setNotFoundStatusCodes(
             List<Integer> notFoundStatusCodes) {
@@ -188,7 +173,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Gets whether content type is detected instead of relying on
      * HTTP response header.
      * @return <code>true</code> to enable detection
-     * @since 2.7.0
      */
     public boolean isDetectContentType() {
         return detectContentType;
@@ -197,7 +181,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Sets whether content type is detected instead of relying on
      * HTTP response header.
      * @param detectContentType <code>true</code> to enable detection
-     * @since 2.7.0
      */
     public void setDetectContentType(boolean detectContentType) {
         this.detectContentType = detectContentType;
@@ -206,7 +189,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Gets whether character encoding is detected instead of relying on
      * HTTP response header.
      * @return <code>true</code> to enable detection
-     * @since 2.7.0
      */
     public boolean isDetectCharset() {
         return detectCharset;
@@ -215,7 +197,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Sets whether character encoding is detected instead of relying on
      * HTTP response header.
      * @param detectCharset <code>true</code> to enable detection
-     * @since 2.7.0
      */
     public void setDetectCharset(boolean detectCharset) {
         this.detectCharset = detectCharset;
@@ -264,7 +245,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * with {@link #setRequestHeader(String, String)}. If no request headers
      * are set, it returns an empty array.
      * @return HTTP request header names
-     * @since 2.8.0
      */
     public List<String> getRequestHeaderNames() {
         return Collections.unmodifiableList(
@@ -275,7 +255,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * @param name name of HTTP request header to remove
      * @return the previous value associated with the name, or <code>null</code>
      *         if there was no request header for the name.
-     * @since 2.8.0
      */
     public String removeRequestHeader(String name) {
         return requestHeaders.remove(name);
@@ -327,23 +306,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     }
 
     /**
-     * Gets the username.
-     * Used for all authentication methods.
-     * @return username
-     */
-    public String getAuthUsername() {
-        return authUsername;
-    }
-    /**
-     * Sets the username.
-     * Used for all authentication methods.
-     * @param authUsername username
-     */
-    public void setAuthUsername(String authUsername) {
-        this.authUsername = authUsername;
-    }
-
-    /**
      * Gets the name of the HTML field where the password is set.
      * This is used only for "form" authentication.
      * @return name of the HTML field
@@ -360,42 +322,11 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         this.authPasswordField = authPasswordField;
     }
 
-    /**
-     * Gets the authentication password.
-     * Used for all authentication methods.
-     * @return the password
-     */
-    public String getAuthPassword() {
-        return authPassword;
+    public Credentials getAuthCredentials() {
+        return authCredentials;
     }
-    /**
-     * Sets the authentication password.
-     * Used for all authentication methods.
-     * @param authPassword password
-     */
-    public void setAuthPassword(String authPassword) {
-        this.authPassword = authPassword;
-    }
-
-    /**
-     * Gets the authentication password encryption key.
-     * @return the password key or <code>null</code> if the password is not
-     * encrypted.
-     * @see EncryptionUtil
-     * @since 2.4.0
-     */
-    public EncryptionKey getAuthPasswordKey() {
-        return authPasswordKey;
-    }
-    /**
-     * Sets the authentication password encryption key. Only required when
-     * the password is encrypted.
-     * @param authPasswordKey password key
-     * @see EncryptionUtil
-     * @since 2.4.0
-     */
-    public void setAuthPasswordKey(EncryptionKey authPasswordKey) {
-        this.authPasswordKey = authPasswordKey;
+    public void setAuthCredentials(Credentials authCredentials) {
+        this.authCredentials.copyFrom(authCredentials);
     }
 
     /**
@@ -431,44 +362,23 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     }
 
     /**
-     * Gets the host name for the current authentication scope.
+     * Gets the host for the current authentication scope.
      * <code>null</code> means any host names for the scope.
      * Used for BASIC and DIGEST authentication.
-     * @return hostname for the scope
+     * @return host for the scope
      */
-    public String getAuthHostname() {
-        return authHostname;
+    public Host getAuthHost() {
+        return authHost;
     }
     /**
-     * Sets the host name for the current authentication scope.
-     * Setting this to null (default value) indicates "any hostname" for the
+     * Sets the host for the current authentication scope.
+     * Setting this to null (default value) indicates "any host" for the
      * scope.
      * Used for BASIC and DIGEST authentication.
-     * @param authHostname hostname for the scope
+     * @param authHost host for the scope
      */
-    public void setAuthHostname(String authHostname) {
-        this.authHostname = authHostname;
-    }
-
-    /**
-     * Gets the port for the current authentication scope.
-     * A negative number indicates "any port"
-     * for the scope.
-     * Used for BASIC and DIGEST authentication.
-     * @return port for the scope
-     */
-    public int getAuthPort() {
-        return authPort;
-    }
-    /**
-     * Sets the port for the current authentication scope.
-     * Setting this to a negative number (default value) indicates "any port"
-     * for the scope.
-     * Used for BASIC and DIGEST authentication.
-     * @param authPort port for the scope
-     */
-    public void setAuthPort(int authPort) {
-        this.authPort = authPort;
+    public void setAuthHost(Host authHost) {
+        this.authHost = authHost;
     }
 
     /**
@@ -528,115 +438,11 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         this.trustAllSSLCertificates = trustAllSSLCertificates;
     }
 
-    /**
-     * Gets the proxy host.
-     * @return proxy host
-     */
-    public String getProxyHost() {
-        return proxyHost;
+    public ProxySettings getProxySettings() {
+        return proxySettings;
     }
-    /**
-     * Sets the proxy host.
-     * @param proxyHost proxy host
-     */
-    public void setProxyHost(String proxyHost) {
-        this.proxyHost = proxyHost;
-    }
-
-    /**
-     * Gets the proxy port.
-     * @return proxy port
-     */
-    public int getProxyPort() {
-        return proxyPort;
-    }
-    /**
-     * Sets the proxy port.
-     * @param proxyPort proxy port
-     */
-    public void setProxyPort(int proxyPort) {
-        this.proxyPort = proxyPort;
-    }
-
-    /**
-     * Gets the proxy scheme.
-     * @return proxy scheme
-     */
-    public String getProxyScheme() {
-        return proxyScheme;
-    }
-    /**
-     * Sets the proxy scheme.
-     * @param proxyScheme proxy scheme
-     */
-    public void setProxyScheme(String proxyScheme) {
-        this.proxyScheme = proxyScheme;
-    }
-
-    /**
-     * Gets the proxy username.
-     * @return proxy username
-     */
-    public String getProxyUsername() {
-        return proxyUsername;
-    }
-    /**
-     * Sets the proxy username
-     * @param proxyUsername proxy username
-     */
-    public void setProxyUsername(String proxyUsername) {
-        this.proxyUsername = proxyUsername;
-    }
-
-    /**
-     * Gets the proxy password.
-     * @return proxy password
-     */
-    public String getProxyPassword() {
-        return proxyPassword;
-    }
-    /**
-     * Sets the proxy password.
-     * @param proxyPassword proxy password
-     */
-    public void setProxyPassword(String proxyPassword) {
-        this.proxyPassword = proxyPassword;
-    }
-
-    /**
-     * Gets the proxy password encryption key.
-     * @return the password key or <code>null</code> if the password is not
-     * encrypted.
-     * @see EncryptionUtil
-     * @since 2.4.0
-     */
-    public EncryptionKey getProxyPasswordKey() {
-        return proxyPasswordKey;
-    }
-    /**
-     * Sets the proxy password encryption key. Only required when
-     * the password is encrypted.
-     * @param proxyPasswordKey password key
-     * @see EncryptionUtil
-     * @since 2.4.0
-     */
-    public void setProxyPasswordKey(EncryptionKey proxyPasswordKey) {
-        this.proxyPasswordKey = proxyPasswordKey;
-    }
-
-    /**
-     * Gets the proxy realm.
-     * @return proxy realm
-     */
-    public String getProxyRealm() {
-        return proxyRealm;
-    }
-    /**
-     * Sets the proxy realm
-     * @param proxyRealm proxy realm
-     */
-    public void setProxyRealm(String proxyRealm) {
-        this.proxyRealm = proxyRealm;
+    public void setProxySettings(ProxySettings proxy) {
+        this.proxySettings.copyFrom(proxy);
     }
 
     /**
@@ -806,7 +612,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Gets the maximum number of connections that can be used per route.
      * @return number of connections per route
-     * @since 2.2.0
      */
     public int getMaxConnectionsPerRoute() {
         return maxConnectionsPerRoute;
@@ -815,7 +620,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Sets the maximum number of connections that can be used per route.
      * Default is {@link #DEFAULT_MAX_CONNECTIONS_PER_ROUTE}.
      * @param maxConnectionsPerRoute maximum number of connections per route
-     * @since 2.2.0
      */
     public void setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
         this.maxConnectionsPerRoute = maxConnectionsPerRoute;
@@ -825,7 +629,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Gets the period of time in milliseconds after which to evict idle
      * connections from the connection pool.
      * @return amount of time after which to evict idle connections
-     * @since 2.2.0
      */
     public int getMaxConnectionIdleTime() {
         return maxConnectionIdleTime;
@@ -836,7 +639,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Default is {@link #DEFAULT_MAX_IDLE_TIME}.
      * @param maxConnectionIdleTime amount of time after which to evict idle
      *         connections
-     * @since 2.2.0
      */
     public void setMaxConnectionIdleTime(int maxConnectionIdleTime) {
         this.maxConnectionIdleTime = maxConnectionIdleTime;
@@ -846,7 +648,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Gets the period of time in milliseconds a connection must be inactive
      * to be checked in case it became stalled.
      * @return period of time in milliseconds
-     * @since 2.2.0
      */
     public int getMaxConnectionInactiveTime() {
         return maxConnectionInactiveTime;
@@ -856,7 +657,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * to be checked in case it became stalled. Default is 0 (not proactively
      * checked).
      * @param maxConnectionInactiveTime period of time in milliseconds
-     * @since 2.2.0
      */
     public void setMaxConnectionInactiveTime(int maxConnectionInactiveTime) {
         this.maxConnectionInactiveTime = maxConnectionInactiveTime;
@@ -865,7 +665,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Gets whether Server Name Indication (SNI) is disabled.
      * @return <code>true</code> if disabled
-     * @since 3.0.0
      */
     public boolean isDisableSNI() {
         return disableSNI;
@@ -873,7 +672,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Sets whether Server Name Indication (SNI) is disabled.
      * @param disableSNI <code>true</code> if disabled
-     * @since 3.0.0
      */
     public void setDisableSNI(boolean disableSNI) {
         this.disableSNI = disableSNI;
@@ -884,7 +682,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * which means it will use those provided/configured by your Java
      * platform.
      * @return SSL/TLS protocols
-     * @since 2.6.2
      */
     public List<String> getSSLProtocols() {
         return Collections.unmodifiableList(sslProtocols);
@@ -894,7 +691,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * and TLSv1.2.  Note that specifying a protocol not supported by
      * your underlying Java platform will not work.
      * @param sslProtocols SSL/TLS protocols supported
-     * @since 2.6.2
      */
     public void setSSLProtocols(List<String> sslProtocols) {
         CollectionUtil.setAll(this.sslProtocols, sslProtocols);
@@ -905,7 +701,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * fields in HTML forms).
      * @param name form parameter name
      * @param value form parameter value
-     * @since 2.8.0
      */
     public void setAuthFormParam(String name, String value) {
         authFormParams.put(name, value);
@@ -914,7 +709,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Sets authentication form parameters (equivalent to "input" or other
      * fields in HTML forms).
      * @param params map of form parameter names and values
-     * @since 3.0.0
      */
     public void setAuthFormParams(Map<String, String> params) {
         CollectionUtil.setAll(authFormParams, params);
@@ -925,7 +719,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * @param name form parameter name
      * @return form parameter value or <code>null</code> if
      *         no match is found
-     * @since 2.8.0
      */
     public String getAuthFormParam(String name) {
         return authFormParams.get(name);
@@ -934,7 +727,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Gets all authentication form parameter names. If no form parameters
      * are set, it returns an empty array.
      * @return HTTP request header names
-     * @since 2.8.0
      */
     public List<String> getAuthFormParamNames() {
         return Collections.unmodifiableList(
@@ -945,7 +737,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * @param name name of form parameter to remove
      * @return the previous value associated with the name, or <code>null</code>
      *         if there was no form parameter for the name.
-     * @since 2.8.0
      */
     public String removeAuthFormParameter(String name) {
         return authFormParams.remove(name);
@@ -955,7 +746,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * Gets whether to perform preemptive authentication
      * (valid for "basic" authentication method).
      * @return <code>true</code> to perform preemptive authentication
-     * @since 2.8.0
      */
     public boolean isAuthPreemptive() {
         return authPreemptive;
@@ -965,7 +755,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * (valid for "basic" authentication method).
      * @param authPreemptive
      *            <code>true</code> to perform preemptive authentication
-     * @since 2.8.0
      */
     public void setAuthPreemptive(boolean authPreemptive) {
         this.authPreemptive = authPreemptive;
@@ -987,28 +776,17 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         authMethod = xml.getString("authMethod", authMethod);
         authUsernameField =
                 xml.getString("authUsernameField", authUsernameField);
-        authUsername = xml.getString("authUsername", authUsername);
         authPasswordField =
                 xml.getString("authPasswordField", authPasswordField);
-        authPassword = xml.getString("authPassword", authPassword);
-        authPasswordKey =
-                loadXMLPasswordKey(xml, "authPasswordKey", authPasswordKey);
+        authCredentials.loadFromXML(xml.getXML("authCredentials"));
         authURL = xml.getString("authURL", authURL);
-        authHostname = xml.getString("authHostname", authHostname);
-        authPort = xml.getInteger("authPort", authPort);
+        authHost = Host.loadFromXML(xml.getXML("authHost"), authHost);
         authRealm = xml.getString("authRealm", authRealm);
         authFormCharset = xml.getCharset("authFormCharset", authFormCharset);
         authWorkstation = xml.getString("authWorkstation", authWorkstation);
         authDomain = xml.getString("authDomain", authDomain);
         authPreemptive = xml.getBoolean("authPreemptive", authPreemptive);
-        proxyHost = xml.getString("proxyHost", proxyHost);
-        proxyPort = xml.getInteger("proxyPort", proxyPort);
-        proxyScheme = xml.getString("proxyScheme", proxyScheme);
-        proxyUsername = xml.getString("proxyUsername", proxyUsername);
-        proxyPassword = xml.getString("proxyPassword", proxyPassword);
-        proxyPasswordKey =
-                loadXMLPasswordKey(xml, "proxyPasswordKey", proxyPasswordKey);
-        proxyRealm = xml.getString("proxyRealm", proxyRealm);
+        proxySettings.loadFromXML(xml.getXML("proxySettings"));
         connectionTimeout = xml.getDurationMillis(
                 "connectionTimeout", (long) connectionTimeout).intValue();
         socketTimeout = xml.getDurationMillis(
@@ -1056,26 +834,17 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         xml.addElement("userAgent", userAgent);
         xml.addElement("cookieSpec", cookieSpec);
         xml.addElement("authMethod", authMethod);
-        xml.addElement("authUsername", authUsername);
-        xml.addElement("authPassword", authPassword);
-        saveXMLPasswordKey(xml, "authPasswordKey", authPasswordKey);
+        authCredentials.saveToXML(xml.addElement("authCredentials"));
         xml.addElement("authUsernameField", authUsernameField);
         xml.addElement("authPasswordField", authPasswordField);
         xml.addElement("authURL", authURL);
-        xml.addElement("authHostname", authHostname);
-        xml.addElement("authPort", authPort);
+        Host.saveToXML(xml.addElement("authHost"), authHost);
         xml.addElement("authFormCharset", authFormCharset);
         xml.addElement("authWorkstation", authWorkstation);
         xml.addElement("authDomain", authDomain);
         xml.addElement("authRealm", authRealm);
         xml.addElement("authPreemptive", authPreemptive);
-        xml.addElement("proxyHost", proxyHost);
-        xml.addElement("proxyPort", proxyPort);
-        xml.addElement("proxyScheme", proxyScheme);
-        xml.addElement("proxyUsername", proxyUsername);
-        xml.addElement("proxyPassword", proxyPassword);
-        saveXMLPasswordKey(xml, "proxyPasswordKey", proxyPasswordKey);
-        xml.addElement("proxyRealm", proxyRealm);
+        proxySettings.saveToXML(xml.addElement("proxySettings"));
         xml.addElement("connectionTimeout", connectionTimeout);
         xml.addElement("socketTimeout", socketTimeout);
         xml.addElement("connectionRequestTimeout", connectionRequestTimeout);
@@ -1103,30 +872,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
                     "name", entry.getKey()).setTextContent(entry.getValue());
         }
         xml.addElement("redirectURLProvider", redirectURLProvider);
-    }
-
-    private EncryptionKey loadXMLPasswordKey(
-            XML xml, String field, EncryptionKey defaultKey) {
-        String xmlKey = xml.getString(field, null);
-        String xmlSource = xml.getString(field + "Source", null);
-        if (StringUtils.isBlank(xmlKey)) {
-            return defaultKey;
-        }
-        EncryptionKey.Source source = null;
-        if (StringUtils.isNotBlank(xmlSource)) {
-            source = EncryptionKey.Source.valueOf(xmlSource.toUpperCase());
-        }
-        return new EncryptionKey(xmlKey, source);
-    }
-    private void saveXMLPasswordKey(XML xml, String field, EncryptionKey key) {
-        if (key == null) {
-            return;
-        }
-        xml.addElement(field, key.getValue());
-        if (key.getSource() != null) {
-            xml.addElement(
-                    field + "Source", key.getSource().name().toLowerCase());
-        }
     }
 
     @Override
