@@ -81,7 +81,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private String authDomain;
     private boolean authPreemptive;
     private String cookieSpec = CookieSpecs.STANDARD;
-    private boolean trustAllSSLCertificates;
     private final ProxySettings proxySettings = new ProxySettings();
     private int connectionTimeout = DEFAULT_TIMEOUT;
     private int socketTimeout = DEFAULT_TIMEOUT;
@@ -94,13 +93,16 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
     private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
     private int maxConnectionInactiveTime;
-    private boolean disableSNI;
-    private final List<String> sslProtocols = new ArrayList<>();
     private final Map<String, String> requestHeaders = new HashMap<>();
     private final Map<String, String> authFormParams = new HashMap<>();
     private String userAgent;
     private IRedirectURLProvider redirectURLProvider =
             new GenericRedirectURLProvider();
+
+    // Security settings
+    private boolean trustAllSSLCertificates;
+    private boolean disableSNI;
+    private final List<String> sslProtocols = new ArrayList<>();
 
     /**
      * Gets the redirect URL provider.
@@ -418,26 +420,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         this.authFormCharset = authFormCharset;
     }
 
-    /**
-     * Whether to trust all SSL certificates (affects only "https" connections).
-     * @since 1.3.0
-     * @return <code>true</code> if trusting all SSL certificates
-     */
-    public boolean isTrustAllSSLCertificates() {
-        return trustAllSSLCertificates;
-    }
-    /**
-     * Sets whether to trust all SSL certificate.  This is typically a bad
-     * idea (favors man-in-the-middle attacks) . Try to install a SSL
-     * certificate locally to ensure a proper certificate exchange instead.
-     * @since 1.3.0
-     * @param trustAllSSLCertificates <code>true</code> if trusting all SSL
-     *            certificates
-     */
-    public void setTrustAllSSLCertificates(boolean trustAllSSLCertificates) {
-        this.trustAllSSLCertificates = trustAllSSLCertificates;
-    }
-
     public ProxySettings getProxySettings() {
         return proxySettings;
     }
@@ -663,40 +645,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     }
 
     /**
-     * Gets whether Server Name Indication (SNI) is disabled.
-     * @return <code>true</code> if disabled
-     */
-    public boolean isDisableSNI() {
-        return disableSNI;
-    }
-    /**
-     * Sets whether Server Name Indication (SNI) is disabled.
-     * @param disableSNI <code>true</code> if disabled
-     */
-    public void setDisableSNI(boolean disableSNI) {
-        this.disableSNI = disableSNI;
-    }
-
-    /**
-     * Gets the supported SSL/TLS protocols.  Default is <code>null</code>,
-     * which means it will use those provided/configured by your Java
-     * platform.
-     * @return SSL/TLS protocols
-     */
-    public List<String> getSSLProtocols() {
-        return Collections.unmodifiableList(sslProtocols);
-    }
-    /**
-     * Sets the supported SSL/TLS protocols, such as SSLv3, TLSv1, TLSv1.1,
-     * and TLSv1.2.  Note that specifying a protocol not supported by
-     * your underlying Java platform will not work.
-     * @param sslProtocols SSL/TLS protocols supported
-     */
-    public void setSSLProtocols(List<String> sslProtocols) {
-        CollectionUtil.setAll(this.sslProtocols, sslProtocols);
-    }
-
-    /**
      * Sets an authentication form parameter (equivalent to "input" or other
      * fields in HTML forms).
      * @param name form parameter name
@@ -760,6 +708,60 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         this.authPreemptive = authPreemptive;
     }
 
+    /**
+     * Whether to trust all SSL certificates (affects only "https" connections).
+     * @since 1.3.0
+     * @return <code>true</code> if trusting all SSL certificates
+     */
+    public boolean isTrustAllSSLCertificates() {
+        return trustAllSSLCertificates;
+    }
+    /**
+     * Sets whether to trust all SSL certificate.  This is typically a bad
+     * idea (favors man-in-the-middle attacks) . Try to install a SSL
+     * certificate locally to ensure a proper certificate exchange instead.
+     * @since 1.3.0
+     * @param trustAllSSLCertificates <code>true</code> if trusting all SSL
+     *            certificates
+     */
+    public void setTrustAllSSLCertificates(boolean trustAllSSLCertificates) {
+        this.trustAllSSLCertificates = trustAllSSLCertificates;
+    }
+
+    /**
+     * Gets whether Server Name Indication (SNI) is disabled.
+     * @return <code>true</code> if disabled
+     */
+    public boolean isDisableSNI() {
+        return disableSNI;
+    }
+    /**
+     * Sets whether Server Name Indication (SNI) is disabled.
+     * @param disableSNI <code>true</code> if disabled
+     */
+    public void setDisableSNI(boolean disableSNI) {
+        this.disableSNI = disableSNI;
+    }
+
+    /**
+     * Gets the supported SSL/TLS protocols.  Default is <code>null</code>,
+     * which means it will use those provided/configured by your Java
+     * platform.
+     * @return SSL/TLS protocols
+     */
+    public List<String> getSSLProtocols() {
+        return Collections.unmodifiableList(sslProtocols);
+    }
+    /**
+     * Sets the supported SSL/TLS protocols, such as SSLv3, TLSv1, TLSv1.1,
+     * and TLSv1.2.  Note that specifying a protocol not supported by
+     * your underlying Java platform will not work.
+     * @param sslProtocols SSL/TLS protocols supported
+     */
+    public void setSSLProtocols(List<String> sslProtocols) {
+        CollectionUtil.setAll(this.sslProtocols, sslProtocols);
+    }
+
     @Override
     public void loadFromXML(XML xml) {
         setValidStatusCodes(xml.getDelimitedList(
@@ -800,9 +802,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
                 "expectContinueEnabled", expectContinueEnabled);
         maxRedirects = xml.getInteger("maxRedirects", maxRedirects);
         maxConnections = xml.getInteger("maxConnections", maxConnections);
-        trustAllSSLCertificates = xml.getBoolean(
-                "trustAllSSLCertificates", trustAllSSLCertificates);
-        disableSNI = xml.getBoolean("disableSNI", disableSNI);;
         localAddress = xml.getString("localAddress", localAddress);
         maxConnectionsPerRoute = xml.getInteger(
                 "maxConnectionsPerRoute", maxConnectionsPerRoute);
@@ -812,8 +811,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         maxConnectionInactiveTime = xml.getDurationMillis(
                 "maxConnectionInactiveTime",
                 (long) maxConnectionInactiveTime).intValue();
-        setSSLProtocols(
-                xml.getDelimitedStringList("sslProtocols", sslProtocols));
         setRequestHeaders(xml.getStringMap(
                 "headers/header", "@name", ".", requestHeaders));
         setAuthFormParams(xml.getStringMap(
@@ -821,6 +818,11 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         setRedirectURLProvider(xml.getObjectImpl(IRedirectURLProvider.class,
                 "redirectURLProvider", redirectURLProvider));
 
+        trustAllSSLCertificates = xml.getBoolean(
+                "trustAllSSLCertificates", trustAllSSLCertificates);
+        disableSNI = xml.getBoolean("disableSNI", disableSNI);;
+        setSSLProtocols(
+                xml.getDelimitedStringList("sslProtocols", sslProtocols));
     }
 
     @Override
@@ -853,12 +855,9 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         xml.addElement("maxRedirects", maxRedirects);
         xml.addElement("localAddress", localAddress);
         xml.addElement("maxConnections", maxConnections);
-        xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
-        xml.addElement("disableSNI", disableSNI);
         xml.addElement("maxConnectionsPerRoute", maxConnectionsPerRoute);
         xml.addElement("maxConnectionIdleTime", maxConnectionIdleTime);
         xml.addElement("maxConnectionInactiveTime", maxConnectionInactiveTime);
-        xml.setDelimitedAttributeList("sslProtocols", sslProtocols);
 
         XML xmlHeaders = xml.addXML("headers");
         for (Entry<String, String> entry : requestHeaders.entrySet()) {
@@ -872,6 +871,10 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
                     "name", entry.getKey()).setTextContent(entry.getValue());
         }
         xml.addElement("redirectURLProvider", redirectURLProvider);
+
+        xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
+        xml.addElement("disableSNI", disableSNI);
+        xml.setDelimitedAttributeList("sslProtocols", sslProtocols);
     }
 
     @Override

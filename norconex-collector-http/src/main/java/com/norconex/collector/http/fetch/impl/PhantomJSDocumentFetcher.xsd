@@ -18,7 +18,7 @@
 
   <xs:include schemaLocation="../AbstractHttpFetcher.xsd"></xs:include>
 
-  <xs:element name="documentFetcher">
+  <xs:element name="fetcher">
     <xs:complexType>
       <xs:all>
         <xs:element name="exePath" type="xs:string" minOccurs="0" maxOccurs="1"/>

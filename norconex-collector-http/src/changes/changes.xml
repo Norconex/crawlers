@@ -62,6 +62,9 @@
       <action dev="essiembre" type="update">
         Default working directory structure has been improved.
       </action>
+      <action dev="essiembre" type="update" issue="592">
+        Improved handling of "trustAllSSLCertificate" in GenericHttpFetcher. 
+      </action>
       <action dev="essiembre" type="remove">
         Removed some code deprecated in releases before 3.0.0. 
       </action>

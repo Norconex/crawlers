@@ -117,20 +117,6 @@
       <xs:attribute name="class" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
-<!-- 
-  <xs:simpleType name="passwordKeySourceType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="key"/>
-      <xs:enumeration value="file"/>
-      <xs:enumeration value="environment"/>
-      <xs:enumeration value="property"/>
-      <xs:enumeration value="KEY"/>
-      <xs:enumeration value="FILE"/>
-      <xs:enumeration value="ENVIRONMENT"/>
-      <xs:enumeration value="PROPERTY"/>
-    </xs:restriction>
-  </xs:simpleType>
- -->
   
   <xs:complexType name="anyComplexOptionalClassType" mixed="true">
     <xs:all>

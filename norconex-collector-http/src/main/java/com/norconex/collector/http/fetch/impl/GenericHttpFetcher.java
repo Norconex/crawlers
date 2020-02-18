@@ -26,8 +26,8 @@ import java.security.AlgorithmParameters;
 import java.security.CryptoPrimitive;
 import java.security.Key;
 import java.security.KeyManagementException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,9 +36,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -81,6 +81,7 @@ import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -106,7 +107,6 @@ import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
-import com.norconex.collector.http.fetch.util.TrustAllX509TrustManager;
 import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
@@ -154,94 +154,101 @@ import com.norconex.importer.util.CharsetUtil;
  * {@nx.xml.usage
  * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
  *
- *     <userAgent>(identify yourself!)</userAgent>
- *     <cookiesDisabled>[false|true]</cookiesDisabled>
- *     <connectionTimeout>(milliseconds)</connectionTimeout>
- *     <socketTimeout>(milliseconds)</socketTimeout>
- *     <connectionRequestTimeout>(milliseconds)</connectionRequestTimeout>
- *     <connectionCharset>...</connectionCharset>
- *     <expectContinueEnabled>[false|true]</expectContinueEnabled>
- *     <maxRedirects>...</maxRedirects>
- *     <redirectURLProvider>(implementation handling redirects)</redirectURLProvider>
- *     <localAddress>...</localAddress>
- *     <maxConnections>...</maxConnections>
- *     <maxConnectionsPerRoute>...</maxConnectionsPerRoute>
- *     <maxConnectionIdleTime>(milliseconds)</maxConnectionIdleTime>
- *     <maxConnectionInactiveTime>(milliseconds)</maxConnectionInactiveTime>
+ *   <userAgent>(identify yourself!)</userAgent>
+ *   <cookiesDisabled>[false|true]</cookiesDisabled>
+ *   <connectionTimeout>(milliseconds)</connectionTimeout>
+ *   <socketTimeout>(milliseconds)</socketTimeout>
+ *   <connectionRequestTimeout>(milliseconds)</connectionRequestTimeout>
+ *   <connectionCharset>...</connectionCharset>
+ *   <expectContinueEnabled>[false|true]</expectContinueEnabled>
+ *   <maxRedirects>...</maxRedirects>
+ *   <redirectURLProvider>(implementation handling redirects)</redirectURLProvider>
+ *   <localAddress>...</localAddress>
+ *   <maxConnections>...</maxConnections>
+ *   <maxConnectionsPerRoute>...</maxConnectionsPerRoute>
+ *   <maxConnectionIdleTime>(milliseconds)</maxConnectionIdleTime>
+ *   <maxConnectionInactiveTime>(milliseconds)</maxConnectionInactiveTime>
  *
- *     <!-- Be warned: trusting all certificates is usually a bad idea. -->
- *     <trustAllSSLCertificates>[false|true]</trustAllSSLCertificates>
+ *   <!-- Be warned: trusting all certificates is usually a bad idea. -->
+ *   <trustAllSSLCertificates>[false|true]</trustAllSSLCertificates>
  *
- *     <!-- You can specify SSL/TLS protocols to use -->
- *     <sslProtocols>(coma-separated list)</sslProtocols>
+ *   <!-- You can specify SSL/TLS protocols to use -->
+ *   <sslProtocols>(coma-separated list)</sslProtocols>
  *
- *     <!-- Disable Server Name Indication (SNI) -->
- *     <disableSNI>[false|true]</disableSNI>
+ *   <!-- Disable Server Name Indication (SNI) -->
+ *   <disableSNI>[false|true]</disableSNI>
  *
- *     <proxySettings>
- *       {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
- *     </proxySettings>
+ *   <!-- You can use a specific key store for SSL Certificates -->
+ *   <keyStoreFile></keyStoreFile>
  *
- *     <!-- HTTP request headers passed on every HTTP requests -->
- *     <headers>
- *         <header name="(header name)">(header value)</header>
- *         <!-- You can repeat this header tag as needed. -->
- *     </headers>
  *
- *     <authMethod>[form|basic|digest|ntlm|spnego|kerberos]</authMethod>
+ *   <proxySettings>
+ *     {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
+ *   </proxySettings>
  *
- *     <!-- These apply to any authentication mechanism -->
- *     <authCredentials>
- *       {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *     </authCredentials>
+ *   <!-- HTTP request headers passed on every HTTP requests -->
+ *   <headers>
+ *     <header name="(header name)">(header value)</header>
+ *     <!-- You can repeat this header tag as needed. -->
+ *   </headers>
  *
- *     <!-- These apply to FORM authentication -->
- *     <authUsernameField>...</authUsernameField>
- *     <authPasswordField>...</authPasswordField>
- *     <authURL>...</authURL>
- *     <authFormCharset>...</authFormCharset>
- *     <!-- Extra form parameters required to authenticate (since 2.8.0) -->
- *     <authFormParams>
- *         <param name="(param name)">(param value)</param>
- *         <!-- You can repeat this param tag as needed. -->
- *     </authFormParams>
+ *   <authMethod>[form|basic|digest|ntlm|spnego|kerberos]</authMethod>
  *
- *     <!-- These apply to both BASIC and DIGEST authentication -->
- *     <authHost>
- *       {@nx.include com.norconex.commons.lang.net.Host@nx.xml.usage}
- *     </authHost>
+ *   <!-- These apply to any authentication mechanism -->
+ *   <authCredentials>
+ *     {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
+ *   </authCredentials>
  *
- *     <authRealm>...</authRealm>
+ *   <!-- These apply to FORM authentication -->
+ *   <authUsernameField>...</authUsernameField>
+ *   <authPasswordField>...</authPasswordField>
+ *   <authURL>...</authURL>
+ *   <authFormCharset>...</authFormCharset>
+ *   <!-- Extra form parameters required to authenticate (since 2.8.0) -->
+ *   <authFormParams>
+ *     <param name="(param name)">(param value)</param>
+ *     <!-- You can repeat this param tag as needed. -->
+ *   </authFormParams>
  *
- *     <!-- This applies to BASIC authentication -->
- *     <authPreemptive>[false|true]</authPreemptive>
+ *   <!-- These apply to both BASIC and DIGEST authentication -->
+ *   <authHost>
+ *     {@nx.include com.norconex.commons.lang.net.Host@nx.xml.usage}
+ *   </authHost>
  *
- *     <!-- These apply to NTLM authentication -->
- *     <authHostname>...</authHostname>
- *     <authPort>...</authPort>
- *     <authWorkstation>...</authWorkstation>
- *     <authDomain>...</authDomain>
+ *   <authRealm>...</authRealm>
  *
- *     <validStatusCodes>(defaults to 200)</validStatusCodes>
- *     <notFoundStatusCodes>(defaults to 404)</notFoundStatusCodes>
- *     <headersPrefix>(string to prefix headers)</headersPrefix>
- *     <detectContentType>[false|true]</detectContentType>
- *     <detectCharset>[false|true]</detectCharset>
+ *   <!-- This applies to BASIC authentication -->
+ *   <authPreemptive>[false|true]</authPreemptive>
  *
- *     <restrictions>
- *         <restrictTo caseSensitive="[false|true]"
- *                 field="(name of metadata field name to match)">
- *             (regular expression of value to match)
- *         </restrictTo>
- *         <!-- multiple "restrictTo" tags allowed (only one needs to match) -->
- *     </restrictions>
+ *   <!-- These apply to NTLM authentication -->
+ *   <authHost>
+ *     {@nx.include com.norconex.commons.lang.net.Host@nx.xml.usage}
+ *   </authHost>
+ *   <authWorkstation>...</authWorkstation>
+ *   <authDomain>...</authDomain>
+ *
+ *   <validStatusCodes>(defaults to 200)</validStatusCodes>
+ *   <notFoundStatusCodes>(defaults to 404)</notFoundStatusCodes>
+ *   <headersPrefix>(string to prefix headers)</headersPrefix>
+ *   <detectContentType>[false|true]</detectContentType>
+ *   <detectCharset>[false|true]</detectCharset>
+ *
+ *   <restrictions>
+ *     <restrictTo caseSensitive="[false|true]"
+ *         field="(name of metadata field name to match)">
+ *       (regular expression of value to match)
+ *     </restrictTo>
+ *     <!-- multiple "restrictTo" tags allowed (only one needs to match) -->
+ *   </restrictions>
  * </fetcher>
  * }
  *
  * {@nx.xml.example
  * <httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">
- *     <authUsername>joeUser</authUsername>
- *     <authPassword>joePasword</authPassword>
+ *     <authCredentials>
+ *         <username>joeUser</username>
+ *         <password>joePasword</password>
+ *     </authCredentials>
  *     <authUsernameField>loginUser</authUsernameField>
  *     <authPasswordField>loginPwd</authPasswordField>
  *     <authURL>http://www.example.com/login</authURL>
@@ -391,7 +398,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             }
 
             // Execute the method.
-            HttpResponse response = httpClient.execute(method, ctx);
+            HttpResponse response = httpExecute(method, ctx);
 
             int statusCode = response.getStatusLine().getStatusCode();
             String reason = response.getStatusLine().getReasonPhrase();
@@ -619,7 +626,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
                     formparams, cfg.getAuthFormCharset());
             post.setEntity(entity);
-            HttpResponse response = httpClient.execute(post);
+            HttpResponse response = httpExecute(post, null);
             StatusLine statusLine = response.getStatusLine();
             LOG.info("Authentication status: {}.", statusLine);
 
@@ -793,8 +800,11 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         SSLContext context = sslContext;
         if (context == null) {
             try {
-                context = SSLContexts.custom().build();
-            } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                context = SSLContexts.custom()
+                        .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
+                        .build();
+            } catch (KeyManagementException | NoSuchAlgorithmException
+                    | KeyStoreException e) {
                 throw new CollectorException(
                         "Cannot create SSL context.", e);
             }
@@ -874,16 +884,14 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         LOG.info("SSL: Trusting all certificates.");
 
         // Use a trust strategy that always returns true
-        SSLContext sslcontext;
         try {
-            sslcontext = SSLContexts.custom().build();
-            sslcontext.init(null, new TrustManager[] {
-                    new TrustAllX509TrustManager()}, new SecureRandom());
+            return SSLContexts.custom()
+                    .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
+                    .build();
         } catch (Exception e) {
             throw new CollectorException(
                     "Cannot create SSL context trusting all certificates.", e);
         }
-        return sslcontext;
     }
 
     // Wraps redirection strategy to consider URLs as new documents to
@@ -907,6 +915,21 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         } catch (Exception e) {
             LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
                     + "internal connection manager does not support it.");
+        }
+    }
+
+    private HttpResponse httpExecute(
+            HttpRequestBase method, HttpClientContext context)
+                    throws IOException {
+        try {
+            return httpClient.execute(method, context);
+        } catch (SSLHandshakeException e) {
+            if (!cfg.isTrustAllSSLCertificates()) {
+                LOG.warn("SSL handshake exception for {}. Consider "
+                        + "setting 'trustAllSSLCertificate' to true.",
+                        method.getURI());
+            }
+            throw e;
         }
     }
 
