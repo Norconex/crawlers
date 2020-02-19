@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Norconex Inc.
+/* Copyright 2014-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.collector.http.url.Link;
@@ -111,21 +111,21 @@ import com.norconex.importer.util.CharsetUtil;
  * <ul>
  *   <li><b>Referrer reference:</b> The reference (URL) of the page where the
  *   link to a document was found.  Metadata value is
- *   {@link HttpMetadata#COLLECTOR_REFERRER_REFERENCE}.</li>
+ *   {@link HttpDocMetadata#COLLECTOR_REFERRER_REFERENCE}.</li>
  *   <li><b>Referrer link tag:</b> The tag and attribute names of the link
  *   that contained the document reference (URL) in referrer's content.
  *   Metadata value is
- *   {@link HttpMetadata#COLLECTOR_REFERRER_LINK_TAG}.</li>
+ *   {@link HttpDocMetadata#COLLECTOR_REFERRER_LINK_TAG}.</li>
  *   <li><b>Referrer link text:</b> The text between the
  *   <code>&lt;a href=""&gt;&lt;/a&gt;</code> tags of the referrer document.
  *   Can be useful to help establish better document titles.
  *   Metadata value is
- *   {@link HttpMetadata#COLLECTOR_REFERRER_LINK_TEXT}.</li>
+ *   {@link HttpDocMetadata#COLLECTOR_REFERRER_LINK_TEXT}.</li>
  *   <li><b>Referrer link title:</b> The <code>title</code> attribute of the
      link that contained the document reference (URL) in referrer's content.
  *   Can also be useful to help establish better document titles.
  *   Metadata value is
- *   {@link HttpMetadata#COLLECTOR_REFERRER_LINK_TITLE}.</li>
+ *   {@link HttpDocMetadata#COLLECTOR_REFERRER_LINK_TITLE}.</li>
  * </ul>
  * <p>
  * <b>Since 2.6.0</b>, the referrer data is always stored (was optional before).

@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
@@ -49,22 +49,22 @@ public class ValidMetadata extends AbstractInfiniteDepthTestFeature {
 
             //Test single value
             assertOneValue(meta,
-                    HttpMetadata.HTTP_CONTENT_TYPE,
-                    HttpMetadata.COLLECTOR_CONTENT_TYPE,
-                    HttpMetadata.COLLECTOR_CONTENT_ENCODING);
+                    HttpDocMetadata.HTTP_CONTENT_TYPE,
+                    HttpDocMetadata.COLLECTOR_CONTENT_TYPE,
+                    HttpDocMetadata.COLLECTOR_CONTENT_ENCODING);
 
             //Test actual values
             Assertions.assertTrue(
                     "text/html; charset=UTF-8".equalsIgnoreCase(
-                            meta.getString(HttpMetadata.HTTP_CONTENT_TYPE)),
+                            meta.getString(HttpDocMetadata.HTTP_CONTENT_TYPE)),
                     "Bad HTTP content-type");
             Assertions.assertTrue(
                     "text/html".equalsIgnoreCase(
-                            meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE)),
+                            meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_TYPE)),
                     "Bad Collection content-type.");
             Assertions.assertTrue(
                     StandardCharsets.UTF_8.toString().equalsIgnoreCase(
-                        meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING)),
+                        meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_ENCODING)),
                     "Bad char-encoding.");
         }
     }

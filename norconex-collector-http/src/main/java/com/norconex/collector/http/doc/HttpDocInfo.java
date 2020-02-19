@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.reference;
+package com.norconex.collector.http.doc;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,16 +23,17 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.core.reference.CrawlReference;
-import com.norconex.commons.lang.bean.BeanUtil;
+import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.importer.doc.DocInfo;
 
 /**
  * A URL being crawled holding relevant crawl information.
  * @author Pascal Essiembre
  */
-public class HttpCrawlReference extends CrawlReference {
+public class HttpDocInfo extends CrawlDocInfo {
+
 
     private static final long serialVersionUID = -2219206220476107409L;
 
@@ -50,20 +51,12 @@ public class HttpCrawlReference extends CrawlReference {
     private final List<String> referencedUrls = new ArrayList<>();
     private final List<String> redirectTrail = new ArrayList<>();
 
-    /**
-     * Constructor.
-     */
-    public HttpCrawlReference() {
+    public HttpDocInfo() {
         super();
     }
-    /**
-     * Constructor
-     * @param crawlRef initialized this instance this data
-     */
-    public HttpCrawlReference(CrawlReference crawlRef) {
-        if (crawlRef != null) {
-            BeanUtil.copyProperties(this, crawlRef);
-        }
+
+    public HttpDocInfo(String reference) {
+        super(reference);
     }
 
     /**
@@ -71,12 +64,17 @@ public class HttpCrawlReference extends CrawlReference {
      * @param url URL being crawled
      * @param depth URL depth
      */
-    public HttpCrawlReference(String url, int depth) {
-        super();
-        setReference(url);
+    public HttpDocInfo(String url, int depth) {
+        super(url);
         setDepth(depth);
     }
-
+    /**
+     * Copy constructor.
+     * @param docDetails document details to copy
+     */
+    public HttpDocInfo(DocInfo docDetails) {
+        super(docDetails);
+    }
 
     public String getOriginalReference() {
         return originalReference;
@@ -246,6 +244,15 @@ public class HttpCrawlReference extends CrawlReference {
      */
     public void addRedirectURL(String url) {
         redirectTrail.add(url);
+    }
+
+    // For now we depricate until we find better.
+    @Deprecated
+    public static HttpDocInfo toHttpDocInfo(DocInfo docInfo) {
+        if (docInfo instanceof HttpDocInfo) {
+            return (HttpDocInfo) docInfo;
+        }
+        return new HttpDocInfo(docInfo);
     }
 
     @Override

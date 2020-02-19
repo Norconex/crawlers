@@ -36,12 +36,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Objects;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
+import com.norconex.collector.core.doc.CrawlDocInfo;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.collector.core.reference.CrawlReference;
-import com.norconex.collector.core.reference.CrawlState;
 import com.norconex.collector.http.HttpCollector;
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.pipeline.committer.HttpCommitterPipeline;
 import com.norconex.collector.http.pipeline.committer.HttpCommitterPipelineContext;
@@ -49,7 +50,6 @@ import com.norconex.collector.http.pipeline.importer.HttpImporterPipeline;
 import com.norconex.collector.http.pipeline.importer.HttpImporterPipelineContext;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
-import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.doc.ImporterDocument;
@@ -147,7 +147,7 @@ public class HttpCrawler extends Crawler {
         for (String startURL : startURLs) {
             if (StringUtils.isNotBlank(startURL)) {
                 executeQueuePipeline(
-                        new HttpCrawlReference(startURL, 0));
+                        new HttpDocInfo(startURL, 0));
             } else {
                 LOG.debug("Blank start URL encountered, ignoring it.");
             }
@@ -165,7 +165,7 @@ public class HttpCrawler extends Crawler {
                     String startURL = StringUtils.trimToNull(it.nextLine());
                     if (startURL != null && !startURL.startsWith("#")) {
                         executeQueuePipeline(
-                                new HttpCrawlReference(startURL, 0));
+                                new HttpDocInfo(startURL, 0));
                         urlCount++;
                     }
                 }
@@ -188,7 +188,7 @@ public class HttpCrawler extends Crawler {
         }
 
         final MutableInt urlCount = new MutableInt();
-        Consumer<HttpCrawlReference> urlConsumer = (ref) -> {
+        Consumer<HttpDocInfo> urlConsumer = (ref) -> {
                 executeQueuePipeline(ref);
                 urlCount.increment();
         };
@@ -220,7 +220,7 @@ public class HttpCrawler extends Crawler {
             }
             Iterator<String> it = provider.provideStartURLs();
             while (it.hasNext()) {
-                executeQueuePipeline(new HttpCrawlReference(it.next(), 0));
+                executeQueuePipeline(new HttpDocInfo(it.next(), 0));
                 count++;
             }
         }
@@ -249,9 +249,8 @@ public class HttpCrawler extends Crawler {
     }
 
     @Override
-    protected void executeQueuePipeline(
-            CrawlReference crawlRef) {
-        HttpCrawlReference httpData = (HttpCrawlReference) crawlRef;
+    protected void executeQueuePipeline(CrawlDocInfo crawlRef) {
+        HttpDocInfo httpData = (HttpDocInfo) crawlRef;
         HttpQueuePipelineContext context = new HttpQueuePipelineContext(
                 this, httpData);
         new HttpQueuePipeline().execute(context);
@@ -259,33 +258,34 @@ public class HttpCrawler extends Crawler {
 
     @Override
     protected ImporterDocument wrapDocument(
-            CrawlReference crawlRef, ImporterDocument document) {
-        return new HttpDocument(document);
+            CrawlDocInfo crawlRef, ImporterDocument document) {
+        return new HttpDoc(document);
     }
 
     @Override
-    protected Class<? extends CrawlReference> getCrawlReferenceType() {
-        return HttpCrawlReference.class;
+    protected Class<? extends CrawlDocInfo> getCrawlReferenceType() {
+        return HttpDocInfo.class;
     }
 
 
     @Override
-    protected void initCrawlReference(CrawlReference crawlRef,
-            CrawlReference cachedCrawlRef, ImporterDocument document) {
-        HttpDocument doc = (HttpDocument) document;
-        HttpCrawlReference httpData = (HttpCrawlReference) crawlRef;
-        HttpCrawlReference cachedHttpData = (HttpCrawlReference) cachedCrawlRef;
-        HttpMetadata metadata = doc.getMetadata();
+    protected void initCrawlReference(CrawlDocInfo crawlRef,
+            CrawlDocInfo cachedCrawlRef, ImporterDocument document) {
+        HttpDoc doc = (HttpDoc) document;
+        HttpDocInfo httpData = (HttpDocInfo) crawlRef;
+        HttpDocInfo cachedHttpData = (HttpDocInfo) cachedCrawlRef;
+        HttpDocMetadata metadata =
+                HttpDocMetadata.toHttpDocMetadata(doc.getMetadata());
 
-        metadata.add(HttpMetadata.COLLECTOR_DEPTH, httpData.getDepth());
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_SM_CHANGE_FREQ,
+        metadata.add(HttpDocMetadata.COLLECTOR_DEPTH, httpData.getDepth());
+        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_SM_CHANGE_FREQ,
                 httpData.getSitemapChangeFreq());
         if (httpData.getSitemapLastMod() != null) {
-            metadata.add(HttpMetadata.COLLECTOR_SM_LASTMOD,
+            metadata.add(HttpDocMetadata.COLLECTOR_SM_LASTMOD,
                     httpData.getSitemapLastMod());
         }
         if (httpData.getSitemapPriority() != null) {
-            metadata.add(HttpMetadata.COLLECTOR_SM_PRORITY,
+            metadata.add(HttpDocMetadata.COLLECTOR_SM_PRORITY,
                     httpData.getSitemapPriority());
         }
 
@@ -319,18 +319,18 @@ public class HttpCrawler extends Crawler {
         }
 
         // Add referrer data to metadata
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_REFERENCE,
+        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_REFERRER_REFERENCE,
                 httpData.getReferrerReference());
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TAG,
+        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_REFERRER_LINK_TAG,
                 httpData.getReferrerLinkTag());
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TEXT,
+        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_REFERRER_LINK_TEXT,
                 httpData.getReferrerLinkText());
-        metadataAddString(metadata, HttpMetadata.COLLECTOR_REFERRER_LINK_TITLE,
+        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_REFERRER_LINK_TITLE,
                 httpData.getReferrerLinkTitle());
 
         // Add possible redirect trail
         if (!httpData.getRedirectTrail().isEmpty()) {
-            metadata.setList(HttpMetadata.COLLECTOR_REDIRECT_TRAIL,
+            metadata.setList(HttpDocMetadata.COLLECTOR_REDIRECT_TRAIL,
                     httpData.getRedirectTrail());
         }
     }
@@ -347,27 +347,27 @@ public class HttpCrawler extends Crawler {
     }
 
     @Override
-    protected CrawlReference createEmbeddedCrawlReference(
-            String embeddedReference, CrawlReference parentCrawlData) {
-        return new HttpCrawlReference(embeddedReference,
-                ((HttpCrawlReference) parentCrawlData).getDepth());
+    protected CrawlDocInfo createEmbeddedCrawlReference(
+            String embeddedReference, CrawlDocInfo parentCrawlData) {
+        return new HttpDocInfo(embeddedReference,
+                ((HttpDocInfo) parentCrawlData).getDepth());
     }
 
     @Override
     protected void executeCommitterPipeline(Crawler crawler,
             ImporterDocument doc,
-            CrawlReference crawlRef, CrawlReference cachedCrawlRef) {
+            CrawlDocInfo crawlRef, CrawlDocInfo cachedCrawlRef) {
 
         HttpCommitterPipelineContext context = new HttpCommitterPipelineContext(
-                (HttpCrawler) crawler, (HttpDocument) doc,
-                (HttpCrawlReference) crawlRef, (HttpCrawlReference) cachedCrawlRef);
+                (HttpCrawler) crawler, (HttpDoc) doc,
+                (HttpDocInfo) crawlRef, (HttpDocInfo) cachedCrawlRef);
         new HttpCommitterPipeline().execute(context);
     }
 
     @Override
     protected void beforeFinalizeDocumentProcessing(
-            CrawlReference crawlRef,
-            ImporterDocument doc, CrawlReference cachedData) {
+            CrawlDocInfo crawlRef,
+            ImporterDocument doc, CrawlDocInfo cachedData) {
 
         // If URLs were not yet extracted, it means no links will be followed.
         // In case the referring document was skipped or has a bad status
@@ -379,8 +379,8 @@ public class HttpCrawler extends Crawler {
         // See: https://github.com/Norconex/collector-http/issues/278
 
 
-        HttpCrawlReference httpData = (HttpCrawlReference) crawlRef;
-        HttpCrawlReference httpCachedData = (HttpCrawlReference) cachedData;
+        HttpDocInfo httpData = (HttpDocInfo) crawlRef;
+        HttpDocInfo httpCachedData = (HttpDocInfo) cachedData;
 
         //TODO improve this #533 hack in v3
         if (httpData.getState().isNewOrModified()
@@ -415,7 +415,7 @@ public class HttpCrawler extends Crawler {
         List<String> referencedUrls = httpCachedData.getReferencedUrls();
         for (String url : referencedUrls) {
 
-            HttpCrawlReference childData = new HttpCrawlReference(url, childDepth);
+            HttpDocInfo childData = new HttpDocInfo(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Queueing skipped document's child: "
@@ -427,15 +427,16 @@ public class HttpCrawler extends Crawler {
 
     @Override
     protected void markReferenceVariationsAsProcessed(
-            CrawlReference crawlRef) {
+            CrawlDocInfo crawlRef) {
 
-        HttpCrawlReference httpData = (HttpCrawlReference) crawlRef;
+        HttpDocInfo httpData = (HttpDocInfo) crawlRef;
         // Mark original URL as processed
         String originalRef = httpData.getOriginalReference();
         String finalRef = httpData.getReference();
         if (StringUtils.isNotBlank(originalRef)
                 && ObjectUtils.notEqual(originalRef, finalRef)) {
-            HttpCrawlReference originalData = (HttpCrawlReference) httpData.clone();
+
+            HttpDocInfo originalData = new HttpDocInfo(httpData);
             originalData.setReference(originalRef);
             originalData.setOriginalReference(null);
             getCrawlReferenceService().processed(originalData);
@@ -456,7 +457,7 @@ public class HttpCrawler extends Crawler {
     }
 
     private void metadataAddString(
-            HttpMetadata metadata, String key, String value) {
+            HttpDocMetadata metadata, String key, String value) {
         if (value != null) {
             metadata.add(key, value);
         }

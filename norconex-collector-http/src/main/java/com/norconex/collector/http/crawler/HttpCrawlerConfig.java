@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
@@ -458,7 +458,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 
     /**
      * Whether links not in scope should be stored as metadata
-     * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
+     * under {@link HttpDocMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
      * @return <code>true</code> if keeping URLs not in scope.
      * @since 2.8.0
      */
@@ -467,7 +467,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     }
 	/**
 	 * Sets whether links not in scope should be stored as metadata
-     * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
+     * under {@link HttpDocMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
      * @param keepOutOfScopeLinks <code>true</code> if keeping URLs not in scope
      * @since 2.8.0
 	 */

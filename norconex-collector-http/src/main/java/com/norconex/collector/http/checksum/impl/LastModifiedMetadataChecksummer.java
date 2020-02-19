@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.checksum.AbstractMetadataChecksummer;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.checksum.impl.GenericMetadataChecksummer;
-import com.norconex.collector.core.doc.CollectorMetadata;
+import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
 
@@ -41,7 +41,7 @@ import com.norconex.commons.lang.xml.XML;
  * When {@link #setKeep(boolean)} is <code>true</code>, the checksum will be
  * stored in the target field name specified. If you do not specify any,
  * it stores it under the metadata field name
- * {@link CollectorMetadata#COLLECTOR_CHECKSUM_METADATA}.
+ * {@link CrawlDocMetadata#COLLECTOR_CHECKSUM_METADATA}.
  * </p>
  * <p>
  * To use different fields (one or several) to constitute a checksum,

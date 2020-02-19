@@ -1,4 +1,4 @@
-/* Copyright 2016-2019 Norconex Inc.
+/* Copyright 2016-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.reference.HttpCrawlState;
+import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.robot.IRobotsTxtFilter;
 import com.norconex.collector.http.robot.RobotsTxt;
 

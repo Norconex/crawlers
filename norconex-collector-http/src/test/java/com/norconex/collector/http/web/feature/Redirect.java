@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.web.feature;
 
-import static com.norconex.collector.http.doc.HttpMetadata.COLLECTOR_URL;
+import static com.norconex.importer.doc.ImporterMetadata.DOC_REFERENCE;
 
 import java.io.PrintWriter;
 import java.util.List;
@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Assertions;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
@@ -70,7 +70,7 @@ public class Redirect extends AbstractTestFeature {
         IAddOperation doc = committer.getAddOperations().get(0);
         String ref = doc.getReference();
 
-        List<String> urls = doc.getMetadata().getStrings(COLLECTOR_URL);
+        List<String> urls = doc.getMetadata().getStrings(DOC_REFERENCE);
         assertListSize("URL", urls, 1);
 
         Assertions.assertTrue(
@@ -78,7 +78,7 @@ public class Redirect extends AbstractTestFeature {
                 "Invalid redirection URL: " + ref);
 
         List<String> inPageUrls = doc.getMetadata().getStrings(
-                HttpMetadata.COLLECTOR_REFERENCED_URLS);
+                HttpDocMetadata.COLLECTOR_REFERENCED_URLS);
         assertListSize("referenced URLs", inPageUrls, 2);
 
         Assertions.assertTrue(inPageUrls.get(0).matches(

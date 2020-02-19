@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Norconex Inc.
+/* Copyright 2017-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import org.apache.tika.utils.CharsetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.Link;
 import com.norconex.commons.lang.file.ContentType;
@@ -80,7 +80,7 @@ import com.norconex.importer.util.CharsetUtil;
  * <ul>
  *   <li><b>Referrer reference:</b> The reference (URL) of the page where the
  *   link to a document was found.  Metadata value is
- *   {@link HttpMetadata#COLLECTOR_REFERRER_REFERENCE}.</li>
+ *   {@link HttpDocMetadata#COLLECTOR_REFERRER_REFERENCE}.</li>
  * </ul>
  *
  * <h3>Character encoding</h3>

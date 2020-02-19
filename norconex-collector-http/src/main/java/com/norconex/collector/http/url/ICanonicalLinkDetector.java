@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.commons.lang.file.ContentType;
 
 /**
@@ -50,7 +50,7 @@ public interface ICanonicalLinkDetector {
      * @param metadata metadata object containing HTTP headers
      * @return the detected canonical URL or <code>null</code> if none is found.
      */
-    String detectFromMetadata(String reference, HttpMetadata metadata);
+    String detectFromMetadata(String reference, HttpDocMetadata metadata);
 
     /**
      * Detects from a document content the presence of a canonical URL.

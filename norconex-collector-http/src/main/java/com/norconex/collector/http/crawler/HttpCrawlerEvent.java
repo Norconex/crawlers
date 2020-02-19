@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Norconex Inc.
+/* Copyright 2014-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package com.norconex.collector.http.crawler;
 
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.reference.CrawlReference;
+import com.norconex.collector.core.doc.CrawlDocInfo;
 
 /**
  * An HTTP Crawler Event.
@@ -46,7 +46,7 @@ public class HttpCrawlerEvent extends CrawlerEvent<HttpCrawler> {
      * @param exception exception tied to this event (may be <code>null</code>)
      */
     public HttpCrawlerEvent(String name, HttpCrawler source,
-            CrawlReference crawlRef, Object subject, Throwable exception) {
+            CrawlDocInfo crawlRef, Object subject, Throwable exception) {
         super(name, source, crawlRef, subject, exception);
     }
 
@@ -54,15 +54,15 @@ public class HttpCrawlerEvent extends CrawlerEvent<HttpCrawler> {
         return create(name, crawler, null);
     }
     public static HttpCrawlerEvent create(
-            String name, HttpCrawler crawler, CrawlReference crawlRef) {
+            String name, HttpCrawler crawler, CrawlDocInfo crawlRef) {
         return create(name, crawler, crawlRef, null, null);
     }
     public static HttpCrawlerEvent create(String name, HttpCrawler crawler,
-            CrawlReference crawlRef, Object subject) {
+            CrawlDocInfo crawlRef, Object subject) {
         return create(name, crawler, crawlRef, subject, null);
     }
     public static HttpCrawlerEvent create(String name, HttpCrawler crawler,
-            CrawlReference crawlRef, Object subject, Throwable exception) {
+            CrawlDocInfo crawlRef, Object subject, Throwable exception) {
         return new HttpCrawlerEvent(name, crawler, crawlRef, subject, exception);
     }
 }

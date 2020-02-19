@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Norconex Inc.
+/* Copyright 2014-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Disabled;
 
 import com.norconex.collector.core.crawler.CrawlerConfig;
-import com.norconex.collector.core.reference.CrawlReferenceService;
+import com.norconex.collector.core.doc.CrawlDocInfoService;
 import com.norconex.collector.http.data.store.impl.AbstractHttpCrawlDataStoreTest;
 
 @Disabled
 public class MVStoreCrawlDataStoreTest extends AbstractHttpCrawlDataStoreTest {
 
     @Override
-    protected CrawlReferenceService createCrawlDataStore(CrawlerConfig config,
+    protected CrawlDocInfoService createCrawlDataStore(CrawlerConfig config,
             Path tempFolder, boolean resume) {
         // TODO Auto-generated method stub
         return null;

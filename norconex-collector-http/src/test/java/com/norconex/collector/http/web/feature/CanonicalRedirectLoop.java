@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.web.feature;
 
-import static com.norconex.collector.http.doc.HttpMetadata.COLLECTOR_REDIRECT_TRAIL;
+import static com.norconex.collector.http.doc.HttpDocMetadata.COLLECTOR_REDIRECT_TRAIL;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.PrintWriter;

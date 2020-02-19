@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.ICommitter;
 import com.norconex.committer.core.impl.MemoryCommitter;
@@ -154,7 +154,7 @@ public abstract class AbstractTestFeature implements IWebTest {
         Assertions.assertEquals( size, list.size(),
                 "Wrong " + listName + " list size.");
     }
-    protected void assertOneValue(HttpMetadata meta, String... fields) {
+    protected void assertOneValue(HttpDocMetadata meta, String... fields) {
         for (String field : fields) {
             Assertions.assertEquals(
                     1, meta.getStrings(field).size(),

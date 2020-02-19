@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
@@ -75,7 +75,7 @@ public class MultiRedirect extends AbstractTestFeature {
         String ref = doc.getReference();
 
         List<String> trail = doc.getMetadata().getStrings(
-                HttpMetadata.COLLECTOR_REDIRECT_TRAIL);
+                HttpDocMetadata.COLLECTOR_REDIRECT_TRAIL);
         LOG.debug("Redirect source URLs:" + trail);
         assertListSize("URL", trail, 5);
 

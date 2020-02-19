@@ -1,4 +1,4 @@
-/* Copyright 2018-2019 Norconex Inc.
+/* Copyright 2018-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.util.function.Function;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -73,21 +73,21 @@ public class HttpFetchClient {
     }
 
 
-    public IHttpFetchResponse fetchHeaders(String url, HttpMetadata headers) {
+    public IHttpFetchResponse fetchHeaders(String url, HttpDocMetadata headers) {
         return fetch(fetcher -> fetcher.fetchHeaders(url, headers));
     }
-    public IHttpFetchResponse fetchDocument(HttpDocument doc) {
+    public IHttpFetchResponse fetchDocument(HttpDoc doc) {
         return fetch(fetcher -> fetcher.fetchDocument(doc));
     }
 
-    public HttpDocument fetchDocument(String url) {
-        HttpDocument doc = new HttpDocument(url, streamFactory);
+    public HttpDoc fetchDocument(String url) {
+        HttpDoc doc = new HttpDoc(url, streamFactory.newInputStream());
         fetch(fetcher -> fetcher.fetchDocument(doc));
         return doc;
     }
     public IHttpFetchResponse fetchDocument(String url, OutputStream out)
             throws HttpFetchException {
-        HttpDocument doc = new HttpDocument(url, streamFactory);
+        HttpDoc doc = new HttpDoc(url, streamFactory.newInputStream());
         IHttpFetchResponse resp = fetch(fetcher -> fetcher.fetchDocument(doc));
         try {
             IOUtils.copy(doc.getInputStream(), out);

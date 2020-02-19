@@ -28,8 +28,8 @@
         New "disableSNI" crawler configuration option to disable Server Name 
         Indication.
       </action>
-      <action dev="essiembre" type="remove">
-        New "reference" package. 
+      <action dev="essiembre" type="add">
+        New HttpDoc, HttpDocInfo, HttpDocMetadata (new or renamed).
       </action>
       <action dev="essiembre" type="update">
         PhantomJSDocumentFetcher now deprecated in favor of 
@@ -74,8 +74,8 @@
         GenericHttpFetcher. 
       </action>
       <action dev="essiembre" type="remove">
-        Removed "data" package (and its classes) in favor of "reference" 
-        package. 
+        Removed "data" package (and its classes) in favor of new classes 
+        in "doc" package. 
       </action>
       <action dev="essiembre" type="remove">
         Remove all previously available crawl store implementions in favor

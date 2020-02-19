@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,10 +52,10 @@ import com.norconex.collector.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.collector.core.store.IDataStore;
 import com.norconex.collector.core.store.SimpleValue;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
-import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
@@ -201,7 +201,7 @@ public class GenericSitemapResolver
     public void resolveSitemaps(
             HttpFetchClient fetcher, String urlRoot,
             List<String> sitemapLocations,
-            Consumer<HttpCrawlReference> sitemapURLConsumer,
+            Consumer<HttpDocInfo> sitemapURLConsumer,
             boolean startURLs) {
 
 
@@ -277,7 +277,7 @@ public class GenericSitemapResolver
 //    }
 
     private void resolveLocation(String location, HttpFetchClient fetcher,
-            Consumer<HttpCrawlReference> sitemapURLConsumer,
+            Consumer<HttpDocInfo> sitemapURLConsumer,
             Set<String> resolvedLocations) {
 
         if (resolvedLocations.contains(location)) {
@@ -290,13 +290,14 @@ public class GenericSitemapResolver
             return;
         }
 
-        HttpDocument doc = null;
+        HttpDoc doc = null;
         try {
 //            HttpGet method = null;
 //            method = new HttpGet(location);
 
             // Execute the method.
-            doc = new HttpDocument(location, fetcher.getStreamFactory());
+            doc = new HttpDoc(
+                    location, fetcher.getStreamFactory().newInputStream());
 //            HttpResponse response = httpClient.execute(method);
             IHttpFetchResponse response = fetcher.fetchDocument(doc);
             int statusCode = response.getStatusCode();
@@ -366,7 +367,7 @@ public class GenericSitemapResolver
 
 
     private void parseLocation(File sitemapFile, HttpFetchClient fetcher,
-            Consumer<HttpCrawlReference> sitemapURLConsumer,
+            Consumer<HttpDocInfo> sitemapURLConsumer,
             Set<String> resolvedLocations,
             String location) throws XMLStreamException, IOException {
 
@@ -415,7 +416,7 @@ public class GenericSitemapResolver
     }
 
     private void parseEndElement(
-            Consumer<HttpCrawlReference> sitemapURLConsumer,
+            Consumer<HttpDocInfo> sitemapURLConsumer,
             ParseState parseState, String locationDir, String tag) {
         if ("sitemap".equalsIgnoreCase(tag)) {
             parseState.sitemapIndex = false;
@@ -466,7 +467,7 @@ public class GenericSitemapResolver
         if("sitemap".equalsIgnoreCase(tag)) {
             parseState.sitemapIndex = true;
         } else if("url".equalsIgnoreCase(tag)){
-            parseState.baseURL = new HttpCrawlReference("", 0);
+            parseState.baseURL = new HttpDocInfo("", 0);
         } else if("loc".equalsIgnoreCase(tag)){
             parseState.loc = true;
         } else if("lastmod".equalsIgnoreCase(tag)){
@@ -584,7 +585,7 @@ public class GenericSitemapResolver
     }
 
     private static class ParseState {
-        private HttpCrawlReference baseURL = null;
+        private HttpDocInfo baseURL = null;
         private boolean sitemapIndex = false;
         private boolean loc = false;
         private boolean lastmod = false;

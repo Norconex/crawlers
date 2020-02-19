@@ -1,4 +1,4 @@
-/* Copyright 2018-2019 Norconex Inc.
+/* Copyright 2018-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.collector.http.server.TestServer;
 import com.norconex.collector.http.server.TestServerBuilder;
 import com.norconex.commons.lang.OSResource;
@@ -124,7 +124,7 @@ public class WebDriverHttpFetcherTest  {
         try {
             // simulate crawler startup
             fetcher.crawlerStartup(null);
-            HttpDocument doc = fetch(fetcher, "/");
+            HttpDoc doc = fetch(fetcher, "/");
             LOG.debug("'/' META: " + doc.getMetadata());
             Assertions.assertTrue(IOUtils.toString(
                     doc.getInputStream(), StandardCharsets.UTF_8).contains(
@@ -170,7 +170,7 @@ public class WebDriverHttpFetcherTest  {
         try {
             // simulate crawler startup
             fetcher.crawlerStartup(null);
-            HttpDocument doc = fetch(fetcher, "/headers");
+            HttpDoc doc = fetch(fetcher, "/headers");
             LOG.debug("'/headers' META: " + doc.getMetadata());
             Assertions.assertEquals(
                     "test_value", doc.getMetadata().getString("TEST_KEY"));
@@ -188,7 +188,7 @@ public class WebDriverHttpFetcherTest  {
                 "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
         try {
             fetcher.crawlerStartup(null);
-            HttpDocument doc = fetch(fetcher, "/orange.html");
+            HttpDoc doc = fetch(fetcher, "/orange.html");
 
             String h1 = IOUtils.toString(doc.getInputStream(),
                     StandardCharsets.UTF_8).replaceFirst(
@@ -234,8 +234,8 @@ public class WebDriverHttpFetcherTest  {
         }
     }
 
-    private HttpDocument fetch(WebDriverHttpFetcher fetcher, String urlPath) {
-        HttpDocument doc = new HttpDocument(
+    private HttpDoc fetch(WebDriverHttpFetcher fetcher, String urlPath) {
+        HttpDoc doc = new HttpDoc(
                 "http://localhost:" + server.getPort() + urlPath,
                 new CachedStreamFactory(10000, 10000).newInputStream());
         /*IHttpFetchResponse response = */ fetcher.fetchDocument(doc);

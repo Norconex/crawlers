@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,8 @@ import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.doc.CollectorMetadata;
-import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.core.doc.CrawlDocMetadata;
+import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.collector.http.fetch.util.DocImageHandler;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -51,9 +51,9 @@ public class WebDriverScreenshotHandler extends DocImageHandler {
     public static final Path DEFAULT_SCREENSHOT_DIR =
             Paths.get("./screenshots");
     public static final String DEFAULT_SCREENSHOT_DIR_FIELD =
-            CollectorMetadata.COLLECTOR_PREFIX + "screenshot-path";
+            CrawlDocMetadata.COLLECTOR_PREFIX + "screenshot-path";
     public static final String DEFAULT_SCREENSHOT_META_FIELD =
-            CollectorMetadata.COLLECTOR_PREFIX + "screenshot";
+            CrawlDocMetadata.COLLECTOR_PREFIX + "screenshot";
 
     private static final Logger LOG = LoggerFactory.getLogger(
             WebDriverScreenshotHandler.class);
@@ -78,7 +78,7 @@ public class WebDriverScreenshotHandler extends DocImageHandler {
         this.cssSelector = cssSelector;
     }
 
-    public void takeScreenshot(WebDriver driver, HttpDocument doc) {
+    public void takeScreenshot(WebDriver driver, HttpDoc doc) {
         try (InputStream in = streamFactory.newInputStream(
                 new ByteArrayInputStream(((TakesScreenshot) driver)
                         .getScreenshotAs(OutputType.BYTES)))) {

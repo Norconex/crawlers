@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
-import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.Link;
 import com.norconex.commons.lang.file.ContentType;
@@ -94,7 +94,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
             String[] referencedUrls =
                     uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
             ctx.getMetadata().add(
-                    HttpMetadata.COLLECTOR_REFERENCED_URLS, referencedUrls);
+                    HttpDocMetadata.COLLECTOR_REFERENCED_URLS, referencedUrls);
             ctx.getCrawlReference().setReferencedUrls(
                     Arrays.asList(referencedUrls));
         }
@@ -105,7 +105,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
         if (!uniqueOutOfScopeURLs.isEmpty()) {
             ctx.getMetadata().add(
-                   HttpMetadata.COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE,
+                   HttpDocMetadata.COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE,
                    uniqueOutOfScopeURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
 
@@ -162,7 +162,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
         // i.e., those properly formatted.  If we do so, can it prevent
         // weird/custom URLs that some link extractors may find valid?
         if (uniqueExtractedURLs.add(link.getUrl())) {
-            HttpCrawlReference newURL = new HttpCrawlReference(
+            HttpDocInfo newURL = new HttpDocInfo(
                     link.getUrl(), ctx.getCrawlReference().getDepth() + 1);
             newURL.setReferrerReference(link.getReferrer());
             newURL.setReferrerLinkTag(link.getTag());

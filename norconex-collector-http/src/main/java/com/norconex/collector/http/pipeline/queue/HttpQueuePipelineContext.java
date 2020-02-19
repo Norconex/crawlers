@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.norconex.collector.http.pipeline.queue;
 import com.norconex.collector.core.pipeline.BasePipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.reference.HttpCrawlReference;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 
 /**
@@ -28,7 +28,7 @@ public class HttpQueuePipelineContext extends BasePipelineContext {
 
     public HttpQueuePipelineContext(
             HttpCrawler crawler,
-            HttpCrawlReference crawlRef) {
+            HttpDocInfo crawlRef) {
         super(crawler, crawlRef);
     }
 
@@ -42,8 +42,8 @@ public class HttpQueuePipelineContext extends BasePipelineContext {
     }
 
     @Override
-    public HttpCrawlReference getCrawlReference() {
-        return (HttpCrawlReference) super.getCrawlReference();
+    public HttpDocInfo getCrawlReference() {
+        return (HttpDocInfo) super.getCrawlReference();
     }
 
     @Override

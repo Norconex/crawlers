@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,25 @@ package com.norconex.collector.http.doc;
 
 import java.util.Collection;
 
-import com.norconex.collector.core.doc.CollectorMetadata;
+import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.doc.ImporterMetadata;
 
-public class HttpMetadata extends CollectorMetadata {
+public class HttpDocMetadata extends CrawlDocMetadata {
+
+    //TODO make it a constant class instead?
 
 	private static final long serialVersionUID = 1454870639551983430L;
 
 	public static final String HTTP_CONTENT_TYPE = "Content-Type";
     public static final String HTTP_CONTENT_LENGTH = "Content-Length";
 
-    public static final String COLLECTOR_URL = COLLECTOR_PREFIX + "url";
+    /**
+     * @deprecated Since 3.0.0, use {@value ImporterMetadata#DOC_REFERENCE}.
+     */
+    @Deprecated
+    public static final String COLLECTOR_URL = ImporterMetadata.DOC_REFERENCE;
+//    public static final String COLLECTOR_URL = COLLECTOR_PREFIX + "url";
     public static final String COLLECTOR_DEPTH = COLLECTOR_PREFIX + "depth";
     public static final String COLLECTOR_SM_LASTMOD =
             COLLECTOR_PREFIX + "sitemap-lastmod";
@@ -50,12 +58,12 @@ public class HttpMetadata extends CollectorMetadata {
     public static final String COLLECTOR_REDIRECT_TRAIL =
             COLLECTOR_PREFIX + "redirect-trail";
 
-	public HttpMetadata(String documentURL) {
+	public HttpDocMetadata(String documentURL) {
 		super();
 		set(COLLECTOR_URL, documentURL);
 	}
 
-    public HttpMetadata(Properties metadata) {
+    public HttpDocMetadata(Properties metadata) {
         super(metadata);
     }
 
@@ -69,4 +77,12 @@ public class HttpMetadata extends CollectorMetadata {
 		return getStrings(COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE);
 	}
 
+	// For now we depricate until we find better.
+	@Deprecated
+    public static HttpDocMetadata toHttpDocMetadata(ImporterMetadata meta) {
+        if (meta instanceof HttpDocMetadata) {
+            return (HttpDocMetadata) meta;
+        }
+        return new HttpDocMetadata(meta);
+    }
 }

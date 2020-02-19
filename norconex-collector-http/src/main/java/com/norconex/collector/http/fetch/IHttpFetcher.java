@@ -1,4 +1,4 @@
-/* Copyright 2018-2019 Norconex Inc.
+/* Copyright 2018-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  */
 package com.norconex.collector.http.fetch;
 
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 
 /**
  * Fetches HTTP resources.
@@ -26,23 +26,23 @@ public interface IHttpFetcher {
 
     //TODO have HttpMethod enum class (POST, GET, etc)
     //TODO modify this interface to have:
-    //     HttpFetchResponse fetch(HttpMethod method, HttpDocument doc);
+    //     HttpFetchResponse fetch(HttpMethod method, HttpDoc doc);
     //     and one of:
-    //         boolean accept(HttpDocument doc);
+    //         boolean accept(HttpDoc doc);
     //           or HttpFetchResponse.UNSUPPORTED (singleton?)
 
 
     String getUserAgent();
 
     //TODO remove this method?
-    boolean accept(HttpDocument doc);
+    boolean accept(HttpDoc doc);
 
 
-    IHttpFetchResponse fetchHeaders(String url, HttpMetadata httpHeaders); // throw HttpFetchException
-    IHttpFetchResponse fetchDocument(HttpDocument doc);  // throw HttpFetchException
-    // INSTEAD?  So we do not expose HttpDocument?
+    IHttpFetchResponse fetchHeaders(String url, HttpDocMetadata httpHeaders); // throw HttpFetchException
+    IHttpFetchResponse fetchDocument(HttpDoc doc);  // throw HttpFetchException
+    // INSTEAD?  So we do not expose HttpDoc?
 //    HttpFetchResponse fetchDocument(
-//            String url, HttpMetadata httpHeaders, OutputStream content);
+//            String url, HttpDocMetadata httpHeaders, OutputStream content);
 
 
 

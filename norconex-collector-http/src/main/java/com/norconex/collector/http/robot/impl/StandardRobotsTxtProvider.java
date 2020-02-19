@@ -1,4 +1,4 @@
-/* Copyright 2010-2018 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
-import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.robot.IRobotsTxtFilter;
@@ -97,8 +97,8 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
 //            InputStream is = response.getEntity().getContent();
 //            robotsTxt = parseRobotsTxt(is, trimmedURL, userAgent);
 
-            HttpDocument doc = new HttpDocument(robotsURL,
-                    fetcher.getStreamFactory());
+            HttpDoc doc = new HttpDoc(robotsURL,
+                    fetcher.getStreamFactory().newInputStream());
             IHttpFetchResponse response = fetcher.fetchDocument(doc);
             robotsTxt = parseRobotsTxt(doc.getInputStream(), trimmedURL,
                     response.getUserAgent());

@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,26 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.reference;
+package com.norconex.collector.http.doc;
 
-import com.norconex.collector.core.reference.CrawlState;
+import com.norconex.collector.core.doc.CrawlState;
 
 /**
  * Represents a URL crawling status.
  * @author Pascal Essiembre
  * @see CrawlState
  */
-public class HttpCrawlState extends CrawlState { 
+public class HttpCrawlState extends CrawlState {
 
     private static final long serialVersionUID = 1466828686562714860L;
 
-    public static final HttpCrawlState TOO_DEEP = 
+    public static final HttpCrawlState TOO_DEEP =
             new HttpCrawlState("TOO_DEEP");
-    
+
     /**
      * @since 2.3.0
      */
-    public static final HttpCrawlState REDIRECT = 
+    public static final HttpCrawlState REDIRECT =
             new HttpCrawlState("REDIRECT");
 
     protected HttpCrawlState(String state) {

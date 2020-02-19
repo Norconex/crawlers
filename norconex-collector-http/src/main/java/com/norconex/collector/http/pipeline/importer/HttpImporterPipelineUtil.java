@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,19 +23,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.reference.CrawlReference.Stage;
+import com.norconex.collector.core.doc.CrawlDocInfo.Stage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpCrawlState;
+import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
-import com.norconex.collector.http.reference.HttpCrawlReference;
-import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.importer.doc.ImporterMetadata;
 
 /**
  * @author Pascal Essiembre
@@ -52,29 +53,29 @@ import com.norconex.commons.lang.file.ContentType;
     }
 
     //TODO consider making public, putting content type and encoding in CORE.
-    public static void applyMetadataToDocument(HttpDocument doc) {
+    public static void applyMetadataToDocument(HttpDoc doc) {
         if (doc.getContentType() == null) {
-            doc.setContentType(ContentType.valueOf(
+            doc.getDocInfo().setContentType(ContentType.valueOf(
                     doc.getMetadata().getString(
-                            HttpMetadata.COLLECTOR_CONTENT_TYPE)));
-            doc.setContentEncoding(doc.getMetadata().getString(
-                    HttpMetadata.COLLECTOR_CONTENT_ENCODING));
+                            HttpDocMetadata.COLLECTOR_CONTENT_TYPE)));
+            doc.getDocInfo().setContentEncoding(doc.getMetadata().getString(
+                    HttpDocMetadata.COLLECTOR_CONTENT_ENCODING));
         }
     }
 
-    public static void enhanceHTTPHeaders(HttpMetadata meta) {
-        String colCT = meta.getString(HttpMetadata.COLLECTOR_CONTENT_TYPE);
-        String colCE = meta.getString(HttpMetadata.COLLECTOR_CONTENT_ENCODING);
+    public static void enhanceHTTPHeaders(ImporterMetadata meta) {
+        String colCT = meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_TYPE);
+        String colCE = meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_ENCODING);
 
         if (StringUtils.isNotBlank(colCT) && StringUtils.isNotBlank(colCE)) {
             return;
         }
 
         // Grab content type from HTTP Header
-        String httpCT = meta.getString(HttpMetadata.HTTP_CONTENT_TYPE);
+        String httpCT = meta.getString(HttpDocMetadata.HTTP_CONTENT_TYPE);
         if (StringUtils.isBlank(httpCT)) {
             for (String key : meta.keySet()) {
-                if (StringUtils.endsWith(key, HttpMetadata.HTTP_CONTENT_TYPE)) {
+                if (StringUtils.endsWith(key, HttpDocMetadata.HTTP_CONTENT_TYPE)) {
                     httpCT = meta.getString(key);
                 }
             }
@@ -89,7 +90,7 @@ import com.norconex.commons.lang.file.ContentType;
             if (StringUtils.isBlank(colCT)) {
                 String ct = parsedCT.getMimeType();
                 if (ct != null) {
-                    meta.add(HttpMetadata.COLLECTOR_CONTENT_TYPE, ct);
+                    meta.add(HttpDocMetadata.COLLECTOR_CONTENT_TYPE, ct);
                 }
             }
 
@@ -97,7 +98,7 @@ import com.norconex.commons.lang.file.ContentType;
                 // Grab charset form HTTP Content-Type
                 String ce = Objects.toString(parsedCT.getCharset(), null);
                 if (ce != null) {
-                    meta.add(HttpMetadata.COLLECTOR_CONTENT_ENCODING, ce);
+                    meta.add(HttpDocMetadata.COLLECTOR_CONTENT_ENCODING, ce);
                 }
             }
         }
@@ -116,7 +117,7 @@ import com.norconex.commons.lang.file.ContentType;
 
         ICanonicalLinkDetector detector =
                 ctx.getConfig().getCanonicalLinkDetector();
-        HttpCrawlReference crawlRef = ctx.getCrawlReference();
+        HttpDocInfo crawlRef = ctx.getCrawlReference();
         String reference = crawlRef.getReference();
 
         String canURL = null;
@@ -172,7 +173,7 @@ import com.norconex.commons.lang.file.ContentType;
                 return true;
             }
 
-            HttpCrawlReference newData = (HttpCrawlReference) crawlRef.clone();
+            HttpDocInfo newData = new HttpDocInfo(crawlRef);
             newData.setReference(canURL);
             newData.setReferrerReference(reference);
 
@@ -214,7 +215,7 @@ import com.norconex.commons.lang.file.ContentType;
             HttpImporterPipelineContext ctx,
             IHttpFetchResponse response,
             String redirectURL) {
-        HttpCrawlReference crawlRef = ctx.getCrawlReference();
+        HttpDocInfo crawlRef = ctx.getCrawlReference();
         String sourceURL =  crawlRef.getReference();
         Stage redirectStage = ctx.getCrawlReferenceService()
                 .getProcessingStage(redirectURL);
@@ -268,7 +269,7 @@ import com.norconex.commons.lang.file.ContentType;
         ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED,
                 crawlRef, newResponse);
 
-        HttpCrawlReference newData = new HttpCrawlReference(
+        HttpDocInfo newData = new HttpDocInfo(
                 redirectURL, crawlRef.getDepth());
         newData.setReferrerReference(crawlRef.getReferrerReference());
         newData.setReferrerLinkTag(crawlRef.getReferrerLinkTag());

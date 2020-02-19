@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package com.norconex.collector.http.pipeline.importer;
 
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.pipeline.ChecksumStageUtil;
-import com.norconex.collector.http.doc.HttpMetadata;
-import com.norconex.collector.http.reference.HttpCrawlState;
+import com.norconex.collector.http.doc.HttpCrawlState;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 
 /**
  * @author Pascal Essiembre
@@ -49,7 +49,7 @@ import com.norconex.collector.http.reference.HttpCrawlState;
             ctx.getCrawlReference().setState(HttpCrawlState.NEW);
             return true;
         }
-        HttpMetadata headers = ctx.getMetadata();
+        HttpDocMetadata headers = ctx.getMetadata();
         String newHeadChecksum = check.createMetadataChecksum(headers);
 
         return ChecksumStageUtil.resolveMetaChecksum(

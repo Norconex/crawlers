@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package com.norconex.collector.http.pipeline.importer;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchClient;
-import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.bean.BeanUtil;
@@ -46,8 +46,8 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
 
     public HttpImporterPipelineContext(
             HttpCrawler crawler,
-            HttpCrawlReference crawlRef, HttpCrawlReference cachedCrawlRef,
-            HttpDocument doc) {
+            HttpDocInfo crawlRef, HttpDocInfo cachedCrawlRef,
+            HttpDoc doc) {
         super(crawler, crawlRef, cachedCrawlRef, doc);
     }
 
@@ -62,37 +62,30 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     }
 
     @Override
-    public HttpCrawlReference getCrawlReference() {
-        return (HttpCrawlReference) super.getCrawlReference();
+    public HttpDocInfo getCrawlReference() {
+        return (HttpDocInfo) super.getCrawlReference();
     }
 
     @Override
-    public HttpCrawlReference getCachedCrawlReference() {
-        return (HttpCrawlReference) super.getCachedCrawlReference();
+    public HttpDocInfo getCachedCrawlReference() {
+        return (HttpDocInfo) super.getCachedCrawlReference();
     }
 
-//    public HttpClient getHttpClient() {
-//        return getCrawler().getHttpClient();
-//    }
     public HttpFetchClient getHttpFetchClient() {
         return getCrawler().getHttpFetchClient();
     }
 
     @Override
-    public HttpDocument getDocument() {
-        return (HttpDocument) super.getDocument();
+    public HttpDoc getDocument() {
+        return (HttpDoc) super.getDocument();
     }
 
-//    public IHttpMetadataFetcher getHttpHeadersFetcher() {
-//        return getConfig().getMetadataFetcher();
-//    }
-//
     public ISitemapResolver getSitemapResolver() {
         return getCrawler().getSitemapResolver();
     }
 
-    public HttpMetadata getMetadata() {
-        return getDocument().getMetadata();
+    public HttpDocMetadata getMetadata() {
+        return HttpDocMetadata.toHttpDocMetadata(getDocument().getMetadata());
     }
 
     public Importer getImporter() {

@@ -1,4 +1,4 @@
-/* Copyright 2018-2019 Norconex Inc.
+/* Copyright 2018-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,13 +45,13 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpCrawlState;
+import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.WebDriverHttpSniffer.DriverResponseFilter;
-import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -418,7 +418,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
     @Override
     public IHttpFetchResponse fetchHeaders(
-            String url, HttpMetadata httpHeaders) {
+            String url, HttpDocMetadata httpHeaders) {
         //TODO rely on proxy request filter to transform to a HEAD request?
 
         return HttpFetchResponseBuilder.unsupported()
@@ -428,7 +428,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public IHttpFetchResponse fetchDocument(HttpDocument doc) {
+    public IHttpFetchResponse fetchDocument(HttpDoc doc) {
 
 	    LOG.debug("Fetching document: {}", doc.getReference());
 
@@ -470,7 +470,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
 
-    private IHttpFetchResponse resolveDriverResponse(HttpDocument doc) {
+    private IHttpFetchResponse resolveDriverResponse(HttpDoc doc) {
         IHttpFetchResponse response = null;
         if (httpSniffer != null) {
             DriverResponseFilter driverResponseFilter = httpSniffer.unbind();

@@ -16,7 +16,7 @@
    limitations under the License.
 -->
   <!-- Validation done here since not in /validation/collector-http-full.xml -->
-  <documentFetcher  
+  <fetcher  
       class="com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher">
       <exePath>/path/phantomjs.exe</exePath>
       <scriptPath>/path/script.js</scriptPath>
@@ -42,5 +42,5 @@
       <screenshotStorageDiskDir structure="date">/path/screenshots/</screenshotStorageDiskDir>
       <screenshotStorageDiskField>my-disk-field</screenshotStorageDiskField>
       <screenshotStorageInlineField>my-inline-field</screenshotStorageInlineField>      
-  </documentFetcher>
+  </fetcher>
   

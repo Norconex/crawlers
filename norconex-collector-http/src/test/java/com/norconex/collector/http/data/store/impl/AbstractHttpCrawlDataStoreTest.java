@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,14 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.reference.CrawlReference;
-import com.norconex.collector.core.reference.CrawlReferenceService;
-import com.norconex.collector.core.reference.CrawlState;
+import com.norconex.collector.core.doc.CrawlDocInfo;
+import com.norconex.collector.core.doc.CrawlDocInfoService;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.reference.HttpCrawlReference;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentType;
 
@@ -56,14 +56,14 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     @TempDir
     Path tempFolder;
 
-    private CrawlReferenceService crawlReferenceService;
+    private CrawlDocInfoService crawlDocInfoService;
     private HttpCrawlerConfig crawlerConfig;
 
-    public CrawlReferenceService getCrawlReferenceService() {
-        return crawlReferenceService;
+    public CrawlDocInfoService getCrawlReferenceService() {
+        return crawlDocInfoService;
     }
-    public void setCrawlReferenceService(CrawlReferenceService crs) {
-        this.crawlReferenceService = crs;
+    public void setCrawlReferenceService(CrawlDocInfoService crs) {
+        this.crawlDocInfoService = crs;
     }
     public CrawlerConfig getCrawlerConfig() {
         return crawlerConfig;
@@ -91,13 +91,13 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         em.fire(CrawlerEvent.create(
                 CRAWLER_RUN_BEGIN, new HttpCrawler(crawlerConfig, collector)));
 
-        crawlReferenceService = createCrawlDataStore(crawlerConfig, tempFolder, false);
+        crawlDocInfoService = createCrawlDataStore(crawlerConfig, tempFolder, false);
     }
 
     @AfterEach
     public void tearDown() throws Exception {
-        if (crawlReferenceService != null) {
-            crawlReferenceService.close();
+        if (crawlDocInfoService != null) {
+            crawlDocInfoService.close();
         }
     }
 
@@ -111,10 +111,10 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     }
 
     protected void resetDatabase(boolean resume) throws IOException {
-        if (crawlReferenceService != null) {
-            crawlReferenceService.close();
+        if (crawlDocInfoService != null) {
+            crawlDocInfoService.close();
         }
-        crawlReferenceService = createCrawlDataStore(
+        crawlDocInfoService = createCrawlDataStore(
                 getCrawlerConfig(), getTempfolder(), resume);
     }
     protected void moveProcessedToCache() throws IOException {
@@ -127,7 +127,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         return getClass().getSimpleName();
     }
 
-    protected abstract CrawlReferenceService createCrawlDataStore(
+    protected abstract CrawlDocInfoService createCrawlDataStore(
             CrawlerConfig config, Path tempFolder, boolean resume);
 
 
@@ -136,17 +136,17 @@ public abstract class AbstractHttpCrawlDataStoreTest {
     @Test
     public void testWriteReadNulls() throws Exception {
         String ref = "http://testrefnulls.com";
-        HttpCrawlReference dataIn = new HttpCrawlReference(ref, 1);
-        crawlReferenceService.processed(dataIn);
+        HttpDocInfo dataIn = new HttpDocInfo(ref, 1);
+        crawlDocInfoService.processed(dataIn);
         moveProcessedToCache();
-        CrawlReference dataOut = crawlReferenceService.getCached(ref).get();
+        CrawlDocInfo dataOut = crawlDocInfoService.getCached(ref).get();
         assertEquals(dataIn, dataOut);
     }
 
     @Test
     public void testWriteReadNoNulls() throws Exception {
         String url = "http://testurlnonulls.com";
-        HttpCrawlReference dataIn = new HttpCrawlReference(url, 1);
+        HttpDocInfo dataIn = new HttpDocInfo(url, 1);
         dataIn.setState(CrawlState.MODIFIED);
         dataIn.setMetaChecksum("metaChecksum");
         dataIn.setContentChecksum("contentChecksum");
@@ -158,16 +158,16 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         dataIn.setReferrerLinkText("referrerLinkText");
         dataIn.setReferrerLinkTitle("referrerLinkTitle");
         dataIn.setReferrerReference("referrerReference");
-        dataIn.setRootParentReference(true);
+//        dataIn.setRootParentReference(true);
         dataIn.setSitemapChangeFreq("weekly");
         dataIn.setSitemapLastMod(123L);
         dataIn.setSitemapPriority(0.5f);
         dataIn.setReferencedUrls(
                 Arrays.asList("url1", "url2", "url3", "url4", "url5"));
-        crawlReferenceService.processed(dataIn);
+        crawlDocInfoService.processed(dataIn);
         moveProcessedToCache();
-        HttpCrawlReference dataOut =
-                (HttpCrawlReference) crawlReferenceService.getCached(url).get();
+        HttpDocInfo dataOut =
+                (HttpDocInfo) crawlDocInfoService.getCached(url).get();
         assertEquals(dataIn, dataOut);
     }
 }

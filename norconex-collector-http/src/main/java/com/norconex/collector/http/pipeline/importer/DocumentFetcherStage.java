@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ import java.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.collector.core.reference.CrawlState;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
+import com.norconex.collector.http.doc.HttpCrawlState;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
-import com.norconex.collector.http.reference.HttpCrawlReference;
-import com.norconex.collector.http.reference.HttpCrawlState;
 
 /**
  * <p>Fetches (i.e. download for processing) a document.</p>
@@ -36,7 +36,7 @@ import com.norconex.collector.http.reference.HttpCrawlState;
 
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
-        HttpCrawlReference crawlRef = ctx.getCrawlReference();
+        HttpDocInfo crawlRef = ctx.getCrawlReference();
 
         IHttpFetchResponse response =
                 ctx.getHttpFetchClient().fetchDocument(ctx.getDocument());

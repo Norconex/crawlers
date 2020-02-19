@@ -1,4 +1,4 @@
-/* Copyright 2016-2019 Norconex Inc.
+/* Copyright 2016-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
-import com.norconex.collector.http.reference.HttpCrawlReference;
 import com.norconex.collector.http.robot.RobotsTxt;
 import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
 
@@ -73,7 +73,7 @@ public class RobotsTxtFiltersStageTest {
 
         HttpQueuePipelineContext ctx = new HttpQueuePipelineContext(
                 new HttpCrawler(cfg, new HttpCollector()),
-                new HttpCrawlReference(url, 0));
+                new HttpDocInfo(url, 0));
         RobotsTxtFiltersStage filterStage = new RobotsTxtFiltersStage();
         return filterStage.execute(ctx);
     }

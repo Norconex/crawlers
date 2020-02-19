@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import com.norconex.collector.core.pipeline.importer.ImporterPipelineUtil;
 import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.delay.IDelayResolver;
+import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
-import com.norconex.collector.http.reference.HttpCrawlState;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**

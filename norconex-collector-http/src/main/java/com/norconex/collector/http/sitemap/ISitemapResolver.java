@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
-import com.norconex.collector.http.reference.HttpCrawlReference;
 
 
 /**
@@ -65,7 +65,7 @@ public interface ISitemapResolver {
      */
     void resolveSitemaps(HttpFetchClient httpFetcher, String urlRoot,
             List<String> sitemapLocations,
-            Consumer<HttpCrawlReference> sitemapURLConsumer,
+            Consumer<HttpDocInfo> sitemapURLConsumer,
             boolean startURLs);
 
 //    /**

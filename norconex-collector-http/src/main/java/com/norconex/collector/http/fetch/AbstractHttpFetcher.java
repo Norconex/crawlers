@@ -1,4 +1,4 @@
-/* Copyright 2018-2019 Norconex Inc.
+/* Copyright 2018-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.IEventListener;
 import com.norconex.commons.lang.map.PropertyMatcher;
@@ -37,7 +37,7 @@ import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
- * Base class implementing the {@link #accept(HttpDocument)} method
+ * Base class implementing the {@link #accept(HttpDoc)} method
  * using restrictions and offering methods to overwrite for crawler startup
  * and shutdown.
  * </p>
@@ -83,7 +83,7 @@ public abstract class AbstractHttpFetcher implements
     }
 
     @Override
-    public boolean accept(HttpDocument doc) {
+    public boolean accept(HttpDoc doc) {
         return restrictions.test(doc.getMetadata());
     }
 

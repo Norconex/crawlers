@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import static com.norconex.collector.core.doc.CollectorMetadata.COLLECTOR_CONTENT_ENCODING;
-import static com.norconex.collector.core.doc.CollectorMetadata.COLLECTOR_CONTENT_TYPE;
-import static com.norconex.collector.http.doc.HttpMetadata.HTTP_CONTENT_TYPE;
+import static com.norconex.collector.core.doc.CrawlDocMetadata.COLLECTOR_CONTENT_ENCODING;
+import static com.norconex.collector.core.doc.CrawlDocMetadata.COLLECTOR_CONTENT_TYPE;
+import static com.norconex.collector.http.doc.HttpDocMetadata.HTTP_CONTENT_TYPE;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.commons.lang.map.Properties;
 
 public class HttpImporterPipelineUtilTest {
@@ -100,7 +100,7 @@ public class HttpImporterPipelineUtilTest {
             metadata.add(
                     COLLECTOR_CONTENT_ENCODING, inputCollectorEncoding);
         }
-        HttpImporterPipelineUtil.enhanceHTTPHeaders(new HttpMetadata(metadata));
+        HttpImporterPipelineUtil.enhanceHTTPHeaders(new HttpDocMetadata(metadata));
 
         Assertions.assertEquals(expectedCollectorContentType,
                 metadata.getString(COLLECTOR_CONTENT_TYPE));

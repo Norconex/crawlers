@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDocument;
-import com.norconex.collector.http.reference.HttpCrawlReference;
+import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 
 /**
@@ -39,12 +39,12 @@ public class HttpImporterPipelineTest {
         String contentValid = "<html><head><title>Test</title>\n"
                 + "<link rel=\"canonical\"\n href=\"\n" + reference +  "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
-        HttpDocument doc = new HttpDocument(reference,
+        HttpDoc doc = new HttpDoc(reference,
                 new CachedStreamFactory(1000, 1000).newInputStream(
                         new ByteArrayInputStream(contentValid.getBytes())));
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-                new HttpCrawlReference(reference, 0), null, doc);
+                new HttpDocInfo(reference, 0), null, doc);
         Assertions.assertTrue(
                 HttpImporterPipelineUtil.resolveCanonical(ctx, false));
     }
@@ -52,25 +52,25 @@ public class HttpImporterPipelineTest {
     @Test
     public void testCanonicalStageSameReferenceHeader() {
         String reference = "http://www.example.com/file.pdf";
-        HttpDocument doc = new HttpDocument(reference,
+        HttpDoc doc = new HttpDoc(reference,
                 new CachedStreamFactory(1, 1).newInputStream());
         doc.getMetadata().set("Link", "<" + reference + "> rel=\"canonical\"");
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-                new HttpCrawlReference(reference, 0), null, doc);
+                new HttpDocInfo(reference, 0), null, doc);
         Assertions.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
     }
 
     @Test
     public void testCopyProperties() {
         String reference = "http://www.example.com/file.pdf";
-        HttpDocument doc = new HttpDocument(reference,
+        HttpDoc doc = new HttpDoc(reference,
                 new CachedStreamFactory(1, 1).newInputStream());
 
 
         ImporterPipelineContext ipc = new ImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-                new HttpCrawlReference(reference, 0), null, doc);
+                new HttpDocInfo(reference, 0), null, doc);
 
         new HttpImporterPipelineContext(ipc);
 //        HttpImporterPipelineContext hipc = new HttpImporterPipelineContext(

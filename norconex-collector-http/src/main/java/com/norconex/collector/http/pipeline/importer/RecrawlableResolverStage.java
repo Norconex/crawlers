@@ -1,4 +1,4 @@
-/* Copyright 2016-2019 Norconex Inc.
+/* Copyright 2016-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
+import com.norconex.collector.http.doc.HttpCrawlState;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 import com.norconex.collector.http.recrawl.PreviousCrawlData;
-import com.norconex.collector.http.reference.HttpCrawlReference;
-import com.norconex.collector.http.reference.HttpCrawlState;
 
 /**
  * <p>Determines whether to recrawl a document or not.</p>
@@ -41,13 +41,13 @@ import com.norconex.collector.http.reference.HttpCrawlState;
             return true;
         }
 
-        HttpCrawlReference cachedData = ctx.getCachedCrawlReference();
+        HttpDocInfo cachedData = ctx.getCachedCrawlReference();
         if (cachedData == null) {
             // this document was not previously crawled so process it.
             return true;
         }
 
-        HttpCrawlReference currentData = ctx.getCrawlReference();
+        HttpDocInfo currentData = ctx.getCrawlReference();
 
         PreviousCrawlData prevData = new PreviousCrawlData();
         prevData.setReference(cachedData.getReference());

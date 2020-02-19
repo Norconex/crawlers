@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package com.norconex.collector.http.pipeline.committer;
 import com.norconex.collector.core.pipeline.DocumentPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
-import com.norconex.collector.http.reference.HttpCrawlReference;
 
 /**
  * @author Pascal Essiembre
@@ -29,9 +29,9 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
 
     public HttpCommitterPipelineContext(
             HttpCrawler crawler,
-            HttpDocument doc,
-            HttpCrawlReference crawlRef,
-            HttpCrawlReference cachedCrawlRef) {
+            HttpDoc doc,
+            HttpDocInfo crawlRef,
+            HttpDocInfo cachedCrawlRef) {
         super(crawler, crawlRef, cachedCrawlRef, doc);
     }
 
@@ -46,8 +46,8 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
     }
 
     @Override
-    public HttpCrawlReference getCrawlReference() {
-        return (HttpCrawlReference) super.getCrawlReference();
+    public HttpDocInfo getCrawlReference() {
+        return (HttpDocInfo) super.getCrawlReference();
     }
 
     public HttpFetchClient getHttpFetchClient() {
@@ -55,7 +55,7 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
     }
 
     @Override
-    public HttpDocument getDocument() {
-        return (HttpDocument) super.getDocument();
+    public HttpDoc getDocument() {
+        return (HttpDoc) super.getDocument();
     }
 }

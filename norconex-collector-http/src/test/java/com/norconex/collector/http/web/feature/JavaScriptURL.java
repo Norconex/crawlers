@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Assertions;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.crawler.URLCrawlScopeStrategy;
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
@@ -79,7 +79,7 @@ public class JavaScriptURL extends AbstractTestFeature {
                         content.contains("Must be crawled (1 of 2)"),
                         "First page not crawled properly.");
                 Assertions.assertEquals(1, doc.getMetadata().get(
-                        HttpMetadata.COLLECTOR_REFERENCED_URLS).size(),
+                        HttpDocMetadata.COLLECTOR_REFERENCED_URLS).size(),
                         "Only 1 URL should have been extracted.");
             } else {
                 // second page

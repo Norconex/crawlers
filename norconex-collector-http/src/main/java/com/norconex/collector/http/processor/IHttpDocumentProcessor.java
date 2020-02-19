@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.processor;
 
-import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 
 /**
@@ -30,5 +30,5 @@ public interface IHttpDocumentProcessor {
 	 * @param fetchClient HTTP fetch client
 	 * @param doc the document
 	 */
-    void processDocument(HttpFetchClient fetchClient, HttpDocument doc);
+    void processDocument(HttpFetchClient fetchClient, HttpDoc doc);
 }

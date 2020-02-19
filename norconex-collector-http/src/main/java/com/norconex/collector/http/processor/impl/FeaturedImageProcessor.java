@@ -1,4 +1,4 @@
-/* Copyright 2017-2019 Norconex Inc.
+/* Copyright 2017-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.doc.CollectorMetadata;
-import com.norconex.collector.http.doc.HttpDocument;
+import com.norconex.collector.core.doc.CrawlDocMetadata;
+import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.EqualsUtil;
@@ -210,11 +210,11 @@ public class FeaturedImageProcessor
             FeaturedImageProcessor.class);
 
     public static final String COLLECTOR_FEATURED_IMAGE_URL =
-            CollectorMetadata.COLLECTOR_PREFIX + "featured-image-url";
+            CrawlDocMetadata.COLLECTOR_PREFIX + "featured-image-url";
     public static final String COLLECTOR_FEATURED_IMAGE_PATH =
-            CollectorMetadata.COLLECTOR_PREFIX + "featured-image-path";
+            CrawlDocMetadata.COLLECTOR_PREFIX + "featured-image-path";
     public static final String COLLECTOR_FEATURED_IMAGE_INLINE =
-            CollectorMetadata.COLLECTOR_PREFIX + "featured-image-inline";
+            CrawlDocMetadata.COLLECTOR_PREFIX + "featured-image-inline";
 
     public static final String DEFAULT_PAGE_CONTENT_TYPE_PATTERN =
             "text/html|application/(xhtml\\+xml|vnd\\.wap.xhtml\\+xml|x-asp)";
@@ -387,7 +387,7 @@ public class FeaturedImageProcessor
         this.scaleQuality = scaleQuality;
     }
     @Override
-    public void processDocument(HttpFetchClient fetcher, HttpDocument doc) {
+    public void processDocument(HttpFetchClient fetcher, HttpDoc doc) {
         ensureInit();
 
         // Return if not valid content type
@@ -418,7 +418,7 @@ public class FeaturedImageProcessor
         }
     }
 
-    private void storeImage(ScaledImage img, HttpDocument doc)
+    private void storeImage(ScaledImage img, HttpDoc doc)
             throws IOException {
         if (storage.contains(Storage.URL)) {
             doc.getMetadata().add(Objects.toString(storageUrlField,
@@ -582,9 +582,9 @@ public class FeaturedImageProcessor
         try {
             URI uri = HttpURL.toURI(url);
 
-//            HttpFetchResponse response = fetcher.fetchDocument(new HttpDocument(
+//            HttpFetchResponse response = fetcher.fetchDocument(new HttpDoc(
 //                    uri.toString(), HttpCrawler.get().getStreamFactory()));
-            HttpDocument doc = fetcher.fetchDocument(uri.toString());
+            HttpDoc doc = fetcher.fetchDocument(uri.toString());
             BufferedImage bufImage = ImageIO.read(doc.getInputStream());
             doc.dispose();
             return bufImage;

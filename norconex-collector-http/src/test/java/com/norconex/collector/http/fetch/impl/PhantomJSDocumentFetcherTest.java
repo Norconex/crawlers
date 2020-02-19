@@ -1,4 +1,4 @@
-/* Copyright 2017-2019 Norconex Inc.
+/* Copyright 2017-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class PhantomJSDocumentFetcherTest  {
         f.setScreenshotZoomFactor(0.5f);
 
         LOG.info("Writing/Reading this: " + f);
-        XML.assertWriteRead(f, "documentFetcher");
+        XML.assertWriteRead(f, "fetcher");
     }
 
     @Test

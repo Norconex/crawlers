@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.io.Reader;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.commons.lang.file.ContentType;
 
@@ -45,8 +45,8 @@ public class StandardRobotsMetaProviderTest {
         Reader docReader = new InputStreamReader(getClass().getResourceAsStream(
                 "StandardRobotsMetaProviderTest-" + suffix + ".html"));
         String docURL = "http://www.example.com/test" + suffix + ".html";
-        HttpMetadata metadata = new HttpMetadata(docURL);
-        metadata.set(HttpMetadata.HTTP_CONTENT_TYPE, "text/html");
+        HttpDocMetadata metadata = new HttpDocMetadata(docURL);
+        metadata.set(HttpDocMetadata.HTTP_CONTENT_TYPE, "text/html");
 
         StandardRobotsMetaProvider p = new StandardRobotsMetaProvider();
         RobotsMeta robotsMeta = p.getRobotsMeta(

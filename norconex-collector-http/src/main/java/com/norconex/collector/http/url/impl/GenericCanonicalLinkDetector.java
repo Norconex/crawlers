@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.client.utils.URIUtils;
 
-import com.norconex.collector.http.doc.HttpMetadata;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -130,7 +130,7 @@ public class GenericCanonicalLinkDetector
     }
 
     @Override
-    public String detectFromMetadata(String reference, HttpMetadata metadata) {
+    public String detectFromMetadata(String reference, HttpDocMetadata metadata) {
         String link = StringUtils.trimToNull(metadata.getString("Link"));
         if (link != null) {
             Matcher m = Pattern.compile(
