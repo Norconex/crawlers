@@ -18,7 +18,8 @@ import java.util.Collection;
 
 import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.doc.ImporterMetadata;
+import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.doc.Doc;
 
 public class HttpDocMetadata extends CrawlDocMetadata {
 
@@ -30,10 +31,10 @@ public class HttpDocMetadata extends CrawlDocMetadata {
     public static final String HTTP_CONTENT_LENGTH = "Content-Length";
 
     /**
-     * @deprecated Since 3.0.0, use {@value ImporterMetadata#DOC_REFERENCE}.
+     * @deprecated Since 3.0.0, use {@value Doc#DOC_REFERENCE}.
      */
     @Deprecated
-    public static final String COLLECTOR_URL = ImporterMetadata.DOC_REFERENCE;
+    public static final String COLLECTOR_URL = Doc.DOC_REFERENCE;
 //    public static final String COLLECTOR_URL = COLLECTOR_PREFIX + "url";
     public static final String COLLECTOR_DEPTH = COLLECTOR_PREFIX + "depth";
     public static final String COLLECTOR_SM_LASTMOD =
@@ -79,7 +80,7 @@ public class HttpDocMetadata extends CrawlDocMetadata {
 
 	// For now we depricate until we find better.
 	@Deprecated
-    public static HttpDocMetadata toHttpDocMetadata(ImporterMetadata meta) {
+    public static HttpDocMetadata toHttpDocMetadata(Properties meta) {
         if (meta instanceof HttpDocMetadata) {
             return (HttpDocMetadata) meta;
         }

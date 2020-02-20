@@ -36,7 +36,7 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.importer.doc.ImporterMetadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * @author Pascal Essiembre
@@ -63,7 +63,7 @@ import com.norconex.importer.doc.ImporterMetadata;
         }
     }
 
-    public static void enhanceHTTPHeaders(ImporterMetadata meta) {
+    public static void enhanceHTTPHeaders(Properties meta) {
         String colCT = meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_TYPE);
         String colCE = meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_ENCODING);
 

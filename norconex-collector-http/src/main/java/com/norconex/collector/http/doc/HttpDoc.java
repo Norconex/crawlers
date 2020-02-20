@@ -16,9 +16,9 @@ package com.norconex.collector.http.doc;
 
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.DocInfo;
-import com.norconex.importer.doc.ImporterDocument;
-import com.norconex.importer.doc.ImporterMetadata;
+import com.norconex.importer.doc.Doc;
 
 //TODO consider dropping since it just brings HttpDocMetadata cast.
 
@@ -30,10 +30,10 @@ import com.norconex.importer.doc.ImporterMetadata;
  */
 public class HttpDoc extends CrawlDoc {
 
-    public HttpDoc(ImporterDocument importerDocument) {
-        super(importerDocument.getDocInfo(),
-                importerDocument.getInputStream(),
-                new HttpDocMetadata(importerDocument.getMetadata()));
+    public HttpDoc(Doc doc) {
+        super(doc.getDocInfo(),
+                doc.getInputStream(),
+                new HttpDocMetadata(doc.getMetadata()));
     }
 
     public HttpDoc(String reference, CachedInputStream content) {
@@ -41,7 +41,7 @@ public class HttpDoc extends CrawlDoc {
     }
 
     public HttpDoc(DocInfo docDetails, CachedInputStream content,
-            ImporterMetadata metadata) {
+            Properties metadata) {
         super(docDetails, content, metadata);
     }
 

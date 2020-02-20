@@ -52,7 +52,7 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.importer.doc.ImporterDocument;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.jef5.status.JobStatusUpdater;
 import com.norconex.jef5.suite.JobSuite;
@@ -257,8 +257,8 @@ public class HttpCrawler extends Crawler {
     }
 
     @Override
-    protected ImporterDocument wrapDocument(
-            CrawlDocInfo crawlRef, ImporterDocument document) {
+    protected Doc wrapDocument(
+            CrawlDocInfo crawlRef, Doc document) {
         return new HttpDoc(document);
     }
 
@@ -270,7 +270,7 @@ public class HttpCrawler extends Crawler {
 
     @Override
     protected void initCrawlReference(CrawlDocInfo crawlRef,
-            CrawlDocInfo cachedCrawlRef, ImporterDocument document) {
+            CrawlDocInfo cachedCrawlRef, Doc document) {
         HttpDoc doc = (HttpDoc) document;
         HttpDocInfo httpData = (HttpDocInfo) crawlRef;
         HttpDocInfo cachedHttpData = (HttpDocInfo) cachedCrawlRef;
@@ -355,7 +355,7 @@ public class HttpCrawler extends Crawler {
 
     @Override
     protected void executeCommitterPipeline(Crawler crawler,
-            ImporterDocument doc,
+            Doc doc,
             CrawlDocInfo crawlRef, CrawlDocInfo cachedCrawlRef) {
 
         HttpCommitterPipelineContext context = new HttpCommitterPipelineContext(
@@ -367,7 +367,7 @@ public class HttpCrawler extends Crawler {
     @Override
     protected void beforeFinalizeDocumentProcessing(
             CrawlDocInfo crawlRef,
-            ImporterDocument doc, CrawlDocInfo cachedData) {
+            Doc doc, CrawlDocInfo cachedData) {
 
         // If URLs were not yet extracted, it means no links will be followed.
         // In case the referring document was skipped or has a bad status

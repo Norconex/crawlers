@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  */
 package com.norconex.collector.http.web.feature;
 
-import static com.norconex.importer.doc.ImporterMetadata.DOC_REFERENCE;
-
 import java.io.PrintWriter;
 import java.util.List;
 
@@ -29,6 +27,7 @@ import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.importer.doc.Doc;
 
 /**
  * The final URL of a redirect should be stored so relative links in it
@@ -70,7 +69,7 @@ public class Redirect extends AbstractTestFeature {
         IAddOperation doc = committer.getAddOperations().get(0);
         String ref = doc.getReference();
 
-        List<String> urls = doc.getMetadata().getStrings(DOC_REFERENCE);
+        List<String> urls = doc.getMetadata().getStrings(Doc.DOC_REFERENCE);
         assertListSize("URL", urls, 1);
 
         Assertions.assertTrue(
