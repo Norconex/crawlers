@@ -17,7 +17,7 @@ package com.norconex.collector.http.pipeline.importer;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.pipeline.ChecksumStageUtil;
 import com.norconex.collector.http.doc.HttpCrawlState;
-import com.norconex.collector.http.doc.HttpDocMetadata;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * @author Pascal Essiembre
@@ -49,7 +49,7 @@ import com.norconex.collector.http.doc.HttpDocMetadata;
             ctx.getCrawlReference().setState(HttpCrawlState.NEW);
             return true;
         }
-        HttpDocMetadata headers = ctx.getMetadata();
+        Properties headers = ctx.getMetadata();
         String newHeadChecksum = check.createMetadataChecksum(headers);
 
         return ChecksumStageUtil.resolveMetaChecksum(

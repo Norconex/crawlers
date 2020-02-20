@@ -47,7 +47,8 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
                 ctx.getDocument().getMetadata());
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
 
-        crawlRef.setContentType(ctx.getDocument().getContentType());
+        crawlRef.setContentType(
+                ctx.getDocument().getDocInfo().getContentType());
 
         //-- Deal with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();

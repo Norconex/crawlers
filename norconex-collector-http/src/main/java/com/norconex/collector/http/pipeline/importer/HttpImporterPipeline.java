@@ -166,7 +166,7 @@ public class HttpImporterPipeline
                 ctx.setRobotsMeta(
                         ctx.getConfig().getRobotsMetaProvider().getRobotsMeta(
                                 reader, ctx.getCrawlReference().getReference(),
-                                ctx.getDocument().getContentType(),
+                                ctx.getDocument().getDocInfo().getContentType(),
                                 ctx.getMetadata()));
                 reader.close();
 

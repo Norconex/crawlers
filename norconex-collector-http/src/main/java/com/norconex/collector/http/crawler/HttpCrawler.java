@@ -40,7 +40,6 @@ import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.HttpCollector;
-import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchClient;
@@ -51,6 +50,7 @@ import com.norconex.collector.http.pipeline.importer.HttpImporterPipelineContext
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.response.ImporterResponse;
@@ -256,11 +256,11 @@ public class HttpCrawler extends Crawler {
         new HttpQueuePipeline().execute(context);
     }
 
-    @Override
-    protected Doc wrapDocument(
-            CrawlDocInfo crawlRef, Doc document) {
-        return new HttpDoc(document);
-    }
+//    @Override
+//    protected Doc wrapDocument(
+//            CrawlDocInfo crawlRef, Doc document) {
+//        return new Doc(document);
+//    }
 
     @Override
     protected Class<? extends CrawlDocInfo> getCrawlReferenceType() {
@@ -271,21 +271,20 @@ public class HttpCrawler extends Crawler {
     @Override
     protected void initCrawlReference(CrawlDocInfo crawlRef,
             CrawlDocInfo cachedCrawlRef, Doc document) {
-        HttpDoc doc = (HttpDoc) document;
+        Doc doc = document;
         HttpDocInfo httpData = (HttpDocInfo) crawlRef;
         HttpDocInfo cachedHttpData = (HttpDocInfo) cachedCrawlRef;
-        HttpDocMetadata metadata =
-                HttpDocMetadata.toHttpDocMetadata(doc.getMetadata());
+        Properties metadata = doc.getMetadata();
 
-        metadata.add(HttpDocMetadata.COLLECTOR_DEPTH, httpData.getDepth());
-        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_SM_CHANGE_FREQ,
+        metadata.add(HttpDocMetadata.DEPTH, httpData.getDepth());
+        metadataAddString(metadata, HttpDocMetadata.SM_CHANGE_FREQ,
                 httpData.getSitemapChangeFreq());
         if (httpData.getSitemapLastMod() != null) {
-            metadata.add(HttpDocMetadata.COLLECTOR_SM_LASTMOD,
+            metadata.add(HttpDocMetadata.SM_LASTMOD,
                     httpData.getSitemapLastMod());
         }
         if (httpData.getSitemapPriority() != null) {
-            metadata.add(HttpDocMetadata.COLLECTOR_SM_PRORITY,
+            metadata.add(HttpDocMetadata.SM_PRORITY,
                     httpData.getSitemapPriority());
         }
 
@@ -319,18 +318,18 @@ public class HttpCrawler extends Crawler {
         }
 
         // Add referrer data to metadata
-        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_REFERRER_REFERENCE,
+        metadataAddString(metadata, HttpDocMetadata.REFERRER_REFERENCE,
                 httpData.getReferrerReference());
-        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_REFERRER_LINK_TAG,
+        metadataAddString(metadata, HttpDocMetadata.REFERRER_LINK_TAG,
                 httpData.getReferrerLinkTag());
-        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_REFERRER_LINK_TEXT,
+        metadataAddString(metadata, HttpDocMetadata.REFERRER_LINK_TEXT,
                 httpData.getReferrerLinkText());
-        metadataAddString(metadata, HttpDocMetadata.COLLECTOR_REFERRER_LINK_TITLE,
+        metadataAddString(metadata, HttpDocMetadata.REFERRER_LINK_TITLE,
                 httpData.getReferrerLinkTitle());
 
         // Add possible redirect trail
         if (!httpData.getRedirectTrail().isEmpty()) {
-            metadata.setList(HttpDocMetadata.COLLECTOR_REDIRECT_TRAIL,
+            metadata.setList(HttpDocMetadata.REDIRECT_TRAIL,
                     httpData.getRedirectTrail());
         }
     }
@@ -359,7 +358,7 @@ public class HttpCrawler extends Crawler {
             CrawlDocInfo crawlRef, CrawlDocInfo cachedCrawlRef) {
 
         HttpCommitterPipelineContext context = new HttpCommitterPipelineContext(
-                (HttpCrawler) crawler, (HttpDoc) doc,
+                (HttpCrawler) crawler, doc,
                 (HttpDocInfo) crawlRef, (HttpDocInfo) cachedCrawlRef);
         new HttpCommitterPipeline().execute(context);
     }
@@ -457,7 +456,7 @@ public class HttpCrawler extends Crawler {
     }
 
     private void metadataAddString(
-            HttpDocMetadata metadata, String key, String value) {
+            Properties metadata, String key, String value) {
         if (value != null) {
             metadata.add(key, value);
         }

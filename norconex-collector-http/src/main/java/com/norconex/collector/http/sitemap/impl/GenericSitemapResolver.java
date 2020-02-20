@@ -52,7 +52,7 @@ import com.norconex.collector.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.collector.core.store.IDataStore;
 import com.norconex.collector.core.store.SimpleValue;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
@@ -290,13 +290,13 @@ public class GenericSitemapResolver
             return;
         }
 
-        HttpDoc doc = null;
+        Doc doc = null;
         try {
 //            HttpGet method = null;
 //            method = new HttpGet(location);
 
             // Execute the method.
-            doc = new HttpDoc(
+            doc = new Doc(
                     location, fetcher.getStreamFactory().newInputStream());
 //            HttpResponse response = httpClient.execute(method);
             IHttpFetchResponse response = fetcher.fetchDocument(doc);

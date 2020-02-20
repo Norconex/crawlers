@@ -33,10 +33,10 @@ import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.ICommitter;
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * @author Pascal Essiembre
@@ -154,7 +154,7 @@ public abstract class AbstractTestFeature implements IWebTest {
         Assertions.assertEquals( size, list.size(),
                 "Wrong " + listName + " list size.");
     }
-    protected void assertOneValue(HttpDocMetadata meta, String... fields) {
+    protected void assertOneValue(Properties meta, String... fields) {
         for (String field : fields) {
             Assertions.assertEquals(
                     1, meta.getStrings(field).size(),

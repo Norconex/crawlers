@@ -14,14 +14,14 @@
  */
 package com.norconex.collector.http.processor.impl;
 
-import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 
 public class MockHttpDocumentProcessor implements IHttpDocumentProcessor {
 
     @Override
-    public void processDocument(HttpFetchClient fetcher, HttpDoc doc) {
+    public void processDocument(HttpFetchClient fetcher, Doc doc) {
         // NOOP
     }
 }

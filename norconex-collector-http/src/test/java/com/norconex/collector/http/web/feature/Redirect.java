@@ -27,7 +27,7 @@ import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.importer.doc.Doc;
+import com.norconex.importer.doc.DocMetadata;
 
 /**
  * The final URL of a redirect should be stored so relative links in it
@@ -69,7 +69,7 @@ public class Redirect extends AbstractTestFeature {
         IAddOperation doc = committer.getAddOperations().get(0);
         String ref = doc.getReference();
 
-        List<String> urls = doc.getMetadata().getStrings(Doc.DOC_REFERENCE);
+        List<String> urls = doc.getMetadata().getStrings(DocMetadata.REFERENCE);
         assertListSize("URL", urls, 1);
 
         Assertions.assertTrue(
@@ -77,7 +77,7 @@ public class Redirect extends AbstractTestFeature {
                 "Invalid redirection URL: " + ref);
 
         List<String> inPageUrls = doc.getMetadata().getStrings(
-                HttpDocMetadata.COLLECTOR_REFERENCED_URLS);
+                HttpDocMetadata.REFERENCED_URLS);
         assertListSize("referenced URLs", inPageUrls, 2);
 
         Assertions.assertTrue(inPageUrls.get(0).matches(

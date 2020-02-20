@@ -46,8 +46,7 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.http.doc.HttpCrawlState;
-import com.norconex.collector.http.doc.HttpDoc;
-import com.norconex.collector.http.doc.HttpDocMetadata;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
@@ -55,6 +54,7 @@ import com.norconex.collector.http.fetch.impl.WebDriverHttpSniffer.DriverRespons
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -418,7 +418,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
     @Override
     public IHttpFetchResponse fetchHeaders(
-            String url, HttpDocMetadata httpHeaders) {
+            String url, Properties httpHeaders) {
         //TODO rely on proxy request filter to transform to a HEAD request?
 
         return HttpFetchResponseBuilder.unsupported()
@@ -428,7 +428,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public IHttpFetchResponse fetchDocument(HttpDoc doc) {
+    public IHttpFetchResponse fetchDocument(Doc doc) {
 
 	    LOG.debug("Fetching document: {}", doc.getReference());
 
@@ -470,7 +470,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
 
-    private IHttpFetchResponse resolveDriverResponse(HttpDoc doc) {
+    private IHttpFetchResponse resolveDriverResponse(Doc doc) {
         IHttpFetchResponse response = null;
         if (httpSniffer != null) {
             DriverResponseFilter driverResponseFilter = httpSniffer.unbind();

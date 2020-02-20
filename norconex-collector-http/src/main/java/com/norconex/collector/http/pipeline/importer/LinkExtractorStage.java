@@ -94,7 +94,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
             String[] referencedUrls =
                     uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
             ctx.getMetadata().add(
-                    HttpDocMetadata.COLLECTOR_REFERENCED_URLS, referencedUrls);
+                    HttpDocMetadata.REFERENCED_URLS, referencedUrls);
             ctx.getCrawlReference().setReferencedUrls(
                     Arrays.asList(referencedUrls));
         }
@@ -105,7 +105,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
         if (!uniqueOutOfScopeURLs.isEmpty()) {
             ctx.getMetadata().add(
-                   HttpDocMetadata.COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE,
+                   HttpDocMetadata.REFERENCED_URLS_OUT_OF_SCOPE,
                    uniqueOutOfScopeURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         }
 
@@ -134,7 +134,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
 
         Set<Link> links = new HashSet<>();
         CachedInputStream is = ctx.getContent();
-        ContentType ct = ctx.getDocument().getContentType();
+        ContentType ct = ctx.getDocument().getDocInfo().getContentType();
         for (ILinkExtractor extractor : extractors) {
             if (extractor.accepts(reference, ct)) {
                 try {

@@ -26,7 +26,7 @@ import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.importer.doc.Doc;
+import com.norconex.importer.doc.DocMetadata;
 
 /**
  * Test proper charset detection when the declared one does not match
@@ -79,17 +79,17 @@ public class ContentTypeCharset extends AbstractTestFeature {
 
         if (isFirstRun()) {
             Assertions.assertEquals(doc.getMetadata().getString(
-                    Doc.DOC_CONTENT_TYPE),
+                    DocMetadata.CONTENT_TYPE),
                     "application/javascript");
             Assertions.assertEquals("Big5", doc.getMetadata().getString(
-                    Doc.DOC_CONTENT_ENCODING));
+                    DocMetadata.CONTENT_ENCODING));
         } else {
             Assertions.assertEquals("text/html",
                     doc.getMetadata().getString(
-                            Doc.DOC_CONTENT_TYPE));
+                            DocMetadata.CONTENT_TYPE));
             Assertions.assertEquals(StandardCharsets.UTF_8.toString(),
                     doc.getMetadata().getString(
-                            Doc.DOC_CONTENT_ENCODING));
+                            DocMetadata.CONTENT_ENCODING));
         }
     }
 }

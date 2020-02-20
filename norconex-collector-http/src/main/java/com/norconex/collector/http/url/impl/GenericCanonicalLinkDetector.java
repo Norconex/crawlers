@@ -33,12 +33,12 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.client.utils.URIUtils;
 
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
@@ -130,7 +130,7 @@ public class GenericCanonicalLinkDetector
     }
 
     @Override
-    public String detectFromMetadata(String reference, HttpDocMetadata metadata) {
+    public String detectFromMetadata(String reference, Properties metadata) {
         String link = StringUtils.trimToNull(metadata.getString("Link"));
         if (link != null) {
             Matcher m = Pattern.compile(

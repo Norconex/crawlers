@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.doc.DocMetadata;
 
 /**
  * @author Pascal Essiembre
@@ -45,7 +47,8 @@ public class StandardRobotsMetaProviderTest {
         Reader docReader = new InputStreamReader(getClass().getResourceAsStream(
                 "StandardRobotsMetaProviderTest-" + suffix + ".html"));
         String docURL = "http://www.example.com/test" + suffix + ".html";
-        HttpDocMetadata metadata = new HttpDocMetadata(docURL);
+        Properties metadata = new Properties();
+        metadata.set(DocMetadata.REFERENCE, docURL);
         metadata.set(HttpDocMetadata.HTTP_CONTENT_TYPE, "text/html");
 
         StandardRobotsMetaProvider p = new StandardRobotsMetaProvider();

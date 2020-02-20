@@ -14,8 +14,8 @@
  */
 package com.norconex.collector.http.fetch;
 
-import com.norconex.collector.http.doc.HttpDoc;
-import com.norconex.collector.http.doc.HttpDocMetadata;
+import com.norconex.importer.doc.Doc;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Fetches HTTP resources.
@@ -26,21 +26,21 @@ public interface IHttpFetcher {
 
     //TODO have HttpMethod enum class (POST, GET, etc)
     //TODO modify this interface to have:
-    //     HttpFetchResponse fetch(HttpMethod method, HttpDoc doc);
+    //     HttpFetchResponse fetch(HttpMethod method, Doc doc);
     //     and one of:
-    //         boolean accept(HttpDoc doc);
+    //         boolean accept(Doc doc);
     //           or HttpFetchResponse.UNSUPPORTED (singleton?)
 
 
     String getUserAgent();
 
     //TODO remove this method?
-    boolean accept(HttpDoc doc);
+    boolean accept(Doc doc);
 
 
-    IHttpFetchResponse fetchHeaders(String url, HttpDocMetadata httpHeaders); // throw HttpFetchException
-    IHttpFetchResponse fetchDocument(HttpDoc doc);  // throw HttpFetchException
-    // INSTEAD?  So we do not expose HttpDoc?
+    IHttpFetchResponse fetchHeaders(String url, Properties httpHeaders); // throw HttpFetchException
+    IHttpFetchResponse fetchDocument(Doc doc);  // throw HttpFetchException
+    // INSTEAD?  So we do not expose Doc?
 //    HttpFetchResponse fetchDocument(
 //            String url, HttpDocMetadata httpHeaders, OutputStream content);
 

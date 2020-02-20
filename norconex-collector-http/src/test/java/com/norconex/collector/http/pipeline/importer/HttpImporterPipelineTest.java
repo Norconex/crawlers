@@ -23,7 +23,7 @@ import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 
@@ -39,7 +39,7 @@ public class HttpImporterPipelineTest {
         String contentValid = "<html><head><title>Test</title>\n"
                 + "<link rel=\"canonical\"\n href=\"\n" + reference +  "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
-        HttpDoc doc = new HttpDoc(reference,
+        Doc doc = new Doc(reference,
                 new CachedStreamFactory(1000, 1000).newInputStream(
                         new ByteArrayInputStream(contentValid.getBytes())));
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
@@ -52,7 +52,7 @@ public class HttpImporterPipelineTest {
     @Test
     public void testCanonicalStageSameReferenceHeader() {
         String reference = "http://www.example.com/file.pdf";
-        HttpDoc doc = new HttpDoc(reference,
+        Doc doc = new Doc(reference,
                 new CachedStreamFactory(1, 1).newInputStream());
         doc.getMetadata().set("Link", "<" + reference + "> rel=\"canonical\"");
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
@@ -64,7 +64,7 @@ public class HttpImporterPipelineTest {
     @Test
     public void testCopyProperties() {
         String reference = "http://www.example.com/file.pdf";
-        HttpDoc doc = new HttpDoc(reference,
+        Doc doc = new Doc(reference,
                 new CachedStreamFactory(1, 1).newInputStream());
 
 

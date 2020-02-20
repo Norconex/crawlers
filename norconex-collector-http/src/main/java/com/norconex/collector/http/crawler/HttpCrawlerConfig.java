@@ -458,7 +458,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 
     /**
      * Whether links not in scope should be stored as metadata
-     * under {@link HttpDocMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
+     * under {@link HttpDocMetadata#REFERENCED_URLS_OUT_OF_SCOPE}
      * @return <code>true</code> if keeping URLs not in scope.
      * @since 2.8.0
      */
@@ -467,7 +467,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     }
 	/**
 	 * Sets whether links not in scope should be stored as metadata
-     * under {@link HttpDocMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
+     * under {@link HttpDocMetadata#REFERENCED_URLS_OUT_OF_SCOPE}
      * @param keepOutOfScopeLinks <code>true</code> if keeping URLs not in scope
      * @since 2.8.0
 	 */

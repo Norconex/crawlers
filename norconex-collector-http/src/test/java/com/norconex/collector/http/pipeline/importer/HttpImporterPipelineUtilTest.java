@@ -14,14 +14,13 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import static com.norconex.collector.core.doc.CrawlDocMetadata.COLLECTOR_CONTENT_ENCODING;
-import static com.norconex.collector.core.doc.CrawlDocMetadata.COLLECTOR_CONTENT_TYPE;
+import static com.norconex.collector.core.doc.CrawlDocMetadata.CONTENT_ENCODING;
+import static com.norconex.collector.core.doc.CrawlDocMetadata.CONTENT_TYPE;
 import static com.norconex.collector.http.doc.HttpDocMetadata.HTTP_CONTENT_TYPE;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.commons.lang.map.Properties;
 
 public class HttpImporterPipelineUtilTest {
@@ -94,17 +93,17 @@ public class HttpImporterPipelineUtilTest {
         }
         if (inputCollectorContentType != null) {
             metadata.add(
-                    COLLECTOR_CONTENT_TYPE, inputCollectorContentType);
+                    CONTENT_TYPE, inputCollectorContentType);
         }
         if (inputCollectorEncoding != null) {
             metadata.add(
-                    COLLECTOR_CONTENT_ENCODING, inputCollectorEncoding);
+                    CONTENT_ENCODING, inputCollectorEncoding);
         }
-        HttpImporterPipelineUtil.enhanceHTTPHeaders(new HttpDocMetadata(metadata));
+        HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
 
         Assertions.assertEquals(expectedCollectorContentType,
-                metadata.getString(COLLECTOR_CONTENT_TYPE));
+                metadata.getString(CONTENT_TYPE));
         Assertions.assertEquals(expectedCollectorContentEncoding,
-                metadata.getString(COLLECTOR_CONTENT_ENCODING));
+                metadata.getString(CONTENT_ENCODING));
     }
 }

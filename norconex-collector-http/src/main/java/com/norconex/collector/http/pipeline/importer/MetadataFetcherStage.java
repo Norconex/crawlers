@@ -20,10 +20,10 @@ import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocInfo;
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * <p>Fetches a document metadata (i.e. HTTP headers).</p>
@@ -45,7 +45,7 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
         //IHttpMetadataFetcher headersFetcher = ctx.getHttpHeadersFetcher();
         HttpFetchClient fetcher = ctx.getHttpFetchClient();
 
-        HttpDocMetadata metadata = ctx.getMetadata();
+        Properties metadata = ctx.getMetadata();
 //        Properties headers = new Properties(metadata.isCaseInsensitiveKeys());
 
         IHttpFetchResponse response = fetcher.fetchHeaders(

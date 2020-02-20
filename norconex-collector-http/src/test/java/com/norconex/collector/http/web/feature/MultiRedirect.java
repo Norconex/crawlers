@@ -75,7 +75,7 @@ public class MultiRedirect extends AbstractTestFeature {
         String ref = doc.getReference();
 
         List<String> trail = doc.getMetadata().getStrings(
-                HttpDocMetadata.COLLECTOR_REDIRECT_TRAIL);
+                HttpDocMetadata.REDIRECT_TRAIL);
         LOG.debug("Redirect source URLs:" + trail);
         assertListSize("URL", trail, 5);
 

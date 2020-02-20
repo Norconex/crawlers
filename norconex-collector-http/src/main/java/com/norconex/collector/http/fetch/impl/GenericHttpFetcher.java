@@ -100,9 +100,9 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.doc.HttpCrawlState;
-import com.norconex.collector.http.doc.HttpDoc;
-import com.norconex.collector.http.doc.HttpDocMetadata;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
@@ -111,6 +111,7 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.url.HttpURL;
@@ -358,29 +359,28 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public boolean accept(HttpDoc doc) {
+    public boolean accept(Doc doc) {
         //TODO base it on restrictTo
         return true;
     }
 
     @Override
-    public IHttpFetchResponse fetchHeaders(String url, HttpDocMetadata headers) {
+    public IHttpFetchResponse fetchHeaders(String url, Properties headers) {
         return fetch(url, headers, null, true);
     }
 
     @Override
-    public IHttpFetchResponse fetchDocument(HttpDoc doc) {
+    public IHttpFetchResponse fetchDocument(Doc doc) {
         MutableObject<CachedInputStream> is =
                 new MutableObject<>(doc.getInputStream());
         IHttpFetchResponse response = fetch(
-                doc.getReference(), HttpDocMetadata.toHttpDocMetadata(
-                        doc.getMetadata()), is, false);
+                doc.getReference(), doc.getMetadata(), is, false);
         doc.setInputStream(is.getValue());
         performDetection(doc);
         return response;
     }
 
-    private IHttpFetchResponse fetch(String url, HttpDocMetadata metadata,
+    private IHttpFetchResponse fetch(String url, Properties metadata,
             MutableObject<CachedInputStream> stream, boolean head) {
 
         HttpFetchResponseBuilder responseBuilder =
@@ -491,14 +491,14 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     //TODO remove this method and configuration options: always do it
     // by framework?  Then how to leverage getting it from client
     // directly (e.g. http response headers)?  Rely on metadata for that?
-    private void performDetection(HttpDoc doc) {
+    private void performDetection(Doc doc) {
         try {
             if (cfg.isDetectContentType()) {
                 ContentType ct = ContentTypeDetector.detect(
                         doc.getInputStream(), doc.getReference());
                 if (ct != null) {
                     doc.getMetadata().set(
-                            HttpDocMetadata.COLLECTOR_CONTENT_TYPE, ct.toString());
+                        CrawlDocMetadata.CONTENT_TYPE, ct.toString());
                 }
             }
         } catch (IOException e) {
@@ -510,7 +510,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                         doc.getInputStream());
                 if (StringUtils.isNotBlank(charset)) {
                     doc.getMetadata().set(
-                            HttpDocMetadata.COLLECTOR_CONTENT_ENCODING, charset);
+                        CrawlDocMetadata.CONTENT_ENCODING, charset);
                 }
             }
         } catch (IOException e) {

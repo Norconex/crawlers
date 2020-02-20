@@ -41,7 +41,7 @@ import com.norconex.commons.lang.xml.XML;
  * When {@link #setKeep(boolean)} is <code>true</code>, the checksum will be
  * stored in the target field name specified. If you do not specify any,
  * it stores it under the metadata field name
- * {@link CrawlDocMetadata#COLLECTOR_CHECKSUM_METADATA}.
+ * {@link CrawlDocMetadata#CHECKSUM_METADATA}.
  * </p>
  * <p>
  * To use different fields (one or several) to constitute a checksum,

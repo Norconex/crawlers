@@ -79,7 +79,7 @@ public class JavaScriptURL extends AbstractTestFeature {
                         content.contains("Must be crawled (1 of 2)"),
                         "First page not crawled properly.");
                 Assertions.assertEquals(1, doc.getMetadata().get(
-                        HttpDocMetadata.COLLECTOR_REFERENCED_URLS).size(),
+                        HttpDocMetadata.REFERENCED_URLS).size(),
                         "Only 1 URL should have been extracted.");
             } else {
                 // second page

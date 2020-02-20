@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 
+import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
@@ -50,8 +51,8 @@ public class ValidMetadata extends AbstractInfiniteDepthTestFeature {
             //Test single value
             assertOneValue(meta,
                     HttpDocMetadata.HTTP_CONTENT_TYPE,
-                    HttpDocMetadata.COLLECTOR_CONTENT_TYPE,
-                    HttpDocMetadata.COLLECTOR_CONTENT_ENCODING);
+                    CrawlDocMetadata.CONTENT_TYPE,
+                    CrawlDocMetadata.CONTENT_ENCODING);
 
             //Test actual values
             Assertions.assertTrue(
@@ -60,20 +61,12 @@ public class ValidMetadata extends AbstractInfiniteDepthTestFeature {
                     "Bad HTTP content-type");
             Assertions.assertTrue(
                     "text/html".equalsIgnoreCase(
-                            meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_TYPE)),
+                            meta.getString(CrawlDocMetadata.CONTENT_TYPE)),
                     "Bad Collection content-type.");
             Assertions.assertTrue(
                     StandardCharsets.UTF_8.toString().equalsIgnoreCase(
-                        meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_ENCODING)),
+                        meta.getString(CrawlDocMetadata.CONTENT_ENCODING)),
                     "Bad char-encoding.");
-        }
-    }
-
-    private void assertOneValue(Properties meta, String... fields) {
-        for (String field : fields) {
-            Assertions.assertEquals(
-                    1, meta.getStrings(field).size(),
-                field + " does not contain strickly 1 value.");
         }
     }
 }

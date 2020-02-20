@@ -41,7 +41,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.server.TestServer;
 import com.norconex.collector.http.server.TestServerBuilder;
 import com.norconex.commons.lang.OSResource;
@@ -124,7 +124,7 @@ public class WebDriverHttpFetcherTest  {
         try {
             // simulate crawler startup
             fetcher.crawlerStartup(null);
-            HttpDoc doc = fetch(fetcher, "/");
+            Doc doc = fetch(fetcher, "/");
             LOG.debug("'/' META: " + doc.getMetadata());
             Assertions.assertTrue(IOUtils.toString(
                     doc.getInputStream(), StandardCharsets.UTF_8).contains(
@@ -170,7 +170,7 @@ public class WebDriverHttpFetcherTest  {
         try {
             // simulate crawler startup
             fetcher.crawlerStartup(null);
-            HttpDoc doc = fetch(fetcher, "/headers");
+            Doc doc = fetch(fetcher, "/headers");
             LOG.debug("'/headers' META: " + doc.getMetadata());
             Assertions.assertEquals(
                     "test_value", doc.getMetadata().getString("TEST_KEY"));
@@ -188,7 +188,7 @@ public class WebDriverHttpFetcherTest  {
                 "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
         try {
             fetcher.crawlerStartup(null);
-            HttpDoc doc = fetch(fetcher, "/orange.html");
+            Doc doc = fetch(fetcher, "/orange.html");
 
             String h1 = IOUtils.toString(doc.getInputStream(),
                     StandardCharsets.UTF_8).replaceFirst(
@@ -234,8 +234,8 @@ public class WebDriverHttpFetcherTest  {
         }
     }
 
-    private HttpDoc fetch(WebDriverHttpFetcher fetcher, String urlPath) {
-        HttpDoc doc = new HttpDoc(
+    private Doc fetch(WebDriverHttpFetcher fetcher, String urlPath) {
+        Doc doc = new Doc(
                 "http://localhost:" + server.getPort() + urlPath,
                 new CachedStreamFactory(10000, 10000).newInputStream());
         /*IHttpFetchResponse response = */ fetcher.fetchDocument(doc);

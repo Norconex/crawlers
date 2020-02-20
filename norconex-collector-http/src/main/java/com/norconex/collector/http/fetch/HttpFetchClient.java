@@ -24,11 +24,11 @@ import java.util.function.Function;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 
-import com.norconex.collector.http.doc.HttpDoc;
-import com.norconex.collector.http.doc.HttpDocMetadata;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * Fetches HTTP resources, trying all configured http fetchers, defaulting
@@ -73,21 +73,21 @@ public class HttpFetchClient {
     }
 
 
-    public IHttpFetchResponse fetchHeaders(String url, HttpDocMetadata headers) {
+    public IHttpFetchResponse fetchHeaders(String url, Properties headers) {
         return fetch(fetcher -> fetcher.fetchHeaders(url, headers));
     }
-    public IHttpFetchResponse fetchDocument(HttpDoc doc) {
+    public IHttpFetchResponse fetchDocument(Doc doc) {
         return fetch(fetcher -> fetcher.fetchDocument(doc));
     }
 
-    public HttpDoc fetchDocument(String url) {
-        HttpDoc doc = new HttpDoc(url, streamFactory.newInputStream());
+    public Doc fetchDocument(String url) {
+        Doc doc = new Doc(url, streamFactory.newInputStream());
         fetch(fetcher -> fetcher.fetchDocument(doc));
         return doc;
     }
     public IHttpFetchResponse fetchDocument(String url, OutputStream out)
             throws HttpFetchException {
-        HttpDoc doc = new HttpDoc(url, streamFactory.newInputStream());
+        Doc doc = new Doc(url, streamFactory.newInputStream());
         IHttpFetchResponse resp = fetch(fetcher -> fetcher.fetchDocument(doc));
         try {
             IOUtils.copy(doc.getInputStream(), out);

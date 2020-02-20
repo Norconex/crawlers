@@ -22,9 +22,10 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.DocMetadata;
 
 /**
  *
@@ -41,7 +42,8 @@ public class GenericCanonicalLinkDetectorTest {
     public void testMultipleLinkValueFromMetadata() throws IOException {
         String reference = "http://www.example.com/file.pdf";
         GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
-        HttpDocMetadata metadata = new HttpDocMetadata(reference);
+        Properties metadata = new Properties();
+        metadata.set(DocMetadata.REFERENCE, reference);
         String canonURL = "http://www.example.com/cano,ni;cal.pdf";
         String url = null;
 
@@ -60,7 +62,8 @@ public class GenericCanonicalLinkDetectorTest {
     public void testDetectFromMetadata() throws IOException {
         String reference = "http://www.example.com/file.pdf";
         GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
-        HttpDocMetadata metadata = new HttpDocMetadata(reference);
+        Properties metadata = new Properties();
+        metadata.set(DocMetadata.REFERENCE, reference);
         String canonURL = "http://www.example.com/canonical.pdf";
         String url = null;
 

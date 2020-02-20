@@ -31,7 +31,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.importer.doc.Doc;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
@@ -127,7 +127,7 @@ public class DocImageHandler implements IXMLConfigurable {
         this.imageFormat = imageFormat;
     }
 
-    public void handleImage(InputStream imageStream, HttpDoc doc) {
+    public void handleImage(InputStream imageStream, Doc doc) {
 
         //TODO check for null and:
         //  1. apply defaults?  2, log error?  3. throw error?

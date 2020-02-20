@@ -80,7 +80,7 @@ import com.norconex.commons.lang.xml.XML;
  * <ul>
  *   <li><b>Referrer reference:</b> The reference (URL) of the page where the
  *   link to a document was found.  Metadata value is
- *   {@link HttpDocMetadata#COLLECTOR_REFERRER_REFERENCE}.</li>
+ *   {@link HttpDocMetadata#REFERRER_REFERENCE}.</li>
  * </ul>
  *
  * <h3>XML configuration usage:</h3>

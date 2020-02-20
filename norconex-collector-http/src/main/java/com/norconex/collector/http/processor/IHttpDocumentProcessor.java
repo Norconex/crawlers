@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.processor;
 
-import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 
 /**
@@ -30,5 +30,5 @@ public interface IHttpDocumentProcessor {
 	 * @param fetchClient HTTP fetch client
 	 * @param doc the document
 	 */
-    void processDocument(HttpFetchClient fetchClient, HttpDoc doc);
+    void processDocument(HttpFetchClient fetchClient, Doc doc);
 }

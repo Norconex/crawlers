@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.web.feature;
 
-import static com.norconex.collector.http.doc.HttpDocMetadata.COLLECTOR_REDIRECT_TRAIL;
+import static com.norconex.collector.http.doc.HttpDocMetadata.REDIRECT_TRAIL;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.PrintWriter;
@@ -110,6 +110,6 @@ public class CanonicalRedirectLoop extends AbstractTestFeature {
 
         LOG.debug("Final reference: {}", doc.getReference());
         LOG.debug("Final trail: {}",
-                doc.getMetadata().getStrings(COLLECTOR_REDIRECT_TRAIL));
+                doc.getMetadata().getStrings(REDIRECT_TRAIL));
     }
 }

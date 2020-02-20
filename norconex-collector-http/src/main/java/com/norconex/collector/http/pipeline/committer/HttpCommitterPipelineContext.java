@@ -17,7 +17,7 @@ package com.norconex.collector.http.pipeline.committer;
 import com.norconex.collector.core.pipeline.DocumentPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 
@@ -29,7 +29,7 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
 
     public HttpCommitterPipelineContext(
             HttpCrawler crawler,
-            HttpDoc doc,
+            Doc doc,
             HttpDocInfo crawlRef,
             HttpDocInfo cachedCrawlRef) {
         super(crawler, crawlRef, cachedCrawlRef, doc);
@@ -55,7 +55,7 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
     }
 
     @Override
-    public HttpDoc getDocument() {
-        return (HttpDoc) super.getDocument();
+    public Doc getDocument() {
+        return (Doc) super.getDocument();
     }
 }

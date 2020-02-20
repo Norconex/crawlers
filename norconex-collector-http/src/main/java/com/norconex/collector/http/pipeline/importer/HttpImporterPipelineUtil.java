@@ -24,9 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doc.CrawlDocInfo.Stage;
+import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpCrawlState;
-import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
@@ -37,6 +37,7 @@ import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.doc.Doc;
 
 /**
  * @author Pascal Essiembre
@@ -53,19 +54,20 @@ import com.norconex.commons.lang.map.Properties;
     }
 
     //TODO consider making public, putting content type and encoding in CORE.
-    public static void applyMetadataToDocument(HttpDoc doc) {
-        if (doc.getContentType() == null) {
+    public static void applyMetadataToDocument(Doc doc) {
+        if (doc.getDocInfo().getContentType() == null) {
             doc.getDocInfo().setContentType(ContentType.valueOf(
                     doc.getMetadata().getString(
-                            HttpDocMetadata.COLLECTOR_CONTENT_TYPE)));
+                            CrawlDocMetadata.CONTENT_TYPE)));
             doc.getDocInfo().setContentEncoding(doc.getMetadata().getString(
-                    HttpDocMetadata.COLLECTOR_CONTENT_ENCODING));
+                    CrawlDocMetadata.CONTENT_ENCODING));
         }
     }
 
     public static void enhanceHTTPHeaders(Properties meta) {
-        String colCT = meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_TYPE);
-        String colCE = meta.getString(HttpDocMetadata.COLLECTOR_CONTENT_ENCODING);
+        String colCT = meta.getString(CrawlDocMetadata.CONTENT_TYPE);
+        String colCE = meta.getString(
+                CrawlDocMetadata.CONTENT_ENCODING);
 
         if (StringUtils.isNotBlank(colCT) && StringUtils.isNotBlank(colCE)) {
             return;
@@ -90,7 +92,7 @@ import com.norconex.commons.lang.map.Properties;
             if (StringUtils.isBlank(colCT)) {
                 String ct = parsedCT.getMimeType();
                 if (ct != null) {
-                    meta.add(HttpDocMetadata.COLLECTOR_CONTENT_TYPE, ct);
+                    meta.add(CrawlDocMetadata.CONTENT_TYPE, ct);
                 }
             }
 
@@ -98,7 +100,7 @@ import com.norconex.commons.lang.map.Properties;
                 // Grab charset form HTTP Content-Type
                 String ce = Objects.toString(parsedCT.getCharset(), null);
                 if (ce != null) {
-                    meta.add(HttpDocMetadata.COLLECTOR_CONTENT_ENCODING, ce);
+                    meta.add(CrawlDocMetadata.CONTENT_ENCODING, ce);
                 }
             }
         }
@@ -130,7 +132,7 @@ import com.norconex.commons.lang.map.Properties;
                 canURL = detector.detectFromContent(
                         reference,
                         ctx.getDocument().getInputStream(),
-                        ctx.getDocument().getContentType());
+                        ctx.getDocument().getDocInfo().getContentType());
             } catch (IOException e) {
                 throw new CollectorException(
                         "Cannot resolve canonical link from content for: "

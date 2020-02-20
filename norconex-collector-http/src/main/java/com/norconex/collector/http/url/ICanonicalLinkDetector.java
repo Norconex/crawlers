@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.map.Properties;
 
 /**
  * <p>Detects and return any canonical URL found in documents, whether from
@@ -50,7 +50,7 @@ public interface ICanonicalLinkDetector {
      * @param metadata metadata object containing HTTP headers
      * @return the detected canonical URL or <code>null</code> if none is found.
      */
-    String detectFromMetadata(String reference, HttpDocMetadata metadata);
+    String detectFromMetadata(String reference, Properties metadata);
 
     /**
      * Detects from a document content the presence of a canonical URL.

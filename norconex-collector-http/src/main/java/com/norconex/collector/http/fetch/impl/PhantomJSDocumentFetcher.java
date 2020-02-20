@@ -53,7 +53,6 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.doc.HttpCrawlState;
-import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
@@ -69,9 +68,11 @@ import com.norconex.commons.lang.exec.SystemCommandException;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.InputStreamLineListener;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.util.CharsetUtil;
 
 /**
@@ -348,9 +349,9 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                     Arrays.asList(HttpStatus.SC_NOT_FOUND));
 
     public static final String COLLECTOR_PHANTOMJS_SCREENSHOT_PATH =
-            CrawlDocMetadata.COLLECTOR_PREFIX + "phantomjs-screenshot-path";
+            CrawlDocMetadata.PREFIX + "phantomjs-screenshot-path";
     public static final String COLLECTOR_PHANTOMJS_SCREENSHOT_INLINE =
-            CrawlDocMetadata.COLLECTOR_PREFIX + "phantomjs-screenshot-inline";
+            CrawlDocMetadata.PREFIX + "phantomjs-screenshot-inline";
 
 
     private String exePath;
@@ -761,7 +762,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public boolean accept(HttpDoc doc) {
+    public boolean accept(Doc doc) {
         // If there is a reference pattern and it does not match, reject
         if (StringUtils.isNotBlank(referencePattern)
                 && !isHTMLByReference(doc.getReference())) {
@@ -783,13 +784,12 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public IHttpFetchResponse fetchHeaders(String url,
-            HttpDocMetadata httpHeaders) {
+    public IHttpFetchResponse fetchHeaders(String url, Properties httpHeaders) {
         // Not supported
         return HttpFetchResponseBuilder.unsupported().build();
     }
     @Override
-    public IHttpFetchResponse fetchDocument(HttpDoc doc) {
+    public IHttpFetchResponse fetchDocument(Doc doc) {
 
         init();
         validate();
@@ -817,14 +817,14 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         initialized = true;
     }
 
-    private IHttpFetchResponse fetchPhantomJSDocument(HttpDoc doc)
+    private IHttpFetchResponse fetchPhantomJSDocument(Doc doc)
             throws IOException, SystemCommandException {
 
         PhantomJSArguments p = new PhantomJSArguments(this, doc);
 	    SystemCommand cmd = createPhantomJSCommand(p);
 
 	    CmdOutputGrabber output = new CmdOutputGrabber(
-	            cmd, HttpDocMetadata.toHttpDocMetadata(doc.getMetadata()), getHeadersPrefix());
+	            cmd, doc.getMetadata(), getHeadersPrefix());
 	    cmd.addErrorListener(output);
 	    cmd.addOutputListener(output);
 
@@ -910,7 +910,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                 HttpCrawlState.BAD_STATUS).build();
 	}
 
-    private void handleScreenshot(PhantomJSArguments p, HttpDoc doc) {
+    private void handleScreenshot(PhantomJSArguments p, Doc doc) {
 
         // must be enabled
         if (!isScreenshotEnabled()) {
@@ -1084,20 +1084,20 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     }
 
     //TODO Copied from GenericDocumentFetcher... should move to util class?
-    private void performDetection(HttpDoc doc) throws IOException {
+    private void performDetection(Doc doc) throws IOException {
         if (fetcherConfig.isDetectContentType()) {
             ContentType ct = ContentTypeDetector.detect(
                     doc.getContent(), doc.getReference());
             if (ct != null) {
                 doc.getMetadata().set(
-                        HttpDocMetadata.COLLECTOR_CONTENT_TYPE, ct.toString());
+                        CrawlDocMetadata.CONTENT_TYPE, ct.toString());
             }
         }
         if (fetcherConfig.isDetectCharset()) {
             String charset = CharsetUtil.detectCharset(doc.getContent());
             if (StringUtils.isNotBlank(charset)) {
                 doc.getMetadata().set(
-                        HttpDocMetadata.COLLECTOR_CONTENT_ENCODING, charset);
+                        CrawlDocMetadata.CONTENT_ENCODING, charset);
             }
         }
     }
@@ -1155,8 +1155,8 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         return Pattern.matches(
                 contentTypePattern, cleanContentType);
     }
-    private String getContentType(HttpDoc doc) {
-        String ct = Objects.toString(doc.getContentType(), null);
+    private String getContentType(Doc doc) {
+        String ct = Objects.toString(doc.getDocInfo().getContentType(), null);
         if (StringUtils.isBlank(ct)) {
             ct = doc.getMetadata().getString(Objects.toString(
                     fetcherConfig.getHeadersPrefix(), "")
@@ -1286,7 +1286,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         private final String protocol;
 
         public PhantomJSArguments(
-                PhantomJSDocumentFetcher f, HttpDoc doc) {
+                PhantomJSDocumentFetcher f, Doc doc) {
             super();
             String ref = doc.getReference();
 //            if (HttpClientProxy.isStarted()) {
@@ -1320,7 +1320,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         private final StringWriter error = new StringWriter();
         private final StringWriter info = new StringWriter();
         private final StringWriter debug = new StringWriter();
-        private final HttpDocMetadata metadata;
+        private final Properties metadata;
         private final String headersPrefix;
         private final SystemCommand cmd;
         private int statusCode = -1;
@@ -1328,7 +1328,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         private String contentType;
         private String redirect;
         public CmdOutputGrabber(SystemCommand cmd,
-                HttpDocMetadata metadata, String headersPrefix) {
+                Properties metadata, String headersPrefix) {
             super();
             this.cmd = cmd;
             this.metadata = metadata;

@@ -49,7 +49,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDocMetadata;
-import com.norconex.collector.http.doc.HttpDoc;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.EqualsUtil;
@@ -59,6 +58,7 @@ import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.Doc;
 
 /**
  * <p>
@@ -210,11 +210,11 @@ public class FeaturedImageProcessor
             FeaturedImageProcessor.class);
 
     public static final String COLLECTOR_FEATURED_IMAGE_URL =
-            CrawlDocMetadata.COLLECTOR_PREFIX + "featured-image-url";
+            CrawlDocMetadata.PREFIX + "featured-image-url";
     public static final String COLLECTOR_FEATURED_IMAGE_PATH =
-            CrawlDocMetadata.COLLECTOR_PREFIX + "featured-image-path";
+            CrawlDocMetadata.PREFIX + "featured-image-path";
     public static final String COLLECTOR_FEATURED_IMAGE_INLINE =
-            CrawlDocMetadata.COLLECTOR_PREFIX + "featured-image-inline";
+            CrawlDocMetadata.PREFIX + "featured-image-inline";
 
     public static final String DEFAULT_PAGE_CONTENT_TYPE_PATTERN =
             "text/html|application/(xhtml\\+xml|vnd\\.wap.xhtml\\+xml|x-asp)";
@@ -387,12 +387,12 @@ public class FeaturedImageProcessor
         this.scaleQuality = scaleQuality;
     }
     @Override
-    public void processDocument(HttpFetchClient fetcher, HttpDoc doc) {
+    public void processDocument(HttpFetchClient fetcher, Doc doc) {
         ensureInit();
 
         // Return if not valid content type
         if (StringUtils.isNotBlank(pageContentTypePattern)
-                && !Objects.toString(doc.getContentType()).matches(
+                && !Objects.toString(doc.getDocInfo().getContentType()).matches(
                         pageContentTypePattern)) {
             return;
         }
@@ -400,7 +400,7 @@ public class FeaturedImageProcessor
         try {
             // Obtain the image
             Document dom = Jsoup.parse(doc.getInputStream(),
-                    doc.getContentEncoding(), doc.getReference());
+                    doc.getDocInfo().getContentEncoding(), doc.getReference());
             ScaledImage img = findFeaturedImage(dom, fetcher, largest);
 
             // Save the image
@@ -418,7 +418,7 @@ public class FeaturedImageProcessor
         }
     }
 
-    private void storeImage(ScaledImage img, HttpDoc doc)
+    private void storeImage(ScaledImage img, Doc doc)
             throws IOException {
         if (storage.contains(Storage.URL)) {
             doc.getMetadata().add(Objects.toString(storageUrlField,
@@ -582,9 +582,9 @@ public class FeaturedImageProcessor
         try {
             URI uri = HttpURL.toURI(url);
 
-//            HttpFetchResponse response = fetcher.fetchDocument(new HttpDoc(
+//            HttpFetchResponse response = fetcher.fetchDocument(new Doc(
 //                    uri.toString(), HttpCrawler.get().getStreamFactory()));
-            HttpDoc doc = fetcher.fetchDocument(uri.toString());
+            Doc doc = fetcher.fetchDocument(uri.toString());
             BufferedImage bufImage = ImageIO.read(doc.getInputStream());
             doc.dispose();
             return bufImage;

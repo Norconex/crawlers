@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDocMetadata;
-import com.norconex.collector.http.doc.HttpDoc;
+import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.util.DocImageHandler;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -51,9 +51,9 @@ public class WebDriverScreenshotHandler extends DocImageHandler {
     public static final Path DEFAULT_SCREENSHOT_DIR =
             Paths.get("./screenshots");
     public static final String DEFAULT_SCREENSHOT_DIR_FIELD =
-            CrawlDocMetadata.COLLECTOR_PREFIX + "screenshot-path";
+            CrawlDocMetadata.PREFIX + "screenshot-path";
     public static final String DEFAULT_SCREENSHOT_META_FIELD =
-            CrawlDocMetadata.COLLECTOR_PREFIX + "screenshot";
+            CrawlDocMetadata.PREFIX + "screenshot";
 
     private static final Logger LOG = LoggerFactory.getLogger(
             WebDriverScreenshotHandler.class);
@@ -78,7 +78,7 @@ public class WebDriverScreenshotHandler extends DocImageHandler {
         this.cssSelector = cssSelector;
     }
 
-    public void takeScreenshot(WebDriver driver, HttpDoc doc) {
+    public void takeScreenshot(WebDriver driver, Doc doc) {
         try (InputStream in = streamFactory.newInputStream(
                 new ByteArrayInputStream(((TakesScreenshot) driver)
                         .getScreenshotAs(OutputType.BYTES)))) {
