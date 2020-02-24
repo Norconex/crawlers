@@ -62,13 +62,13 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     }
 
     @Override
-    public HttpDocInfo getCrawlReference() {
-        return (HttpDocInfo) super.getCrawlReference();
+    public HttpDocInfo getDocInfo() {
+        return (HttpDocInfo) super.getDocInfo();
     }
 
     @Override
-    public HttpDocInfo getCachedCrawlReference() {
-        return (HttpDocInfo) super.getCachedCrawlReference();
+    public HttpDocInfo getCachedDocInfo() {
+        return (HttpDocInfo) super.getCachedDocInfo();
     }
 
     public HttpFetchClient getHttpFetchClient() {

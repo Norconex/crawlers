@@ -41,13 +41,13 @@ import com.norconex.collector.http.recrawl.PreviousCrawlData;
             return true;
         }
 
-        HttpDocInfo cachedData = ctx.getCachedCrawlReference();
+        HttpDocInfo cachedData = ctx.getCachedDocInfo();
         if (cachedData == null) {
             // this document was not previously crawled so process it.
             return true;
         }
 
-        HttpDocInfo currentData = ctx.getCrawlReference();
+        HttpDocInfo currentData = ctx.getDocInfo();
 
         PreviousCrawlData prevData = new PreviousCrawlData();
         prevData.setReference(cachedData.getReference());

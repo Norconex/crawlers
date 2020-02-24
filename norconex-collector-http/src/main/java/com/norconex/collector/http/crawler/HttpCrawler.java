@@ -438,7 +438,7 @@ public class HttpCrawler extends Crawler {
             HttpDocInfo originalData = new HttpDocInfo(httpData);
             originalData.setReference(originalRef);
             originalData.setOriginalReference(null);
-            getCrawlReferenceService().processed(originalData);
+            getDocInfoService().processed(originalData);
         }
     }
 

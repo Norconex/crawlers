@@ -46,8 +46,8 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
     }
 
     @Override
-    public HttpDocInfo getCrawlReference() {
-        return (HttpDocInfo) super.getCrawlReference();
+    public HttpDocInfo getDocInfo() {
+        return (HttpDocInfo) super.getDocInfo();
     }
 
     public HttpFetchClient getHttpFetchClient() {

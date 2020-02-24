@@ -46,7 +46,7 @@ import com.norconex.commons.lang.map.Properties;
                 ctx.getConfig().getMetadataChecksummer();
         if (check == null) {
             // NEW is default state (?)
-            ctx.getCrawlReference().setState(HttpCrawlState.NEW);
+            ctx.getDocInfo().setState(HttpCrawlState.NEW);
             return true;
         }
         Properties headers = ctx.getMetadata();

@@ -54,7 +54,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
 
 
-        String reference = ctx.getCrawlReference().getReference();
+        String reference = ctx.getDocInfo().getReference();
 
         Set<String> uniqueExtractedURLs = new HashSet<>();
         Set<String> uniqueQueuedURLs = new HashSet<>();
@@ -95,7 +95,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
                     uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
             ctx.getMetadata().add(
                     HttpDocMetadata.REFERENCED_URLS, referencedUrls);
-            ctx.getCrawlReference().setReferencedUrls(
+            ctx.getDocInfo().setReferencedUrls(
                     Arrays.asList(referencedUrls));
         }
 
@@ -110,12 +110,12 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
 
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED,
-                ctx.getCrawlReference(), uniqueQueuedURLs);
+                ctx.getDocInfo(), uniqueQueuedURLs);
         return true;
     }
 
     private Set<Link> extractLinks(HttpImporterPipelineContext ctx) {
-        String reference = ctx.getCrawlReference().getReference();
+        String reference = ctx.getDocInfo().getReference();
         List<ILinkExtractor> extractors = ctx.getConfig().getLinkExtractors();
         if (extractors.isEmpty()) {
             LOG.debug("No configured link extractor.  No links will be "
@@ -163,7 +163,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
         // weird/custom URLs that some link extractors may find valid?
         if (uniqueExtractedURLs.add(link.getUrl())) {
             HttpDocInfo newURL = new HttpDocInfo(
-                    link.getUrl(), ctx.getCrawlReference().getDepth() + 1);
+                    link.getUrl(), ctx.getDocInfo().getDepth() + 1);
             newURL.setReferrerReference(link.getReferrer());
             newURL.setReferrerLinkTag(link.getTag());
             newURL.setReferrerLinkText(link.getText());

@@ -40,7 +40,7 @@ import com.norconex.commons.lang.map.Properties;
             return true;
         }
 
-        HttpDocInfo crawlRef = ctx.getCrawlReference();
+        HttpDocInfo crawlRef = ctx.getDocInfo();
 
         //IHttpMetadataFetcher headersFetcher = ctx.getHttpHeadersFetcher();
         HttpFetchClient fetcher = ctx.getHttpFetchClient();

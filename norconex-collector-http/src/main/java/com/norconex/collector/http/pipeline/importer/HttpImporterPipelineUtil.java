@@ -119,7 +119,7 @@ import com.norconex.importer.doc.Doc;
 
         ICanonicalLinkDetector detector =
                 ctx.getConfig().getCanonicalLinkDetector();
-        HttpDocInfo crawlRef = ctx.getCrawlReference();
+        HttpDocInfo crawlRef = ctx.getDocInfo();
         String reference = crawlRef.getReference();
 
         String canURL = null;
@@ -217,9 +217,9 @@ import com.norconex.importer.doc.Doc;
             HttpImporterPipelineContext ctx,
             IHttpFetchResponse response,
             String redirectURL) {
-        HttpDocInfo crawlRef = ctx.getCrawlReference();
+        HttpDocInfo crawlRef = ctx.getDocInfo();
         String sourceURL =  crawlRef.getReference();
-        Stage redirectStage = ctx.getCrawlReferenceService()
+        Stage redirectStage = ctx.getDocInfoService()
                 .getProcessingStage(redirectURL);
 
         boolean requeue = false;
@@ -280,7 +280,7 @@ import com.norconex.importer.doc.Doc;
         newData.setRedirectTrail(crawlRef.getRedirectTrail());
         newData.addRedirectURL(sourceURL);
         if (requeue) {
-            ctx.getCrawlReferenceService().queue(newData);
+            ctx.getDocInfoService().queue(newData);
         } else if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
                 crawlRef.getReference(), redirectURL)) {
             HttpQueuePipelineContext newContext =

@@ -18,9 +18,8 @@ import java.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlState;
-import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
@@ -36,7 +35,7 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
-        HttpDocInfo crawlRef = ctx.getCrawlReference();
+        HttpDocInfo crawlRef = ctx.getDocInfo();
 
         IHttpFetchResponse response =
                 ctx.getHttpFetchClient().fetchDocument(ctx.getDocument());
@@ -61,14 +60,14 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
         CrawlState state = response.getCrawlState();
         crawlRef.setState(state);
         if (state.isGoodState()) {
-            ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED,
+            ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_FETCHED,
                     crawlRef, response);
         } else {
             String eventType = null;
-            if (state.isOneOf(HttpCrawlState.NOT_FOUND)) {
-                eventType = HttpCrawlerEvent.REJECTED_NOTFOUND;
+            if (state.isOneOf(CrawlState.NOT_FOUND)) {
+                eventType = CrawlerEvent.REJECTED_NOTFOUND;
             } else {
-                eventType = HttpCrawlerEvent.REJECTED_BAD_STATUS;
+                eventType = CrawlerEvent.REJECTED_BAD_STATUS;
             }
             ctx.fireCrawlerEvent(eventType, crawlRef, response);
             return false;

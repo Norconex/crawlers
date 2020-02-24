@@ -91,11 +91,11 @@ public class HttpImporterPipeline
                     delayResolver.delay(
                             ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
                                     ctx.getHttpFetchClient(),
-                                    ctx.getCrawlReference().getReference()),
-                            ctx.getCrawlReference().getReference());
+                                    ctx.getDocInfo().getReference()),
+                            ctx.getDocInfo().getReference());
                 } else {
                     delayResolver.delay(
-                            null, ctx.getCrawlReference().getReference());
+                            null, ctx.getDocInfo().getReference());
                 }
             }
             return true;
@@ -110,12 +110,12 @@ public class HttpImporterPipeline
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (ctx.getConfig().isFetchHttpHead()
                     && ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
+                ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             //TODO check if fetching headers is enabled before (like above)
             if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
+                    ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             return true;
@@ -165,18 +165,18 @@ public class HttpImporterPipeline
                 Reader reader = ctx.getContentReader();
                 ctx.setRobotsMeta(
                         ctx.getConfig().getRobotsMetaProvider().getRobotsMeta(
-                                reader, ctx.getCrawlReference().getReference(),
+                                reader, ctx.getDocInfo().getReference(),
                                 ctx.getDocument().getDocInfo().getContentType(),
                                 ctx.getMetadata()));
                 reader.close();
 
                 ctx.fireCrawlerEvent(
                         HttpCrawlerEvent.CREATED_ROBOTS_META,
-                        ctx.getCrawlReference(),
+                        ctx.getDocInfo(),
                         ctx.getRobotsMeta());
             } catch (IOException e) {
                 throw new CollectorException("Cannot create RobotsMeta for : "
-                                + ctx.getCrawlReference().getReference(), e);
+                                + ctx.getDocInfo().getReference(), e);
             }
             return true;
         }
@@ -193,9 +193,9 @@ public class HttpImporterPipeline
 
                 ctx.fireCrawlerEvent(
                         HttpCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX,
-                        ctx.getCrawlReference(),
+                        ctx.getDocInfo(),
                         ctx.getRobotsMeta());
-                ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
+                ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
                 return false;
             }
             return canIndex;
@@ -209,7 +209,7 @@ public class HttpImporterPipeline
         public boolean executeStage(HttpImporterPipelineContext ctx) {
             if (!ctx.getConfig().isFetchHttpHead()) {
                 if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
+                    ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
                     return false;
                 }
             }
@@ -229,7 +229,7 @@ public class HttpImporterPipeline
                             ctx.getHttpFetchClient(), ctx.getDocument());
                     ctx.fireCrawlerEvent(
                             HttpCrawlerEvent.DOCUMENT_PREIMPORTED,
-                            ctx.getCrawlReference(), preProc);
+                            ctx.getDocInfo(), preProc);
                 }
             }
             return true;

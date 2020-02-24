@@ -47,12 +47,12 @@ import com.norconex.collector.http.robot.RobotsTxt;
         if (!ctx.getConfig().isIgnoreRobotsTxt()) {
             IRobotsTxtFilter filter = findRejectingRobotsFilter(ctx);
             if (filter != null) {
-                ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
+                ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
                 ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_ROBOTS_TXT,
-                        ctx.getCrawlReference(), filter);
+                        ctx.getDocInfo(), filter);
                 LOG.debug("REJECTED by robots.txt. "
                         + ". Reference={} Filter={}",
-                        ctx.getCrawlReference().getReference(), filter);
+                        ctx.getDocInfo().getReference(), filter);
                 return false;
             }
         }
@@ -74,7 +74,7 @@ import com.norconex.collector.http.robot.RobotsTxt;
         }
         List<IRobotsTxtFilter> disallowFilters = robotsTxt.getDisallowFilters();
         List<IRobotsTxtFilter> allowFilters = robotsTxt.getAllowFilters();
-        String url = ctx.getCrawlReference().getReference();
+        String url = ctx.getDocInfo().getReference();
 
         for (IRobotsTxtFilter df : disallowFilters) {
             if (!df.acceptReference(url)) {

@@ -57,17 +57,17 @@ public final class HttpQueuePipeline
         @Override
         public boolean executeStage(HttpQueuePipelineContext ctx) {
             if (ctx.getConfig().getMaxDepth() != -1
-                    && ctx.getCrawlReference().getDepth()
+                    && ctx.getDocInfo().getDepth()
                             > ctx.getConfig().getMaxDepth()) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("URL too deep to process ("
-                            + ctx.getCrawlReference().getDepth() + "): "
-                            + ctx.getCrawlReference().getReference());
+                            + ctx.getDocInfo().getDepth() + "): "
+                            + ctx.getDocInfo().getReference());
                 }
-                ctx.getCrawlReference().setState(HttpCrawlState.TOO_DEEP);
+                ctx.getDocInfo().setState(HttpCrawlState.TOO_DEEP);
                 ctx.fireCrawlerEvent(
                         HttpCrawlerEvent.REJECTED_TOO_DEEP,
-                        ctx.getCrawlReference(), ctx.getCrawlReference().getDepth());
+                        ctx.getDocInfo(), ctx.getDocInfo().getDepth());
                 return false;
             }
             return true;
@@ -78,7 +78,7 @@ public final class HttpQueuePipeline
         if (!ctx.getConfig().isIgnoreRobotsTxt()) {
             return ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
                     ctx.getCrawler().getHttpFetchClient(),
-                    ctx.getCrawlReference().getReference());
+                    ctx.getDocInfo().getReference());
         } else {
             return null;
         }
@@ -92,7 +92,7 @@ public final class HttpQueuePipeline
                     || ctx.getSitemapResolver() == null) {
                 return true;
             }
-            String urlRoot = ctx.getCrawlReference().getUrlRoot();
+            String urlRoot = ctx.getDocInfo().getUrlRoot();
             List<String> robotsTxtLocations = new ArrayList<>();
             RobotsTxt robotsTxt = getRobotsTxt(ctx);
             if (robotsTxt != null) {
@@ -127,12 +127,12 @@ public final class HttpQueuePipeline
         public boolean executeStage(HttpQueuePipelineContext ctx) {
             if (ctx.getConfig().getUrlNormalizer() != null) {
                 String url = ctx.getConfig().getUrlNormalizer().normalizeURL(
-                        ctx.getCrawlReference().getReference());
+                        ctx.getDocInfo().getReference());
                 if (url == null) {
-                    ctx.getCrawlReference().setState(HttpCrawlState.REJECTED);
+                    ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
                     return false;
                 }
-                ctx.getCrawlReference().setReference(url);
+                ctx.getDocInfo().setReference(url);
             }
             return true;
         }
