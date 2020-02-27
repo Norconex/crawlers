@@ -102,7 +102,6 @@ import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.doc.HttpCrawlState;
-import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
@@ -117,6 +116,7 @@ import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.util.CharsetUtil;
 
 /**
@@ -397,6 +397,11 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             if (userToken != null) {
                 ctx.setUserToken(userToken);
             }
+
+            //--- START If Modified Since --------------------------------------
+//            method.addHeader(HttpHeaders.IF_MODIFIED_SINCE, value);
+            //--- END   If Modified Since --------------------------------------
+
 
             // Execute the method.
             HttpResponse response = httpExecute(method, ctx);

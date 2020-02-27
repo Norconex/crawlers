@@ -183,6 +183,9 @@ public abstract class AbstractTestFeature implements IWebTest {
     protected boolean isFifthRun() {
         return currentRunIndex == 4;
     }
+    protected boolean isRunIndex(int runIndex) {
+        return currentRunIndex == runIndex;
+    }
 
     protected final HttpCrawler getCrawler(HttpCollector collector) {
         if (CollectionUtils.isEmpty(collector.getCrawlers())) {

@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Objects;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
@@ -52,7 +53,6 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.importer.doc.Doc;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.jef5.status.JobStatusUpdater;
 import com.norconex.jef5.suite.JobSuite;
@@ -269,11 +269,12 @@ public class HttpCrawler extends Crawler {
 
 
     @Override
-    protected void initCrawlReference(CrawlDocInfo crawlRef,
-            CrawlDocInfo cachedCrawlRef, Doc document) {
-        Doc doc = document;
-        HttpDocInfo httpData = (HttpDocInfo) crawlRef;
-        HttpDocInfo cachedHttpData = (HttpDocInfo) cachedCrawlRef;
+    protected void initCrawlReference(CrawlDoc doc) {
+
+    //    protected void initCrawlReference(CrawlDocInfo crawlRef,
+//            CrawlDocInfo cachedCrawlRef, Doc document) {
+        HttpDocInfo httpData = (HttpDocInfo) doc.getDocInfo();
+        HttpDocInfo cachedHttpData = (HttpDocInfo) doc.getCachedDocInfo();
         Properties metadata = doc.getMetadata();
 
         metadata.add(HttpDocMetadata.DEPTH, httpData.getDepth());
@@ -337,11 +338,21 @@ public class HttpCrawler extends Crawler {
     @Override
     protected ImporterResponse executeImporterPipeline(
             ImporterPipelineContext importerContext) {
+
+//TODO see if a HttpImporterPipelineContext can be created instead,
+// OR, have a Map on AbstractPipelineContext for extra elements and
+// delete HttpImporterPipelineContext.
         HttpImporterPipelineContext httpContext =
                 new HttpImporterPipelineContext(importerContext);
+
+
+//                (HttpImporterPipelineContext) importerContext;
+//        HttpImporterPipelineContext httpContext =
+//                new HttpImporterPipelineContext(importerContext);
         new HttpImporterPipeline(
                 getCrawlerConfig().isKeepDownloads(),
-                importerContext.isOrphan()).execute(httpContext);
+                importerContext.getDocument().isOrphan()).execute(httpContext);
+                //importerContext.isOrphan()).execute(httpContext);
         return httpContext.getImporterResponse();
     }
 
@@ -353,20 +364,20 @@ public class HttpCrawler extends Crawler {
     }
 
     @Override
-    protected void executeCommitterPipeline(Crawler crawler,
-            Doc doc,
-            CrawlDocInfo crawlRef, CrawlDocInfo cachedCrawlRef) {
+    protected void executeCommitterPipeline(Crawler crawler, CrawlDoc doc) {
 
-        HttpCommitterPipelineContext context = new HttpCommitterPipelineContext(
-                (HttpCrawler) crawler, doc,
-                (HttpDocInfo) crawlRef, (HttpDocInfo) cachedCrawlRef);
-        new HttpCommitterPipeline().execute(context);
+//        HttpCommitterPipelineContext context = new HttpCommitterPipelineContext(
+//                (HttpCrawler) crawler, doc,
+//                (HttpDocInfo) crawlRef, (HttpDocInfo) cachedCrawlRef);
+//        new HttpCommitterPipeline().execute(context);
+
+        new HttpCommitterPipeline().execute(new HttpCommitterPipelineContext(
+                (HttpCrawler) crawler, doc));
+
     }
 
     @Override
-    protected void beforeFinalizeDocumentProcessing(
-            CrawlDocInfo crawlRef,
-            Doc doc, CrawlDocInfo cachedData) {
+    protected void beforeFinalizeDocumentProcessing(CrawlDoc doc) {
 
         // If URLs were not yet extracted, it means no links will be followed.
         // In case the referring document was skipped or has a bad status
@@ -378,8 +389,8 @@ public class HttpCrawler extends Crawler {
         // See: https://github.com/Norconex/collector-http/issues/278
 
 
-        HttpDocInfo httpData = (HttpDocInfo) crawlRef;
-        HttpDocInfo httpCachedData = (HttpDocInfo) cachedData;
+        HttpDocInfo httpData = (HttpDocInfo) doc.getDocInfo();
+        HttpDocInfo httpCachedData = (HttpDocInfo) doc.getCachedDocInfo();
 
         //TODO improve this #533 hack in v3
         if (httpData.getState().isNewOrModified()
@@ -389,7 +400,7 @@ public class HttpCrawler extends Crawler {
 
         // If never crawled before, URLs were extracted already, or cached
         // version has no extracted, URLs, abort now.
-        if (cachedData == null
+        if (httpCachedData == null
                 || !httpData.getReferencedUrls().isEmpty()
                 || httpCachedData.getReferencedUrls().isEmpty()) {
             return;
@@ -398,7 +409,7 @@ public class HttpCrawler extends Crawler {
         // Only continue if the document could not have extracted URLs because
         // it was skipped, or in a temporary invalid state that prevents
         // accessing child links normally.
-        CrawlState state = crawlRef.getState();
+        CrawlState state = httpData.getState();
         if (!state.isSkipped() && !state.isOneOf(
                 CrawlState.BAD_STATUS, CrawlState.ERROR)) {
             return;
@@ -407,7 +418,7 @@ public class HttpCrawler extends Crawler {
         // OK, let's do this
         if (LOG.isDebugEnabled()) {
             LOG.debug("Queueing referenced URLs of {}",
-                    crawlRef.getReference());
+                    httpData.getReference());
         }
 
         int childDepth = httpData.getDepth() + 1;

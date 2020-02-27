@@ -19,11 +19,10 @@ import java.io.ByteArrayInputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 
@@ -39,12 +38,13 @@ public class HttpImporterPipelineTest {
         String contentValid = "<html><head><title>Test</title>\n"
                 + "<link rel=\"canonical\"\n href=\"\n" + reference +  "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
-        Doc doc = new Doc(reference,
+        CrawlDoc doc = new CrawlDoc(new HttpDocInfo(reference, 0), null,
                 new CachedStreamFactory(1000, 1000).newInputStream(
-                        new ByteArrayInputStream(contentValid.getBytes())));
+                        new ByteArrayInputStream(contentValid.getBytes())),
+                                false);
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-                new HttpDocInfo(reference, 0), null, doc);
+                doc);
         Assertions.assertTrue(
                 HttpImporterPipelineUtil.resolveCanonical(ctx, false));
     }
@@ -52,36 +52,37 @@ public class HttpImporterPipelineTest {
     @Test
     public void testCanonicalStageSameReferenceHeader() {
         String reference = "http://www.example.com/file.pdf";
-        Doc doc = new Doc(reference,
-                new CachedStreamFactory(1, 1).newInputStream());
+        CrawlDoc doc = new CrawlDoc(new HttpDocInfo(reference, 0), null,
+                new CachedStreamFactory(1, 1).newInputStream(), false);
         doc.getMetadata().set("Link", "<" + reference + "> rel=\"canonical\"");
         HttpImporterPipelineContext ctx = new HttpImporterPipelineContext(
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-                new HttpDocInfo(reference, 0), null, doc);
-        Assertions.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
+                doc);
+        Assertions.assertTrue(
+                HttpImporterPipelineUtil.resolveCanonical(ctx, true));
     }
 
-    @Test
-    public void testCopyProperties() {
-        String reference = "http://www.example.com/file.pdf";
-        Doc doc = new Doc(reference,
-                new CachedStreamFactory(1, 1).newInputStream());
-
-
-        ImporterPipelineContext ipc = new ImporterPipelineContext(
-                new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-                new HttpDocInfo(reference, 0), null, doc);
-
-        new HttpImporterPipelineContext(ipc);
-//        HttpImporterPipelineContext hipc = new HttpImporterPipelineContext(
-//                new HttpCrawler(new HttpCrawlerConfig(), new EventManager()),
-//                null, new HttpCrawlData(reference, 0), null, doc);
-//        HttpImporterPipelineContext
-
-//source->        ImporterPipelineContext
-//target->        HttpImporterPipelineContext
-
-
-//        Assertions.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
-    }
+//    @Test
+//    public void testCopyProperties() {
+//        String reference = "http://www.example.com/file.pdf";
+//        CrawlDoc doc = new CrawlDoc(new HttpDocInfo(reference, 0), null,
+//                new CachedStreamFactory(1, 1).newInputStream());
+//
+//
+//        ImporterPipelineContext ipc = new ImporterPipelineContext(
+//                new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
+//                doc);
+//
+//        new HttpImporterPipelineContext(ipc);
+////        HttpImporterPipelineContext hipc = new HttpImporterPipelineContext(
+////                new HttpCrawler(new HttpCrawlerConfig(), new EventManager()),
+////                null, new HttpCrawlData(reference, 0), null, doc);
+////        HttpImporterPipelineContext
+//
+////source->        ImporterPipelineContext
+////target->        HttpImporterPipelineContext
+//
+//
+////        Assertions.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
+//    }
 }

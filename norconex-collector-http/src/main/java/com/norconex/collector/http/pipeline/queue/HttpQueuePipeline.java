@@ -20,7 +20,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.pipeline.BasePipelineContext;
+import com.norconex.collector.core.pipeline.DocInfoPipelineContext;
 import com.norconex.collector.core.pipeline.queue.QueueReferenceStage;
 import com.norconex.collector.core.pipeline.queue.ReferenceFiltersStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
@@ -37,7 +37,7 @@ import com.norconex.commons.lang.pipeline.Pipeline;
  * @author Pascal Essiembre
  */
 public final class HttpQueuePipeline
-        extends Pipeline<BasePipelineContext> {
+        extends Pipeline<DocInfoPipelineContext> {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(HttpQueuePipeline.class);

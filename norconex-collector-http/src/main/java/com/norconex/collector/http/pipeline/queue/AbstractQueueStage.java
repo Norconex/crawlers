@@ -14,20 +14,20 @@
  */
 package com.norconex.collector.http.pipeline.queue;
 
-import com.norconex.collector.core.pipeline.BasePipelineContext;
+import com.norconex.collector.core.pipeline.DocInfoPipelineContext;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
  * @author Pascal Essiembre
  *
  */
-/*default*/ abstract class AbstractQueueStage 
-        implements IPipelineStage<BasePipelineContext> {
+/*default*/ abstract class AbstractQueueStage
+        implements IPipelineStage<DocInfoPipelineContext> {
     @Override
-    public final boolean execute(BasePipelineContext context) {
-        if (!(context instanceof HttpQueuePipelineContext)) {
-            throw new AssertionError("Unexpected type: " + context);
-        }
+    public final boolean execute(DocInfoPipelineContext context) {
+//        if (!(context instanceof HttpQueuePipelineContext)) {
+//            throw new AssertionError("Unexpected type: " + context);
+//        }
         return executeStage((HttpQueuePipelineContext) context);
     }
     public abstract boolean executeStage(HttpQueuePipelineContext ctx);

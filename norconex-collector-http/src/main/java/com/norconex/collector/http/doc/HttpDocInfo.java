@@ -21,7 +21,9 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringExclude;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.builder.ToStringSummary;
 
 import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -38,17 +40,24 @@ public class HttpDocInfo extends CrawlDocInfo {
     private static final long serialVersionUID = -2219206220476107409L;
 
     private int depth;
+    @ToStringExclude
     private String urlRoot;
     private Long sitemapLastMod;
     private String sitemapChangeFreq;
     private Float sitemapPriority;
     private String originalReference;
+    @ToStringExclude
     private String referrerLinkText;
+    @ToStringExclude
     private String referrerReference;
+    @ToStringExclude
     private String referrerLinkTag;
+    @ToStringExclude
     private String referrerLinkTitle;
 
+    @ToStringSummary
     private final List<String> referencedUrls = new ArrayList<>();
+    @ToStringSummary
     private final List<String> redirectTrail = new ArrayList<>();
 
     public HttpDocInfo() {
@@ -265,7 +274,9 @@ public class HttpDocInfo extends CrawlDocInfo {
     }
     @Override
     public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
+        ReflectionToStringBuilder b = new ReflectionToStringBuilder(
+                this, ToStringStyle.SHORT_PREFIX_STYLE);
+        b.setExcludeNullValues(true);
+        return b.toString();
     }
 }

@@ -39,14 +39,12 @@ public class HttpCommitterPipeline
             extends AbstractCommitterStage {
         @Override
         public boolean executeStage(HttpCommitterPipelineContext ctx) {
-            if (ctx.getConfig().getPostImportProcessors() != null) {
-                for (IHttpDocumentProcessor postProc :
-                        ctx.getConfig().getPostImportProcessors()) {
-                    postProc.processDocument(
-                            ctx.getHttpFetchClient(), ctx.getDocument());
-                    ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_POSTIMPORTED,
-                            ctx.getDocInfo(), postProc);
-                }
+            for (IHttpDocumentProcessor postProc :
+                    ctx.getConfig().getPostImportProcessors()) {
+                postProc.processDocument(
+                        ctx.getHttpFetchClient(), ctx.getDocument());
+                ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_POSTIMPORTED,
+                        ctx.getDocInfo(), postProc);
             }
             return true;
         }

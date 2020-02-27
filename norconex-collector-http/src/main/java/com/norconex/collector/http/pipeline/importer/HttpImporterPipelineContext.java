@@ -14,10 +14,10 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.robot.RobotsMeta;
@@ -40,15 +40,16 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
      * @since 2.8.0
      */
     public HttpImporterPipelineContext(ImporterPipelineContext ipc) {
-        super(ipc.getCrawler());
+        super(ipc.getCrawler(), ipc.getDocument());
         BeanUtil.copyProperties(this, ipc);
     }
 
     public HttpImporterPipelineContext(
             HttpCrawler crawler,
-            HttpDocInfo crawlRef, HttpDocInfo cachedCrawlRef,
-            Doc doc) {
-        super(crawler, crawlRef, cachedCrawlRef, doc);
+//            HttpDocInfo crawlRef, HttpDocInfo cachedCrawlRef,
+            CrawlDoc doc) {
+        super(crawler, doc);
+//        super(crawler, crawlRef, cachedCrawlRef, doc);
     }
 
     @Override
@@ -76,8 +77,8 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
     }
 
     @Override
-    public Doc getDocument() {
-        return (Doc) super.getDocument();
+    public CrawlDoc getDocument() {
+        return super.getDocument();
     }
 
     public ISitemapResolver getSitemapResolver() {

@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.pipeline.queue;
 
-import com.norconex.collector.core.pipeline.BasePipelineContext;
+import com.norconex.collector.core.pipeline.DocInfoPipelineContext;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doc.HttpDocInfo;
@@ -24,7 +24,7 @@ import com.norconex.collector.http.sitemap.ISitemapResolver;
  * @author Pascal Essiembre
  *
  */
-public class HttpQueuePipelineContext extends BasePipelineContext {
+public class HttpQueuePipelineContext extends DocInfoPipelineContext {
 
     public HttpQueuePipelineContext(
             HttpCrawler crawler,
