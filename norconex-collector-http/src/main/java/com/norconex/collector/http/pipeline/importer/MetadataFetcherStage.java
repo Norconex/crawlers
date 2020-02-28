@@ -16,14 +16,14 @@ package com.norconex.collector.http.pipeline.importer;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
-import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpCrawlState;
-import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
-import com.norconex.commons.lang.map.Properties;
 
 /**
  * <p>Fetches a document metadata (i.e. HTTP headers).</p>
@@ -40,21 +40,24 @@ import com.norconex.commons.lang.map.Properties;
             return true;
         }
 
-        HttpDocInfo crawlRef = ctx.getDocInfo();
+        CrawlDoc doc = ctx.getDocument();
+
+//        HttpDocInfo crawlRef = ctx.getDocInfo();
 
         //IHttpMetadataFetcher headersFetcher = ctx.getHttpHeadersFetcher();
         HttpFetchClient fetcher = ctx.getHttpFetchClient();
 
-        Properties metadata = ctx.getMetadata();
+//        Properties metadata = ctx.getMetadata();
 //        Properties headers = new Properties(metadata.isCaseInsensitiveKeys());
 
-        IHttpFetchResponse response = fetcher.fetchHeaders(
-                crawlRef.getReference(), metadata);
+        IHttpFetchResponse response = fetcher.fetch(doc, HttpMethod.HEAD);
 
 //        metadata.putAll(headers);
 
-        HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
-        HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
+
+        //TODO REALLY NEEDED OR DONE BY FETCHER NOW?
+        HttpImporterPipelineUtil.enhanceHTTPHeaders(doc.getMetadata());
+        HttpImporterPipelineUtil.applyMetadataToDocument(doc);
 
         //-- Deal with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();
@@ -65,18 +68,18 @@ import com.norconex.commons.lang.map.Properties;
         }
 
         CrawlState state = response.getCrawlState();
-        crawlRef.setState(state);
+        doc.getDocInfo().setState(state);
         if (state.isGoodState()) {
-            ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_METADATA_FETCHED,
-                    crawlRef, response);
+            ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_METADATA_FETCHED,
+                    doc.getDocInfo(), response);
         } else {
             String eventType = null;
             if (state.isOneOf(HttpCrawlState.NOT_FOUND)) {
-                eventType = HttpCrawlerEvent.REJECTED_NOTFOUND;
+                eventType = CrawlerEvent.REJECTED_NOTFOUND;
             } else {
-                eventType = HttpCrawlerEvent.REJECTED_BAD_STATUS;
+                eventType = CrawlerEvent.REJECTED_BAD_STATUS;
             }
-            ctx.fireCrawlerEvent(eventType, crawlRef, response);
+            ctx.fireCrawlerEvent(eventType, doc.getDocInfo(), response);
             return false;
         }
         return true;

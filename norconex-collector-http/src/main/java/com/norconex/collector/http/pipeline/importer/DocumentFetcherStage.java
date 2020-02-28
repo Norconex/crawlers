@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 
@@ -37,8 +38,8 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
     public boolean executeStage(HttpImporterPipelineContext ctx) {
         HttpDocInfo crawlRef = ctx.getDocInfo();
 
-        IHttpFetchResponse response =
-                ctx.getHttpFetchClient().fetchDocument(ctx.getDocument());
+        IHttpFetchResponse response = ctx.getHttpFetchClient().fetch(
+                ctx.getDocument(), HttpMethod.GET);
 
         crawlRef.setCrawlDate(LocalDateTime.now());
 

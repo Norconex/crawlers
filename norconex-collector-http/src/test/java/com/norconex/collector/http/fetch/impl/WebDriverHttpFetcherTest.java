@@ -41,12 +41,15 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.importer.doc.Doc;
+import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.http.fetch.HttpFetchException;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.server.TestServer;
 import com.norconex.collector.http.server.TestServerBuilder;
 import com.norconex.commons.lang.OSResource;
 import com.norconex.commons.lang.file.WebFile;
 import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.importer.doc.Doc;
 
 //TODO if EDGE fails, log an error and Assume false (ignore the test).
 
@@ -234,11 +237,12 @@ public class WebDriverHttpFetcherTest  {
         }
     }
 
-    private Doc fetch(WebDriverHttpFetcher fetcher, String urlPath) {
-        Doc doc = new Doc(
+    private Doc fetch(WebDriverHttpFetcher fetcher, String urlPath)
+            throws HttpFetchException {
+        CrawlDoc doc = new CrawlDoc(
                 "http://localhost:" + server.getPort() + urlPath,
                 new CachedStreamFactory(10000, 10000).newInputStream());
-        /*IHttpFetchResponse response = */ fetcher.fetchDocument(doc);
+        /*IHttpFetchResponse response = */ fetcher.fetch(doc, HttpMethod.GET);
         return doc;
     }
 

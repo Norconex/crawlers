@@ -14,6 +14,10 @@
  */
 package com.norconex.collector.http.fetch.impl;
 
+import static com.norconex.collector.http.fetch.HttpMethod.GET;
+import static com.norconex.collector.http.fetch.HttpMethod.POST;
+import static java.util.Optional.ofNullable;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +32,8 @@ import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +48,6 @@ import javax.net.ssl.SSLSocket;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -51,7 +56,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.Header;
@@ -76,6 +80,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
@@ -100,18 +105,23 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
+import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
+import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.net.ProxySettings;
+import com.norconex.commons.lang.time.DateUtil;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
@@ -121,7 +131,7 @@ import com.norconex.importer.util.CharsetUtil;
 
 /**
  * <p>
- * Default implementation of {@link IHttpFetcher}.
+ * Default implementation of {@link IHttpFetcher}, based on Apache HttpClient.
  * </p>
  *
  * <p>
@@ -359,36 +369,18 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public boolean accept(Doc doc) {
-        //TODO base it on restrictTo
-        return true;
-    }
+    public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
+            throws HttpFetchException {
 
-    @Override
-    public IHttpFetchResponse fetchHeaders(String url, Properties headers) {
-        return fetch(url, headers, null, true);
-    }
+        HttpMethod method = ofNullable(httpMethod).orElse(GET);
 
-    @Override
-    public IHttpFetchResponse fetchDocument(Doc doc) {
-        MutableObject<CachedInputStream> is =
-                new MutableObject<>(doc.getInputStream());
-        IHttpFetchResponse response = fetch(
-                doc.getReference(), doc.getMetadata(), is, false);
-        doc.setInputStream(is.getValue());
-        performDetection(doc);
-        return response;
-    }
-
-    private IHttpFetchResponse fetch(String url, Properties metadata,
-            MutableObject<CachedInputStream> stream, boolean head) {
+        boolean expectsBody = EqualsUtil.equalsAny(method, GET, POST);
 
         HttpFetchResponseBuilder responseBuilder =
                 new HttpFetchResponseBuilder();
 
-        //TODO replace signature with Writer class.
-        LOG.debug("Fetching document: {}", url);
-        HttpRequestBase method = createUriRequest(url, head);
+        LOG.debug("Fetching document: {}", doc.getReference());
+        HttpRequestBase request = createUriRequest(doc.getReference(), method);
         try {
             HttpClientContext ctx = HttpClientContext.create();
             // auth cache
@@ -398,13 +390,22 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 ctx.setUserToken(userToken);
             }
 
+
             //--- START If Modified Since --------------------------------------
-//            method.addHeader(HttpHeaders.IF_MODIFIED_SINCE, value);
+            if (doc.hasCache()) {
+                LocalDateTime ldt = doc.getCachedDocInfo().getCrawlDate();
+                if (ldt != null) {
+                    request.addHeader(HttpHeaders.IF_MODIFIED_SINCE,
+                            DateUtils.formatDate(
+                                    DateUtil.toDate(ldt, ZoneId.of("GMT"))));
+
+                }
+            }
             //--- END   If Modified Since --------------------------------------
 
 
             // Execute the method.
-            HttpResponse response = httpExecute(method, ctx);
+            HttpResponse response = httpExecute(request, ctx);
 
             int statusCode = response.getStatusLine().getStatusCode();
             String reason = response.getStatusLine().getReasonPhrase();
@@ -413,10 +414,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             responseBuilder.setReasonPhrase(reason);
             responseBuilder.setUserAgent(cfg.getUserAgent());
 
-//System.err.println((head ? "HEAD" : "GET") + ": " + response.getStatusLine() + "  ==>  " + url);
-
             InputStream is = null;
-            if (!head) {
+            if (expectsBody) {
                 is = response.getEntity().getContent();
             }
 
@@ -430,18 +429,19 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                     if (StringUtils.isNotBlank(cfg.getHeadersPrefix())) {
                         name = cfg.getHeadersPrefix() + name;
                     }
-                    if (metadata.getString(name) == null) {
-                        metadata.add(name, header.getValue());
-                    }
+                    PropertySetter.OPTIONAL.apply(
+                            doc.getMetadata(), name, header.getValue());
                 }
 
-                if (!head) {
+                if (expectsBody) {
                     //--- Fetch body
-                    CachedInputStream content = stream.getValue()
-                            .getStreamFactory().newInputStream(is);
+                    CachedInputStream content =
+                            doc.getStreamFactory().newInputStream(is);
                     //read a copy to force caching and then close the stream
-                    IOUtils.copy(content, new NullOutputStream());
-                    stream.setValue(content);
+                    content.enforceFullCaching();
+//                    IOUtils.copy(content, new NullOutputStream());
+//                    stream.setValue(content);
+                    doc.setInputStream(content);
 //                    performDetection(doc);
                 }
 
@@ -452,14 +452,12 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                         .build();
             }
 
-            if (!head) {
+            if (expectsBody) {
                 // INVALID http response
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("Rejected response content: "
-                            + IOUtils.toString(is, StandardCharsets.UTF_8));
-                    if (is != null) {
-                        try { is.close(); } catch (IOException e) { /*NOOP*/ }
-                    }
+                    LOG.trace("Rejected response content: {}",
+                            IOUtils.toString(is, StandardCharsets.UTF_8));
+                    closeQuietly(is);
                 } else {
                     // read response anyway to be safer, but ignore content
                     BufferedInputStream bis = new BufferedInputStream(is);
@@ -467,7 +465,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                     while(result != -1) {
                       result = bis.read();
                     }
-                    try { bis.close(); } catch (IOException e) { /*NOOP*/ }
+                    closeQuietly(is);
                 }
             }
 
@@ -484,11 +482,11 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         } catch (Exception e) {
             //TODO set exception on response instead?
             LOG.info("Cannot fetch document: {}  ({})",
-                    url, e.getMessage(), e);
+                    doc.getReference(), e.getMessage(), e);
             throw new CollectorException(e);
         } finally {
-            if (method != null) {
-                method.releaseConnection();
+            if (request != null) {
+                request.releaseConnection();
             }
         }
     }
@@ -523,25 +521,33 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
     }
 
+    private void closeQuietly(InputStream is) {
+        if (is != null) {
+            try { is.close(); } catch (IOException e) { /*NOOP*/ }
+        }
+    }
+
+
     //TODO Offer global PropertySetter option when adding headers and/or other fields
 
 
     /**
-     * Creates the HTTP request to be executed.  Default implementation
-     * returns an {@link HttpGet} request around the document reference.
-     * This method can be overwritten to return another type of request,
-     * add HTTP headers, etc.
-     * @param url URL to fetch
-     * @param head <code>true</code> to make an HTTP HEAD request
-     * @return HTTP request
+     * Creates the HTTP request to be executed.
+     * @param url the request target URL
+     * @param method HTTP method (never null)
+     * @return Apache HTTP request
      */
-    protected HttpRequestBase createUriRequest(String url, boolean head) {
+    protected HttpRequestBase createUriRequest(String url, HttpMethod method) {
         URI uri = HttpURL.toURI(url);
         LOG.debug("Encoded URI: {}", uri);
-        if (head) {
+        switch (method) {
+        case HEAD:
             return new HttpHead(uri);
+        case POST:
+            return new HttpPost(uri);
+        default:
+            return new HttpGet(uri);
         }
-        return new HttpGet(uri);
     }
 
     protected HttpClient createHttpClient() {

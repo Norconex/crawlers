@@ -14,6 +14,9 @@
  */
 package com.norconex.collector.http.fetch.impl;
 
+import static com.norconex.collector.http.fetch.HttpMethod.GET;
+import static java.util.Optional.ofNullable;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
@@ -51,11 +54,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
+import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.collector.http.processor.impl.ScaledImage;
@@ -784,12 +790,25 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public IHttpFetchResponse fetchHeaders(String url, Properties httpHeaders) {
-        // Not supported
-        return HttpFetchResponseBuilder.unsupported().build();
-    }
-    @Override
-    public IHttpFetchResponse fetchDocument(Doc doc) {
+    public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
+            throws HttpFetchException {
+
+        HttpMethod method = ofNullable(httpMethod).orElse(GET);
+        if (method != GET) {
+            return HttpFetchResponseBuilder.unsupported().setReasonPhrase(
+                    "HTTP " + httpMethod + " method not supported.").build();
+        }
+//        return null;
+//    }
+//
+//
+//    @Override
+//    public IHttpFetchResponse head(String url, Properties httpHeaders) {
+//        // Not supported
+//        return HttpFetchResponseBuilder.unsupported().build();
+//    }
+//    @Override
+//    public IHttpFetchResponse get(Doc doc) {
 
         init();
         validate();

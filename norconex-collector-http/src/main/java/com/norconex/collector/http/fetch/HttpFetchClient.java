@@ -14,21 +14,22 @@
  */
 package com.norconex.collector.http.fetch;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import static com.norconex.collector.http.fetch.HttpMethod.GET;
+import static java.util.Optional.ofNullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.norconex.importer.doc.Doc;
+import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.commons.lang.map.Properties;
 
 /**
  * Fetches HTTP resources, trying all configured http fetchers, defaulting
@@ -37,6 +38,9 @@ import com.norconex.commons.lang.map.Properties;
  * @since 3.0.0
  */
 public class HttpFetchClient {
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(HttpFetchClient.class);
 
     //TODO by default, continue to next if unsupported status is returned.
     //  But have options to configure so that it continue if exception
@@ -72,38 +76,8 @@ public class HttpFetchClient {
         return streamFactory;
     }
 
+    public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod) {
 
-    public IHttpFetchResponse fetchHeaders(String url, Properties headers) {
-        return fetch(fetcher -> fetcher.fetchHeaders(url, headers));
-    }
-    public IHttpFetchResponse fetchDocument(Doc doc) {
-        return fetch(fetcher -> fetcher.fetchDocument(doc));
-    }
-
-    public Doc fetchDocument(String url) {
-        Doc doc = new Doc(url, streamFactory.newInputStream());
-        fetch(fetcher -> fetcher.fetchDocument(doc));
-        return doc;
-    }
-    public IHttpFetchResponse fetchDocument(String url, OutputStream out)
-            throws HttpFetchException {
-        Doc doc = new Doc(url, streamFactory.newInputStream());
-        IHttpFetchResponse resp = fetch(fetcher -> fetcher.fetchDocument(doc));
-        try {
-            IOUtils.copy(doc.getInputStream(), out);
-            doc.dispose();
-        } catch (IOException e) {
-            throw new HttpFetchException("Could not fetch: " + url, e);
-        }
-        return resp;
-    }
-//    //TODO how about disposing the input stream here?  shall we have this method?
-//    public InputStream fetchDocumentContent(String url) {
-//        return fetchDocument(url).getInputStream();
-//    }
-
-    private IHttpFetchResponse fetch(
-            Function<IHttpFetcher, IHttpFetchResponse> supplier) {
         HttpFetchClientResponse allResponses = new HttpFetchClientResponse();
         for (IHttpFetcher fetcher : fetchers) {
             for (int retryCount = 0; retryCount <= maxRetries; retryCount++) {
@@ -112,7 +86,18 @@ public class HttpFetchClient {
                 }
 
                 // fetch:
-                IHttpFetchResponse fetchResponse = supplier.apply(fetcher);
+                HttpMethod method = ofNullable(httpMethod).orElse(GET);
+                IHttpFetchResponse fetchResponse;
+                try {
+                    fetchResponse = fetcher.fetch(doc, method);
+                } catch (HttpFetchException | RuntimeException e) {
+                    LOG.error("Fetcher {} failed to execute request.",
+                            fetcher.getClass().getSimpleName(), e);
+                    fetchResponse = new HttpFetchResponseBuilder()
+                            .setCrawlState(CrawlState.ERROR)
+                            .setException(e)
+                            .build();
+                }
                 if (fetchResponse == null) {
                     fetchResponse =
                             HttpFetchResponseBuilder.unsupported().build();

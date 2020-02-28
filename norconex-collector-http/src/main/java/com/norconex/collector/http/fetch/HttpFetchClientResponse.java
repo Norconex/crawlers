@@ -17,6 +17,7 @@ package com.norconex.collector.http.fetch;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -64,6 +65,16 @@ public class HttpFetchClientResponse implements IHttpFetchResponse {
     public String getUserAgent() {
         return lastResponse().map(
                 IHttpFetchResponse::getUserAgent).orElse(null);
+    }
+    @Override
+    public Exception getException() {
+        return lastResponse().map(
+                IHttpFetchResponse::getException).orElse(null);
+    }
+
+    public List<IHttpFetchResponse> getResponses() {
+        return responses.stream().map(
+                Pair::getLeft).collect(Collectors.toList());
     }
 
     private Optional<IHttpFetchResponse> lastResponse() {

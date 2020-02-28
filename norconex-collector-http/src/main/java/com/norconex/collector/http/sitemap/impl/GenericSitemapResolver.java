@@ -49,12 +49,13 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.crawler.CrawlerLifeCycleListener;
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.store.IDataStore;
 import com.norconex.collector.core.store.SimpleValue;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -290,16 +291,17 @@ public class GenericSitemapResolver
             return;
         }
 
-        Doc doc = null;
+        CrawlDoc doc = null;
         try {
 //            HttpGet method = null;
 //            method = new HttpGet(location);
 
             // Execute the method.
-            doc = new Doc(
+            doc = new CrawlDoc(
                     location, fetcher.getStreamFactory().newInputStream());
 //            HttpResponse response = httpClient.execute(method);
-            IHttpFetchResponse response = fetcher.fetchDocument(doc);
+            IHttpFetchResponse response = fetcher.fetch(
+                    doc, HttpMethod.GET);
             int statusCode = response.getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 LOG.info("Resolving sitemap: {}", location);

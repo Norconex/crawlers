@@ -57,6 +57,10 @@ public class HttpFetchResponseBuilder {
         response.reasonPhrase = reasonPhrase;
         return this;
     }
+    public HttpFetchResponseBuilder setException(Exception exception) {
+        response.exception = exception;
+        return this;
+    }
     public IHttpFetchResponse build() {
         if (response.crawlState == null) {
             throw new IllegalArgumentException("Crawl state cannot be null.");
@@ -91,6 +95,7 @@ public class HttpFetchResponseBuilder {
         private int statusCode;
         private String reasonPhrase;
         private String userAgent;
+        private Exception exception;
         @Override
         public CrawlState getCrawlState() {
             return crawlState;
@@ -106,6 +111,10 @@ public class HttpFetchResponseBuilder {
         @Override
         public String getUserAgent() {
             return userAgent;
+        }
+        @Override
+        public Exception getException() {
+            return exception;
         }
     }
 }

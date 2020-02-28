@@ -48,8 +48,11 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.collector.http.fetch.HttpMethod;
+import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
@@ -509,7 +512,7 @@ public class FeaturedImageProcessor
             if (img == null) {
                 BufferedImage bi = fetchImage(fetcher, url);
                 if (bi == null) {
-                    LOG.debug("Image is null: " + url);
+                    LOG.debug("Image is null: {}", url);
                     return null;
                 }
                 Dimension dim = new Dimension(bi.getWidth(), bi.getHeight());
@@ -584,10 +587,17 @@ public class FeaturedImageProcessor
 
 //            HttpFetchResponse response = fetcher.fetchDocument(new Doc(
 //                    uri.toString(), HttpCrawler.get().getStreamFactory()));
-            Doc doc = fetcher.fetchDocument(uri.toString());
-            BufferedImage bufImage = ImageIO.read(doc.getInputStream());
-            doc.dispose();
-            return bufImage;
+            CrawlDoc doc = new CrawlDoc(uri.toString(),
+                    fetcher.getStreamFactory().newInputStream());
+
+            IHttpFetchResponse resp = fetcher.fetch(doc, HttpMethod.GET);
+            if (resp != null
+                    && resp.getCrawlState() != null
+                    && resp.getCrawlState().isGoodState()) {
+                BufferedImage bufImage = ImageIO.read(doc.getInputStream());
+                doc.dispose();
+                return bufImage;
+            }
 
 //            response = httpClient.execute(new HttpGet(uri));
 //            is = response.getEntity().getContent();
@@ -597,7 +607,8 @@ public class FeaturedImageProcessor
 //        } finally {
 //            IOUtils.closeQuietly(is);
         }
-        LOG.debug("Image was not recognized: {}", url);
+        LOG.debug(
+                "Image was not recognized or could not be downloaded: {}", url);
         return null;
     }
 

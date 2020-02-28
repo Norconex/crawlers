@@ -14,8 +14,9 @@
  */
 package com.norconex.collector.http.fetch;
 
+import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.importer.doc.Doc;
-import com.norconex.commons.lang.map.Properties;
 
 /**
  * Fetches HTTP resources.
@@ -23,6 +24,9 @@ import com.norconex.commons.lang.map.Properties;
  * @since 3.0.0
  */
 public interface IHttpFetcher {
+
+    
+
 
     //TODO have HttpMethod enum class (POST, GET, etc)
     //TODO modify this interface to have:
@@ -37,17 +41,34 @@ public interface IHttpFetcher {
     //TODO remove this method?
     boolean accept(Doc doc);
 
-
-    IHttpFetchResponse fetchHeaders(String url, Properties httpHeaders); // throw HttpFetchException
-    IHttpFetchResponse fetchDocument(Doc doc);  // throw HttpFetchException
-    // INSTEAD?  So we do not expose Doc?
-//    HttpFetchResponse fetchDocument(
-//            String url, HttpDocMetadata httpHeaders, OutputStream content);
-
-
-
-
-    //TODO have an collector.HttpFetcherClient (renaming from HttpFetcherExecutor)
-    // which is comprised of one or many collector.IHttpFetcher
+    /**
+     * <p>
+     * Performs an HTTP request for the supplied document reference
+     * and HTTP method.
+     * </p>
+     * <p>
+     * For each method supported, implementors should
+     * do their best to populate the supplied {@link CrawlDoc} the best
+     * they can.
+     * </p>
+     * <p>
+     * Unsupported HTTP methods should return an HTTP response with the
+     * {@link CrawlState#UNSUPPORTED} state. To prevent userse having to
+     * configure multiple HTTP clients, implementors should try to support
+     * both the <code>GET</code> and <code>HEAD</code> methods.
+     * POST is only used in special cases and is often not used during a
+     * crawl session.
+     * </p>
+     * <p>
+     * A <code>null</code> method is treated as a <code>GET</code>.
+     * </p>
+     * @param doc document to fetch or to use to make the request.
+     * @param httpMethod HTTP method
+     * @return an HTTP response
+     * @throws HttpFetchException problem when fetching the document
+     * @see {@link HttpFetchResponseBuilder#unsupported()}
+     */
+    IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
+            throws HttpFetchException;
 
 }

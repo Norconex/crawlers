@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Norconex Inc.
+/* Copyright 2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,8 @@
  */
 package com.norconex.collector.http.fetch;
 
-import com.norconex.collector.core.doc.CrawlState;
-
-/**
- *
- * @author Pascal Essiembre
- * @since 3.0.0
- */
-public interface IHttpFetchResponse {
-
-    CrawlState getCrawlState();
-
-    int getStatusCode();
-
-    String getReasonPhrase();
-
-    String getUserAgent();
-
-    Exception getException();
-
-
+public enum HttpMethod {
+    GET,
+    HEAD,
+    POST
 }

@@ -14,6 +14,10 @@
  */
 package com.norconex.collector.http.fetch.impl;
 
+import static com.norconex.collector.http.fetch.HttpMethod.GET;
+import static com.norconex.collector.http.fetch.HttpMethod.HEAD;
+import static java.util.Optional.ofNullable;
+
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,17 +49,19 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.http.doc.HttpCrawlState;
-import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
+import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.WebDriverHttpSniffer.DriverResponseFilter;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.Doc;
 
 /**
  * <p>
@@ -416,19 +422,39 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         }
     }
 
-    @Override
-    public IHttpFetchResponse fetchHeaders(
-            String url, Properties httpHeaders) {
-        //TODO rely on proxy request filter to transform to a HEAD request?
-
-        return HttpFetchResponseBuilder.unsupported()
-                .setReasonPhrase("Headers can only be retrived with "
-                        + "#fetchDocument instead, when driverProxyEnabled "
-                        + "is true.").build();
-    }
 
     @Override
-    public IHttpFetchResponse fetchDocument(Doc doc) {
+    public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
+            throws HttpFetchException {
+
+        HttpMethod method = ofNullable(httpMethod).orElse(GET);
+        if (method != GET) {
+            String reason = "HTTP " + httpMethod + " method not supported.";
+            if (method == HEAD) {
+                reason += " To obtain headers, use GET with "
+                        + "'driverProxyEnabled' set to 'true'.";
+            }
+            return HttpFetchResponseBuilder.unsupported().setReasonPhrase(
+                  reason).build();
+        }
+
+//
+//
+//    }
+//
+//    @Override
+//    public IHttpFetchResponse head(
+//            String url, Properties httpHeaders) {
+//        //TODO rely on proxy request filter to transform to a HEAD request?
+//
+//        return HttpFetchResponseBuilder.unsupported()
+//                .setReasonPhrase("Headers can only be retrived with "
+//                        + "#fetchDocument instead, when driverProxyEnabled "
+//                        + "is true.").build();
+//    }
+//
+//    @Override
+//    public IHttpFetchResponse get(Doc doc) {
 
 	    LOG.debug("Fetching document: {}", doc.getReference());
 

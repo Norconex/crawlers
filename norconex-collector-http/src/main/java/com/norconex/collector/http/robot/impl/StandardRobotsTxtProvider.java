@@ -36,9 +36,10 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
-import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.robot.IRobotsTxtFilter;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
@@ -97,9 +98,9 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
 //            InputStream is = response.getEntity().getContent();
 //            robotsTxt = parseRobotsTxt(is, trimmedURL, userAgent);
 
-            Doc doc = new Doc(robotsURL,
+            CrawlDoc doc = new CrawlDoc(robotsURL,
                     fetcher.getStreamFactory().newInputStream());
-            IHttpFetchResponse response = fetcher.fetchDocument(doc);
+            IHttpFetchResponse response = fetcher.fetch(doc, HttpMethod.GET);
             robotsTxt = parseRobotsTxt(doc.getInputStream(), trimmedURL,
                     response.getUserAgent());
             if (LOG.isDebugEnabled()) {
