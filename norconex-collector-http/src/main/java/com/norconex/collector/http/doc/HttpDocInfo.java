@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.http.doc;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +43,7 @@ public class HttpDocInfo extends CrawlDocInfo {
     private int depth;
     @ToStringExclude
     private String urlRoot;
-    private Long sitemapLastMod;
+    private ZonedDateTime sitemapLastMod;
     private String sitemapChangeFreq;
     private Float sitemapPriority;
     private String originalReference;
@@ -100,17 +101,17 @@ public class HttpDocInfo extends CrawlDocInfo {
         return depth;
     }
     /**
-     * Gets the sitemap last modified date in milliseconds (EPOCH date).
-     * @return date as long
+     * Gets the sitemap last modified date.
+     * @return last modified date
      */
-    public Long getSitemapLastMod() {
+    public ZonedDateTime getSitemapLastMod() {
         return sitemapLastMod;
     }
     /**
-     * Sets the sitemap last modified date in milliseconds (EPOCH date).
-     * @param sitemapLastMod date as long
+     * Sets the sitemap last modified date.
+     * @param sitemapLastMod last modified date
      */
-    public void setSitemapLastMod(Long sitemapLastMod) {
+    public void setSitemapLastMod(ZonedDateTime sitemapLastMod) {
         this.sitemapLastMod = sitemapLastMod;
     }
 
@@ -205,14 +206,6 @@ public class HttpDocInfo extends CrawlDocInfo {
     public List<String> getReferencedUrls() {
         return Collections.unmodifiableList(referencedUrls);
     }
-//    /**
-//     * Sets URLs referenced by this one.
-//     * @param referencedUrls referenced URLs
-//     * @since 2.6.0
-//     */
-//    public void setReferencedUrls(String... referencedUrls) {
-//        CollectionUtil.setAll(this.referencedUrls, referencedUrls);
-//    }
     /**
      * Sets URLs referenced by this one.
      * @param referencedUrls referenced URLs
@@ -230,14 +223,6 @@ public class HttpDocInfo extends CrawlDocInfo {
     public List<String> getRedirectTrail() {
         return Collections.unmodifiableList(redirectTrail);
     }
-//    /**
-//     * Sets the trail of URLs that were redirected up to this one.
-//     * @param redirectTrail URL redirection trail to this one
-//     * @since 2.8.0
-//     */
-//    public void setRedirectTrail(String... redirectTrail) {
-//        CollectionUtil.setAll(this.redirectTrail, redirectTrail);
-//    }
     /**
      * Sets the trail of URLs that were redirected up to this one.
      * @param redirectTrail URL redirection trail to this one
@@ -255,14 +240,14 @@ public class HttpDocInfo extends CrawlDocInfo {
         redirectTrail.add(url);
     }
 
-    // For now we depricate until we find better.
-    @Deprecated
-    public static HttpDocInfo toHttpDocInfo(DocInfo docInfo) {
-        if (docInfo instanceof HttpDocInfo) {
-            return (HttpDocInfo) docInfo;
-        }
-        return new HttpDocInfo(docInfo);
-    }
+//    // For now we deprecate until we find better.
+//    @Deprecated
+//    public static HttpDocInfo toHttpDocInfo(DocInfo docInfo) {
+//        if (docInfo instanceof HttpDocInfo) {
+//            return (HttpDocInfo) docInfo;
+//        }
+//        return new HttpDocInfo(docInfo);
+//    }
 
     @Override
     public boolean equals(final Object other) {

@@ -37,7 +37,7 @@ public interface IWebTest {
      * starting at 0.  Called before the feature is configured.
      * @param runIndex zero-based index of the number of runs
      */
-    void initCurrentRunIndex(int runIndex);
+    void initRunIndex(int runIndex);
 
     void configureCollector(HttpCollectorConfig collectorConfig)
             throws Exception;

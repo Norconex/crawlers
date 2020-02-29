@@ -14,8 +14,12 @@
         IHttpClientFactory, IHttpDocumentFetcher, and IHttpMetadataFetcher.
       </action>
       <action dev="essiembre" type="add">
-        New WebDriverHttpFetcher for using popular browsers in headless mode.
-        Ideal for Javascript-driven websites and taking screenshots.
+        New WebDriverHttpFetcher for using popular browsers in headless mode
+        (Chrome, Firefox, ...). Ideal for Javascript-driven websites and 
+        taking screenshots.
+      </action>
+      <action dev="essiembre" type="add" issue="637">
+        Now supports If-Modified-Since for more efficient crawling. 
       </action>
       <action dev="essiembre" type="add">
         New HttpCollectorEvent.
@@ -64,6 +68,9 @@
       </action>
       <action dev="essiembre" type="update" issue="592">
         Improved handling of "trustAllSSLCertificate" in GenericHttpFetcher. 
+      </action>
+      <action dev="essiembre" type="update">
+        Dates handling now consider the zone.
       </action>
       <action dev="essiembre" type="remove">
         Removed some code deprecated in releases before 3.0.0. 

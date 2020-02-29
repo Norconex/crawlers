@@ -23,6 +23,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.builder.ToStringSummary;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -36,6 +37,7 @@ import com.norconex.collector.core.doc.CrawlState;
  */
 public class HttpFetchClientResponse implements IHttpFetchResponse {
 
+    @ToStringSummary
     private final List<Pair<IHttpFetchResponse, IHttpFetcher>> responses =
             new ArrayList<>();
 
@@ -94,7 +96,18 @@ public class HttpFetchClientResponse implements IHttpFetchResponse {
     }
     @Override
     public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
+        if (responses.isEmpty()) {
+            return "[No HTTP fetch responses.]";
+        }
+        // Print last response
+        ReflectionToStringBuilder b = new ReflectionToStringBuilder(
+                lastResponse().get(), ToStringStyle.NO_CLASS_NAME_STYLE);
+        b.setExcludeNullValues(true);
+        String str = b.toString();
+        if (responses.size() > 1) {
+            str += " (+ " + (responses.size() - 1)
+                    + " other invalid responses)";
+        }
+        return str;
     }
 }

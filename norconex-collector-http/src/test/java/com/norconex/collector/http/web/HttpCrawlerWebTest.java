@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -45,6 +46,7 @@ import com.norconex.collector.http.web.feature.CanonicalLink;
 import com.norconex.collector.http.web.feature.CanonicalRedirectLoop;
 import com.norconex.collector.http.web.feature.ContentTypeCharset;
 import com.norconex.collector.http.web.feature.FileNotFoundDeletion;
+import com.norconex.collector.http.web.feature.IfModifiedSince;
 import com.norconex.collector.http.web.feature.JavaScriptURL;
 import com.norconex.collector.http.web.feature.KeepDownloads;
 import com.norconex.collector.http.web.feature.MaxDepth;
@@ -100,7 +102,7 @@ public class HttpCrawlerWebTest {
         new ValidMetadata(),
         new JavaScriptURL(),
         new UnmodifiedMeta(),
-//        new IfModifiedSince(),
+        new IfModifiedSince(),
 
         // Recovery-related tests
         new StartAfterStopped(),
@@ -187,7 +189,7 @@ public class HttpCrawlerWebTest {
         String startURL = serverBaseURL + feature.getPath();
         for (int i = 0; i < feature.numberOfRun(); i++) {
             LOG.info("Test run #{}.", i+1);
-            feature.initCurrentRunIndex(i);
+            feature.initRunIndex(i);
             HttpCollectorConfig cfg =
                     TestUtil.newMemoryCollectorConfig(uuid, workdir, startURL);
             feature.configureCollector(cfg);
@@ -201,8 +203,8 @@ public class HttpCrawlerWebTest {
     static Stream<IWebTest> featuresProvider() {
 
         // Un-comment when troubleshooting:
-//        return Arrays.asList((IWebTest) new IfModifiedSince()).stream();
-        return FEATURES_BY_PATH.values().stream();
+        return Arrays.asList((IWebTest) new IfModifiedSince()).stream();
+//        return FEATURES_BY_PATH.values().stream();
     }
 
     private static void htmlIndexPage(

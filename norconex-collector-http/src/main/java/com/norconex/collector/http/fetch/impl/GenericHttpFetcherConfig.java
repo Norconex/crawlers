@@ -95,6 +95,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private int maxConnectionInactiveTime;
     private final Map<String, String> requestHeaders = new HashMap<>();
     private final Map<String, String> authFormParams = new HashMap<>();
+    private boolean disableIfModifiedSince;
     private String userAgent;
     private IRedirectURLProvider redirectURLProvider =
             new GenericRedirectURLProvider();
@@ -762,6 +763,27 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         CollectionUtil.setAll(this.sslProtocols, sslProtocols);
     }
 
+    /**
+     * Gets whether adding the <code>If-Modified-Since</code> HTTP request
+     * header is disabled.
+     * Servers supporting this header will only returne the requested document
+     * if it was last modified since the supplied date.
+     * @return <code>true</code> if disabled
+     */
+    public boolean isDisableIfModifiedSince() {
+        return disableIfModifiedSince;
+    }
+    /**
+     * Sets whether adding the <code>If-Modified-Since</code> HTTP request
+     * header is disabled.
+     * Servers supporting this header will only returne the requested document
+     * if it was last modified since the supplied date.
+     * @param disableIfModifiedSince <code>true</code> if disabled
+     */
+    public void setDisableIfModifiedSince(boolean disableIfModifiedSince) {
+        this.disableIfModifiedSince = disableIfModifiedSince;
+    }
+
     @Override
     public void loadFromXML(XML xml) {
         setValidStatusCodes(xml.getDelimitedList(
@@ -813,6 +835,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
                 (long) maxConnectionInactiveTime).intValue();
         setRequestHeaders(xml.getStringMap(
                 "headers/header", "@name", ".", requestHeaders));
+        setDisableIfModifiedSince(xml.getBoolean(
+                "disableIfModifiedSince", disableIfModifiedSince));
         setAuthFormParams(xml.getStringMap(
                 "authFormParams/param", "@name", ".", authFormParams));
         setRedirectURLProvider(xml.getObjectImpl(IRedirectURLProvider.class,
@@ -864,6 +888,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
             xmlHeaders.addXML("header").setAttribute(
                     "name", entry.getKey()).setTextContent(entry.getValue());
         }
+        xml.addElement("disableIfModifiedSince", disableIfModifiedSince);
 
         XML xmlAuthFormParams = xml.addXML("authFormParams");
         for (Entry<String, String> entry : authFormParams.entrySet()) {

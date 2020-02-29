@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +42,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.HttpStatus;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,11 +109,6 @@ import com.norconex.commons.lang.xml.XML;
 public class GenericSitemapResolver
         extends CrawlerLifeCycleListener
         implements ISitemapResolver, IXMLConfigurable {
-
-
-
-    //TODO remove factory and use DataStoreEngine instead of mvstore
-
 
     private static final Logger LOG = LoggerFactory.getLogger(
             GenericSitemapResolver.class);
@@ -205,12 +200,6 @@ public class GenericSitemapResolver
             Consumer<HttpDocInfo> sitemapURLConsumer,
             boolean startURLs) {
 
-
-        //TODO replace url adder with Consumer
-
-
-
-
         if (isResolutionRequired(urlRoot)) {
             final Set<String> resolvedLocations = new HashSet<>();
             Set<String> uniqueLocations = null;
@@ -293,13 +282,9 @@ public class GenericSitemapResolver
 
         CrawlDoc doc = null;
         try {
-//            HttpGet method = null;
-//            method = new HttpGet(location);
-
             // Execute the method.
             doc = new CrawlDoc(
                     location, fetcher.getStreamFactory().newInputStream());
-//            HttpResponse response = httpClient.execute(method);
             IHttpFetchResponse response = fetcher.fetch(
                     doc, HttpMethod.GET);
             int statusCode = response.getStatusCode();
@@ -343,10 +328,6 @@ public class GenericSitemapResolver
                             location, e);
                 }
             }
-
-//            if (method != null) {
-//                method.releaseConnection();
-//            }
         }
     }
 
@@ -446,7 +427,7 @@ public class GenericSitemapResolver
         } else if (parseState.lastmod) {
             try {
                 parseState.baseURL.setSitemapLastMod(
-                        DateTime.parse(value).getMillis());
+                        ZonedDateTime.parse(value));
             } catch (Exception e) {
                 LOG.info("Invalid sitemap date: {}", value);
             }
@@ -516,36 +497,12 @@ public class GenericSitemapResolver
         } else if (!paths.isEmpty()) {
             setSitemapPaths(paths);
         }
-//        setSitemapPaths(xml.getStringList("path", sitemapPaths));
-//
-//
-//
-//        String[] paths = xml.getList(
-//                "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY);
-//        if (!ArrayUtils.isEmpty(paths)) {
-//            // not empty but if empty after removing blank ones, consider
-//            // empty (we want no path)
-//            List<String> cleanPaths = new ArrayList<>(paths.length);
-//            for (String path : paths) {
-//                if (StringUtils.isNotBlank(path)) {
-//                    cleanPaths.add(path);
-//                }
-//            }
-//            if (cleanPaths.isEmpty()) {
-//                setSitemapPaths(ArrayUtils.EMPTY_STRING_ARRAY);
-//            } else {
-//                setSitemapPaths(
-//                        cleanPaths.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
-//            }
-//        }
     }
 
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("lenient", lenient);
         xml.addElement("tempDir", getTempDir());
-//        xml.addElementList("path", sitemapPaths);
-
         if (sitemapPaths.isEmpty()) {
             xml.addElement("path", "");
         } else {
@@ -555,19 +512,6 @@ public class GenericSitemapResolver
         //TODO make sure null can be set to clear the paths
         // could be done for list if always wrapping lists in parent tag
         // that when present but empty, means null.
-
-
-//        if (ArrayUtils.isEmpty(sitemapPaths)) {
-//            writer.writeStartElement("path");
-//            writer.writeCharacters("");
-//            writer.writeEndElement();
-//        } else {
-//            for (String path : sitemapPaths) {
-//                writer.writeStartElement("path");
-//                writer.writeCharacters(path);
-//                writer.writeEndElement();
-//            }
-//        }
     }
 
 

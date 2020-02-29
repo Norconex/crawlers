@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.recrawl;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -28,12 +28,16 @@ import com.norconex.commons.lang.file.ContentType;
  * @author Pascal Essiembre
  * @since 2.5.0
  */
+@Deprecated
 public class PreviousCrawlData {
+
+    // Deprecating until we find out if still needed.
+//TODO keep now that we are carrying cached doc info around??
 
     private String reference;
     private ContentType contentType;
-    private LocalDateTime crawlDate;
-    private Long sitemapLastMod;
+    private ZonedDateTime crawlDate;
+    private ZonedDateTime sitemapLastMod;
     private String sitemapChangeFreq;
     private Float sitemapPriority;
 
@@ -49,16 +53,16 @@ public class PreviousCrawlData {
     public void setContentType(ContentType contentType) {
         this.contentType = contentType;
     }
-    public LocalDateTime getCrawlDate() {
+    public ZonedDateTime getCrawlDate() {
         return crawlDate;
     }
-    public void setCrawlDate(LocalDateTime crawlDate) {
+    public void setCrawlDate(ZonedDateTime crawlDate) {
         this.crawlDate = crawlDate;
     }
-    public Long getSitemapLastMod() {
+    public ZonedDateTime getSitemapLastMod() {
         return sitemapLastMod;
     }
-    public void setSitemapLastMod(Long sitemapLastMod) {
+    public void setSitemapLastMod(ZonedDateTime sitemapLastMod) {
         this.sitemapLastMod = sitemapLastMod;
     }
     public String getSitemapChangeFreq() {

@@ -18,7 +18,6 @@ import static com.norconex.collector.http.fetch.HttpMethod.GET;
 import static com.norconex.collector.http.fetch.HttpMethod.POST;
 import static java.util.Optional.ofNullable;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -32,8 +31,8 @@ import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,9 +58,11 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
@@ -80,7 +81,6 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
@@ -107,6 +107,7 @@ import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlDocMetadata;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchException;
@@ -119,9 +120,9 @@ import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.commons.lang.io.IOUtil;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.net.ProxySettings;
-import com.norconex.commons.lang.time.DateUtil;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
@@ -197,11 +198,14 @@ import com.norconex.importer.util.CharsetUtil;
  *     {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
  *   </proxySettings>
  *
- *   <!-- HTTP request headers passed on every HTTP requests -->
+ *   <!-- HTTP request header constants passed on every HTTP requests -->
  *   <headers>
  *     <header name="(header name)">(header value)</header>
  *     <!-- You can repeat this header tag as needed. -->
  *   </headers>
+ *
+ *   <!-- Disable conditionally getting a document based on last crawl date. -->
+ *   <disableIfModifiedSince>[false|true]</disableIfModifiedSince>
  *
  *   <authMethod>[form|basic|digest|ntlm|spnego|kerberos]</authMethod>
  *
@@ -241,7 +245,10 @@ import com.norconex.importer.util.CharsetUtil;
  *   <validStatusCodes>(defaults to 200)</validStatusCodes>
  *   <notFoundStatusCodes>(defaults to 404)</notFoundStatusCodes>
  *   <headersPrefix>(string to prefix headers)</headersPrefix>
+ *
+ *   <!-- Ignore content-type from HTTP response headers, detect it instead. -->
  *   <detectContentType>[false|true]</detectContentType>
+ *   <!-- Ignore charset from HTTP response headers, detect it instead. -->
  *   <detectCharset>[false|true]</detectCharset>
  *
  *   <restrictions>
@@ -390,19 +397,13 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 ctx.setUserToken(userToken);
             }
 
-
-            //--- START If Modified Since --------------------------------------
-            if (doc.hasCache()) {
-                LocalDateTime ldt = doc.getCachedDocInfo().getCrawlDate();
-                if (ldt != null) {
+            if (doc.hasCache() && !cfg.isDisableIfModifiedSince()) {
+                ZonedDateTime zdt = doc.getCachedDocInfo().getCrawlDate();
+                if (zdt != null) {
                     request.addHeader(HttpHeaders.IF_MODIFIED_SINCE,
-                            DateUtils.formatDate(
-                                    DateUtil.toDate(ldt, ZoneId.of("GMT"))));
-
+                            zdt.format(DateTimeFormatter.RFC_1123_DATE_TIME));
                 }
             }
-            //--- END   If Modified Since --------------------------------------
-
 
             // Execute the method.
             HttpResponse response = httpExecute(request, ctx);
@@ -415,8 +416,15 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             responseBuilder.setUserAgent(cfg.getUserAgent());
 
             InputStream is = null;
-            if (expectsBody) {
-                is = response.getEntity().getContent();
+            if (expectsBody && statusCode != HttpStatus.SC_NOT_MODIFIED) {
+                HttpEntity entity = response.getEntity();
+                if (entity == null) {
+                    LOG.warn("Content expected but not returned for: {}",
+                            doc.getReference());
+                    is = doc.getStreamFactory().newInputStream();
+                } else {
+                    is = entity.getContent();
+                }
             }
 
             // VALID http response
@@ -439,8 +447,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                             doc.getStreamFactory().newInputStream(is);
                     //read a copy to force caching and then close the stream
                     content.enforceFullCaching();
-//                    IOUtils.copy(content, new NullOutputStream());
-//                    stream.setValue(content);
                     doc.setInputStream(content);
 //                    performDetection(doc);
                 }
@@ -448,7 +454,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 userToken = ctx.getUserToken();
 
                 return responseBuilder
-                        .setCrawlState(HttpCrawlState.NEW)
+                        .setCrawlState(CrawlState.NEW)
                         .build();
             }
 
@@ -457,21 +463,25 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("Rejected response content: {}",
                             IOUtils.toString(is, StandardCharsets.UTF_8));
-                    closeQuietly(is);
+                    IOUtil.closeQuietly(is);
                 } else {
                     // read response anyway to be safer, but ignore content
-                    BufferedInputStream bis = new BufferedInputStream(is);
-                    int result = bis.read();
-                    while(result != -1) {
-                      result = bis.read();
-                    }
-                    closeQuietly(is);
+                    IOUtil.consume(is);
+                    IOUtil.closeQuietly(is);
                 }
             }
 
+            // UNMODIFIED
+            if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
+                return responseBuilder
+                        .setCrawlState(CrawlState.UNMODIFIED)
+                        .build();
+            }
+
+            // NOT_FOUND
             if (cfg.getNotFoundStatusCodes().contains(statusCode)) {
                 return responseBuilder
-                        .setCrawlState(HttpCrawlState.NOT_FOUND)
+                        .setCrawlState(CrawlState.NOT_FOUND)
                         .build();
             }
             LOG.debug("Unsupported HTTP Response: {}",
@@ -521,15 +531,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
     }
 
-    private void closeQuietly(InputStream is) {
-        if (is != null) {
-            try { is.close(); } catch (IOException e) { /*NOOP*/ }
-        }
-    }
-
-
     //TODO Offer global PropertySetter option when adding headers and/or other fields
-
 
     /**
      * Creates the HTTP request to be executed.

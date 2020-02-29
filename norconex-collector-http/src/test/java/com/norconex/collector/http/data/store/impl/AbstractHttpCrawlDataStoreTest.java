@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.AfterEach;
@@ -151,7 +151,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         dataIn.setMetaChecksum("metaChecksum");
         dataIn.setContentChecksum("contentChecksum");
         dataIn.setContentType(ContentType.PDF);
-        dataIn.setCrawlDate(LocalDateTime.now());
+        dataIn.setCrawlDate(ZonedDateTime.now());
         dataIn.setOriginalReference("originalReference");
         dataIn.setParentRootReference("parentRootReference");
         dataIn.setReferrerLinkTag("referrerLinkTag");
@@ -160,7 +160,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         dataIn.setReferrerReference("referrerReference");
 //        dataIn.setRootParentReference(true);
         dataIn.setSitemapChangeFreq("weekly");
-        dataIn.setSitemapLastMod(123L);
+        dataIn.setSitemapLastMod(ZonedDateTime.now());
         dataIn.setSitemapPriority(0.5f);
         dataIn.setReferencedUrls(
                 Arrays.asList("url1", "url2", "url3", "url4", "url5"));

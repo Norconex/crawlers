@@ -15,6 +15,7 @@
 package com.norconex.collector.http.fetch;
 
 import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.importer.doc.Doc;
 
@@ -25,7 +26,7 @@ import com.norconex.importer.doc.Doc;
  */
 public interface IHttpFetcher {
 
-    
+
 
 
     //TODO have HttpMethod enum class (POST, GET, etc)
@@ -47,9 +48,9 @@ public interface IHttpFetcher {
      * and HTTP method.
      * </p>
      * <p>
-     * For each method supported, implementors should
-     * do their best to populate the supplied {@link CrawlDoc} the best
-     * they can.
+     * For each HTTP method supported, implementors should
+     * do their best to populate the document and its {@link CrawlDocInfo}
+     * with as much information they can.
      * </p>
      * <p>
      * Unsupported HTTP methods should return an HTTP response with the
@@ -66,7 +67,7 @@ public interface IHttpFetcher {
      * @param httpMethod HTTP method
      * @return an HTTP response
      * @throws HttpFetchException problem when fetching the document
-     * @see {@link HttpFetchResponseBuilder#unsupported()}
+     * @see HttpFetchResponseBuilder#unsupported()
      */
     IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
             throws HttpFetchException;

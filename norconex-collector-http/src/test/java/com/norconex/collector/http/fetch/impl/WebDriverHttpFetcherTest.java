@@ -78,22 +78,19 @@ public class WebDriverHttpFetcherTest  {
             }, "/headers")
             .build();
 
-//  https://chromedriver.storage.googleapis.com/2.43/chromedriver_linux64.zip
-//  https://chromedriver.storage.googleapis.com/2.43/chromedriver_mac64.zip
+//  https://sites.google.com/a/chromium.org/chromedriver/downloads
     private static final Path chromeDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://chromedriver.storage.googleapis.com/"
-                    + "78.0.3904.70/chromedriver_win32.zip!/chromedriver.exe",
-                    "chromedriver-78.0.3904.70.exe"))
+                    + "80.0.3987.106/chromedriver_win32.zip!/chromedriver.exe",
+                    "chromedriver-80.0.3987.106.exe"))
             .get();
 
-//  https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-win64.zip
-//  https://developer.mozilla.org/en-US/docs/Web/WebDriver
-//  https://ftp.mozilla.org/pub/firefox/releases/55.0.3/
+//  https://github.com/mozilla/geckodriver/releases/
     private static final Path firefoxDriverPath = new OSResource<Path>()
             .win(WebFile.create(
                     "https://github.com/mozilla/geckodriver/releases/download/"
-                  + "v0.24.0/geckodriver-v0.24.0-win64.zip!/geckodriver.exe",
-                    "geckodriver-0.24.exe"))
+                  + "v0.26.0/geckodriver-v0.26.0-win64.zip!/geckodriver.exe",
+                    "geckodriver-0.26.exe"))
             .get();
 
 //    private static final Path edgeDriverPath = new OSResource<Path>()

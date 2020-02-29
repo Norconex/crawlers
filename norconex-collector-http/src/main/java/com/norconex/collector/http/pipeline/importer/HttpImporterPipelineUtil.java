@@ -54,6 +54,10 @@ import com.norconex.importer.doc.Doc;
     }
 
     //TODO consider making public, putting content type and encoding in CORE.
+
+
+    //TODO see if still needed?
+    @Deprecated
     public static void applyMetadataToDocument(Doc doc) {
         if (doc.getDocInfo().getContentType() == null) {
             doc.getDocInfo().setContentType(ContentType.valueOf(
@@ -64,6 +68,8 @@ import com.norconex.importer.doc.Doc;
         }
     }
 
+    //TODO see if still needed?
+    @Deprecated
     public static void enhanceHTTPHeaders(Properties meta) {
         String colCT = meta.getString(CrawlDocMetadata.CONTENT_TYPE);
         String colCE = meta.getString(

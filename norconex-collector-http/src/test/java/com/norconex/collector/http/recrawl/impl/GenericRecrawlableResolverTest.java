@@ -1,4 +1,4 @@
-/* Copyright 2016-2019 Norconex Inc.
+/* Copyright 2016-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package com.norconex.collector.http.recrawl.impl;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ public class GenericRecrawlableResolverTest {
         GenericRecrawlableResolver r = new GenericRecrawlableResolver();
         r.setSitemapSupport(SitemapSupport.NEVER);
 
-        LocalDateTime prevCrawlDate = LocalDateTime.now().minusDays(10);
+        ZonedDateTime prevCrawlDate = ZonedDateTime.now().minusDays(10);
 
         PreviousCrawlData prevCrawl = new PreviousCrawlData();
         prevCrawl.setContentType(ContentType.HTML);
@@ -84,7 +84,7 @@ public class GenericRecrawlableResolverTest {
         GenericRecrawlableResolver r = new GenericRecrawlableResolver();
         r.loadFromXML(new XML(xml));
 
-        LocalDateTime prevCrawlDate = LocalDateTime.now().minusDays(10);
+        ZonedDateTime prevCrawlDate = ZonedDateTime.now().minusDays(10);
         PreviousCrawlData prevCrawl = new PreviousCrawlData();
         prevCrawl.setContentType(ContentType.HTML);
         prevCrawl.setReference("http://example.com");

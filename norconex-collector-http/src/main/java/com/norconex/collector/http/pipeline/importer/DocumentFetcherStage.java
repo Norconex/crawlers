@@ -14,7 +14,7 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,19 +36,15 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
-        HttpDocInfo crawlRef = ctx.getDocInfo();
+        HttpDocInfo docInfo = ctx.getDocInfo();
 
         IHttpFetchResponse response = ctx.getHttpFetchClient().fetch(
                 ctx.getDocument(), HttpMethod.GET);
 
-        crawlRef.setCrawlDate(LocalDateTime.now());
-
+        docInfo.setCrawlDate(ZonedDateTime.now());
         HttpImporterPipelineUtil.enhanceHTTPHeaders(
                 ctx.getDocument().getMetadata());
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
-
-        crawlRef.setContentType(
-                ctx.getDocument().getDocInfo().getContentType());
 
         //-- Deal with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();
@@ -59,20 +55,24 @@ import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
         }
 
         CrawlState state = response.getCrawlState();
-        crawlRef.setState(state);
-        if (state.isGoodState()) {
-            ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_FETCHED,
-                    crawlRef, response);
-        } else {
-            String eventType = null;
-            if (state.isOneOf(CrawlState.NOT_FOUND)) {
-                eventType = CrawlerEvent.REJECTED_NOTFOUND;
-            } else {
-                eventType = CrawlerEvent.REJECTED_BAD_STATUS;
-            }
-            ctx.fireCrawlerEvent(eventType, crawlRef, response);
+        docInfo.setState(state);
+        if (CrawlState.UNMODIFIED.equals(state)) {
+            ctx.fireCrawlerEvent(CrawlerEvent.REJECTED_UNMODIFIED,
+                    docInfo, response);
             return false;
         }
-        return true;
+        if (state.isGoodState()) {
+            ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_FETCHED,
+                    docInfo, response);
+            return true;
+        }
+        String eventType = null;
+        if (state.isOneOf(CrawlState.NOT_FOUND)) {
+            eventType = CrawlerEvent.REJECTED_NOTFOUND;
+        } else {
+            eventType = CrawlerEvent.REJECTED_BAD_STATUS;
+        }
+        ctx.fireCrawlerEvent(eventType, docInfo, response);
+        return false;
     }
 }

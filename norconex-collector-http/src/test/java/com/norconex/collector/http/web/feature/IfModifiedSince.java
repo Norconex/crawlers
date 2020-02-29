@@ -24,7 +24,6 @@ import java.time.ZonedDateTime;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.junit.jupiter.api.Disabled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +47,6 @@ import com.norconex.committer.core.impl.MemoryCommitter;
  * @author Pascal Essiembre
  */
 //Test for https://github.com/Norconex/collector-http/issues/637
-@Disabled
 public class IfModifiedSince extends AbstractInfiniteDepthTestFeature {
 
     private static final Logger LOG =

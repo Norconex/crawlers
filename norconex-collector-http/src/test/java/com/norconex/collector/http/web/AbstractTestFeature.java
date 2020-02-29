@@ -43,18 +43,30 @@ import com.norconex.commons.lang.map.Properties;
  */
 public abstract class AbstractTestFeature implements IWebTest {
 
-    private int currentRunIndex = 0;
+    private int runIndex = 0;
 
     @Override
     public int numberOfRun() {
         return 1;
     }
     @Override
-    public final void initCurrentRunIndex(int runIndex) {
-        this.currentRunIndex = runIndex;
+    public final void initRunIndex(int runIndex) {
+        this.runIndex = runIndex;
     }
-    public final int getCurrentRunIndex() {
-        return currentRunIndex;
+
+    /**
+     * 0-based index of current run.
+     * @return index of current run
+     */
+    public final int getRunIndex() {
+        return runIndex;
+    }
+    /**
+     * 1-based count of current run.
+     * @return count of current run
+     */
+    public final int getRunCount() {
+        return runIndex + 1;
     }
 
 
@@ -151,14 +163,16 @@ public abstract class AbstractTestFeature implements IWebTest {
     }
 
     protected void assertListSize(String listName, List<?> list, int size) {
-        Assertions.assertEquals( size, list.size(),
-                "Wrong " + listName + " list size.");
+        Assertions.assertEquals(size, list.size(),
+                "[Run #" + getRunCount() + "] Wrong "
+                        + listName + " list size.");
     }
     protected void assertOneValue(Properties meta, String... fields) {
         for (String field : fields) {
             Assertions.assertEquals(
                     1, meta.getStrings(field).size(),
-                field + " does not contain strickly 1 value.");
+                "[Run #" + getRunCount() + "] "
+                        + field + " does not contain strickly 1 value.");
         }
     }
 
@@ -169,22 +183,25 @@ public abstract class AbstractTestFeature implements IWebTest {
     }
 
     protected boolean isFirstRun() {
-        return currentRunIndex == 0;
+        return isRunCount(1);
     }
     protected boolean isSecondRun() {
-        return currentRunIndex == 1;
+        return isRunCount(2);
     }
     protected boolean isThirdRun() {
-        return currentRunIndex == 2;
+        return isRunCount(3);
     }
     protected boolean isFourthRun() {
-        return currentRunIndex == 3;
+        return isRunCount(4);
     }
     protected boolean isFifthRun() {
-        return currentRunIndex == 4;
+        return isRunCount(5);
     }
     protected boolean isRunIndex(int runIndex) {
-        return currentRunIndex == runIndex;
+        return this.runIndex == runIndex;
+    }
+    protected boolean isRunCount(int runCount) {
+        return getRunCount() == runCount;
     }
 
     protected final HttpCrawler getCrawler(HttpCollector collector) {

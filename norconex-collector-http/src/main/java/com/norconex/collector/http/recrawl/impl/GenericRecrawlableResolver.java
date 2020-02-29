@@ -15,7 +15,7 @@
 package com.norconex.collector.http.recrawl.impl;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +37,6 @@ import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 import com.norconex.collector.http.recrawl.PreviousCrawlData;
 import com.norconex.collector.http.sitemap.SitemapChangeFrequency;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.time.DateUtil;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
@@ -241,8 +240,8 @@ public class GenericRecrawlableResolver
         return StringUtils.isNotBlank(prevData.getSitemapChangeFreq());
     }
     private boolean hasSitemapLastModified(PreviousCrawlData prevData) {
-        return prevData.getSitemapLastMod() != null
-                && prevData.getSitemapLastMod() > 0;
+        return prevData.getSitemapLastMod() != null;
+//                && prevData.getSitemapLastMod() > 0;
     }
 
     private boolean isRecrawlableFromMinFrequencies(
@@ -264,10 +263,10 @@ public class GenericRecrawlableResolver
         } else {
             millis = new DurationParser().parse(value).toMillis();
         }
-        LocalDateTime lastCrawlDate = prevData.getCrawlDate();
-        LocalDateTime minCrawlDate = lastCrawlDate.plus(
+        ZonedDateTime lastCrawlDate = prevData.getCrawlDate();
+        ZonedDateTime minCrawlDate = lastCrawlDate.plus(
                 millis, ChronoField.MILLI_OF_DAY.getBaseUnit());
-        LocalDateTime now = LocalDateTime.now();
+        ZonedDateTime now = ZonedDateTime.now();
         if (minCrawlDate.isBefore(now)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Recrawlable according to custom directive "
@@ -298,9 +297,8 @@ public class GenericRecrawlableResolver
         // If sitemap specifies a last modified date and it is more recent
         // than the the document last crawl date, recrawl it (otherwise don't).
         if (hasSitemapLastModified(prevData)) {
-            LocalDateTime lastModified =
-                    DateUtil.toLocalDateTime(prevData.getSitemapLastMod());
-            LocalDateTime lastCrawled = prevData.getCrawlDate();
+            ZonedDateTime lastModified = prevData.getSitemapLastMod();
+            ZonedDateTime lastCrawled = prevData.getCrawlDate();
             LOG.debug("Sitemap last modified date is {} for: {}",
                     lastModified, prevData.getReference());
             if (lastModified.isAfter(lastCrawled)) {
@@ -336,8 +334,8 @@ public class GenericRecrawlableResolver
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("The " + context + " change frequency is "
-                    + cf + " for: " + prevData.getReference());
+            LOG.debug("The {} change frequency is {} for: {}",
+                    context, cf, prevData.getReference());
         }
         if (cf == SitemapChangeFrequency.ALWAYS) {
             return true;
@@ -346,8 +344,8 @@ public class GenericRecrawlableResolver
             return false;
         }
 
-        LocalDateTime lastCrawlDate = prevData.getCrawlDate();
-        LocalDateTime minCrawlDate = prevData.getCrawlDate();
+        ZonedDateTime lastCrawlDate = prevData.getCrawlDate();
+        ZonedDateTime minCrawlDate = prevData.getCrawlDate();
         switch (cf) {
         case HOURLY:
             minCrawlDate = minCrawlDate.plusHours(1);
@@ -368,7 +366,7 @@ public class GenericRecrawlableResolver
             break;
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        ZonedDateTime now = ZonedDateTime.now();
         if (minCrawlDate.isBefore(now)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format(
@@ -397,7 +395,7 @@ public class GenericRecrawlableResolver
         return false;
     }
 
-    private String formatDuration(LocalDateTime start, LocalDateTime end) {
+    private String formatDuration(ZonedDateTime start, ZonedDateTime end) {
         return formatDuration(Duration.between(start, end));
     }
     private String formatDuration(Duration duration) {
