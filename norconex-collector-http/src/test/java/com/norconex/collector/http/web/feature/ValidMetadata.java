@@ -17,11 +17,11 @@ package com.norconex.collector.http.web.feature;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.Assertions;
 
 import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
@@ -50,14 +50,14 @@ public class ValidMetadata extends AbstractInfiniteDepthTestFeature {
 
             //Test single value
             assertOneValue(meta,
-                    HttpDocMetadata.HTTP_CONTENT_TYPE,
+                    HttpHeaders.CONTENT_TYPE,
                     CrawlDocMetadata.CONTENT_TYPE,
                     CrawlDocMetadata.CONTENT_ENCODING);
 
             //Test actual values
             Assertions.assertTrue(
                     "text/html; charset=UTF-8".equalsIgnoreCase(
-                            meta.getString(HttpDocMetadata.HTTP_CONTENT_TYPE)),
+                            meta.getString(HttpHeaders.CONTENT_TYPE)),
                     "Bad HTTP content-type");
             Assertions.assertTrue(
                     "text/html".equalsIgnoreCase(

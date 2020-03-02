@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
+import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.robot.RobotsMeta;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
@@ -49,7 +49,7 @@ public class StandardRobotsMetaProviderTest {
         String docURL = "http://www.example.com/test" + suffix + ".html";
         Properties metadata = new Properties();
         metadata.set(DocMetadata.REFERENCE, docURL);
-        metadata.set(HttpDocMetadata.HTTP_CONTENT_TYPE, "text/html");
+        metadata.set(HttpHeaders.CONTENT_TYPE, "text/html");
 
         StandardRobotsMetaProvider p = new StandardRobotsMetaProvider();
         RobotsMeta robotsMeta = p.getRobotsMeta(

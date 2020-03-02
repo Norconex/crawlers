@@ -20,20 +20,22 @@ import java.io.Reader;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.core.pipeline.importer.DocumentFiltersStage;
 import com.norconex.collector.core.pipeline.importer.ImportModuleStage;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.collector.core.pipeline.importer.ImporterPipelineUtil;
 import com.norconex.collector.core.pipeline.importer.SaveDocumentStage;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.delay.IDelayResolver;
-import com.norconex.collector.http.doc.HttpCrawlState;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
+ * All execution steps of a document processing from the moment it is
+ * obtained from queue up to importing it.
  * @author Pascal Essiembre
- *
  */
 public class HttpImporterPipeline
         extends Pipeline<ImporterPipelineContext> {
@@ -59,23 +61,22 @@ public class HttpImporterPipeline
         addStage(new DelayResolverStage());
 
         // When HTTP headers are fetched (HTTP "HEAD") before document:
-        addStage(new MetadataFetcherStage());
-        addStage(new MetadataFiltersHEADStage());
-        addStage(new MetadataCanonicalHEADStage());
-        addStage(new MetadataChecksumStage(true));
+        addStage(new HttpFetchStage(HttpMethod.HEAD));
+        addStage(new MetadataFiltersStage(HttpMethod.HEAD));
+        addStage(new CanonicalStage(HttpMethod.HEAD));
+        addStage(new MetadataChecksumStage(HttpMethod.HEAD));
 
         // HTTP "GET" and onward:
-        addStage(new DocumentFetcherStage());
+        addStage(new HttpFetchStage(HttpMethod.GET));
         if (isKeepDownloads) {
             addStage(new SaveDocumentStage());
         }
-        addStage(new MetadataCanonicalGETStage());
-        addStage(new DocumentCanonicalStage());
+        addStage(new CanonicalStage(HttpMethod.GET));
         addStage(new RobotsMetaCreateStage());
         addStage(new LinkExtractorStage());
         addStage(new RobotsMetaNoIndexStage());
-        addStage(new MetadataFiltersGETStage());
-        addStage(new MetadataChecksumStage(false));
+        addStage(new MetadataFiltersStage(HttpMethod.GET));
+        addStage(new MetadataChecksumStage(HttpMethod.GET));
         addStage(new DocumentFiltersStage());
         addStage(new DocumentPreProcessingStage());
         addStage(new ImportModuleStage());
@@ -99,57 +100,6 @@ public class HttpImporterPipeline
                 }
             }
             return true;
-        }
-    }
-
-
-    //--- HTTP Headers Filters -------------------------------------------------
-    private static class MetadataFiltersHEADStage
-            extends AbstractImporterStage {
-        @Override
-        public boolean executeStage(HttpImporterPipelineContext ctx) {
-            if (ctx.getConfig().isFetchHttpHead()
-                    && ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
-                return false;
-            }
-            //TODO check if fetching headers is enabled before (like above)
-            if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
-                return false;
-            }
-            return true;
-        }
-    }
-
-    //--- HTTP Headers Canonical URL handling ----------------------------------
-    private static class MetadataCanonicalHEADStage
-            extends AbstractImporterStage {
-        @Override
-        public boolean executeStage(HttpImporterPipelineContext ctx) {
-            // Return right away if http headers are not fetched
-            if (!ctx.isHttpHeadFetchEnabled()) {
-                return true;
-            }
-            return HttpImporterPipelineUtil.resolveCanonical(ctx, true);
-        }
-    }
-
-    //--- HTTP Headers Canonical URL after fetch -------------------------------
-    private static class MetadataCanonicalGETStage
-            extends AbstractImporterStage {
-        @Override
-        public boolean executeStage(HttpImporterPipelineContext ctx) {
-            return HttpImporterPipelineUtil.resolveCanonical(ctx, true);
-        }
-    }
-
-    //--- Document Canonical URL from <head> -----------------------------------
-    private static class DocumentCanonicalStage
-            extends AbstractImporterStage {
-        @Override
-        public boolean executeStage(HttpImporterPipelineContext ctx) {
-            return HttpImporterPipelineUtil.resolveCanonical(ctx, false);
         }
     }
 
@@ -195,25 +145,10 @@ public class HttpImporterPipeline
                         HttpCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX,
                         ctx.getDocInfo(),
                         ctx.getRobotsMeta());
-                ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
+                ctx.getDocInfo().setState(CrawlState.REJECTED);
                 return false;
             }
             return canIndex;
-        }
-    }
-
-    //--- Headers filters if not done already ----------------------------------
-    private static class MetadataFiltersGETStage
-            extends AbstractImporterStage {
-        @Override
-        public boolean executeStage(HttpImporterPipelineContext ctx) {
-            if (!ctx.getConfig().isFetchHttpHead()) {
-                if (ImporterPipelineUtil.isHeadersRejected(ctx)) {
-                    ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
-                    return false;
-                }
-            }
-            return true;
         }
     }
 
@@ -228,11 +163,12 @@ public class HttpImporterPipeline
                     preProc.processDocument(
                             ctx.getHttpFetchClient(), ctx.getDocument());
                     ctx.fireCrawlerEvent(
-                            HttpCrawlerEvent.DOCUMENT_PREIMPORTED,
+                            CrawlerEvent.DOCUMENT_PREIMPORTED,
                             ctx.getDocInfo(), preProc);
                 }
             }
             return true;
         }
     }
+
 }

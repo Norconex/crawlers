@@ -15,38 +15,31 @@
 package com.norconex.collector.http.pipeline.importer;
 
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.core.pipeline.ChecksumStageUtil;
-import com.norconex.collector.http.doc.HttpCrawlState;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.commons.lang.map.Properties;
 
 /**
  * @author Pascal Essiembre
- *
  */
-/*default*/ class MetadataChecksumStage extends AbstractImporterStage {
+/*default*/ class MetadataChecksumStage extends AbstractHttpMethodStage {
 
-    private final boolean useHttpHEADFetchHeaders;
-
-    public MetadataChecksumStage(boolean useHttpHEADFetchHeaders) {
-        super();
-        this.useHttpHEADFetchHeaders = useHttpHEADFetchHeaders;
+    public MetadataChecksumStage(HttpMethod method) {
+        super(method);
     }
 
     @Override
-    public boolean executeStage(HttpImporterPipelineContext ctx) {
+    public boolean executeStage(
+            HttpImporterPipelineContext ctx, HttpMethod method) {
         //TODO only if an INCREMENTAL run... else skip.
-        if (useHttpHEADFetchHeaders && !ctx.isHttpHeadFetchEnabled()) {
+        if (wasHttpHeadPerformed(ctx)) {
             return true;
         }
-        return isHeadersChecksumAccepted(ctx);
-    }
-
-    private boolean isHeadersChecksumAccepted(HttpImporterPipelineContext ctx) {
-        IMetadataChecksummer check =
-                ctx.getConfig().getMetadataChecksummer();
+        IMetadataChecksummer check = ctx.getConfig().getMetadataChecksummer();
         if (check == null) {
             // NEW is default state (?)
-            ctx.getDocInfo().setState(HttpCrawlState.NEW);
+            ctx.getDocInfo().setState(CrawlState.NEW);
             return true;
         }
         Properties headers = ctx.getMetadata();

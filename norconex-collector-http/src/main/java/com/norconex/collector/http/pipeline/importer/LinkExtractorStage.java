@@ -71,18 +71,17 @@ import com.norconex.commons.lang.io.CachedInputStream;
                             }
                     } else  {
                         if (LOG.isTraceEnabled()) {
-                            LOG.trace("URL not in crawl scope: "
-                                    + link.getUrl() + " (keep: "
-                                    + ctx.getConfig().isKeepOutOfScopeLinks()
-                                    + ")");
+                            LOG.trace("URL not in crawl scope: {} (keep: {})",
+                                    link.getUrl(),
+                                    ctx.getConfig().isKeepOutOfScopeLinks());
                         }
                         if(ctx.getConfig().isKeepOutOfScopeLinks()) {
                             uniqueOutOfScopeURLs.add(link.getUrl());
                         }
                     }
                 } catch (Exception e) {
-                    LOG.warn("Could not queue extracted URL \""
-                            + link.getUrl() + "\".", e);
+                    LOG.warn("Could not queue extracted URL \"{}.",
+                            link.getUrl(), e);
                 }
             }
         }
@@ -100,8 +99,8 @@ import com.norconex.commons.lang.io.CachedInputStream;
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("uniqueOutOfScopeURLs count: "
-                    + uniqueOutOfScopeURLs.size() + ".");
+            LOG.debug("uniqueOutOfScopeURLs count: {}.",
+                    uniqueOutOfScopeURLs.size());
         }
         if (!uniqueOutOfScopeURLs.isEmpty()) {
             ctx.getMetadata().add(
@@ -174,8 +173,8 @@ import com.norconex.commons.lang.io.CachedInputStream;
             String afterQueueURL = newURL.getReference();
             if (LOG.isDebugEnabled()
                     && !link.getUrl().equals(afterQueueURL)) {
-                LOG.debug("URL modified from \"" + link.getUrl()
-                        + "\" to \"" + afterQueueURL);
+                LOG.debug("URL modified from \"{}\" to \"{}\".",
+                        link.getUrl(), afterQueueURL);
             }
             return afterQueueURL;
         }

@@ -283,8 +283,8 @@ public class GenericSitemapResolver
         CrawlDoc doc = null;
         try {
             // Execute the method.
-            doc = new CrawlDoc(
-                    location, fetcher.getStreamFactory().newInputStream());
+            doc = new CrawlDoc(new HttpDocInfo(location),
+                    fetcher.getStreamFactory().newInputStream());
             IHttpFetchResponse response = fetcher.fetch(
                     doc, HttpMethod.GET);
             int statusCode = response.getStatusCode();

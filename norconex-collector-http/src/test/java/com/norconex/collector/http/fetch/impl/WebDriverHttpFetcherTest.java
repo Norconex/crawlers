@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.server.TestServer;
@@ -236,8 +237,8 @@ public class WebDriverHttpFetcherTest  {
 
     private Doc fetch(WebDriverHttpFetcher fetcher, String urlPath)
             throws HttpFetchException {
-        CrawlDoc doc = new CrawlDoc(
-                "http://localhost:" + server.getPort() + urlPath,
+        CrawlDoc doc = new CrawlDoc(new HttpDocInfo(
+                "http://localhost:" + server.getPort() + urlPath),
                 new CachedStreamFactory(10000, 10000).newInputStream());
         /*IHttpFetchResponse response = */ fetcher.fetch(doc, HttpMethod.GET);
         return doc;

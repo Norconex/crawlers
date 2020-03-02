@@ -66,8 +66,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private final List<Integer> notFoundStatusCodes =
             new ArrayList<>(DEFAULT_NOT_FOUND_STATUS_CODES);
     private String headersPrefix;
-    private boolean detectContentType;
-    private boolean detectCharset;
+    private boolean forceContentTypeDetection;
+    private boolean forceCharsetDetection;
 
     private String authMethod;
     private String authURL;
@@ -177,32 +177,33 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      * HTTP response header.
      * @return <code>true</code> to enable detection
      */
-    public boolean isDetectContentType() {
-        return detectContentType;
+    public boolean isForceContentTypeDetection() {
+        return forceContentTypeDetection;
     }
     /**
      * Sets whether content type is detected instead of relying on
      * HTTP response header.
-     * @param detectContentType <code>true</code> to enable detection
+     * @param forceContentTypeDetection <code>true</code> to enable detection
      */
-    public void setDetectContentType(boolean detectContentType) {
-        this.detectContentType = detectContentType;
+    public void setForceContentTypeDetection(
+            boolean forceContentTypeDetection) {
+        this.forceContentTypeDetection = forceContentTypeDetection;
     }
     /**
      * Gets whether character encoding is detected instead of relying on
      * HTTP response header.
      * @return <code>true</code> to enable detection
      */
-    public boolean isDetectCharset() {
-        return detectCharset;
+    public boolean isForceCharsetDetection() {
+        return forceCharsetDetection;
     }
     /**
      * Sets whether character encoding is detected instead of relying on
      * HTTP response header.
-     * @param detectCharset <code>true</code> to enable detection
+     * @param forceCharsetDetection <code>true</code> to enable detection
      */
-    public void setDetectCharset(boolean detectCharset) {
-        this.detectCharset = detectCharset;
+    public void setForceCharsetDetection(boolean forceCharsetDetection) {
+        this.forceCharsetDetection = forceCharsetDetection;
     }
 
 
@@ -791,9 +792,9 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         setNotFoundStatusCodes(xml.getDelimitedList(
                 "notFoundStatusCodes", Integer.class, notFoundStatusCodes));
         setHeadersPrefix(xml.getString("headersPrefix"));
-        setDetectContentType(
-                xml.getBoolean("detectContentType", detectContentType));
-        setDetectCharset(xml.getBoolean("detectCharset", detectCharset));
+        setForceContentTypeDetection(
+                xml.getBoolean("forceContentTypeDetection", forceContentTypeDetection));
+        setForceCharsetDetection(xml.getBoolean("forceCharsetDetection", forceCharsetDetection));
 
         userAgent = xml.getString("userAgent", userAgent);
         cookieSpec = xml.getString("cookieSpec", cookieSpec);
@@ -851,8 +852,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
 
     @Override
     public void saveToXML(XML xml) {
-        xml.addElement("detectContentType", detectContentType);
-        xml.addElement("detectCharset", detectCharset);
+        xml.addElement("forceContentTypeDetection", forceContentTypeDetection);
+        xml.addElement("forceCharsetDetection", forceCharsetDetection);
         xml.addDelimitedElementList("validStatusCodes", validStatusCodes);
         xml.addDelimitedElementList("notFoundStatusCodes", notFoundStatusCodes);
         xml.addElement("headersPrefix", headersPrefix);

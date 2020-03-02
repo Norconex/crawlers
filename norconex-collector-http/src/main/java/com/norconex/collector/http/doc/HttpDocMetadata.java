@@ -26,10 +26,6 @@ import com.norconex.importer.doc.DocMetadata;
  */
 public final class HttpDocMetadata {
 
-    // Move these two elsewhere... or simply use TikaMetada constants?
-	public static final String HTTP_CONTENT_TYPE = "Content-Type";
-    public static final String HTTP_CONTENT_LENGTH = "Content-Length";
-
     public static final String DEPTH = PREFIX + "depth";
     public static final String SM_LASTMOD = PREFIX + "sitemap-lastmod";
     public static final String SM_CHANGE_FREQ = PREFIX + "sitemap-changefreq";

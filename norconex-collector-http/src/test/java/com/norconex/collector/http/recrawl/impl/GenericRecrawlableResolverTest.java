@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.recrawl.PreviousCrawlData;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver.MinFrequency;
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver.SitemapSupport;
 import com.norconex.commons.lang.file.ContentType;
@@ -55,7 +55,7 @@ public class GenericRecrawlableResolverTest {
 
         ZonedDateTime prevCrawlDate = ZonedDateTime.now().minusDays(10);
 
-        PreviousCrawlData prevCrawl = new PreviousCrawlData();
+        HttpDocInfo prevCrawl = new HttpDocInfo();
         prevCrawl.setContentType(ContentType.HTML);
         prevCrawl.setReference("http://example.com");
         prevCrawl.setCrawlDate(prevCrawlDate);
@@ -85,7 +85,7 @@ public class GenericRecrawlableResolverTest {
         r.loadFromXML(new XML(xml));
 
         ZonedDateTime prevCrawlDate = ZonedDateTime.now().minusDays(10);
-        PreviousCrawlData prevCrawl = new PreviousCrawlData();
+        HttpDocInfo prevCrawl = new HttpDocInfo();
         prevCrawl.setContentType(ContentType.HTML);
         prevCrawl.setReference("http://example.com");
         prevCrawl.setCrawlDate(prevCrawlDate);

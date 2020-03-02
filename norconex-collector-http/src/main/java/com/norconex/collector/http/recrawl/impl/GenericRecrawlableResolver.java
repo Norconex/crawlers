@@ -1,4 +1,4 @@
-/* Copyright 2016-2019 Norconex Inc.
+/* Copyright 2016-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
-import com.norconex.collector.http.recrawl.PreviousCrawlData;
 import com.norconex.collector.http.sitemap.SitemapChangeFrequency;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.time.DurationFormatter;
@@ -81,35 +81,32 @@ import com.norconex.commons.lang.xml.XML;
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;recrawlableResolver
- *         class="com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver"
- *         sitemapSupport="[first|last|never]" &gt;
+ * {@nx.xml.usage
+ * <recrawlableResolver
+ *     class="com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver"
+ *     sitemapSupport="[first|last|never]" >
  *
- *     &lt;minFrequency applyTo="[reference|contentType]" caseSensitive="[false|true]"
- *             value="([always|hourly|daily|weekly|monthly|yearly|never] or milliseconds)" &gt;
- *         (regex pattern)
- *     &lt;/minFrequency&gt;
- *     (... repeat frequency tag as needed ...)
+ *   <minFrequency applyTo="[reference|contentType]" caseSensitive="[false|true]"
+ *       value="([always|hourly|daily|weekly|monthly|yearly|never] or milliseconds)">
+ *     (regex pattern)
+ *   </minFrequency>
+ *   (... repeat frequency tag as needed ...)
+ * </recrawlableResolver>
+ * }
  *
- *  &lt;/recrawlableResolver&gt;
- * </pre>
- *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ * <recrawlableResolver
+ *     class="com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver"
+ *     sitemapSupport="last" >
+ *   <minFrequency applyTo="contentType" value="monthly">application/pdf</minFrequency>
+ *   <minFrequency applyTo="reference" value="1800000">.*latest-news.*\.html</minFrequency>
+ * </recrawlableResolver>
+ * }
  * <p>
- * The following example ensures PDFs recrawled no more frequently than
- * once a month, while HTML news can be crawled as fast at every half hour.
+ * The above example ensures PDFs are re-crawled no more frequently than
+ * once a month, while HTML news can be re-crawled as fast at every half hour.
  * For the rest, it relies on the website sitemap directives (if any).
  * </p>
- * <pre>
- *  &lt;recrawlableResolver
- *         class="com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver"
- *         sitemapSupport="last" &gt;
- *     &lt;minFrequency applyTo="contentType" value="monthly"&gt;application/pdf&lt;/minFrequency&gt;
- *     &lt;minFrequency applyTo="reference" value="1800000"&gt;.*latest-news.*\.html&lt;/minFrequency&gt;
- *  &lt;/recrawlableResolver&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 2.5.0
@@ -179,7 +176,7 @@ public class GenericRecrawlableResolver
     }
 
     @Override
-    public boolean isRecrawlable(PreviousCrawlData prevData) {
+    public boolean isRecrawlable(HttpDocInfo prevData) {
 
         // if never crawled: yes, crawl it
         if (prevData.getCrawlDate() == null) {
@@ -211,7 +208,7 @@ public class GenericRecrawlableResolver
         return true;
     }
 
-    private MinFrequency getMatchingMinFrequency(PreviousCrawlData prevData) {
+    private MinFrequency getMatchingMinFrequency(HttpDocInfo prevData) {
         for (MinFrequency f : minFrequencies) {
             if (f.pattern == null || f.value == null) {
                 LOG.warn("Value or pattern missing in minimum frequency.");
@@ -236,16 +233,16 @@ public class GenericRecrawlableResolver
     }
 
 
-    private boolean hasSitemapFrequency(PreviousCrawlData prevData) {
+    private boolean hasSitemapFrequency(HttpDocInfo prevData) {
         return StringUtils.isNotBlank(prevData.getSitemapChangeFreq());
     }
-    private boolean hasSitemapLastModified(PreviousCrawlData prevData) {
+    private boolean hasSitemapLastModified(HttpDocInfo prevData) {
         return prevData.getSitemapLastMod() != null;
 //                && prevData.getSitemapLastMod() > 0;
     }
 
     private boolean isRecrawlableFromMinFrequencies(
-            MinFrequency f, PreviousCrawlData prevData) {
+            MinFrequency f, HttpDocInfo prevData) {
         String value = f.getValue();
         if (StringUtils.isBlank(value)) {
             return true;
@@ -292,7 +289,7 @@ public class GenericRecrawlableResolver
         return false;
     }
 
-    private boolean isRecrawlableFromSitemap(PreviousCrawlData prevData) {
+    private boolean isRecrawlableFromSitemap(HttpDocInfo prevData) {
 
         // If sitemap specifies a last modified date and it is more recent
         // than the the document last crawl date, recrawl it (otherwise don't).
@@ -327,7 +324,7 @@ public class GenericRecrawlableResolver
 
 
     private boolean isRecrawlableFromFrequency(
-            SitemapChangeFrequency cf, PreviousCrawlData prevData,
+            SitemapChangeFrequency cf, HttpDocInfo prevData,
             String context) {
         if (cf == null) {
             return true;

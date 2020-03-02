@@ -46,6 +46,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
@@ -57,7 +58,6 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.doc.HttpCrawlState;
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
@@ -592,16 +592,16 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         fetcherConfig.setHeadersPrefix(headersPrefix);
     }
     public boolean isDetectContentType() {
-        return fetcherConfig.isDetectContentType();
+        return fetcherConfig.isForceContentTypeDetection();
     }
     public void setDetectContentType(boolean detectContentType) {
-        fetcherConfig.setDetectContentType(detectContentType);
+        fetcherConfig.setForceContentTypeDetection(detectContentType);
     }
     public boolean isDetectCharset() {
-        return fetcherConfig.isDetectCharset();
+        return fetcherConfig.isForceCharsetDetection();
     }
     public void setDetectCharset(boolean detectCharset) {
-        fetcherConfig.setDetectCharset(detectCharset);
+        fetcherConfig.setForceCharsetDetection(detectCharset);
     }
     public String getContentTypePattern() {
         return contentTypePattern;
@@ -861,10 +861,10 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
 
         // set Content-Type HTTP metadata obtained from CONTENTTYPE output
         // if not obtained via regular headers
-        if (!doc.getMetadata().containsKey(HttpDocMetadata.HTTP_CONTENT_TYPE)
+        if (!doc.getMetadata().containsKey(HttpHeaders.CONTENT_TYPE)
                 && StringUtils.isNotBlank(output.getContentType())) {
             doc.getMetadata().set(
-                    HttpDocMetadata.HTTP_CONTENT_TYPE, output.getContentType());
+                    HttpHeaders.CONTENT_TYPE, output.getContentType());
         }
 
         if (StringUtils.isNotBlank(output.getError())) {
@@ -1104,7 +1104,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
 
     //TODO Copied from GenericDocumentFetcher... should move to util class?
     private void performDetection(Doc doc) throws IOException {
-        if (fetcherConfig.isDetectContentType()) {
+        if (fetcherConfig.isForceContentTypeDetection()) {
             ContentType ct = ContentTypeDetector.detect(
                     doc.getContent(), doc.getReference());
             if (ct != null) {
@@ -1112,7 +1112,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                         CrawlDocMetadata.CONTENT_TYPE, ct.toString());
             }
         }
-        if (fetcherConfig.isDetectCharset()) {
+        if (fetcherConfig.isForceCharsetDetection()) {
             String charset = CharsetUtil.detectCharset(doc.getContent());
             if (StringUtils.isNotBlank(charset)) {
                 doc.getMetadata().set(
@@ -1179,7 +1179,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         if (StringUtils.isBlank(ct)) {
             ct = doc.getMetadata().getString(Objects.toString(
                     fetcherConfig.getHeadersPrefix(), "")
-                        + HttpDocMetadata.HTTP_CONTENT_TYPE);
+                        + HttpHeaders.CONTENT_TYPE);
         }
         return ct;
     }
@@ -1202,8 +1202,8 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         setHeadersPrefix(xml.getString("headersPrefix",
                 fetcherConfig.getHeadersPrefix()));
         setDetectContentType(
-                xml.getBoolean("@detectContentType", fetcherConfig.isDetectContentType()));
-        setDetectCharset(xml.getBoolean("@detectCharset", fetcherConfig.isDetectCharset()));
+                xml.getBoolean("@detectContentType", fetcherConfig.isForceContentTypeDetection()));
+        setDetectCharset(xml.getBoolean("@detectCharset", fetcherConfig.isForceCharsetDetection()));
         setOptions(xml.getDelimitedStringList("options/opt", options));
         setReferencePattern(
                 xml.getString("referencePattern", referencePattern));
@@ -1242,8 +1242,8 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     @Override
     protected void saveHttpFetcherToXML(XML xml) {
         xml.setAttribute("detectContentType",
-                fetcherConfig.isDetectContentType());
-        xml.setAttribute("detectCharset", fetcherConfig.isDetectCharset());
+                fetcherConfig.isForceContentTypeDetection());
+        xml.setAttribute("detectCharset", fetcherConfig.isForceCharsetDetection());
         xml.setAttribute("screenshotEnabled", screenshotEnabled);
 
         xml.addElement("exePath", exePath);

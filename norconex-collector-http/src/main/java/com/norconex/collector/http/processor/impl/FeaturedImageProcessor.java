@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlDocMetadata;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
@@ -587,7 +588,7 @@ public class FeaturedImageProcessor
 
 //            HttpFetchResponse response = fetcher.fetchDocument(new Doc(
 //                    uri.toString(), HttpCrawler.get().getStreamFactory()));
-            CrawlDoc doc = new CrawlDoc(uri.toString(),
+            CrawlDoc doc = new CrawlDoc(new HttpDocInfo(uri.toString()),
                     fetcher.getStreamFactory().newInputStream());
 
             IHttpFetchResponse resp = fetcher.fetch(doc, HttpMethod.GET);

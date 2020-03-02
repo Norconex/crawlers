@@ -78,6 +78,7 @@ public class Redirect extends AbstractTestFeature {
 
         List<String> inPageUrls = doc.getMetadata().getStrings(
                 HttpDocMetadata.REFERENCED_URLS);
+
         assertListSize("referenced URLs", inPageUrls, 2);
 
         Assertions.assertTrue(inPageUrls.get(0).matches(

@@ -21,7 +21,6 @@ import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
-import com.norconex.collector.http.recrawl.PreviousCrawlData;
 
 /**
  * <p>Determines whether to recrawl a document or not.</p>
@@ -41,27 +40,19 @@ import com.norconex.collector.http.recrawl.PreviousCrawlData;
             return true;
         }
 
-        HttpDocInfo cachedData = ctx.getCachedDocInfo();
-        if (cachedData == null) {
+        HttpDocInfo cachedInfo = ctx.getCachedDocInfo();
+        if (cachedInfo == null) {
             // this document was not previously crawled so process it.
             return true;
         }
 
         HttpDocInfo currentData = ctx.getDocInfo();
 
-        PreviousCrawlData prevData = new PreviousCrawlData();
-        prevData.setReference(cachedData.getReference());
-        prevData.setContentType(cachedData.getContentType());
-        prevData.setCrawlDate(cachedData.getCrawlDate());
-        prevData.setSitemapChangeFreq(currentData.getSitemapChangeFreq());
-        prevData.setSitemapLastMod(currentData.getSitemapLastMod());
-        prevData.setSitemapPriority(currentData.getSitemapPriority());
-
-        boolean isRecrawlable = rr.isRecrawlable(prevData);
+        boolean isRecrawlable = rr.isRecrawlable(cachedInfo);
         if (!isRecrawlable) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(cachedData.getReference()
-                        + " is not ready to be recrawled, skipping it.");
+                LOG.debug("{} is not ready to be recrawled, skipping it.",
+                        cachedInfo.getReference());
             }
             ctx.fireCrawlerEvent(
                     HttpCrawlerEvent.REJECTED_PREMATURE, currentData, rr);

@@ -24,6 +24,7 @@ import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 
 /**
@@ -46,7 +47,7 @@ public class HttpImporterPipelineTest {
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
                 doc);
         Assertions.assertTrue(
-                HttpImporterPipelineUtil.resolveCanonical(ctx, false));
+                new CanonicalStage(HttpMethod.GET).execute(ctx));
     }
 
     @Test
@@ -59,30 +60,6 @@ public class HttpImporterPipelineTest {
                 new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
                 doc);
         Assertions.assertTrue(
-                HttpImporterPipelineUtil.resolveCanonical(ctx, true));
+                new CanonicalStage(HttpMethod.HEAD).execute(ctx));
     }
-
-//    @Test
-//    public void testCopyProperties() {
-//        String reference = "http://www.example.com/file.pdf";
-//        CrawlDoc doc = new CrawlDoc(new HttpDocInfo(reference, 0), null,
-//                new CachedStreamFactory(1, 1).newInputStream());
-//
-//
-//        ImporterPipelineContext ipc = new ImporterPipelineContext(
-//                new HttpCrawler(new HttpCrawlerConfig(), new HttpCollector()),
-//                doc);
-//
-//        new HttpImporterPipelineContext(ipc);
-////        HttpImporterPipelineContext hipc = new HttpImporterPipelineContext(
-////                new HttpCrawler(new HttpCrawlerConfig(), new EventManager()),
-////                null, new HttpCrawlData(reference, 0), null, doc);
-////        HttpImporterPipelineContext
-//
-////source->        ImporterPipelineContext
-////target->        HttpImporterPipelineContext
-//
-//
-////        Assertions.assertTrue(HttpImporterPipelineUtil.resolveCanonical(ctx, true));
-//    }
 }

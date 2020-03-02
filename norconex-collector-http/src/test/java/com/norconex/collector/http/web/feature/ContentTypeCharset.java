@@ -46,8 +46,8 @@ public class ContentTypeCharset extends AbstractTestFeature {
             throws Exception {
         if (isSecondRun()) {
             GenericHttpFetcher fetcher = new GenericHttpFetcher();
-            fetcher.getConfig().setDetectContentType(true);
-            fetcher.getConfig().setDetectCharset(true);
+            fetcher.getConfig().setForceContentTypeDetection(true);
+            fetcher.getConfig().setForceCharsetDetection(true);
             crawlerConfig.setHttpFetchers(fetcher);
         }
     }

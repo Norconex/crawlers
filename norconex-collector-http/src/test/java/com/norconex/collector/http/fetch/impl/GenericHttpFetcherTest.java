@@ -28,8 +28,8 @@ public class GenericHttpFetcherTest  {
         cfg.setValidStatusCodes(200, 201, 202);
         cfg.setNotFoundStatusCodes(404, 405);
         cfg.setHeadersPrefix("blah");
-        cfg.setDetectCharset(true);
-        cfg.setDetectContentType(true);
+        cfg.setForceCharsetDetection(true);
+        cfg.setForceContentTypeDetection(true);
 
         GenericHttpFetcher f = new GenericHttpFetcher(cfg);
         XML.assertWriteRead(f, "fetcher");

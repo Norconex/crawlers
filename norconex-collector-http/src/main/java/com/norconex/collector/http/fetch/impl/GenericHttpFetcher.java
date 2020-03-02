@@ -15,11 +15,9 @@
 package com.norconex.collector.http.fetch.impl;
 
 import static com.norconex.collector.http.fetch.HttpMethod.GET;
-import static com.norconex.collector.http.fetch.HttpMethod.POST;
 import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -31,8 +29,6 @@ import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +54,6 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -106,28 +101,23 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlDoc;
-import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.core.doc.CrawlState;
-import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
+import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
-import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.commons.lang.io.IOUtil;
-import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
+import com.norconex.importer.doc.DocInfo;
 import com.norconex.importer.util.CharsetUtil;
 
 /**
@@ -151,8 +141,8 @@ import com.norconex.importer.util.CharsetUtil;
  * You can optionally decide not to trust web servers HTTP responses and have
  * the collector perform its own content type and encoding detection.
  * Such detection can be enabled with
- * {@link GenericHttpFetcherConfig#setDetectContentType(boolean)}
- * and {@link GenericHttpFetcherConfig#setDetectCharset(boolean)}.
+ * {@link GenericHttpFetcherConfig#setForceContentTypeDetection(boolean)}
+ * and {@link GenericHttpFetcherConfig#setForceCharsetDetection(boolean)}.
  * </p>
  *
  * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
@@ -246,10 +236,9 @@ import com.norconex.importer.util.CharsetUtil;
  *   <notFoundStatusCodes>(defaults to 404)</notFoundStatusCodes>
  *   <headersPrefix>(string to prefix headers)</headersPrefix>
  *
- *   <!-- Ignore content-type from HTTP response headers, detect it instead. -->
- *   <detectContentType>[false|true]</detectContentType>
- *   <!-- Ignore charset from HTTP response headers, detect it instead. -->
- *   <detectCharset>[false|true]</detectCharset>
+ *   <!-- Force detect, or only when not provided in HTTP response headers -->
+ *   <forceContentTypeDetection>[false|true]</forceContentTypeDetection>
+ *   <forceCharsetDetection>[false|true]</forceCharsetDetection>
  *
  *   <restrictions>
  *     <restrictTo caseSensitive="[false|true]"
@@ -379,16 +368,15 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
             throws HttpFetchException {
 
-        HttpMethod method = ofNullable(httpMethod).orElse(GET);
 
-        boolean expectsBody = EqualsUtil.equalsAny(method, GET, POST);
-
-        HttpFetchResponseBuilder responseBuilder =
-                new HttpFetchResponseBuilder();
-
-        LOG.debug("Fetching document: {}", doc.getReference());
-        HttpRequestBase request = createUriRequest(doc.getReference(), method);
+        HttpRequestBase request = null;
         try {
+
+            //--- Prepare the request ------------------------------------------
+
+            HttpMethod method = ofNullable(httpMethod).orElse(GET);
+            LOG.debug("Fetching document: {}", doc.getReference());
+            request = createUriRequest(doc.getReference(), method);
             HttpClientContext ctx = HttpClientContext.create();
             // auth cache
             ctx.setAuthCache(authCache);
@@ -397,60 +385,38 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 ctx.setUserToken(userToken);
             }
 
-            if (doc.hasCache() && !cfg.isDisableIfModifiedSince()) {
-                ZonedDateTime zdt = doc.getCachedDocInfo().getCrawlDate();
-                if (zdt != null) {
-                    request.addHeader(HttpHeaders.IF_MODIFIED_SINCE,
-                            zdt.format(DateTimeFormatter.RFC_1123_DATE_TIME));
-                }
+            if (!cfg.isDisableIfModifiedSince()) {
+                ApacheHttpUtil.setRequestIfModifiedSince(request, doc);
             }
 
             // Execute the method.
             HttpResponse response = httpExecute(request, ctx);
 
+            //--- Process the response -----------------------------------------
+
             int statusCode = response.getStatusLine().getStatusCode();
             String reason = response.getStatusLine().getReasonPhrase();
 
+            HttpFetchResponseBuilder responseBuilder =
+                    new HttpFetchResponseBuilder();
             responseBuilder.setStatusCode(statusCode);
             responseBuilder.setReasonPhrase(reason);
             responseBuilder.setUserAgent(cfg.getUserAgent());
 
-            InputStream is = null;
-            if (expectsBody && statusCode != HttpStatus.SC_NOT_MODIFIED) {
-                HttpEntity entity = response.getEntity();
-                if (entity == null) {
-                    LOG.warn("Content expected but not returned for: {}",
-                            doc.getReference());
-                    is = doc.getStreamFactory().newInputStream();
-                } else {
-                    is = entity.getContent();
-                }
+            //--- Extract headers ---
+            ApacheHttpUtil.applyResponseHeaders(
+                    response, cfg.getHeadersPrefix(), doc);
+
+            //--- Extract body ---
+            if (ApacheHttpUtil.applyResponseContent(response, doc)) {
+                performDetection(doc);
+            } else {
+                LOG.warn("Content expected but not returned for: {}",
+                        doc.getReference());
             }
 
-            // VALID http response
+            //--- VALID http response handling ---------------------------------
             if (cfg.getValidStatusCodes().contains(statusCode)) {
-                //--- Fetch headers ---
-                Header[] headers = response.getAllHeaders();
-                for (int i = 0; i < headers.length; i++) {
-                    Header header = headers[i];
-                    String name = header.getName();
-                    if (StringUtils.isNotBlank(cfg.getHeadersPrefix())) {
-                        name = cfg.getHeadersPrefix() + name;
-                    }
-                    PropertySetter.OPTIONAL.apply(
-                            doc.getMetadata(), name, header.getValue());
-                }
-
-                if (expectsBody) {
-                    //--- Fetch body
-                    CachedInputStream content =
-                            doc.getStreamFactory().newInputStream(is);
-                    //read a copy to force caching and then close the stream
-                    content.enforceFullCaching();
-                    doc.setInputStream(content);
-//                    performDetection(doc);
-                }
-
                 userToken = ctx.getUserToken();
 
                 return responseBuilder
@@ -458,18 +424,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                         .build();
             }
 
-            if (expectsBody) {
-                // INVALID http response
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("Rejected response content: {}",
-                            IOUtils.toString(is, StandardCharsets.UTF_8));
-                    IOUtil.closeQuietly(is);
-                } else {
-                    // read response anyway to be safer, but ignore content
-                    IOUtil.consume(is);
-                    IOUtil.closeQuietly(is);
-                }
-            }
+            //--- INVALID http response handling -------------------------------
 
             // UNMODIFIED
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
@@ -484,16 +439,17 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                         .setCrawlState(CrawlState.NOT_FOUND)
                         .build();
             }
+
+            // BAD_STATUS
             LOG.debug("Unsupported HTTP Response: {}",
                     response.getStatusLine());
             return responseBuilder
-                    .setCrawlState(HttpCrawlState.BAD_STATUS)
+                    .setCrawlState(CrawlState.BAD_STATUS)
                     .build();
         } catch (Exception e) {
             //TODO set exception on response instead?
-            LOG.info("Cannot fetch document: {}  ({})",
-                    doc.getReference(), e.getMessage(), e);
-            throw new CollectorException(e);
+            throw new HttpFetchException(
+                    "Could not fetch document: " + doc.getReference(), e);
         } finally {
             if (request != null) {
                 request.releaseConnection();
@@ -505,26 +461,21 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     // by framework?  Then how to leverage getting it from client
     // directly (e.g. http response headers)?  Rely on metadata for that?
     private void performDetection(Doc doc) {
+        DocInfo info = doc.getDocInfo();
         try {
-            if (cfg.isDetectContentType()) {
-                ContentType ct = ContentTypeDetector.detect(
-                        doc.getInputStream(), doc.getReference());
-                if (ct != null) {
-                    doc.getMetadata().set(
-                        CrawlDocMetadata.CONTENT_TYPE, ct.toString());
-                }
+            if (cfg.isForceContentTypeDetection()
+                    || info.getContentType() == null) {
+                info.setContentType(ContentTypeDetector.detect(
+                        doc.getInputStream(), doc.getReference()));
             }
         } catch (IOException e) {
             LOG.warn("Cannont perform content type detection.", e);
         }
         try {
-            if (cfg.isDetectCharset()) {
-                String charset = CharsetUtil.detectCharset(
-                        doc.getInputStream());
-                if (StringUtils.isNotBlank(charset)) {
-                    doc.getMetadata().set(
-                        CrawlDocMetadata.CONTENT_ENCODING, charset);
-                }
+            if (cfg.isForceCharsetDetection()
+                    || StringUtils.isBlank(info.getContentEncoding())) {
+                info.setContentEncoding(CharsetUtil.detectCharset(
+                        doc.getInputStream()));
             }
         } catch (IOException e) {
             LOG.warn("Cannot perform charset type detection.", e);

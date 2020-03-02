@@ -14,30 +14,19 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
-
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlDocInfo.Stage;
-import com.norconex.collector.core.doc.CrawlDocMetadata;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.doc.HttpDocInfo;
-import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
-import com.norconex.collector.http.url.ICanonicalLinkDetector;
-import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.doc.Doc;
 
 /**
  * @author Pascal Essiembre
@@ -51,170 +40,6 @@ import com.norconex.importer.doc.Doc;
      * Constructor.
      */
     private HttpImporterPipelineUtil() {
-    }
-
-    //TODO consider making public, putting content type and encoding in CORE.
-
-
-    //TODO see if still needed?
-    @Deprecated
-    public static void applyMetadataToDocument(Doc doc) {
-        if (doc.getDocInfo().getContentType() == null) {
-            doc.getDocInfo().setContentType(ContentType.valueOf(
-                    doc.getMetadata().getString(
-                            CrawlDocMetadata.CONTENT_TYPE)));
-            doc.getDocInfo().setContentEncoding(doc.getMetadata().getString(
-                    CrawlDocMetadata.CONTENT_ENCODING));
-        }
-    }
-
-    //TODO see if still needed?
-    @Deprecated
-    public static void enhanceHTTPHeaders(Properties meta) {
-        String colCT = meta.getString(CrawlDocMetadata.CONTENT_TYPE);
-        String colCE = meta.getString(
-                CrawlDocMetadata.CONTENT_ENCODING);
-
-        if (StringUtils.isNotBlank(colCT) && StringUtils.isNotBlank(colCE)) {
-            return;
-        }
-
-        // Grab content type from HTTP Header
-        String httpCT = meta.getString(HttpDocMetadata.HTTP_CONTENT_TYPE);
-        if (StringUtils.isBlank(httpCT)) {
-            for (String key : meta.keySet()) {
-                if (StringUtils.endsWith(key, HttpDocMetadata.HTTP_CONTENT_TYPE)) {
-                    httpCT = meta.getString(key);
-                }
-            }
-        }
-
-        if (StringUtils.isNotBlank(httpCT)) {
-            // delegate parsing of content-type honoring various forms
-            // https://tools.ietf.org/html/rfc7231#section-3.1.1
-            org.apache.http.entity.ContentType parsedCT =
-                    org.apache.http.entity.ContentType.parse(httpCT);
-
-            if (StringUtils.isBlank(colCT)) {
-                String ct = parsedCT.getMimeType();
-                if (ct != null) {
-                    meta.add(CrawlDocMetadata.CONTENT_TYPE, ct);
-                }
-            }
-
-            if (StringUtils.isBlank(colCE)) {
-                // Grab charset form HTTP Content-Type
-                String ce = Objects.toString(parsedCT.getCharset(), null);
-                if (ce != null) {
-                    meta.add(CrawlDocMetadata.CONTENT_ENCODING, ce);
-                }
-            }
-        }
-    }
-
-    // return true if we process this doc, false if we don't because we
-    // will use a canonical URL instead
-    public static boolean resolveCanonical(
-            HttpImporterPipelineContext ctx, boolean fromMeta) {
-
-        //Return right away if canonical links are ignored or no detector.
-        if (ctx.getConfig().isIgnoreCanonicalLinks()
-                || ctx.getConfig().getCanonicalLinkDetector() == null) {
-            return true;
-        }
-
-        ICanonicalLinkDetector detector =
-                ctx.getConfig().getCanonicalLinkDetector();
-        HttpDocInfo crawlRef = ctx.getDocInfo();
-        String reference = crawlRef.getReference();
-
-        String canURL = null;
-        if (fromMeta) {
-            // Proceed with metadata (HTTP headers) canonical link detection
-            canURL = detector.detectFromMetadata(reference, ctx.getMetadata());
-        } else {
-            // Proceed with document (<meta>) canonical link detection
-            try {
-                canURL = detector.detectFromContent(
-                        reference,
-                        ctx.getDocument().getInputStream(),
-                        ctx.getDocument().getDocInfo().getContentType());
-            } catch (IOException e) {
-                throw new CollectorException(
-                        "Cannot resolve canonical link from content for: "
-                        + reference, e);
-            }
-        }
-
-        if (StringUtils.isNotBlank(canURL)) {
-            // Since the current/containing page URL has already been
-            // normalized, make sure we normalize this one for the purpose
-            // of comparing it.  It will them be sent un-normalized to
-            // the queue pipeline, since that pipeline performs the
-            // normalization after a few other steps.
-            String normalizedCanURL = canURL;
-            IURLNormalizer normalizer = ctx.getConfig().getUrlNormalizer();
-            if (normalizer != null) {
-                normalizedCanURL = normalizer.normalizeURL(normalizedCanURL);
-            }
-            if (normalizedCanURL == null) {
-                LOG.info("Canonical URL detected is null after "
-                      + "normalization so it will be ignored and its referrer "
-                      + "will be processed instead.  Canonical URL: \"{}\" "
-                      + "Rererrer URL: {}", canURL, reference);
-                return false;
-            }
-
-            if (normalizedCanURL.equals(reference)) {
-                LOG.debug("Canonical URL detected is the same as document "
-                      + "URL. Process normally. URL: {}", reference);
-                return true;
-            }
-
-            // if circling back here again, we are in a loop, process
-            // it regardless
-            if (crawlRef.getRedirectTrail().contains(normalizedCanURL)) {
-                LOG.warn("Circular reference between redirect and canonical "
-                      + "URL detected. Will ignore canonical directive and "
-                      + "process URL: \"{}\". Redirect trail: {}", reference,
-                      Arrays.toString(crawlRef.getRedirectTrail().toArray()));
-                return true;
-            }
-
-            HttpDocInfo newData = new HttpDocInfo(crawlRef);
-            newData.setReference(canURL);
-            newData.setReferrerReference(reference);
-
-            if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                    crawlRef.getReference(), canURL)) {
-                // Call Queue pipeline on Canonical URL
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Canonical URL detected is different than "
-                        + "document URL. Document will be rejected while "
-                        + "canonical URL will be queued for processing: "
-                        + canURL);
-                }
-
-                HttpQueuePipelineContext newContext =
-                        new HttpQueuePipelineContext(ctx.getCrawler(), newData);
-                new HttpQueuePipeline().execute(newContext);
-            } else {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Canonical URL not in scope: " + canURL);
-                }
-                newData.setState(HttpCrawlState.REJECTED);
-                ctx.fireCrawlerEvent(
-                        HttpCrawlerEvent.REJECTED_FILTER, newData,
-                        ctx.getConfig().getURLCrawlScopeStrategy());
-            }
-
-            crawlRef.setState(HttpCrawlState.REJECTED);
-            ctx.fireCrawlerEvent(
-                    HttpCrawlerEvent.REJECTED_NONCANONICAL,
-                    crawlRef, detector);
-            return false;
-        }
-        return true;
     }
 
     // Keep this method static so multi-threads treat this method as one
@@ -254,7 +79,7 @@ import com.norconex.importer.doc.Doc;
                     redirectURL)) {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("Redirect URL previously processed and was "
-                            + "valid, rejecting: " + redirectURL);
+                            + "valid, rejecting: {}", redirectURL);
                 }
                 rejectRedirectDup("processed", sourceURL, redirectURL);
                 return;
@@ -294,9 +119,9 @@ import com.norconex.importer.doc.Doc;
             new HttpQueuePipeline().execute(newContext);
         } else {
             LOG.debug("URL redirect target not in scope: {}", redirectURL);
-            newData.setState(HttpCrawlState.REJECTED);
+            newData.setState(CrawlState.REJECTED);
             ctx.fireCrawlerEvent(
-                    HttpCrawlerEvent.REJECTED_FILTER, newData,
+                    CrawlerEvent.REJECTED_FILTER, newData,
                     ctx.getConfig().getURLCrawlScopeStrategy());
         }
     }

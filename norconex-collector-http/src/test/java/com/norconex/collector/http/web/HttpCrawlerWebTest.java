@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -203,8 +202,8 @@ public class HttpCrawlerWebTest {
     static Stream<IWebTest> featuresProvider() {
 
         // Un-comment when troubleshooting:
-        return Arrays.asList((IWebTest) new IfModifiedSince()).stream();
-//        return FEATURES_BY_PATH.values().stream();
+//        return Arrays.asList((IWebTest) new IfModifiedSince()).stream();
+        return FEATURES_BY_PATH.values().stream();
     }
 
     private static void htmlIndexPage(

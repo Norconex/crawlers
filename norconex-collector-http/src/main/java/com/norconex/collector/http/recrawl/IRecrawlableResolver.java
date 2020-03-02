@@ -1,4 +1,4 @@
-/* Copyright 2010-2014 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  */
 package com.norconex.collector.http.recrawl;
 
+import com.norconex.collector.http.doc.HttpDocInfo;
+
 /**
  * Indicates whether a document that was successfully crawled on a previous
- * crawling session should be recrawled or not.  Documents not ready 
+ * crawling session should be recrawled or not.  Documents not ready
  * to be recrawled are not downloaded again (no HTTP calls will be made)
  * and are not committed.
  * @author Pascal Essiembre
@@ -26,8 +28,8 @@ public interface IRecrawlableResolver {
 
     /**
      * Whether a document recrawlable or not.
-     * @param prevCrawlData data about previously crawled document
+     * @param prevDocInfo data about previously crawled document (if any)
      * @return <code>true</code> if recrawlable
      */
-    boolean isRecrawlable(PreviousCrawlData prevCrawlData);
+    boolean isRecrawlable(HttpDocInfo prevDocInfo);
 }
