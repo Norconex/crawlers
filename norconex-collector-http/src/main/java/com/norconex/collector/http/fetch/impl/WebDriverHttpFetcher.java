@@ -33,6 +33,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.http.HttpHeaders;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
@@ -50,6 +51,7 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchException;
@@ -57,11 +59,11 @@ import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.WebDriverHttpSniffer.DriverResponseFilter;
+import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.importer.doc.Doc;
 
 /**
  * <p>
@@ -87,89 +89,87 @@ import com.norconex.importer.doc.Doc;
  * </p>
  * <p>
  * <b>NOTE:</b> Capturing headers with a proxy may not be supported by all
- * Browsers/WebDriver implementations (e.g. Edge browser).
+ * Browsers/WebDriver implementations.
  * </p>
  *
- * <h3>XML configuration usage:</h3>
+ * {@nx.xml.usage
+ * <fetcher class="com.norconex.collector.http.fetch.impl.WebDriverHttpFetcher">
  *
- * <pre>
- *  &lt;fetcher class="com.norconex.collector.http.fetch.impl.WebDriverHttpFetcher"&gt;
+ *   <browser>[chrome|edge|firefox|opera|safari]</browser>
+ *   <browserPath>(browser executable or blank to detect)</browserPath>
+ *   <driverPath>(driver executable or blank to detect)</driverPath>
+ *   <servicePort>(default is 0 = random free port)</servicePort>
  *
- *      &lt;browser&gt;[chrome|edge|firefox|opera|safari]&lt;/browser&gt;
- *      &lt;browserPath&gt;(browser executable or blank to detect)&lt;/browserPath&gt;
- *      &lt;driverPath&gt;(driver executable or blank to detect)&lt;/driverPath&gt;
- *      &lt;servicePort&gt;(default is 0 = random free port)&lt;/servicePort&gt;
+ *   <!-- Optional browser capabilities supported by the web driver. -->
+ *   <capabilities>
+ *     <capability name="(capability name)">(capability value)</capability>
+ *     <!-- multiple "capability" tags allowed -->
+ *   </capabilities>
  *
- *      &lt;!-- Optional browser capabilities supported by the web driver. --&gt;
- *      &lt;capabilities&gt;
- *          &lt;capability name="(capability name)"&gt;(capability value)&lt;/capability&gt;
- *          &lt;!-- multiple "capability" tags allowed --&gt;
- *      &lt;/capabilities&gt;
+ *   <!-- Optionally take screenshots of each web pages. -->
+ *   <screenshot>
+ *     <capability name="(capability name)">(capability value)</capability>
+ *     <!-- multiple "capability" tags allowed -->
+ *   </screenshot>
  *
- *      &lt;!-- Optionally take screenshots of each web pages. --&gt;
- *      &lt;screenshot&gt;
- *          &lt;capability name="(capability name)"&gt;(capability value)&lt;/capability&gt;
- *          &lt;!-- multiple "capability" tags allowed --&gt;
- *      &lt;/screenshot&gt;
+ *   <initScript>
+ *     (Optional JavaScript code to be run during this class initialization.)
+ *   </initScript>
+ *   <pageScript>
+ *     (Optional JavaScript code to be run after each pages are loaded.)
+ *   </pageScript>
  *
- *      &lt;initScript&gt;
- *          (Optional JavaScript code to be run during this class initialization.)
- *      &lt;/initScript&gt;
- *      &lt;pageScript&gt;
- *          (Optional JavaScript code to be run after each pages are loaded.)
- *      &lt;/pageScript&gt;
+ *   <!-- Timeouts, in milliseconds, or human-readable format (English).
+ *      - Default is zero (not set).
+ *      -->
+ *   <pageLoadTimeout>
+ *     (Max wait time for a page to load before throwing an error.)
+ *   </pageLoadTimeout>
+ *   <implicitlyWait>
+ *     (Wait for that long for the page to finish rendering.)
+ *   </implicitlyWait>
+ *   <scriptTimeout>
+ *     (Max wait time for a scripts to execute before throwing an error.)
+ *   </scriptTimeout>
  *
- *      &lt;!-- Timeouts, in milliseconds, or human-readable format (English).
- *         - Default is zero (not set).
- *         --&gt;
- *      &lt;pageLoadTimeout&gt;
- *          (Max wait time for a page to load before throwing an error.)
- *      &lt;/pageLoadTimeout&gt;
- *      &lt;implicitlyWait&gt;
- *          (Wait for that long for the page to finish rendering.)
- *      &lt;/implicitlyWait&gt;
- *      &lt;scriptTimeout&gt;
- *          (Max wait time for a scripts to execute before throwing an error.)
- *      &lt;/scriptTimeout&gt;
+ *   <restrictions>
+ *     <restrictTo caseSensitive="[false|true]"
+ *         field="(name of metadata field name to match)">
+ *       (regular expression of value to match)
+ *     </restrictTo>
+ *     <!-- multiple "restrictTo" tags allowed (only one needs to match) -->
+ *   </restrictions>
  *
- *      &lt;restrictions&gt;
- *          &lt;restrictTo caseSensitive="[false|true]"
- *                  field="(name of metadata field name to match)"&gt;
- *              (regular expression of value to match)
- *          &lt;/restrictTo&gt;
- *          &lt;!-- multiple "restrictTo" tags allowed (only one needs to match) --&gt;
- *      &lt;/restrictions&gt;
+ *   <!-- Optionally setup an HTTP proxy that allows to set and capture
+ *        HTTP headers. For advanced use only. Not recommended
+ *        for regular usage. -->
+ *   <httpSniffer>
+ *     <port>(default is 0 = random free port)"</port>
+ *     <userAgent>(optionally overwrite browser user agent)</userAgent>
  *
- *      &lt;!-- Optionally setup an HTTP proxy that allows to set and capture
- *           HTTP headers. For advanced use only. Not recommended
- *           for regular usage. --&gt;
- *      &lt;httpSniffer&gt;
- *          &lt;port&gt;(default is 0 = random free port)"&lt;/port&gt;
- *          &lt;userAgent&gt;(optionally overwrite browser user agent)&lt;/userAgent&gt;
+ *     <!-- Optional HTTP request headers passed on every HTTP requests -->
+ *     <headers>
+ *       <header name="(header name)">(header value)</header>
+ *       <!-- You can repeat this header tag as needed. -->
+ *     </headers>
+ *   </httpSniffer>
  *
- *          &lt;!-- Optional HTTP request headers passed on every HTTP requests --&gt;
- *          &lt;headers&gt;
- *              &lt;header name="(header name)"&gt;(header value)&lt;/header&gt;
- *              &lt;!-- You can repeat this header tag as needed. --&gt;
- *          &lt;/headers&gt;
- *      &lt;/httpSniffer&gt;
+ * </fetcher>
+ * }
  *
- *  &lt;/fetcher&gt;
- * </pre>
+ * {@nx.xml.usage
+ * <fetcher class="com.norconex.collector.http.fetch.impl.WebDriverHttpFetcher">
+ *   <browser>firefox</browser>
+ *   <driverPath>/drivers/geckodriver.exe</driverPath>
+ *   <restrictions>
+ *     <restrictTo field="document.reference">.*dynamic.*$</restrictTo>
+ *   </restrictions>
+ * </fetcher>
+ * }
  *
- * <h4>Usage example:</h4>
- * <p>This example will use Firefox to crawl dynamically generated pages using
- * a specific web driver.
+ * <p>The above example will use Firefox to crawl dynamically generated
+ * pages using a specific web driver.
  * </p>
- * <pre>
- *  &lt;fetcher class="com.norconex.collector.http.fetch.impl.WebDriverHttpFetcher"&gt;
- *      &lt;browser&gt;firefox&lt;/browser&gt;
- *      &lt;driverPath&gt;/drivers/geckodriver.exe&lt;/driverPath&gt;
- *      &lt;restrictions&gt;
- *          &lt;restrictTo field="document.reference"&gt;.*dynamic.*$&lt;/restrictTo&gt;
- *      &lt;/restrictions&gt;
- *  &lt;/fetcher&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 3.0.0
@@ -471,8 +471,6 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             screenshotHandler.takeScreenshot(driverTL.get(), doc);
         }
 
-//      performDetection(doc);
-
         if (response != null) {
             return response;
         }
@@ -496,17 +494,24 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
 
-    private IHttpFetchResponse resolveDriverResponse(Doc doc) {
+    private IHttpFetchResponse resolveDriverResponse(CrawlDoc doc) {
+        if (httpSniffer == null) {
+            return null;
+        }
         IHttpFetchResponse response = null;
-        if (httpSniffer != null) {
-            DriverResponseFilter driverResponseFilter = httpSniffer.unbind();
-            if (driverResponseFilter != null) {
-                for (Entry<String, String> en :
-                        driverResponseFilter.getHeaders()) {
-                    doc.getMetadata().add(en.getKey(), en.getValue());
+        DriverResponseFilter driverResponseFilter = httpSniffer.unbind();
+        if (driverResponseFilter != null) {
+            for (Entry<String, String> en : driverResponseFilter.getHeaders()) {
+                String name = en.getKey();
+                String value = en.getValue();
+                // Content-Type + Content Encoding (Charset)
+                if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
+                    ApacheHttpUtil.applyContentTypeAndCharset(
+                            value, doc.getDocInfo());
                 }
-                response = toFetchResponse(driverResponseFilter);
+                doc.getMetadata().add(name, value);
             }
+            response = toFetchResponse(driverResponseFilter);
         }
         return response;
     }
@@ -524,9 +529,9 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                     .setReasonPhrase(reason)
                     .setUserAgent(getUserAgent());
             if (statusCode >= 200 && statusCode < 300) {
-                response = b.setCrawlState(HttpCrawlState.NEW).build();
+                response = b.setCrawlState(CrawlState.NEW).build();
             } else {
-                response = b.setCrawlState(HttpCrawlState.BAD_STATUS).build();
+                response = b.setCrawlState(CrawlState.BAD_STATUS).build();
             }
         }
         return response;

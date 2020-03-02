@@ -29,6 +29,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 
 import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
@@ -110,20 +111,7 @@ public final class ApacheHttpUtil {
 
             // Content-Type + Content Encoding (Charset)
             if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
-                // delegate parsing of content-type honoring various forms
-                // https://tools.ietf.org/html/rfc7231#section-3.1.1
-                org.apache.http.entity.ContentType apacheCT =
-                        org.apache.http.entity.ContentType.parse(value);
-
-                // only overwrite object properties if not null
-                ContentType ct = ContentType.valueOf(apacheCT.getMimeType());
-                if (ct != null) {
-                    docInfo.setContentType(ct);
-                }
-                Charset charset = apacheCT.getCharset();
-                if (charset != null) {
-                    docInfo.setContentEncoding(charset.toString());
-                }
+                applyContentTypeAndCharset(value, docInfo);
             }
 
 //Have people grab it from metadata if they want to use it for checksum
@@ -138,6 +126,40 @@ public final class ApacheHttpUtil {
             PropertySetter.OPTIONAL.apply(doc.getMetadata(), name, value);
         }
     }
+
+    /**
+     * Applies the <code>Content-Type</code> HTTP response header
+     * on the supplied document info.  It does so by extracting both
+     * the content type and charset from the value, and sets them by invoking
+     * {@link DocInfo#setContentType(ContentType)} and
+     * {@link DocInfo#setContentEncoding(String)}.
+     * This method is automatically invoked by
+     * {@link #applyResponseHeaders(HttpResponse, String, CrawlDoc)}
+     * when encountering a content type header.
+     * @param value value to parse and set.
+     * @param docInfo document info
+     */
+    public static void applyContentTypeAndCharset(
+            String value, CrawlDocInfo docInfo) {
+        if (StringUtils.isBlank(value) || docInfo == null) {
+            return;
+        }
+        // delegate parsing of content-type honoring various forms
+        // https://tools.ietf.org/html/rfc7231#section-3.1.1
+        org.apache.http.entity.ContentType apacheCT =
+                org.apache.http.entity.ContentType.parse(value);
+
+        // only overwrite object properties if not null
+        ContentType ct = ContentType.valueOf(apacheCT.getMimeType());
+        if (ct != null) {
+            docInfo.setContentType(ct);
+        }
+        Charset charset = apacheCT.getCharset();
+        if (charset != null) {
+            docInfo.setContentEncoding(charset.toString());
+        }
+    }
+
 
     /**
      * Sets the <code>If-Modified-Since</code> HTTP requeset header based
