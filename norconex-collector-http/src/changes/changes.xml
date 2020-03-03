@@ -72,6 +72,10 @@
       <action dev="essiembre" type="update">
         Dates handling now consider the zone.
       </action>
+      <action dev="essiembre" type="update">
+        Can now control whether to store as metadata all extracted links,
+        just in-scope ones, out-of-scope, both, or none.
+      </action>
       <action dev="essiembre" type="remove">
         Removed some code deprecated in releases before 3.0.0. 
       </action>

@@ -14,17 +14,20 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.http.crawler.HttpCrawlerConfig.KeepLinks;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.doc.HttpDocMetadata;
@@ -53,64 +56,64 @@ import com.norconex.commons.lang.io.CachedInputStream;
             return true;
         }
 
+        KeepLinks keepLinks = Optional.ofNullable(ctx.getConfig()
+                .getKeepReferencedLinks()).orElse(KeepLinks.INSCOPE);
+        UniqueDocLinks docLinks = new UniqueDocLinks();
 
-        String reference = ctx.getDocInfo().getReference();
+        for (Link link : links) {
+            handleExtractedLink(ctx, docLinks, link, keepLinks);
+        }
 
-        Set<String> uniqueExtractedURLs = new HashSet<>();
-        Set<String> uniqueQueuedURLs = new HashSet<>();
-        Set<String> uniqueOutOfScopeURLs = new HashSet<>();
-        if (links != null) {
-            for (Link link : links) {
-                try {
-                    if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                            reference, link.getUrl())) {
-                            String queuedURL = queueURL(
-                                    link, ctx, uniqueExtractedURLs);
-                            if (StringUtils.isNotBlank(queuedURL)) {
-                                uniqueQueuedURLs.add(queuedURL);
-                            }
-                    } else  {
-                        if (LOG.isTraceEnabled()) {
-                            LOG.trace("URL not in crawl scope: {} (keep: {})",
-                                    link.getUrl(),
-                                    ctx.getConfig().isKeepOutOfScopeLinks());
-                        }
-                        if(ctx.getConfig().isKeepOutOfScopeLinks()) {
-                            uniqueOutOfScopeURLs.add(link.getUrl());
-                        }
-                    }
-                } catch (Exception e) {
-                    LOG.warn("Could not queue extracted URL \"{}.",
-                            link.getUrl(), e);
-                }
+        LOG.debug("inScope count: {}.", docLinks.inScope.size());
+        if (!docLinks.inScope.isEmpty()) {
+            String[] inScopeUrls = docLinks.inScope.toArray(EMPTY_STRING_ARRAY);
+            if (keepLinks.keepInScope()) {
+                ctx.getMetadata().add(
+                        HttpDocMetadata.REFERENCED_URLS, inScopeUrls);
             }
+            ctx.getDocInfo().setReferencedUrls(Arrays.asList(inScopeUrls));
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("uniqueQueuedURLs count: {}.", uniqueQueuedURLs.size());
-        }
-        if (!uniqueQueuedURLs.isEmpty()) {
-            String[] referencedUrls =
-                    uniqueQueuedURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
-            ctx.getMetadata().add(
-                    HttpDocMetadata.REFERENCED_URLS, referencedUrls);
-            ctx.getDocInfo().setReferencedUrls(
-                    Arrays.asList(referencedUrls));
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("uniqueOutOfScopeURLs count: {}.",
-                    uniqueOutOfScopeURLs.size());
-        }
-        if (!uniqueOutOfScopeURLs.isEmpty()) {
+        LOG.debug("outScope count: {}.", docLinks.outScope.size());
+        if (!docLinks.outScope.isEmpty()) {
             ctx.getMetadata().add(
                    HttpDocMetadata.REFERENCED_URLS_OUT_OF_SCOPE,
-                   uniqueOutOfScopeURLs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+                   docLinks.outScope.toArray(EMPTY_STRING_ARRAY));
         }
 
         ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED,
-                ctx.getDocInfo(), uniqueQueuedURLs);
+                ctx.getDocInfo(), docLinks.inScope);
         return true;
+    }
+
+    private void handleExtractedLink(HttpImporterPipelineContext ctx,
+            UniqueDocLinks docLinks, Link link, KeepLinks keepLinks) {
+        try {
+            String reference = ctx.getDocInfo().getReference();
+
+            if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+                    reference, link.getUrl())) {
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("URL in crawl scope: {} (keep: {})",
+                            link.getUrl(), keepLinks);
+                }
+                String queuedURL = queueURL(link, ctx, docLinks.extracted);
+                if (StringUtils.isNotBlank(queuedURL)) {
+                    docLinks.inScope.add(queuedURL);
+                }
+            } else  {
+                if (LOG.isTraceEnabled()) {
+                    LOG.trace("URL not in crawl scope: {} (keep: {})",
+                            link.getUrl(), keepLinks);
+                }
+                if (keepLinks.keepOutScope()) {
+                    docLinks.outScope.add(link.getUrl());
+                }
+            }
+        } catch (Exception e) {
+            LOG.warn("Could not queue extracted URL \"{}.",
+                    link.getUrl(), e);
+        }
     }
 
     private Set<Link> extractLinks(HttpImporterPipelineContext ctx) {
@@ -118,7 +121,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
         List<ILinkExtractor> extractors = ctx.getConfig().getLinkExtractors();
         if (extractors.isEmpty()) {
             LOG.debug("No configured link extractor.  No links will be "
-                    + "detected.");
+                    + "extracted.");
             return SetUtils.emptySet();
         }
 
@@ -179,5 +182,11 @@ import com.norconex.commons.lang.io.CachedInputStream;
             return afterQueueURL;
         }
         return null;
+    }
+
+    private class UniqueDocLinks {
+        final Set<String> extracted = new HashSet<>();
+        final Set<String> inScope = new HashSet<>();
+        final Set<String> outScope = new HashSet<>();
     }
 }
