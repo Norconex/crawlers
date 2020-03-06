@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  */
 package com.norconex.collector.http.sitemap.impl;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,7 @@ public class GenericSitemapResolverTest {
             GenericSitemapResolverTest.class);
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         GenericSitemapResolver r = new GenericSitemapResolver();
         r.setLenient(true);
         r.setTempDir(Paths.get("C:\\temp\\sitemap"));

@@ -14,8 +14,6 @@
  */
 package com.norconex.collector.http.filter.impl;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -39,9 +37,8 @@ public class SegmentCountURLFilterTest {
         url = null;
     }
 
-
     @Test
-    public void testSegmentMatches() throws IOException {
+    public void testSegmentMatches() {
         //--- Test proper segment counts ---
         url = "http://www.example.com/one/two/three/four/five/page.html";
         f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE);
@@ -83,7 +80,7 @@ public class SegmentCountURLFilterTest {
     }
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         SegmentCountURLFilter f = new SegmentCountURLFilter();
         f.setCount(5);
         f.setDuplicate(true);

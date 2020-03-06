@@ -1,4 +1,4 @@
-/* Copyright 2017-2019 Norconex Inc.
+/* Copyright 2017-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.url.impl;
+package com.norconex.collector.http.link.impl;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,9 +27,14 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.url.Link;
+import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.parser.ParseState;
 
 /**
  * @author Pascal Essiembre
@@ -65,7 +70,7 @@ public class RegexLinkExtractorTest {
                 "RegexLinkExtractorTest.txt");
 
         Set<Link> links = extractor.extractLinks(
-                is, docURL, ContentType.TEXT);
+                toCrawlDoc(docURL, ContentType.TEXT, is), ParseState.PRE);
         is.close();
 
         for (String expectedURL : expectedURLs) {
@@ -99,7 +104,8 @@ public class RegexLinkExtractorTest {
         Set<Link> links;
         try (InputStream is = getClass().getResourceAsStream(
                 "RegexLinkExtractorTest.txt")) {
-            links = extractor.extractLinks(is, docURL, ContentType.TEXT);
+            links = extractor.extractLinks(
+                    toCrawlDoc(docURL, ContentType.TEXT, is), ParseState.PRE);
         }
 
         for (String expectedURL : expectedURLs) {
@@ -117,12 +123,10 @@ public class RegexLinkExtractorTest {
 
 
     @Test
-    public void testGenericWriteRead() throws IOException {
+    public void testGenericWriteRead() {
         RegexLinkExtractor extractor = new RegexLinkExtractor();
         extractor.addPattern("\\[(.*?)\\]", "$1");
         extractor.addPattern("<link>.*?</link>", "$1");
-        extractor.setApplyToContentTypePattern("ct");
-        extractor.setApplyToReferencePattern("ref");
         extractor.setCharset("charset");
         extractor.setMaxURLLength(12345);
         LOG.debug("Writing/Reading this: {}", extractor);
@@ -136,5 +140,13 @@ public class RegexLinkExtractorTest {
             }
         }
         return false;
+    }
+
+    private CrawlDoc toCrawlDoc(String ref, ContentType ct, InputStream is) {
+        HttpDocInfo docInfo = new HttpDocInfo(ref);
+        docInfo.setContentType(ct);
+        CrawlDoc doc = new CrawlDoc(docInfo, CachedInputStream.cache(is));
+        doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ct);
+        return doc;
     }
 }

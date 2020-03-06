@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
  */
 package com.norconex.collector.http.crawler;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class URLCrawlScopeStrategyTest {
 
     @Test
-    public void testURLCrawlScopeStrategy() throws IOException {
+    public void testURLCrawlScopeStrategy() {
         String url = "http://example.com/base/for/test.html";
         String diffProtocol = "https://example.com/diff/protocol.html";
         String diffDomain = "http://www.example.com/diff/domain.html";
@@ -81,7 +79,7 @@ public class URLCrawlScopeStrategyTest {
     }
 
     @Test
-    public void testStayOnDomainDepthStrategy() throws IOException {
+    public void testStayOnDomainDepthStrategy() {
         String sub0 = "http://example.com/test0.html";
         String sub1 = "http://sub1.example.com/test1.html";
         String sub2 = "http://sub2.sub1.example.com/test2.html";

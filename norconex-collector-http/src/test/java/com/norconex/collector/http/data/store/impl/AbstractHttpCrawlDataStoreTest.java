@@ -18,7 +18,6 @@ import static com.norconex.collector.core.CollectorEvent.COLLECTOR_RUN_BEGIN;
 import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RUN_BEGIN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -110,14 +109,14 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         return config;
     }
 
-    protected void resetDatabase(boolean resume) throws IOException {
+    protected void resetDatabase(boolean resume) {
         if (crawlDocInfoService != null) {
             crawlDocInfoService.close();
         }
         crawlDocInfoService = createCrawlDataStore(
                 getCrawlerConfig(), getTempfolder(), resume);
     }
-    protected void moveProcessedToCache() throws IOException {
+    protected void moveProcessedToCache() {
         // Resetting the database with the "resume" option disabled will
         // transfer all the processed references to the cache for most
         // implementations.

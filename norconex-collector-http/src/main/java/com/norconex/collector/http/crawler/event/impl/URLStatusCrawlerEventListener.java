@@ -41,8 +41,8 @@ import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
-import com.norconex.collector.http.url.impl.GenericLinkExtractor;
-import com.norconex.collector.http.url.impl.TikaLinkExtractor;
+import com.norconex.collector.http.link.impl.HtmlLinkExtractor;
+import com.norconex.collector.http.link.impl.TikaLinkExtractor;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.IEventListener;
@@ -105,7 +105,7 @@ import com.norconex.commons.lang.xml.XML;
  * <p>
  * To capture the referring pages you have to use a link extractor that
  * extracts referrer information.  The default link extractor
- * {@link GenericLinkExtractor} properly extracts this information.  Same with
+ * {@link HtmlLinkExtractor} properly extracts this information.  Same with
  * {@link TikaLinkExtractor}.  This is only a consideration when
  * using a custom link extractor.
  * </p>

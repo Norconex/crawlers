@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2017 Norconex Inc.
+   Copyright 2017-2020 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:include schemaLocation="../AbstractLinkExtractor.xsd"></xs:include>
+  
   <xs:element name="extractor">
     <xs:complexType>
-      <xs:all>
-        <xs:element name="applyToContentTypePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="applyToReferencePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
-      </xs:all>
-      <xs:attribute name="class" type="xs:string" use="required"/>
+      <xs:complexContent> 
+        <xs:extension base="AbstractLinkExtractor">
+        </xs:extension> 
+      </xs:complexContent>   
     </xs:complexType>
-  </xs:element>
+  </xs:element>          
 
 </xs:schema>
       

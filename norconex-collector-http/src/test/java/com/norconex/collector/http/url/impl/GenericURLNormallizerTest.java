@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ public class GenericURLNormallizerTest {
 	}
 
     @Test
-    public void testGithubIssue160() throws IOException {
+    public void testGithubIssue160() {
         // Github issue #160
         GenericURLNormalizer n = new GenericURLNormalizer();
         n.setNormalizations(
@@ -121,7 +121,7 @@ public class GenericURLNormallizerTest {
     }
 
     @Test
-    public void testGithubIssue29() throws IOException {
+    public void testGithubIssue29() {
         // Github issue #29
         GenericURLNormalizer n = new GenericURLNormalizer();
         n.setNormalizations(
@@ -138,7 +138,7 @@ public class GenericURLNormallizerTest {
     }
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         GenericURLNormalizer n = new GenericURLNormalizer();
         n.setNormalizations(
                 Normalization.lowerCaseSchemeHost,

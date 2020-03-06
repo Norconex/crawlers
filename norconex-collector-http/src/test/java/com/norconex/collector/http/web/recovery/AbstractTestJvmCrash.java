@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  */
 package com.norconex.collector.http.web.recovery;
 
-import java.io.IOException;
 import java.nio.file.Path;
-
-import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -102,8 +99,7 @@ public abstract class AbstractTestJvmCrash
         }
     }
 
-    private int runCollector(String action, HttpCollector collector)
-            throws IOException, XMLStreamException {
+    private int runCollector(String action, HttpCollector collector) {
 
         // Save collector config to local file
         HttpCollectorConfig cfg = collector.getCollectorConfig();

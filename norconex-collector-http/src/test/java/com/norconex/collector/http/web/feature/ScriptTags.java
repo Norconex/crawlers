@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Assertions;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.url.impl.GenericLinkExtractor;
+import com.norconex.collector.http.link.impl.HtmlLinkExtractor;
 import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
@@ -37,7 +37,7 @@ public class ScriptTags extends AbstractTestFeature {
     @Override
     protected void doConfigureCralwer(HttpCrawlerConfig crawlerConfig)
             throws Exception {
-        GenericLinkExtractor le = new GenericLinkExtractor();
+        HtmlLinkExtractor le = new HtmlLinkExtractor();
         le.addLinkTag("script", "src");
         crawlerConfig.setLinkExtractors(le);
     }

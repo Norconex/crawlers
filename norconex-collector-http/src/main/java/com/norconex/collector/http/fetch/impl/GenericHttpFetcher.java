@@ -292,20 +292,17 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
     private static final int FTP_PORT = 80;
 
-    private static final SchemePortResolver SCHEME_PORT_RESOLVER =
-            host -> {
+    private static final SchemePortResolver SCHEME_PORT_RESOLVER = host -> {
         Args.notNull(host, "HTTP host");
         final int port = host.getPort();
         if (port > 0) {
             return port;
-        } else {
-            final String name = host.getSchemeName();
-            if (name.equalsIgnoreCase("ftp")) {
-                return FTP_PORT;
-            } else {
-                return DefaultSchemePortResolver.INSTANCE.resolve(host);
-            }
         }
+        final String name = host.getSchemeName();
+        if (name.equalsIgnoreCase("ftp")) {
+            return FTP_PORT;
+        }
+        return DefaultSchemePortResolver.INSTANCE.resolve(host);
     };
 
     private final GenericHttpFetcherConfig cfg;

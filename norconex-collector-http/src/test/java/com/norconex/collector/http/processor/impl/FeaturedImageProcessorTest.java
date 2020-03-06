@@ -15,7 +15,6 @@
 package com.norconex.collector.http.processor.impl;
 
 import java.awt.Dimension;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class FeaturedImageProcessorTest {
             FeaturedImageProcessorTest.class);
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         FeaturedImageProcessor p = new FeaturedImageProcessor();
 
         // All settings

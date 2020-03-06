@@ -27,16 +27,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig.KeepLinks;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.doc.HttpDocMetadata;
+import com.norconex.collector.http.link.ILinkExtractor;
+import com.norconex.collector.http.link.Link;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
-import com.norconex.collector.http.url.ILinkExtractor;
-import com.norconex.collector.http.url.Link;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.importer.parser.ParseState;
 
 /**
  * Extract URLs before sending to importer (because the importer may
@@ -137,11 +140,14 @@ import com.norconex.commons.lang.io.CachedInputStream;
         Set<Link> links = new HashSet<>();
         CachedInputStream is = ctx.getContent();
         ContentType ct = ctx.getDocument().getDocInfo().getContentType();
+        CrawlDocInfo docInfo = new CrawlDocInfo(reference);
+        docInfo.setContentType(ct);
+        CrawlDoc doc = new CrawlDoc(docInfo, is);
         for (ILinkExtractor extractor : extractors) {
-            if (extractor.accepts(reference, ct)) {
+//            if (extractor.accepts(reference, ct)) {
                 try {
                     Set<Link> extracted =
-                            extractor.extractLinks(is, reference, ct);
+                            extractor.extractLinks(doc, ParseState.PRE);
                     if (extracted != null) {
                         links.addAll(extracted);
                     }
@@ -150,7 +156,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
                 } finally {
                     is.rewind();
                 }
-            }
+//            }
         }
         return links;
     }

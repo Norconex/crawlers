@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,9 +62,8 @@ public class FileNotFoundDeletion extends AbstractTestFeature {
                 pagesToDelete.remove(page);
                 resp.sendError(SC_NOT_FOUND, "Not found (so they say)");
                 return;
-            } else {
-                pagesToDelete.add(page);
             }
+            pagesToDelete.add(page);
         }
 
         if (StringUtils.isNotBlank(page)) {

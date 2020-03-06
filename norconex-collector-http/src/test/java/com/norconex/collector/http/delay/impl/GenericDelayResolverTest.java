@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  */
 package com.norconex.collector.http.delay.impl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +31,7 @@ public class GenericDelayResolverTest {
             LoggerFactory.getLogger(GenericDelayResolverTest.class);
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         GenericDelayResolver r = new GenericDelayResolver();
         r.setDefaultDelay(10000);
         r.setIgnoreRobotsCrawlDelay(true);
@@ -51,7 +50,7 @@ public class GenericDelayResolverTest {
 
 
     @Test
-    public void testDelayScheduleBoundaries() throws IOException {
+    public void testDelayScheduleBoundaries() {
         //FYI: Jan 1, 2000 was a Saturday
         DelaySchedule schedule = null;
 

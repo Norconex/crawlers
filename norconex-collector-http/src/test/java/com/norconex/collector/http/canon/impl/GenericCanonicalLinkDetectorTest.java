@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.url.impl;
+package com.norconex.collector.http.canon.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class GenericCanonicalLinkDetectorTest {
 
     // Test for: https://github.com/Norconex/collector-http/issues/646
     @Test
-    public void testMultipleLinkValueFromMetadata() throws IOException {
+    public void testMultipleLinkValueFromMetadata() {
         String reference = "http://www.example.com/file.pdf";
         GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
         Properties metadata = new Properties();
@@ -59,7 +59,7 @@ public class GenericCanonicalLinkDetectorTest {
     }
 
     @Test
-    public void testDetectFromMetadata() throws IOException {
+    public void testDetectFromMetadata() {
         String reference = "http://www.example.com/file.pdf";
         GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
         Properties metadata = new Properties();
@@ -145,7 +145,7 @@ public class GenericCanonicalLinkDetectorTest {
     }
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         GenericCanonicalLinkDetector d = new GenericCanonicalLinkDetector();
         d.setContentTypes(ContentType.HTML, ContentType.TEXT);
         LOG.debug("Writing/Reading this: {}", d);

@@ -1,5 +1,5 @@
 <!DOCTYPE xml>
-<extractor class="com.norconex.collector.http.url.impl.RegexLinkExtractor">
+<extractor class="com.norconex.collector.http.link.impl.RegexLinkExtractor">
   <linkExtractionPatterns>
     <pattern>
       <match><![CDATA[<a href="javascript:;"[^>]*?id="p_(\d+)">]]></match>

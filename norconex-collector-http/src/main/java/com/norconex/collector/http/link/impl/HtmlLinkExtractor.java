@@ -12,18 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.url.impl;
+package com.norconex.collector.http.link.impl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -40,38 +37,53 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringEscapeUtils;
-import org.apache.tika.utils.CharsetUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.http.doc.HttpDocMetadata;
-import com.norconex.collector.http.url.ILinkExtractor;
+import com.norconex.collector.http.link.AbstractLinkExtractor;
+import com.norconex.collector.http.link.ILinkExtractor;
+import com.norconex.collector.http.link.Link;
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.collector.http.url.Link;
+import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.handler.CommonRestrictions;
+import com.norconex.importer.parser.ParseState;
 import com.norconex.importer.util.CharsetUtil;
 
 /**
- * Generic link extractor for URLs found in HTML and possibly other text files.
+ * <p>
+ * Html link extractor for URLs found in HTML and possibly other text files.
+ * </p>
+ * <p>
+ * This link extractor uses regular expressions to extract links. It does
+ * so on a chunk of text at a time, so that large files are not fully loaded
+ * into memory. If you prefer a more flexible implementation that loads the
+ * DOM model in memory to perform link extraction, consider using
+ * {@link DOMLinkExtractor}.
+ * </p>
  *
- * <h3>Content-types</h3>
- * By default, this extractor will look for URLs only in documents matching
+ * <h3>Applicable documents</h3>
+ * <p>
+ * By default, this extractor only will be applied on documents matching
  * one of these content types:
- * <pre>
- * text/html, application/xhtml+xml, vnd.wap.xhtml+xml, x-asp
- * </pre>
- * You can specify your own content types if you know they represent a file
- * with HTML-like markup tags containing URLs.  For documents that are just
+ * </p>
+ * {@nx.include com.norconex.importer.handler.CommonRestrictions#htmlContentTypes}
+ * <p>
+ * You can specify your own content types or other restrictions with
+ * {@link #setRestrictions(List)}.
+ * Make sure they represent a file with HTML-like markup tags containing URLs.
+ * For documents that are just
  * too different, consider implementing your own {@link ILinkExtractor} instead.
  * Removing the default values and define no content types will have for effect
  * to try to extract URLs from all files (usually a bad idea).
+ * </p>
  *
  * <h3>Tags attributes</h3>
  * URLs are assumed to be contained within valid tags or tag attributes.
@@ -148,10 +160,6 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * </p>
  * <p>
- * <b>Since 2.6.0</b> it is possible to treat all the links in certain pages
- * as "nofollow" links. Link extraction is essentially skipped for URLs matching
- * the patterns set in {@link #setNofollowPatterns(List)}.
- * </p>
  *
  * <h3>URL Fragments</h3>
  * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
@@ -204,79 +212,78 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link #setNoExtractSelectors(String...)}.
  * </p>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
- *          maxURLLength="(maximum URL length. Default is 2048)"
- *          ignoreNofollow="[false|true]"
- *          commentsEnabled="[false|true]"
- *          charset="(supported character encoding)" &gt;
- *      &lt;contentTypes&gt;
- *          (CSV list of content types on which to perform link extraction.
- *           leave blank or remove tag to use defaults.)
- *      &lt;/contentTypes&gt;
- *      &lt;schemes&gt;
- *          (CSV list of URI scheme for which to perform link extraction.
- *           leave blank or remove tag to use defaults.)
- *      &lt;/schemes&gt;
+ * {@nx.xml.usage
+ * <extractor class="com.norconex.collector.http.link.impl.HtmlLinkExtractor"
+ *     maxURLLength="(maximum URL length. Default is 2048)"
+ *     ignoreNofollow="[false|true]"
+ *     commentsEnabled="[false|true]"
+ *     charset="(supported character encoding)">
  *
- *      &lt;!-- Which tags and attributes hold the URLs to extract. --&gt;
- *      &lt;tags&gt;
- *          &lt;tag name="(tag name)" attribute="(tag attribute)" /&gt;
- *          &lt;!-- you can have multiple tag entries --&gt;
- *      &lt;/tags&gt;
+ *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
  *
- *      &lt;!-- Only extract URLs from the following text portions. --&gt;
- *      &lt;extractBetween caseSensitive="[false|true]"&gt;
- *          &lt;start&gt;(regex)&lt;/start&gt;
- *          &lt;end&gt;(regex)&lt;/end&gt;
- *      &lt;/extractBetween&gt;
- *      &lt;!-- you can have multiple extractBetween entries --&gt;
+ *   <schemes>
+ *     (CSV list of URI scheme for which to perform link extraction.
+ *      leave blank or remove tag to use defaults.)
+ *   </schemes>
  *
- *      &lt;!-- Do not extract URLs from the following text portions. --&gt;
- *      &lt;noExtractBetween caseSensitive="[false|true]"&gt;
- *          &lt;start&gt;(regex)&lt;/start&gt;
- *          &lt;end&gt;(regex)&lt;/end&gt;
- *      &lt;/noExtractBetween&gt;
- *      &lt;!-- you can have multiple noExtractBetween entries --&gt;
+ *   <!-- Which tags and attributes hold the URLs to extract. -->
+ *   <tags>
+ *     <tag name="(tag name)" attribute="(tag attribute)" />
+ *     <!-- you can have multiple tag entries -->
+ *   </tags>
  *
- *      &lt;!-- Only extract URLs matching the following selectors. --&gt;
- *      &lt;extractSelector&gt;(selector)&lt;/extractSelector&gt;
- *      &lt;!-- you can have multiple extractSelector entries --&gt;
+ *   <!-- Only extract URLs from the following text portions. -->
+ *   <extractBetween caseSensitive="[false|true]">
+ *     <start>(regex)</start>
+ *     <end>(regex)</end>
+ *   </extractBetween>
+ *   <!-- you can have multiple extractBetween entries -->
  *
- *      &lt;!-- Do not extract URLs matching the following selectors. --&gt;
- *      &lt;noExtractSelector&gt;(selector)&lt;/noExtractSelector&gt;
- *      &lt;!-- you can have multiple noExtractSelector entries --&gt;
+ *   <!-- Do not extract URLs from the following text portions. -->
+ *   <noExtractBetween caseSensitive="[false|true]">
+ *     <start>(regex)</start>
+ *     <end>(regex)</end>
+ *   </noExtractBetween>
+ *   <!-- you can have multiple noExtractBetween entries -->
  *
- *  &lt;/extractor&gt;
- * </pre>
+ *   <!-- Only extract URLs matching the following selectors. -->
+ *   <extractSelector>(selector)</extractSelector>
+ *   <!-- you can have multiple extractSelector entries -->
  *
- * <h4>Usage example:</h4>
+ *   <!-- Do not extract URLs matching the following selectors. -->
+ *   <noExtractSelector>(selector)</noExtractSelector>
+ *   <!-- you can have multiple noExtractSelector entries -->
+ *
+ * </extractor>
+ * }
+ *
+ * {@nx.xml.example
+ * <extractor class="com.norconex.collector.http.link.impl.HtmlLinkExtractor">
+ *   <tags>
+ *     <tag name="a" attribute="href" />
+ *     <tag name="frame" attribute="src" />
+ *     <tag name="iframe" attribute="src" />
+ *     <tag name="img" attribute="src" />
+ *     <tag name="meta" attribute="http-equiv" />
+ *     <tag name="script" attribute="src" />
+ *   </tags>
+ * </extractor>
+ * }
+ *
  * <p>
- * The following adds URLs to JavaScript files to the list of URLs to be
+ * The above example adds URLs to JavaScript files to the list of URLs to be
  * extracted.
  * </p>
- * <pre>
- *  &lt;extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"&gt;
- *      &lt;tags&gt;
- *          &lt;tag name="a" attribute="href" /&gt;
- *          &lt;tag name="frame" attribute="src" /&gt;
- *          &lt;tag name="iframe" attribute="src" /&gt;
- *          &lt;tag name="img" attribute="src" /&gt;
- *          &lt;tag name="meta" attribute="http-equiv" /&gt;
- *          &lt;tag name="script" attribute="src" /&gt;
- *      &lt;/tags&gt;
- *  &lt;/extractor&gt;
- * </pre>
- *
  * @author Pascal Essiembre
- * @since 2.3.0
+ * @since 3.0.0 (refactored from GenericLinkExtractor)
  */
-public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
-
+@SuppressWarnings("javadoc")
+public class HtmlLinkExtractor extends AbstractLinkExtractor {
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            GenericLinkExtractor.class);
+            HtmlLinkExtractor.class);
+
+    //TODO give option to match fields where to grab dom content.
 
     //TODO make buffer size and overlap size configurable
     //1MB: make configurable
@@ -287,14 +294,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     /** Default maximum length a URL can have. */
     public static final int DEFAULT_MAX_URL_LENGTH = 2048;
 
-    private static final List<ContentType> DEFAULT_CONTENT_TYPES =
-            Collections.unmodifiableList(Arrays.asList(
-                ContentType.HTML,
-                ContentType.valueOf("application/xhtml+xml"),
-                ContentType.valueOf("vnd.wap.xhtml+xml"),
-                ContentType.valueOf("x-asp")
-            ));
-
     private static final List<String> DEFAULT_SCHEMES =
             Collections.unmodifiableList(Arrays.asList("http", "https", "ftp"));
 
@@ -302,8 +301,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
     private static final int LOGGING_MAX_URL_LENGTH = 200;
 
-    private final List<ContentType> contentTypes =
-            new ArrayList<>(DEFAULT_CONTENT_TYPES);
     private final List<String> schemes = new ArrayList<>(DEFAULT_SCHEMES);
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     private boolean ignoreNofollow;
@@ -318,10 +315,13 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     private final List<String> noExtractSelectors = new ArrayList<>();
     private final List<RegexPair> extractBetweens = new ArrayList<>();
     private final List<RegexPair> noExtractBetweens = new ArrayList<>();
-    private final List<Pattern> nofollowPatterns = new ArrayList<>();
 
-    public GenericLinkExtractor() {
+    public HtmlLinkExtractor() {
         super();
+
+        // default content type this extractor applies to
+        setRestrictions(CommonRestrictions.htmlContentTypes());
+
         // default tags/attributes used to extract data.
         addLinkTag("a", "href");
         addLinkTag("frame", "src");
@@ -332,42 +332,21 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
 
     private static final Pattern BASE_HREF_PATTERN = Pattern.compile(
             "<base[^<]+?href\\s*=\\s*([\"']{0,1})(.*?)\\1", PATTERN_FLAGS);
+
+
     @Override
-    public Set<Link> extractLinks(InputStream input, String reference,
-            ContentType contentType) throws IOException {
+    public void extractLinks(Set<Link> links, CrawlDoc doc,
+            ParseState parseState) throws IOException {
 
-        List<ContentType> cTypes = contentTypes;
-        if (cTypes.isEmpty()) {
-            cTypes = DEFAULT_CONTENT_TYPES;
-        }
+        String sourceCharset =
+                CharsetUtil.detectCharsetIfNotBlank(getCharset(), doc);
 
-        // Do not extract if not a supported content type
-        if (!cTypes.contains(contentType)) {
-            return Collections.emptySet();
-        }
 
-        for (Pattern p : nofollowPatterns) {
-            if (p.matcher(reference).matches()) {
-                return null;
-            }
-        }
-
-        // Do it, extract Links
-        String sourceCharset = getCharset();
-        if (StringUtils.isBlank(sourceCharset)) {
-            sourceCharset = CharsetUtil.detectCharset(input);
-        } else {
-            sourceCharset = CharsetUtils.clean(sourceCharset);
-        }
-        sourceCharset = StringUtils.defaultIfBlank(
-                sourceCharset, StandardCharsets.UTF_8.toString());
-
-        Referer referer = new Referer(reference);
-        Set<Link> links = new HashSet<>();
+        Referer referer = new Referer(doc.getReference());
 
         StringBuilder sb = new StringBuilder();
-        Reader r =
-                new BufferedReader(new InputStreamReader(input, sourceCharset));
+        Reader r = new BufferedReader(
+                new InputStreamReader(doc.getInputStream(), sourceCharset));
         int ch;
         boolean firstChunk = true;
         while ((ch = r.read()) != -1) {
@@ -384,7 +363,11 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         referer = adjustReferer(content, referer, firstChunk);
         extractLinks(content, referer, links);
         sb.setLength(0);
-        return links;
+    }
+
+    @Override
+    protected boolean acceptParseState(ParseState parseState) {
+        return ParseState.isPre(parseState);
     }
 
     private Referer adjustReferer(
@@ -404,15 +387,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         return ref;
     }
 
-
-    @Override
-    public boolean accepts(String url, ContentType contentType) {
-        if (contentTypes.isEmpty()) {
-            return true;
-        }
-        return contentTypes.contains(contentType);
-    }
-
     /**
      * Gets the maximum supported URL length.
      * @return maximum URL length
@@ -426,25 +400,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      */
     public void setMaxURLLength(int maxURLLength) {
         this.maxURLLength = maxURLLength;
-    }
-
-    public List<ContentType> getContentTypes() {
-        return Collections.unmodifiableList(contentTypes);
-    }
-    /**
-     * Sets the content types on which to perform link extraction.
-     * @param contentTypes content types
-     */
-    public void setContentTypes(ContentType... contentTypes) {
-        CollectionUtil.setAll(this.contentTypes, contentTypes);
-    }
-    /**
-     * Sets the content types on which to perform link extraction.
-     * @param contentTypes content types
-     * @since 3.0.0
-     */
-    public void setContentTypes(List<ContentType> contentTypes) {
-        CollectionUtil.setAll(this.contentTypes, contentTypes);
     }
 
     /**
@@ -581,38 +536,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
      */
     public void addNoExtractSelectors(String... selectors) {
         this.noExtractSelectors.addAll(Arrays.asList(selectors));
-    }
-
-    /**
-     * Gets the patterns of references for which link extraction is disabled.
-     * @return nofollow regex patterns
-     * @since 2.9.0
-     */
-    public List<String> getNofollowPatterns() {
-        List<String> list = new ArrayList<>(nofollowPatterns.size());
-        for (Pattern pattern : nofollowPatterns) {
-            list.add(pattern.pattern());
-        }
-        return list;
-    }
-    /**
-     * Sets the patterns of references for which link extraction is disabled.
-     * @param patterns the list of regex URL patterns
-     * @since 2.9.0
-     */
-    public void setNofollowPatterns(List<String> patterns) {
-        nofollowPatterns.clear();
-        for (String regex : patterns) {
-            nofollowPatterns.add(Pattern.compile(regex));
-        }
-    }
-    /**
-     * Adds a pattern for references for which link extraction is disabled.
-     * @param regex the regex URL pattern
-     * @since 2.9.0
-     */
-    public void addNofollowPatterns(String regex) {
-        nofollowPatterns.add(Pattern.compile(regex));
     }
 
     /**
@@ -1029,13 +952,11 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
     }
 
     @Override
-    public void loadFromXML(XML xml) {
+    protected void loadLinkExtractorFromXML(XML xml) {
         setMaxURLLength(xml.getInteger("@maxURLLength", maxURLLength));
         setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
         setCommentsEnabled(xml.getBoolean("@commentsEnabled", commentsEnabled));
         setCharset(xml.getString("@charset", charset));
-        setContentTypes(xml.getDelimitedList(
-                "contentTypes", ContentType.class, contentTypes));
         setSchemes(xml.getDelimitedStringList("schemes", schemes));
 
         // tag & attributes
@@ -1087,19 +1008,13 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
             CollectionUtil.setAll(this.noExtractSelectors, noExtractSelList);
         }
 
-        // no extraction in these pages
-        nofollowPatterns.clear();
-        for (String regex : xml.getStringList("nofollow/regexUrl")) {
-            nofollowPatterns.add(Pattern.compile(regex));
-        }
     }
     @Override
-    public void saveToXML(XML xml) {
+    protected void saveLinkExtractorToXML(XML xml) {
         xml.setAttribute("maxURLLength", maxURLLength);
         xml.setAttribute("ignoreNofollow", ignoreNofollow);
         xml.setAttribute("commentsEnabled", commentsEnabled);
         xml.setAttribute("charset", charset);
-        xml.addDelimitedElementList("contentTypes", contentTypes);
         xml.addDelimitedElementList("schemes", schemes);
 
         // Tags
@@ -1135,13 +1050,6 @@ public class GenericLinkExtractor implements ILinkExtractor, IXMLConfigurable {
         // no extract selector
         xml.addElementList("noExtractSelector", noExtractSelectors);
 
-        // no extraction in these pages
-        if (!nofollowPatterns.isEmpty()) {
-            XML nofolXML = xml.addElement("nofollow");
-            for (Pattern regex : nofollowPatterns) {
-                nofolXML.addElement("regexUrl", regex.pattern());
-            }
-        }
     }
 
     //TODO delete this class and use HttpURL#toAbsolute() instead?

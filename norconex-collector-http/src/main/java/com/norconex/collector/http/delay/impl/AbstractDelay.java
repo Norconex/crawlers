@@ -31,7 +31,7 @@ public abstract class AbstractDelay {
 
     protected static final int TINY_SLEEP_MS = 10;
     private static final float THOUSAND_MILLIS = 1000f;
-    
+
     public abstract void delay(long expectedDelayNanos, String url);
 
     protected void delay(long expectedDelayNanos, long lastHitNanos) {
@@ -39,7 +39,7 @@ public abstract class AbstractDelay {
         if (expectedDelayNanos <= 0) {
             return;
         }
-        
+
         // How much time since last hit?
         long elapsedTimeNanos = System.nanoTime() - lastHitNanos;
 
@@ -48,10 +48,9 @@ public abstract class AbstractDelay {
             long timeToSleepNanos = expectedDelayNanos - elapsedTimeNanos;
             if (LOG.isDebugEnabled()) {
                 long millis = TimeUnit.NANOSECONDS.toMillis(timeToSleepNanos);
-                LOG.debug("Thread " + Thread.currentThread().getName()
-                        + " sleeping for "
-                        + ((float) millis / THOUSAND_MILLIS)
-                        + " seconds.");
+                LOG.debug("Thread {} sleeping for {} seconds.",
+                        Thread.currentThread().getName(),
+                        (millis / THOUSAND_MILLIS));
             }
             Sleeper.sleepNanos(timeToSleepNanos);
         }

@@ -60,9 +60,9 @@ public final class HttpQueuePipeline
                     && ctx.getDocInfo().getDepth()
                             > ctx.getConfig().getMaxDepth()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("URL too deep to process ("
-                            + ctx.getDocInfo().getDepth() + "): "
-                            + ctx.getDocInfo().getReference());
+                    LOG.debug("URL too deep to process ({}): {}",
+                            ctx.getDocInfo().getDepth(),
+                            ctx.getDocInfo().getReference());
                 }
                 ctx.getDocInfo().setState(HttpCrawlState.TOO_DEEP);
                 ctx.fireCrawlerEvent(
@@ -79,9 +79,8 @@ public final class HttpQueuePipeline
             return ctx.getConfig().getRobotsTxtProvider().getRobotsTxt(
                     ctx.getCrawler().getHttpFetchClient(),
                     ctx.getDocInfo().getReference());
-        } else {
-            return null;
         }
+        return null;
     }
 
     //--- Sitemap URL Extraction -----------------------------------------------

@@ -110,11 +110,11 @@ public class WebDriverHttpFetcherTest  {
     }
 
     @BeforeAll
-    public static void beforeClass() throws IOException {
+    public static void beforeClass() {
         server.start();
     }
     @AfterAll
-    public static void afterClass() throws IOException {
+    public static void afterClass() {
         server.stop();
     }
 
@@ -202,8 +202,7 @@ public class WebDriverHttpFetcherTest  {
     }
 
     @BrowserTest
-    public void testResolvingUserAgent(
-            WebDriverHttpFetcher fetcher) throws IOException {
+    public void testResolvingUserAgent(WebDriverHttpFetcher fetcher) {
         assumeDriverPresent(fetcher);
 
         try {

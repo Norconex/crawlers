@@ -14,7 +14,6 @@
  */
 package com.norconex.collector.http.recrawl.impl;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
 
 import org.junit.jupiter.api.Assertions;
@@ -33,7 +32,7 @@ public class GenericRecrawlableResolverTest {
             GenericRecrawlableResolverTest.class);
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         GenericRecrawlableResolver r = new GenericRecrawlableResolver();
         r.setSitemapSupport(SitemapSupport.LAST);
 
@@ -49,7 +48,7 @@ public class GenericRecrawlableResolverTest {
 
     // Test for: https://github.com/Norconex/collector-http/issues/597
     @Test
-    public void testCustomFrequency() throws IOException {
+    public void testCustomFrequency() {
         GenericRecrawlableResolver r = new GenericRecrawlableResolver();
         r.setSitemapSupport(SitemapSupport.NEVER);
 
@@ -74,7 +73,7 @@ public class GenericRecrawlableResolverTest {
     }
 
     @Test
-    public void testCustomFrequencyFromXML() throws IOException {
+    public void testCustomFrequencyFromXML() {
         String xml = "<recrawlableResolver class=\""
                 + "com.norconex.collector.http.recrawl.impl."
                 + "GenericRecrawlableResolver\" sitemapSupport=\"never\">"

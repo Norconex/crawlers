@@ -14,7 +14,6 @@
  */
 package com.norconex.collector.http.crawler;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
@@ -36,7 +35,7 @@ public class HttpCrawlerConfigTest {
             LoggerFactory.getLogger(HttpCrawlerConfigTest.class);
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
 //        File configFile = new File(
 ////                "src/site/resources/examples/minimum/minimum-config.xml");
 //                "src/site/resources/examples/complex/complex-config.xml");

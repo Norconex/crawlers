@@ -1,4 +1,4 @@
-/* Copyright 2017-2019 Norconex Inc.
+/* Copyright 2017-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class HttpCollectorConfigTest {
             LoggerFactory.getLogger(HttpCollectorConfigTest.class);
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         HttpCollectorConfig config = new HttpCollectorConfig();
         config.setId("test-http-collector");
 
@@ -67,15 +67,6 @@ public class HttpCollectorConfigTest {
             Assertions.fail(e.getErrors().size()
                     + "Validation warnings/errors were found.");
         }
-
-
-
-
-//          try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
-//                  "/validation/collector-http-full.xml"))) {
-//              Assertions.assertTrue("Validation warnings/errors were found.",
-//                      new XML(r).validate(HttpCollectorConfig.class).isEmpty());
-//          }
     }
 
     // Test for: https://github.com/Norconex/collector-http/issues/326

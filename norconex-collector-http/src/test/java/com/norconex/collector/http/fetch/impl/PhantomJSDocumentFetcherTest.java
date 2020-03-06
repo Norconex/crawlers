@@ -33,7 +33,7 @@ public class PhantomJSDocumentFetcherTest  {
             LoggerFactory.getLogger(PhantomJSDocumentFetcherTest.class);
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         PhantomJSDocumentFetcher f = new PhantomJSDocumentFetcher();
         f.setValidStatusCodes(200, 201, 202);
         f.setNotFoundStatusCodes(404, 405);

@@ -35,7 +35,7 @@ import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
 public class RobotsTxtFiltersStageTest {
 
     @Test
-    public void testAllow() throws IOException {
+    public void testAllow() {
         // An allow for a robot rule should now be rejecting all non-allowing.
         // It should allows sub directories that have their parent rejected
         String robotTxt =
@@ -54,8 +54,7 @@ public class RobotsTxtFiltersStageTest {
                 "No match in robot.txt");
 
     }
-    private boolean testAllow(
-            final String robotTxt, final String url) throws IOException {
+    private boolean testAllow(final String robotTxt, final String url) {
         StandardRobotsTxtProvider provider = new StandardRobotsTxtProvider() {
             @Override
             public synchronized RobotsTxt getRobotsTxt(

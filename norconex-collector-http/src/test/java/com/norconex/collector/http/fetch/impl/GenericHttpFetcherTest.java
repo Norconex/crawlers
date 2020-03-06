@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  */
 package com.norconex.collector.http.fetch.impl;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.xml.XML;
@@ -23,7 +21,7 @@ import com.norconex.commons.lang.xml.XML;
 public class GenericHttpFetcherTest  {
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         GenericHttpFetcherConfig cfg = new GenericHttpFetcherConfig();
         cfg.setValidStatusCodes(200, 201, 202);
         cfg.setNotFoundStatusCodes(404, 405);

@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,21 +158,21 @@ public class HttpCrawlerWebTest {
     @TempDir
     Path tempFolder;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         LOG.info("Manual starting of feature test server. You will have "
                + "to kill it manually.");
         beforeClass();
     }
 
     @BeforeAll
-    public static void beforeClass() throws IOException {
+    public static void beforeClass() {
         LOG.info("Starting test server.");
         server.start();
         serverBaseURL = "http://localhost:" + server.getPort() + "/";
         LOG.info("Base URL: {}", serverBaseURL);
     }
     @AfterAll
-    public static void afterClass() throws IOException {
+    public static void afterClass() {
         LOG.info("Stopping test server.");
         server.stop();
         LOG.info("Test server stopped.");
@@ -208,7 +208,7 @@ public class HttpCrawlerWebTest {
 
     private static void htmlIndexPage(
                 HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+            throws IOException {
         resp.setContentType("text/html");
         resp.setCharacterEncoding(StandardCharsets.UTF_8.toString());
         PrintWriter out = resp.getWriter();

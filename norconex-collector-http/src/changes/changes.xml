@@ -32,6 +32,9 @@
         New "disableSNI" crawler configuration option to disable Server Name 
         Indication.
       </action>
+      <action dev="essiembre" type="update">
+        New DOMLinkExtractor using JSoup to extract links. 
+      </action>
       <action dev="essiembre" type="add">
         New HttpDoc, HttpDocInfo, HttpDocMetadata (new or renamed).
       </action>
@@ -75,6 +78,13 @@
       <action dev="essiembre" type="update">
         Can now control whether to store as metadata all extracted links,
         just in-scope ones, out-of-scope, both, or none.
+      </action>
+      <action dev="essiembre" type="update">
+        Link extractors and canonical url classes are now in their own
+        distinct packages. 
+      </action>
+      <action dev="essiembre" type="update">
+        GenericLinkExtractor renamed to HtmlLinkExtractor. 
       </action>
       <action dev="essiembre" type="remove">
         Removed some code deprecated in releases before 3.0.0. 

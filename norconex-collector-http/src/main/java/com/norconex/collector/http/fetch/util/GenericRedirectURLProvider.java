@@ -219,11 +219,10 @@ public class GenericRedirectURLProvider
         }
         if (isAscii) {
             return url;
-        } else {
-            LOG.warn("Redirect URI made of 7-bit clean ASCII. "
-                    + "It probably is not encoded properly. "
-                    + "Will try to fix. Redirect URL: {}", redirectURL);
         }
+        LOG.warn("Redirect URI made of 7-bit clean ASCII. "
+                + "It probably is not encoded properly. "
+                + "Will try to fix. Redirect URL: {}", redirectURL);
 
         // try to fix if non ascii charset is non UTF8.
         if (StringUtils.isNotBlank(nonAsciiCharset)) {

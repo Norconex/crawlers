@@ -206,7 +206,7 @@
       <filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
               onMatch="exclude" count="5" duplicate="false" separator="/" />
     </metadataFilters>
-    <canonicalLinkDetector class="com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector"
+    <canonicalLinkDetector class="com.norconex.collector.http.canon.impl.GenericCanonicalLinkDetector"
           ignore="true">
       <contentTypes>text/html</contentTypes>
     </canonicalLinkDetector>
@@ -227,7 +227,7 @@
        <headersPrefix>prefix</headersPrefix>
     </robotsMeta>
     <linkExtractors>
-      <extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor"
+      <extractor class="com.norconex.collector.http.link.impl.GenericLinkExtractor"
           maxURLLength="999" ignoreNofollow="false" 
           commentsEnabled="true" charset="UTF-8" >
         <contentTypes>text/html</contentTypes>
@@ -252,13 +252,13 @@
           <start>nostart2</start><end>noend2</end>
         </noExtractBetween>
       </extractor>
-      <extractor class="com.norconex.collector.http.url.impl.GenericLinkExtractor">
+      <extractor class="com.norconex.collector.http.link.impl.GenericLinkExtractor">
         <tags>
           <tag name="a" attribute="href" />
           <tag name="script" attribute="src" />
         </tags>
       </extractor>
-      <extractor class="com.norconex.collector.http.url.impl.RegexLinkExtractor"
+      <extractor class="com.norconex.collector.http.link.impl.RegexLinkExtractor"
           maxURLLength="1234" charset="iso-8859-1">
         <applyToContentTypePattern>ct.*</applyToContentTypePattern>
         <applyToReferencePattern>ref.*</applyToReferencePattern>
@@ -267,7 +267,7 @@
           <pattern><match>http://.*?\.html</match></pattern>
         </linkExtractionPatterns>
       </extractor>
-      <extractor class="com.norconex.collector.http.url.impl.XMLFeedLinkExtractor">
+      <extractor class="com.norconex.collector.http.link.impl.XMLFeedLinkExtractor">
           <applyToContentTypePattern>.*</applyToContentTypePattern>
           <applyToReferencePattern>.*</applyToReferencePattern>
       </extractor>      

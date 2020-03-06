@@ -12,13 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.url.impl;
+package com.norconex.collector.http.link.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -30,15 +27,17 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.http.doc.HttpDocMetadata;
-import com.norconex.collector.http.url.ILinkExtractor;
-import com.norconex.collector.http.url.Link;
-import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.xml.IXMLConfigurable;
+import com.norconex.collector.http.link.AbstractLinkExtractor;
+import com.norconex.collector.http.link.ILinkExtractor;
+import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.importer.handler.CommonRestrictions;
+import com.norconex.importer.parser.ParseState;
 
 /**
  * <p>
@@ -52,25 +51,11 @@ import com.norconex.commons.lang.xml.XML;
  *
  * <h3>Applicable documents</h3>
  * <p>
- * By default, this extractor will extract URLs only in documents having
- * their content type being one of the following:
+ * By default, this extractor only will be applied on documents matching
+ * one of these content types:
  * </p>
- * <pre>
- * application/rss+xml
- * application/rdf+xml
- * application/atom+xml
- * application/xml
- * text/xml
- * </pre>
- * <p>
- * You can specify your own content types or reference restriction patterns
- * using {@link #setApplyToContentTypePattern(String)} or
- * {@link #setApplyToReferencePattern(String)}, but make sure they
- * represent text files. When both methods are used, a document should be
- * be matched by both to be accepted.  Because "text/xml" and "application/xml"
- * are quite generic (not specific to RSS/Atom feeds), you may want to
- * consider being more restrictive if that causes issues.
- * </p>
+ *
+ * {@nx.include com.norconex.importer.handler.CommonRestrictions#xmlFeedContentTypes}
  *
  * <h3>Referrer data</h3>
  * <p>
@@ -83,100 +68,58 @@ import com.norconex.commons.lang.xml.XML;
  *   {@link HttpDocMetadata#REFERRER_REFERENCE}.</li>
  * </ul>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;extractor class="com.norconex.collector.http.url.impl.XMLFeedLinkExtractor"&gt;
- *      &lt;applyToContentTypePattern&gt;
- *          (Regular expression matching content types this extractor
- *           should apply to. See documentation for default.)
- *      &lt;/applyToContentTypePattern&gt;
- *      &lt;applyToReferencePattern&gt;
- *          (Regular expression matching references this extractor should
- *           apply to. Default accepts all references.)
- *      &lt;/applyToReferencePattern&gt;
- *  &lt;/extractor&gt;
- * </pre>
+ * {@nx.xml.usage
+ * <extractor class="com.norconex.collector.http.link.impl.XMLFeedLinkExtractor">
+ *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
+ * </extractor>
+ * }
  *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ * <extractor class="com.norconex.collector.http.link.impl.XMLFeedLinkExtractor">
+ *   <restrictTo field="document.reference" method="regex">.*rss$</restrictTo>
+ * </extractor>
+ * }
  * <p>
- * The following specifies this extractor should only apply on documents
+ * The above example specifies this extractor should only apply on documents
  * that have their URL ending with "rss" (in addition to the default
  * content types supported).
  * </p>
- * <pre>
- *  &lt;extractor class="com.norconex.collector.http.url.impl.XMLFeedLinkExtractor"&gt;
- *      &lt;applyToReferencePattern&gt;.*rss$&lt;/applyToReferencePattern&gt;
- *  &lt;/extractor&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 2.7.0
  */
-public class XMLFeedLinkExtractor implements ILinkExtractor, IXMLConfigurable {
-
-    public static final String DEFAULT_CONTENT_TYPE_PATTERN =
-            "application/(rss\\+|rdf\\+|atom\\+){0,1}xml|text/xml";
-
-    private String applyToContentTypePattern = DEFAULT_CONTENT_TYPE_PATTERN;
-    private String applyToReferencePattern;
+@SuppressWarnings("javadoc")
+public class XMLFeedLinkExtractor extends AbstractLinkExtractor {
 
     public XMLFeedLinkExtractor() {
         super();
+        // default content type this extractor applies to
+        setRestrictions(CommonRestrictions.xmlFeedContentTypes());
     }
 
     @Override
-    public Set<Link> extractLinks(InputStream input, String reference,
-            ContentType contentType) throws IOException {
-        Set<Link> links = new HashSet<>();
+    public void extractLinks(Set<Link> links, CrawlDoc doc,
+            ParseState parseState) throws IOException {
         try {
-            XMLReader xmlReader = XMLReaderFactory.createXMLReader();
-            FeedHandler handler = new FeedHandler(reference, links);
+            XMLReader xmlReader = XMLUtil.createXMLReader();
+            FeedHandler handler = new FeedHandler(doc.getReference(), links);
             xmlReader.setContentHandler(handler);
             xmlReader.setErrorHandler(handler);
-            xmlReader.parse(new InputSource(input));
+            xmlReader.parse(new InputSource(doc.getInputStream()));
         } catch (SAXException e) {
             throw new CollectorException(
-                    "Could not parse XML Feed: " + reference, e);
+                    "Could not parse XML Feed: " + doc.getReference(), e);
         }
-        return links;
     }
 
     @Override
-    public boolean accepts(String url, ContentType contentType) {
-        if (StringUtils.isNotBlank(applyToReferencePattern)
-                && !Pattern.matches(applyToReferencePattern, url)) {
-            return false;
-        }
-        return !(StringUtils.isNotBlank(applyToContentTypePattern)
-                && !Pattern.matches(applyToContentTypePattern,
-                        contentType.toString()));
-    }
-
-    public String getApplyToContentTypePattern() {
-        return applyToContentTypePattern;
-    }
-    public void setApplyToContentTypePattern(String applyToContentTypePattern) {
-        this.applyToContentTypePattern = applyToContentTypePattern;
-    }
-
-    public String getApplyToReferencePattern() {
-        return applyToReferencePattern;
-    }
-    public void setApplyToReferencePattern(String applyToReferencePattern) {
-        this.applyToReferencePattern = applyToReferencePattern;
+    protected void loadLinkExtractorFromXML(XML xml) {
+        //NOOP
     }
 
     @Override
-    public void loadFromXML(XML xml) {
-        setApplyToContentTypePattern(xml.getString(
-                "applyToContentTypePattern", applyToContentTypePattern));
-        setApplyToReferencePattern(xml.getString(
-                "applyToReferencePattern", applyToReferencePattern));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("applyToContentTypePattern", applyToContentTypePattern);
-        xml.addElement("applyToReferencePattern", applyToReferencePattern);
+    protected void saveLinkExtractorToXML(XML xml) {
+        //NOOP
     }
 
     private class FeedHandler extends DefaultHandler {

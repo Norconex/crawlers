@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.url.impl;
+package com.norconex.collector.http.canon.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +33,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.client.utils.URIUtils;
 
-import com.norconex.collector.http.url.ICanonicalLinkDetector;
+import com.norconex.collector.http.canon.ICanonicalLinkDetector;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.ContentType;
@@ -75,7 +75,7 @@ import com.norconex.commons.lang.xml.XML;
  * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;canonicalLinkDetector
- *          class="com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector"
+ *          class="com.norconex.collector.http.canon.impl.GenericCanonicalLinkDetector"
  *          ignore="(false|true)"&gt;
  *      &lt;contentTypes&gt;
  *          (CSV list of content types on which to perform canonical link

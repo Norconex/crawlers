@@ -27,12 +27,16 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
 import com.norconex.collector.core.crawler.CrawlerConfig;
+import com.norconex.collector.http.canon.ICanonicalLinkDetector;
+import com.norconex.collector.http.canon.impl.GenericCanonicalLinkDetector;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.delay.IDelayResolver;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
+import com.norconex.collector.http.link.ILinkExtractor;
+import com.norconex.collector.http.link.impl.HtmlLinkExtractor;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 import com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver;
@@ -42,11 +46,7 @@ import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
 import com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.impl.GenericSitemapResolver;
-import com.norconex.collector.http.url.ICanonicalLinkDetector;
-import com.norconex.collector.http.url.ILinkExtractor;
 import com.norconex.collector.http.url.IURLNormalizer;
-import com.norconex.collector.http.url.impl.GenericCanonicalLinkDetector;
-import com.norconex.collector.http.url.impl.GenericLinkExtractor;
 import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -119,7 +119,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
             new GenericCanonicalLinkDetector();
 
     private final List<ILinkExtractor> linkExtractors =
-            new ArrayList<>(Arrays.asList(new GenericLinkExtractor()));
+            new ArrayList<>(Arrays.asList(new HtmlLinkExtractor()));
 
     private IRobotsTxtProvider robotsTxtProvider =
             new StandardRobotsTxtProvider();

@@ -1,4 +1,4 @@
-/* Copyright 2016-2019 Norconex Inc.
+/* Copyright 2016-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public class ReferenceDelayResolverTest {
             LoggerFactory.getLogger(ReferenceDelayResolverTest.class);
 
     @Test
-    public void testWriteRead() throws IOException {
+    public void testWriteRead() {
         ReferenceDelayResolver r = new ReferenceDelayResolver();
         r.setDefaultDelay(10000);
         r.setIgnoreRobotsCrawlDelay(true);

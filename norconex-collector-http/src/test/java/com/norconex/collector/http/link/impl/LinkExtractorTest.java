@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.url.impl;
+package com.norconex.collector.http.link.impl;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,10 +28,15 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.url.ILinkExtractor;
-import com.norconex.collector.http.url.Link;
+import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.link.ILinkExtractor;
+import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.parser.ParseState;
 
 
 /**
@@ -45,14 +50,18 @@ public class LinkExtractorTest {
 
     //--- Common tests ---------------------------------------------------------
     @Test
-    public void testGenericLinkExtractor() throws IOException {
-        GenericLinkExtractor ex = new GenericLinkExtractor();
+    public void testHtmlLinkExtractor() throws IOException {
+        HtmlLinkExtractor ex = new HtmlLinkExtractor();
         ex.addLinkTag("link", null);
         testLinkExtraction(ex);
     }
     @Test
     public void testTikaLinkExtractor() throws IOException {
         testLinkExtraction(new TikaLinkExtractor());
+    }
+    @Test
+    public void testDOMLinkExtractor() throws IOException {
+        testLinkExtraction(new DOMLinkExtractor());
     }
     private void testLinkExtraction(ILinkExtractor extractor)
             throws IOException {
@@ -87,8 +96,8 @@ public class LinkExtractorTest {
                 baseDir, // empty href
         };
 
-        // Only GenericLinkExtractor:
-        if (extractor instanceof GenericLinkExtractor) {
+        // Only HtmlLinkExtractor:
+        if (extractor instanceof HtmlLinkExtractor) {
             String[] additionalURLs = {
                     baseURL + "addedTagNoAttribUrlInBody.html",
                     baseURL + "addedTagAttribUrlInBody.html",
@@ -114,7 +123,7 @@ public class LinkExtractorTest {
                 "LinkExtractorTest.html");
 
         Set<Link> links = extractor.extractLinks(
-                is, docURL, ContentType.HTML);
+                toCrawlDoc(docURL, ContentType.HTML, is), ParseState.PRE);
         is.close();
 
         for (String expectedURL : expectedURLs) {
@@ -136,8 +145,8 @@ public class LinkExtractorTest {
 
     //--- BASE HREF Tests ------------------------------------------------------
     @Test
-    public void testGenericBaseHrefLinkExtractor() throws IOException {
-        GenericLinkExtractor ex = new GenericLinkExtractor();
+    public void testHtmlBaseHrefLinkExtractor() throws IOException {
+        HtmlLinkExtractor ex = new HtmlLinkExtractor();
         testBaseHrefLinkExtraction(ex);
         testRelativeBaseHrefLinkExtraction(ex);
     }
@@ -167,7 +176,7 @@ public class LinkExtractorTest {
         InputStream is =
                 getClass().getResourceAsStream("LinkBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
-                is, docURL, ContentType.HTML);
+                toCrawlDoc(docURL, ContentType.HTML, is), ParseState.PRE);
         is.close();
         for (String expectedURL : expectedURLs) {
             assertTrue(
@@ -194,7 +203,7 @@ public class LinkExtractorTest {
         InputStream is =
                 getClass().getResourceAsStream("LinkRelativeBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
-                is, docURL, ContentType.HTML);
+                toCrawlDoc(docURL, ContentType.HTML, is), ParseState.PRE);
         is.close();
         for (String expectedURL : expectedURLs) {
             assertTrue(
@@ -208,16 +217,13 @@ public class LinkExtractorTest {
 
     //--- Referrer Data Tests --------------------------------------------------
     @Test
-    public void testGenericLinkKeepReferrer() throws IOException {
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
-        extractor.setContentTypes(ContentType.HTML);
+    public void testHtmlLinkKeepReferrer() throws IOException {
+        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         testLinkKeepReferrer(extractor);
     }
     @Test
     public void testTikaLinkKeepReferrer() throws IOException {
-        TikaLinkExtractor extractor = new TikaLinkExtractor();
-        extractor.setContentTypes(ContentType.HTML);
-        testLinkKeepReferrer(extractor);
+        testLinkKeepReferrer(new TikaLinkExtractor());
     }
     private void testLinkKeepReferrer(ILinkExtractor extractor)
             throws IOException {
@@ -236,7 +242,8 @@ public class LinkExtractorTest {
         InputStream is =
                 getClass().getResourceAsStream("LinkKeepReferrerTest.html");
         Set<Link> links = extractor.extractLinks(
-                is, "http://www.site.com/parent.html", ContentType.HTML);
+                toCrawlDoc("http://www.site.com/parent.html",
+                        ContentType.HTML, is), ParseState.PRE);
         is.close();
 
         Assertions.assertEquals(expectedLinks.length, links.size());
@@ -280,8 +287,8 @@ public class LinkExtractorTest {
                 baseURL + "exclude7.html",
         };
 
-        // Only GenericLinkExtractor:
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        // Only HtmlLinkExtractor:
+        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         extractor.addExtractBetween("<include1>", "</include1>\\s+", true);
         extractor.addExtractBetween("<Include2>", "</Include2>\\s+", false);
         extractor.addNoExtractBetween("<exclude1>", "</exclude1>\\s+", true);
@@ -290,8 +297,9 @@ public class LinkExtractorTest {
         Set<Link> links;
         try (InputStream is = getClass().getResourceAsStream(
                 "LinkExtractBetweenTest.html")) {
-            links = extractor.extractLinks(is,
-                    baseURL + "LinkExtractBetweenTest.html", ContentType.HTML);
+            links = extractor.extractLinks(
+                    toCrawlDoc(baseURL + "LinkExtractBetweenTest.html",
+                            ContentType.HTML, is), ParseState.PRE);
         }
 
         for (String expectedURL : expectedURLs) {
@@ -333,8 +341,8 @@ public class LinkExtractorTest {
                 baseURL + "exclude7.html",
         };
 
-        // Only GenericLinkExtractor:
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        // Only HtmlLinkExtractor:
+        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         extractor.addExtractSelectors("include1");
         extractor.addExtractSelectors("include2");
         extractor.addNoExtractSelectors("exclude1");
@@ -343,8 +351,9 @@ public class LinkExtractorTest {
         Set<Link> links;
         try (InputStream is = getClass().getResourceAsStream(
                 "LinkExtractBetweenTest.html")) {
-            links = extractor.extractLinks(is,
-                    baseURL + "LinkExtractBetweenTest.html", ContentType.HTML);
+            links = extractor.extractLinks(
+                    toCrawlDoc(baseURL + "LinkExtractBetweenTest.html",
+                            ContentType.HTML, is), ParseState.PRE);
         }
 
         for (String expectedURL : expectedURLs) {
@@ -362,9 +371,8 @@ public class LinkExtractorTest {
 
     //--- Other Tests ----------------------------------------------------------
     @Test
-    public void testGenericWriteRead() throws IOException {
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
-        extractor.setContentTypes(ContentType.HTML, ContentType.XML);
+    public void testHtmlWriteRead() {
+        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         extractor.setIgnoreNofollow(true);
         extractor.addLinkTag("food", "chocolate");
         extractor.addLinkTag("friend", "Thor");
@@ -377,16 +385,17 @@ public class LinkExtractorTest {
     }
 
     @Test
-    public void testGenericEquivRefreshIssue210()
+    public void testHtmlEquivRefreshIssue210()
             throws IOException {
         String html = "<html><head><meta http-equiv=\"refresh\" "
                 + "content=\"0; URL=en/91/index.html\">"
                 + "</head><body></body></html>";
         String docURL = "http://db-artmag.com/index_en.html";
-        ILinkExtractor extractor = new GenericLinkExtractor();
+        ILinkExtractor extractor = new HtmlLinkExtractor();
         Set<Link> links = extractor.extractLinks(
-                new ByteArrayInputStream(html.getBytes()),
-                docURL, ContentType.HTML);
+                toCrawlDoc(docURL, ContentType.HTML,
+                        new ByteArrayInputStream(html.getBytes())),
+                ParseState.PRE);
 
         Assertions.assertEquals( 1, links.size(),
                 "Invalid number of links extracted.");
@@ -396,9 +405,8 @@ public class LinkExtractorTest {
     }
 
     @Test
-    public void testTikaWriteRead() throws IOException {
+    public void testTikaWriteRead() {
         TikaLinkExtractor extractor = new TikaLinkExtractor();
-        extractor.setContentTypes(ContentType.HTML, ContentType.XML);
         extractor.setIgnoreNofollow(true);
         LOG.debug("Writing/Reading this: {}", extractor);
         XML.assertWriteRead(extractor, "extractor");
@@ -414,8 +422,9 @@ public class LinkExtractorTest {
                 + "<a href=\"/en/articles/detail/article-x.html\">test link</a>"
                 + "</body></html>";
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
-        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
+        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
+        Set<Link> links = extractor.extractLinks(
+                toCrawlDoc(ref, ContentType.HTML, input), ParseState.PRE);
         input.close();
         Assertions.assertTrue(contains(links, url),
                 "URL not extracted: " + url);
@@ -428,10 +437,10 @@ public class LinkExtractorTest {
                 + "<a href=\"" + url + "\">JavaScript link</a>"
                 + "</body></html>";
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
+        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         extractor.setSchemes("javascript");
         Set<Link> links = extractor.extractLinks(
-                input, "N/A", ContentType.HTML);
+                toCrawlDoc("N/A", ContentType.HTML, input), ParseState.PRE);
         input.close();
         Assertions.assertTrue(contains(links, url),
                 "URL not extracted: " + url);
@@ -439,15 +448,16 @@ public class LinkExtractorTest {
 
     // Related to https://github.com/Norconex/collector-http/pull/312
     @Test
-    public void testGenericBadlyFormedURL() throws IOException {
+    public void testHtmlBadlyFormedURL() throws IOException {
         String ref = "http://www.example.com/index.html";
         String url = "http://www.example.com/invalid^path^.html";
         String html = "<html><body>"
                 + "<a href=\"/invalid^path^.html\">test link</a>"
                 + "</body></html>";
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
-        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
+        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
+        Set<Link> links = extractor.extractLinks(
+                toCrawlDoc(ref, ContentType.HTML, input), ParseState.PRE);
         input.close();
         Assertions.assertTrue(contains(links, url),
                 "URL not extracted: " + url);
@@ -464,8 +474,9 @@ public class LinkExtractorTest {
                 + "<a href=unquoted_url2.html title=\"blah\">test link 2</a>"
                 + "</body></html>";
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
-        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
+        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
+        Set<Link> links = extractor.extractLinks(
+                toCrawlDoc(ref, ContentType.HTML, input), ParseState.PRE);
         input.close();
         assertTrue(
                 contains(links, url1),
@@ -486,8 +497,9 @@ public class LinkExtractorTest {
                 + "<a href='bad\"quote3.html'>test link 1</a>"
                 + "</body></html>";
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
-        GenericLinkExtractor extractor = new GenericLinkExtractor();
-        Set<Link> links = extractor.extractLinks(input, ref, ContentType.HTML);
+        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
+        Set<Link> links = extractor.extractLinks(
+                toCrawlDoc(ref, ContentType.HTML, input), ParseState.PRE);
         input.close();
         assertTrue(
                 contains(links, url1),
@@ -498,6 +510,17 @@ public class LinkExtractorTest {
         assertTrue(
                 contains(links, url3),
                 "Could not find expected URL: " + url3);
+    }
+
+    @Test
+    public void testDOMWriteRead() {
+        DOMLinkExtractor extractor = new DOMLinkExtractor();
+        extractor.setIgnoreNofollow(true);
+        extractor.setCharset("charset");
+        extractor.setParser("xml");
+        extractor.setSchemes("http", "test");
+        LOG.debug("Writing/Reading this: {}", extractor);
+        XML.assertWriteRead(extractor, "extractor");
     }
 
     private boolean contains(Set<Link> links, String url) {
@@ -515,5 +538,13 @@ public class LinkExtractorTest {
             }
         }
         return false;
+    }
+
+    private CrawlDoc toCrawlDoc(String ref, ContentType ct, InputStream is) {
+        HttpDocInfo docInfo = new HttpDocInfo(ref);
+        docInfo.setContentType(ct);
+        CrawlDoc doc = new CrawlDoc(docInfo, CachedInputStream.cache(is));
+        doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ct);
+        return doc;
     }
 }
