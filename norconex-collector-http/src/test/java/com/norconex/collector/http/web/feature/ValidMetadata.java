@@ -20,12 +20,12 @@ import java.util.List;
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.Assertions;
 
-import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
 import com.norconex.committer.core.IAddOperation;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.doc.DocMetadata;
 
 /**
  * Test that metadata is extracted properly.
@@ -51,8 +51,8 @@ public class ValidMetadata extends AbstractInfiniteDepthTestFeature {
             //Test single value
             assertOneValue(meta,
                     HttpHeaders.CONTENT_TYPE,
-                    CrawlDocMetadata.CONTENT_TYPE,
-                    CrawlDocMetadata.CONTENT_ENCODING);
+                    DocMetadata.CONTENT_TYPE,
+                    DocMetadata.CONTENT_ENCODING);
 
             //Test actual values
             Assertions.assertTrue(
@@ -61,11 +61,11 @@ public class ValidMetadata extends AbstractInfiniteDepthTestFeature {
                     "Bad HTTP content-type");
             Assertions.assertTrue(
                     "text/html".equalsIgnoreCase(
-                            meta.getString(CrawlDocMetadata.CONTENT_TYPE)),
+                            meta.getString(DocMetadata.CONTENT_TYPE)),
                     "Bad Collection content-type.");
             Assertions.assertTrue(
                     StandardCharsets.UTF_8.toString().equalsIgnoreCase(
-                        meta.getString(CrawlDocMetadata.CONTENT_ENCODING)),
+                        meta.getString(DocMetadata.CONTENT_ENCODING)),
                     "Bad char-encoding.");
         }
     }

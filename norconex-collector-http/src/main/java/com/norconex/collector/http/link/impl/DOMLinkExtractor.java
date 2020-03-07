@@ -44,6 +44,7 @@ import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.parser.ParseState;
 import com.norconex.importer.util.CharsetUtil;
@@ -203,7 +204,8 @@ public class DOMLinkExtractor extends AbstractLinkExtractor {
 
     public DOMLinkExtractor() {
         super();
-        setRestrictions(CommonRestrictions.domContentTypes());
+        setRestrictions(CommonRestrictions.domContentTypes(
+                DocMetadata.CONTENT_TYPE));
         addLinkSelector("a[href]", "attr(href)");
         addLinkSelector("[src]", "attr(src)");
         addLinkSelector("link[href]", "attr(href)");

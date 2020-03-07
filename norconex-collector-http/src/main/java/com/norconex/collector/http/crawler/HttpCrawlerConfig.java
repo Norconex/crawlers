@@ -99,7 +99,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     private boolean ignoreSitemap;
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
-	private KeepLinks keepReferencedLinks;
+	private KeepLinks keepReferencedLinks = KeepLinks.INSCOPE;
 
 	private boolean fetchHttpHead;
 

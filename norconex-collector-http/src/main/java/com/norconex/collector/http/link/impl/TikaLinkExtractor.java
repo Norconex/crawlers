@@ -41,6 +41,7 @@ import com.norconex.collector.http.link.AbstractLinkExtractor;
 import com.norconex.collector.http.link.ILinkExtractor;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.parser.ParseState;
 
@@ -79,7 +80,8 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
     public TikaLinkExtractor() {
         super();
         // default content type this extractor applies to
-        setRestrictions(CommonRestrictions.htmlContentTypes());
+        setRestrictions(CommonRestrictions.htmlContentTypes(
+                DocMetadata.CONTENT_TYPE));
     }
 
     @Override

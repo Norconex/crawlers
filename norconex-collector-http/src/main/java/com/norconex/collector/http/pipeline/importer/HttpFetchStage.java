@@ -19,7 +19,6 @@ import java.time.ZonedDateTime;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.doc.CrawlDocMetadata;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
@@ -27,6 +26,7 @@ import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.doc.DocMetadata;
 
 /**
  * <p>Fetches (i.e. download for processing) a document and/or its metadata
@@ -55,9 +55,8 @@ import com.norconex.commons.lang.map.Properties;
 
         //--- Add collector-specific metadata ---
         Properties meta = ctx.getDocument().getMetadata();
-        meta.set(CrawlDocMetadata.CONTENT_TYPE, docInfo.getContentType());
-        meta.set(CrawlDocMetadata.CONTENT_ENCODING,
-                docInfo.getContentEncoding());
+        meta.set(DocMetadata.CONTENT_TYPE, docInfo.getContentType());
+        meta.set(DocMetadata.CONTENT_ENCODING, docInfo.getContentEncoding());
 
         //-- Deal with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();

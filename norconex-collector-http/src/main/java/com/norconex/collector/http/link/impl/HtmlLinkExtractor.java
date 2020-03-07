@@ -53,6 +53,7 @@ import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.parser.ParseState;
 import com.norconex.importer.util.CharsetUtil;
@@ -320,7 +321,8 @@ public class HtmlLinkExtractor extends AbstractLinkExtractor {
         super();
 
         // default content type this extractor applies to
-        setRestrictions(CommonRestrictions.htmlContentTypes());
+        setRestrictions(CommonRestrictions.htmlContentTypes(
+                DocMetadata.CONTENT_TYPE));
 
         // default tags/attributes used to extract data.
         addLinkTag("a", "href");
@@ -340,7 +342,6 @@ public class HtmlLinkExtractor extends AbstractLinkExtractor {
 
         String sourceCharset =
                 CharsetUtil.detectCharsetIfNotBlank(getCharset(), doc);
-
 
         Referer referer = new Referer(doc.getReference());
 

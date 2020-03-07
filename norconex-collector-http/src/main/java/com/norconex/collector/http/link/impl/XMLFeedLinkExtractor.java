@@ -36,6 +36,7 @@ import com.norconex.collector.http.link.ILinkExtractor;
 import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.parser.ParseState;
 
@@ -94,7 +95,8 @@ public class XMLFeedLinkExtractor extends AbstractLinkExtractor {
     public XMLFeedLinkExtractor() {
         super();
         // default content type this extractor applies to
-        setRestrictions(CommonRestrictions.xmlFeedContentTypes());
+        setRestrictions(CommonRestrictions.xmlFeedContentTypes(
+                DocMetadata.CONTENT_TYPE));
     }
 
     @Override

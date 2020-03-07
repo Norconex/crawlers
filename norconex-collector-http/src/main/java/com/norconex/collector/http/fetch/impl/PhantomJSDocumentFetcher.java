@@ -79,6 +79,7 @@ import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
+import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.util.CharsetUtil;
 
 /**
@@ -1109,14 +1110,14 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                     doc.getContent(), doc.getReference());
             if (ct != null) {
                 doc.getMetadata().set(
-                        CrawlDocMetadata.CONTENT_TYPE, ct.toString());
+                        DocMetadata.CONTENT_TYPE, ct.toString());
             }
         }
         if (fetcherConfig.isForceCharsetDetection()) {
             String charset = CharsetUtil.detectCharset(doc.getContent());
             if (StringUtils.isNotBlank(charset)) {
                 doc.getMetadata().set(
-                        CrawlDocMetadata.CONTENT_ENCODING, charset);
+                        DocMetadata.CONTENT_ENCODING, charset);
             }
         }
     }
