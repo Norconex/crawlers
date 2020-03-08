@@ -32,8 +32,11 @@
         New "disableSNI" crawler configuration option to disable Server Name 
         Indication.
       </action>
-      <action dev="essiembre" type="update">
+      <action dev="essiembre" type="add">
         New DOMLinkExtractor using JSoup to extract links. 
+      </action>
+      <action dev="essiembre" type="add">
+        Added support for extracting links from meatadata fields. 
       </action>
       <action dev="essiembre" type="add">
         New HttpDoc, HttpDocInfo, HttpDocMetadata (new or renamed).

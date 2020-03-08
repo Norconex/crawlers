@@ -16,31 +16,12 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-
- * <extractor class="com.norconex.collector.http.link.impl.DOMLinkExtractor"
- *     ignoreNofollow="[false|true]"
- *     parser="[html|xml]"
- *     charset="(supported character encoding)">
- *
- *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
- *
- *   <schemes>
- *     (CSV list of URI scheme for which to perform link extraction.
- *      leave blank or remove tag to use defaults.)
- *   </schemes>
- *
- *   <!-- Repeat as needed -->
- *   <dom selector="(selector syntax)"
- *       {@nx.include com.norconex.importer.util.DOMUtil#attributes} />
- * </extractor>
-
-
-  <xs:include schemaLocation="../AbstractLinkExtractor.xsd"></xs:include>
+  <xs:include schemaLocation="../AbstractTextLinkExtractor.xsd"></xs:include>
   
   <xs:element name="extractor">
     <xs:complexType>
       <xs:complexContent> 
-        <xs:extension base="AbstractLinkExtractor">
+        <xs:extension base="AbstractTextLinkExtractor">
           <xs:all>
             <xs:element name="schemes" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element ref="dom" minOccurs="1" maxOccurs="unbounded" />

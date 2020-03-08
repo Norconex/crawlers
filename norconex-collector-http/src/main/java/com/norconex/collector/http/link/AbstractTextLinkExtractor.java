@@ -131,7 +131,10 @@ public abstract class AbstractTextLinkExtractor extends AbstractLinkExtractor {
     @Override
     public final void loadLinkExtractorFromXML(XML xml) {
         loadTextLinkExtractorFromXML(xml);
-        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
+        XML fmXML = xml.getXML("fieldMatcher");
+        if (fmXML != null) {
+            fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
+        }
     }
     /**
      * Loads configuration settings specific to the implementing class.

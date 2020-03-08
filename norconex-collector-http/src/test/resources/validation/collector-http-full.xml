@@ -47,7 +47,10 @@
       <provider class="com.norconex.collector.http.crawler.MockStartURLsProvider"/>
     </startURLs>
     <keepDownloads>true</keepDownloads>
+    <!-- Replaced: 
     <keepOutOfScopeLinks>false</keepOutOfScopeLinks>
+    -->
+    <keepReferencedLinks>ALL</keepReferencedLinks>
     <maxDepth>99</maxDepth>
     <numThreads>1</numThreads>
     <workDir>/tmp/111</workDir>
@@ -227,10 +230,16 @@
        <headersPrefix>prefix</headersPrefix>
     </robotsMeta>
     <linkExtractors>
-      <extractor class="com.norconex.collector.http.link.impl.GenericLinkExtractor"
+    <!-- DEPRECATED:
+       - all content type + reference filter options, replaced with restrictTo
+       -->
+      <extractor class="com.norconex.collector.http.link.impl.HtmlLinkExtractor"
           maxURLLength="999" ignoreNofollow="false" 
           commentsEnabled="true" charset="UTF-8" >
-        <contentTypes>text/html</contentTypes>
+        <restrictTo>
+          <fieldMatcher>document.contentType</fieldMatcher>
+          <valueMatcher>text/html</valueMatcher>
+        </restrictTo>
         <schemes>https</schemes>
         <tags>
           <tag name="a" attribute="href" />
@@ -252,7 +261,7 @@
           <start>nostart2</start><end>noend2</end>
         </noExtractBetween>
       </extractor>
-      <extractor class="com.norconex.collector.http.link.impl.GenericLinkExtractor">
+      <extractor class="com.norconex.collector.http.link.impl.HtmlLinkExtractor">
         <tags>
           <tag name="a" attribute="href" />
           <tag name="script" attribute="src" />
@@ -260,16 +269,28 @@
       </extractor>
       <extractor class="com.norconex.collector.http.link.impl.RegexLinkExtractor"
           maxURLLength="1234" charset="iso-8859-1">
-        <applyToContentTypePattern>ct.*</applyToContentTypePattern>
-        <applyToReferencePattern>ref.*</applyToReferencePattern>
+        <restrictTo>
+          <fieldMatcher>document.contentType</fieldMatcher>
+          <valueMatcher method="regex">ct.*</valueMatcher>
+        </restrictTo>          
+        <restrictTo>
+          <fieldMatcher>document.reference</fieldMatcher>
+          <valueMatcher method="regex">ref.*</valueMatcher>
+        </restrictTo>          
         <linkExtractionPatterns>
           <pattern><match>\[(.*?)\]</match><replace>$1</replace></pattern>
           <pattern><match>http://.*?\.html</match></pattern>
         </linkExtractionPatterns>
       </extractor>
       <extractor class="com.norconex.collector.http.link.impl.XMLFeedLinkExtractor">
-          <applyToContentTypePattern>.*</applyToContentTypePattern>
-          <applyToReferencePattern>.*</applyToReferencePattern>
+        <restrictTo>
+          <fieldMatcher>document.contentType</fieldMatcher>
+          <valueMatcher method="regex">.*</valueMatcher>
+        </restrictTo>          
+        <restrictTo>
+          <fieldMatcher>document.reference</fieldMatcher>
+          <valueMatcher method="regex">.*</valueMatcher>
+        </restrictTo> 
       </extractor>      
     </linkExtractors>
     <documentFilters>

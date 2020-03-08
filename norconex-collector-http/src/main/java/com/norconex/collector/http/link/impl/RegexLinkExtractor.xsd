@@ -16,12 +16,12 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:include schemaLocation="../AbstractLinkExtractor.xsd"></xs:include>
+  <xs:include schemaLocation="../AbstractTextLinkExtractor.xsd"></xs:include>
   
   <xs:element name="extractor">
     <xs:complexType>
       <xs:complexContent> 
-        <xs:extension base="AbstractLinkExtractor">
+        <xs:extension base="AbstractTextLinkExtractor">
           <xs:all>
             <xs:element name="linkExtractionPatterns" minOccurs="1" maxOccurs="1">
               <xs:complexType>
