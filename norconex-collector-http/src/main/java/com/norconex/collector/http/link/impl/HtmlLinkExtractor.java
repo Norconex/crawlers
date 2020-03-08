@@ -14,9 +14,7 @@
  */
 package com.norconex.collector.http.link.impl;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,9 +41,8 @@ import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.http.doc.HttpDocMetadata;
-import com.norconex.collector.http.link.AbstractLinkExtractor;
+import com.norconex.collector.http.link.AbstractTextLinkExtractor;
 import com.norconex.collector.http.link.ILinkExtractor;
 import com.norconex.collector.http.link.Link;
 import com.norconex.collector.http.url.IURLNormalizer;
@@ -55,8 +52,8 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
+import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.CharsetUtil;
 
 /**
  * <p>
@@ -220,7 +217,7 @@ import com.norconex.importer.util.CharsetUtil;
  *     commentsEnabled="[false|true]"
  *     charset="(supported character encoding)">
  *
- *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
+ *   {@nx.include com.norconex.collector.http.link.AbstractTextLinkExtractor@nx.xml.usage}
  *
  *   <schemes>
  *     (CSV list of URI scheme for which to perform link extraction.
@@ -279,7 +276,7 @@ import com.norconex.importer.util.CharsetUtil;
  * @since 3.0.0 (refactored from GenericLinkExtractor)
  */
 @SuppressWarnings("javadoc")
-public class HtmlLinkExtractor extends AbstractLinkExtractor {
+public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
     private static final Logger LOG = LoggerFactory.getLogger(
             HtmlLinkExtractor.class);
@@ -337,20 +334,15 @@ public class HtmlLinkExtractor extends AbstractLinkExtractor {
 
 
     @Override
-    public void extractLinks(Set<Link> links, CrawlDoc doc,
-            ParseState parseState) throws IOException {
-
-        String sourceCharset =
-                CharsetUtil.detectCharsetIfNotBlank(getCharset(), doc);
+    public void extractTextLinks(Set<Link> links, HandlerDoc doc,
+            Reader reader, ParseState parseState) throws IOException {
 
         Referer referer = new Referer(doc.getReference());
 
         StringBuilder sb = new StringBuilder();
-        Reader r = new BufferedReader(
-                new InputStreamReader(doc.getInputStream(), sourceCharset));
         int ch;
         boolean firstChunk = true;
-        while ((ch = r.read()) != -1) {
+        while ((ch = reader.read()) != -1) {
             sb.append((char) ch);
             if (sb.length() >= MAX_BUFFER_SIZE) {
                 String content = sb.toString();
@@ -953,7 +945,7 @@ public class HtmlLinkExtractor extends AbstractLinkExtractor {
     }
 
     @Override
-    protected void loadLinkExtractorFromXML(XML xml) {
+    protected void loadTextLinkExtractorFromXML(XML xml) {
         setMaxURLLength(xml.getInteger("@maxURLLength", maxURLLength));
         setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
         setCommentsEnabled(xml.getBoolean("@commentsEnabled", commentsEnabled));
@@ -1011,7 +1003,7 @@ public class HtmlLinkExtractor extends AbstractLinkExtractor {
 
     }
     @Override
-    protected void saveLinkExtractorToXML(XML xml) {
+    protected void saveTextLinkExtractorToXML(XML xml) {
         xml.setAttribute("maxURLLength", maxURLLength);
         xml.setAttribute("ignoreNofollow", ignoreNofollow);
         xml.setAttribute("commentsEnabled", commentsEnabled);

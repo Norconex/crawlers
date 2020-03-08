@@ -19,6 +19,7 @@ import static org.apache.commons.lang3.StringUtils.trim;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,21 +34,19 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.jsoup.helper.DataUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 
-import com.norconex.collector.core.doc.CrawlDoc;
-import com.norconex.collector.http.link.AbstractLinkExtractor;
+import com.norconex.collector.http.link.AbstractTextLinkExtractor;
 import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
+import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.CharsetUtil;
 import com.norconex.importer.util.DOMUtil;
 
 /**
@@ -153,8 +152,7 @@ import com.norconex.importer.util.DOMUtil;
  *     ignoreNofollow="[false|true]"
  *     parser="[html|xml]"
  *     charset="(supported character encoding)">
- *
- *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
+ *   {@nx.include com.norconex.collector.http.link.AbstractTextLinkExtractor@nx.xml.usage}
  *
  *   <schemes>
  *     (CSV list of URI scheme for which to perform link extraction.
@@ -186,7 +184,7 @@ import com.norconex.importer.util.DOMUtil;
  * @since 3.0.0
  */
 @SuppressWarnings("javadoc")
-public class DOMLinkExtractor extends AbstractLinkExtractor {
+public class DOMLinkExtractor extends AbstractTextLinkExtractor {
 
     private static final List<String> DEFAULT_SCHEMES =
             Collections.unmodifiableList(Arrays.asList("http", "https", "ftp"));
@@ -290,14 +288,10 @@ public class DOMLinkExtractor extends AbstractLinkExtractor {
     }
 
     @Override
-    public void extractLinks(Set<Link> links, CrawlDoc doc,
+    public void extractTextLinks(Set<Link> links, HandlerDoc doc, Reader reader,
             ParseState parseState) throws IOException {
         Parser jparser = DOMUtil.toJSoupParser(this.parser);
-        String encoding =
-                CharsetUtil.detectCharsetIfNotBlank(getCharset(), doc);
-        Document jdoc = DataUtil.load(
-                doc.getInputStream(), encoding, doc.getReference(), jparser);
-
+        Document jdoc = jparser.parseInput(reader, doc.getReference());
         for (Entry<String, String> sel : linkSelectors.entrySet()) {
             for (Element elm : jdoc.select(sel.getKey())) {
                 Link link = extractLink(elm, sel.getValue());
@@ -345,7 +339,7 @@ public class DOMLinkExtractor extends AbstractLinkExtractor {
     }
 
     @Override
-    protected void loadLinkExtractorFromXML(XML xml) {
+    protected void loadTextLinkExtractorFromXML(XML xml) {
         setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
         setCharset(xml.getString("@charset", charset));
         setParser(xml.getString("@parser", parser));
@@ -362,7 +356,7 @@ public class DOMLinkExtractor extends AbstractLinkExtractor {
     }
 
     @Override
-    protected void saveLinkExtractorToXML(XML xml) {
+    protected void saveTextLinkExtractorToXML(XML xml) {
         xml.setAttribute("ignoreNofollow", ignoreNofollow);
         xml.setAttribute("charset", charset);
         xml.setAttribute("parser", parser);

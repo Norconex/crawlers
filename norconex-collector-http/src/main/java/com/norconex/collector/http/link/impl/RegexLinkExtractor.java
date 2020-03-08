@@ -14,9 +14,7 @@
  */
 package com.norconex.collector.http.link.impl;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,14 +31,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.http.doc.HttpDocMetadata;
-import com.norconex.collector.http.link.AbstractLinkExtractor;
+import com.norconex.collector.http.link.AbstractTextLinkExtractor;
 import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.CharsetUtil;
 
 /**
  * <p>
@@ -84,41 +81,43 @@ import com.norconex.importer.util.CharsetUtil;
  * </p>
  *
  * {@nx.xml.usage
- *  <extractor class="com.norconex.collector.http.link.impl.RegexLinkExtractor"
- *          maxURLLength="(maximum URL length. Default is 2048)"
- *          charset="(supported character encoding)" >
+ * <extractor class="com.norconex.collector.http.link.impl.RegexLinkExtractor"
+ *     maxURLLength="(maximum URL length. Default is 2048)"
+ *     charset="(supported character encoding)" >
  *
- *      <!-- Patterns for URLs to extract -->
- *      <linkExtractionPatterns>
- *          <pattern>
- *            <match>(regular expression)</match>
- *            <replace>(optional regex replacement)</replace>
- *          </pattern>
- *          <!-- you can have multiple pattern entries -->
- *      </linkExtractionPatterns>
- *  </extractor>
+ *   {@nx.include com.norconex.collector.http.link.AbstractTextLinkExtractor@nx.xml.usage}
+ *
+ *   <!-- Patterns for URLs to extract -->
+ *   <linkExtractionPatterns>
+ *     <pattern>
+ *       <match>(regular expression)</match>
+ *       <replace>(optional regex replacement)</replace>
+ *     </pattern>
+ *     <!-- you can have multiple pattern entries -->
+ *   </linkExtractionPatterns>
+ * </extractor>
  * }
  *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ * <extractor class="com.norconex.collector.http.link.impl.RegexLinkExtractor">
+ *   <linkExtractionPatterns>
+ *     <pattern>
+ *       <match>\[(\d+)\]<match>
+ *       <replace>http://www.example.com/page?id=$1<replace>
+ *     </pattern>
+ *   </linkExtractionPatterns>
+ * </extractor>
+ * }
  * <p>
- * The following extracts page "ids" contained in square brackets and
+ * The above example extracts page "ids" contained in square brackets and
  * add them to a custom URL.
  * </p>
- * <pre>
- *  <extractor class="com.norconex.collector.http.link.impl.RegexLinkExtractor">
- *      <linkExtractionPatterns>
- *          <pattern>
- *              <match>\[(\d+)\]<match>
- *              <replace>http://www.example.com/page?id=$1<replace>
- *          </pattern>
- *      </linkExtractionPatterns>
- *  </extractor>
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 2.7.0
  */
-public class RegexLinkExtractor extends AbstractLinkExtractor {
+@SuppressWarnings("javadoc")
+public class RegexLinkExtractor extends AbstractTextLinkExtractor {
 
     public static final String DEFAULT_CONTENT_TYPE_PATTERN = "text/.*";
 
@@ -139,19 +138,13 @@ public class RegexLinkExtractor extends AbstractLinkExtractor {
         super();
     }
 
-
     @Override
-    public void extractLinks(Set<Link> links, CrawlDoc doc,
-            ParseState parseState) throws IOException {
-
-        String sourceCharset =
-                CharsetUtil.detectCharsetIfNotBlank(getCharset(), doc);
+    public void extractTextLinks(Set<Link> links, HandlerDoc doc,
+            Reader reader, ParseState parseState) throws IOException {
 
         StringBuilder sb = new StringBuilder();
-        Reader r = new BufferedReader(
-                new InputStreamReader(doc.getInputStream(), sourceCharset));
         int ch;
-        while ((ch = r.read()) != -1) {
+        while ((ch = reader.read()) != -1) {
             sb.append((char) ch);
             if (sb.length() >= MAX_BUFFER_SIZE) {
                 String content = sb.toString();
@@ -249,7 +242,7 @@ public class RegexLinkExtractor extends AbstractLinkExtractor {
     }
 
     @Override
-    protected void loadLinkExtractorFromXML(XML xml) {
+    protected void loadTextLinkExtractorFromXML(XML xml) {
         setMaxURLLength(xml.getInteger("@maxURLLength", maxURLLength));
         setCharset(xml.getString("@charset", charset));
 
@@ -268,7 +261,7 @@ public class RegexLinkExtractor extends AbstractLinkExtractor {
 
 
     @Override
-    protected void saveLinkExtractorToXML(XML xml) {
+    protected void saveTextLinkExtractorToXML(XML xml) {
         xml.setAttribute("maxURLLength", maxURLLength);
         xml.setAttribute("charset", charset);
         // Tags

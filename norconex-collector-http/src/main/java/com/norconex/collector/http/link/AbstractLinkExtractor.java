@@ -52,7 +52,7 @@ import com.norconex.importer.parser.ParseState;
  * {@nx.include com.norconex.importer.handler.AbstractImporterHandler@nx.xml.example}
  * }
  * <p>
- * The above will apply to any content type starting with "text/".
+ * The above example will apply to any content type starting with "text/".
  * </p>
  *
  * @author Pascal Essiembre
@@ -61,9 +61,6 @@ import com.norconex.importer.parser.ParseState;
 @SuppressWarnings("javadoc")
 public abstract class AbstractLinkExtractor
         implements ILinkExtractor, IXMLConfigurable {
-
-
-    //TODO add support for using fields to find xml.
 
     private static final Logger LOG = LoggerFactory.getLogger(
             AbstractLinkExtractor.class);
@@ -88,9 +85,8 @@ public abstract class AbstractLinkExtractor
         return links;
     }
 
-    public abstract void extractLinks(
-            Set<Link> links, CrawlDoc doc, ParseState parseState)
-                    throws IOException;
+    public abstract void extractLinks(Set<Link> links, CrawlDoc doc,
+            ParseState parseState) throws IOException;
 
     /**
      * Subclasses can override this method to enforce usage of this extractor

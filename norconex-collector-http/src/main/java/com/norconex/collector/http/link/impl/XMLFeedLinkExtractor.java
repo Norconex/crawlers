@@ -15,6 +15,7 @@
 package com.norconex.collector.http.link.impl;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,15 +30,15 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.http.doc.HttpDocMetadata;
-import com.norconex.collector.http.link.AbstractLinkExtractor;
+import com.norconex.collector.http.link.AbstractTextLinkExtractor;
 import com.norconex.collector.http.link.ILinkExtractor;
 import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLUtil;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
+import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.parser.ParseState;
 
 /**
@@ -71,7 +72,7 @@ import com.norconex.importer.parser.ParseState;
  *
  * {@nx.xml.usage
  * <extractor class="com.norconex.collector.http.link.impl.XMLFeedLinkExtractor">
- *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
+ *   {@nx.include com.norconex.collector.http.link.AbstractTextLinkExtractor@nx.xml.usage}
  * </extractor>
  * }
  *
@@ -90,7 +91,7 @@ import com.norconex.importer.parser.ParseState;
  * @since 2.7.0
  */
 @SuppressWarnings("javadoc")
-public class XMLFeedLinkExtractor extends AbstractLinkExtractor {
+public class XMLFeedLinkExtractor extends AbstractTextLinkExtractor {
 
     public XMLFeedLinkExtractor() {
         super();
@@ -100,14 +101,14 @@ public class XMLFeedLinkExtractor extends AbstractLinkExtractor {
     }
 
     @Override
-    public void extractLinks(Set<Link> links, CrawlDoc doc,
-            ParseState parseState) throws IOException {
+    public void extractTextLinks(Set<Link> links, HandlerDoc doc,
+            Reader reader, ParseState parseState) throws IOException {
         try {
             XMLReader xmlReader = XMLUtil.createXMLReader();
             FeedHandler handler = new FeedHandler(doc.getReference(), links);
             xmlReader.setContentHandler(handler);
             xmlReader.setErrorHandler(handler);
-            xmlReader.parse(new InputSource(doc.getInputStream()));
+            xmlReader.parse(new InputSource(reader));
         } catch (SAXException e) {
             throw new CollectorException(
                     "Could not parse XML Feed: " + doc.getReference(), e);
@@ -115,12 +116,12 @@ public class XMLFeedLinkExtractor extends AbstractLinkExtractor {
     }
 
     @Override
-    protected void loadLinkExtractorFromXML(XML xml) {
+    protected void loadTextLinkExtractorFromXML(XML xml) {
         //NOOP
     }
 
     @Override
-    protected void saveLinkExtractorToXML(XML xml) {
+    protected void saveTextLinkExtractorToXML(XML xml) {
         //NOOP
     }
 
