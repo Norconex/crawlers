@@ -14,6 +14,15 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Objects;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
@@ -27,14 +36,6 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.collector.http.url.ICanonicalLinkDetector;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.commons.lang.file.ContentType;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * @author Pascal Essiembre
@@ -82,7 +83,7 @@ import java.util.Objects;
         if (StringUtils.isNotBlank(httpCT)) {
             // delegate parsing of content-type honoring various forms
             // https://tools.ietf.org/html/rfc7231#section-3.1.1
-            org.apache.http.entity.ContentType parsedCT = 
+            org.apache.http.entity.ContentType parsedCT =
                     org.apache.http.entity.ContentType.parse(httpCT);
 
             if (StringUtils.isBlank(colCT)) {
@@ -225,15 +226,24 @@ import java.util.Objects;
         HttpCrawlData crawlData = ctx.getCrawlData();
         String sourceURL =  crawlData.getReference();
 
+        //--- Reject source URL ---
+        crawlData.setState(HttpCrawlState.REDIRECT);
+        HttpFetchResponse newResponse = new HttpFetchResponse(
+                HttpCrawlState.REDIRECT,
+                response.getStatusCode(),
+                response.getReasonPhrase() + " (" + redirectURL + ")");
+        ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED,
+                crawlData, newResponse);
+
         boolean requeue = false;
 
-        //--- Do not queue if previously handled ---
+        //--- Do not queue target URL if previously handled ---
         //TODO throw an event if already active/processed(ing)?
         if (store.isActive(redirectURL)) {
-            rejectRedirectDup("being processed", sourceURL, redirectURL);
+            logRedirectTargetAlreadyHandled("being processed", sourceURL, redirectURL);
             return;
         } else if (store.isQueued(redirectURL)) {
-            rejectRedirectDup("queued", sourceURL, redirectURL);
+            logRedirectTargetAlreadyHandled("queued", sourceURL, redirectURL);
             return;
         } else if (store.isProcessed(redirectURL)) {
             // If part of redirect trail, allow a second queueing
@@ -247,7 +257,7 @@ import java.util.Objects;
                     LOG.trace("Redirect encountered for 3rd time, rejecting: "
                         + redirectURL);
                 }
-                rejectRedirectDup("processed", sourceURL, redirectURL);
+                logRedirectTargetAlreadyHandled("processed", sourceURL, redirectURL);
                 return;
             //TODO improve this #533 hack in v3
             } else if (HttpImporterPipeline.GOOD_REDIRECTS.contains(
@@ -256,7 +266,7 @@ import java.util.Objects;
                     LOG.trace("Redirect URL previously processed and was "
                             + "valid, rejecting: " + redirectURL);
                 }
-                rejectRedirectDup("processed", sourceURL, redirectURL);
+                logRedirectTargetAlreadyHandled("processed", sourceURL, redirectURL);
                 return;
             }
 
@@ -269,13 +279,6 @@ import java.util.Objects;
         }
 
         //--- Fresh URL, queue it! ---
-        crawlData.setState(HttpCrawlState.REDIRECT);
-        HttpFetchResponse newResponse = new HttpFetchResponse(
-                HttpCrawlState.REDIRECT,
-                response.getStatusCode(),
-                response.getReasonPhrase() + " (" + redirectURL + ")");
-        ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED,
-                crawlData, newResponse);
 
         HttpCrawlData newData = new HttpCrawlData(
                 redirectURL, crawlData.getDepth());
@@ -308,7 +311,7 @@ import java.util.Objects;
         }
     }
 
-    private static void rejectRedirectDup(String action,
+    private static void logRedirectTargetAlreadyHandled(String action,
             String originalURL, String redirectURL) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Redirect target URL is already " + action

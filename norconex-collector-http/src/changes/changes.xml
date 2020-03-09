@@ -11,7 +11,11 @@
       <action dev="essiembre" type="update" issue="655">
         Can now decide to re-process headers as part of document fetching
         when metadata fetcher fails.
-      </action>    
+      </action>
+      <action dev="essiembre" type="fix" issue="678">
+        Fixed REJECTED_REDIRECTED event not being fired for the redirect 
+        source URL when the target URL was previously encountered. 
+      </action>
     </release>
 
     <release version="2.9.0" date="2019-12-22" description="Feature release">
