@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2013-2019 Norconex Inc.
+   Copyright 2013-2020 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@
 
   <properties>
     <jetty.version>9.4.14.v20181114</jetty.version>
-    <norconex-collector-core.version>2.0.0-SNAPSHOT</norconex-collector-core.version>
   </properties>
   <inceptionYear>2009</inceptionYear>
 
@@ -39,12 +38,11 @@
       <groupId>com.norconex.commons</groupId>
       <artifactId>norconex-commons-lang</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <version>${norconex-collector-core.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.imgscalr</groupId>
       <artifactId>imgscalr-lib</artifactId>
@@ -164,10 +162,21 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
       </plugin>
-     
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <!-- We are referencing doc from importer with @nx.include so
+               we need to include that dependency here. -->
+          <tagletArtifacts combine.children="append">
+            <tagletArtifact>
+              <groupId>com.norconex.collectors</groupId>
+              <artifactId>norconex-importer</artifactId>
+              <version>${norconex-importer.version}</version>
+            </tagletArtifact>
+          </tagletArtifacts>
+        </configuration>
       </plugin>
 
       <plugin>

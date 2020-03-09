@@ -102,8 +102,8 @@ import com.norconex.importer.parser.ParseState;
  * <extractor class="com.norconex.collector.http.link.impl.RegexLinkExtractor">
  *   <linkExtractionPatterns>
  *     <pattern>
- *       <match>\[(\d+)\]<match>
- *       <replace>http://www.example.com/page?id=$1<replace>
+ *       <match>\[(\d+)\]</match>
+ *       <replace>http://www.example.com/page?id=$1</replace>
  *     </pattern>
  *   </linkExtractionPatterns>
  * </extractor>

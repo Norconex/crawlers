@@ -132,7 +132,7 @@ import com.norconex.importer.parser.ParseState;
  *   Metadata value is
  *   {@link HttpDocMetadata#REFERRER_LINK_TEXT}.</li>
  *   <li><b>Referrer link title:</b> The <code>title</code> attribute of the
-     link that contained the document reference (URL) in referrer's content.
+ *   link that contained the document reference (URL) in referrer's content.
  *   Can also be useful to help establish better document titles.
  *   Metadata value is
  *   {@link HttpDocMetadata#REFERRER_LINK_TITLE}.</li>
@@ -157,7 +157,6 @@ import com.norconex.importer.parser.ParseState;
  * To force its extraction (and ensure it is followed) you can set
  * {@link #setIgnoreNofollow(boolean)} to <code>true</code>.
  * </p>
- * <p>
  *
  * <h3>URL Fragments</h3>
  * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found

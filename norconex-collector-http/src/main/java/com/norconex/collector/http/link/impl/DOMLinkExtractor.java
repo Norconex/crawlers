@@ -161,7 +161,8 @@ import com.norconex.importer.util.DOMUtil;
  *
  *   <!-- Repeat as needed -->
  *   <dom selector="(selector syntax)"
- *       {@nx.include com.norconex.importer.util.DOMUtil#attributes} />
+ *       {@nx.include com.norconex.importer.util.DOMUtil#attributes}
+ *       />
  * </extractor>
  * }
  *
