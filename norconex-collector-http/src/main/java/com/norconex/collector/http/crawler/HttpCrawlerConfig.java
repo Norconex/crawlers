@@ -50,6 +50,7 @@ import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 
 /**
@@ -120,6 +121,10 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 
     private final List<ILinkExtractor> linkExtractors =
             new ArrayList<>(Arrays.asList(new HtmlLinkExtractor()));
+
+
+    private boolean postImportLinksKeep;
+    private TextMatcher postImportLinks = new TextMatcher();
 
     private IRobotsTxtProvider robotsTxtProvider =
             new StandardRobotsTxtProvider();
@@ -660,6 +665,43 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         this.recrawlableResolver = recrawlableResolver;
     }
 
+    /**
+     * Gets a field matcher used to identify post-import metadata fields
+     * holding URLs to consider for crawling.
+     * @return field matcher
+     * @since 3.0.0
+     */
+    public TextMatcher getPostImportLinks() {
+        return postImportLinks;
+    }
+    /**
+     * Set a field matcher used to identify post-import metadata fields
+     * holding URLs to consider for crawling.
+     * @param fieldMatcher field matcher
+     * @since 3.0.0
+     */
+    public void setPostImportLinks(TextMatcher fieldMatcher) {
+        this.postImportLinks.copyFrom(fieldMatcher);
+    }
+    /**
+     * Gets whether to keep the importer-generated field holding URLs to
+     * consider for crawling.
+     * @return <code>true</code> if keeping
+     * @since 3.0.0
+     */
+    public boolean isPostImportLinksKeep() {
+        return postImportLinksKeep;
+    }
+    /**
+     * Sets whether to keep the importer-generated field holding URLs to
+     * consider for crawling.
+     * @param postImportLinksKeep <code>true</code> if keeping
+     * @since 3.0.0
+     */
+    public void setPostImportLinksKeep(boolean postImportLinksKeep) {
+        this.postImportLinksKeep = postImportLinksKeep;
+    }
+
     @Override
     protected void saveCrawlerConfigToXML(XML xml) {
         xml.addElement("maxDepth", maxDepth);
@@ -703,6 +745,11 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 "preImportProcessors", "processor", preImportProcessors);
         xml.addElementList(
                 "postImportProcessors", "processor", postImportProcessors);
+
+        postImportLinks.saveToXML(
+                xml.addElement("postImportLinks")
+                        .setAttribute("keep", postImportLinksKeep)
+                        .addElement("fieldMatcher"));
     }
 
     @Override
@@ -765,7 +812,11 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 IHttpDocumentProcessor.class,
                 "postImportProcessors/processor", postImportProcessors));
 
-        // Removed version 2.x configuration options:
+        postImportLinks.loadFromXML(xml.getXML("postImportLinks/fieldMatcher"));
+        postImportLinksKeep =
+                xml.getBoolean("postImportLinks/@keep", postImportLinksKeep);
+
+        // Removed/replaced version 2.x configuration options:
         xml.checkDeprecated("httpClientFactory", "httpFetchers/fetcher", true);
         xml.checkDeprecated("metadataFetcher", "httpFetchers/fetcher", true);
         xml.checkDeprecated("documentFetcher", "httpFetchers/fetcher", true);

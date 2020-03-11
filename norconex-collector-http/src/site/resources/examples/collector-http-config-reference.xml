@@ -373,6 +373,15 @@
         <processor class="YourClass"></processor>
       </postImportProcessors>
         
+      <!-- Optionally define one or more post-import fields containing URLs
+           to be considered for crawling. The field will be deleted
+           once read, unless "keep" is "true".
+           -->
+      <postImportLinks keep="[false|true]">
+        <fieldMatcher></fieldMatcher>
+      </postImportLinks>
+        
+        
       <!-- Decide what to do with references that have turned bad.
            Class must implement 
            com.norconex.collector.core.spoil.ISpoiledReferenceStrategizer.

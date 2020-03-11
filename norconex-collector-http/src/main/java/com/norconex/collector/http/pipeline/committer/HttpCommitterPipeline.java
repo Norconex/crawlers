@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@
  */
 package com.norconex.collector.http.pipeline.committer;
 
+import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.pipeline.DocumentPipelineContext;
 import com.norconex.collector.core.pipeline.committer.CommitModuleStage;
 import com.norconex.collector.core.pipeline.committer.DocumentChecksumStage;
-import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
 import com.norconex.commons.lang.pipeline.Pipeline;
 
 /**
  * @author Pascal Essiembre
- *
  */
 public class HttpCommitterPipeline
         extends Pipeline<DocumentPipelineContext> {
@@ -31,6 +30,7 @@ public class HttpCommitterPipeline
     public HttpCommitterPipeline() {
         addStage(new DocumentChecksumStage());
         addStage(new DocumentPostProcessingStage());
+        addStage(new PostImportLinksStage());
         addStage(new CommitModuleStage());
     }
 
@@ -43,7 +43,7 @@ public class HttpCommitterPipeline
                     ctx.getConfig().getPostImportProcessors()) {
                 postProc.processDocument(
                         ctx.getHttpFetchClient(), ctx.getDocument());
-                ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_POSTIMPORTED,
+                ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_POSTIMPORTED,
                         ctx.getDocInfo(), postProc);
             }
             return true;

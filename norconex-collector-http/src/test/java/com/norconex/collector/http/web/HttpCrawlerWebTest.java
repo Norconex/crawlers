@@ -52,6 +52,7 @@ import com.norconex.collector.http.web.feature.MaxDepth;
 import com.norconex.collector.http.web.feature.MaxURLs;
 import com.norconex.collector.http.web.feature.ModifiedFiles;
 import com.norconex.collector.http.web.feature.MultiRedirect;
+import com.norconex.collector.http.web.feature.PostImportLinks;
 import com.norconex.collector.http.web.feature.Redirect;
 import com.norconex.collector.http.web.feature.RedirectCanonicalLoop;
 import com.norconex.collector.http.web.feature.ScriptTags;
@@ -102,6 +103,7 @@ public class HttpCrawlerWebTest {
         new JavaScriptURL(),
         new UnmodifiedMeta(),
         new IfModifiedSince(),
+        new PostImportLinks(),
 
         // Recovery-related tests
         new StartAfterStopped(),
@@ -120,6 +122,7 @@ public class HttpCrawlerWebTest {
 //    }
 
     private static TestServer server = new TestServerBuilder()
+            .addPackage("website/static")
             .addServlet(new HttpServlet() {
         private static final long serialVersionUID = 1L;
         @Override
@@ -202,7 +205,7 @@ public class HttpCrawlerWebTest {
     static Stream<IWebTest> featuresProvider() {
 
         // Un-comment when troubleshooting:
-//        return Arrays.asList((IWebTest) new IfModifiedSince()).stream();
+//        return Arrays.asList((IWebTest) new PostImportLinks()).stream();
         return FEATURES_BY_PATH.values().stream();
     }
 

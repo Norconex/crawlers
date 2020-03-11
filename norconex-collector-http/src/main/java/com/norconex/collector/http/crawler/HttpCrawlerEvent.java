@@ -37,6 +37,11 @@ public class HttpCrawlerEvent extends CrawlerEvent<HttpCrawler> {
     /** @since 2.3.0 */
     public static final String REJECTED_REDIRECTED = "REJECTED_REDIRECTED";
 
+    /** @since 3.0.0 */
+    public static final String URLS_POST_IMPORTED =
+            "URLS_POST_IMPORTED";
+
+
     /**
      * New crawler event.
      * @param name event name

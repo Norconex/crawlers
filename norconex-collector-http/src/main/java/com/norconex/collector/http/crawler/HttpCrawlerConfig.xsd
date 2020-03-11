@@ -16,6 +16,7 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:include schemaLocation="/com/norconex/importer/Importer.xsd"></xs:include>
   <xs:include schemaLocation="/com/norconex/collector/core/crawler/CrawlerConfig.xsd"></xs:include>
 
   <xs:element name="crawlerDefaults" type="HttpCrawlerConfigType"/>
@@ -127,6 +128,14 @@
               </xs:all>
             </xs:complexType>
           </xs:element>
+          <xs:element name="postImportLinks" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:all>
+                <xs:element name="fieldMatcher" type="TextMatcherType" minOccurs="1" maxOccurs="1" />  
+              </xs:all>
+              <xs:attribute name="keep" type="xs:boolean"/>
+            </xs:complexType>
+          </xs:element>          
         </xs:all>
       </xs:extension>
     </xs:complexContent>

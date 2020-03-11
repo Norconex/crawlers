@@ -44,6 +44,9 @@ public class RegexLinkExtractorTest {
     private static final Logger LOG = LoggerFactory.getLogger(
             RegexLinkExtractorTest.class);
 
+    //TODO add a post import test for PDF with links.
+    //TODO add a post import test for grabbing a URL value from a field.
+
     @Test
     public void testLinkExtraction()  throws IOException {
         String baseURL = "http://www.example.com/";

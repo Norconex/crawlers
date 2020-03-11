@@ -55,6 +55,16 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 
         boolean requeue = false;
 
+        //-- Fired rejected redirected event ---
+        crawlRef.setState(HttpCrawlState.REDIRECT);
+        IHttpFetchResponse newResponse = new HttpFetchResponseBuilder(response)
+                .setCrawlState(HttpCrawlState.REDIRECT)
+                .setReasonPhrase(response.getReasonPhrase()
+                        + " (" + redirectURL + ")")
+                .build();
+        ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED,
+                crawlRef, newResponse);
+
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?
         if (Stage.ACTIVE.is(redirectStage)) {
@@ -92,16 +102,6 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
         }
 
         //--- Fresh URL, queue it! ---
-        crawlRef.setState(HttpCrawlState.REDIRECT);
-        //TODO instead of copying like this use builder with withXXX methods
-        IHttpFetchResponse newResponse = new HttpFetchResponseBuilder(response)
-                .setCrawlState(HttpCrawlState.REDIRECT)
-                .setReasonPhrase(response.getReasonPhrase()
-                        + " (" + redirectURL + ")")
-                .build();
-        ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED,
-                crawlRef, newResponse);
-
         HttpDocInfo newData = new HttpDocInfo(
                 redirectURL, crawlRef.getDepth());
         newData.setReferrerReference(crawlRef.getReferrerReference());

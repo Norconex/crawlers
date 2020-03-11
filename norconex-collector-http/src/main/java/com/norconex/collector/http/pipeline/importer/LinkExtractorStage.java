@@ -137,24 +137,19 @@ import com.norconex.importer.parser.ParseState;
 
         Set<Link> links = new HashSet<>();
         CachedInputStream is = ctx.getContent();
-//        ContentType ct = ctx.getDocument().getDocInfo().getContentType();
-//        CrawlDocInfo docInfo = new CrawlDocInfo(reference);
-//        docInfo.setContentType(ct);
         CrawlDoc doc = ctx.getDocument();
         for (ILinkExtractor extractor : extractors) {
-//            if (extractor.accepts(reference, ct)) {
-                try {
-                    Set<Link> extracted =
-                            extractor.extractLinks(doc, ParseState.PRE);
-                    if (extracted != null) {
-                        links.addAll(extracted);
-                    }
-                } catch (Exception e) {
-                    LOG.error("Could not extract links from: " + reference, e);
-                } finally {
-                    is.rewind();
+            try {
+                Set<Link> extracted =
+                        extractor.extractLinks(doc, ParseState.PRE);
+                if (extracted != null) {
+                    links.addAll(extracted);
                 }
-//            }
+            } catch (Exception e) {
+                LOG.error("Could not extract links from: " + reference, e);
+            } finally {
+                is.rewind();
+            }
         }
         return links;
     }

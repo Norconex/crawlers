@@ -25,6 +25,10 @@
         New HttpCollectorEvent.
       </action>
       <action dev="essiembre" type="add">
+        New crawler event: URLS_POST_IMPORTED 
+        (in addition to new events from Collector Core).
+      </action>
+      <action dev="essiembre" type="add">
         New GenericHttpFetcher, replacing GenericHttpClientFactory and 
         GenericHttpDocumentFetcher.
       </action>
@@ -36,7 +40,13 @@
         New DOMLinkExtractor using JSoup to extract links. 
       </action>
       <action dev="essiembre" type="add">
-        Added support for extracting links from meatadata fields. 
+        Link extractors can now extracting links from metadata fields in 
+        addition to content.
+      </action>
+      <action dev="essiembre" type="add" issue="428">
+        New "postImportLinks" configuration option for considering links from 
+        metadata fields created during import for crawling 
+        (providing a way to extra links from parsed binaries).
       </action>
       <action dev="essiembre" type="add">
         New HttpDoc, HttpDocInfo, HttpDocMetadata (new or renamed).
