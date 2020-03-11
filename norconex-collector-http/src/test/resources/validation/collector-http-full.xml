@@ -348,7 +348,7 @@
       <processor class="com.norconex.collector.http.processor.impl.MockHttpDocumentProcessor"/>
     </postImportProcessors>
     <postImportLinks keep="true">
-      <textMatcher method="wildcard">myurls*</textMatcher>
+      <fieldMatcher method="wildcard">myurls*</fieldMatcher>
     </postImportLinks>
     <spoiledReferenceStrategizer 
         class="com.norconex.collector.core.spoil.impl.GenericSpoiledReferenceStrategizer"
