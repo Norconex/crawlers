@@ -28,6 +28,7 @@
           </xs:all>
           
           <xs:attribute name="ignoreNofollow" type="xs:boolean"/>
+          <xs:attribute name="ignoreLinkData" type="xs:boolean"/>
           <xs:attribute name="charset" type="xs:string"/>
           <xs:attribute name="parser" type="xs:string"/>
           

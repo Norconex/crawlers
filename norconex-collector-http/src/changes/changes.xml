@@ -48,6 +48,10 @@
         metadata fields created during import for crawling 
         (providing a way to extra links from parsed binaries).
       </action>
+      <action dev="essiembre" type="add" issue="668">
+        New DOMLinkExtractor that uses JSoup to extract links from 
+        HTML/XML documents.
+      </action>
       <action dev="essiembre" type="add">
         New HttpDoc, HttpDocInfo, HttpDocMetadata (new or renamed).
       </action>
@@ -65,6 +69,11 @@
       </action>
       <action dev="essiembre" type="update">
         Now using SLF4J for logging.
+      </action>
+      <action dev="essiembre" type="update" issue="668">
+        HtmlLinkExtractor (and DOMLinkExtractor) now extracts all attributes 
+        of referrer links and adds them to the target document metadata.
+        This can be disabled with the #setIgnoreLinkData() method.
       </action>
       <action dev="essiembre" type="update">
         Dependency updates: Norconex Collector Core 2.0.0, 

@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Norconex Inc.
+/* Copyright 2014-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,31 +20,23 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.norconex.commons.lang.map.Properties;
+
 /**
  * Represents a link extracted from a document.  A link is typically a URL,
- * with optional data associated with it, such as the referrer, text and
+ * with optional metadata associated with it, such as the referrer, text and
  * markup tag used to hold the URL.
  * @author Pascal Essiembre
  */
 public class Link implements Comparable<Link> {
 
     private final String url;
-    private String text;
     private String referrer;
-    private String tag;
-    private String title;
+    private final Properties metadata = new Properties();
 
     public Link(String url) {
         super();
         this.url = url;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
     }
 
     public String getUrl() {
@@ -58,18 +50,11 @@ public class Link implements Comparable<Link> {
         this.referrer = referrer;
     }
 
-    public String getTag() {
-        return tag;
+    public Properties getMetadata() {
+        return metadata;
     }
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-    public void setTitle(String title) {
-        this.title = title;
+    public void setMetadata(Properties data) {
+        this.metadata.putAll(data);
     }
 
     @Override

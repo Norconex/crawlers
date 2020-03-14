@@ -46,15 +46,11 @@ public class HttpDocInfo extends CrawlDocInfo {
     private ZonedDateTime sitemapLastMod;
     private String sitemapChangeFreq;
     private Float sitemapPriority;
-    private String originalReference;
-    @ToStringExclude
-    private String referrerLinkText;
-    @ToStringExclude
+    private String originalReference; //TODO keep the trail if it changes often?
+//    @ToStringExclude
     private String referrerReference;
-    @ToStringExclude
-    private String referrerLinkTag;
-    @ToStringExclude
-    private String referrerLinkTitle;
+//    @ToStringExclude
+    private String referrerLinkMetadata;
 
     @ToStringSummary
     private final List<String> referencedUrls = new ArrayList<>();
@@ -153,13 +149,6 @@ public class HttpDocInfo extends CrawlDocInfo {
         this.depth = depth;
     }
 
-    public String getReferrerLinkText() {
-        return referrerLinkText;
-    }
-    public void setReferrerLinkText(String referrerLinkText) {
-        this.referrerLinkText = referrerLinkText;
-    }
-
     public String getReferrerReference() {
         return referrerReference;
     }
@@ -167,18 +156,12 @@ public class HttpDocInfo extends CrawlDocInfo {
         this.referrerReference = referrerReference;
     }
 
-    public String getReferrerLinkTag() {
-        return referrerLinkTag;
-    }
-    public void setReferrerLinkTag(String referrerLinkTag) {
-        this.referrerLinkTag = referrerLinkTag;
+    public String getReferrerLinkMetadata() {
+        return referrerLinkMetadata;
     }
 
-    public String getReferrerLinkTitle() {
-        return referrerLinkTitle;
-    }
-    public void setReferrerLinkTitle(String referrerLinkTitle) {
-        this.referrerLinkTitle = referrerLinkTitle;
+    public void setReferrerLinkMetadata(String referrerLinkMetadata) {
+        this.referrerLinkMetadata = referrerLinkMetadata;
     }
 
     @Override
@@ -239,15 +222,6 @@ public class HttpDocInfo extends CrawlDocInfo {
     public void addRedirectURL(String url) {
         redirectTrail.add(url);
     }
-
-//    // For now we deprecate until we find better.
-//    @Deprecated
-//    public static HttpDocInfo toHttpDocInfo(DocInfo docInfo) {
-//        if (docInfo instanceof HttpDocInfo) {
-//            return (HttpDocInfo) docInfo;
-//        }
-//        return new HttpDocInfo(docInfo);
-//    }
 
     @Override
     public boolean equals(final Object other) {

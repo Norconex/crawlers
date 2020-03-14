@@ -41,6 +41,7 @@ import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.link.AbstractTextLinkExtractor;
 import com.norconex.collector.http.link.ILinkExtractor;
@@ -178,6 +179,16 @@ import com.norconex.importer.parser.ParseState;
  * This can be done by making sure the URL normalizer does not strip them.
  * </p>
  *
+ * <h3>Ignoring link data</h3>
+ * <p>
+ * By default, contextual information is kept about the HTML/XML mark-up
+ * tag from which a link is extracted (e.g., tag name and attributes).
+ * That information gets stored as metadata in the target document.
+ * If you want to limit the quantity of information extracted/stored,
+ * you can disable this feature by setting
+ * {@link #ignoreLinkData} to <code>true</code>.
+ * </p>
+ *
  * <h3>URL Schemes</h3>
  * <p><b>Since 2.4.0</b>, only valid
  * <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax">
@@ -213,6 +224,7 @@ import com.norconex.importer.parser.ParseState;
  * <extractor class="com.norconex.collector.http.link.impl.HtmlLinkExtractor"
  *     maxURLLength="(maximum URL length. Default is 2048)"
  *     ignoreNofollow="[false|true]"
+ *     ignoreLinkData="[false|true]"
  *     commentsEnabled="[false|true]"
  *     charset="(supported character encoding)">
  *
@@ -280,8 +292,6 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     private static final Logger LOG = LoggerFactory.getLogger(
             HtmlLinkExtractor.class);
 
-    //TODO give option to match fields where to grab dom content.
-
     //TODO make buffer size and overlap size configurable
     //1MB: make configurable
     public static final int MAX_BUFFER_SIZE = 1024 * 1024;
@@ -301,6 +311,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     private final List<String> schemes = new ArrayList<>(DEFAULT_SCHEMES);
     private int maxURLLength = DEFAULT_MAX_URL_LENGTH;
     private boolean ignoreNofollow;
+    private boolean ignoreLinkData;
     private final Properties tagAttribs = new Properties(true);
     @HashCodeExclude
     @EqualsExclude
@@ -581,6 +592,23 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     }
 
     /**
+     * Gets whether to ignore extra data associated with a link.
+     * @return <code>true</code> to ignore.
+     * @since 3.0.0
+     */
+    public boolean isIgnoreLinkData() {
+        return ignoreLinkData;
+    }
+    /**
+     * Sets whether to ignore extra data associated with a link.
+     * @param ignoreLinkData <code>true</code> to ignore.
+     * @since 3.0.0
+     */
+    public void setIgnoreLinkData(boolean ignoreLinkData) {
+        this.ignoreLinkData = ignoreLinkData;
+    }
+
+    /**
      * Gets the character set of pages on which link extraction is performed.
      * Default is <code>null</code> (charset detection will be attempted).
      * @return character set to use, or <code>null</code>
@@ -637,8 +665,6 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     //--- Extract Links --------------------------------------------------------
     private static final Pattern A_TEXT_PATTERN = Pattern.compile(
             "<a[^<]+?>(.*?)<\\s*/\\s*a\\s*>", PATTERN_FLAGS);
-    private static final Pattern A_TITLE_PATTERN = Pattern.compile(
-            "\\s*title\\s*=\\s*([\"'])(.*?)\\1", PATTERN_FLAGS);
     private static final Pattern SCRIPT_PATTERN = Pattern.compile(
             "(<\\s*script\\b.*?>)(.*?)(<\\s*/\\s*script\\s*>)", PATTERN_FLAGS);
     private static final Pattern COMMENT_PATTERN = Pattern.compile(
@@ -676,15 +702,14 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                     }
                     Link link = new Link(url);
                     link.setReferrer(referrer.url);
-                    link.setTag(tagName);
                     links.add(link);
+                    addLinkMeta(link, tagName, null, null, restOfTag);
                 }
                 continue;
             }
 
             //--- a tag attribute has the URL ---
             String text = null;
-            String title = null;
             if (StringUtils.isBlank(restOfTag)) {
                 continue;
             }
@@ -701,10 +726,6 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                     text = textMatcher.group(1).trim();
                     // Strip markup to only extract the text
                     text = text.replaceAll("<[^>]*>", "");
-                }
-                Matcher titleMatcher = A_TITLE_PATTERN.matcher(restOfTag);
-                if (titleMatcher.find()) {
-                    title = titleMatcher.group(2).trim();
                 }
             }
 
@@ -738,18 +759,44 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                     }
                     Link link = new Link(url);
                     link.setReferrer(referrer.url);
-                    link.setTag(tagName + "." + attribName);
-                    if (StringUtils.isNotBlank(text)) {
-                        link.setText(text);
-                    }
-                    if (StringUtils.isNotBlank(title)) {
-                        link.setTitle(title);
-                    }
+                    addLinkMeta(link, tagName, attribName, text, restOfTag);
                     links.add(link);
                 }
             }
         }
     }
+
+    private static final Pattern ATTR_PATTERN = Pattern.compile(
+            "\\b([^\\s]+?)\\s*?=\\s*?([\"'])(.*?)(\\2)", PATTERN_FLAGS);
+    private void addLinkMeta(Link link, String tag,
+            String urlAttr, String text, String restOfTag) {
+        if (ignoreLinkData) {
+            return;
+        }
+
+        Properties linkMeta = link.getMetadata();
+
+        setNonBlank(linkMeta, "tag", tag);
+        setNonBlank(linkMeta, "text", text);
+        setNonBlank(linkMeta, "attr", urlAttr);
+
+        if (StringUtils.isNoneBlank(restOfTag)) {
+            Matcher m = ATTR_PATTERN.matcher(restOfTag);
+            while (m.find()) {
+                String key = m.group(1);
+                String value = m.group(3);
+                if (!Objects.equal(urlAttr, key)) {
+                    setNonBlank(linkMeta, "attr." + key, value);
+                }
+            }
+        }
+    }
+    private void setNonBlank(Properties meta, String key, String value) {
+        if (StringUtils.isNotBlank(value)) {
+            meta.set(key.trim(), value.trim());
+        }
+    }
+
 
     //TODO consider moving this logic to new class shared with others,
     //like StripBetweenTagger
@@ -856,7 +903,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         String url = toCleanAbsoluteURL(referrer, m.group(4));
         Link link = new Link(url);
         link.setReferrer(referrer.url);
-        link.setTag("meta.http-equiv.refresh");
+        addLinkMeta(link, "meta", "content", null, restOfTag);
         links.add(link);
     }
 

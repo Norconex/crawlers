@@ -1,4 +1,4 @@
-/* Copyright 2017-2019 Norconex Inc.
+/* Copyright 2017-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,20 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.provider.Arguments;
 
 import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.xml.XML;
 
 
@@ -41,6 +46,16 @@ public final class TestUtil {
         super();
     }
 
+    // create test a arguments instance with the object as the first agrument
+    // and the simple class name of the object as the second.  For nicer
+    // display in test reports.
+    public static Arguments args(Object obj) {
+        return Arguments.of(obj, obj.getClass().getSimpleName());
+    }
+    public static Arguments args(Supplier<Object> supplier) {
+        return args(supplier.get());
+    }
+
     // get config of the same name as class, but with .xml extension.
     public static HttpCollectorConfig loadCollectorConfig(
             Class<?> clazz) throws IOException {
@@ -52,11 +67,7 @@ public final class TestUtil {
         HttpCollectorConfig cfg = new HttpCollectorConfig();
         try (Reader r = new InputStreamReader(
                 clazz.getResourceAsStream(xmlResource))) {
-
             new XML(r).populate(cfg);
-
-//            cfg.loadFromXML(xml);
-//            XML ConfigurationUtil.loadFromXML(cfg, r);
         }
         return cfg;
     }
@@ -81,6 +92,21 @@ public final class TestUtil {
                 "Validation warnings/errors were found.");
         }
     }
+
+    public static void assertSameEntries(
+            Collection<?> expected, Collection<?> actual) {
+        Assertions.assertEquals(expected.size(), actual.size(),
+                "Wrong number of entries.");
+        Assertions.assertTrue(actual.containsAll(expected),
+                ("Does not contain the same entries. Diff:\n" + BeanUtil.diff(
+                        new MutableObject<>(expected),
+                        new MutableObject<>(actual))
+                                .replaceAll("\\r\\n", "\n")
+                                .replaceAll("\\n", " | ")
+                                .replaceAll(" \\|  \\| ", "\n")
+                                .replaceAll("\\| >", "\n>")));
+    }
+
 
     //TODO move to HttpCollectorTestFactory or TestBuilder that returns a
     // test facade object with convinient test/getter methods.

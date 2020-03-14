@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.function.Consumer;
 
 import org.apache.commons.collections4.MultiValuedMap;
@@ -269,69 +270,63 @@ public class HttpCrawler extends Crawler {
 
 
     @Override
-    protected void initCrawlReference(CrawlDoc doc) {
+    protected void initCrawlDoc(CrawlDoc doc) {
 
-    //    protected void initCrawlReference(CrawlDocInfo crawlRef,
-//            CrawlDocInfo cachedCrawlRef, Doc document) {
-        HttpDocInfo httpData = (HttpDocInfo) doc.getDocInfo();
-        HttpDocInfo cachedHttpData = (HttpDocInfo) doc.getCachedDocInfo();
+        HttpDocInfo docInfo = (HttpDocInfo) doc.getDocInfo();
+        HttpDocInfo cachedDocInfo = (HttpDocInfo) doc.getCachedDocInfo();
         Properties metadata = doc.getMetadata();
 
-        metadata.add(HttpDocMetadata.DEPTH, httpData.getDepth());
+        metadata.add(HttpDocMetadata.DEPTH, docInfo.getDepth());
         metadataAddString(metadata, HttpDocMetadata.SM_CHANGE_FREQ,
-                httpData.getSitemapChangeFreq());
-        if (httpData.getSitemapLastMod() != null) {
+                docInfo.getSitemapChangeFreq());
+        if (docInfo.getSitemapLastMod() != null) {
             metadata.add(HttpDocMetadata.SM_LASTMOD,
-                    httpData.getSitemapLastMod());
+                    docInfo.getSitemapLastMod());
         }
-        if (httpData.getSitemapPriority() != null) {
+        if (docInfo.getSitemapPriority() != null) {
             metadata.add(HttpDocMetadata.SM_PRORITY,
-                    httpData.getSitemapPriority());
+                    docInfo.getSitemapPriority());
         }
 
-        // In case the crawl data supplied is from a URL was pulled from cache
-        // since the parent was skipped and could not be extracted normally
-        // with link information, we attach referrer data here if null
+        // In case the crawl data supplied is from a URL that was pulled
+        // from cache because the parent was skipped and could not be
+        // extracted normally with link information, we attach referrer
+        // data here if null
         // (but only if referrer reference is not null, which should never
         // be in this case as it is set by beforeFinalizeDocumentProcessing()
         // below.
         // We do not need to do this for sitemap information since the queue
         // pipeline takes care of (re)adding it.
-        //TODO consider having a flag on CrawlData that says where it came
-        //from so we know to initialize it properly.  Or... always
-        //initialize some new crawl data from cache higher up?
-        if (cachedHttpData != null && httpData.getReferrerReference() != null
+        if (cachedDocInfo != null && docInfo.getReferrerReference() != null
                 && Objects.equal(
-                        httpData.getReferrerReference(),
-                        cachedHttpData.getReferrerReference())) {
-            if (httpData.getReferrerLinkTag() == null) {
-                httpData.setReferrerLinkTag(
-                        cachedHttpData.getReferrerLinkTag());
-            }
-            if (httpData.getReferrerLinkText() == null) {
-                httpData.setReferrerLinkText(
-                        cachedHttpData.getReferrerLinkText());
-            }
-            if (httpData.getReferrerLinkTitle() == null) {
-                httpData.setReferrerLinkTitle(
-                        cachedHttpData.getReferrerLinkTitle());
+                        docInfo.getReferrerReference(),
+                        cachedDocInfo.getReferrerReference())) {
+            if (docInfo.getReferrerLinkMetadata() == null) {
+                docInfo.setReferrerLinkMetadata(
+                        cachedDocInfo.getReferrerLinkMetadata());
             }
         }
 
         // Add referrer data to metadata
         metadataAddString(metadata, HttpDocMetadata.REFERRER_REFERENCE,
-                httpData.getReferrerReference());
-        metadataAddString(metadata, HttpDocMetadata.REFERRER_LINK_TAG,
-                httpData.getReferrerLinkTag());
-        metadataAddString(metadata, HttpDocMetadata.REFERRER_LINK_TEXT,
-                httpData.getReferrerLinkText());
-        metadataAddString(metadata, HttpDocMetadata.REFERRER_LINK_TITLE,
-                httpData.getReferrerLinkTitle());
+                docInfo.getReferrerReference());
+        if (docInfo.getReferrerLinkMetadata() != null) {
+            Properties linkMeta = new Properties();
+            linkMeta.fromString(docInfo.getReferrerLinkMetadata());
+            for (Entry<String, List<String>> en : linkMeta.entrySet()) {
+                String key = HttpDocMetadata.REFERRER_LINK_PREFIX + en.getKey();
+                for (String value : en.getValue()) {
+                    if (value != null) {
+                        metadata.add(key, value);
+                    }
+                }
+            }
+        }
 
         // Add possible redirect trail
-        if (!httpData.getRedirectTrail().isEmpty()) {
+        if (!docInfo.getRedirectTrail().isEmpty()) {
             metadata.setList(HttpDocMetadata.REDIRECT_TRAIL,
-                    httpData.getRedirectTrail());
+                    docInfo.getRedirectTrail());
         }
     }
 
@@ -346,13 +341,9 @@ public class HttpCrawler extends Crawler {
                 new HttpImporterPipelineContext(importerContext);
 
 
-//                (HttpImporterPipelineContext) importerContext;
-//        HttpImporterPipelineContext httpContext =
-//                new HttpImporterPipelineContext(importerContext);
         new HttpImporterPipeline(
                 getCrawlerConfig().isKeepDownloads(),
                 importerContext.getDocument().isOrphan()).execute(httpContext);
-                //importerContext.isOrphan()).execute(httpContext);
         return httpContext.getImporterResponse();
     }
 
@@ -365,15 +356,8 @@ public class HttpCrawler extends Crawler {
 
     @Override
     protected void executeCommitterPipeline(Crawler crawler, CrawlDoc doc) {
-
-//        HttpCommitterPipelineContext context = new HttpCommitterPipelineContext(
-//                (HttpCrawler) crawler, doc,
-//                (HttpDocInfo) crawlRef, (HttpDocInfo) cachedCrawlRef);
-//        new HttpCommitterPipeline().execute(context);
-
         new HttpCommitterPipeline().execute(new HttpCommitterPipelineContext(
                 (HttpCrawler) crawler, doc));
-
     }
 
     @Override

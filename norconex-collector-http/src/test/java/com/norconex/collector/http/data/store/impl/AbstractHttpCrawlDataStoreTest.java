@@ -153,9 +153,7 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         dataIn.setCrawlDate(ZonedDateTime.now());
         dataIn.setOriginalReference("originalReference");
         dataIn.setParentRootReference("parentRootReference");
-        dataIn.setReferrerLinkTag("referrerLinkTag");
-        dataIn.setReferrerLinkText("referrerLinkText");
-        dataIn.setReferrerLinkTitle("referrerLinkTitle");
+        dataIn.setReferrerLinkMetadata("referrerMeta=referrerMetaValue");
         dataIn.setReferrerReference("referrerReference");
 //        dataIn.setRootParentReference(true);
         dataIn.setSitemapChangeFreq("weekly");

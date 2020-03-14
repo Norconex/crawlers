@@ -39,6 +39,7 @@ import org.xml.sax.SAXException;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.http.link.AbstractLinkExtractor;
 import com.norconex.collector.http.link.ILinkExtractor;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
@@ -54,7 +55,10 @@ import com.norconex.importer.parser.ParseState;
  * </p>
  * <p>
  * The configuration of content-types, storing the referrer data, and ignoring
- * "nofollow" are the same as in {@link HtmlLinkExtractor}.
+ * "nofollow" and ignoring link data are the same as in
+ * {@link HtmlLinkExtractor}. For link data, this parser only keeps a
+ * pre-defined set of link attributes, when available (title, type,
+ * uri, text, rel).
  * </p>
  *
  * {@nx.xml.usage
@@ -75,6 +79,7 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
     private static final int URL_PATTERN_GROUP_URL = 5;
 
     private boolean ignoreNofollow;
+    private boolean ignoreLinkData;
     private static final HtmlMapper fixedHtmlMapper = new FixedHtmlParserMapper();
 
     public TikaLinkExtractor() {
@@ -91,6 +96,7 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
         Metadata metadata = new Metadata();
         ParseContext parseContext = new ParseContext();
         parseContext.set(HtmlMapper.class, fixedHtmlMapper);
+
         HtmlParser parser = new HtmlParser();
         String url = doc.getReference();
         try (InputStream is = doc.getInputStream()) {
@@ -117,18 +123,31 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
                             new com.norconex.collector.http.link.Link(
                                     extractedURL);
                     nxLink.setReferrer(url);
-                    if (StringUtils.isNotBlank(tikaLink.getText())) {
-                        nxLink.setText(tikaLink.getText());
+
+                    if (!ignoreLinkData) {
+                        Properties linkMeta = nxLink.getMetadata();
+                        if (StringUtils.isNotBlank(tikaLink.getText())) {
+                            linkMeta.set("text", tikaLink.getText());
+                        }
+                        if (StringUtils.isNotBlank(tikaLink.getType())) {
+                            linkMeta.set("tag", tikaLink.getType());
+                            if (tikaLink.isAnchor()
+                                    || tikaLink.isLink()) {
+                                linkMeta.set("attr", "href");
+                            } else if (tikaLink.isIframe()
+                                    || tikaLink.isImage()
+                                    || tikaLink.isScript()) {
+                                linkMeta.set("attr", "src");
+                            }
+                        }
+                        if (StringUtils.isNotBlank(tikaLink.getTitle())) {
+                            linkMeta.set("attr.title", tikaLink.getTitle());
+                        }
+                        if (StringUtils.isNotBlank(tikaLink.getRel())) {
+                            linkMeta.set("attr.rel", tikaLink.getRel());
+                        }
+                        nxLinks.add(nxLink);
                     }
-                    if (tikaLink.isAnchor()) {
-                        nxLink.setTag("a.href");
-                    } else if (tikaLink.isImage()) {
-                        nxLink.setTag("img.src");
-                    }
-                    if (StringUtils.isNotBlank(tikaLink.getTitle())) {
-                        nxLink.setTitle(tikaLink.getTitle());
-                    }
-                    nxLinks.add(nxLink);
                 }
             }
 
@@ -169,14 +188,33 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
         this.ignoreNofollow = ignoreNofollow;
     }
 
+    /**
+     * Gets whether to ignore extra data associated with a link.
+     * @return <code>true</code> to ignore.
+     * @since 3.0.0
+     */
+    public boolean isIgnoreLinkData() {
+        return ignoreLinkData;
+    }
+    /**
+     * Sets whether to ignore extra data associated with a link.
+     * @param ignoreLinkData <code>true</code> to ignore.
+     * @since 3.0.0
+     */
+    public void setIgnoreLinkData(boolean ignoreLinkData) {
+        this.ignoreLinkData = ignoreLinkData;
+    }
+
     @Override
     protected void loadLinkExtractorFromXML(XML xml) {
         setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
+        setIgnoreLinkData(xml.getBoolean("@ignoreLinkData", ignoreLinkData));
     }
 
     @Override
     protected void saveLinkExtractorToXML(XML xml) {
         xml.setAttribute("ignoreNofollow", ignoreNofollow);
+        xml.setAttribute("ignoreLinkData", ignoreLinkData);
     }
 
     @Override

@@ -166,9 +166,12 @@ import com.norconex.importer.parser.ParseState;
             HttpDocInfo newURL = new HttpDocInfo(
                     link.getUrl(), ctx.getDocInfo().getDepth() + 1);
             newURL.setReferrerReference(link.getReferrer());
-            newURL.setReferrerLinkTag(link.getTag());
-            newURL.setReferrerLinkText(link.getText());
-            newURL.setReferrerLinkTitle(link.getTitle());
+            if (!link.getMetadata().isEmpty()) {
+                newURL.setReferrerLinkMetadata(link.getMetadata().toString());
+            }
+//            newURL.setReferrerLinkTag(link.getTag());
+//            newURL.setReferrerLinkText(link.getText());
+//            newURL.setReferrerLinkTitle(link.getTitle());
             HttpQueuePipelineContext newContext =
                     new HttpQueuePipelineContext(ctx.getCrawler(), newURL);
             new HttpQueuePipeline().execute(newContext);

@@ -35,11 +35,9 @@ public final class HttpDocMetadata {
             PREFIX + "referenced-urls-out-of-scope";
     public static final String REFERRER_REFERENCE =
             PREFIX + "referrer-reference";
-    public static final String REFERRER_LINK_TAG = PREFIX + "referrer-link-tag";
-    public static final String REFERRER_LINK_TEXT =
-            PREFIX + "referrer-link-text";
-    public static final String REFERRER_LINK_TITLE =
-            PREFIX + "referrer-link-title";
+    /** @since 3.0.0 */
+    public static final String REFERRER_LINK_PREFIX =
+            PREFIX + "referrer-link-";
     /** @since 2.8.0 */
     public static final String REDIRECT_TRAIL = PREFIX + "redirect-trail";
 

@@ -50,6 +50,7 @@
           </xs:all>
           <xs:attribute name="maxURLLength" type="xs:int"/>
           <xs:attribute name="ignoreNofollow" type="xs:boolean"/>
+          <xs:attribute name="ignoreLinkData" type="xs:boolean"/>
           <xs:attribute name="commentsEnabled" type="xs:boolean"/>
           <xs:attribute name="charset" type="xs:string"/>
         </xs:extension> 

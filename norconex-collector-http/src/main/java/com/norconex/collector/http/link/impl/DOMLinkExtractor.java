@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -34,13 +36,16 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 
+import com.google.common.base.Objects;
 import com.norconex.collector.http.link.AbstractTextLinkExtractor;
 import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
@@ -122,6 +127,16 @@ import com.norconex.importer.util.DOMUtil;
  * spaces.
  * </p>
  *
+ * <h3>Ignoring link data</h3>
+ * <p>
+ * By default, contextual information is kept about the HTML/XML mark-up
+ * tag from which a link is extracted (e.g., tag name and attributes).
+ * That information gets stored as metadata in the target document.
+ * If you want to limit the quantity of information extracted/stored,
+ * you can disable this feature by setting
+ * {@link #ignoreLinkData} to <code>true</code>.
+ * </p>
+ *
  * <h3>URL Schemes</h3>
  * <p>Only valid
  * <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax">
@@ -150,6 +165,7 @@ import com.norconex.importer.util.DOMUtil;
  * {@nx.xml.usage
  * <extractor class="com.norconex.collector.http.link.impl.DOMLinkExtractor"
  *     ignoreNofollow="[false|true]"
+ *     ignoreLinkData="[false|true]"
  *     parser="[html|xml]"
  *     charset="(supported character encoding)">
  *   {@nx.include com.norconex.collector.http.link.AbstractTextLinkExtractor@nx.xml.usage}
@@ -190,8 +206,6 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
     private static final List<String> DEFAULT_SCHEMES =
             Collections.unmodifiableList(Arrays.asList("http", "https", "ftp"));
 
-    //TODO give option to match fields where to grab dom content.
-    //TODO no follow and other stuff from html extractor
     //TODO document an example how to only consider parts of a document
     //     with nested css syntax.
 
@@ -199,6 +213,7 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
     private String charset = null;
     private String parser = DOMUtil.PARSER_HTML;
     private boolean ignoreNofollow;
+    private boolean ignoreLinkData;
     private final List<String> schemes = new ArrayList<>(DEFAULT_SCHEMES);
 
     public DOMLinkExtractor() {
@@ -246,6 +261,21 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
     }
     public void setIgnoreNofollow(boolean ignoreNofollow) {
         this.ignoreNofollow = ignoreNofollow;
+    }
+
+    /**
+     * Gets whether to ignore extra data associated with a link.
+     * @return <code>true</code> to ignore.
+     */
+    public boolean isIgnoreLinkData() {
+        return ignoreLinkData;
+    }
+    /**
+     * Sets whether to ignore extra data associated with a link.
+     * @param ignoreLinkData <code>true</code> to ignore.
+     */
+    public void setIgnoreLinkData(boolean ignoreLinkData) {
+        this.ignoreLinkData = ignoreLinkData;
     }
 
     /**
@@ -331,17 +361,38 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
         // Build and return link
         Link link = new Link(url);
         link.setReferrer(elm.baseUri());
+        Properties linkMeta = link.getMetadata();
 
-        //TODO, add title, text, tag, etc.. once those are made generic.
-        // likely involves having a Selector class that accepts a series
-        // of attributes to preserve and pass on to target page.
-        //link.set...
+        // Link data
+        if (!ignoreLinkData) {
+            Matcher m = Pattern.compile(
+                    "(?i)^attr\\((.*?)\\)$").matcher(extract);
+            String urlAttr = null;
+            if (m.matches()) {
+                urlAttr = m.group(1);
+                linkMeta.set("attr", urlAttr);
+            }
+            linkMeta.set("tag", elm.tagName());
+            if (StringUtils.isNotBlank(elm.text())) {
+                linkMeta.set("text", elm.text());
+            }
+
+            for (Attribute attr : elm.attributes()) {
+                String key = attr.getKey();
+                String value = attr.getValue();
+                if (!Objects.equal(urlAttr, attr.getKey())
+                        && StringUtils.isNotBlank(value)) {
+                    linkMeta.set("attr." + key, value);
+                }
+            }
+        }
         return link;
     }
 
     @Override
     protected void loadTextLinkExtractorFromXML(XML xml) {
         setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
+        setIgnoreLinkData(xml.getBoolean("@ignoreLinkData", ignoreLinkData));
         setCharset(xml.getString("@charset", charset));
         setParser(xml.getString("@parser", parser));
         setSchemes(xml.getDelimitedStringList("schemes", schemes));
@@ -359,6 +410,7 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
     @Override
     protected void saveTextLinkExtractorToXML(XML xml) {
         xml.setAttribute("ignoreNofollow", ignoreNofollow);
+        xml.setAttribute("ignoreLinkData", ignoreLinkData);
         xml.setAttribute("charset", charset);
         xml.setAttribute("parser", parser);
         xml.addDelimitedElementList("schemes", schemes);

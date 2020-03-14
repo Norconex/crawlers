@@ -20,15 +20,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.http.TestUtil;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.link.ILinkExtractor;
 import com.norconex.collector.http.link.Link;
@@ -48,22 +59,30 @@ public class LinkExtractorTest {
     private static final Logger LOG = LoggerFactory.getLogger(
             LinkExtractorTest.class);
 
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @ParameterizedTest(name = "{index} {1}")
+    @MethodSource(value= {
+            "linkExtractorProvider"
+    })
+    @interface LinkExtractorsTest {}
+
+    static Stream<Arguments> linkExtractorProvider() {
+        return Stream.of(
+                TestUtil.args(() -> {
+                    HtmlLinkExtractor hle = new HtmlLinkExtractor();
+                    hle.addLinkTag("link", null);
+                    return hle;
+                }),
+                TestUtil.args(new DOMLinkExtractor()),
+                TestUtil.args(new TikaLinkExtractor())
+        );
+    }
+
     //--- Common tests ---------------------------------------------------------
-    @Test
-    public void testHtmlLinkExtractor() throws IOException {
-        HtmlLinkExtractor ex = new HtmlLinkExtractor();
-        ex.addLinkTag("link", null);
-        testLinkExtraction(ex);
-    }
-    @Test
-    public void testTikaLinkExtractor() throws IOException {
-        testLinkExtraction(new TikaLinkExtractor());
-    }
-    @Test
-    public void testDOMLinkExtractor() throws IOException {
-        testLinkExtraction(new DOMLinkExtractor());
-    }
-    private void testLinkExtraction(ILinkExtractor extractor)
+
+    @LinkExtractorsTest
+    public void testLinkExtraction(ILinkExtractor extractor, String testName)
             throws IOException {
         String baseURL = "http://www.example.com/";
         String baseDir = baseURL + "test/";
@@ -142,24 +161,11 @@ public class LinkExtractorTest {
                 "Invalid number of links extracted.");
     }
 
-
     //--- BASE HREF Tests ------------------------------------------------------
-    @Test
-    public void testHtmlBaseHrefLinkExtractor() throws IOException {
-        HtmlLinkExtractor ex = new HtmlLinkExtractor();
-        testBaseHrefLinkExtraction(ex);
-        testRelativeBaseHrefLinkExtraction(ex);
-    }
-    @Test
-    public void testTikaBaseHrefLinkExtractor() throws IOException {
-        TikaLinkExtractor ex = new TikaLinkExtractor();
-        testBaseHrefLinkExtraction(ex);
-        //TODO TikaLinkExtractor does not support all the same test cases
-        // as the generic one.  Consider either updating it or deprecating it.
-        //testRelativeBaseHrefLinkExtraction(ex);
-    }
-    private void testBaseHrefLinkExtraction(ILinkExtractor extractor)
-            throws IOException {
+
+    @LinkExtractorsTest
+    public void testBaseHrefLinkExtraction(
+            ILinkExtractor extractor, String testName) throws IOException {
         String docURL = "http://www.example.com/test/absolute/"
                 + "LinkBaseHrefTest.html";
         String host = "http://www.sample.com";
@@ -187,8 +193,18 @@ public class LinkExtractorTest {
                 expectedURLs.length, links.size(),
                 "Invalid number of links extracted.");
     }
-    private void testRelativeBaseHrefLinkExtraction(ILinkExtractor extractor)
-            throws IOException {
+
+
+    @LinkExtractorsTest
+    public void testRelativeBaseHrefLinkExtraction(
+            ILinkExtractor extractor, String testName) throws IOException {
+
+        if (extractor instanceof TikaLinkExtractor) {
+            // TikaLinkExtractor does not support all the same test cases
+            // as the generic one. Consider updating it or deprecating it.
+            return;
+        }
+
         String docURL = "http://www.example.com/test/relative/"
                 + "LinkRelativeBaseHrefTest.html";
 
@@ -216,28 +232,21 @@ public class LinkExtractorTest {
     }
 
     //--- Referrer Data Tests --------------------------------------------------
-    @Test
-    public void testHtmlLinkKeepReferrer() throws IOException {
-        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
-        testLinkKeepReferrer(extractor);
-    }
-    @Test
-    public void testTikaLinkKeepReferrer() throws IOException {
-        testLinkKeepReferrer(new TikaLinkExtractor());
-    }
-    private void testLinkKeepReferrer(ILinkExtractor extractor)
-            throws IOException {
+
+    @LinkExtractorsTest
+    public void testLinkKeepReferrer(
+            ILinkExtractor extractor, String testName) throws IOException {
         // All these must be found
-        Link[] expectedLinks = {
-            keepReferrerLink("1-notitle-notext.html", null, null),
-            keepReferrerLink("2-notitle-yestext.html", "2 Yes Text", null),
-            keepReferrerLink(
-                    "3-yestitle-yestext.html", "3 Yes Text", "3 Yes Title"),
-            keepReferrerLink("4-yestitle-notext.html", null, "4 Yes Title"),
-            // Link 5 should not be there (no href).
-            keepReferrerLink("6-yestitle-yestexthtml.html",
-                    "[6]Yes Text", "6 Yes Title"),
-        };
+        Set<Link> expectedLinks = new HashSet<>(Arrays.asList(
+                keepReferrerLink("1-notitle-notext.html", null, null),
+                keepReferrerLink("2-notitle-yestext.html", "2 Yes Text", null),
+                keepReferrerLink(
+                        "3-yestitle-yestext.html", "3 Yes Text", "3 Yes Title"),
+                keepReferrerLink("4-yestitle-notext.html", null, "4 Yes Title"),
+                // Link 5 should not be there (no href).
+                keepReferrerLink("6-yestitle-yestexthtml.html",
+                        "[6]Yes Text", "6 Yes Title")
+        ));
 
         InputStream is =
                 getClass().getResourceAsStream("LinkKeepReferrerTest.html");
@@ -246,20 +255,22 @@ public class LinkExtractorTest {
                         ContentType.HTML, is), ParseState.PRE);
         is.close();
 
-        Assertions.assertEquals(expectedLinks.length, links.size());
-        for (Link expectedLink : expectedLinks) {
-            assertTrue(
-                    contains(links, expectedLink),
-                "Could not find expected link: " + expectedLink);
-        }
+        TestUtil.assertSameEntries(expectedLinks, links);
     }
+
+
     private Link keepReferrerLink(
             String relURL, String text, String title) {
         Link link = new Link("http://www.site.com/" + relURL);
         link.setReferrer("http://www.site.com/parent.html");
-        link.setTag("a.href");
-        link.setText(text);
-        link.setTitle(title);
+        link.getMetadata().set("tag", "a");
+        link.getMetadata().set("attr", "href");
+        if (text != null) {
+            link.getMetadata().set("text", text);
+        }
+        if (title != null) {
+            link.getMetadata().set("attr.title", title);
+        }
         return link;
     }
 
@@ -526,14 +537,6 @@ public class LinkExtractorTest {
     private boolean contains(Set<Link> links, String url) {
         for (Link link : links) {
             if (url.equals(link.getUrl())) {
-                return true;
-            }
-        }
-        return false;
-    }
-    private boolean contains(Set<Link> links, Link link) {
-        for (Link l : links) {
-            if (link.equals(l)) {
                 return true;
             }
         }
