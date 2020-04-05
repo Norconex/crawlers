@@ -3,9 +3,6 @@ TODO:
 
 The following are either things to be done, or ideas to consider:
 
-- Add "export config" flag to command line to write to file generated config 
-  (for distribution).
-
 - Create a class holding constants for frequent XML config attributes. 
 
 - Consider porting the HttpImporterPipelineContext#httpHeadSuccessful update
@@ -19,8 +16,6 @@ The following are either things to be done, or ideas to consider:
   responseHeadersDiscard.  No need to add responseHeadersOnSet since
   http headers are the first thing obtained (or do it since we could get
   both HEAD and GET headers).
-
-- Replace sitemap storage to use new data store engine from crawler.
 
 - Document that the data store can be used for anything now, not just crawl data.
 
@@ -40,7 +35,7 @@ The following are either things to be done, or ideas to consider:
 - Eliminate CachedInputStream.dispose() in favor of close() to be consistent?
 
 - Add a reference filter that matches URLs with the same segment repeated
-  X consecutive times.
+  Nth consecutive times.
 
 - Add ability to export crawlstore in neutral format to switch from one to 
   another.
@@ -48,9 +43,6 @@ The following are either things to be done, or ideas to consider:
 - Remove MultiCommitter in favor of supporting multiple committers natively.
 
 - Do lib dups check on startup.
-
-- Add option to add certificates programmatically.
-  https://stackoverflow.com/questions/6755180/java-ssl-connect-add-server-cert-to-keystore-programmatically
 
 - Fix javadoc (including links) all over.
 
@@ -65,9 +57,6 @@ The following are either things to be done, or ideas to consider:
 - Add xdoclet or equivalent that could be extracted from java doc to build
   online doc automatically/dynamically.
 
-- Add convenient way to point to another javadoc instead of repeating 
-  documentation (like repeating password encryption XML usage).
-
 - Add ability to disable storing HTTP headers as metadata fields.
 
 - Add update.sh scripts to collectors (doing the same as install.sh script)
@@ -75,8 +64,6 @@ The following are either things to be done, or ideas to consider:
 - Provide generic way to access JSON APIs (using standard auth methods, 
   ability to provide how to access next pages, etc).
 
-- Add a clean flag. 
- 
 - Provide support for new popular auth methods.
 
 - Offer to overwrite httpFetcher-specified User-Agent directly on 
@@ -84,20 +71,12 @@ The following are either things to be done, or ideas to consider:
 
 - Try version 2.12.0 of apache xerces that came up in June 2018.
 
-- Pass cachedStream data to importer when not explicitely
-  set in importer config. 
-
 - Where appropriate, remove the many places where we pass an collector or 
   http config in favor of those classes being able to get it on startup or 
   statically.
 
 - Remove stop() methods in a few classes and listen for crawler/collector
   shutdown instead. 
-
-- Have CachedStreamFactory configurable on collector, and overwritable on 
-  crawlers and importers.
-  If not overwritten, the parent will be passed to its children.
-  Make sure they can be obtained statically (per instance)??
 
 - Have logging show thread name and make it crawler id (and stop adding 
   it in logging statements found in many places).
@@ -153,10 +132,6 @@ The following are either things to be done, or ideas to consider:
   add a tagger that helps with that.
 
 - Maybe rename REJECTED_UNMODIFIED|PREMATURE to IGNORED_* ? 
-
-- Should HttpClientProxy (for PhantomJS) reuse the same http methods?
-  (e.g., POST should be POST).  Also check that https sites can be handled 
-  better.
 
 - Have a new <inScopeStrategy class="..."> with the default implementation
   being [Generic]URLCrawlScopeStrategy, taking the stayOn* and implementing 

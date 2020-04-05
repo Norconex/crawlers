@@ -116,28 +116,11 @@ import com.norconex.importer.parser.ParseState;
  *
  * <h3>Referrer data</h3>
  * <p>
- * The following referrer information is stored as metadata in each document
- * represented by the extracted URLs:
+ * Some "referrer" information is derived from the each link and stored as
+ * metadata in the document they point to.
+ * These may vary for each link, but they are normally prefixed with
+ * {@link HttpDocMetadata#REFERRER_LINK_PREFIX}.
  * </p>
- * <ul>
- *   <li><b>Referrer reference:</b> The reference (URL) of the page where the
- *   link to a document was found.  Metadata value is
- *   {@link HttpDocMetadata#REFERRER_REFERENCE}.</li>
- *   <li><b>Referrer link tag:</b> The tag and attribute names of the link
- *   that contained the document reference (URL) in referrer's content.
- *   Metadata value is
- *   {@link HttpDocMetadata#REFERRER_LINK_TAG}.</li>
- *   <li><b>Referrer link text:</b> The text between the
- *   <code>&lt;a href=""&gt;&lt;/a&gt;</code> tags of the referrer document.
- *   Can be useful to help establish better document titles.
- *   Metadata value is
- *   {@link HttpDocMetadata#REFERRER_LINK_TEXT}.</li>
- *   <li><b>Referrer link title:</b> The <code>title</code> attribute of the
- *   link that contained the document reference (URL) in referrer's content.
- *   Can also be useful to help establish better document titles.
- *   Metadata value is
- *   {@link HttpDocMetadata#REFERRER_LINK_TITLE}.</li>
- * </ul>
  * <p>
  * <b>Since 2.6.0</b>, the referrer data is always stored (was optional before).
  * </p>

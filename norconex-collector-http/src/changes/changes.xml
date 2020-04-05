@@ -92,7 +92,8 @@
         Default working directory structure has been improved.
       </action>
       <action dev="essiembre" type="update" issue="592">
-        Improved handling of "trustAllSSLCertificate" in GenericHttpFetcher. 
+        Improved handling of "trustAllSSLCertificate" in GenericHttpFetcher
+        by auto-accepting/storing certificates. 
       </action>
       <action dev="essiembre" type="update">
         Dates handling now consider the zone.
@@ -107,6 +108,10 @@
       </action>
       <action dev="essiembre" type="update">
         GenericLinkExtractor renamed to HtmlLinkExtractor. 
+      </action>
+      <action dev="essiembre" type="update">
+        Sitemap information now stored in the new data store engine as opposed
+        to its own storage mechanism. 
       </action>
       <action dev="essiembre" type="remove">
         Removed some code deprecated in releases before 3.0.0. 
