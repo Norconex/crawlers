@@ -16,7 +16,7 @@ package com.norconex.collector.http.web.feature;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Test that MaxDepth setting is respected.
@@ -35,6 +35,6 @@ public class MaxDepth extends AbstractInfiniteDepthTestFeature {
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
         // 0-depth + 10 others == 11 expected files
-        assertListSize("document", committer.getAddOperations(), 11);
+        assertListSize("document", committer.getUpsertRequests(), 11);
     }
 }

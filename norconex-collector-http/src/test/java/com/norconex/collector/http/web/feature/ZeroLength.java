@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Test that blank files are committed.
@@ -36,6 +36,6 @@ public class ZeroLength extends AbstractTestFeature {
     @Override
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
-        assertListSize("document", committer.getAddOperations(), 1);
+        assertListSize("document", committer.getUpsertRequests(), 1);
     }
 }

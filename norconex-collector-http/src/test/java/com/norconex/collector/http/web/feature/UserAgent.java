@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Assertions;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.IAddOperation;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.UpsertRequest;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Test that the user agent is sent properly to web servers with the
@@ -53,8 +53,8 @@ public class UserAgent extends AbstractTestFeature {
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
 
-        assertListSize("document", committer.getAddOperations(), 1);
-        IAddOperation doc = committer.getAddOperations().get(0);
+        assertListSize("document", committer.getUpsertRequests(), 1);
+        UpsertRequest doc = committer.getUpsertRequests().get(0);
         Assertions.assertTrue(content(doc).contains("Super Secret Agent"),
                 "Wrong or undetected User-Agent.");
     }

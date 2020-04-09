@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.IAddOperation;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.UpsertRequest;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * The tail of redirects should be kept as metadata so implementors
@@ -69,9 +69,9 @@ public class MultiRedirect extends AbstractTestFeature {
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
 
-        assertListSize("document", committer.getAddOperations(), 1);
+        assertListSize("document", committer.getUpsertRequests(), 1);
 
-        IAddOperation doc = committer.getAddOperations().get(0);
+        UpsertRequest doc = committer.getUpsertRequests().get(0);
         String ref = doc.getReference();
 
         List<String> trail = doc.getMetadata().getStrings(

@@ -30,7 +30,7 @@ import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Test detection of page deletion (404 - File Not Found).
@@ -94,18 +94,18 @@ public class FileNotFoundDeletion extends AbstractTestFeature {
             throws Exception {
         if (isFirstRun()) {
             // First run we should get 4 additions in total.
-            assertListSize("additions", committer.getAddOperations(), 4);
-            assertListSize("deletions", committer.getDeleteOperations(), 0);
+            assertListSize("additions", committer.getUpsertRequests(), 4);
+            assertListSize("deletions", committer.getDeleteRequests(), 0);
         } else if (isSecondRun()) {
             // Second run we should get 0 add (1 unmodified)
             // and 3 pages to delete.
-            assertListSize("additions", committer.getAddOperations(), 0);
-            assertListSize("deletions", committer.getDeleteOperations(), 3);
+            assertListSize("additions", committer.getUpsertRequests(), 0);
+            assertListSize("deletions", committer.getDeleteRequests(), 3);
         } else if (isThirdRun()) {
             // Third run we should get 0 deletions
             // and 3 new pages (1 unmodified).
-            assertListSize("additions", committer.getAddOperations(), 3);
-            assertListSize("deletions", committer.getDeleteOperations(), 0);
+            assertListSize("additions", committer.getUpsertRequests(), 3);
+            assertListSize("deletions", committer.getDeleteRequests(), 0);
         }
     }
 }

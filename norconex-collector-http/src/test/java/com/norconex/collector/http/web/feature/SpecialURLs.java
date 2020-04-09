@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Test that special characters in URLs are handled properly.
@@ -78,6 +78,6 @@ public class SpecialURLs extends AbstractTestFeature {
     @Override
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
-        assertListSize("document", committer.getAddOperations(), 4);
+        assertListSize("document", committer.getUpsertRequests(), 4);
     }
 }

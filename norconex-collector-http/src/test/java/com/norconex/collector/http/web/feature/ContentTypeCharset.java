@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Assertions;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.IAddOperation;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.UpsertRequest;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.importer.doc.DocMetadata;
 
 /**
@@ -74,8 +74,8 @@ public class ContentTypeCharset extends AbstractTestFeature {
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
 
-        assertListSize("document", committer.getAddOperations(), 1);
-        IAddOperation doc = committer.getAddOperations().get(0);
+        assertListSize("document", committer.getUpsertRequests(), 1);
+        UpsertRequest doc = committer.getUpsertRequests().get(0);
 
         if (isFirstRun()) {
             Assertions.assertEquals(doc.getMetadata().getString(

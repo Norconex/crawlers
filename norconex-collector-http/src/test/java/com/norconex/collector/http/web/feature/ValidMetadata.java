@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Assertions;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
-import com.norconex.committer.core.IAddOperation;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.UpsertRequest;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.DocMetadata;
 
@@ -43,9 +43,9 @@ public class ValidMetadata extends AbstractInfiniteDepthTestFeature {
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
 
-        List<IAddOperation> docs = committer.getAddOperations();
+        List<UpsertRequest> docs = committer.getUpsertRequests();
 
-        for (IAddOperation doc : docs) {
+        for (UpsertRequest doc : docs) {
             Properties meta = doc.getMetadata();
 
             //Test single value

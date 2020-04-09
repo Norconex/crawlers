@@ -16,7 +16,6 @@ package com.norconex.collector.http.web.recovery;
 
 import java.nio.file.Path;
 
-import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.tools.ant.BuildException;
@@ -32,7 +31,7 @@ import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
-import com.norconex.committer.core.impl.FileSystemCommitter;
+import com.norconex.committer.core3.fs.impl.JSONFileCommitter;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.xml.XML;
 
@@ -62,7 +61,7 @@ public abstract class AbstractTestJvmCrash
 
         cfg.setStartURLs(cfg.getStartURLs().get(0) + "?depth=0");
         cfg.addEventListeners(new JVMCrasher());
-        cfg.setCommitter(new FileSystemCommitter());
+        cfg.setCommitter(new JSONFileCommitter());
         cfg.setDataStoreEngine(createDataStoreEngine());
 
         if (isFirstRun()) {
@@ -153,8 +152,8 @@ public abstract class AbstractTestJvmCrash
     @Override
     public void test(HttpCollector collector) throws Exception {
         Path workdir = collector.getCollectorConfig().getWorkDir();
-        FileSystemCommitter committer =
-                (FileSystemCommitter) getCommitter(collector);
+        JSONFileCommitter committer =
+                (JSONFileCommitter) getCommitter(collector);
         Path committedDir = workdir.resolve(committer.getDirectory());
 
         if (isFirstRun()) {
@@ -182,15 +181,15 @@ public abstract class AbstractTestJvmCrash
 
 
     private int countAddedFiles(Path dir) {
-        return countFiles(dir, FileSystemCommitter.FILE_SUFFIX_ADD + ".ref");
+        return countFiles(dir);//, JSONFileCommitter.FILE_SUFFIX_ADD + ".ref");
     }
 //    private int countDeletedFiles(Path dir) {
 //        return countFiles(dir, FileSystemCommitter.FILE_SUFFIX_REMOVE + ".ref");
 //    }
-    private int countFiles(Path dir, String suffix) {
+    private int countFiles(Path dir) {//, String suffix) {
         final MutableInt count = new MutableInt();
-        FileUtil.visitAllFiles(dir.toFile(), file -> count.increment(),
-                FileFilterUtils.suffixFileFilter(suffix));
+        FileUtil.visitAllFiles(dir.toFile(), file -> count.increment());
+        //, FileFilterUtils.suffixFileFilter(suffix));
         return count.intValue();
     }
 }

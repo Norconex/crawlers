@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Tests that the "If-Modified-Since" is supported properly.
@@ -106,9 +106,9 @@ public class IfModifiedSince extends AbstractInfiniteDepthTestFeature {
 
         // Only first and third attempt should have 1 doc
         if (isFirstRun() || isThirdRun()) {
-            assertListSize("document", committer.getAddOperations(), 1);
+            assertListSize("document", committer.getUpsertRequests(), 1);
         } else {
-            assertListSize("document", committer.getAddOperations(), 0);
+            assertListSize("document", committer.getUpsertRequests(), 0);
         }
     }
 }

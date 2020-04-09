@@ -31,7 +31,7 @@ import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.xml.XML;
 

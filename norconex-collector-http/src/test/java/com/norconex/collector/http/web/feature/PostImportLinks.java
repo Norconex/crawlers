@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Assertions;
 import com.norconex.collector.core.filter.impl.ExtensionReferenceFilter;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.IAddOperation;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.UpsertRequest;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.tagger.impl.URLExtractorTagger;
@@ -70,9 +70,9 @@ public class PostImportLinks extends AbstractTestFeature {
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
 
-        assertListSize("additions", committer.getAddOperations(), 1);
+        assertListSize("additions", committer.getUpsertRequests(), 1);
 
-        IAddOperation doc = committer.getAddOperations().get(0);
+        UpsertRequest doc = committer.getUpsertRequests().get(0);
 
         // Page 2 exists a link value and link label, with different URLs,
         // so we expect 6 links back.

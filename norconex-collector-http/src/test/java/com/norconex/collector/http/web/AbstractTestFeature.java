@@ -33,9 +33,9 @@ import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.committer.core.IAddOperation;
-import com.norconex.committer.core.ICommitter;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.ICommitter;
+import com.norconex.committer.core3.UpsertRequest;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
 
 /**
@@ -176,8 +176,8 @@ public abstract class AbstractTestFeature implements IWebTest {
         }
     }
 
-    protected String content(IAddOperation op) throws IOException {
-        try (InputStream is = op.getContentStream()) {
+    protected String content(UpsertRequest req) throws IOException {
+        try (InputStream is = req.getContent()) {
             return IOUtils.toString(is, StandardCharsets.UTF_8);
         }
     }

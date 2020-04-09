@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Assertions;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.link.impl.HtmlLinkExtractor;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.IAddOperation;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.UpsertRequest;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Content of &lt;script&gt; tags must be stripped by GenericLinkExtractor
@@ -63,8 +63,8 @@ public class ScriptTags extends AbstractTestFeature {
     @Override
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
-        assertListSize("document", committer.getAddOperations(), 2);
-        for (IAddOperation doc : committer.getAddOperations()) {
+        assertListSize("document", committer.getUpsertRequests(), 2);
+        for (UpsertRequest doc : committer.getUpsertRequests()) {
             String content = content(doc);
             if (!doc.getReference().contains("script=true")) {
                 // first page

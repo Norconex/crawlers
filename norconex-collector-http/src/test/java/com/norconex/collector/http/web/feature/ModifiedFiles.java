@@ -25,7 +25,7 @@ import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.commons.lang.Sleeper;
 
 /**
@@ -102,7 +102,7 @@ public class ModifiedFiles extends AbstractTestFeature {
 
         if (isFirstRun()) {
             // Test once and make sure we get 4 additions in total.
-            assertListSize("document", committer.getAddOperations(), 4);
+            assertListSize("document", committer.getUpsertRequests(), 4);
         } else if (isSecondRun()) {
             // Test twice and make sure we get 1 add (3 unmodified), because:
             // Page 1 has new modified date, we check content. Content is same.
@@ -110,7 +110,7 @@ public class ModifiedFiles extends AbstractTestFeature {
             //        (ignore content).
             // Page 3 has new modified date, so we check content.
             // Content is modified.
-            assertListSize("document", committer.getAddOperations(), 1);
+            assertListSize("document", committer.getUpsertRequests(), 1);
         }
     }
 }

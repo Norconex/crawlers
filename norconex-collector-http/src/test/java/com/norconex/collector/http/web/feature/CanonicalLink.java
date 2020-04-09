@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Assertions;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Test (non)canonical link detection.
@@ -90,7 +90,7 @@ public class CanonicalLink extends AbstractTestFeature {
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
 
-        assertListSize("document", committer.getAddOperations(), 1);
+        assertListSize("document", committer.getUpsertRequests(), 1);
         Assertions.assertEquals(
                 2, canCount.intValue(),
                 "Wrong number of canonical link rejection.");

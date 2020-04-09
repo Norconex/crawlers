@@ -16,7 +16,7 @@ package com.norconex.collector.http.web.feature;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Test that MaxURLs setting is respected.
@@ -33,6 +33,6 @@ public class MaxURLs extends AbstractInfiniteDepthTestFeature {
     @Override
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
-        assertListSize("URLs", committer.getAddOperations(), 15);
+        assertListSize("URLs", committer.getUpsertRequests(), 15);
     }
 }

@@ -26,8 +26,8 @@ import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.crawler.URLCrawlScopeStrategy;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.IAddOperation;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.UpsertRequest;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Test extraction of JavaScript URLs.
@@ -67,11 +67,11 @@ public class JavaScriptURL extends AbstractTestFeature {
     protected void doTestMemoryCommitter(MemoryCommitter committer)
             throws Exception {
 
-        List<IAddOperation> docs = committer.getAddOperations();
+        List<UpsertRequest> docs = committer.getUpsertRequests();
 
         assertListSize("document", docs, 2);
 
-        for (IAddOperation doc : docs) {
+        for (UpsertRequest doc : docs) {
             String content = content(doc);
             if (!doc.getReference().contains("goodurl=true")) {
                 // first page

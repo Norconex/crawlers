@@ -24,7 +24,7 @@ import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.commons.lang.Sleeper;
 
 /**
@@ -86,12 +86,12 @@ public class Timeout extends AbstractTestFeature {
             throws Exception {
         if (isFirstRun()) {
             // Test once and make sure we get 3 additions in total.
-            assertListSize("document", committer.getAddOperations(), 3);
+            assertListSize("document", committer.getUpsertRequests(), 3);
         } else if (isSecondRun()) {
             // Test twice and make sure we get 2 modified child docs even if
             // parent times out (as opposed to consider child as orphans to be
             // deleted.
-            assertListSize("document", committer.getAddOperations(), 2);
+            assertListSize("document", committer.getUpsertRequests(), 2);
         }
     }
 }

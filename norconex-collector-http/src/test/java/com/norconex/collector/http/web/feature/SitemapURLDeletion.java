@@ -28,7 +28,7 @@ import org.apache.http.HttpStatus;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.commons.lang.ResourceLoader;
 
 /**
@@ -103,13 +103,13 @@ public class SitemapURLDeletion extends AbstractTestFeature {
             throws Exception {
         if (isFirstRun()) {
             // Test once and make sure we get 3 additions in total.
-            assertListSize("added", committer.getAddOperations(), 3);
-            assertListSize("deleted", committer.getDeleteOperations(), 0);
+            assertListSize("added", committer.getUpsertRequests(), 3);
+            assertListSize("deleted", committer.getDeleteRequests(), 0);
         } else {
             // Test twice and make sure we get 1 add, 2 unmodified and
             // 1 pages deleted, regardless of delay specified in sitemap.
-            assertListSize("added", committer.getAddOperations(), 1);
-            assertListSize("deleted", committer.getDeleteOperations(), 1);
+            assertListSize("added", committer.getUpsertRequests(), 1);
+            assertListSize("deleted", committer.getDeleteRequests(), 1);
         }
     }
 }

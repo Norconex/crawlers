@@ -17,7 +17,7 @@ package com.norconex.collector.http.web.feature;
 import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 
 /**
  * Tests that the page does not produce any Committer addition on subsequent
@@ -47,9 +47,9 @@ public class UnmodifiedMeta extends AbstractInfiniteDepthTestFeature {
 
         // Only first attempt should have 1 doc
         if (isFirstRun()) {
-            assertListSize("document", committer.getAddOperations(), 1);
+            assertListSize("document", committer.getUpsertRequests(), 1);
         } else {
-            assertListSize("document", committer.getAddOperations(), 0);
+            assertListSize("document", committer.getUpsertRequests(), 0);
         }
     }
 }

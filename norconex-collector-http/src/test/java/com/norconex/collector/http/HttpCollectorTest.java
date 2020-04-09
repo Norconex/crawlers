@@ -28,7 +28,7 @@ import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
-import com.norconex.committer.core.impl.NilCommitter;
+import com.norconex.committer.core3.impl.LogCommitter;
 import com.norconex.jef5.status.JobState;
 
 
@@ -49,7 +49,7 @@ public class HttpCollectorTest {
 
         HttpCrawlerConfig crawlerCfg = new HttpCrawlerConfig();
         crawlerCfg.setId("test-crawler");
-        crawlerCfg.setCommitter(new NilCommitter());
+        crawlerCfg.setCommitter(new LogCommitter());
         String startURL = null;//newUrl("/test?case=modifiedFiles");
         crawlerCfg.setStartURLs(startURL);
         GenericDelayResolver delay = new GenericDelayResolver();

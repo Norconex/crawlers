@@ -23,7 +23,7 @@ import com.norconex.collector.http.HttpCollectorEvent;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
-import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.commons.lang.Sleeper;
 
 /**
@@ -91,12 +91,12 @@ public class StartAfterStopped extends AbstractInfiniteDepthTestFeature {
             throws Exception {
 
         if (isFirstRun()) {
-            assertListSize("document", committer.getAddOperations(), 3);
+            assertListSize("document", committer.getUpsertRequests(), 3);
         } else if (isResuming()) {
             // since 3 were crawled on first run, now should be remaining 7
-            assertListSize("document", committer.getAddOperations(), 7);
+            assertListSize("document", committer.getUpsertRequests(), 7);
         } else {
-            assertListSize("document", committer.getAddOperations(), 2);
+            assertListSize("document", committer.getUpsertRequests(), 2);
         }
     }
 }

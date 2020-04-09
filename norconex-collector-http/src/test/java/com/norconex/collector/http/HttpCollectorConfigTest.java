@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.committer.core.impl.FileSystemCommitter;
+import com.norconex.committer.core3.fs.impl.JSONFileCommitter;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLValidationException;
 
@@ -46,7 +46,7 @@ public class HttpCollectorConfigTest {
 
         HttpCrawlerConfig crawlerCfg = new HttpCrawlerConfig();
         crawlerCfg.setId("test-http-crawler");
-        crawlerCfg.setCommitter(new FileSystemCommitter());
+        crawlerCfg.setCommitter(new JSONFileCommitter());
         crawlerCfg.setStartURLs(
                 "http://www.example.com/1/", "http://www.example.com/2/");
         crawlerCfg.setStartURLsFiles(
