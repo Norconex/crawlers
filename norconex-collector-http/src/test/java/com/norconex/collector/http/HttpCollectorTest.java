@@ -49,7 +49,7 @@ public class HttpCollectorTest {
 
         HttpCrawlerConfig crawlerCfg = new HttpCrawlerConfig();
         crawlerCfg.setId("test-crawler");
-        crawlerCfg.setCommitter(new LogCommitter());
+        crawlerCfg.setCommitters(new LogCommitter());
         String startURL = null;//newUrl("/test?case=modifiedFiles");
         crawlerCfg.setStartURLs(startURL);
         GenericDelayResolver delay = new GenericDelayResolver();

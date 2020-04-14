@@ -55,9 +55,11 @@
         <url>https://www.norconex.com/product/collector-http-test/complex1.php</url>
       </startURLs>
       #parse("shared/importer-config.xml")
-      <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
-        <directory>${workdir}/crawledFiles1</directory>
-      </committer>
+      <committers>
+        <committer class="com.norconex.committer.core3.fs.impl.XMLFileCommitter">
+         <fileNamePrefix>complex1_</fileNamePrefix>
+        </committer>
+      </committers>
     </crawler>
 
     <crawler id="Norconex Complex Test Page 2">
@@ -65,9 +67,11 @@
         <url>https://www.norconex.com/product/collector-http-test/complex2.php</url>
       </startURLs>
       #parse("shared/importer-config.xml")
-      <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
-        <directory>${workdir}/crawledFiles2</directory>
-      </committer>
+      <committers>
+        <committer class="com.norconex.committer.core3.fs.impl.XMLFileCommitter">
+         <fileNamePrefix>complex2_</fileNamePrefix>
+        </committer>
+      </committers>
     </crawler>
 
   </crawlers>

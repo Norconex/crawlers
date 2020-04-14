@@ -46,7 +46,7 @@ public class HttpCollectorConfigTest {
 
         HttpCrawlerConfig crawlerCfg = new HttpCrawlerConfig();
         crawlerCfg.setId("test-http-crawler");
-        crawlerCfg.setCommitter(new JSONFileCommitter());
+        crawlerCfg.setCommitters(new JSONFileCommitter());
         crawlerCfg.setStartURLs(
                 "http://www.example.com/1/", "http://www.example.com/2/");
         crawlerCfg.setStartURLsFiles(

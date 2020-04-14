@@ -358,9 +358,21 @@
       <mapping state="ERROR" strategy="IGNORE" />
     </spoiledReferenceStrategizer>
 
+
+    <!-- NEW: -->
+    <committers>
+      <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
+        <directory>/tmp/somepath</directory>
+      </committer>
+    </committers>
+    <!-- DEPRECATED:
+       - Now supports multiple committers, so needs to be wrapp in <committers>
+       -->
+    <!--
     <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
       <directory>/tmp/somepath</directory>
     </committer>
+      -->
 
   </crawlerDefaults>
   

@@ -61,7 +61,7 @@ public abstract class AbstractTestJvmCrash
 
         cfg.setStartURLs(cfg.getStartURLs().get(0) + "?depth=0");
         cfg.addEventListeners(new JVMCrasher());
-        cfg.setCommitter(new JSONFileCommitter());
+        cfg.setCommitters(new JSONFileCommitter());
         cfg.setDataStoreEngine(createDataStoreEngine());
 
         if (isFirstRun()) {

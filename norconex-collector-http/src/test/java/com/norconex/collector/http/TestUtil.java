@@ -143,7 +143,7 @@ public final class TestUtil {
         httpConfig.setIgnoreRobotsMeta(true);
         httpConfig.setIgnoreRobotsTxt(true);
         httpConfig.setIgnoreSitemap(true);
-        httpConfig.setCommitter(committer);
+        httpConfig.setCommitters(committer);
 
         LastModifiedMetadataChecksummer metaChecksum =
                 new LastModifiedMetadataChecksummer();

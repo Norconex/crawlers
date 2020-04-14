@@ -127,7 +127,7 @@ public abstract class AbstractTestFeature implements IWebTest {
             for (Crawler crawler : collector.getCrawlers()) {
                 doTestCrawler((HttpCrawler) crawler);
                 doTestCommitter(((HttpCrawler) crawler)
-                        .getCrawlerConfig().getCommitter());
+                        .getCrawlerConfig().getCommitters().get(0));
             }
         }
     }
@@ -224,7 +224,7 @@ public abstract class AbstractTestFeature implements IWebTest {
         if (cfg == null) {
             return null;
         }
-        return cfg.getCommitter();
+        return cfg.getCommitters().get(0);
     }
 
     @Override

@@ -60,9 +60,9 @@
       </importer> 
       
       <!-- Decide what to do with your files by specifying a Committer. -->
-      <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
-        <directory>./examples-output/minimum/crawledFiles</directory>
-      </committer>
+      <committers>
+        <committer class="com.norconex.committer.core3.fs.impl.XMLFileCommitter"/>
+      </committers>
 
     </crawler>
   </crawlers>

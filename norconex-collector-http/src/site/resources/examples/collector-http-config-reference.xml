@@ -56,7 +56,7 @@
   #set($docChecksummer    = "${core}.checksum.impl.MD5DocumentChecksummer")
   #set($dataStoreEngine   = "${core}.store.impl.nitrite.NitriteDataStoreEngine")
   #set($spoiledStrategy   = "${core}.spoil.impl.GenericSpoiledReferenceStrategizer")
-  #set($fsCommitter       = "${committer}.core.impl.FileSystemCommitter")
+  #set($xmlCommitter      = "${committer}.core3.fs.impl.XMLFileCommitter")
   
   <!-- Collector working directory.  This is where files downloaded or created
      as part of crawling activities get stored. Sub-directories will be
@@ -399,11 +399,12 @@
            This step calls the Committer module.  The
            committer is a different module with its own set of XML configuration
            options.  Please refer to committer for complete documentation.
-           Below is an example using the FileSystemCommitter.
+           Below is an example using the XMLFileCommitter.
            -->
-      <committer class="$fsCommitter">
-        <directory>$workdir\crawledFiles</directory>
-      </committer>
+      <committers>
+        <committer class="$xmlCommitter">
+        </committer>
+      </committers>
 
     </crawler>
 
