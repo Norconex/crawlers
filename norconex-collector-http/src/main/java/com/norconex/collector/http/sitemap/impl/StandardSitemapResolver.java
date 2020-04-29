@@ -257,8 +257,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 InputStream is = response.getEntity().getContent();
                 String contentType = 
                         response.getFirstHeader("Content-Type").getValue();
-                if ("application/x-gzip".equals(contentType)
-                        || "application/gzip".equals(contentType)) {
+                if (contentType.endsWith("gzip")) {
                     is = new GZIPInputStream(is);
                 }
                 File sitemapFile = inputStreamToTempFile(is);
