@@ -116,5 +116,18 @@ public class HttpFetchResponseBuilder {
         public Exception getException() {
             return exception;
         }
+        @Override
+        public boolean equals(final Object other) {
+            return EqualsBuilder.reflectionEquals(this, other);
+        }
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
+        @Override
+        public String toString() {
+            return new ReflectionToStringBuilder(
+                    this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
+        }
     }
 }
