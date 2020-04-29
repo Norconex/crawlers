@@ -19,6 +19,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +65,7 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLUtil;
 
 /**
  * <p>
@@ -98,10 +102,9 @@ import com.norconex.commons.lang.xml.XML;
  * </p>
  * <p>
  * Sitemaps are first stored in a local temporary file before
- * being parsed. The <code>tempDir</code> constructor argument is used as the
- * location where to store those files. When <code>null</code>, the system
- * temporary directory is used, as returned by
- * {@link FileUtils#getTempDirectoryPath()}.
+ * being parsed. A directory relative to the crawler work directory
+ * will be created by default. To specify a custom directory, you can use
+ * {@link #setTempDir(Path)}.
  * </p>
  * @author Pascal Essiembre
  * @since 3.0.0 (merged fro StandardSitemapResolver*)
@@ -355,7 +358,7 @@ public class GenericSitemapResolver
             String location) throws XMLStreamException, IOException {
 
         try (FileInputStream fis = new FileInputStream(sitemapFile)) {
-            XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+            XMLInputFactory inputFactory = XMLUtil.createXMLInputFactory();
             inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
             XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(fis);
             ParseState parseState = new ParseState();
@@ -426,8 +429,16 @@ public class GenericSitemapResolver
             parseState.loc = false;
         } else if (parseState.lastmod) {
             try {
-                parseState.baseURL.setSitemapLastMod(
-                        ZonedDateTime.parse(value));
+                ZonedDateTime zdt = null;
+                if (value.contains("T")) {
+                    // has time
+                    zdt = ZonedDateTime.parse(value);
+                } else {
+                    // has no time
+                    zdt = ZonedDateTime.of(LocalDate.parse(value),
+                            LocalTime.MIDNIGHT, ZoneOffset.UTC);
+                }
+                parseState.baseURL.setSitemapLastMod(zdt);
             } catch (Exception e) {
                 LOG.info("Invalid sitemap date: {}", value);
             }

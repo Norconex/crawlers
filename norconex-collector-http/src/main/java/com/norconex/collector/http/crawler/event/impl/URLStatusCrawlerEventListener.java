@@ -33,10 +33,10 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.http.HttpCollector;
-import com.norconex.collector.http.HttpCollectorEvent;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
@@ -110,34 +110,32 @@ import com.norconex.commons.lang.xml.XML;
  * using a custom link extractor.
  * </p>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;listener
- *      class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener"&gt;
- *      &lt;statusCodes&gt;(CSV list of status codes)&lt;/statusCodes&gt;
- *      &lt;crawlerIds&gt;
- *          &lt;id&gt;(existing crawler ID)&lt;/id&gt;
- *          &lt;!-- repeat as needed --&gt;
- *      &lt;/crawlerIds&gt;
- *      &lt;outputDir&gt;(path to a directory of your choice)&lt;/outputDir&gt;
- *      &lt;fileNamePrefix&gt;(report file name prefix)&lt;/fileNamePrefix&gt;
- *      &lt;combined&gt;[false|true]&lt;/combined&gt;
- *  &lt;/listener&gt;
- * </pre>
+ * {@nx.xml.usage
+ * <listener
+ *     class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener">
+ *   <statusCodes>(CSV list of status codes)</statusCodes>
+ *   <crawlerIds>
+ *     <!-- repeat as needed -->
+ *     <id>(existing crawler ID)</id>
+ *   </crawlerIds>
+ *   <outputDir>(path to a directory of your choice)</outputDir>
+ *   <fileNamePrefix>(report file name prefix)</fileNamePrefix>
+ *   <combined>[false|true]</combined>
+ * </listener>
+ * }
  *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ * <listener
+ *     class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener">
+ *   <statusCodes>404</statusCodes>
+ *   <outputDir>/report/path/</outputDir>
+ *   <fileNamePrefix>brokenLinks</fileNamePrefix>
+ * </listener>
+ * }
  * <p>
- * The following example will generate a broken links report by recording
+ * The above example will generate a broken links report by recording
  * 404 status codes (from HTTP response).
  * </p>
- * <pre>
- *  &lt;listener
- *      class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener"&gt;
- *      &lt;statusCodes&gt;404&lt;/statusCodes&gt;
- *      &lt;outputDir&gt;/report/path/&lt;/outputDir&gt;
- *      &lt;fileNamePrefix&gt;brokenLinks&lt;/fileNamePrefix&gt;
- *  &lt;/listener&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 2.2.0
@@ -227,8 +225,8 @@ public class URLStatusCrawlerEventListener
 
     @Override
     public void accept(Event<?> event) {
-        if (event.is(HttpCollectorEvent.COLLECTOR_RUN_BEGIN)) {
-            init(((HttpCollectorEvent) event).getSource());
+        if (event.is(CollectorEvent.COLLECTOR_RUN_BEGIN)) {
+            init((HttpCollector) event.getSource());
             return;
         }
 
@@ -308,7 +306,7 @@ public class URLStatusCrawlerEventListener
     // not null on startup.
     private Path getBaseDir(HttpCollector collector) {
         if (outputDir == null) {
-            return collector.getCollectorConfig().getWorkDir();
+            return collector.getWorkDir();
         }
         return outputDir;
     }

@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -171,7 +172,7 @@ public class GenericRecrawlableResolver
      * @param minFrequencies minimum frequencies
      * @since 3.0.0
      */
-    public void setMinFrequencies(List<MinFrequency> minFrequencies) {
+    public void setMinFrequencies(Collection<MinFrequency> minFrequencies) {
         CollectionUtil.setAll(this.minFrequencies, minFrequencies);
     }
 

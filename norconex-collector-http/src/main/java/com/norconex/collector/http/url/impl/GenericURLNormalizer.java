@@ -1,4 +1,4 @@
-/* Copyright 2010-2019 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,13 @@ import com.norconex.commons.lang.xml.XML;
  *   <li>{@link URLNormalizer#decodeUnreservedCharacters() decodeUnreservedCharacters}</li>
  *   <li>{@link URLNormalizer#encodeNonURICharacters() encodeNonURICharacters}</li>
  *   <li>{@link URLNormalizer#encodeSpaces() encodeSpaces}</li>
+ *   <li>{@link URLNormalizer#lowerCase() lowerCase} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCasePath() lowerCasePath} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQueryParameterNames()
+ *        lowerCaseQueryParameterNames} (since 2.9.0)</li>
+ *   <li>{@link URLNormalizer#lowerCaseQueryParameterValues()
+ *        lowerCaseQueryParameterValues} (since 2.9.0)</li>
  *   <li>{@link URLNormalizer#lowerCaseSchemeHost() lowerCaseSchemeHost}</li>
  *   <li>{@link URLNormalizer#removeDefaultPort() removeDefaultPort}</li>
  *   <li>{@link URLNormalizer#removeDirectoryIndex() removeDirectoryIndex}</li>
@@ -82,6 +89,7 @@ import com.norconex.commons.lang.xml.XML;
  *   <li>{@link URLNormalizer#removeDuplicateSlashes() removeDuplicateSlashes}</li>
  *   <li>{@link URLNormalizer#removeEmptyParameters() removeEmptyParameters}</li>
  *   <li>{@link URLNormalizer#removeFragment() removeFragment}</li>
+ *   <li>{@link URLNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
  *   <li>{@link URLNormalizer#removeSessionIds() removeSessionIds}</li>
  *   <li>{@link URLNormalizer#removeTrailingQuestionMark() removeTrailingQuestionMark}</li>
  *   <li>{@link URLNormalizer#removeTrailingSlash() removeTrailingSlash} (since 2.6.0)</li>
@@ -92,66 +100,57 @@ import com.norconex.commons.lang.xml.XML;
  *   <li>{@link URLNormalizer#sortQueryParameters() sortQueryParameters}</li>
  *   <li>{@link URLNormalizer#unsecureScheme() unsecureScheme}</li>
  *   <li>{@link URLNormalizer#upperCaseEscapeSequence() upperCaseEscapeSequence}</li>
- *   <li>{@link URLNormalizer#removeQueryString() removeQueryString} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCase() lowerCase} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCasePath() lowerCasePath} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseQuery() lowerCaseQuery} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseQueryParameterNames()
- *        lowerCaseQueryParameterNames} (since 2.9.0)</li>
- *   <li>{@link URLNormalizer#lowerCaseQueryParameterValues()
- *        lowerCaseQueryParameterValues} (since 2.9.0)</li>
  * </ul>
  * <p>
  *   In addition, this class allows you to specify any number of URL
  *   value replacements using regular expressions.
  * </p>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;urlNormalizer
+ * {@nx.xml.usage
+ *  <urlNormalizer
  *      class="com.norconex.collector.http.url.impl.GenericURLNormalizer"
- *      disabled="[false|true]"&gt;
- *    &lt;normalizations&gt;
+ *      disabled="[false|true]">
+ *    <normalizations>
  *      (normalization code names, coma separated)
- *    &lt;/normalizations&gt;
- *    &lt;replacements&gt;
- *      &lt;replace&gt;
- *         &lt;match&gt;(regex pattern to match)&lt;/match&gt;
- *         &lt;replacement&gt;(optional replacement value, default to blank)&lt;/replacement&gt;
- *      &lt;/replace&gt;
+ *    </normalizations>
+ *    <replacements>
+ *      <replace>
+ *         <match>(regex pattern to match)</match>
+ *         <replacement>(optional replacement value, default to blank)</replacement>
+ *      </replace>
  *      (... repeat replace tag  as needed ...)
- *    &lt;/replacements&gt;
- *  &lt;/urlNormalizer&gt;
- * </pre>
+ *    </replacements>
+ *  </urlNormalizer>
+ * }
  * <p>
  * Since 2.7.2, having an empty "normalizations" tag will effectively remove
  * any normalizations rules previously set (like default ones).
  * Not having the tag
  * at all will keep existing/default normalizations.
  * </p>
- * <h4>Usage example:</h4>
+ *
+ * {@nx.xml.example
+ * <urlNormalizer class="com.norconex.collector.http.url.impl.GenericURLNormalizer">
+ *   <normalizations>
+ *       removeFragment, lowerCaseSchemeHost, upperCaseEscapeSequence,
+ *       decodeUnreservedCharacters, removeDefaultPort,
+ *       encodeNonURICharacters, addWWW
+ *   </normalizations>
+ *   <replacements>
+ *     <replace><match>&amp;amp;view=print</match></replace>
+ *     <replace>
+ *        <match>(&amp;amp;type=)(summary)</match>
+ *        <replacement>$1full</replacement>
+ *     </replace>
+ *   </replacements>
+ * </urlNormalizer>
+ * }
  * <p>
  * The following adds a normalization to add "www." to URL domains when
  * missing, to the default set of normalizations. It also add custom
  * URL "search-and-replace" to remove any "&amp;view=print" strings from URLs
  * as well as replace "&amp;type=summary" with "&amp;type=full".
  * </p>
- * <pre>
- *  &lt;urlNormalizer class="com.norconex.collector.http.url.impl.GenericURLNormalizer"&gt;
- *    &lt;normalizations&gt;
- *        removeFragment, lowerCaseSchemeHost, upperCaseEscapeSequence,
- *        decodeUnreservedCharacters, removeDefaultPort,
- *        encodeNonURICharacters, addWWW
- *    &lt;/normalizations&gt;
- *    &lt;replacements&gt;
- *      &lt;replace&gt;&lt;match&gt;&amp;amp;view=print&lt;/match&gt;&lt;/replace&gt;
- *      &lt;replace&gt;
- *         &lt;match&gt;(&amp;amp;type=)(summary)&lt;/match&gt;
- *         &lt;replacement&gt;$1full&lt;/replacement&gt;
- *      &lt;/replace&gt;
- *    &lt;/replacements&gt;
- *  &lt;/urlNormalizer&gt;
- * </pre>
  * @author Pascal Essiembre
  */
 public class GenericURLNormalizer implements IURLNormalizer, IXMLConfigurable {
