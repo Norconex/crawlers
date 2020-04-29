@@ -358,7 +358,9 @@ public class HttpCrawler extends AbstractCrawler {
                 new HttpImporterPipelineContext(importerContext);
         new HttpImporterPipeline(
                 getCrawlerConfig().isKeepDownloads(),
-                importerContext.isOrphan()).execute(httpContext);
+                importerContext.isOrphan(),
+                getCrawlerConfig().isLinkExtractorQuitAtDepth()
+        ).execute(httpContext);
         return httpContext.getImporterResponse();
     }
 

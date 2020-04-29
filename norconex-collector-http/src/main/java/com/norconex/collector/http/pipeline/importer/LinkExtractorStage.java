@@ -44,6 +44,12 @@ import com.norconex.commons.lang.io.CachedInputStream;
     private static final Logger LOG =
             LogManager.getLogger(LinkExtractorStage.class);
 
+    private final boolean quitAtDepth;
+
+    public LinkExtractorStage(boolean quitAtDepth) {
+        this.quitAtDepth = quitAtDepth;
+    }
+
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
 
@@ -52,6 +58,15 @@ import com.norconex.commons.lang.io.CachedInputStream;
             return true;
         }
 
+        if(quitAtDepth) {
+            int depth = ctx.getCrawlData().getDepth();
+            int maxdepth = ctx.getConfig().getMaxDepth();
+
+            if (depth == maxdepth) {
+                LOG.debug("Max depth reached ; do not extract link");
+                return true;
+            }
+        }
 
         String reference = ctx.getCrawlData().getReference();
 

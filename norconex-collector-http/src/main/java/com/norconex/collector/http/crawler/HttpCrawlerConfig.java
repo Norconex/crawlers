@@ -86,6 +86,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private boolean ignoreCanonicalLinks;
 	private boolean keepOutOfScopeLinks;
 	private boolean skipMetaFetcherOnBadStatus;
+	private boolean linkExtractorQuitAtDepth;
 
     private String userAgent;
 
@@ -295,6 +296,12 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setKeepDownloads(boolean keepDownloads) {
         this.keepDownloads = keepDownloads;
     }
+    public boolean isLinkExtractorQuitAtDepth() {
+        return linkExtractorQuitAtDepth;
+    }
+    public void setLinkExtractorQuitAtDepth(boolean linkExtractorQuitAtDepth) {
+        this.linkExtractorQuitAtDepth = linkExtractorQuitAtDepth;
+    }
     /**
      * Whether links not in scope should be stored as metadata
      * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
@@ -483,6 +490,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
 
 			writer.writeElementBoolean(
 			        "keepOutOfScopeLinks", isKeepOutOfScopeLinks());
+            writer.writeElementBoolean(
+                    "linkExtractorQuitAtDepth", isLinkExtractorQuitAtDepth());
             writer.writeStartElement("startURLs");
             writer.writeAttributeBoolean("stayOnProtocol",
                     urlCrawlScopeStrategy.isStayOnProtocol());
@@ -666,6 +675,8 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
 		setKeepOutOfScopeLinks(
 		        xml.getBoolean("keepOutOfScopeLinks", isKeepOutOfScopeLinks()));
+        setKeepOutOfScopeLinks(
+                xml.getBoolean("linkExtractorQuitAtDepth", isLinkExtractorQuitAtDepth()));
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "ignoreCanonicalLinks", isIgnoreCanonicalLinks()));
         urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
@@ -756,6 +767,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreSitemap, castOther.ignoreSitemap)
                 .append(keepDownloads, castOther.keepDownloads)
                 .append(keepOutOfScopeLinks, castOther.keepOutOfScopeLinks)
+                .append(linkExtractorQuitAtDepth, castOther.linkExtractorQuitAtDepth)
                 .append(ignoreCanonicalLinks, castOther.ignoreCanonicalLinks)
                 .append(skipMetaFetcherOnBadStatus,
                         castOther.skipMetaFetcherOnBadStatus)
@@ -794,6 +806,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreSitemap)
                 .append(keepDownloads)
                 .append(keepOutOfScopeLinks)
+                .append(linkExtractorQuitAtDepth)
                 .append(ignoreCanonicalLinks)
                 .append(skipMetaFetcherOnBadStatus)
                 .append(userAgent)
@@ -830,6 +843,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("ignoreSitemap", ignoreSitemap)
                 .append("keepDownloads", keepDownloads)
                 .append("keepOutOfScopeLinks", keepOutOfScopeLinks)
+                .append("linkExtractorQuitAtDepth", linkExtractorQuitAtDepth)
                 .append("ignoreCanonicalLinks", ignoreCanonicalLinks)
                 .append("skipMetaFetcherOnBadStatus",
                         skipMetaFetcherOnBadStatus)
