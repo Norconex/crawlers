@@ -1,5 +1,11 @@
 The following are either things to be done, or ideas to consider:
 
+- Enhance <maxDepth> to allow specifying max depth from a URL pattern.
+  E.g., one-level deep from any URL matching xyz*.
+
+- Have tagger(s) that will store booleaen flags if a condition is met.
+  E.g., Does the content of tag <xyz> contains this term?
+
 - Form authentication: add ability to first parse a login page, look for 
   login form, and pass all its input field to the login request.
 
