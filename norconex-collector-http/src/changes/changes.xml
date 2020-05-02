@@ -113,6 +113,9 @@
         Sitemap information now stored in the new data store engine as opposed
         to its own storage mechanism. 
       </action>
+      <action dev="essiembre" type="update">
+        URLStatusCrawlerEventListener now saves as CSV instead of TSV. 
+      </action>
       <action dev="essiembre" type="remove">
         Removed some code deprecated in releases before 3.0.0. 
       </action>

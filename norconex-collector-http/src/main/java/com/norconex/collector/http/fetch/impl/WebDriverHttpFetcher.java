@@ -435,7 +435,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                         + "'driverProxyEnabled' set to 'true'.";
             }
             return HttpFetchResponseBuilder.unsupported().setReasonPhrase(
-                  reason).build();
+                  reason).create();
         }
 
 //
@@ -480,7 +480,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                 .setReasonPhrase("No exception thrown, but real status code "
                         + "unknown. Capture headers for real status code.")
                 .setUserAgent(getUserAgent())
-                .build();
+                .create();
     }
 
     // Overwrite to perform more advanced configuration/manipulation.
@@ -529,9 +529,9 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                     .setReasonPhrase(reason)
                     .setUserAgent(getUserAgent());
             if (statusCode >= 200 && statusCode < 300) {
-                response = b.setCrawlState(CrawlState.NEW).build();
+                response = b.setCrawlState(CrawlState.NEW).create();
             } else {
-                response = b.setCrawlState(CrawlState.BAD_STATUS).build();
+                response = b.setCrawlState(CrawlState.BAD_STATUS).create();
             }
         }
         return response;

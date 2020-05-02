@@ -296,8 +296,7 @@ public class GenericSitemapResolver
                 InputStream is = doc.getInputStream();
                 String contentType =
                         doc.getMetadata().getString("Content-Type");
-                if ("application/x-gzip".equals(contentType)
-                        || "application/gzip".equals(contentType)) {
+                if (contentType.endsWith("gzip")) {
                     is = new GZIPInputStream(is);
                 }
                 File sitemapFile = inputStreamToTempFile(is);
@@ -425,6 +424,7 @@ public class GenericSitemapResolver
 
     private void parseCharacters(ParseState parseState, String value) {
         if (parseState.loc) {
+            LOG.debug("Sitemap URL: {}", value);
             parseState.baseURL.setReference(value);
             parseState.loc = false;
         } else if (parseState.lastmod) {

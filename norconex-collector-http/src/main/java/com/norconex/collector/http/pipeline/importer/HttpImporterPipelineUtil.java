@@ -61,7 +61,7 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
                 .setCrawlState(HttpCrawlState.REDIRECT)
                 .setReasonPhrase(response.getReasonPhrase()
                         + " (" + redirectURL + ")")
-                .build();
+                .create();
         ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED,
                 crawlRef, newResponse);
 

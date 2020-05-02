@@ -14,7 +14,8 @@
  */
 package com.norconex.collector.http.crawler.event.impl;
 
-import java.io.BufferedWriter;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,19 +28,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsExclude;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringExclude;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.Crawler;
+import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.http.HttpCollector;
-import com.norconex.collector.http.crawler.HttpCrawlerEvent;
+import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.doc.HttpDocInfo;
-import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.link.impl.HtmlLinkExtractor;
 import com.norconex.collector.http.link.impl.TikaLinkExtractor;
@@ -87,7 +95,7 @@ import com.norconex.commons.lang.xml.XML;
  * By default, the file generated will use this naming pattern:
  * </p>
  * <pre>
- *   urlstatuses-[timestamp].tsv
+ *   urlstatuses-[timestamp].csv
  * </pre>
  * <p>
  * The filename prefix can be changed from "urlstatuses-" to anything else
@@ -143,11 +151,10 @@ import com.norconex.commons.lang.xml.XML;
 public class URLStatusCrawlerEventListener
         implements IEventListener<Event<?>>, IXMLConfigurable {
 
-    public static final String DEFAULT_FILENAME_PREFIX = "urlstatuses-";
+    private static final Logger LOG =
+            LoggerFactory.getLogger(URLStatusCrawlerEventListener.class);
 
-    private static final String[] NO_REFLECT_FIELDS = new String[] {
-            "parsedCodes", "outputFiles"
-    };
+    public static final String DEFAULT_FILENAME_PREFIX = "urlstatuses-";
 
     private String statusCodes;
     private Path outputDir;
@@ -156,8 +163,14 @@ public class URLStatusCrawlerEventListener
     private boolean combined;
 
     // variables set when crawler starts/resumes
+    @EqualsExclude
+    @HashCodeExclude
+    @ToStringExclude
     private final List<Integer> parsedCodes = new ArrayList<>();
-    private final Map<String, Path> outputFiles = new HashMap<>();
+    @EqualsExclude
+    @HashCodeExclude
+    @ToStringExclude
+    private final Map<String, CSVPrinter> csvPrinters = new HashMap<>();
 
 
     /**
@@ -229,26 +242,42 @@ public class URLStatusCrawlerEventListener
             init((HttpCollector) event.getSource());
             return;
         }
-
-        if (!(event instanceof HttpCrawlerEvent)) {
+        if (event.is(CollectorEvent.COLLECTOR_RUN_END)) {
+            for (CSVPrinter csv : csvPrinters.values()) {
+                try {
+                    csv.close(true);
+                } catch (IOException e) {
+                    LOG.error("Could not close CSVPrinter.", e);
+                }
+            }
             return;
         }
 
-        HttpCrawlerEvent e = ((HttpCrawlerEvent) event);
-        if (e.getSubject() instanceof HttpFetchResponseBuilder) {
-            IHttpFetchResponse response = (IHttpFetchResponse) e.getSubject();
+        if (!(event instanceof CrawlerEvent)) {
+            return;
+        }
+
+        CrawlerEvent<?> ce = (CrawlerEvent<?>) event;
+        if (ce.getSubject() instanceof IHttpFetchResponse) {
+            IHttpFetchResponse response = (IHttpFetchResponse) ce.getSubject();
             if (parsedCodes.isEmpty()
                     || parsedCodes.contains(response.getStatusCode())) {
-                Path outFile = outputFiles.get(
-                        combined ? null : e.getSource().getId());
-                if (outFile != null) {
+                CSVPrinter csv = csvPrinters.get(combined
+                        ? null : ((HttpCrawler) ce.getSource()).getId());
+                if (csv != null) {
                     HttpDocInfo crawlRef =
-                            (HttpDocInfo) e.getCrawlReference();
-                    writeLine(outFile, crawlRef.getReferrerReference(),
-                            crawlRef.getReference(),
-                            Integer.toString(response.getStatusCode()),
-                            response.getReasonPhrase(),
-                            true);
+                            (HttpDocInfo) ce.getCrawlReference();
+                    Object[] record = new Object[] {
+                            trimToEmpty(crawlRef.getReferrerReference()),
+                            trimToEmpty(crawlRef.getReference()),
+                            response.getStatusCode(),
+                            response.getReasonPhrase()
+                    };
+                    try {
+                        csv.printRecord(record);
+                    } catch (IOException e) {
+                        LOG.error("Could not write record: {}", record, e);
+                    }
                 }
             }
         }
@@ -259,16 +288,17 @@ public class URLStatusCrawlerEventListener
         Path baseDir = getBaseDir(collector);
         String timestamp =
                 LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS).toString();
+        timestamp = timestamp.replace(':', '-');
 
         // if combined == true, get using null to hashmap.
         if (combined) {
-            outputFiles.put(null,
-                    createOutFile(baseDir, collector.getId(), timestamp));
+            csvPrinters.put(null,
+                    createCSVPrinter(baseDir, collector.getId(), timestamp));
         } else {
             for (Crawler crawler : collector.getCrawlers()) {
                 String id = crawler.getId();
-                if (crawlerIds.contains(id)) {
-                    outputFiles.put(id, createOutFile(baseDir, id, timestamp));
+                if (crawlerIds.isEmpty() || crawlerIds.contains(id)) {
+                    csvPrinters.put(id, createCSVPrinter(baseDir, id, timestamp));
                 }
             }
         }
@@ -310,18 +340,23 @@ public class URLStatusCrawlerEventListener
         }
         return outputDir;
     }
-    private Path createOutFile(Path dir, String id, String suffix) {
+    private CSVPrinter createCSVPrinter(Path dir, String id, String suffix) {
         String prefix = StringUtils.defaultString(fileNamePrefix);
         Path file = dir.resolve(
-                prefix + FileUtil.toSafeFileName(id) + "-" + suffix + ".tsv");
+                prefix + FileUtil.toSafeFileName(id) + "-" + suffix + ".csv");
         try {
             Files.createDirectories(dir);
+            CSVPrinter csv = new CSVPrinter(Files.newBufferedWriter(file,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.WRITE),
+                    CSVFormat.EXCEL);
+            csv.printRecord("Referrer", "URL", "Status", "Reason");
+            return csv;
         } catch (IOException e) {
             throw new CollectorException(
                     "Cannot create output directory for file: " + file, e);
         }
-        writeLine(file, "Referrer", "URL", "Status", "Reason", false);
-        return file;
     }
 
     private int toInt(String num) {
@@ -331,31 +366,6 @@ public class URLStatusCrawlerEventListener
             throw new IllegalArgumentException("The statusCodes attribute "
                     + "can only contain valid numbers. This number is invalid: "
                     + num);
-        }
-    }
-
-    private void writeLine(
-            Path file,
-            String referrer, String url, String status,
-            String cause, boolean append) {
-
-        try (BufferedWriter out = Files.newBufferedWriter(file, append
-                ? StandardOpenOption.APPEND
-                : StandardOpenOption.CREATE,
-                  StandardOpenOption.TRUNCATE_EXISTING,
-                  StandardOpenOption.WRITE)) {
-            out.write(StringUtils.trimToEmpty(referrer));
-            out.write('\t');
-            out.write(StringUtils.trimToEmpty(url));
-            out.write('\t');
-            out.write(StringUtils.trimToEmpty(status));
-            out.write('\t');
-            out.write(StringUtils.trimToEmpty(cause));
-            out.write('\n');
-            out.flush();
-        } catch (IOException e) {
-            throw new CollectorException(
-                    "Cannot write link report to file: " + file, e);
         }
     }
 
@@ -378,16 +388,15 @@ public class URLStatusCrawlerEventListener
 
     @Override
     public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other, NO_REFLECT_FIELDS);
+        return EqualsBuilder.reflectionEquals(this, other);
     }
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this, NO_REFLECT_FIELDS);
+        return HashCodeBuilder.reflectionHashCode(this);
     }
     @Override
     public String toString() {
         return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).setExcludeFieldNames(
-                        NO_REFLECT_FIELDS).toString();
+                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

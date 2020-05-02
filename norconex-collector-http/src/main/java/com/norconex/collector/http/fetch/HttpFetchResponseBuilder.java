@@ -61,7 +61,7 @@ public class HttpFetchResponseBuilder {
         response.exception = exception;
         return this;
     }
-    public IHttpFetchResponse build() {
+    public IHttpFetchResponse create() {
         if (response.crawlState == null) {
             throw new IllegalArgumentException("Crawl state cannot be null.");
         }

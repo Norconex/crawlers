@@ -17,10 +17,16 @@
     <Logger name="com.norconex.collector.http" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="com.norconex.collector.http.sitemap.impl" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.norconex.collector.core" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.importer" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.committer" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.commons.lang" level="WARN" additivity="false">

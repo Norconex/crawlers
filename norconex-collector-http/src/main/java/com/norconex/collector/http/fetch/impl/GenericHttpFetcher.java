@@ -418,7 +418,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
                 return responseBuilder
                         .setCrawlState(CrawlState.NEW)
-                        .build();
+                        .create();
             }
 
             //--- INVALID http response handling -------------------------------
@@ -427,14 +427,14 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
                 return responseBuilder
                         .setCrawlState(CrawlState.UNMODIFIED)
-                        .build();
+                        .create();
             }
 
             // NOT_FOUND
             if (cfg.getNotFoundStatusCodes().contains(statusCode)) {
                 return responseBuilder
                         .setCrawlState(CrawlState.NOT_FOUND)
-                        .build();
+                        .create();
             }
 
             // BAD_STATUS
@@ -442,7 +442,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                     response.getStatusLine());
             return responseBuilder
                     .setCrawlState(CrawlState.BAD_STATUS)
-                    .build();
+                    .create();
         } catch (Exception e) {
             //TODO set exception on response instead?
             throw new HttpFetchException(

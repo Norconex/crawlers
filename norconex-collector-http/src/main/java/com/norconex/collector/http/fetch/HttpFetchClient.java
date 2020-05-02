@@ -96,11 +96,11 @@ public class HttpFetchClient {
                     fetchResponse = new HttpFetchResponseBuilder()
                             .setCrawlState(CrawlState.ERROR)
                             .setException(e)
-                            .build();
+                            .create();
                 }
                 if (fetchResponse == null) {
                     fetchResponse =
-                            HttpFetchResponseBuilder.unsupported().build();
+                            HttpFetchResponseBuilder.unsupported().create();
                 }
                 allResponses.addResponse(fetchResponse, fetcher);
 

@@ -797,7 +797,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         HttpMethod method = ofNullable(httpMethod).orElse(GET);
         if (method != GET) {
             return HttpFetchResponseBuilder.unsupported().setReasonPhrase(
-                    "HTTP " + httpMethod + " method not supported.").build();
+                    "HTTP " + httpMethod + " method not supported.").create();
         }
 //        return null;
 //    }
@@ -904,7 +904,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                 return null;
 //                return fetcherConfig.fetchDocument(doc);
             }
-            return responseBuilder.setCrawlState(HttpCrawlState.NEW).build();
+            return responseBuilder.setCrawlState(HttpCrawlState.NEW).create();
         }
 
         // INVALID response
@@ -915,7 +915,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         }
         if (fetcherConfig.getNotFoundStatusCodes().contains(statusCode)) {
             return responseBuilder.setCrawlState(
-                    HttpCrawlState.NOT_FOUND).build();
+                    HttpCrawlState.NOT_FOUND).create();
         }
         if (exit != 0) {
             return responseBuilder
@@ -923,11 +923,11 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                     .setStatusCode(exit)
                     .setReasonPhrase(
                             "PhantomJS execution failed with exit code " + exit)
-                    .build();
+                    .create();
         }
         LOG.debug("Unsupported HTTP Response: {}", reason);
         return responseBuilder.setCrawlState(
-                HttpCrawlState.BAD_STATUS).build();
+                HttpCrawlState.BAD_STATUS).create();
 	}
 
     private void handleScreenshot(PhantomJSArguments p, Doc doc) {
