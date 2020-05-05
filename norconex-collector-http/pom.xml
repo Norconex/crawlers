@@ -34,6 +34,14 @@
 
   <dependencies>
   
+<!-- WHILE TESTING 
+<dependency>
+  <groupId>com.norconex.collectors</groupId>
+  <artifactId>norconex-committer-elasticsearch</artifactId>
+  <version>5.0.0-SNAPSHOT</version>
+</dependency>  
+-->
+  
     <dependency>
       <groupId>com.norconex.commons</groupId>
       <artifactId>norconex-commons-lang</artifactId>

@@ -158,7 +158,7 @@ public class URLStatusCrawlerEventListener
 
     private String statusCodes;
     private Path outputDir;
-    private String fileNamePrefix;
+    private String fileNamePrefix = DEFAULT_FILENAME_PREFIX;
     private final List<String> crawlerIds = new ArrayList<>();
     private boolean combined;
 
