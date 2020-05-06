@@ -54,7 +54,7 @@ public class StartAfterStopped extends AbstractInfiniteDepthTestFeature {
                 if (e.getSource() instanceof HttpCollector
                         && e.is(CollectorEvent.COLLECTOR_RUN_BEGIN)) {
                     col.setValue((HttpCollector) e.getSource());
-                } else if (e.is(CrawlerEvent.DOCUMENT_COMMITTED_ADD)) {
+                } else if (e.is(CrawlerEvent.DOCUMENT_COMMITTED_UPSERT)) {
                     if (addCount.incrementAndGet() == 3) {
                         col.getValue().stop();
                         // wait 2 seconds so there is enough time for the
