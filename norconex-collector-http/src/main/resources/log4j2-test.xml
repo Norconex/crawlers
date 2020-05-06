@@ -40,16 +40,48 @@
       <AppenderRef ref="Console"/>
     </Logger>
 
-    <!-- Events -->
+    <!-- Events Types -->
     <Logger name="CollectorEvent" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="CrawlerEvent" level="INFO" additivity="false">
+    <Logger name="CrawlerEvent" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="ImporterEvent" level="INFO" additivity="false">
+    <Logger name="ImporterEvent" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="JefEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
+
+    <!-- Specific Events -->
+    <Logger name="CrawlerEvent.DOCUMENT_COMMITTED_UPSERT" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_COMMITTED_DELETE" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_TOO_DEEP" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.URLS_EXTRACTED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_FETCHED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="ImporterEvent.IMPORTER_HANDLER_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="ImporterEvent.IMPORTER_HANDLER_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
+    
 
     <Root level="INFO">
       <AppenderRef ref="Console"/>

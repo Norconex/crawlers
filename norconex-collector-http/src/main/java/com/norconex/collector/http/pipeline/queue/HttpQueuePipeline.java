@@ -99,18 +99,9 @@ public final class HttpQueuePipeline
             }
             final ISitemapResolver sitemapResolver = ctx.getSitemapResolver();
 
-//            SitemapURLAdder urlAdder = new SitemapURLAdder() {
-//                @Override
-//                public void add(HttpCrawlReference reference) {
-//                    HttpQueuePipelineContext context =
-//                            new HttpQueuePipelineContext(
-//                                    ctx.getCrawler(), reference);
-//                    new HttpQueuePipeline().execute(context);
-//                }
-//            };
             sitemapResolver.resolveSitemaps(
                     ctx.getCrawler().getHttpFetchClient(), urlRoot,
-                    robotsTxtLocations, (ref) -> {
+                    robotsTxtLocations, ref -> {
                         HttpQueuePipelineContext context =
                                 new HttpQueuePipelineContext(
                                         ctx.getCrawler(), ref);
