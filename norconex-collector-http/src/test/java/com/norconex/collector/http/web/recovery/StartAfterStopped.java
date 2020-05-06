@@ -17,11 +17,11 @@ package com.norconex.collector.http.web.recovery;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
 
+import com.norconex.collector.core.CollectorEvent;
+import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.HttpCollectorConfig;
-import com.norconex.collector.http.HttpCollectorEvent;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
 import com.norconex.committer.core3.impl.MemoryCommitter;
 import com.norconex.commons.lang.Sleeper;
@@ -52,9 +52,9 @@ public class StartAfterStopped extends AbstractInfiniteDepthTestFeature {
             final MutableInt addCount = new MutableInt();
             cfg.addEventListeners(e -> {
                 if (e.getSource() instanceof HttpCollector
-                        && e.is(HttpCollectorEvent.COLLECTOR_RUN_BEGIN)) {
+                        && e.is(CollectorEvent.COLLECTOR_RUN_BEGIN)) {
                     col.setValue((HttpCollector) e.getSource());
-                } else if (e.is(HttpCrawlerEvent.DOCUMENT_COMMITTED_ADD)) {
+                } else if (e.is(CrawlerEvent.DOCUMENT_COMMITTED_ADD)) {
                     if (addCount.incrementAndGet() == 3) {
                         col.getValue().stop();
                         // wait 2 seconds so there is enough time for the

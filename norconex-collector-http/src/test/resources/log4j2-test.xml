@@ -49,13 +49,9 @@
     <Logger name="CrawlerEvent" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="HttpCollectorEvent" level="INFO" additivity="false">
+    <Logger name="ImporterEvent" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="HttpCrawlerEvent" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-
 
     <Root level="WARN">
       <AppenderRef ref="Console"/>

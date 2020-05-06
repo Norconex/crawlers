@@ -17,8 +17,8 @@ package com.norconex.collector.http.pipeline.importer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.doc.HttpCrawlState;
+import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.recrawl.IRecrawlableResolver;
 
@@ -55,8 +55,8 @@ import com.norconex.collector.http.recrawl.IRecrawlableResolver;
                         cachedInfo.getReference());
             }
             ctx.fireCrawlerEvent(
-                    HttpCrawlerEvent.REJECTED_PREMATURE, currentData, rr);
-            currentData.setState(HttpCrawlState.PREMATURE);
+                    CrawlerEvent.REJECTED_PREMATURE, currentData, rr);
+            currentData.setState(CrawlState.PREMATURE);
         }
         return isRecrawlable;
     }

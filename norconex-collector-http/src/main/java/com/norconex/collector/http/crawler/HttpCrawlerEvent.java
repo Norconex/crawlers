@@ -14,16 +14,12 @@
  */
 package com.norconex.collector.http.crawler;
 
-import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.core.doc.CrawlDocInfo;
-
 /**
- * An HTTP Crawler Event.
+ * HTTP Crawler event names. Those are in addition to event names from
+ * dependant libraries.
  * @author Pascal Essiembre
  */
-public class HttpCrawlerEvent extends CrawlerEvent<HttpCrawler> {
-
-    private static final long serialVersionUID = 1L;
+public final class HttpCrawlerEvent {
 
     public static final String REJECTED_ROBOTS_TXT =
             "REJECTED_ROBOTS_TXT";
@@ -41,33 +37,7 @@ public class HttpCrawlerEvent extends CrawlerEvent<HttpCrawler> {
     public static final String URLS_POST_IMPORTED =
             "URLS_POST_IMPORTED";
 
-
-    /**
-     * New crawler event.
-     * @param name event name
-     * @param source crawler responsible for triggering the event
-     * @param crawlRef information about a document being crawled
-     * @param subject other relevant source related to the event
-     * @param exception exception tied to this event (may be <code>null</code>)
-     */
-    public HttpCrawlerEvent(String name, HttpCrawler source,
-            CrawlDocInfo crawlRef, Object subject, Throwable exception) {
-        super(name, source, crawlRef, subject, exception);
-    }
-
-    public static HttpCrawlerEvent create(String name, HttpCrawler crawler) {
-        return create(name, crawler, null);
-    }
-    public static HttpCrawlerEvent create(
-            String name, HttpCrawler crawler, CrawlDocInfo crawlRef) {
-        return create(name, crawler, crawlRef, null, null);
-    }
-    public static HttpCrawlerEvent create(String name, HttpCrawler crawler,
-            CrawlDocInfo crawlRef, Object subject) {
-        return create(name, crawler, crawlRef, subject, null);
-    }
-    public static HttpCrawlerEvent create(String name, HttpCrawler crawler,
-            CrawlDocInfo crawlRef, Object subject, Throwable exception) {
-        return new HttpCrawlerEvent(name, crawler, crawlRef, subject, exception);
+    private HttpCrawlerEvent() {
+        super();
     }
 }

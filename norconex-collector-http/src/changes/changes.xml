@@ -116,6 +116,10 @@
       <action dev="essiembre" type="update">
         URLStatusCrawlerEventListener now saves as CSV instead of TSV. 
       </action>
+      <action dev="essiembre" type="update">
+        HttpCrawlerEvent now only holds HTTP crawler event names.
+        Crawler events are now all of CrawlerEvent type.
+      </action>
       <action dev="essiembre" type="remove">
         Removed some code deprecated in releases before 3.0.0. 
       </action>
@@ -129,11 +133,14 @@
         in "doc" package. 
       </action>
       <action dev="essiembre" type="remove">
-        Remove all previously available crawl store implementions in favor
+        Removed all previously available crawl store implementions in favor
         of new NitriteDataStore.
       </action>
       <action dev="essiembre" type="remove">
         ISitemapResolverFactory removed in favor of ISitemapResolver.
+      </action>
+      <action dev="essiembre" type="remove">
+        Removed HttpCollectorEvent (now relying on CollectorEvent only).
       </action>
     </release>
 
