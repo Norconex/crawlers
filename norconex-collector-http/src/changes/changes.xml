@@ -19,6 +19,10 @@
         Fixed REJECTED_REDIRECTED event not being fired for the redirect 
         source URL when the target URL was previously encountered. 
       </action>
+      <action dev="essiembre" type="fix">
+        Unsupported content encoding form Content-Type HTTP headers no longer
+        rejects a document. 
+      </action>
     </release>
 
     <release version="2.9.0" date="2019-12-22" description="Feature release">

@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import java.nio.charset.UnsupportedCharsetException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -57,7 +59,15 @@ import com.norconex.commons.lang.map.Properties;
 
         metadata.putAll(headers);
 
-        HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
+        try {
+            HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
+        } catch (UnsupportedCharsetException e) {
+            LOG.warn("Unsupported character encoding \""
+                    + e.getCharsetName() + "\" defined in \"Content-Type\" "
+                    + "HTTP response header. Detection will be attempted "
+                    + "instead for \"" + ctx.getDocument().getReference()
+                    + "\".");
+        }
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
 
         //-- Deal with redirects ---

@@ -14,9 +14,12 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.data.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
@@ -27,29 +30,41 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 
 /**
  * <p>Fetches (i.e. download for processing) a document.</p>
- * <p>Prior to 2.3.0, the code for this class was part of 
+ * <p>Prior to 2.3.0, the code for this class was part of
  * {@link HttpImporterPipeline}.
  * @author Pascal Essiembre
  * @since 2.3.0
  */
 /*default*/ class DocumentFetcherStage extends AbstractImporterStage {
-    
+
+    private static final Logger LOG =
+            LogManager.getLogger(DocumentFetcherStage.class);
+
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
         HttpCrawlData crawlData = ctx.getCrawlData();
-        
+
         HttpFetchResponse response =
                 ctx.getConfig().getDocumentFetcher().fetchDocument(
                         ctx.getHttpClient(), ctx.getDocument());
 
         crawlData.setCrawlDate(new Date());
-        
-        HttpImporterPipelineUtil.enhanceHTTPHeaders(
-                ctx.getDocument().getMetadata());
+
+        try {
+            HttpImporterPipelineUtil.enhanceHTTPHeaders(
+                    ctx.getDocument().getMetadata());
+        } catch (UnsupportedCharsetException e) {
+            LOG.warn("Unsupported character encoding \""
+                    + e.getCharsetName() + "\" defined in \"Content-Type\" "
+                    + "HTTP response header. Detection will be attempted "
+                    + "instead for \"" + ctx.getDocument().getReference()
+                    + "\".");
+        }
+
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
 
         crawlData.setContentType(ctx.getDocument().getContentType());
-        
+
         //-- Deal with redirects ---
         String redirectURL = RedirectStrategyWrapper.getRedirectURL();
         if (StringUtils.isNotBlank(redirectURL)) {
@@ -57,11 +72,11 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
                     ctx, response, redirectURL);
             return false;
         }
-        
+
         CrawlState state = response.getCrawlState();
         crawlData.setState(state);
         if (state.isGoodState()) {
-            ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED, 
+            ctx.fireCrawlerEvent(HttpCrawlerEvent.DOCUMENT_FETCHED,
                     crawlData, response);
         } else {
             String eventType = null;
