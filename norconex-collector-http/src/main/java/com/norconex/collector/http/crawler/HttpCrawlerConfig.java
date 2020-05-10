@@ -101,11 +101,13 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
 	private KeepLinks keepReferencedLinks = KeepLinks.INSCOPE;
+	private boolean startURLsAsync;
 
 	private boolean fetchHttpHead;
 
     private URLCrawlScopeStrategy urlCrawlScopeStrategy =
             new URLCrawlScopeStrategy();
+
 
     private IURLNormalizer urlNormalizer = new GenericURLNormalizer();
 
@@ -179,7 +181,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     /**
      * Gets URLs to initiate crawling from.
      * @return start URLs (never <code>null</code>)
-
      */
     public List<String> getStartURLs() {
         return Collections.unmodifiableList(startURLs);
@@ -292,6 +293,35 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     public void setStartURLsProviders(
             List<IStartURLsProvider> startURLsProviders) {
         CollectionUtil.setAll(this.startURLsProviders, startURLsProviders);
+    }
+
+    /**
+     * Gets whether the start URLs should be loaded asynchronously. When
+     * <code>true</code>, the crawler will start processing URLs in the queue
+     * even if start URLs are still being loaded. While this may speed up
+     * crawling, it may have an unexpected effect on accuracy of
+     * {@link HttpDocMetadata#DEPTH}.  Use of this option is only
+     * recommended when start URLs takes a significant time to load (e.g.,
+     * large sitemaps).
+     * @return <code>true</code> if async.
+     * @since 3.0.0
+     */
+    public boolean isStartURLsAsync() {
+        return startURLsAsync;
+    }
+    /**
+     * Sets whether the start URLs should be loaded asynchronously. When
+     * <code>true</code>, the crawler will start processing URLs in the queue
+     * even if start URLs are still being loaded. While this may speed up
+     * crawling, it may have an unexpected effect on accuracy of
+     * {@link HttpDocMetadata#DEPTH}.  Use of this option is only
+     * recommended when start URLs takes a significant time to load (e.g.,
+     * large sitemaps).
+     * @param asyncStartURLs <code>true</code> if async.
+     * @since 3.0.0
+     */
+    public void setStartURLsAsync(boolean asyncStartURLs) {
+        this.startURLsAsync = asyncStartURLs;
     }
 
     public void setMaxDepth(int depth) {
@@ -717,7 +747,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 .setAttribute("includeSubdomains",
                         urlCrawlScopeStrategy.isIncludeSubdomains())
                 .setAttribute("stayOnPort",
-                        urlCrawlScopeStrategy.isStayOnPort());
+                        urlCrawlScopeStrategy.isStayOnPort())
+                .setAttribute("async", startURLsAsync);
 		startXML.addElementList("url", startURLs);
         startXML.addElementList("urlsFile", startURLsFiles);
         startXML.addElementList("sitemap", startSitemapURLs);
@@ -864,6 +895,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 xml.getStringList("startURLs/sitemap", startSitemapURLs));
         setStartURLsProviders(xml.getObjectListImpl(IStartURLsProvider.class,
                 "startURLs/provider", startURLsProviders));
+        setStartURLsAsync(xml.getBoolean("startURLs/@async", startURLsAsync));
     }
 
     @Override

@@ -22,6 +22,9 @@
         Now supports If-Modified-Since for more efficient crawling. 
       </action>
       <action dev="essiembre" type="add">
+        New flag for loading start URLs asynchronously.
+      </action>
+      <action dev="essiembre" type="add">
         New HttpCollectorEvent.
       </action>
       <action dev="essiembre" type="add">

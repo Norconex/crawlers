@@ -22,6 +22,9 @@ import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.apache.commons.collections4.MultiValuedMap;
@@ -69,6 +72,7 @@ public class HttpCrawler extends Crawler {
 
 	private ISitemapResolver sitemapResolver;
 	private HttpFetchClient fetchClient;
+	private boolean initialQueueLoaded;
 
     /**
      * Constructor.
@@ -105,9 +109,13 @@ public class HttpCrawler extends Crawler {
 //    }
 
     @Override
+    protected boolean isQueueInitialized() {
+        return initialQueueLoaded;
+    }
+
+    @Override
     protected void prepareExecution(
-            JobStatusUpdater statusUpdater, JobSuite suite,
-            boolean resume) {
+            JobStatusUpdater statusUpdater, JobSuite suite, boolean resume) {
 
         HttpCrawlerConfig cfg = getCrawlerConfig();
 
@@ -119,13 +127,31 @@ public class HttpCrawler extends Crawler {
 
         // We always initialize the sitemap resolver even if ignored
         // because sitemaps can be specified as start URLs.
-//        if (cfg.getSitemapResolverFactory() != null) {
-            this.sitemapResolver = cfg.getSitemapResolver();
-//                    .createSitemapResolver(cfg, resume);
-//        }
+        this.sitemapResolver = cfg.getSitemapResolver();
 
         if (!resume) {
-            queueStartURLs();
+            this.initialQueueLoaded = false;
+            if (cfg.isStartURLsAsync()) {
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                executor.submit(() -> {
+                    try {
+                        LOG.info("Reading start URLs in parallel.");
+                        Thread.currentThread().setName("Start URL reader");
+                        queueStartURLs();
+                        executor.shutdown();
+                        executor.awaitTermination(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        LOG.error("Reading of start URLs interrupted.", e);
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        initialQueueLoaded = true;
+                    }
+                });
+            } else {
+                queueStartURLs();
+            }
+        } else {
+            this.initialQueueLoaded = true;
         }
     }
 
