@@ -174,7 +174,7 @@ public class GenericCanonicalLinkDetector
         }
         try (   InputStreamReader isr = new InputStreamReader(is);
                 TextReader r = new TextReader(
-                        isr, (int) DataUnit.KB.toBytes(16))) {
+                        isr, DataUnit.KB.toBytes(16).intValue())) {
             String text = null;
             while ((text = r.readText()) != null) {
                 Matcher matcher = PATTERN_TAG.matcher(text);
