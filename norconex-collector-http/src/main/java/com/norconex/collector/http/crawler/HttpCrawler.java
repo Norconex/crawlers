@@ -72,7 +72,7 @@ public class HttpCrawler extends Crawler {
 
 	private ISitemapResolver sitemapResolver;
 	private HttpFetchClient fetchClient;
-	private boolean initialQueueLoaded;
+	private boolean initialQueueLoaded = true;
 
     /**
      * Constructor.
@@ -149,6 +149,7 @@ public class HttpCrawler extends Crawler {
                 });
             } else {
                 queueStartURLs();
+                this.initialQueueLoaded = true;
             }
         } else {
             this.initialQueueLoaded = true;
