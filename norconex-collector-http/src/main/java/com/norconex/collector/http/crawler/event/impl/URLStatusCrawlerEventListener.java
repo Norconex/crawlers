@@ -129,6 +129,7 @@ import com.norconex.commons.lang.xml.XML;
  *   <outputDir>(path to a directory of your choice)</outputDir>
  *   <fileNamePrefix>(report file name prefix)</fileNamePrefix>
  *   <combined>[false|true]</combined>
+ *   <timestamped>[false|true]</timestamped>
  * </listener>
  * }
  *
@@ -161,6 +162,7 @@ public class URLStatusCrawlerEventListener
     private String fileNamePrefix = DEFAULT_FILENAME_PREFIX;
     private final List<String> crawlerIds = new ArrayList<>();
     private boolean combined;
+    private boolean timestamped;
 
     // variables set when crawler starts/resumes
     @EqualsExclude
@@ -222,6 +224,24 @@ public class URLStatusCrawlerEventListener
         this.fileNamePrefix = fileNamePrefix;
     }
 
+    /**
+     * Gets whether to add a timestamp to the file name, to ensure
+     * a new one is created with each run.
+     * @return <code>true</code> if timestamped
+     * @since 3.0.0
+     */
+    public boolean isTimestamped() {
+        return timestamped;
+    }
+    /**
+     * Sets whether to add a timestamp to the file name, to ensure
+     * a new one is created with each run.
+     * @param timestamped <code>true</code> if timestamped
+     * @since 3.0.0
+     */
+    public void setTimestamped(boolean timestamped) {
+        this.timestamped = timestamped;
+    }
 
     public boolean isCombined() {
         return combined;
@@ -286,9 +306,12 @@ public class URLStatusCrawlerEventListener
     private void init(HttpCollector collector) {
 
         Path baseDir = getBaseDir(collector);
-        String timestamp =
-                LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS).toString();
-        timestamp = timestamp.replace(':', '-');
+        String timestamp = "";
+        if (isTimestamped()) {
+            timestamp = LocalDateTime.now().truncatedTo(
+                    ChronoUnit.MILLIS).toString();
+            timestamp = timestamp.replace(':', '-');
+        }
 
         // if combined == true, get using null to hashmap.
         if (combined) {
@@ -342,8 +365,12 @@ public class URLStatusCrawlerEventListener
     }
     private CSVPrinter createCSVPrinter(Path dir, String id, String suffix) {
         String prefix = StringUtils.defaultString(fileNamePrefix);
+        String safeSuffix = "";
+        if (StringUtils.isNotBlank(suffix)) {
+            safeSuffix = "-" + suffix;
+        }
         Path file = dir.resolve(
-                prefix + FileUtil.toSafeFileName(id) + "-" + suffix + ".csv");
+                prefix + FileUtil.toSafeFileName(id) + safeSuffix + ".csv");
         try {
             Files.createDirectories(dir);
             CSVPrinter csv = new CSVPrinter(Files.newBufferedWriter(file,

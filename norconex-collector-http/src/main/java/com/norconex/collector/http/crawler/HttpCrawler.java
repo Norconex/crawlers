@@ -135,7 +135,7 @@ public class HttpCrawler extends Crawler {
                 ExecutorService executor = Executors.newSingleThreadExecutor();
                 executor.submit(() -> {
                     try {
-                        LOG.info("Reading start URLs in parallel.");
+                        LOG.info("Reading start URLs asynchronously.");
                         Thread.currentThread().setName("Start URL reader");
                         queueStartURLs();
                         executor.shutdown();

@@ -127,7 +127,7 @@ public class GenericSitemapResolver
             Collections.synchronizedSet(new HashSet<String>());
 
     private boolean lenient;
-    private boolean stopped;
+    private boolean stopping;
     private final List<String> sitemapPaths =
             new ArrayList<>(DEFAULT_SITEMAP_PATHS);
 
@@ -141,13 +141,13 @@ public class GenericSitemapResolver
     }
     @Override
     protected void onCrawlerStopBegin(CrawlerEvent<Crawler> event) {
-        stopped = true;
+        stopping = true;
     }
     @Override
     protected void onCrawlerEvent(CrawlerEvent<Crawler> event) {
         if (event.is(CrawlerEvent.CRAWLER_RUN_END,
                 CrawlerEvent.CRAWLER_STOP_END)) {
-            Optional.ofNullable(resolvedURLRoots).ifPresent((c) -> {
+            Optional.ofNullable(resolvedURLRoots).ifPresent(c -> {
                 c.clear();
                 c.close();
             });
@@ -216,6 +216,9 @@ public class GenericSitemapResolver
             for (String location : uniqueLocations) {
                 resolveLocation(location, fetcher,
                         sitemapURLConsumer, resolvedLocations);
+                if (stopping) {
+                    break;
+                }
             }
             resolvedURLRoots.save(new SimpleValue(urlRoot));
 //            sitemapStore.markResolved(urlRoot);
@@ -277,7 +280,7 @@ public class GenericSitemapResolver
             return;
         }
 
-        if (stopped) {
+        if (stopping) {
             LOG.debug("Skipping resolution of sitemap "
                     + "location (stop requested): {}", location);
             return;
@@ -365,7 +368,7 @@ public class GenericSitemapResolver
             String locationDir = StringUtils.substringBeforeLast(location, "/");
             int event = xmlReader.getEventType();
             while(true){
-                if (stopped) {
+                if (stopping) {
                     LOG.debug("Sitemap not entirely parsed due to "
                             + "crawler being stopped.");
                     break;

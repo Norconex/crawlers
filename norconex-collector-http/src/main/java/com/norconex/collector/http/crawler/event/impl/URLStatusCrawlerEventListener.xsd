@@ -23,6 +23,7 @@
         <xs:element name="outputDir" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="fileNamePrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="combined" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="timestamped" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="crawlerIds" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
