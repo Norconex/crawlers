@@ -68,7 +68,7 @@
   </fileSets>
   <files>
     <file>
-      <source>src/main/assembly/log4j.properties</source>
+      <source>src/main/assembly/log4j2.xml</source>
       <outputDirectory>./</outputDirectory>
     </file>
     <file>

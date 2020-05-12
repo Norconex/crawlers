@@ -23,4 +23,4 @@ REM
 REM     -DenableJMX=true
 
 
-java -Dlog4j.configuration="file:///%ROOT_DIR%log4j.properties" -Dfile.encoding=UTF8 -cp "./lib/*;./classes" com.norconex.collector.http.HttpCollector %*
+java -Dlog4j.configurationFile="file:///%ROOT_DIR%log4j2.xml" -Dfile.encoding=UTF8 -cp "./lib/*;./classes" com.norconex.collector.http.HttpCollector %*
