@@ -136,15 +136,17 @@ public class HttpCrawler extends Crawler {
                 executor.submit(() -> {
                     try {
                         LOG.info("Reading start URLs asynchronously.");
-                        Thread.currentThread().setName("Start URL reader");
+                        Thread.currentThread().setName(getId());
                         queueStartURLs();
-                        executor.shutdown();
-                        executor.awaitTermination(5, TimeUnit.SECONDS);
-                    } catch (InterruptedException e) {
-                        LOG.error("Reading of start URLs interrupted.", e);
-                        Thread.currentThread().interrupt();
                     } finally {
                         initialQueueLoaded = true;
+                        try {
+                            executor.shutdown();
+                            executor.awaitTermination(5, TimeUnit.SECONDS);
+                        } catch (InterruptedException e) {
+                            LOG.error("Reading of start URLs interrupted.", e);
+                            Thread.currentThread().interrupt();
+                        }
                     }
                 });
             } else {
