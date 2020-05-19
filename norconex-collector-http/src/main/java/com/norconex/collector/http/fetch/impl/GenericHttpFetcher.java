@@ -888,7 +888,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         } catch (SSLHandshakeException e) {
             if (!cfg.isTrustAllSSLCertificates()) {
                 LOG.warn("SSL handshake exception for {}. Consider "
-                        + "setting 'trustAllSSLCertificate' to true.",
+                        + "setting 'trustAllSSLCertificates' to true.",
                         method.getURI());
             }
             throw e;
