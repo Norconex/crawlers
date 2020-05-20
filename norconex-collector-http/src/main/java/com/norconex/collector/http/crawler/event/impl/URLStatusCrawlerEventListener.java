@@ -403,6 +403,7 @@ public class URLStatusCrawlerEventListener
         setFileNamePrefix(xml.getString("fileNamePrefix", fileNamePrefix));
         setCrawlerIds(xml.getStringList("crawlerIds/id", crawlerIds));
         setCombined(xml.getBoolean("combined", combined));
+        setTimestamped(xml.getBoolean("timestamped", timestamped));
     }
     @Override
     public void saveToXML(XML xml) {
@@ -411,6 +412,7 @@ public class URLStatusCrawlerEventListener
         xml.addElement("fileNamePrefix", fileNamePrefix);
         xml.addElementList("crawlerIds", "id", crawlerIds);
         xml.addElement("combined", combined);
+        xml.addElement("timestamped", timestamped);
     }
 
     @Override
