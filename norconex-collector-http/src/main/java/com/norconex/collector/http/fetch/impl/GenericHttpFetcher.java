@@ -57,7 +57,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
@@ -69,7 +68,6 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -109,7 +107,7 @@ import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
-import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
+import com.norconex.collector.http.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
@@ -332,7 +330,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     @Override
     protected void crawlerStartup(CrawlerEvent<Crawler> event) {
         this.httpClient = createHttpClient();
-        initializeRedirectionStrategy();
 
         String userAgent = cfg.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
@@ -375,13 +372,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             LOG.debug("Fetching document: {}", doc.getReference());
             request = createUriRequest(doc.getReference(), method);
 
-            HttpFetchResponseBuilder responseBuilder =
-                    new HttpFetchResponseBuilder();
             HttpClientContext ctx = HttpClientContext.create();
-            ctx.setAttribute(
-                    HttpFetchResponseBuilder.class.getName(), responseBuilder);
-
-
 
             // auth cache
             ctx.setAuthCache(authCache);
@@ -402,11 +393,13 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             int statusCode = response.getStatusLine().getStatusCode();
             String reason = response.getStatusLine().getReasonPhrase();
 
-//            HttpFetchResponseBuilder responseBuilder =
-//                    new HttpFetchResponseBuilder();
-            responseBuilder.setStatusCode(statusCode);
-            responseBuilder.setReasonPhrase(reason);
-            responseBuilder.setUserAgent(cfg.getUserAgent());
+            HttpFetchResponseBuilder responseBuilder =
+                    new HttpFetchResponseBuilder()
+                .setStatusCode(statusCode)
+                .setReasonPhrase(reason)
+                .setUserAgent(cfg.getUserAgent())
+                .setRedirectTarget(
+                        ApacheRedirectCaptureStrategy.getRedirectTarget(ctx));
 
             //--- Extract headers ---
             ApacheHttpUtil.applyResponseHeaders(
@@ -526,9 +519,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 cfg.getMaxConnectionIdleTime(), TimeUnit.MILLISECONDS);
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
-        builder.addInterceptorFirst(createResponseInterceptor());
-
-//        builder.disableRedirectHandling();
+        builder.setRedirectStrategy(new ApacheRedirectCaptureStrategy(
+                cfg.getRedirectURLProvider()));
 
         buildCustomHttpClient(builder);
 
@@ -538,36 +530,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
         hackValidateAfterInactivity(client);
         return client;
-    }
-
-    protected HttpResponseInterceptor createResponseInterceptor() {
-        return (response, context) -> {
-            HttpFetchResponseBuilder b =
-                    (HttpFetchResponseBuilder) context.getAttribute(
-                            HttpFetchResponseBuilder.class.getName());
-            if (b == null) {
-                LOG.warn("HttpClient not setup to track redirects properly.");
-                return;
-            }
-
-            String location = cfg.getRedirectURLProvider().provideRedirectURL(
-                    null, response, context);
-            if (StringUtils.isNotBlank(location)) {
-//                b.addRedirectSource(response.)
-                b.setRedirectTarget(location);
-
-                //TODO consider only having 1 chain but here we would
-                // set final URL only (and internally the response would
-                // queue all the trail?
-            }
-
-//System.err.println("RESPONSE: ======================");
-//System.err.println("Status: " + response.getStatusLine());
-//for (Header h : response.getAllHeaders()) {
-//    System.err.println("  " + h.getName() + " : " + h.getValue());
-//}
-//System.err.println("CONTEXT: " + context);
-        };
     }
 
     /**
@@ -894,30 +856,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         } catch (Exception e) {
             throw new CollectorException(
                     "Cannot create SSL context trusting all certificates.", e);
-        }
-    }
-
-    // Wraps redirection strategy to consider URLs as new documents to
-    // queue for processing.
-    private void initializeRedirectionStrategy() {
-        try {
-            Object chain = FieldUtils.readField(httpClient, "execChain", true);
-            Object redir = FieldUtils.readField(
-                    chain, "redirectStrategy", true);
-            if (redir instanceof RedirectStrategy) {
-                RedirectStrategy originalStrategy = (RedirectStrategy) redir;
-                RedirectStrategyWrapper strategyWrapper =
-                        new RedirectStrategyWrapper(originalStrategy,
-                                cfg.getRedirectURLProvider());
-                FieldUtils.writeField(
-                        chain, "redirectStrategy", strategyWrapper, true);
-            } else {
-                LOG.warn("Could not wrap RedirectStrategy to properly handle"
-                        + "redirects.");
-            }
-        } catch (Exception e) {
-            LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
-                    + "internal connection manager does not support it.");
         }
     }
 
