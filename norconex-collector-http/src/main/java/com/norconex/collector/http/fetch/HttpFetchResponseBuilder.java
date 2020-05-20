@@ -14,6 +14,10 @@
  */
 package com.norconex.collector.http.fetch;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -39,6 +43,8 @@ public class HttpFetchResponseBuilder {
         response.reasonPhrase = r.getReasonPhrase();
         response.statusCode = r.getStatusCode();
         response.userAgent = r.getUserAgent();
+        response.redirectTrail.addAll(r.getRedirectTrail());
+        response.redirectTarget = r.getRedirectTarget();
     }
 
     public HttpFetchResponseBuilder setUserAgent(String userAgent) {
@@ -61,6 +67,19 @@ public class HttpFetchResponseBuilder {
         response.exception = exception;
         return this;
     }
+
+
+//TODO consider adding only 1 method that takes care of pushing existing
+    // target URL to trail when setting a new one
+    public HttpFetchResponseBuilder addRedirectSource(String sourceURL) {
+        response.redirectTrail.add(sourceURL);
+        return this;
+    }
+    public HttpFetchResponseBuilder setRedirectTarget(String targetURL) {
+        response.redirectTarget = targetURL;
+        return this;
+    }
+
     public IHttpFetchResponse create() {
         if (response.crawlState == null) {
             throw new IllegalArgumentException("Crawl state cannot be null.");
@@ -96,6 +115,8 @@ public class HttpFetchResponseBuilder {
         private String reasonPhrase;
         private String userAgent;
         private Exception exception;
+        private List<String> redirectTrail = new ArrayList<>();
+        private String redirectTarget;
         @Override
         public CrawlState getCrawlState() {
             return crawlState;
@@ -115,6 +136,14 @@ public class HttpFetchResponseBuilder {
         @Override
         public Exception getException() {
             return exception;
+        }
+        @Override
+        public List<String> getRedirectTrail() {
+            return Collections.unmodifiableList(redirectTrail);
+        }
+        @Override
+        public String getRedirectTarget() {
+            return redirectTarget;
         }
         @Override
         public boolean equals(final Object other) {

@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.http.fetch;
 
+import java.util.List;
+
 import com.norconex.collector.core.doc.CrawlState;
 
 /**
@@ -33,5 +35,9 @@ public interface IHttpFetchResponse {
 
     Exception getException();
 
+    // Get chains of redirect URLs that let to redirect target
+    List<String> getRedirectTrail();
+    // redirect target, if any.  Only target should be evaluated for site scope
+    String getRedirectTarget();
 
 }

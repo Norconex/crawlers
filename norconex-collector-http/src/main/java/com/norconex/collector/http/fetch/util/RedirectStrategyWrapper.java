@@ -74,7 +74,7 @@ public class RedirectStrategyWrapper implements RedirectStrategy {
             final HttpRequest request,
             final HttpResponse response,
             final HttpContext context) throws ProtocolException {
-        REDIRECT_URL.set(null);
+        REDIRECT_URL.remove();
         boolean isRedirected = nested.isRedirected(request, response, context);
         if (isRedirected) {
             String targetURL = redirectURLProvider.provideRedirectURL(

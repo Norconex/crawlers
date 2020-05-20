@@ -15,6 +15,7 @@
 package com.norconex.collector.http.fetch;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -72,6 +73,16 @@ public class HttpFetchClientResponse implements IHttpFetchResponse {
     public Exception getException() {
         return lastResponse().map(
                 IHttpFetchResponse::getException).orElse(null);
+    }
+    @Override
+    public List<String> getRedirectTrail() {
+        return lastResponse().map(IHttpFetchResponse::getRedirectTrail).orElse(
+                Collections.emptyList());
+    }
+    @Override
+    public String getRedirectTarget() {
+        return lastResponse().map(
+                IHttpFetchResponse::getRedirectTarget).orElse(null);
     }
 
     public List<IHttpFetchResponse> getResponses() {
