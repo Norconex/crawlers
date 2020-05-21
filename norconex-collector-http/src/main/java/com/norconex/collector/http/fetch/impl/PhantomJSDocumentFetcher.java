@@ -63,7 +63,6 @@ import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
-import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.collector.http.processor.impl.ScaledImage;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
@@ -879,7 +878,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         }
 
         if (StringUtils.isNotBlank(output.getRedirect())) {
-            RedirectStrategyWrapper.setRedirectURL(output.getRedirect());
+            responseBuilder.setRedirectTarget(output.getRedirect());
         }
 
         // deal with screenshot regardless whether execution failed or not

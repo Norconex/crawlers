@@ -24,7 +24,6 @@ import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
-import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.DocMetadata;
 
@@ -59,7 +58,7 @@ import com.norconex.importer.doc.DocMetadata;
         meta.set(DocMetadata.CONTENT_ENCODING, docInfo.getContentEncoding());
 
         //-- Deal with redirects ---
-        String redirectURL = RedirectStrategyWrapper.getRedirectURL();
+        String redirectURL = response.getRedirectTarget();
         if (StringUtils.isNotBlank(redirectURL)) {
             HttpImporterPipelineUtil.queueRedirectURL(
                     ctx, response, redirectURL);

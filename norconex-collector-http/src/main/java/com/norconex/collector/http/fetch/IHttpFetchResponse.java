@@ -33,5 +33,6 @@ public interface IHttpFetchResponse {
 
     Exception getException();
 
+    String getRedirectTarget();
 
 }

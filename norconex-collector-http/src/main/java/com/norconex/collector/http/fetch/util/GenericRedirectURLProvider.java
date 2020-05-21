@@ -126,7 +126,7 @@ public class GenericRedirectURLProvider
     public void setFallbackCharset(String fallbackCharset) {
         this.fallbackCharset = fallbackCharset;
     }
-
+    
     @Override
     public String provideRedirectURL(HttpRequest request,
             HttpResponse response, HttpContext context) {

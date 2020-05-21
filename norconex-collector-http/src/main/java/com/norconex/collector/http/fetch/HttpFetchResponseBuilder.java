@@ -39,6 +39,7 @@ public class HttpFetchResponseBuilder {
         response.reasonPhrase = r.getReasonPhrase();
         response.statusCode = r.getStatusCode();
         response.userAgent = r.getUserAgent();
+        response.redirectTarget = r.getRedirectTarget();
     }
 
     public HttpFetchResponseBuilder setUserAgent(String userAgent) {
@@ -61,6 +62,11 @@ public class HttpFetchResponseBuilder {
         response.exception = exception;
         return this;
     }
+    public HttpFetchResponseBuilder setRedirectTarget(String targetURL) {
+        response.redirectTarget = targetURL;
+        return this;
+    }
+
     public IHttpFetchResponse create() {
         if (response.crawlState == null) {
             throw new IllegalArgumentException("Crawl state cannot be null.");
@@ -96,6 +102,7 @@ public class HttpFetchResponseBuilder {
         private String reasonPhrase;
         private String userAgent;
         private Exception exception;
+        private String redirectTarget;
         @Override
         public CrawlState getCrawlState() {
             return crawlState;
@@ -115,6 +122,10 @@ public class HttpFetchResponseBuilder {
         @Override
         public Exception getException() {
             return exception;
+        }
+        @Override
+        public String getRedirectTarget() {
+            return redirectTarget;
         }
         @Override
         public boolean equals(final Object other) {

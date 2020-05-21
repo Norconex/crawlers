@@ -73,6 +73,11 @@ public class HttpFetchClientResponse implements IHttpFetchResponse {
         return lastResponse().map(
                 IHttpFetchResponse::getException).orElse(null);
     }
+    @Override
+    public String getRedirectTarget() {
+        return lastResponse().map(
+                IHttpFetchResponse::getRedirectTarget).orElse(null);
+    }
 
     public List<IHttpFetchResponse> getResponses() {
         return responses.stream().map(

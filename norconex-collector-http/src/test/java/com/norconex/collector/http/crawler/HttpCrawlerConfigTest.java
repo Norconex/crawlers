@@ -34,22 +34,14 @@ public class HttpCrawlerConfigTest {
     private static final Logger LOG =
             LoggerFactory.getLogger(HttpCrawlerConfigTest.class);
 
+
     @Test
     public void testWriteRead() {
-//        File configFile = new File(
-////                "src/site/resources/examples/minimum/minimum-config.xml");
-//                "src/site/resources/examples/complex/complex-config.xml");
-//        HttpCollectorConfig config = (HttpCollectorConfig)
-//                new CollectorConfigLoader(HttpCollectorConfig.class)
-//                        .loadCollectorConfig(configFile);
-
         HttpCollectorConfig config = new HttpCollectorConfig();
 
         XML xml = new ConfigurationLoader().loadXML(Paths.get(
                 "src/site/resources/examples/complex/complex-config.xml"));
         xml.populate(config);
-//        new XML(new ConfigurationLoader().loadXML(
-//                ).configure(config);
 
         HttpCrawlerConfig crawlerConfig =
                 (HttpCrawlerConfig) config.getCrawlerConfigs().get(0);
@@ -68,20 +60,5 @@ public class HttpCrawlerConfigTest {
 
         LOG.debug("Writing/Reading this: {}", config);
         XML.assertWriteRead(config, "httpcollector");
-//        assertWriteRead(config);
     }
-
-
-//    public static void assertWriteRead(IXMLConfigurable xmlConfiurable)
-//            throws IOException {
-//
-//        // Write
-//        Writer out = new OutputStreamWriter(System.out);
-//        try {
-//            xmlConfiurable.saveToXML(out);
-//        } finally {
-//            out.close();
-//        }
-//    }
-
 }

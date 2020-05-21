@@ -68,7 +68,6 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -87,7 +86,6 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
@@ -109,7 +107,7 @@ import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
-import com.norconex.collector.http.fetch.util.RedirectStrategyWrapper;
+import com.norconex.collector.http.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
@@ -332,7 +330,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     @Override
     protected void crawlerStartup(CrawlerEvent<Crawler> event) {
         this.httpClient = createHttpClient();
-        initializeRedirectionStrategy();
 
         String userAgent = cfg.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
@@ -374,7 +371,9 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             HttpMethod method = ofNullable(httpMethod).orElse(GET);
             LOG.debug("Fetching document: {}", doc.getReference());
             request = createUriRequest(doc.getReference(), method);
+
             HttpClientContext ctx = HttpClientContext.create();
+
             // auth cache
             ctx.setAuthCache(authCache);
             // user token
@@ -395,10 +394,12 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             String reason = response.getStatusLine().getReasonPhrase();
 
             HttpFetchResponseBuilder responseBuilder =
-                    new HttpFetchResponseBuilder();
-            responseBuilder.setStatusCode(statusCode);
-            responseBuilder.setReasonPhrase(reason);
-            responseBuilder.setUserAgent(cfg.getUserAgent());
+                    new HttpFetchResponseBuilder()
+                .setStatusCode(statusCode)
+                .setReasonPhrase(reason)
+                .setUserAgent(cfg.getUserAgent())
+                .setRedirectTarget(
+                        ApacheRedirectCaptureStrategy.getRedirectTarget(ctx));
 
             //--- Extract headers ---
             ApacheHttpUtil.applyResponseHeaders(
@@ -518,6 +519,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 cfg.getMaxConnectionIdleTime(), TimeUnit.MILLISECONDS);
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
+        builder.setRedirectStrategy(new ApacheRedirectCaptureStrategy(
+                cfg.getRedirectURLProvider()));
 
         buildCustomHttpClient(builder);
 
@@ -658,10 +661,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             headers.add(new BasicHeader(HttpHeaders.AUTHORIZATION, authHeader));
         }
         return headers;
-    }
-
-    protected RedirectStrategy createRedirectStrategy() {
-        return LaxRedirectStrategy.INSTANCE;
     }
 
     protected SchemePortResolver createSchemePortResolver() {
@@ -853,30 +852,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         } catch (Exception e) {
             throw new CollectorException(
                     "Cannot create SSL context trusting all certificates.", e);
-        }
-    }
-
-    // Wraps redirection strategy to consider URLs as new documents to
-    // queue for processing.
-    private void initializeRedirectionStrategy() {
-        try {
-            Object chain = FieldUtils.readField(httpClient, "execChain", true);
-            Object redir = FieldUtils.readField(
-                    chain, "redirectStrategy", true);
-            if (redir instanceof RedirectStrategy) {
-                RedirectStrategy originalStrategy = (RedirectStrategy) redir;
-                RedirectStrategyWrapper strategyWrapper =
-                        new RedirectStrategyWrapper(originalStrategy,
-                                cfg.getRedirectURLProvider());
-                FieldUtils.writeField(
-                        chain, "redirectStrategy", strategyWrapper, true);
-            } else {
-                LOG.warn("Could not wrap RedirectStrategy to properly handle"
-                        + "redirects.");
-            }
-        } catch (Exception e) {
-            LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
-                    + "internal connection manager does not support it.");
         }
     }
 
