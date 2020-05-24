@@ -15,6 +15,10 @@
         Can now decide to re-process headers as part of document fetching
         when metadata fetcher fails.
       </action>
+      <action dev="essiembre" type="update" issue="695">
+        Redirects are now ignored when part of a bad HTTP response
+        when "skipOnBadStatus" is "true".
+      </action>
       <action dev="essiembre" type="fix" issue="678">
         Fixed REJECTED_REDIRECTED event not being fired for the redirect 
         source URL when the target URL was previously encountered. 

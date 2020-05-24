@@ -70,16 +70,22 @@ import com.norconex.commons.lang.map.Properties;
         }
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
 
-        //-- Deal with redirects ---
-        String redirectURL = RedirectStrategyWrapper.getRedirectURL();
-        if (StringUtils.isNotBlank(redirectURL)) {
-            HttpImporterPipelineUtil.queueRedirectURL(
-                    ctx, response, redirectURL);
-            return false;
-        }
-
         CrawlState state = response.getCrawlState();
         crawlData.setState(state);
+
+        // if not good or not found, consider it bad
+        boolean isBadStatus = !state.isGoodState()
+                && !state.isOneOf(CrawlState.NOT_FOUND);
+
+        //-- Deal with redirects ---
+        if (!isBadStatus || !ctx.getConfig().isSkipMetaFetcherOnBadStatus()) {
+            String redirectURL = RedirectStrategyWrapper.getRedirectURL();
+            if (StringUtils.isNotBlank(redirectURL)) {
+                HttpImporterPipelineUtil.queueRedirectURL(
+                        ctx, response, redirectURL);
+                return false;
+            }
+        }
 
         // Good state
         if (state.isGoodState()) {
