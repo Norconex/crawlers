@@ -3,6 +3,12 @@ TODO:
 
 The following are either things to be done, or ideas to consider:
 
+- Add equivalent of skipOnBadStatus to skip bad HEAD requests
+  instead of rejecting the document (including #695).
+
+- Add ability to specify path to keystore and trustore:
+  e.g. https://dzone.com/articles/use-client-certificate-authentication-with-java-an
+
 - Create a class holding constants for frequent XML config attributes. 
 
 - Consider porting the HttpImporterPipelineContext#httpHeadSuccessful update
