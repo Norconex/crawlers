@@ -3,6 +3,11 @@ TODO:
 
 The following are either things to be done, or ideas to consider:
 
+- Add the option to skip URL extraction when max depth is reached.
+
+- Make sure Importer Temp directory is derived from collector (workdir/temp)
+  instead of system /tmp when not set.
+
 - Add equivalent of skipOnBadStatus to skip bad HEAD requests
   instead of rejecting the document (including #695).
 

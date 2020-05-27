@@ -49,6 +49,7 @@ import com.norconex.collector.http.link.Link;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
@@ -331,24 +332,15 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             Reader reader, ParseState parseState) throws IOException {
 
         Referer referer = new Referer(doc.getReference());
-
-        StringBuilder sb = new StringBuilder();
-        int ch;
-        boolean firstChunk = true;
-        while ((ch = reader.read()) != -1) {
-            sb.append((char) ch);
-            if (sb.length() >= MAX_BUFFER_SIZE) {
-                String content = sb.toString();
-                referer = adjustReferer(content, referer, firstChunk);
+        try (TextReader r = new TextReader(reader)) {
+            boolean firstChunk = true;
+            String text = null;
+            while ((text = r.readText()) != null) {
+                referer = adjustReferer(text, referer, firstChunk);
                 firstChunk = false;
-                extractLinks(content, referer, links);
-                sb.delete(0, sb.length() - OVERLAP_SIZE);
+                extractLinks(text, referer, links);
             }
         }
-        String content = sb.toString();
-        referer = adjustReferer(content, referer, firstChunk);
-        extractLinks(content, referer, links);
-        sb.setLength(0);
     }
 
     @Override
