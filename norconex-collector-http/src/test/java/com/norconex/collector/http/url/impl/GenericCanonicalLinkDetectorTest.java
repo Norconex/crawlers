@@ -79,12 +79,20 @@ public class GenericCanonicalLinkDetectorTest {
         String canonURL = "http://www.example.com/canonical.pdf";
         String url = null;
 
-        // Valid link tag
-        String contentValid = "<html><head><title>Test</title>\n"
+        // Valid link tag (meta)
+        String contentValidMeta = "<html><head><title>Test</title>\n"
+                + "<meta property=\"canonical\"\n href=\"\n" + canonURL +  "\" />\n"
+                + "</head><body>Nothing of interest in body</body></html>";
+        url = d.detectFromContent(reference,  new ByteArrayInputStream(
+                contentValidMeta.getBytes()), ContentType.HTML);
+        Assert.assertEquals("Invalid <link> form <head>", canonURL, url);
+
+        // Valid link tag (link)
+        String contentValidLink = "<html><head><title>Test</title>\n"
                 + "<link rel=\"canonical\"\n href=\"\n" + canonURL +  "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
         url = d.detectFromContent(reference,  new ByteArrayInputStream(
-                contentValid.getBytes()), ContentType.HTML);
+                contentValidLink.getBytes()), ContentType.HTML);
         Assert.assertEquals("Invalid <link> form <head>", canonURL, url);
 
         // Invalid location for link tag
