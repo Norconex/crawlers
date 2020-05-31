@@ -54,7 +54,6 @@ import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.store.IDataStore;
-import com.norconex.collector.core.store.SimpleValue;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
@@ -121,7 +120,12 @@ public class GenericSitemapResolver
                     "/sitemap.xml", "/sitemap_index.xml"));
 
     private Path tempDir;
-    private IDataStore<SimpleValue> resolvedURLRoots;
+
+    //TODO eventually check sitemap last modified date and reprocess if
+    // changed (or request to have it only if it changed).
+    // use ZonedDateTime instead of Boolean (which is just a dummy value).
+
+    private IDataStore<Boolean> resolvedURLRoots;
 
     private final Set<String> activeURLRoots =
             Collections.synchronizedSet(new HashSet<String>());
@@ -137,7 +141,7 @@ public class GenericSitemapResolver
                 () -> event.getSource().getTempDir());
         resolvedURLRoots = Optional.ofNullable(resolvedURLRoots).orElseGet(
                 () -> event.getSource().getDataStoreEngine().openStore(
-                        "generic-sitemap", SimpleValue.class));
+                        "generic-sitemap", Boolean.class));
     }
     @Override
     protected void onCrawlerStopBegin(CrawlerEvent<Crawler> event) {
@@ -220,15 +224,16 @@ public class GenericSitemapResolver
                     break;
                 }
             }
-            resolvedURLRoots.save(new SimpleValue(urlRoot));
-//            sitemapStore.markResolved(urlRoot);
+            //TODO the boolean serves no purpose now, but eventually,
+            // use a date to detect if the sitemap has changed.
+            resolvedURLRoots.save(urlRoot, Boolean.TRUE);
             activeURLRoots.remove(urlRoot);
         }
     }
 
     private synchronized boolean isResolutionRequired(String urlRoot) {
         if (activeURLRoots.contains(urlRoot)
-                || resolvedURLRoots.existsById(urlRoot)) {
+                || resolvedURLRoots.exists(urlRoot)) {
             LOG.trace("Sitemap locations were already processed or are "
                     + "being processed for URL root: {}", urlRoot);
             return false;
@@ -258,19 +263,6 @@ public class GenericSitemapResolver
     public void setTempDir(Path tempDir) {
         this.tempDir = tempDir;
     }
-
-    public IDataStore<SimpleValue> getDataStore() {
-        return resolvedURLRoots;
-    }
-    public void setDataStore(IDataStore<SimpleValue> dataStore) {
-        this.resolvedURLRoots = dataStore;
-    }
-
-//    @Override
-//    public void stop() {
-//        this.stopped = true;
-////        resolvedURLRoots.close();
-//    }
 
     private void resolveLocation(String location, HttpFetchClient fetcher,
             Consumer<HttpDocInfo> sitemapURLConsumer,
