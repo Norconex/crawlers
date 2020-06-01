@@ -1,4 +1,4 @@
-/* Copyright 2015-2016 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import java.io.IOException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Date;
 
@@ -22,11 +23,14 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.doc.CollectorMetadata;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
 import com.norconex.collector.http.data.HttpCrawlState;
 import com.norconex.collector.http.fetch.HttpFetchResponse;
 import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
+import com.norconex.importer.doc.ContentTypeDetector;
+import com.norconex.importer.util.CharsetUtil;
 
 /**
  * <p>Fetches (i.e. download for processing) a document.</p>
@@ -59,6 +63,23 @@ import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
                     + "HTTP response header. Detection will be attempted "
                     + "instead for \"" + ctx.getDocument().getReference()
                     + "\".");
+            try {
+                String ct = new ContentTypeDetector().detect(
+                        ctx.getContent()).toString();
+                String ce = CharsetUtil.detectCharset(ctx.getContent(), null);
+                ctx.getMetadata().setString(
+                        CollectorMetadata.COLLECTOR_CONTENT_TYPE, ct);
+                ctx.getMetadata().setString(
+                        CollectorMetadata.COLLECTOR_CONTENT_ENCODING, ce);
+                LOG.info("Detected '" + ct + "' and '" + ce + "' as the "
+                        + "content type and character encoding for \""
+                        + ctx.getDocument().getReference() + "\".");
+
+            } catch (IOException e1) {
+                LOG.warn("Could not detect content type and character "
+                        + "encoding from content for \""
+                        + ctx.getDocument().getReference() + "\".");
+            }
         }
 
         HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());

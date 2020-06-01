@@ -19,6 +19,11 @@
         Redirects are now ignored when part of a bad HTTP response
         when "skipOnBadStatus" is "true".
       </action>
+      <action dev="essiembre" type="update">
+        Unsupported content encoding form Content-Type HTTP headers now 
+        triggers a detection attempt of both encoding and content type 
+        based on document content. 
+      </action>
       <action dev="essiembre" type="fix" issue="678">
         Fixed REJECTED_REDIRECTED event not being fired for the redirect 
         source URL when the target URL was previously encountered. 
