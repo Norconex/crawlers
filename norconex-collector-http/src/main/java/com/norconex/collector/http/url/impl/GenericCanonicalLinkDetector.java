@@ -142,6 +142,9 @@ public class GenericCanonicalLinkDetector
     private static final Pattern PATTERN_REL =
             Pattern.compile("\\srel\\s*=\\s*([\"'])\\s*canonical\\s*\\1",
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+    private static final Pattern PATTERN_PROPERTY =
+            Pattern.compile("\\sproperty\\s*=\\s*([\"'])\\s*canonical\\s*\\1",
+                    Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_URL =
             Pattern.compile("\\shref\\s*=\\s*([\"'])\\s*(.*?)\\s*\\1",
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
@@ -173,8 +176,12 @@ public class GenericCanonicalLinkDetector
                     nameMatcher.find();
                     String name = nameMatcher.group(
                             PATTERN_NAME_GROUP).toLowerCase();
-                    if ("link".equalsIgnoreCase(name)
-                            && PATTERN_REL.matcher(tag).find()) {
+                    if ( ("link".equalsIgnoreCase(name)
+                            && PATTERN_REL.matcher(tag).find() )
+                        ||
+                        ("meta".equalsIgnoreCase(name)
+                                && PATTERN_PROPERTY.matcher(tag).find() )
+                        ) {
                         Matcher urlMatcher = PATTERN_URL.matcher(tag);
                         if (urlMatcher.find()) {
                             return toAbsolute(reference,
