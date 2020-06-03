@@ -76,11 +76,6 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
         return getCrawler().getHttpFetchClient();
     }
 
-    @Override
-    public CrawlDoc getDocument() {
-        return super.getDocument();
-    }
-
     public ISitemapResolver getSitemapResolver() {
         return getCrawler().getSitemapResolver();
     }
