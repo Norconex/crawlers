@@ -377,7 +377,7 @@ public class HttpCrawler extends Crawler {
     }
 
     @Override
-    protected CrawlDocInfo createEmbeddedCrawlReference(
+    protected CrawlDocInfo createChildDocInfo(
             String embeddedReference, CrawlDocInfo parentCrawlData) {
         return new HttpDocInfo(embeddedReference,
                 ((HttpDocInfo) parentCrawlData).getDepth());
