@@ -54,8 +54,20 @@ import com.norconex.commons.lang.map.Properties;
         HttpMetadata metadata = ctx.getMetadata();
         Properties headers = new Properties(metadata.isCaseInsensitiveKeys());
 
-        HttpFetchResponse response = headersFetcher.fetchHTTPHeaders(
-                ctx.getHttpClient(), crawlData.getReference(), headers);
+        HttpFetchResponse response = null;
+        try {
+            response = headersFetcher.fetchHTTPHeaders(
+                    ctx.getHttpClient(), crawlData.getReference(), headers);
+        } catch (RuntimeException e) {
+            // if skipping metadata fetching on bad status, do not throw
+            // an exception.
+            if (ctx.getConfig().isSkipMetaFetcherOnBadStatus()) {
+                response = new HttpFetchResponse(
+                        CrawlState.ERROR, -1, e.getMessage());
+            } else {
+                throw e;
+            }
+        }
 
         metadata.putAll(headers);
 
