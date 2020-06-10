@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.doc.HttpDocInfo;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
@@ -56,6 +57,8 @@ import com.norconex.importer.doc.DocMetadata;
         Properties meta = ctx.getDocument().getMetadata();
         meta.set(DocMetadata.CONTENT_TYPE, docInfo.getContentType());
         meta.set(DocMetadata.CONTENT_ENCODING, docInfo.getContentEncoding());
+        meta.set(HttpDocMetadata.ORIGINAL_REFERENCE,
+                docInfo.getOriginalReference());
 
         //-- Deal with redirects ---
         String redirectURL = response.getRedirectTarget();

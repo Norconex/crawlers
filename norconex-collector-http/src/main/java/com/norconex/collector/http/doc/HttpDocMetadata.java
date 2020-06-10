@@ -40,6 +40,9 @@ public final class HttpDocMetadata {
             PREFIX + "referrer-link-";
     /** @since 2.8.0 */
     public static final String REDIRECT_TRAIL = PREFIX + "redirect-trail";
+    /** @since 3.0.0 */
+    public static final String ORIGINAL_REFERENCE =
+            PREFIX + "originalReference";
 
     private HttpDocMetadata() {
         super();

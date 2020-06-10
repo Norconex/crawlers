@@ -3,6 +3,9 @@ TODO:
 
 The following are either things to be done, or ideas to consider:
 
+- Standarsize collector/importer generated metadata field names
+  (e.g., "camel-case vs hypens", "collector." vs "document." prefixes).
+
 - Add the option to skip URL extraction when max depth is reached.
 
 - Make sure Importer Temp directory is derived from collector (workdir/temp)

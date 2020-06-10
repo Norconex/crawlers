@@ -20,6 +20,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.core.pipeline.DocInfoPipelineContext;
 import com.norconex.collector.core.pipeline.queue.QueueReferenceStage;
 import com.norconex.collector.core.pipeline.queue.ReferenceFiltersStage;
@@ -116,13 +118,17 @@ public final class HttpQueuePipeline
         @Override
         public boolean executeStage(HttpQueuePipelineContext ctx) {
             if (ctx.getConfig().getUrlNormalizer() != null) {
+                String originalReference = ctx.getDocInfo().getReference();
                 String url = ctx.getConfig().getUrlNormalizer().normalizeURL(
-                        ctx.getDocInfo().getReference());
+                        originalReference);
                 if (url == null) {
-                    ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
+                    ctx.getDocInfo().setState(CrawlState.REJECTED);
                     return false;
                 }
-                ctx.getDocInfo().setReference(url);
+                if (!Objects.equal(originalReference, url)) {
+                    ctx.getDocInfo().setReference(url);
+                    ctx.getDocInfo().setOriginalReference(originalReference);
+                }
             }
             return true;
         }

@@ -28,8 +28,8 @@ public class HttpQueuePipelineContext extends DocInfoPipelineContext {
 
     public HttpQueuePipelineContext(
             HttpCrawler crawler,
-            HttpDocInfo crawlRef) {
-        super(crawler, crawlRef);
+            HttpDocInfo docInfo) {
+        super(crawler, docInfo);
     }
 
     public ISitemapResolver getSitemapResolver() {

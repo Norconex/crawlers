@@ -58,6 +58,10 @@
       <action dev="essiembre" type="add">
         New HttpDoc, HttpDocInfo, HttpDocMetadata (new or renamed).
       </action>
+      <action dev="essiembre" type="add">
+        New metadata field set when URL changes from normalization:
+        "collector.originalReference". 
+      </action>
       <action dev="essiembre" type="update">
         PhantomJSDocumentFetcher now deprecated in favor of 
         WebDriverHttpFetcher.
