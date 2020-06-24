@@ -3,6 +3,9 @@ TODO:
 
 The following are either things to be done, or ideas to consider:
 
+- Have a flag that says if coming from sitemap OR better: add a field that stores
+  the sitemap file where a page was found.
+
 - Standarsize collector/importer generated metadata field names
   (e.g., "camel-case vs hypens", "collector." vs "document." prefixes).
 
