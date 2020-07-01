@@ -59,6 +59,7 @@ if (resourceTimeout !== "-1") {
 	page.settings.resourceTimeout = resourceTimeout;
 }
 
+
 page.onResourceError = function(resourceError) {
 	system.stderr.writeLine(
 			resourceError.url + ': ' + resourceError.errorString);
@@ -85,6 +86,17 @@ page.open(url, function (status) {
     	}
         phantom.exit();
     } else {
+        
+        // Uncomment to emulate more recent JavaScript syntax:
+        /*
+        system.stdout.writeLine('INJECTING core-js...');
+        if (page.injectJs('./core.min.js')) {
+            system.stdout.writeLine('INJECTED core-js successfully.');
+        } else {
+            system.stdout.writeLine('INJECTION of core-js failed.');
+        }
+        */
+        
         window.setTimeout(function () {
         	if (thumbnailFile) {
                 page.render(thumbnailFile);

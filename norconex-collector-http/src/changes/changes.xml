@@ -8,13 +8,37 @@
   <body>
 
     <release version="2.9.1-SNAPSHOT" date="2020-??-??" description="Maintenance release">
+      <action dev="simonwibberley" type="update" issue="697">
+        Generic canonical link detector now supports non-standard
+        canonical URL definition using meta "property" instead of "rel".
+      </action>
+      <action dev="simonwibberley" type="update" issue="687">
+        More permissive gzip detection for sitemap.xml files.
+      </action>
       <action dev="essiembre" type="update" issue="655">
         Can now decide to re-process headers as part of document fetching
         when metadata fetcher fails.
       </action>
+      <action dev="essiembre" type="update" issue="695">
+        Redirects are now ignored when part of a bad HTTP response
+        when "skipOnBadStatus" is "true".
+      </action>
+      <action dev="essiembre" type="update" issue="696">
+        Metadata fetcher exceptions are swallowed and logged when 
+        "skipOnBadStatus" is "true".
+      </action>
+      <action dev="essiembre" type="update">
+        Unsupported content encoding form Content-Type HTTP headers now 
+        triggers a detection attempt of both encoding and content type 
+        based on document content. 
+      </action>
       <action dev="essiembre" type="fix" issue="678">
         Fixed REJECTED_REDIRECTED event not being fired for the redirect 
         source URL when the target URL was previously encountered. 
+      </action>
+      <action dev="essiembre" type="fix">
+        Unsupported content encoding form Content-Type HTTP headers no longer
+        rejects a document. 
       </action>
     </release>
 

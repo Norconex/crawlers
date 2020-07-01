@@ -174,13 +174,10 @@ public class GenericMetadataFetcher
             return new HttpFetchResponse(
                     CrawlState.BAD_STATUS, statusCode, reason);
         } catch (Exception e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.error("Cannot fetch metadata: " + url
-                        + " (" + e.getMessage() + ")", e);
-            } else {
-                LOG.error("Cannot fetch metadata: " + url
-                        + " (" + e.getMessage() + ")");
-            }
+            String msg = "Cannot fetch metadata: " + url
+                    + " (" + e.getMessage() + ")";
+            Exception logE = LOG.isDebugEnabled() ? e : null;
+            LOG.warn(msg, logE);
             throw new CollectorException(e);
         } finally {
 	        if (method != null) {

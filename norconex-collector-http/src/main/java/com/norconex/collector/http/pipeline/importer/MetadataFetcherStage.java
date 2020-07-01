@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import java.nio.charset.UnsupportedCharsetException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -52,24 +54,50 @@ import com.norconex.commons.lang.map.Properties;
         HttpMetadata metadata = ctx.getMetadata();
         Properties headers = new Properties(metadata.isCaseInsensitiveKeys());
 
-        HttpFetchResponse response = headersFetcher.fetchHTTPHeaders(
-                ctx.getHttpClient(), crawlData.getReference(), headers);
+        HttpFetchResponse response = null;
+        try {
+            response = headersFetcher.fetchHTTPHeaders(
+                    ctx.getHttpClient(), crawlData.getReference(), headers);
+        } catch (RuntimeException e) {
+            // if skipping metadata fetching on bad status, do not throw
+            // an exception.
+            if (ctx.getConfig().isSkipMetaFetcherOnBadStatus()) {
+                response = new HttpFetchResponse(
+                        CrawlState.ERROR, -1, e.getMessage());
+            } else {
+                throw e;
+            }
+        }
 
         metadata.putAll(headers);
 
-        HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
-        HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
-
-        //-- Deal with redirects ---
-        String redirectURL = RedirectStrategyWrapper.getRedirectURL();
-        if (StringUtils.isNotBlank(redirectURL)) {
-            HttpImporterPipelineUtil.queueRedirectURL(
-                    ctx, response, redirectURL);
-            return false;
+        try {
+            HttpImporterPipelineUtil.enhanceHTTPHeaders(metadata);
+        } catch (UnsupportedCharsetException e) {
+            LOG.warn("Unsupported character encoding \""
+                    + e.getCharsetName() + "\" defined in \"Content-Type\" "
+                    + "HTTP response header. Detection will be attempted "
+                    + "instead for \"" + ctx.getDocument().getReference()
+                    + "\".");
         }
+        HttpImporterPipelineUtil.applyMetadataToDocument(ctx.getDocument());
 
         CrawlState state = response.getCrawlState();
         crawlData.setState(state);
+
+        // if not good or not found, consider it bad
+        boolean isBadStatus = !state.isGoodState()
+                && !state.isOneOf(CrawlState.NOT_FOUND);
+
+        //-- Deal with redirects ---
+        if (!isBadStatus || !ctx.getConfig().isSkipMetaFetcherOnBadStatus()) {
+            String redirectURL = RedirectStrategyWrapper.getRedirectURL();
+            if (StringUtils.isNotBlank(redirectURL)) {
+                HttpImporterPipelineUtil.queueRedirectURL(
+                        ctx, response, redirectURL);
+                return false;
+            }
+        }
 
         // Good state
         if (state.isGoodState()) {
