@@ -110,7 +110,7 @@
         just in-scope ones, out-of-scope, both, or none.
       </action>
       <action dev="essiembre" type="update">
-        Link extractors and canonical url classes are now in their own
+        Link extractors and canonical URL classes are now in their own
         distinct packages. 
       </action>
       <action dev="essiembre" type="update">
@@ -140,8 +140,8 @@
         in "doc" package. 
       </action>
       <action dev="essiembre" type="remove">
-        Removed all previously available crawl store implementions in favor
-        of new NitriteDataStore.
+        Removed all previously available crawl store implementations for a new
+        MVStore-based one.
       </action>
       <action dev="essiembre" type="remove">
         ISitemapResolverFactory removed in favor of ISitemapResolver.

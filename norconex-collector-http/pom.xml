@@ -263,14 +263,16 @@
     </plugins>
   </build>
   
+  <!-- Only used to publish javadoc with "site:deploy", 
+       after they were generated -->
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
-      <url>${site.baseurl}/collectors/collector-http/v3</url>
+      <url>${site.baseurl}/collectors/http/v3</url>
     </site>
   </distributionManagement>
 
-  <url>https://www.norconex.com/collectors/collector-http/v3</url>
+  <url>https://opensource.norconex.com/collectors/http</url>
   <description>Norconex HTTP Collector is a web spider, or crawler that aims to be very flexible, easy to extend, and portable</description>
   <issueManagement>
     <system>GitHub</system>
