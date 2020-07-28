@@ -291,7 +291,7 @@ public class GenericSitemapResolver
                 InputStream is = doc.getInputStream();
                 String contentType =
                         doc.getMetadata().getString("Content-Type");
-                if (contentType.endsWith("gzip")) {
+                if (contentType.endsWith("gzip") || location.endsWith(".gz")) {
                     is = new GZIPInputStream(is);
                 }
                 File sitemapFile = inputStreamToTempFile(is);
