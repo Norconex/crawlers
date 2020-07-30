@@ -848,8 +848,8 @@
       <action dev="essiembre" type="add">
         Several new features, updates and fixes were added by upgrading
         Norconex Collector Core 
-        (http://www.norconex.com/collectors/collector-core/)  and 
-        Norconex Importer (http://www.norconex.com/collectors/importer/) 
+        (https://opensource.norconex.com/collectors/core/)  and 
+        Norconex Importer (https://opensource.norconex.com/importer/) 
         dependencies.  Those include support for ORC, translation, a 
         title generator, new content type parsing, and more. Refer to dependency
         release notes for more details.
@@ -949,9 +949,7 @@
         Document content splitting, splitting of embedded documents into 
         individual documents, new taggers for language detection, changing
         character case, parsing and formatting dates, providing content 
-        statistics, and more.  Please read the Norconex Importer release notes
-        for a complete list of changes at: 
-        http://www.norconex.com/product/importer/changes-report.html#a2.0.0
+        statistics, and more.
       </action>
       <action dev="essiembre" type="add">
         Can now supplied a "pathsFile" as part of the startPaths, 

@@ -48,7 +48,7 @@
 
     <crawler id="Norconex Complex Test Page 1">
       <startURLs>
-        <url>https://www.norconex.com/product/collector-http-test/complex1.php</url>
+        <url>https://opensource.norconex.com/collectors/http/test/complex1</url>
       </startURLs>
       #parse("shared/importer-config.xml")
       <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
@@ -58,7 +58,7 @@
 
     <crawler id="Norconex Complex Test Page 2">
       <startURLs>
-        <url>https://www.norconex.com/product/collector-http-test/complex2.php</url>
+        <url>https://opensource.norconex.com/collectors/http/test/complex2</url>
       </startURLs>
       #parse("shared/importer-config.xml")
       <committer class="com.norconex.committer.core.impl.FileSystemCommitter">

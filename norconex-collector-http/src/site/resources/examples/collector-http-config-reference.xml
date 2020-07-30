@@ -437,7 +437,7 @@
 
   <!-- === FOR ADVANCED USE ONLY ===============================================
        The following listeners are made to work with the JEF API
-       (https://www.norconex.com/jef/api/). Usage is recommended only 
+       (https://opensource.norconex.com/jef/api/). Usage is recommended only 
        to programmers familiar with the JEF API.
        Most users should ignore these.   -->
        
