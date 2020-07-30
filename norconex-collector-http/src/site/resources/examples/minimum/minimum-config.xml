@@ -31,7 +31,7 @@
            Optionally limit crawling to same protocol/domain/port as 
            start URLs. -->
       <startURLs stayOnDomain="true" stayOnPort="true" stayOnProtocol="true">
-        <url>https://www.norconex.com/product/collector-http-test/minimum.php</url>
+        <url>https://opensource.norconex.com/collectors/http/test/minimum</url>
       </startURLs>
 
       <!-- === Recommendations: ============================================ -->
