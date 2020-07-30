@@ -1,5 +1,5 @@
 Norconex HTTP Collector
-Copyright 2013-2014 Norconex Inc.
+Copyright 2013-2020 Norconex Inc.
 
 General Information:
 ====================
@@ -8,7 +8,7 @@ For any inquiries about Norconex HTTP Collector,
 please contact Norconex Inc. at info@norconex.com.
 
 This product website and documentation is located at:
-http://www.norconex.com/collectors/collector-http/
+https://opensource.norconex.com/collectors/http/
 
 Norconex licenses:
 ==================

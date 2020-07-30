@@ -44,6 +44,14 @@
       <outputDirectory>./</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${basedir}</directory>
+      <includes>
+        <include>LICENSE</include>
+        <include>CHANGES.xml</include>
+      </includes>
+      <outputDirectory>./</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>${project.build.directory}/site/apidocs</directory>
       <outputDirectory>apidocs</outputDirectory>
     </fileSet>

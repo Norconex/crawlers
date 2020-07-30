@@ -43,7 +43,7 @@
 
     <referenceFilters>
       <filter class="$filterExtension" onMatch="exclude">jpg,gif,png,ico,css,js</filter>
-      <filter class="$filterRegexRef">https://www\.norconex\.com/product/collector-http-test/.*</filter>
+      <filter class="$filterRegexRef">https://opensource\.norconex\.com/collectors/http/test/.*</filter>
     </referenceFilters>
 
   </crawlerDefaults>
@@ -52,7 +52,7 @@
 
     <crawler id="Norconex Complex Test Page 1">
       <startURLs>
-        <url>https://www.norconex.com/product/collector-http-test/complex1.php</url>
+        <url>https://opensource.norconex.com/collectors/http/test/complex1.php</url>
       </startURLs>
       #parse("shared/importer-config.xml")
       <committers>
@@ -64,7 +64,7 @@
 
     <crawler id="Norconex Complex Test Page 2">
       <startURLs>
-        <url>https://www.norconex.com/product/collector-http-test/complex2.php</url>
+        <url>https://opensource.norconex.com/collectors/http/test/complex2.php</url>
       </startURLs>
       #parse("shared/importer-config.xml")
       <committers>
