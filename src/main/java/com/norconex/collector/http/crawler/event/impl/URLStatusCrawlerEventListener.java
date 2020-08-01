@@ -285,8 +285,7 @@ public class URLStatusCrawlerEventListener
                 CSVPrinter csv = csvPrinters.get(combined
                         ? null : ((HttpCrawler) ce.getSource()).getId());
                 if (csv != null) {
-                    HttpDocInfo crawlRef =
-                            (HttpDocInfo) ce.getCrawlReference();
+                    HttpDocInfo crawlRef = (HttpDocInfo) ce.getCrawlDocInfo();
                     Object[] record = new Object[] {
                             trimToEmpty(crawlRef.getReferrerReference()),
                             trimToEmpty(crawlRef.getReference()),

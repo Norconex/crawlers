@@ -405,12 +405,6 @@ public class HttpCrawler extends Crawler {
         HttpDocInfo httpData = (HttpDocInfo) doc.getDocInfo();
         HttpDocInfo httpCachedData = (HttpDocInfo) doc.getCachedDocInfo();
 
-        //TODO improve this #533 hack in v3
-        if (httpData.getState().isNewOrModified()
-                && !httpData.getRedirectTrail().isEmpty()) {
-            HttpImporterPipeline.GOOD_REDIRECTS.add(httpData.getReference());
-        }
-
         // If never crawled before, URLs were extracted already, or cached
         // version has no extracted, URLs, abort now.
         if (httpCachedData == null

@@ -17,8 +17,6 @@ package com.norconex.collector.http.pipeline.importer;
 import java.io.IOException;
 import java.io.Reader;
 
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlState;
@@ -39,10 +37,6 @@ import com.norconex.commons.lang.pipeline.Pipeline;
  */
 public class HttpImporterPipeline
         extends Pipeline<ImporterPipelineContext> {
-
-    //TODO Hack for ticket #533. Version 3 shall have a more robust fix.
-    public static final CircularFifoQueue<String> GOOD_REDIRECTS =
-            new CircularFifoQueue<>(10000);
 
     //TODO create a DocumentPipelinePrototype to generate prototypes
     //sharing all thread safe/common information,

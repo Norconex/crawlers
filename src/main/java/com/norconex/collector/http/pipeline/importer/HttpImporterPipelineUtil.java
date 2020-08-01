@@ -14,10 +14,13 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.core.doc.CrawlDocInfo.Stage;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
@@ -84,15 +87,27 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
                         + "rejecting: {}", redirectURL);
                 rejectRedirectDup("processed", sourceURL, redirectURL);
                 return;
-            //TODO improve this #533 hack in v3
-            } else if (HttpImporterPipeline.GOOD_REDIRECTS.contains(
-                    redirectURL)) {
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("Redirect URL previously processed and was "
-                            + "valid, rejecting: {}", redirectURL);
+            }
+
+            // If redirect is already processed with a good state, do not queue
+            // it again adn leave it there.
+            // XXX use a memory cache of X processed with good state if
+            // XXX getting performance issues.  We can't rely on pre-loaded
+            // XXX cached instance, since it is pre-loaded with the source
+            // XXX URL, and not the redirect URL. So we load it here.
+            Optional<CrawlDocInfo> op =
+                    ctx.getDocInfoService().getProcessed(redirectURL);
+            if (op.isPresent()) {
+                if (op.get().getState().isGoodState()) {
+                    LOG.trace("Redirect URL was previously processed and "
+                            + "is valid, rejecting: {}", redirectURL);
+                    rejectRedirectDup("processed", sourceURL, redirectURL);
+                    return;
                 }
-                rejectRedirectDup("processed", sourceURL, redirectURL);
-                return;
+            } else {
+                LOG.warn("Could not load from store the processed target "
+                        + "of previously redirected URL "
+                        + "(should never happen): ", redirectURL);
             }
 
             requeue = true;
