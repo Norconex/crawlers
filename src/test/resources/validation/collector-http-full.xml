@@ -90,12 +90,14 @@
       <schedule dayOfWeek="from Saturday to Sunday"
           dayOfMonth="from 11 to 28" time="from 6:00 to 7:30">20000</schedule>
     </delay>    
-    <dataStoreEngine class="com.norconex.collector.core.store.impl.nitrite.NitriteDataStoreEngine">
-      <host>localhost</host>
-      <port>1234</port>
-      <dbname>dbName</dbname>
-      <username>user</username>
-      <password>pwd</password>
+    <dataStoreEngine class="com.norconex.collector.core.store.impl.mvstore.MVStoreDataStoreEngine">
+      <pageSplitSize>1000</pageSplitSize>
+      <compress>1</compress>
+      <cacheConcurrency>0</cacheConcurrency>
+      <cacheSize>1000</cacheSize>
+      <autoCompactFillRate>100</autoCompactFillRate>
+      <autoCommitBufferSize>100</autoCommitBufferSize>
+      <autoCommitDelay>100</autoCommitDelay>    
     </dataStoreEngine>
     
     <!-- DEPRECATED:
@@ -361,7 +363,7 @@
 
     <!-- NEW: -->
     <committers>
-      <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
+      <committer class="com.norconex.committer.core3.fs.impl.JSONFileCommitter">
         <directory>/tmp/somepath</directory>
       </committer>
     </committers>

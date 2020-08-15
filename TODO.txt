@@ -3,6 +3,10 @@ TODO:
 
 The following are either things to be done, or ideas to consider:
 
+- Once document reference can be updated anywhere in the process, keeping
+  a collection of them (from original to final), then remove support
+  for defining a field as source ID in committers.
+
 - Have a flag that says if coming from sitemap OR better: add a field that stores
   the sitemap file where a page was found.
 
