@@ -60,6 +60,40 @@
 
     <!-- Specific Events -->
 
+    <Logger name="CollectorEvent.COLLECTOR_RUN_BEGIN" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_RUN_END" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STOP_BEGIN" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STOP_END" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_CLEAN_BEGIN" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_CLEAN_END" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STORE_EXPORT_BEGIN" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STORE_EXPORT_END" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STORE_IMPORT_BEGIN" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STORE_IMPORT_END" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_ERROR" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
     <Logger name="CrawlerEvent.CRAWLER_INIT_BEGIN" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
