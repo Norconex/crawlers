@@ -84,7 +84,9 @@ public class StandardSitemapResolverFactory
     private String[] sitemapPaths = 
             StandardSitemapResolver.DEFAULT_SITEMAP_PATHS;
     private boolean lenient;
-    
+
+    private long from = -1;
+
     @Override
     public ISitemapResolver createSitemapResolver(
             HttpCrawlerConfig config, boolean resume) {
@@ -98,6 +100,7 @@ public class StandardSitemapResolverFactory
         }
         StandardSitemapResolver sr = new StandardSitemapResolver(
                 resolvedTempDir, new SitemapStore(config, resume));
+        sr.setFrom(from);
         sr.setLenient(lenient);
         sr.setSitemapPaths(sitemapPaths);
         return sr;
@@ -152,6 +155,13 @@ public class StandardSitemapResolverFactory
     }
     public void setLenient(boolean lenient) {
         this.lenient = lenient;
+    }
+
+    public long getFrom() {
+        return from;
+    }
+    public void setFrom(long from) {
+        this.from = from;
     }
 
     /**

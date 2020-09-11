@@ -110,13 +110,15 @@ public class StandardSitemapResolver implements ISitemapResolver {
     private boolean stopped;
     private File tempDir;
     private String[] sitemapPaths = DEFAULT_SITEMAP_PATHS;
-    
+    private long from;
+
     public StandardSitemapResolver(
             File tempDir, 
             SitemapStore sitemapStore) {
         super();
         this.tempDir = tempDir;
         this.sitemapStore = sitemapStore;
+        from = -1;
     }
     
     /**
@@ -207,6 +209,13 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
     public void setLenient(boolean lenient) {
         this.lenient = lenient;
+    }
+
+    public long getFrom() {
+        return from;
+    }
+    public void setFrom(long from) {
+        this.from = from;
     }
 
     /**
@@ -355,14 +364,29 @@ public class StandardSitemapResolver implements ISitemapResolver {
         FileUtil.delete(sitemapFile);
     }
 
+    private boolean passedFrom(ParseState parseState) {
+        Long lastMod = parseState.baseURL.getSitemapLastMod();
+        if(from > 0 && lastMod != null) {
+            if(lastMod > from) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
     private void parseEndElement(SitemapURLAdder sitemapURLAdder,
             ParseState parseState, String locationDir, String tag) {
         if ("sitemap".equalsIgnoreCase(tag)) {
             parseState.sitemapIndex = false;
         } else if("url".equalsIgnoreCase(tag)
                 && parseState.baseURL.getReference() != null){
-            if (isRelaxed(parseState, locationDir)) { 
-                sitemapURLAdder.add(parseState.baseURL);
+            if (isRelaxed(parseState, locationDir)) {
+                if(passedFrom(parseState)) {
+                    sitemapURLAdder.add(parseState.baseURL);
+                }
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("Sitemap URL invalid for location directory."
                         + " URL:" + parseState.baseURL.getReference()
