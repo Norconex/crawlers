@@ -86,9 +86,10 @@ public abstract class AbstractHttpCrawlDataStoreTest {
         collector.getCollectorConfig().setId("testCollectorId");
         EventManager em = new EventManager();
         em.addListenersFromScan(crawlerConfig);
-        em.fire(CollectorEvent.create(COLLECTOR_RUN_BEGIN, collector));
-        em.fire(CrawlerEvent.create(
-                CRAWLER_RUN_BEGIN, new HttpCrawler(crawlerConfig, collector)));
+        em.fire(new CollectorEvent.Builder(
+                COLLECTOR_RUN_BEGIN, collector).build());
+        em.fire(new CrawlerEvent.Builder(CRAWLER_RUN_BEGIN,
+                new HttpCrawler(crawlerConfig, collector)).build());
 
         crawlDocInfoService = createCrawlDataStore(crawlerConfig, tempFolder, false);
     }

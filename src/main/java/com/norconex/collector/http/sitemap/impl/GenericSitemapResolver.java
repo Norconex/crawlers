@@ -49,7 +49,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.collector.core.doc.CrawlDoc;
@@ -136,7 +135,7 @@ public class GenericSitemapResolver
             new ArrayList<>(DEFAULT_SITEMAP_PATHS);
 
     @Override
-    protected void onCrawlerRunBegin(CrawlerEvent<Crawler> event) {
+    protected void onCrawlerRunBegin(CrawlerEvent event) {
         tempDir = Optional.ofNullable(tempDir).orElseGet(
                 () -> event.getSource().getTempDir());
         resolvedURLRoots = Optional.ofNullable(resolvedURLRoots).orElseGet(
@@ -144,11 +143,11 @@ public class GenericSitemapResolver
                         "generic-sitemap", Boolean.class));
     }
     @Override
-    protected void onCrawlerStopBegin(CrawlerEvent<Crawler> event) {
+    protected void onCrawlerStopBegin(CrawlerEvent event) {
         stopping = true;
     }
     @Override
-    protected void onCrawlerEvent(CrawlerEvent<Crawler> event) {
+    protected void onCrawlerEvent(CrawlerEvent event) {
         if (event.is(CrawlerEvent.CRAWLER_RUN_END,
                 CrawlerEvent.CRAWLER_STOP_END)) {
             Optional.ofNullable(resolvedURLRoots).ifPresent(c -> {
@@ -159,7 +158,7 @@ public class GenericSitemapResolver
         }
     }
     @Override
-    protected void onCrawlerCleanBegin(CrawlerEvent<Crawler> event) {
+    protected void onCrawlerCleanBegin(CrawlerEvent event) {
         deleteTemp();
     }
 

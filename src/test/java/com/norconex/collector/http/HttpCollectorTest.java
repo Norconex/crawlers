@@ -65,7 +65,7 @@ public class HttpCollectorTest {
         // type and event name.
         config.addEventListeners(e -> {
             if (e.is(CollectorEvent.COLLECTOR_RUN_END)) {
-                JobState state = ((CollectorEvent<?>) e).getSource().getState();
+                JobState state = ((CollectorEvent) e).getSource().getState();
                 assertEquals(JobState.COMPLETED, state);
             }
         });

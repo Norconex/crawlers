@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.norconex.commons.lang.event.IEventListener;
  * In other words, the last fetch document will not be committed.
  * @author Pascal Essiembre
  */
-public class JVMCrasher implements IEventListener<Event<?>> {
+public class JVMCrasher implements IEventListener<Event> {
 
     public static final int CRASH_EXIT_VALUE = 13;
 
@@ -36,7 +36,7 @@ public class JVMCrasher implements IEventListener<Event<?>> {
     }
 
     @Override
-    public void accept(Event<?> e) {
+    public void accept(Event e) {
         if (e.is(CrawlerEvent.DOCUMENT_FETCHED)) {
             count++;
             if (count % 7 == 0) {

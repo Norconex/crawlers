@@ -25,15 +25,14 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.importer.doc.Doc;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.IEventListener;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.Doc;
 
 /**
  * <p>
@@ -70,7 +69,7 @@ import com.norconex.commons.lang.xml.XML;
  * @since 3.0.0
  */
 public abstract class AbstractHttpFetcher implements
-        IHttpFetcher, IXMLConfigurable, IEventListener<CrawlerEvent<Crawler>> {
+        IHttpFetcher, IXMLConfigurable, IEventListener<CrawlerEvent> {
 
     private final PropertyMatchers restrictions = new PropertyMatchers();
 
@@ -88,7 +87,7 @@ public abstract class AbstractHttpFetcher implements
     }
 
     @Override
-    public final void accept(CrawlerEvent<Crawler> event) {
+    public final void accept(CrawlerEvent event) {
         if (isCrawlerStartup(event)) {
             crawlerStartup(event);
         } else if (isCrawlerShutdown(event)) {
@@ -99,11 +98,11 @@ public abstract class AbstractHttpFetcher implements
 
 
     //TODO remove these empty methods given it can be added as needed?
-    public final boolean isCrawlerStartup(Event<?> event) {
+    public final boolean isCrawlerStartup(Event event) {
         return event instanceof CrawlerEvent
                 && event.is(CRAWLER_RUN_BEGIN);
     }
-    public final boolean isCrawlerShutdown(Event<?> event) {
+    public final boolean isCrawlerShutdown(Event event) {
         return event instanceof CrawlerEvent
                 && event.is(CRAWLER_RUN_END, CRAWLER_STOP_END);
     }
@@ -113,7 +112,7 @@ public abstract class AbstractHttpFetcher implements
      * Default implementation does nothing.
      * @param event crawler event
      */
-    protected void crawlerStartup(CrawlerEvent<Crawler> event) {
+    protected void crawlerStartup(CrawlerEvent event) {
         //NOOP
     }
     /**
@@ -121,7 +120,7 @@ public abstract class AbstractHttpFetcher implements
      * Default implementation does nothing.
      * @param event crawler event
      */
-    protected void crawlerShutdown(CrawlerEvent<Crawler> event) {
+    protected void crawlerShutdown(CrawlerEvent event) {
         //NOOP
     }
 

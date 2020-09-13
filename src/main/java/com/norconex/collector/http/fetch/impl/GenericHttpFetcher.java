@@ -96,7 +96,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
@@ -328,7 +327,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    protected void crawlerStartup(CrawlerEvent<Crawler> event) {
+    protected void crawlerStartup(CrawlerEvent event) {
         this.httpClient = createHttpClient();
 
         String userAgent = cfg.getUserAgent();
@@ -342,7 +341,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
     }
     @Override
-    protected void crawlerShutdown(CrawlerEvent<Crawler> event) {
+    protected void crawlerShutdown(CrawlerEvent event) {
         if (httpClient instanceof CloseableHttpClient) {
             try {
                 ((CloseableHttpClient) httpClient).close();

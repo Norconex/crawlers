@@ -167,9 +167,13 @@ class CanonicalStage extends AbstractHttpMethodStage {
         }
 
         crawlRef.setState(CrawlState.REJECTED);
-        ctx.fireCrawlerEvent(
-                HttpCrawlerEvent.REJECTED_NONCANONICAL,
-                crawlRef, detector);
+        ctx.getEventManager().fire(new CrawlerEvent.Builder(
+                HttpCrawlerEvent.REJECTED_NONCANONICAL, ctx.getCrawler())
+                        .crawlDocInfo(crawlRef)
+                        .subject(detector)
+                        .message(detector.getClass().getSimpleName()
+                                + "[canonical: " + canURL + "]")
+                        .build());
         return false;
     }
 }

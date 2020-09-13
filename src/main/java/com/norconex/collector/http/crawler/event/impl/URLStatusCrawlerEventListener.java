@@ -150,7 +150,7 @@ import com.norconex.commons.lang.xml.XML;
  * @since 2.2.0
  */
 public class URLStatusCrawlerEventListener
-        implements IEventListener<Event<?>>, IXMLConfigurable {
+        implements IEventListener<Event>, IXMLConfigurable {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(URLStatusCrawlerEventListener.class);
@@ -257,7 +257,7 @@ public class URLStatusCrawlerEventListener
     }
 
     @Override
-    public void accept(Event<?> event) {
+    public void accept(Event event) {
         if (event.is(CollectorEvent.COLLECTOR_RUN_BEGIN)) {
             init((HttpCollector) event.getSource());
             return;
@@ -277,7 +277,7 @@ public class URLStatusCrawlerEventListener
             return;
         }
 
-        CrawlerEvent<?> ce = (CrawlerEvent<?>) event;
+        CrawlerEvent ce = (CrawlerEvent) event;
         if (ce.getSubject() instanceof IHttpFetchResponse) {
             IHttpFetchResponse response = (IHttpFetchResponse) ce.getSubject();
             if (parsedCodes.isEmpty()
