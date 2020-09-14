@@ -292,13 +292,17 @@ public class URLStatusCrawlerEventListener
                             response.getStatusCode(),
                             response.getReasonPhrase()
                     };
-                    try {
-                        csv.printRecord(record);
-                    } catch (IOException e) {
-                        LOG.error("Could not write record: {}", record, e);
-                    }
+                    printCSVRecord(csv, record);
                 }
             }
+        }
+    }
+
+    private synchronized void printCSVRecord(CSVPrinter csv, Object[] record) {
+        try {
+            csv.printRecord(record);
+        } catch (IOException e) {
+            LOG.error("Could not write record: {}", record, e);
         }
     }
 
