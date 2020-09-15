@@ -63,10 +63,17 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
         IHttpFetchResponse newResponse = new HttpFetchResponseBuilder(response)
                 .setCrawlState(HttpCrawlState.REDIRECT)
                 .setReasonPhrase(response.getReasonPhrase()
-                        + " (" + redirectURL + ")")
+                        + " (target: " + redirectURL + ")")
                 .create();
-        ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_REDIRECTED,
-                crawlRef, newResponse);
+
+
+        StringBuilder s = new StringBuilder(
+                newResponse.getStatusCode()  + " "
+                        + newResponse.getReasonPhrase());
+        ctx.fire(HttpCrawlerEvent.REJECTED_REDIRECTED, b -> b
+                .crawlDocInfo(crawlRef)
+                .subject(newResponse)
+                .message(s.toString()));
 
         //--- Do not queue if previously handled ---
         //TODO throw an event if already active/processed(ing)?

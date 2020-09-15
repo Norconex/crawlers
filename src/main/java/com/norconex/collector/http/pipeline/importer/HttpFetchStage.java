@@ -72,13 +72,13 @@ import com.norconex.importer.doc.DocMetadata;
         //TODO really do here??  or just do it if different than response?
         docInfo.setState(state);
         if (CrawlState.UNMODIFIED.equals(state)) {
-            ctx.fireCrawlerEvent(CrawlerEvent.REJECTED_UNMODIFIED,
-                    docInfo, response);
+            ctx.fire(CrawlerEvent.REJECTED_UNMODIFIED,
+                    b -> b.crawlDocInfo(docInfo).subject(response));
             return false;
         }
         if (state.isGoodState()) {
-            ctx.fireCrawlerEvent(CrawlerEvent.DOCUMENT_FETCHED,
-                    docInfo, response);
+            ctx.fire(CrawlerEvent.DOCUMENT_FETCHED,
+                    b -> b.crawlDocInfo(docInfo).subject(response));
             return true;
         }
         String eventType = null;
@@ -87,7 +87,7 @@ import com.norconex.importer.doc.DocMetadata;
         } else {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;
         }
-        ctx.fireCrawlerEvent(eventType, docInfo, response);
+        ctx.fire(eventType, b -> b.crawlDocInfo(docInfo).subject(response));
         return false;
     }
 }

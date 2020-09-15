@@ -161,19 +161,17 @@ class CanonicalStage extends AbstractHttpMethodStage {
                 LOG.debug("Canonical URL not in scope: {}", canURL);
             }
             newData.setState(CrawlState.REJECTED);
-            ctx.fireCrawlerEvent(
-                    CrawlerEvent.REJECTED_FILTER, newData,
-                    ctx.getConfig().getURLCrawlScopeStrategy());
+            ctx.fire(CrawlerEvent.REJECTED_FILTER, b ->  b
+                    .crawlDocInfo(newData)
+                    .subject(ctx.getConfig().getURLCrawlScopeStrategy()));
         }
 
         crawlRef.setState(CrawlState.REJECTED);
-        ctx.getEventManager().fire(new CrawlerEvent.Builder(
-                HttpCrawlerEvent.REJECTED_NONCANONICAL, ctx.getCrawler())
-                        .crawlDocInfo(crawlRef)
-                        .subject(detector)
-                        .message(detector.getClass().getSimpleName()
-                                + "[canonical: " + canURL + "]")
-                        .build());
+        ctx.fire(HttpCrawlerEvent.REJECTED_NONCANONICAL, b -> b
+                .crawlDocInfo(crawlRef)
+                .subject(detector)
+                .message(detector.getClass().getSimpleName()
+                        + "[canonical=" + canURL + "]"));
         return false;
     }
 }

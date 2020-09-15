@@ -82,8 +82,9 @@ import com.norconex.importer.parser.ParseState;
                    docLinks.outScope.toArray(EMPTY_STRING_ARRAY));
         }
 
-        ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_EXTRACTED,
-                ctx.getDocInfo(), docLinks.inScope);
+        ctx.fire(HttpCrawlerEvent.URLS_EXTRACTED,b -> b
+                .crawlDocInfo(ctx.getDocInfo())
+                .message(Integer.toString(docLinks.inScope.size())));
         return true;
     }
 
@@ -176,8 +177,7 @@ import com.norconex.importer.parser.ParseState;
                     new HttpQueuePipelineContext(ctx.getCrawler(), newURL);
             new HttpQueuePipeline().execute(newContext);
             String afterQueueURL = newURL.getReference();
-            if (LOG.isDebugEnabled()
-                    && !link.getUrl().equals(afterQueueURL)) {
+            if (LOG.isDebugEnabled() && !link.getUrl().equals(afterQueueURL)) {
                 LOG.debug("URL modified from \"{}\" to \"{}\".",
                         link.getUrl(), afterQueueURL);
             }

@@ -21,8 +21,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.builder.ToStringSummary;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -90,6 +88,12 @@ public class HttpFetchClientResponse implements IHttpFetchResponse {
         }
         return Optional.ofNullable(responses.get(0).getLeft());
     }
+    private Optional<IHttpFetcher> lastFetcher() {
+        if (responses.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(responses.get(0).getRight());
+    }
 
     @Override
     public boolean equals(final Object other) {
@@ -101,18 +105,16 @@ public class HttpFetchClientResponse implements IHttpFetchResponse {
     }
     @Override
     public String toString() {
-        if (responses.isEmpty()) {
+        Optional<IHttpFetchResponse> op = lastResponse();
+        if (!op.isPresent()) {
             return "[No HTTP fetch responses.]";
         }
-        // Print last response
-        ReflectionToStringBuilder b = new ReflectionToStringBuilder(
-                lastResponse().get(), ToStringStyle.NO_CLASS_NAME_STYLE);
-        b.setExcludeNullValues(true);
-        String str = b.toString();
-        if (responses.size() > 1) {
-            str += " (+ " + (responses.size() - 1)
-                    + " other invalid responses)";
-        }
-        return str;
+
+        IHttpFetchResponse r = op.get();
+        StringBuilder b = new StringBuilder(
+                r.getStatusCode()  + " " + r.getReasonPhrase());
+        lastFetcher().ifPresent(f -> b.append(
+                " - " + f.getClass().getSimpleName()));
+        return b.toString();
     }
 }
