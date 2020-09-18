@@ -248,7 +248,7 @@ import com.norconex.importer.util.CharsetUtil;
  * }
  *
  * {@nx.xml.example
- * <httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">
+ * <fetcher class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">
  *     <authCredentials>
  *         <username>joeUser</username>
  *         <password>joePasword</password>
@@ -256,7 +256,7 @@ import com.norconex.importer.util.CharsetUtil;
  *     <authUsernameField>loginUser</authUsernameField>
  *     <authPasswordField>loginPwd</authPasswordField>
  *     <authURL>http://www.example.com/login</authURL>
- * </httpClientFactory>
+ * </fetcher>
  * }
  * <p>
  * The above example will authenticate the crawler to a web site before
@@ -268,7 +268,6 @@ import com.norconex.importer.util.CharsetUtil;
  * @since 3.0.0 (Merged from GenericDocumentFetcher and
  *        GenericHttpClientFactory)
  */
-@SuppressWarnings("javadoc")
 public class GenericHttpFetcher extends AbstractHttpFetcher {
 
     private static final Logger LOG =
