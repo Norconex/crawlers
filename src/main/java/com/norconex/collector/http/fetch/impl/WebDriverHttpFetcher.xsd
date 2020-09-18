@@ -36,7 +36,7 @@
               <xs:enumeration value="SAFARI"/>
             </xs:restriction>
           </xs:simpleType>
-        </xs:element>        
+        </xs:element>
         <xs:element name="browserPath" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="driverPath" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="servicePort" type="xs:int" minOccurs="0" maxOccurs="1"/>
@@ -58,6 +58,11 @@
             </xs:all>
           </xs:complexType>
         </xs:element>
+        <xs:element name="initScript" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="pageScript" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="pageLoadTimeout" type="xs:long" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="implicitlyWait" type="xs:long" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="scriptTimeout" type="xs:long" minOccurs="0" maxOccurs="1"/>
       </xs:all>
       <xs:attribute name="class" type="xs:string" use="required"/>
     </xs:complexType>
