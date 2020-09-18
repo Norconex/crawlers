@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<Configuration status="INFO" name="Norconex HTTP Collector">
+<Configuration status="WARN" name="Norconex HTTP Collector">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout>
-        <pattern>%d{HH:mm:ss.SSS} [%t] %highlight{%-5level %c{1} - %msg%n}</pattern>
-        <!-- Add -Dlog4j.skipJansi=false to your JVM properties for ANSI
-           - highlighting on Windows. The above pattern without highlighting is:
-           - 
-           -     %d{HH:mm:ss.SSS} [%t] %-5level %c{1} - %msg%n
+        <pattern>%d{HH:mm:ss.SSS} [%t] %-5level %c{1} - %msg%n</pattern>
+        <!-- To have colored logs, add -Dlog4j.skipJansi=false to your JVM properties
+           - for ANSI highlighting on Windows and use the following highlighted pattern:
+           -     <pattern>%d{HH:mm:ss.SSS} [%t] %highlight{%-5level %c{1} - %msg%n}</pattern>
            -->
       </PatternLayout>
     </Console>

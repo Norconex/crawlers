@@ -14,10 +14,6 @@
  */
 package com.norconex.collector.http.fetch;
 
-import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RUN_BEGIN;
-import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_RUN_END;
-import static com.norconex.collector.core.crawler.CrawlerEvent.CRAWLER_STOP_END;
-
 import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -25,8 +21,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.commons.lang.event.Event;
+import com.norconex.collector.core.CollectorEvent;
+import com.norconex.collector.http.HttpCollector;
 import com.norconex.commons.lang.event.IEventListener;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.map.PropertyMatchers;
@@ -69,7 +65,7 @@ import com.norconex.importer.doc.Doc;
  * @since 3.0.0
  */
 public abstract class AbstractHttpFetcher implements
-        IHttpFetcher, IXMLConfigurable, IEventListener<CrawlerEvent> {
+        IHttpFetcher, IXMLConfigurable, IEventListener<CollectorEvent> {
 
     private final PropertyMatchers restrictions = new PropertyMatchers();
 
@@ -87,24 +83,15 @@ public abstract class AbstractHttpFetcher implements
     }
 
     @Override
-    public final void accept(CrawlerEvent event) {
-        if (isCrawlerStartup(event)) {
-            crawlerStartup(event);
-        } else if (isCrawlerShutdown(event)) {
-            crawlerShutdown(event);
-        }
-    }
-
-
-
-    //TODO remove these empty methods given it can be added as needed?
-    public final boolean isCrawlerStartup(Event event) {
-        return event instanceof CrawlerEvent
-                && event.is(CRAWLER_RUN_BEGIN);
-    }
-    public final boolean isCrawlerShutdown(Event event) {
-        return event instanceof CrawlerEvent
-                && event.is(CRAWLER_RUN_END, CRAWLER_STOP_END);
+    public final void accept(CollectorEvent event) {
+    	// Here we rely on collector startup instead of
+    	// crawler startup to avoid being invoked multiple
+    	// times (once for each crawler)
+    	if (event.is(CollectorEvent.COLLECTOR_RUN_BEGIN)) {
+    		fetcherStartup((HttpCollector) event.getSource());
+    	} else if (event.is(CollectorEvent.COLLECTOR_RUN_END)) {
+    		fetcherShutdown((HttpCollector) event.getSource());
+    	}
     }
 
     /**
@@ -112,7 +99,7 @@ public abstract class AbstractHttpFetcher implements
      * Default implementation does nothing.
      * @param event crawler event
      */
-    protected void crawlerStartup(CrawlerEvent event) {
+	protected void fetcherStartup(HttpCollector c) {
         //NOOP
     }
     /**
@@ -120,7 +107,25 @@ public abstract class AbstractHttpFetcher implements
      * Default implementation does nothing.
      * @param event crawler event
      */
-    protected void crawlerShutdown(CrawlerEvent event) {
+	protected void fetcherShutdown(HttpCollector c) {
+        //NOOP
+    }
+
+
+    /**
+     * Invoked when a crawler is either started or resumed.
+     * Default implementation does nothing.
+     * @param event crawler event
+     */
+	protected void crawlerStartup() {
+        //NOOP
+    }
+    /**
+     * Invoked when a crawler is either finished or stopped.
+     * Default implementation does nothing.
+     * @param event crawler event
+     */
+	protected void crawlerShutdown() {
         //NOOP
     }
 

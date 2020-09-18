@@ -33,6 +33,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,10 +103,14 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
             CrawlDoc doc = new CrawlDoc(new HttpDocInfo(robotsURL),
                     fetcher.getStreamFactory().newInputStream());
             IHttpFetchResponse response = fetcher.fetch(doc, HttpMethod.GET);
-            robotsTxt = parseRobotsTxt(doc.getInputStream(), trimmedURL,
-                    response.getUserAgent());
-            if (LOG.isDebugEnabled()) {
+            if (response.getStatusCode() == HttpStatus.SC_OK) {
+                robotsTxt = parseRobotsTxt(doc.getInputStream(), trimmedURL,
+                        response.getUserAgent());
                 LOG.debug("Fetched and parsed robots.txt: {}", robotsURL);
+            } else {
+                LOG.info("No robots.txt found for {}. ({} - {})", robotsURL,
+                        response.getStatusCode(), response.getReasonPhrase());
+                robotsTxt = new RobotsTxt();
             }
         } catch (Exception e) {
             LOG.warn("Not able to obtain robots.txt at: {}", robotsURL, e);

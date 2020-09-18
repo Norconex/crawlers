@@ -48,9 +48,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
-import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
+import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchException;
@@ -311,12 +311,12 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    protected void crawlerStartup(CrawlerEvent event) {
+    protected void fetcherStartup(HttpCollector c) {
         LOG.info("Starting {} driver service...", browser);
         //System.setProperty("bmp.allowNativeDnsFallback", "true");
 
-        if (event != null) {
-            streamFactory = event.getSource().getStreamFactory();
+        if (c != null) {
+            streamFactory = c.getStreamFactory();
         } else {
             streamFactory = new CachedStreamFactory();
         }
@@ -403,7 +403,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    protected void crawlerShutdown(CrawlerEvent event) {
+    protected void fetcherShutdown(HttpCollector c) {
         LOG.info("Shutting down {} driver service...", browser);
 
         Sleeper.sleepSeconds(5);

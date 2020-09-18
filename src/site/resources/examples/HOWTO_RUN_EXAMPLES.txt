@@ -6,12 +6,12 @@ Windows:
 
 Minimal test:
 
-collector-http.bat -a start -c examples/minimum/minimum-config.xml
+collector-http.bat start -config=examples\minimum\minimum-config.xml
 
 
 Complex test:
 
-collector-http.bat -a start -c examples/complex/complex-config.xml
+collector-http.bat start -config=examples\complex\complex-config.xml
 
 
 Unix/Linux:
@@ -19,12 +19,12 @@ Unix/Linux:
 
 Minimal test:
 
-collector-http.sh -a start -c examples/minimum/minimum-config.xml
+collector-http.sh start -config=examples/minimum/minimum-config.xml
 
 
 Complex test:
 
-collector-http.sh -a start -c examples/complex/complex-config.xml
+collector-http.sh start -config=examples/complex/complex-config.xml
 
 
 -----------

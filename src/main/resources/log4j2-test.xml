@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<Configuration status="INFO" name="Norconex HTTP Collector">
+<Configuration status="WARN" name="Norconex HTTP Collector">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout>

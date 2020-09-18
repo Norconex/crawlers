@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2010-2017 Norconex Inc.
+   Copyright 2010-2020 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@
 <httpcollector id="Minimum Config HTTP Collector">
 
   <!-- Decide where to store generated files. -->
-  <progressDir>./examples-output/minimum/progress</progressDir>
-  <logsDir>./examples-output/minimum/logs</logsDir>
+  <workDir>./examples-output/complex</workDir>
 
   <crawlers>
     <crawler id="Norconex Minimum Test Page">
@@ -31,13 +30,10 @@
            Optionally limit crawling to same protocol/domain/port as 
            start URLs. -->
       <startURLs stayOnDomain="true" stayOnPort="true" stayOnProtocol="true">
-        <url>https://opensource.norconex.com/collectors/http/test/minimum.php</url>
+        <url>https://opensource.norconex.com/collectors/http/test/minimum</url>
       </startURLs>
 
       <!-- === Recommendations: ============================================ -->
-
-      <!-- Specify a crawler default directory where to generate files. -->
-      <workDir>./examples-output/minimum</workDir>
 
       <!-- Put a maximum depth to avoid infinite crawling (e.g. calendars). -->
       <maxDepth>0</maxDepth>
@@ -46,22 +42,24 @@
       <sitemapResolver ignore="true" />
 
       <!-- Be as nice as you can to sites you crawl. -->
-      <delay default="5000" />
+      <delay default="5 seconds" />
       
       <!-- Document importing -->
       <importer>
         <postParseHandlers>
           <!-- If your target repository does not support arbitrary fields,
                make sure you only keep the fields you need. -->
-          <handler class="com.norconex.importer.handler.tagger.impl.KeepOnlyTagger">
-            <fields>title,keywords,description,document.reference</fields>
+          <handler class="KeepOnlyTagger">
+            <fieldMatcher method="csv">title,keywords,description,document.reference</fieldMatcher>      
           </handler>
         </postParseHandlers>
       </importer> 
       
       <!-- Decide what to do with your files by specifying a Committer. -->
       <committers>
-        <committer class="com.norconex.committer.core3.fs.impl.XMLFileCommitter"/>
+        <committer class="XMLFileCommitter">
+          <indent>4</indent>
+        </committer>
       </committers>
 
     </crawler>

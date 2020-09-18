@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2010-2017 Norconex Inc.
+   Copyright 2010-2020 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,33 +17,21 @@
 -->
 <httpcollector id="Norconex Complex Collector">
 
-  #set($http = "com.norconex.collector.http")
-  #set($core = "com.norconex.collector.core")
-  #set($urlNormalizer   = "${http}.url.impl.GenericURLNormalizer")
-  #set($filterExtension = "${core}.filter.impl.ExtensionReferenceFilter")
-  #set($filterRegexRef  = "${core}.filter.impl.RegexReferenceFilter")
-
   <workDir>$workdir</workDir>
-
-  <!-- DEPRECATED:
-  <progressDir>${workdir}/progress</progressDir>
-  <logsDir>${workdir}/logs</logsDir>
-   -->  
 
   <crawlerDefaults>
 
-    <urlNormalizer class="$urlNormalizer" />
-    <numThreads>2</numThreads>
+    <urlNormalizer class="GenericURLNormalizer" />
+    <numThreads>1</numThreads>
     <maxDepth>0</maxDepth>
-    <workDir>$workdir</workDir>
     <orphansStrategy>DELETE</orphansStrategy>
     
     <!-- We know we don't want to crawl the entire site, so ignore sitemap. -->
     <sitemapResolver ignore="true" />
 
     <referenceFilters>
-      <filter class="$filterExtension" onMatch="exclude">jpg,gif,png,ico,css,js</filter>
-      <filter class="$filterRegexRef">https://opensource\.norconex\.com/collectors/http/test/.*</filter>
+      <filter class="ExtensionReferenceFilter" onMatch="exclude">jpg,gif,png,ico,css,js</filter>
+      <filter class="RegexReferenceFilter">https://opensource\.norconex\.com/collectors/http/test/.*</filter>
     </referenceFilters>
 
   </crawlerDefaults>
@@ -52,11 +40,11 @@
 
     <crawler id="Norconex Complex Test Page 1">
       <startURLs>
-        <url>https://opensource.norconex.com/collectors/http/test/complex1.php</url>
+        <url>https://opensource.norconex.com/collectors/http/test/complex1</url>
       </startURLs>
       #parse("shared/importer-config.xml")
       <committers>
-        <committer class="com.norconex.committer.core3.fs.impl.XMLFileCommitter">
+        <committer class="XMLFileCommitter">
          <fileNamePrefix>complex1_</fileNamePrefix>
         </committer>
       </committers>
@@ -64,11 +52,11 @@
 
     <crawler id="Norconex Complex Test Page 2">
       <startURLs>
-        <url>https://opensource.norconex.com/collectors/http/test/complex2.php</url>
+        <url>https://opensource.norconex.com/collectors/http/test/complex2</url>
       </startURLs>
       #parse("shared/importer-config.xml")
       <committers>
-        <committer class="com.norconex.committer.core3.fs.impl.XMLFileCommitter">
+        <committer class="XMLFileCommitter">
          <fileNamePrefix>complex2_</fileNamePrefix>
         </committer>
       </committers>

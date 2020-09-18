@@ -124,14 +124,14 @@ public class WebDriverHttpFetcherTest  {
         assumeDriverPresent(fetcher);
         try {
             // simulate crawler startup
-            fetcher.crawlerStartup(null);
+            fetcher.fetcherStartup(null);
             Doc doc = fetch(fetcher, "/");
             LOG.debug("'/' META: " + doc.getMetadata());
             Assertions.assertTrue(IOUtils.toString(
                     doc.getInputStream(), StandardCharsets.UTF_8).contains(
                             "JavaScript-rendered!"));
         } finally {
-            fetcher.crawlerShutdown(null);
+            fetcher.fetcherShutdown(null);
         }
     }
 
@@ -147,10 +147,10 @@ public class WebDriverHttpFetcherTest  {
         fetcher.setScreenshotHandler(h);
 
         try {
-            fetcher.crawlerStartup(null);
+            fetcher.fetcherStartup(null);
             fetch(fetcher, "/apple.html");
         } finally {
-            fetcher.crawlerShutdown(null);
+            fetcher.fetcherShutdown(null);
         }
     }
 
@@ -170,13 +170,13 @@ public class WebDriverHttpFetcherTest  {
 
         try {
             // simulate crawler startup
-            fetcher.crawlerStartup(null);
+            fetcher.fetcherStartup(null);
             Doc doc = fetch(fetcher, "/headers");
             LOG.debug("'/headers' META: " + doc.getMetadata());
             Assertions.assertEquals(
                     "test_value", doc.getMetadata().getString("TEST_KEY"));
         } finally {
-            fetcher.crawlerShutdown(null);
+            fetcher.fetcherShutdown(null);
         }
     }
 
@@ -188,7 +188,7 @@ public class WebDriverHttpFetcherTest  {
         fetcher.setPageScript(
                 "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
         try {
-            fetcher.crawlerStartup(null);
+            fetcher.fetcherStartup(null);
             Doc doc = fetch(fetcher, "/orange.html");
 
             String h1 = IOUtils.toString(doc.getInputStream(),
@@ -197,7 +197,7 @@ public class WebDriverHttpFetcherTest  {
             LOG.debug("New H1: " + h1);
             Assertions.assertEquals("Melon", h1);
         } finally {
-            fetcher.crawlerShutdown(null);
+            fetcher.fetcherShutdown(null);
         }
     }
 
@@ -206,14 +206,14 @@ public class WebDriverHttpFetcherTest  {
         assumeDriverPresent(fetcher);
 
         try {
-            fetcher.crawlerStartup(null);
+            fetcher.fetcherStartup(null);
             String userAgent = fetcher.getUserAgent();
             LOG.debug("User agent: {}", userAgent);
             Assertions.assertTrue(
                     StringUtils.isNotBlank(userAgent),
                     "Could not resolve user agent.");
         } finally {
-            fetcher.crawlerShutdown(null);
+            fetcher.fetcherShutdown(null);
         }
     }
 
