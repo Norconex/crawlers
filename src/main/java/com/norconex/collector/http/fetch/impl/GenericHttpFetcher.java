@@ -248,7 +248,7 @@ import com.norconex.importer.util.CharsetUtil;
  * }
  *
  * {@nx.xml.example
- * <fetcher class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">
+ * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
  *     <authCredentials>
  *         <username>joeUser</username>
  *         <password>joePasword</password>
@@ -862,6 +862,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 LOG.warn("SSL handshake exception for {}. Consider "
                         + "setting 'trustAllSSLCertificates' to true.",
                         method.getURI());
+                // check for null or use GET
             }
             throw e;
         }
