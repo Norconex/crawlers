@@ -97,7 +97,7 @@ public abstract class AbstractHttpFetcher implements
     /**
      * Invoked when a crawler is either started or resumed.
      * Default implementation does nothing.
-     * @param event crawler event
+     * @param c collector
      */
 	protected void fetcherStartup(HttpCollector c) {
         //NOOP
@@ -105,27 +105,9 @@ public abstract class AbstractHttpFetcher implements
     /**
      * Invoked when a crawler is either finished or stopped.
      * Default implementation does nothing.
-     * @param event crawler event
+     * @param c collector
      */
 	protected void fetcherShutdown(HttpCollector c) {
-        //NOOP
-    }
-
-
-    /**
-     * Invoked when a crawler is either started or resumed.
-     * Default implementation does nothing.
-     * @param event crawler event
-     */
-	protected void crawlerStartup() {
-        //NOOP
-    }
-    /**
-     * Invoked when a crawler is either finished or stopped.
-     * Default implementation does nothing.
-     * @param event crawler event
-     */
-	protected void crawlerShutdown() {
         //NOOP
     }
 
