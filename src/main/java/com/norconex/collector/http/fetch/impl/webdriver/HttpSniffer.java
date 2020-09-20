@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.fetch.impl;
+package com.norconex.collector.http.fetch.impl.webdriver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,10 +53,10 @@ import net.lightbody.bmp.util.HttpMessageInfo;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class WebDriverHttpSniffer {
+public class HttpSniffer {
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            WebDriverHttpSniffer.class);
+            HttpSniffer.class);
 
     private final ThreadLocal<FilterAndSource> tlocal = new ThreadLocal<>();
     private BrowserMobProxyServer mobProxy;
@@ -95,11 +95,11 @@ public class WebDriverHttpSniffer {
         start(options, null);
     }
     public void start(
-            MutableCapabilities options, WebDriverHttpSnifferConfig config) {
+            MutableCapabilities options, HttpSnifferConfig config) {
         Objects.requireNonNull("'options' must not be null");
 
-        WebDriverHttpSnifferConfig cfg = Optional.ofNullable(
-                config).orElseGet(WebDriverHttpSnifferConfig::new);
+        HttpSnifferConfig cfg = Optional.ofNullable(
+                config).orElseGet(HttpSnifferConfig::new);
 
         mobProxy = new BrowserMobProxyServer();
         mobProxy.setTrustAllServers(true);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<Configuration status="WARN" name="Norconex HTTP Collector">
+<Configuration status="INFO" name="Norconex HTTP Collector">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout>
@@ -29,13 +29,13 @@
     <Logger name="com.norconex.commons.lang" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.jef" level="INFO" additivity="false">
+    <Logger name="com.norconex.jef" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.apache" level="INFO" additivity="false">
+    <Logger name="org.apache" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.eclipse.jetty" level="INFO" additivity="false">
+    <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
 
@@ -102,6 +102,12 @@
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="CrawlerEvent.CRAWLER_RUN_END" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_RUN_THREAD_END" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="CrawlerEvent.CRAWLER_STOP_BEGIN" level="INFO" additivity="false">

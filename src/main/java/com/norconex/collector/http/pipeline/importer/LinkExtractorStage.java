@@ -41,7 +41,7 @@ import com.norconex.importer.parser.ParseState;
 
 /**
  * Extract URLs before sending to importer (because the importer may
- * strip some "valid" urls in producing content-centric material).
+ * strip some "valid" urls in producing normalized content).
  * Plus, any additional urls could be added to Metadata and they will
  * be considered.
  */

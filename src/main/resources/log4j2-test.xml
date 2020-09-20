@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<Configuration status="WARN" name="Norconex HTTP Collector">
+<Configuration status="INFO" name="Norconex HTTP Collector">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout>
@@ -104,6 +104,12 @@
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="CrawlerEvent.CRAWLER_RUN_END" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_RUN_THREAD_END" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="CrawlerEvent.CRAWLER_STOP_BEGIN" level="INFO" additivity="false">

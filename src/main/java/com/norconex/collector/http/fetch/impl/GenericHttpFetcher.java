@@ -249,6 +249,7 @@ import com.norconex.importer.util.CharsetUtil;
  *
  * {@nx.xml.example
  * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
+ *     <authMethod>form</authMethod>
  *     <authCredentials>
  *         <username>joeUser</username>
  *         <password>joePasword</password>
@@ -336,6 +337,10 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                     + "(https://en.wikipedia.org/wiki/User_agent)");
         } else {
             LOG.info("User-Agent: {}", userAgent);
+        }
+
+        if (AUTH_METHOD_FORM.equalsIgnoreCase(cfg.getAuthMethod())) {
+            authenticateUsingForm(this.httpClient);
         }
     }
     @Override
@@ -522,9 +527,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         buildCustomHttpClient(builder);
 
         HttpClient client = builder.build();
-        if (AUTH_METHOD_FORM.equalsIgnoreCase(cfg.getAuthMethod())) {
-            authenticateUsingForm(client);
-        }
         hackValidateAfterInactivity(client);
         return client;
     }
@@ -598,6 +600,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                         StandardCharsets.UTF_8));
             }
         } catch (Exception e) {
+            LOG.error("Coult not perform FORM-based authentication.", e);
             throw new CollectorException(e);
         }
         post.releaseConnection();

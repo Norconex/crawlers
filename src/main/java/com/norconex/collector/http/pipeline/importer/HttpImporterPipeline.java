@@ -114,10 +114,9 @@ public class HttpImporterPipeline
                                 ctx.getMetadata()));
                 reader.close();
 
-                ctx.fireCrawlerEvent(
-                        HttpCrawlerEvent.CREATED_ROBOTS_META,
-                        ctx.getDocInfo(),
-                        ctx.getRobotsMeta());
+                ctx.fire(HttpCrawlerEvent.CREATED_ROBOTS_META, b -> b
+                        .crawlDocInfo(ctx.getDocInfo())
+                        .subject(ctx.getRobotsMeta()));
             } catch (IOException e) {
                 throw new CollectorException("Cannot create RobotsMeta for : "
                                 + ctx.getDocInfo().getReference(), e);
@@ -134,11 +133,9 @@ public class HttpImporterPipeline
                     || ctx.getRobotsMeta() == null
                     || !ctx.getRobotsMeta().isNoindex();
             if (!canIndex) {
-
-                ctx.fireCrawlerEvent(
-                        HttpCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX,
-                        ctx.getDocInfo(),
-                        ctx.getRobotsMeta());
+                ctx.fire(HttpCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX, b -> b
+                        .crawlDocInfo(ctx.getDocInfo())
+                        .subject(ctx.getRobotsMeta()));
                 ctx.getDocInfo().setState(CrawlState.REJECTED);
                 return false;
             }
@@ -156,9 +153,9 @@ public class HttpImporterPipeline
                         ctx.getConfig().getPreImportProcessors()) {
                     preProc.processDocument(
                             ctx.getHttpFetchClient(), ctx.getDocument());
-                    ctx.fireCrawlerEvent(
-                            CrawlerEvent.DOCUMENT_PREIMPORTED,
-                            ctx.getDocInfo(), preProc);
+                    ctx.fire(CrawlerEvent.DOCUMENT_PREIMPORTED, b -> b
+                            .crawlDocInfo(ctx.getDocInfo())
+                            .subject(preProc));
                 }
             }
             return true;

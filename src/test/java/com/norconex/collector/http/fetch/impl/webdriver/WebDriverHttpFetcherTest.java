@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.fetch.impl;
+package com.norconex.collector.http.fetch.impl.webdriver;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;
@@ -103,9 +103,9 @@ public class WebDriverHttpFetcherTest  {
 
     static Stream<WebDriverHttpFetcher> browsersProvider() {
         return Stream.of(
-                createFetcher(WebDriverBrowser.FIREFOX, firefoxDriverPath),
-                createFetcher(WebDriverBrowser.CHROME, chromeDriverPath)
-//              {WebDriverBrowser.EDGE, edgeDriverPath},
+                createFetcher(Browser.FIREFOX, firefoxDriverPath),
+                createFetcher(Browser.CHROME, chromeDriverPath)
+//              {Browser.EDGE, edgeDriverPath},
         );
     }
 
@@ -141,7 +141,7 @@ public class WebDriverHttpFetcherTest  {
     public void testTakeScreenshots(
             WebDriverHttpFetcher fetcher) throws IOException {
         assumeDriverPresent(fetcher);
-        WebDriverScreenshotHandler h = new WebDriverScreenshotHandler();
+        ScreenshotHandler h = new ScreenshotHandler();
         h.setTargetDir(Paths.get("./target/screenshots"));
         h.setCssSelector("#applePicture");
         fetcher.setScreenshotHandler(h);
@@ -161,12 +161,12 @@ public class WebDriverHttpFetcherTest  {
 
         // Test picking up headers
         Assumptions.assumeTrue(
-                isProxySupported(fetcher.getBrowser()),
-                "SKIPPING: " + fetcher.getBrowser().name()
+                isProxySupported(fetcher.getConfig().getBrowser()),
+                "SKIPPING: " + fetcher.getConfig().getBrowser().name()
                 + " does not support setting proxy to obtain headers.");
 
-        WebDriverHttpSnifferConfig cfg = new WebDriverHttpSnifferConfig();
-        fetcher.setHttpSnifferConfig(cfg);
+        HttpSnifferConfig cfg = new HttpSnifferConfig();
+        fetcher.getConfig().setHttpSnifferConfig(cfg);
 
         try {
             // simulate crawler startup
@@ -185,7 +185,7 @@ public class WebDriverHttpFetcherTest  {
             WebDriverHttpFetcher fetcher) throws IOException {
         assumeDriverPresent(fetcher);
 
-        fetcher.setPageScript(
+        fetcher.getConfig().setPageScript(
                 "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
         try {
             fetcher.fetcherStartup(null);
@@ -218,10 +218,10 @@ public class WebDriverHttpFetcherTest  {
     }
 
     private static WebDriverHttpFetcher createFetcher(
-            WebDriverBrowser browser, Path driverPath) {
+            Browser browser, Path driverPath) {
         WebDriverHttpFetcher fetcher = new WebDriverHttpFetcher();
-        fetcher.setBrowser(browser);
-        fetcher.setDriverPath(driverPath);
+        fetcher.getConfig().setBrowser(browser);
+        fetcher.getConfig().setDriverPath(driverPath);
         return fetcher;
     }
     private static boolean isDriverPresent(Path driverPath) {
@@ -246,17 +246,18 @@ public class WebDriverHttpFetcherTest  {
 
     // Returns false for browsers not supporting setting proxies, which
     // is required to capture headers.
-    private boolean isProxySupported(WebDriverBrowser browser) {
+    private boolean isProxySupported(Browser browser) {
         return true;
-//        return /*browser != WebDriverBrowser.EDGE
-//                && */ browser != WebDriverBrowser.CHROME;
+//        return /*browser != Browser.EDGE
+//                && */ browser != Browser.CHROME;
     }
 
     private void assumeDriverPresent(WebDriverHttpFetcher fetcher) {
         Assumptions.assumeTrue(fetcher != null);
         Assumptions.assumeTrue(
-                isDriverPresent(fetcher.getDriverPath()),
-                "SKIPPING: No driver found for " + fetcher.getBrowser().name());
+                isDriverPresent(fetcher.getConfig().getDriverPath()),
+                "SKIPPING: No driver found for "
+                        + fetcher.getConfig().getBrowser().name());
     }
 
     @Target(ElementType.METHOD)

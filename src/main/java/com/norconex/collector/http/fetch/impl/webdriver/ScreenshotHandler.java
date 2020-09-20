@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.fetch.impl;
+package com.norconex.collector.http.fetch.impl.webdriver;
 
 import java.awt.Rectangle;
 import java.io.ByteArrayInputStream;
@@ -46,7 +46,7 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class WebDriverScreenshotHandler extends DocImageHandler {
+public class ScreenshotHandler extends DocImageHandler {
 
     public static final Path DEFAULT_SCREENSHOT_DIR =
             Paths.get("./screenshots");
@@ -56,15 +56,15 @@ public class WebDriverScreenshotHandler extends DocImageHandler {
             CrawlDocMetadata.PREFIX + "screenshot";
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            WebDriverScreenshotHandler.class);
+            ScreenshotHandler.class);
 
     private String cssSelector;
     private final CachedStreamFactory streamFactory;
 
-    public WebDriverScreenshotHandler() {
+    public ScreenshotHandler() {
         this(null);
     }
-    public WebDriverScreenshotHandler(CachedStreamFactory streamFactory) {
+    public ScreenshotHandler(CachedStreamFactory streamFactory) {
         super(DEFAULT_SCREENSHOT_DIR,
              DEFAULT_SCREENSHOT_DIR_FIELD,
              DEFAULT_SCREENSHOT_META_FIELD);

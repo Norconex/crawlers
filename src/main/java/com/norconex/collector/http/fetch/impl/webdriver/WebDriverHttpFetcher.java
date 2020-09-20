@@ -12,19 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.fetch.impl;
+package com.norconex.collector.http.fetch.impl.webdriver;
 
 import static com.norconex.collector.http.fetch.HttpMethod.GET;
 import static com.norconex.collector.http.fetch.HttpMethod.HEAD;
 import static java.util.Optional.ofNullable;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import java.awt.Dimension;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 import java.util.logging.Level;
 
 import org.apache.commons.io.IOUtils;
@@ -41,26 +39,26 @@ import org.openqa.selenium.WebDriver.Timeouts;
 import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.remote.service.DriverService;
-import org.openqa.selenium.remote.service.DriverService.Builder;
+import org.openqa.selenium.support.ThreadGuard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.HttpCollector;
+import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
-import com.norconex.collector.http.fetch.impl.WebDriverHttpSniffer.DriverResponseFilter;
+import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
+import com.norconex.collector.http.fetch.impl.webdriver.HttpSniffer.DriverResponseFilter;
 import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.xml.XML;
 
@@ -92,12 +90,11 @@ import com.norconex.commons.lang.xml.XML;
  * </p>
  *
  * {@nx.xml.usage
- * <fetcher class="com.norconex.collector.http.fetch.impl.WebDriverHttpFetcher">
+ * <fetcher class="com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcher">
  *
  *   <browser>[chrome|edge|firefox|opera|safari]</browser>
  *   <browserPath>(browser executable or blank to detect)</browserPath>
  *   <driverPath>(driver executable or blank to detect)</driverPath>
- *   <servicePort>(default is 0 = random free port)</servicePort>
  *
  *   <!-- Optional browser capabilities supported by the web driver. -->
  *   <capabilities>
@@ -107,8 +104,16 @@ import com.norconex.commons.lang.xml.XML;
  *
  *   <!-- Optionally take screenshots of each web pages. -->
  *   <screenshot>
- *     <capability name="(capability name)">(capability value)</capability>
- *     <!-- multiple "capability" tags allowed -->
+ *
+ *
+ *
+ *
+ *
+ *
+ *                    TODO DOCUMENT PROPERLY
+ *
+ *
+ *
  *   </screenshot>
  *
  *   <initScript>
@@ -157,7 +162,7 @@ import com.norconex.commons.lang.xml.XML;
  * }
  *
  * {@nx.xml.usage
- * <fetcher class="com.norconex.collector.http.fetch.impl.WebDriverHttpFetcher">
+ * <fetcher class="com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcher">
  *   <browser>firefox</browser>
  *   <driverPath>/drivers/geckodriver.exe</driverPath>
  *   <restrictions>
@@ -173,73 +178,33 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-//TODO implement CollectorLifeCycleListener instead? to ensure one per coll.?
 public class WebDriverHttpFetcher extends AbstractHttpFetcher {
+
+  //TODO download files?
+  //https://www.toolsqa.com/selenium-webdriver/how-to-download-files-using-selenium/
 
     private static final Logger LOG = LoggerFactory.getLogger(
             WebDriverHttpFetcher.class);
 
-
-
+    private final WebDriverHttpFetcherConfig cfg;
     private CachedStreamFactory streamFactory;
-
-    private WebDriverBrowser browser = WebDriverBrowser.FIREFOX;
-    private Path driverPath;
-    private Path browserPath;
     private String userAgent;
-    private int servicePort;   // default is 0 = any free port
-
-    private WebDriverHttpSniffer httpSniffer;
-    private WebDriverHttpSnifferConfig httpSnifferConfig;
-    private WebDriverScreenshotHandler screenshotHandler;
-
-    private final MutableCapabilities capabilities = new MutableCapabilities();
-
-    private Dimension windowSize;
-
-    private String initScript;
-    private String pageScript;
-
-    private long pageLoadTimeout;
-    private long implicitlyWait;
-    private long scriptTimeout;
-
-    private DriverService service;
+    private HttpSniffer httpSniffer;
+    private ScreenshotHandler screenshotHandler;
+    private MutableCapabilities options;
     private final ThreadLocal<WebDriver> driverTL = new ThreadLocal<>();
 
     public WebDriverHttpFetcher() {
+        this(new WebDriverHttpFetcherConfig());
+    }
+    public WebDriverHttpFetcher(WebDriverHttpFetcherConfig config) {
         super();
+        Objects.requireNonNull(config, "'config' must not be null.");
+        this.cfg = config;
     }
 
-    public WebDriverBrowser getBrowser() {
-        return browser;
-    }
-    public void setBrowser(WebDriverBrowser driverName) {
-        this.browser = driverName;
-    }
-
-    // Default will try to detect driver installation on OS
-    public Path getDriverPath() {
-        return driverPath;
-    }
-    public void setDriverPath(Path driverPath) {
-        this.driverPath = driverPath;
-    }
-
-    // Default will try to detect browser installation on OS
-    public Path getBrowserPath() {
-        return browserPath;
-    }
-    public void setBrowserPath(Path binaryPath) {
-        this.browserPath = binaryPath;
-    }
-
-    public int getServicePort() {
-        return servicePort;
-    }
-
-    public void setServicePort(int servicePort) {
-        this.servicePort = servicePort;
+    public WebDriverHttpFetcherConfig getConfig() {
+        return cfg;
     }
 
     @Override
@@ -247,73 +212,17 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         return userAgent;
     }
 
-    public WebDriverHttpSnifferConfig getHttpSnifferConfig() {
-        return httpSnifferConfig;
-    }
-
-    public void setHttpSnifferConfig(
-            WebDriverHttpSnifferConfig httpSnifferConfig) {
-        this.httpSnifferConfig = httpSnifferConfig;
-    }
-
-    public MutableCapabilities getCapabilities() {
-        return capabilities;
-    }
-
-    public WebDriverScreenshotHandler getScreenshotHandler() {
+    public ScreenshotHandler getScreenshotHandler() {
         return screenshotHandler;
     }
     public void setScreenshotHandler(
-            WebDriverScreenshotHandler screenshotHandler) {
+            ScreenshotHandler screenshotHandler) {
         this.screenshotHandler = screenshotHandler;
-    }
-
-    public Dimension getWindowSize() {
-        return windowSize;
-    }
-    public void setWindowSize(Dimension windowSize) {
-        this.windowSize = windowSize;
-    }
-
-    public String getInitScript() {
-        return initScript;
-    }
-    public void setInitScript(String initScript) {
-        this.initScript = initScript;
-    }
-
-    public String getPageScript() {
-        return pageScript;
-    }
-    public void setPageScript(String pageScript) {
-        this.pageScript = pageScript;
-    }
-
-    public long getPageLoadTimeout() {
-        return pageLoadTimeout;
-    }
-    public void setPageLoadTimeout(long pageLoadTimeout) {
-        this.pageLoadTimeout = pageLoadTimeout;
-    }
-
-    public long getImplicitlyWait() {
-        return implicitlyWait;
-    }
-    public void setImplicitlyWait(long implicitlyWait) {
-        this.implicitlyWait = implicitlyWait;
-    }
-
-    public long getScriptTimeout() {
-        return scriptTimeout;
-    }
-    public void setScriptTimeout(long scriptTimeout) {
-        this.scriptTimeout = scriptTimeout;
     }
 
     @Override
     protected void fetcherStartup(HttpCollector c) {
-        LOG.info("Starting {} driver service...", browser);
-        //System.setProperty("bmp.allowNativeDnsFallback", "true");
+        LOG.info("Starting {} driver service...", cfg.getBrowser());
 
         if (c != null) {
             streamFactory = c.getStreamFactory();
@@ -321,76 +230,77 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             streamFactory = new CachedStreamFactory();
         }
 
-        //TODO remove support for EDGE since it is so limited???
-//        if (browser == WebDriverBrowser.EDGE) {
-//            LOG.warn("Using Microsoft Edge is not recommended if you want "
-//                   + "to capture HTTP headers, use multiple threads, be "
-//                   + "fully headless, or change its 'User-Agent'.");
-//        }
+        options = cfg.getBrowser().capabilities(cfg.getBrowserPath());
+        configureWebDriverLogging(options);
 
-        try {
-            MutableCapabilities options =
-                    browser.createCapabilities(browserPath);
+        options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
+        options.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
 
-            initWebDriverLogging(options);
+        options.merge(cfg.getCapabilities());
 
-            options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
-            options.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
-
-            options.merge(capabilities);
-
-            if (httpSnifferConfig != null) {
-                httpSniffer = new WebDriverHttpSniffer();
-                httpSniffer.start(options, httpSnifferConfig);
-                userAgent = httpSnifferConfig.getUserAgent();
-            }
-
-            Builder<?,?> serviceBuilder = browser.createServiceBuilder();
-            if (driverPath != null) {
-                serviceBuilder.usingDriverExecutable(driverPath.toFile());
-            }
-            service = serviceBuilder.usingPort(servicePort).build();
-            service.start();
-
-            WebDriver driver = new RemoteWebDriver(service.getUrl(), options);
-            driverTL.set(driver);
-
-            if (windowSize != null) {
-                driver.manage().window().setSize(
-                        new org.openqa.selenium.Dimension(
-                                windowSize.width, windowSize.height));
-            }
-
-            Timeouts timeouts = driver.manage().timeouts();
-            if (pageLoadTimeout != 0) {
-                timeouts.pageLoadTimeout(
-                        pageLoadTimeout, TimeUnit.MILLISECONDS);
-            }
-            if (implicitlyWait != 0) {
-                timeouts.implicitlyWait(implicitlyWait, TimeUnit.MILLISECONDS);
-            }
-            if (scriptTimeout != 0) {
-                timeouts.setScriptTimeout(scriptTimeout, TimeUnit.MILLISECONDS);
-            }
-
-            if (StringUtils.isBlank(userAgent)) {
-                userAgent = (String) ((JavascriptExecutor) driver).executeScript(
-                        "return navigator.userAgent;");
-            }
-
-            if (StringUtils.isNotBlank(initScript)) {
-                ((JavascriptExecutor) driver).executeScript(initScript);
-            }
-
-        } catch (IOException e) {
-            //TODO if exception, check if driver and browser were specified
-            // either explicitly, as system property, or in PATH?
-            throw new CollectorException(
-                    "Could not start " + browser + " driver service.", e);
+        if (cfg.getHttpSnifferConfig() != null) {
+            httpSniffer = new HttpSniffer();
+            httpSniffer.start(options, cfg.getHttpSnifferConfig());
+            userAgent = cfg.getHttpSnifferConfig().getUserAgent();
         }
     }
 
-    private void initWebDriverLogging(MutableCapabilities capabilities) {
+    @Override
+    protected void fetcherThreadBegin(HttpCrawler crawler) {
+        LOG.info("Creating {} remote driver.", cfg.getBrowser());
+        driverTL.set(createWebDriver());
+    }
+    @Override
+    protected void fetcherThreadEnd(HttpCrawler crawler) {
+        LOG.info("Shutting down {} remote driver.", cfg.getBrowser());
+        if (driverTL.get() != null) {
+            driverTL.get().quit();
+            driverTL.remove();
+        }
+    }
+
+    @Override
+    protected void fetcherShutdown(HttpCollector c) {
+        if (httpSniffer != null) {
+            LOG.info("Shutting down {} HTTP sniffer...", cfg.getBrowser());
+            Sleeper.sleepSeconds(5);
+            httpSniffer.stop();
+        }
+    }
+
+    private WebDriver createWebDriver() {
+        WebDriver driver =
+                cfg.getBrowser().driver(cfg.getDriverPath(), options);
+        driverTL.set(driver);
+
+        if (cfg.getWindowSize() != null) {
+            driver.manage().window().setSize(
+                    new org.openqa.selenium.Dimension(
+                            cfg.getWindowSize().width,
+                            cfg.getWindowSize().height));
+        }
+
+        Timeouts timeouts = driver.manage().timeouts();
+        if (cfg.getPageLoadTimeout() != 0) {
+            timeouts.pageLoadTimeout(cfg.getPageLoadTimeout(), MILLISECONDS);
+        }
+        if (cfg.getImplicitlyWait() != 0) {
+            timeouts.implicitlyWait(cfg.getImplicitlyWait(), MILLISECONDS);
+        }
+        if (cfg.getScriptTimeout() != 0) {
+            timeouts.setScriptTimeout(cfg.getScriptTimeout(), MILLISECONDS);
+        }
+        if (StringUtils.isBlank(userAgent)) {
+            userAgent = (String) ((JavascriptExecutor) driver).executeScript(
+                    "return navigator.userAgent;");
+        }
+        if (StringUtils.isNotBlank(cfg.getInitScript())) {
+            ((JavascriptExecutor) driver).executeScript(cfg.getInitScript());
+        }
+        return ThreadGuard.protect(driver);
+    }
+
+    private void configureWebDriverLogging(MutableCapabilities capabilities) {
         LoggingPreferences logPrefs = new LoggingPreferences();
         Level level = SLF4JUtil.toJavaLevel(SLF4JUtil.getLevel(LOG));
         logPrefs.enable(LogType.PERFORMANCE, level);
@@ -401,26 +311,6 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         logPrefs.enable(LogType.SERVER, level);
         capabilities.setCapability(CapabilityType.LOGGING_PREFS, logPrefs);
     }
-
-    @Override
-    protected void fetcherShutdown(HttpCollector c) {
-        LOG.info("Shutting down {} driver service...", browser);
-
-        Sleeper.sleepSeconds(5);
-
-        if (driverTL.get() != null) {
-            driverTL.get().quit();
-            driverTL.remove();
-        }
-
-        if (service != null && service.isRunning()) {
-            service.stop();
-        }
-        if (httpSniffer != null) {
-            httpSniffer.stop();
-        }
-    }
-
 
     @Override
     public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
@@ -436,24 +326,6 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             return HttpFetchResponseBuilder.unsupported().setReasonPhrase(
                   reason).create();
         }
-
-//
-//
-//    }
-//
-//    @Override
-//    public IHttpFetchResponse head(
-//            String url, Properties httpHeaders) {
-//        //TODO rely on proxy request filter to transform to a HEAD request?
-//
-//        return HttpFetchResponseBuilder.unsupported()
-//                .setReasonPhrase("Headers can only be retrived with "
-//                        + "#fetchDocument instead, when driverProxyEnabled "
-//                        + "is true.").build();
-//    }
-//
-//    @Override
-//    public IHttpFetchResponse get(Doc doc) {
 
 	    LOG.debug("Fetching document: {}", doc.getReference());
 
@@ -486,32 +358,41 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     // thread-safe
     protected InputStream fetchDocumentContent(WebDriver driver, String url) {
         driver.get(url);
-        if (StringUtils.isNotBlank(pageScript)) {
-            ((JavascriptExecutor) driver).executeScript(pageScript);
+
+        if (StringUtils.isNotBlank(cfg.getPageScript())) {
+            ((JavascriptExecutor) driver).executeScript(cfg.getPageScript());
         }
         String pageSource = driver.getPageSource();
+        LOG.debug("Fetched page source length: {}", pageSource.length());
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
 
     private IHttpFetchResponse resolveDriverResponse(CrawlDoc doc) {
-        if (httpSniffer == null) {
-            return null;
-        }
         IHttpFetchResponse response = null;
-        DriverResponseFilter driverResponseFilter = httpSniffer.unbind();
-        if (driverResponseFilter != null) {
-            for (Entry<String, String> en : driverResponseFilter.getHeaders()) {
-                String name = en.getKey();
-                String value = en.getValue();
-                // Content-Type + Content Encoding (Charset)
-                if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
-                    ApacheHttpUtil.applyContentTypeAndCharset(
-                            value, doc.getDocInfo());
+        if (httpSniffer != null) {
+            DriverResponseFilter driverResponseFilter = httpSniffer.unbind();
+            if (driverResponseFilter != null) {
+                for (Entry<String, String> en
+                        : driverResponseFilter.getHeaders()) {
+                    String name = en.getKey();
+                    String value = en.getValue();
+                    // Content-Type + Content Encoding (Charset)
+                    if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
+                        ApacheHttpUtil.applyContentTypeAndCharset(
+                                value, doc.getDocInfo());
+                    }
+                    doc.getMetadata().add(name, value);
                 }
-                doc.getMetadata().add(name, value);
+                response = toFetchResponse(driverResponseFilter);
             }
-            response = toFetchResponse(driverResponseFilter);
         }
+
+        //TODO we assume text/html as default until WebDriver expands its API
+        // to obtain it.
+        if (doc.getDocInfo().getContentType() == null) {
+            doc.getDocInfo().setContentType(ContentType.HTML);
+        }
+
         return response;
     }
 
@@ -538,65 +419,20 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
     @Override
     public void loadHttpFetcherFromXML(XML xml) {
-        setBrowser(xml.getEnum("browser", WebDriverBrowser.class, browser));
-        setDriverPath(xml.getPath("driverPath", driverPath));
-        setBrowserPath(xml.getPath("browserPath", browserPath));
-        setServicePort(xml.getInteger("servicePort", servicePort));
-
-        xml.ifXML("httpSniffer", x -> {
-            WebDriverHttpSnifferConfig cfg = new WebDriverHttpSnifferConfig();
-            cfg.loadFromXML(x);
-            setHttpSnifferConfig(cfg);
-        });
-
+        cfg.loadFromXML(xml);
         xml.ifXML("screenshot", x -> {
-            WebDriverScreenshotHandler h =
-                    new WebDriverScreenshotHandler(streamFactory);
+            ScreenshotHandler h =
+                    new ScreenshotHandler(streamFactory);
             h.loadFromXML(x);
             setScreenshotHandler(h);
         });
-
-        for (Entry<String, String> en : xml.getStringMap(
-                "capabilities/capability", "@name", ".").entrySet()) {
-            getCapabilities().setCapability(en.getKey(), en.getValue());
-        }
-
-        setWindowSize(xml.getDimension("windowSize", windowSize));
-        setInitScript(xml.getString("initScript", initScript));
-        setPageScript(xml.getString("pageScript", pageScript));
-        setPageLoadTimeout(
-                xml.getDurationMillis("pageLoadTimeout", pageLoadTimeout));
-        setImplicitlyWait(
-                xml.getDurationMillis("implicitlyWait", implicitlyWait));
-        setScriptTimeout(xml.getDurationMillis("scriptTimeout", scriptTimeout));
     }
     @Override
     public void saveHttpFetcherToXML(XML xml) {
-        xml.addElement("browser", browser);
-        xml.addElement("driverPath", driverPath);
-        xml.addElement("browserPath", browserPath);
-        xml.addElement("servicePort", servicePort);
-
-        if (httpSnifferConfig != null) {
-            httpSnifferConfig.saveToXML(xml.addElement("httpSniffer"));
-        }
-
+        cfg.saveToXML(xml);
         if (screenshotHandler != null) {
             screenshotHandler.saveToXML(xml.addElement("screenshot"));
         }
-
-        XML capabXml = xml.addElement("capabilities");
-        for (Entry<String, Object> en : capabilities.asMap().entrySet()) {
-            capabXml.addElement("capability",
-                    en.getValue()).setAttribute("name", en.getKey());
-        }
-
-        xml.addElement("windowSize", windowSize);
-        xml.addElement("initScript", initScript);
-        xml.addElement("pageScript", pageScript);
-        xml.addElement("pageLoadTimeout", pageLoadTimeout);
-        xml.addElement("implicitlyWait", implicitlyWait);
-        xml.addElement("scriptTimeout", scriptTimeout);
     }
 
     @Override

@@ -22,7 +22,10 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.collector.core.CollectorEvent;
+import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.http.HttpCollector;
+import com.norconex.collector.http.crawler.HttpCrawler;
+import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.IEventListener;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.map.PropertyMatchers;
@@ -65,7 +68,7 @@ import com.norconex.importer.doc.Doc;
  * @since 3.0.0
  */
 public abstract class AbstractHttpFetcher implements
-        IHttpFetcher, IXMLConfigurable, IEventListener<CollectorEvent> {
+        IHttpFetcher, IXMLConfigurable, IEventListener<Event> {
 
     private final PropertyMatchers restrictions = new PropertyMatchers();
 
@@ -83,7 +86,7 @@ public abstract class AbstractHttpFetcher implements
     }
 
     @Override
-    public final void accept(CollectorEvent event) {
+    public final void accept(Event event) {
     	// Here we rely on collector startup instead of
     	// crawler startup to avoid being invoked multiple
     	// times (once for each crawler)
@@ -91,23 +94,51 @@ public abstract class AbstractHttpFetcher implements
     		fetcherStartup((HttpCollector) event.getSource());
     	} else if (event.is(CollectorEvent.COLLECTOR_RUN_END)) {
     		fetcherShutdown((HttpCollector) event.getSource());
+        } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
+                && Thread.currentThread().equals(
+                        ((CrawlerEvent) event).getSubject())) {
+            fetcherThreadBegin((HttpCrawler) event.getSource());
+        } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)
+                && Thread.currentThread().equals(
+                        ((CrawlerEvent) event).getSubject())) {
+            fetcherThreadEnd((HttpCrawler) event.getSource());
     	}
     }
 
+
     /**
-     * Invoked when a crawler is either started or resumed.
+     * Invoked once per fetcher instance, when the collector starts.
      * Default implementation does nothing.
-     * @param c collector
+     * @param collector collector
      */
-	protected void fetcherStartup(HttpCollector c) {
+	protected void fetcherStartup(HttpCollector collector) {
         //NOOP
     }
     /**
-     * Invoked when a crawler is either finished or stopped.
+     * Invoked once per fetcher when the collector ends.
      * Default implementation does nothing.
-     * @param c collector
+     * @param collector collector
      */
-	protected void fetcherShutdown(HttpCollector c) {
+	protected void fetcherShutdown(HttpCollector collector) {
+        //NOOP
+    }
+
+    /**
+     * Invoked each time a crawler begins a new crawler thread if that thread
+     * is the current thread.
+     * Default implementation does nothing.
+     * @param crawler crawler
+     */
+    protected void fetcherThreadBegin(HttpCrawler crawler) {
+        //NOOP
+    }
+    /**
+     * Invoked each time a crawler ends an existing crawler thread if that
+     * thread is the current thread.
+     * Default implementation does nothing.
+     * @param crawler crawler
+     */
+    protected void fetcherThreadEnd(HttpCrawler crawler) {
         //NOOP
     }
 

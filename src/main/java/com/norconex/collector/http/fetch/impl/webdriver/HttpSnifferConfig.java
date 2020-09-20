@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.collector.http.fetch.impl;
+package com.norconex.collector.http.fetch.impl.webdriver;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,14 +27,14 @@ import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
-//TODO merge with WebDriverHttpSniffer given usage should be rare.
+//TODO merge with HttpSniffer given usage should be rare.
 
 /**
- * Configuration for {@link WebDriverHttpSniffer}.
+ * Configuration for {@link HttpSniffer}.
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class WebDriverHttpSnifferConfig implements IXMLConfigurable {
+public class HttpSnifferConfig implements IXMLConfigurable {
 
     private int port;
     private String userAgent;
@@ -80,10 +80,10 @@ public class WebDriverHttpSnifferConfig implements IXMLConfigurable {
 
     @Override
     public boolean equals(final Object obj) {
-        if (!(obj instanceof WebDriverHttpSnifferConfig)) {
+        if (!(obj instanceof HttpSnifferConfig)) {
             return false;
         }
-        WebDriverHttpSnifferConfig other = (WebDriverHttpSnifferConfig) obj;
+        HttpSnifferConfig other = (HttpSnifferConfig) obj;
         return EqualsBuilder.reflectionEquals(
                 this, other, "requestHeaders")
                 && EqualsUtil.equalsMap(requestHeaders, other.requestHeaders);

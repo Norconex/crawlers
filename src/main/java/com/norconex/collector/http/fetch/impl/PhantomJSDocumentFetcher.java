@@ -89,7 +89,7 @@ import com.norconex.importer.util.CharsetUtil;
  * strongly discouraged and HttpClientProxy support for it has been dropped.
  * With more popular browsers (e.g. Chrome) now supporting operating
  * in headless mode, we now have more stable options.  Please consider
- * using {@link WebDriverHttpFetcher} instead when attempting to crawl
+ * using {@link WebDriverHttpFetcher_HEAD} instead when attempting to crawl
  * a JavaScript-driven website.
  * </p>
  * <hr>
@@ -313,7 +313,7 @@ import com.norconex.importer.util.CharsetUtil;
  *
  * @author Pascal Essiembre
  * @since 2.7.0
- * @deprecated Since 3.0.0 use {@link WebDriverHttpFetcher}
+ * @deprecated Since 3.0.0 use {@link WebDriverHttpFetcher_HEAD}
  */
 @Deprecated
 public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
