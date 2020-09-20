@@ -22,17 +22,23 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.function.Supplier;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.provider.Arguments;
 
+import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
+import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
+import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.committer.core3.impl.MemoryCommitter;
+import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanUtil;
+import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.xml.XML;
 
 
@@ -158,6 +164,21 @@ public final class TestUtil {
     }
 
 
+//    /**
+//     * Gets a single-crawler that uses a {@link MemoryCommitter} to store
+//     * documents.
+//     * @param id collector id
+//     * @param workdir working directory
+//     * @param startURLs start URLs
+//     * @return HTTP Collector
+//     * @throws IOException
+//     */
+//    public static HttpCollector newMemoryCollector() throws IOException {
+//        return new HttpCollector(
+//                newMemoryCollectorConfig(UUID.randomUUID().toString(),
+//                        FileUtils.getTempDirectory().toPath(), "N/A"));
+//    }
+
     /**
      * Gets a single-crawler that uses a {@link MemoryCommitter} to store
      * documents.
@@ -171,5 +192,48 @@ public final class TestUtil {
             String id, Path workdir, String... startURLs) throws IOException {
         return new HttpCollector(
                 newMemoryCollectorConfig(id, workdir, startURLs));
+    }
+
+    public static void mockCrawlerRunLifeCycle(
+            Object eventReceiver, Runnable midCycleRunnable)
+                    throws Exception {
+        HttpCollector collector = newMemoryCollector(
+                Long.toString(TimeIdGenerator.next()),
+                FileUtils.getTempDirectory().toPath(), "N/A");
+        HttpCrawler crawler = new HttpCrawler(
+                (HttpCrawlerConfig) collector.getCollectorConfig()
+                        .getCrawlerConfigs().get(0), collector);
+        EventManager em = new EventManager();
+        em.addListenersFromScan(eventReceiver);
+        em.fire(new CollectorEvent.Builder(
+                CollectorEvent.COLLECTOR_RUN_BEGIN, collector).build());
+        em.fire(new CrawlerEvent.Builder(
+                CrawlerEvent.CRAWLER_INIT_BEGIN, crawler).build());
+        em.fire(new CrawlerEvent.Builder(
+                CrawlerEvent.CRAWLER_INIT_END, crawler).build());
+        em.fire(new CrawlerEvent.Builder(
+                CrawlerEvent.CRAWLER_RUN_BEGIN, crawler).build());
+        em.fire(new CrawlerEvent.Builder(
+                CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN, crawler)
+                .subject(Thread.currentThread())
+                .build());
+        try {
+            midCycleRunnable.run();
+        } finally {
+            em.fire(new CrawlerEvent.Builder(
+                    CrawlerEvent.CRAWLER_RUN_THREAD_END, crawler)
+                    .subject(Thread.currentThread())
+                    .build());
+            em.fire(new CrawlerEvent.Builder(
+                    CrawlerEvent.CRAWLER_RUN_END, crawler).build());
+            em.fire(new CollectorEvent.Builder(
+                    CollectorEvent.COLLECTOR_RUN_END, collector).build());
+            em.clearListeners();
+        }
+    }
+
+    @FunctionalInterface
+    public interface Runnable {
+        void run() throws Exception;
     }
 }

@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDoc;
+import com.norconex.collector.http.TestUtil;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpMethod;
@@ -94,18 +95,18 @@ public class WebDriverHttpFetcherTest  {
                     "geckodriver-0.26.exe"))
             .get();
 
-//    private static final Path edgeDriverPath = new OSResource<Path>()
-//            .win(WebFile.create("https://download.microsoft.com/download/F/8/A/"
-//                    + "F8AF50AB-3C3A-4BC4-8773-DC27B32988DD/"
-//                    + "MicrosoftWebDriver.exe",
-//                    "edgedriver-6.17134.exe"))
-//            .get();
+//  https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
+    private static final Path edgeDriverPath = new OSResource<Path>()
+            .win(WebFile.create("https://msedgedriver.azureedge.net/85.0.564.51"
+                    + "/edgedriver_win64.zip!/msedgedriver.exe",
+                    "edgedriver-85.0.564.51.exe"))
+            .get();
 
     static Stream<WebDriverHttpFetcher> browsersProvider() {
         return Stream.of(
                 createFetcher(Browser.FIREFOX, firefoxDriverPath),
                 createFetcher(Browser.CHROME, chromeDriverPath)
-//              {Browser.EDGE, edgeDriverPath},
+                //createFetcher(Browser.EDGE, edgeDriverPath)
         );
     }
 
@@ -120,43 +121,36 @@ public class WebDriverHttpFetcherTest  {
 
     @BrowserTest
     public void testFetchingJsGeneratedContent(
-            WebDriverHttpFetcher fetcher) throws IOException {
+            WebDriverHttpFetcher fetcher) throws Exception {
         assumeDriverPresent(fetcher);
-        try {
-            // simulate crawler startup
-            fetcher.fetcherStartup(null);
+        TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
             Doc doc = fetch(fetcher, "/");
             LOG.debug("'/' META: " + doc.getMetadata());
             Assertions.assertTrue(IOUtils.toString(
                     doc.getInputStream(), StandardCharsets.UTF_8).contains(
                             "JavaScript-rendered!"));
-        } finally {
-            fetcher.fetcherShutdown(null);
-        }
+        });
     }
 
     // Remove ignore to manually test that screenshots are generated
     @Disabled
     @BrowserTest
     public void testTakeScreenshots(
-            WebDriverHttpFetcher fetcher) throws IOException {
+            WebDriverHttpFetcher fetcher) throws Exception {
         assumeDriverPresent(fetcher);
         ScreenshotHandler h = new ScreenshotHandler();
         h.setTargetDir(Paths.get("./target/screenshots"));
         h.setCssSelector("#applePicture");
         fetcher.setScreenshotHandler(h);
 
-        try {
-            fetcher.fetcherStartup(null);
+        TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
             fetch(fetcher, "/apple.html");
-        } finally {
-            fetcher.fetcherShutdown(null);
-        }
+        });
     }
 
     @BrowserTest
     public void testFetchingHeadersUsingSniffer(
-            WebDriverHttpFetcher fetcher) throws IOException {
+            WebDriverHttpFetcher fetcher) throws Exception {
         assumeDriverPresent(fetcher);
 
         // Test picking up headers
@@ -168,53 +162,42 @@ public class WebDriverHttpFetcherTest  {
         HttpSnifferConfig cfg = new HttpSnifferConfig();
         fetcher.getConfig().setHttpSnifferConfig(cfg);
 
-        try {
-            // simulate crawler startup
-            fetcher.fetcherStartup(null);
+        TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
             Doc doc = fetch(fetcher, "/headers");
             LOG.debug("'/headers' META: " + doc.getMetadata());
             Assertions.assertEquals(
                     "test_value", doc.getMetadata().getString("TEST_KEY"));
-        } finally {
-            fetcher.fetcherShutdown(null);
-        }
+        });
     }
 
     @BrowserTest
     public void testPageScript(
-            WebDriverHttpFetcher fetcher) throws IOException {
+            WebDriverHttpFetcher fetcher) throws Exception {
         assumeDriverPresent(fetcher);
-
         fetcher.getConfig().setPageScript(
                 "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
-        try {
-            fetcher.fetcherStartup(null);
-            Doc doc = fetch(fetcher, "/orange.html");
 
+        TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
+            Doc doc = fetch(fetcher, "/orange.html");
             String h1 = IOUtils.toString(doc.getInputStream(),
                     StandardCharsets.UTF_8).replaceFirst(
                             "(?s).*<h1>(.*?)</h1>.*", "$1");
             LOG.debug("New H1: " + h1);
             Assertions.assertEquals("Melon", h1);
-        } finally {
-            fetcher.fetcherShutdown(null);
-        }
+        });
     }
 
     @BrowserTest
-    public void testResolvingUserAgent(WebDriverHttpFetcher fetcher) {
+    public void testResolvingUserAgent(WebDriverHttpFetcher fetcher)
+            throws Exception {
         assumeDriverPresent(fetcher);
-
-        try {
-            fetcher.fetcherStartup(null);
+        TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
             String userAgent = fetcher.getUserAgent();
             LOG.debug("User agent: {}", userAgent);
             Assertions.assertTrue(
                     StringUtils.isNotBlank(userAgent),
                     "Could not resolve user agent.");
-        } finally {
-            fetcher.fetcherShutdown(null);
-        }
+        });
     }
 
     private static WebDriverHttpFetcher createFetcher(
