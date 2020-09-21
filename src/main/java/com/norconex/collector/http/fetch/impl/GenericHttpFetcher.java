@@ -536,9 +536,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
      * </p>
      * <p>
      * This method will also add a "Basic" authentication
-     * header if {@link GenericHttpFetcherConfig#setAuthPreemptive(boolean)}
-     * is <code>true</code> and
-     * credentials were supplied.
+     * header if "preemptive" is <code>true</code> on the authentication
+     * configuration and credentials were supplied.
      * </p>
      * @return a list of HTTP request headers
      */

@@ -149,8 +149,8 @@ public class HttpAuthConfig implements IXMLConfigurable {
      * </ul>
      * @param method authentication method
      */
-    public void setMethod(String authMethod) {
-        this.method = authMethod;
+    public void setMethod(String method) {
+        this.method = method;
     }
 
     /**
@@ -166,8 +166,8 @@ public class HttpAuthConfig implements IXMLConfigurable {
      * This is used only for "form" authentication.
      * @param formUsernameField name of the HTML field
      */
-    public void setFormUsernameField(String authUsernameField) {
-        this.formUsernameField = authUsernameField;
+    public void setFormUsernameField(String formUsernameField) {
+        this.formUsernameField = formUsernameField;
     }
 
     /**
@@ -183,8 +183,8 @@ public class HttpAuthConfig implements IXMLConfigurable {
      * This is used only for "form" authentication.
      * @param formPasswordField name of the HTML field
      */
-    public void setFormPasswordField(String authPasswordField) {
-        this.formPasswordField = authPasswordField;
+    public void setFormPasswordField(String formPasswordField) {
+        this.formPasswordField = formPasswordField;
     }
 
     public Credentials getCredentials() {
@@ -209,8 +209,8 @@ public class HttpAuthConfig implements IXMLConfigurable {
      * This is used only for "form" authentication.
      * @param url "form" authentication URL
      */
-    public void setUrl(String authURL) {
-        this.url = authURL;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     /**
@@ -229,8 +229,8 @@ public class HttpAuthConfig implements IXMLConfigurable {
      * Used for BASIC and DIGEST authentication.
      * @param host host for the scope
      */
-    public void setHost(Host authHost) {
-        this.host = authHost;
+    public void setHost(Host host) {
+        this.host = host;
     }
 
     /**
@@ -250,8 +250,8 @@ public class HttpAuthConfig implements IXMLConfigurable {
      * Used for BASIC and DIGEST authentication.
      * @param realm reaml name for the scope
      */
-    public void setRealm(String authRealm) {
-        this.realm = authRealm;
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 
     /**
@@ -266,8 +266,8 @@ public class HttpAuthConfig implements IXMLConfigurable {
      * Default is UTF-8.
      * @param formCharset authentication form character set
      */
-    public void setFormCharset(Charset authFormCharset) {
-        this.formCharset = authFormCharset;
+    public void setFormCharset(Charset formCharset) {
+        this.formCharset = formCharset;
     }
 
     /**
@@ -349,8 +349,8 @@ public class HttpAuthConfig implements IXMLConfigurable {
      * @param preemptive
      *            <code>true</code> to perform preemptive authentication
      */
-    public void setPreemptive(boolean authPreemptive) {
-        this.preemptive = authPreemptive;
+    public void setPreemptive(boolean preemptive) {
+        this.preemptive = preemptive;
     }
 
     /**
@@ -362,7 +362,7 @@ public class HttpAuthConfig implements IXMLConfigurable {
     }
     /**
      * Sets the NTLM authentication workstation name.
-     * @param authWorkstation workstation name
+     * @param workstation workstation name
      */
     public void setWorkstation(String workstation) {
         this.workstation = workstation;
