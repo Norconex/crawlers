@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2017-2018 Norconex Inc.
+   Copyright 2017-2020 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:include schemaLocation="../AbstractHttpFetcher.xsd"></xs:include>
+  <xs:include schemaLocation="GenericHttpAuthConfig.xsd"></xs:include>
 
   <xs:element name="fetcher">
     <xs:complexType>
@@ -38,6 +39,7 @@
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
+        <xs:element name="authentication" type="GenericHttpAuthConfigType" minOccurs="0" maxOccurs="1"/>
         <xs:element name="connectionTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="socketTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="connectionRequestTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -53,21 +55,6 @@
         <xs:element name="disableSNI" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="sslProtocols" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="proxySettings" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authFormParams" minOccurs="0" maxOccurs="1">
-          <xs:complexType>
-            <xs:all>
-              <xs:element name="param" minOccurs="0" maxOccurs="unbounded">
-                <xs:complexType>
-                  <xs:simpleContent>
-                    <xs:extension base="xs:string">
-                      <xs:attribute name="name" type="xs:string" use="required" />
-                    </xs:extension>
-                  </xs:simpleContent>
-                </xs:complexType>
-              </xs:element>
-            </xs:all>
-          </xs:complexType>
-        </xs:element>
         <xs:element name="headers" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>
@@ -83,36 +70,6 @@
             </xs:all>
           </xs:complexType>
         </xs:element>
-        <xs:element name="authMethod" minOccurs="0" maxOccurs="1">
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:enumeration value=""/>
-              <xs:enumeration value="form"/>
-              <xs:enumeration value="basic"/>
-              <xs:enumeration value="digest"/>
-              <xs:enumeration value="ntlm"/>
-              <xs:enumeration value="spnego"/>
-              <xs:enumeration value="kerberos"/>
-              <xs:enumeration value="FORM"/>
-              <xs:enumeration value="BASIC"/>
-              <xs:enumeration value="DIGEST"/>
-              <xs:enumeration value="NTLM"/>
-              <xs:enumeration value="SPNEGO"/>
-              <xs:enumeration value="KERBEROS"/>
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
-        <xs:element name="authCredentials" type="CredentialsType" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authUsernameField" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authPasswordField" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authURL" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authFormCharset" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authHostname" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authPort" type="xs:int" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authRealm" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authWorkstation" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authDomain" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="authPreemptive" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
       </xs:all>
       <xs:attribute name="class" type="xs:string" use="required"/>
     </xs:complexType>

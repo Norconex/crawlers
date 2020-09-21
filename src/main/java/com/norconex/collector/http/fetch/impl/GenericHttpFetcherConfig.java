@@ -15,7 +15,6 @@
 package com.norconex.collector.http.fetch.impl;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,9 +35,7 @@ import com.norconex.collector.http.fetch.util.GenericRedirectURLProvider;
 import com.norconex.collector.http.fetch.util.IRedirectURLProvider;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.net.ProxySettings;
-import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
@@ -69,17 +66,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private boolean forceContentTypeDetection;
     private boolean forceCharsetDetection;
 
-    private String authMethod;
-    private String authURL;
-    private String authUsernameField;
-    private String authPasswordField;
-    private final Credentials authCredentials = new Credentials();
-    private Host authHost;
-    private String authRealm;
-    private Charset authFormCharset = StandardCharsets.UTF_8;
-    private String authWorkstation;
-    private String authDomain;
-    private boolean authPreemptive;
+    private GenericHttpAuthConfig authConfig;
+
     private String cookieSpec = CookieSpecs.STANDARD;
     private final ProxySettings proxySettings = new ProxySettings();
     private int connectionTimeout = DEFAULT_TIMEOUT;
@@ -94,7 +82,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
     private int maxConnectionInactiveTime;
     private final Map<String, String> requestHeaders = new HashMap<>();
-    private final Map<String, String> authFormParams = new HashMap<>();
     private boolean disableIfModifiedSince;
     private String userAgent;
     private IRedirectURLProvider redirectURLProvider =
@@ -265,75 +252,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     }
 
     /**
-     * Gets the authentication method.
-     * @return authentication method
-     */
-    public String getAuthMethod() {
-        return authMethod;
-    }
-    /**
-     * Sets the authentication method.
-     * <br><br>
-     * Valid values are (case insensitive):
-     * <ul>
-     *   <li>form</li>
-     *   <li>basic</li>
-     *   <li>digest</li>
-     *   <li>ntlm</li>
-     * </ul>
-     * Experimental (not fully tested, please report):
-     * <ul>
-     *   <li>spnego</li>
-     *   <li>kerberos</li>
-     * </ul>
-     * @param authMethod authentication method
-     */
-    public void setAuthMethod(String authMethod) {
-        this.authMethod = authMethod;
-    }
-
-    /**
-     * Gets the name of the HTML field where the username is set.
-     * This is used only for "form" authentication.
-     * @return username name of the HTML field
-     */
-    public String getAuthUsernameField() {
-        return authUsernameField;
-    }
-    /**
-     * Sets the name of the HTML field where the username is set.
-     * This is used only for "form" authentication.
-     * @param authUsernameField name of the HTML field
-     */
-    public void setAuthUsernameField(String authUsernameField) {
-        this.authUsernameField = authUsernameField;
-    }
-
-    /**
-     * Gets the name of the HTML field where the password is set.
-     * This is used only for "form" authentication.
-     * @return name of the HTML field
-     */
-    public String getAuthPasswordField() {
-        return authPasswordField;
-    }
-    /**
-     * Sets the name of the HTML field where the password is set.
-     * This is used only for "form" authentication.
-     * @param authPasswordField name of the HTML field
-     */
-    public void setAuthPasswordField(String authPasswordField) {
-        this.authPasswordField = authPasswordField;
-    }
-
-    public Credentials getAuthCredentials() {
-        return authCredentials;
-    }
-    public void setAuthCredentials(Credentials authCredentials) {
-        this.authCredentials.copyFrom(authCredentials);
-    }
-
-    /**
      * @return the cookieSpec to use as defined in {@link CookieSpecs}
      */
     public String getCookieSpec() {
@@ -344,82 +262,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      */
     public void setCookieSpec(String cookieSpec) {
         this.cookieSpec = cookieSpec;
-    }
-
-    /**
-     * Gets the URL for "form" authentication.
-     * The username and password will be POSTed to this URL.
-     * This is used only for "form" authentication.
-     * @return "form" authentication URL
-     */
-    public String getAuthURL() {
-        return authURL;
-    }
-    /**
-     * Sets the URL for "form" authentication.
-     * The username and password will be POSTed to this URL.
-     * This is used only for "form" authentication.
-     * @param authURL "form" authentication URL
-     */
-    public void setAuthURL(String authURL) {
-        this.authURL = authURL;
-    }
-
-    /**
-     * Gets the host for the current authentication scope.
-     * <code>null</code> means any host names for the scope.
-     * Used for BASIC and DIGEST authentication.
-     * @return host for the scope
-     */
-    public Host getAuthHost() {
-        return authHost;
-    }
-    /**
-     * Sets the host for the current authentication scope.
-     * Setting this to null (default value) indicates "any host" for the
-     * scope.
-     * Used for BASIC and DIGEST authentication.
-     * @param authHost host for the scope
-     */
-    public void setAuthHost(Host authHost) {
-        this.authHost = authHost;
-    }
-
-    /**
-     * Gets the realm name for the current authentication scope.
-     * <code>null</code> indicates "any realm"
-     * for the scope.
-     * Used for BASIC and DIGEST authentication.
-     * @return realm name for the scope
-     */
-    public String getAuthRealm() {
-        return authRealm;
-    }
-    /**
-     * Sets the realm name for the current authentication scope.
-     * Setting this to null (the default value) indicates "any realm"
-     * for the scope.
-     * Used for BASIC and DIGEST authentication.
-     * @param authRealm reaml name for the scope
-     */
-    public void setAuthRealm(String authRealm) {
-        this.authRealm = authRealm;
-    }
-
-    /**
-     * Gets the authentication form character set.
-     * @return authentication form character set
-     */
-    public Charset getAuthFormCharset() {
-        return authFormCharset;
-    }
-    /**
-     * Sets the authentication form character set for the form field values.
-     * Default is UTF-8.
-     * @param authFormCharset authentication form character set
-     */
-    public void setAuthFormCharset(Charset authFormCharset) {
-        this.authFormCharset = authFormCharset;
     }
 
     public ProxySettings getProxySettings() {
@@ -546,35 +388,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         this.localAddress = localAddress;
     }
 
-    /**
-     * Gets the NTLM authentication workstation name.
-     * @return workstation name
-     */
-    public String getAuthWorkstation() {
-        return authWorkstation;
-    }
-    /**
-     * Sets the NTLM authentication workstation name.
-     * @param authWorkstation workstation name
-     */
-    public void setAuthWorkstation(String authWorkstation) {
-        this.authWorkstation = authWorkstation;
-    }
-
-    /**
-     * Gets the NTLM authentication domain.
-     * @return authentication domain
-     */
-    public String getAuthDomain() {
-        return authDomain;
-    }
-    /**
-     * Sets the NTLM authentication domain
-     * @param authDomain authentication domain
-     */
-    public void setAuthDomain(String authDomain) {
-        this.authDomain = authDomain;
-    }
 
     /**
      * Gets the maximum number of connections that can be created.
@@ -644,70 +457,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
      */
     public void setMaxConnectionInactiveTime(int maxConnectionInactiveTime) {
         this.maxConnectionInactiveTime = maxConnectionInactiveTime;
-    }
-
-    /**
-     * Sets an authentication form parameter (equivalent to "input" or other
-     * fields in HTML forms).
-     * @param name form parameter name
-     * @param value form parameter value
-     */
-    public void setAuthFormParam(String name, String value) {
-        authFormParams.put(name, value);
-    }
-    /**
-     * Sets authentication form parameters (equivalent to "input" or other
-     * fields in HTML forms).
-     * @param params map of form parameter names and values
-     */
-    public void setAuthFormParams(Map<String, String> params) {
-        CollectionUtil.setAll(authFormParams, params);
-    }
-    /**
-     * Gets an authentication form parameter (equivalent to "input" or other
-     * fields in HTML forms).
-     * @param name form parameter name
-     * @return form parameter value or <code>null</code> if
-     *         no match is found
-     */
-    public String getAuthFormParam(String name) {
-        return authFormParams.get(name);
-    }
-    /**
-     * Gets all authentication form parameter names. If no form parameters
-     * are set, it returns an empty array.
-     * @return HTTP request header names
-     */
-    public List<String> getAuthFormParamNames() {
-        return Collections.unmodifiableList(
-                new ArrayList<>(authFormParams.keySet()));
-    }
-    /**
-     * Remove the authentication form parameter matching the given name.
-     * @param name name of form parameter to remove
-     * @return the previous value associated with the name, or <code>null</code>
-     *         if there was no form parameter for the name.
-     */
-    public String removeAuthFormParameter(String name) {
-        return authFormParams.remove(name);
-    }
-
-    /**
-     * Gets whether to perform preemptive authentication
-     * (valid for "basic" authentication method).
-     * @return <code>true</code> to perform preemptive authentication
-     */
-    public boolean isAuthPreemptive() {
-        return authPreemptive;
-    }
-    /**
-     * Sets whether to perform preemptive authentication
-     * (valid for "basic" authentication method).
-     * @param authPreemptive
-     *            <code>true</code> to perform preemptive authentication
-     */
-    public void setAuthPreemptive(boolean authPreemptive) {
-        this.authPreemptive = authPreemptive;
     }
 
     /**
@@ -785,6 +534,13 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         this.disableIfModifiedSince = disableIfModifiedSince;
     }
 
+    public GenericHttpAuthConfig getAuthConfig() {
+        return authConfig;
+    }
+    public void setAuthConfig(GenericHttpAuthConfig authConfig) {
+        this.authConfig = authConfig;
+    }
+
     @Override
     public void loadFromXML(XML xml) {
         setValidStatusCodes(xml.getDelimitedList(
@@ -798,19 +554,12 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
 
         userAgent = xml.getString("userAgent", userAgent);
         cookieSpec = xml.getString("cookieSpec", cookieSpec);
-        authMethod = xml.getString("authMethod", authMethod);
-        authUsernameField =
-                xml.getString("authUsernameField", authUsernameField);
-        authPasswordField =
-                xml.getString("authPasswordField", authPasswordField);
-        authCredentials.loadFromXML(xml.getXML("authCredentials"));
-        authURL = xml.getString("authURL", authURL);
-        authHost = Host.loadFromXML(xml.getXML("authHost"), authHost);
-        authRealm = xml.getString("authRealm", authRealm);
-        authFormCharset = xml.getCharset("authFormCharset", authFormCharset);
-        authWorkstation = xml.getString("authWorkstation", authWorkstation);
-        authDomain = xml.getString("authDomain", authDomain);
-        authPreemptive = xml.getBoolean("authPreemptive", authPreemptive);
+
+        xml.ifXML("authentication", x -> {
+            GenericHttpAuthConfig acfg = new GenericHttpAuthConfig();
+            acfg.loadFromXML(x);
+            setAuthConfig(acfg);
+        });
         proxySettings.loadFromXML(xml.getXML("proxySettings"));
         connectionTimeout = xml.getDurationMillis(
                 "connectionTimeout", (long) connectionTimeout).intValue();
@@ -838,14 +587,12 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
                 "headers/header", "@name", ".", requestHeaders));
         setDisableIfModifiedSince(xml.getBoolean(
                 "disableIfModifiedSince", disableIfModifiedSince));
-        setAuthFormParams(xml.getStringMap(
-                "authFormParams/param", "@name", ".", authFormParams));
         setRedirectURLProvider(xml.getObjectImpl(IRedirectURLProvider.class,
                 "redirectURLProvider", redirectURLProvider));
 
         trustAllSSLCertificates = xml.getBoolean(
                 "trustAllSSLCertificates", trustAllSSLCertificates);
-        disableSNI = xml.getBoolean("disableSNI", disableSNI);;
+        disableSNI = xml.getBoolean("disableSNI", disableSNI);
         setSSLProtocols(
                 xml.getDelimitedStringList("sslProtocols", sslProtocols));
     }
@@ -860,17 +607,10 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
 
         xml.addElement("userAgent", userAgent);
         xml.addElement("cookieSpec", cookieSpec);
-        xml.addElement("authMethod", authMethod);
-        authCredentials.saveToXML(xml.addElement("authCredentials"));
-        xml.addElement("authUsernameField", authUsernameField);
-        xml.addElement("authPasswordField", authPasswordField);
-        xml.addElement("authURL", authURL);
-        Host.saveToXML(xml.addElement("authHost"), authHost);
-        xml.addElement("authFormCharset", authFormCharset);
-        xml.addElement("authWorkstation", authWorkstation);
-        xml.addElement("authDomain", authDomain);
-        xml.addElement("authRealm", authRealm);
-        xml.addElement("authPreemptive", authPreemptive);
+        if (authConfig != null) {
+            authConfig.saveToXML(xml.addElement("authentication"));
+        }
+
         proxySettings.saveToXML(xml.addElement("proxySettings"));
         xml.addElement("connectionTimeout", connectionTimeout);
         xml.addElement("socketTimeout", socketTimeout);
@@ -891,11 +631,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         }
         xml.addElement("disableIfModifiedSince", disableIfModifiedSince);
 
-        XML xmlAuthFormParams = xml.addXML("authFormParams");
-        for (Entry<String, String> entry : authFormParams.entrySet()) {
-            xmlAuthFormParams.addXML("param").setAttribute(
-                    "name", entry.getKey()).setTextContent(entry.getValue());
-        }
         xml.addElement("redirectURLProvider", redirectURLProvider);
 
         xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
@@ -910,9 +645,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         }
         GenericHttpFetcherConfig other = (GenericHttpFetcherConfig) obj;
         return EqualsBuilder.reflectionEquals(
-                this, other, "requestHeaders", "authFormParams")
-                && EqualsUtil.equalsMap(requestHeaders, other.requestHeaders)
-                && EqualsUtil.equalsMap(authFormParams, other.authFormParams);
+                this, other, "requestHeaders")
+                && EqualsUtil.equalsMap(requestHeaders, other.requestHeaders);
     }
     @Override
     public int hashCode() {

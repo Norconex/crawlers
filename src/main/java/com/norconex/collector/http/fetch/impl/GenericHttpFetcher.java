@@ -180,7 +180,6 @@ import com.norconex.importer.util.CharsetUtil;
  *   <!-- You can use a specific key store for SSL Certificates -->
  *   <keyStoreFile></keyStoreFile>
  *
- *
  *   <proxySettings>
  *     {@nx.include com.norconex.commons.lang.net.ProxySettings@nx.xml.usage}
  *   </proxySettings>
@@ -194,40 +193,10 @@ import com.norconex.importer.util.CharsetUtil;
  *   <!-- Disable conditionally getting a document based on last crawl date. -->
  *   <disableIfModifiedSince>[false|true]</disableIfModifiedSince>
  *
- *   <authMethod>[form|basic|digest|ntlm|spnego|kerberos]</authMethod>
- *
- *   <!-- These apply to any authentication mechanism -->
- *   <authCredentials>
- *     {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *   </authCredentials>
- *
- *   <!-- These apply to FORM authentication -->
- *   <authUsernameField>...</authUsernameField>
- *   <authPasswordField>...</authPasswordField>
- *   <authURL>...</authURL>
- *   <authFormCharset>...</authFormCharset>
- *   <!-- Extra form parameters required to authenticate (since 2.8.0) -->
- *   <authFormParams>
- *     <param name="(param name)">(param value)</param>
- *     <!-- You can repeat this param tag as needed. -->
- *   </authFormParams>
- *
- *   <!-- These apply to both BASIC and DIGEST authentication -->
- *   <authHost>
- *     {@nx.include com.norconex.commons.lang.net.Host@nx.xml.usage}
- *   </authHost>
- *
- *   <authRealm>...</authRealm>
- *
- *   <!-- This applies to BASIC authentication -->
- *   <authPreemptive>[false|true]</authPreemptive>
- *
- *   <!-- These apply to NTLM authentication -->
- *   <authHost>
- *     {@nx.include com.norconex.commons.lang.net.Host@nx.xml.usage}
- *   </authHost>
- *   <authWorkstation>...</authWorkstation>
- *   <authDomain>...</authDomain>
+ *   <!-- Optional authentication details. -->
+ *   <authentication>
+ *     {@nx.include com.norconex.collector.http.fetch.impl.GenericHttpAuthConfig@nx.xml.usage}
+ *   </authentication>
  *
  *   <validStatusCodes>(defaults to 200)</validStatusCodes>
  *   <notFoundStatusCodes>(defaults to 404)</notFoundStatusCodes>
@@ -256,7 +225,7 @@ import com.norconex.importer.util.CharsetUtil;
  *     </authCredentials>
  *     <authUsernameField>loginUser</authUsernameField>
  *     <authPasswordField>loginPwd</authPasswordField>
- *     <authURL>http://www.example.com/login</authURL>
+ *     <authURL>http://www.example.com/login/submit</authURL>
  * </fetcher>
  * }
  * <p>
@@ -339,7 +308,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             LOG.info("User-Agent: {}", userAgent);
         }
 
-        if (AUTH_METHOD_FORM.equalsIgnoreCase(cfg.getAuthMethod())) {
+        if (cfg.getAuthConfig() != null && AUTH_METHOD_FORM.equalsIgnoreCase(
+                cfg.getAuthConfig().getMethod())) {
             authenticateUsingForm(this.httpClient);
         }
     }
@@ -569,26 +539,29 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     }
 
     protected void authenticateUsingForm(HttpClient httpClient) {
-        HttpPost post = new HttpPost(cfg.getAuthURL());
+        GenericHttpAuthConfig authConfig = cfg.getAuthConfig();
+
+        HttpPost post = new HttpPost(authConfig.getUrl());
 
         List<NameValuePair> formparams = new ArrayList<>();
-        formparams.add(new BasicNameValuePair(cfg.getAuthUsernameField(),
-                cfg.getAuthCredentials().getUsername()));
         formparams.add(new BasicNameValuePair(
-                cfg.getAuthPasswordField(),
-                EncryptionUtil.decryptPassword(cfg.getAuthCredentials())));
+                authConfig.getFormUsernameField(),
+                authConfig.getCredentials().getUsername()));
+        formparams.add(new BasicNameValuePair(
+                authConfig.getFormPasswordField(),
+                EncryptionUtil.decryptPassword(authConfig.getCredentials())));
 
-        for (String name : cfg.getAuthFormParamNames()) {
+        for (String name : authConfig.getFormParamNames()) {
             formparams.add(new BasicNameValuePair(
-                    name, cfg.getAuthFormParam(name)));
+                    name, authConfig.getFormParam(name)));
         }
 
         LOG.info("Performing FORM authentication at \"{}\" (username={}; p"
-                + "assword=*****)", cfg.getAuthURL(),
-                cfg.getAuthCredentials().getUsername());
+                + "assword=*****)", authConfig.getUrl(),
+                authConfig.getCredentials().getUsername());
         try {
             UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
-                    formparams, cfg.getAuthFormCharset());
+                    formparams, authConfig.getFormCharset());
             post.setEntity(entity);
             HttpResponse response = httpExecute(post, null);
             StatusLine statusLine = response.getStatusLine();
@@ -635,25 +608,27 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
 
         //--- preemptive headers
-        // preemptive authaurisation could be done by creating a HttpContext
+        // preemptive authorisation could be done by creating a HttpContext
         // passed to the HttpClient execute method, but since that method
         // is not invoked from this class, we want to keep things
         // together and we add the preemptive authentication directly
         // in the default HTTP headers.
-        if (cfg.isAuthPreemptive()) {
-            if (StringUtils.isBlank(cfg.getAuthCredentials().getUsername())) {
+        if (cfg.getAuthConfig() != null && cfg.getAuthConfig().isPreemptive()) {
+            GenericHttpAuthConfig authConfig = cfg.getAuthConfig();
+            if (StringUtils.isBlank(
+                    authConfig.getCredentials().getUsername())) {
                 LOG.warn("Preemptive authentication is enabled while no "
                         + "username was provided.");
                 return headers;
             }
-            if (!AUTH_METHOD_BASIC.equalsIgnoreCase(cfg.getAuthMethod())) {
+            if (!AUTH_METHOD_BASIC.equalsIgnoreCase(authConfig.getMethod())) {
                 LOG.warn("Using preemptive authentication with a "
                         + "method other than \"Basic\" may not produce the "
                         + "expected outcome.");
             }
             String password = EncryptionUtil.decryptPassword(
-                    cfg.getAuthCredentials());
-            String auth = cfg.getAuthCredentials().getUsername()
+                    authConfig.getCredentials());
+            String auth = authConfig.getCredentials().getUsername()
                     + ":" + password;
             byte[] encodedAuth = Base64.encodeBase64(
                     auth.getBytes(StandardCharsets.ISO_8859_1));
@@ -716,29 +691,34 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
 
         //--- Auth ---
-        if (cfg.getAuthCredentials().isSet()
-                && !AUTH_METHOD_FORM.equalsIgnoreCase(cfg.getAuthMethod())
-                && cfg.getAuthHost() != null) {
+        GenericHttpAuthConfig authConfig = cfg.getAuthConfig();
+        if (authConfig != null
+                && authConfig.getCredentials().isSet()
+                && !AUTH_METHOD_FORM.equalsIgnoreCase(authConfig.getMethod())
+                && authConfig.getHost() != null) {
             if (credsProvider == null) {
                 credsProvider = new BasicCredentialsProvider();
             }
             Credentials creds = null;
             String password = EncryptionUtil.decryptPassword(
-                    cfg.getAuthCredentials());
-            if (AUTH_METHOD_NTLM.equalsIgnoreCase(cfg.getAuthMethod())) {
+                    authConfig.getCredentials());
+            if (AUTH_METHOD_NTLM.equalsIgnoreCase(authConfig.getMethod())) {
                 creds = new NTCredentials(
-                        cfg.getAuthCredentials().getUsername(),
+                        authConfig.getCredentials().getUsername(),
                         password,
-                        cfg.getAuthWorkstation(),
-                        cfg.getAuthDomain());
+                        authConfig.getWorkstation(),
+                        authConfig.getDomain());
             } else {
                 creds = new UsernamePasswordCredentials(
-                        cfg.getAuthCredentials().getUsername(),
+                        authConfig.getCredentials().getUsername(),
                         password);
             }
             credsProvider.setCredentials(new AuthScope(
-                    cfg.getAuthHost().getName(), cfg.getAuthHost().getPort(),
-                    cfg.getAuthRealm(), cfg.getAuthMethod()), creds);
+                    authConfig.getHost().getName(),
+                    authConfig.getHost().getPort(),
+                    authConfig.getRealm(),
+                    authConfig.getMethod()),
+                    creds);
         }
         return credsProvider;
     }

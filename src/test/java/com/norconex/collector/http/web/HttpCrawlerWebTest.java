@@ -186,7 +186,7 @@ public class HttpCrawlerWebTest {
             "featuresProvider"
     })
     public void testFeature(IWebTest feature) throws Exception {
-        String uuid = Long.toString(TimeIdGenerator.next());// UUID.randomUUID().toString();
+        String uuid = Long.toString(TimeIdGenerator.next());
         Path workdir = tempFolder.resolve("workdir" + uuid);
         String startURL = serverBaseURL + feature.getPath();
         for (int i = 0; i < feature.numberOfRun(); i++) {
