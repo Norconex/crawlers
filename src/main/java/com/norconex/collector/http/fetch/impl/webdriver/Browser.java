@@ -44,7 +44,8 @@ public enum Browser {
     CHROME() {
         @Override
         public MutableCapabilities capabilities(Path browserPath) {
-            ChromeOptions options = new ChromeOptions().setHeadless(true);
+            ChromeOptions options = new ChromeOptions();
+            options.setHeadless(true);
             if (browserPath != null) {
                 options.setBinary(browserPath.toFile());
             }
@@ -115,7 +116,11 @@ public enum Browser {
     OPERA() {
         @Override
         public MutableCapabilities capabilities(Path browserPath) {
-            return new OperaOptions();
+            OperaOptions options = new OperaOptions();
+//            options.addArguments(
+//                    "--headless",
+//                    "--disable-gpu");
+            return options;
         }
         @Override
         public synchronized WebDriver driver(

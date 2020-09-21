@@ -31,18 +31,38 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.importer.doc.Doc;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.transformer.impl.ImageTransformer;
 
 /**
+ * <p>
  * Handles images associated with a document (which is different than a document
- * being itself an image.  Examples can be screenshots, featured image, etc.
+ * being itself an image).  Examples can be screenshots, featured image, etc.
+ * Images can be stored in a document metadata/field or in a local directory.
+ * </p>
+ *
+ * {@nx.xml.usage
+ * <targets>[metadata|directory] (One or both, separated by comma.)</targets>
+ * <imageFormat>(Image format. Default is "png".)</imageFormat>
+ * <!-- The following applies to the "directory" target: -->
+ * <targetDir
+ *     field="(Document field to store the local path to the image.)"
+ *     structure="[url2path|date|datetime]">
+ *   (Local directory where to save images.)
+ * </targetDir>
+ * <!-- The following applies to the "metadata" target: -->
+ * <targetMetaField>(Document field where to store the image.)</targetMetaField>
+ * }
+ * <p>
+ * The above XML configurable options can be nested in a parent tag of any name.
+ * The expected parent tag name is defined by the consuming classes.
+ * </p>
  * @author Pascal Essiembre
  * @since 3.0.0
  */
@@ -191,9 +211,9 @@ public class DocImageHandler implements IXMLConfigurable {
     public void loadFromXML(XML xml) {
         setTargets(xml.getDelimitedEnumList("targets", Target.class, targets));
         setTargetDir(xml.getPath("targetDir", targetDir));
-        setTargetDirField(xml.getString("targetDirField", targetDirField));
-        setTargetDirStructure(xml.getEnum(
-                "targetDirStructure", DirStructure.class, targetDirStructure));
+        setTargetDirStructure(xml.getEnum("targetDir/@structure",
+                DirStructure.class, targetDirStructure));
+        setTargetDirField(xml.getString("targetDir/@field", targetDirField));
         setTargetMetaField(xml.getString("targetMetaField", targetMetaField));
         setImageFormat(xml.getString("imageFormat", imageFormat));
     }
@@ -201,9 +221,9 @@ public class DocImageHandler implements IXMLConfigurable {
     @Override
     public void saveToXML(XML xml) {
         xml.addDelimitedElementList("targets", targets);
-        xml.addElement("targetDir", targetDir);
-        xml.addElement("targetDirField", targetDirField);
-        xml.addElement("targetDirStructure", targetDirStructure);
+        xml.addElement("targetDir", targetDir)
+                .setAttribute("structure", targetDirStructure)
+                .setAttribute("field", targetDirField);
         xml.addElement("targetMetaField", targetMetaField);
         xml.addElement("imageFormat", imageFormat);
     }

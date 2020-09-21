@@ -23,8 +23,11 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsExclude;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringExclude;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
@@ -36,13 +39,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDocMetadata;
-import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.util.DocImageHandler;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.doc.Doc;
 
 /**
+ * <p>
+ * Takes screenshot of pages using a Selenium {@link WebDriver}.
+ * Either the entire page, or a specific DOM element.
+ * Screenshot images can be stored in a document metadata/field or
+ * in a local directory.
+ * </p>
+ *
+ * {@nx.xml.usage
+ *   <cssSelector>(Optional selector of element to capture.)</cssSelector>
+ *   {@nx.include com.norconex.collector.http.fetch.util.DocImageHandler@nx.xml.usage}
+ * }
+ *
+ * <p>
+ * The above XML configurable options can be nested in a supporting parent
+ * tag of any name.
+ * The expected parent tag name is defined by the consuming classes
+ * (e.g. "screenshot").
+ * </p>
+ *
  * @author Pascal Essiembre
  * @since 3.0.0
  */
@@ -59,6 +81,9 @@ public class ScreenshotHandler extends DocImageHandler {
             ScreenshotHandler.class);
 
     private String cssSelector;
+    @ToStringExclude
+    @HashCodeExclude
+    @EqualsExclude
     private final CachedStreamFactory streamFactory;
 
     public ScreenshotHandler() {

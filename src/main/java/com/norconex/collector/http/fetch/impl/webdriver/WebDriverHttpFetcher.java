@@ -104,17 +104,10 @@ import com.norconex.commons.lang.xml.XML;
  *
  *   <!-- Optionally take screenshots of each web pages. -->
  *   <screenshot>
- *
- *
- *
- *
- *
- *
- *                    TODO DOCUMENT PROPERLY
- *
- *
- *
+ *     {@nx.include com.norconex.collector.http.fetch.impl.webdriver.ScreenshotHandler@nx.xml.usage}
  *   </screenshot>
+ *
+ *   <windowSize>(Optional. Browser window dimensions. E.g., 640x480)</windowSize>
  *
  *   <initScript>
  *     (Optional JavaScript code to be run during this class initialization.)
@@ -148,14 +141,7 @@ import com.norconex.commons.lang.xml.XML;
  *        HTTP headers. For advanced use only. Not recommended
  *        for regular usage. -->
  *   <httpSniffer>
- *     <port>(default is 0 = random free port)"</port>
- *     <userAgent>(optionally overwrite browser user agent)</userAgent>
- *
- *     <!-- Optional HTTP request headers passed on every HTTP requests -->
- *     <headers>
- *       <header name="(header name)">(header value)</header>
- *       <!-- You can repeat this header tag as needed. -->
- *     </headers>
+ *     {@nx.include com.norconex.collector.http.fetch.impl.webdriver.HttpSnifferConfig@nx.xml.usage}
  *   </httpSniffer>
  *
  * </fetcher>
@@ -320,8 +306,8 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         if (method != GET) {
             String reason = "HTTP " + httpMethod + " method not supported.";
             if (method == HEAD) {
-                reason += " To obtain headers, use GET with "
-                        + "'driverProxyEnabled' set to 'true'.";
+                reason += " To obtain headers, use GET with a configured "
+                        + "'httpSniffer'.";
             }
             return HttpFetchResponseBuilder.unsupported().setReasonPhrase(
                   reason).create();

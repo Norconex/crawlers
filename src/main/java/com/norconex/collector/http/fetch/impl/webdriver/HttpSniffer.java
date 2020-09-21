@@ -1,4 +1,4 @@
-/* Copyright 2018-2019 Norconex Inc.
+/* Copyright 2018-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.opera.OperaOptions;
 import org.openqa.selenium.remote.CapabilityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +51,13 @@ import net.lightbody.bmp.util.HttpMessageInfo;
  * by some web drivers.  It is discouraged for normal use,
  * and is disabled by default.
  * </p>
+ *
  * @author Pascal Essiembre
  * @since 3.0.0
  */
 public class HttpSniffer {
+
+    //TODO If it gets stable enough, move the proxy setting to Browser class.
 
     private static final Logger LOG = LoggerFactory.getLogger(
             HttpSniffer.class);
@@ -146,6 +150,9 @@ public class HttpSniffer {
             if  (LOG.isDebugEnabled()) {
                 System.setProperty("webdriver.chrome.verboseLogging", "true");
             }
+        } else if (options instanceof OperaOptions) {
+            OperaOptions operaOptions = (OperaOptions) options;
+            operaOptions.addArguments("--proxy-bypass-list=<-loopback>");
         }
         options.setCapability(CapabilityType.PROXY,
                 ClientUtil.createSeleniumProxy(mobProxy));

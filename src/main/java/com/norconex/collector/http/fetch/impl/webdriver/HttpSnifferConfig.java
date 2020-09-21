@@ -1,4 +1,4 @@
-/* Copyright 2019 Norconex Inc.
+/* Copyright 2019-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,29 @@ import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
-//TODO merge with HttpSniffer given usage should be rare.
-
 /**
+ * <p>
  * Configuration for {@link HttpSniffer}.
+ * </p>
+ *
+ * {@nx.xml.usage
+ * <port>(default is 0 = random free port)</port>
+ * <userAgent>(optionally overwrite browser user agent)</userAgent>
+ * <!-- Optional HTTP request headers passed on every HTTP requests -->
+ * <headers>
+ *   <!-- You can repeat this header tag as needed. -->
+ *   <header name="(header name)">(header value)</header>
+ * </headers>
+ * }
+ *
+ * <p>
+ * The above XML configurable options can be nested in a supporting parent
+ * tag of any name.
+ * The expected parent tag name is defined by the consuming classes
+ * (e.g. "httpSniffer").
+ * </p>
+
+ *
  * @author Pascal Essiembre
  * @since 3.0.0
  */
@@ -62,8 +81,8 @@ public class HttpSnifferConfig implements IXMLConfigurable {
 
     @Override
     public void loadFromXML(XML xml) {
-        setPort(xml.getInteger("port"));
-        setUserAgent(xml.getString("userAgent"));
+        setPort(xml.getInteger("port", getPort()));
+        setUserAgent(xml.getString("userAgent", getUserAgent()));
         setRequestHeaders(xml.getStringMap(
                 "headers/header", "@name", ".", requestHeaders));
     }

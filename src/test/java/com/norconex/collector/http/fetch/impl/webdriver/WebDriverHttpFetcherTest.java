@@ -102,11 +102,21 @@ public class WebDriverHttpFetcherTest  {
                     "edgedriver-85.0.564.51.exe"))
             .get();
 
+//  https://github.com/operasoftware/operachromiumdriver/releases
+    private static final Path operaDriverPath = new OSResource<Path>()
+            .win(WebFile.create("https://github.com/operasoftware/"
+                    + "operachromiumdriver/releases/download/v.85.0.4183.102/"
+                    + "operadriver_win64.zip!/operadriver_win64/"
+                    + "operadriver.exe",
+                    "operadriver-85.0.4183.102.exe"))
+            .get();
+
     static Stream<WebDriverHttpFetcher> browsersProvider() {
         return Stream.of(
                 createFetcher(Browser.FIREFOX, firefoxDriverPath),
-                createFetcher(Browser.CHROME, chromeDriverPath)
-                //createFetcher(Browser.EDGE, edgeDriverPath)
+                createFetcher(Browser.CHROME, chromeDriverPath),
+                createFetcher(Browser.EDGE, edgeDriverPath),
+                createFetcher(Browser.OPERA, operaDriverPath)
         );
     }
 
@@ -230,9 +240,10 @@ public class WebDriverHttpFetcherTest  {
     // Returns false for browsers not supporting setting proxies, which
     // is required to capture headers.
     private boolean isProxySupported(Browser browser) {
-        return true;
-//        return /*browser != Browser.EDGE
-//                && */ browser != Browser.CHROME;
+        // Edge no proxy support:
+        //     https://docs.microsoft.com/en-us/openspecs/ie_standards/
+        //     ms-webdriver/4d9e3215-1111-1111-a0bf-5b013a3267fd
+        return browser != Browser.EDGE;
     }
 
     private void assumeDriverPresent(WebDriverHttpFetcher fetcher) {
