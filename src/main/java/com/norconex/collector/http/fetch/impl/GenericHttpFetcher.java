@@ -19,7 +19,6 @@ import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.AlgorithmConstraints;
@@ -42,7 +41,6 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -58,8 +56,6 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
@@ -69,10 +65,6 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.ConnectionConfig;
@@ -89,7 +81,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.Args;
 import org.slf4j.Logger;
@@ -110,7 +101,6 @@ import com.norconex.collector.http.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
@@ -195,7 +185,7 @@ import com.norconex.importer.util.CharsetUtil;
  *
  *   <!-- Optional authentication details. -->
  *   <authentication>
- *     {@nx.include com.norconex.collector.http.fetch.impl.GenericHttpAuthConfig@nx.xml.usage}
+ *     {@nx.include com.norconex.collector.http.fetch.impl.HttpAuthConfig@nx.xml.usage}
  *   </authentication>
  *
  *   <validStatusCodes>(defaults to 200)</validStatusCodes>
@@ -342,7 +332,8 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
             HttpMethod method = ofNullable(httpMethod).orElse(GET);
             LOG.debug("Fetching document: {}", doc.getReference());
-            request = createUriRequest(doc.getReference(), method);
+            request = ApacheHttpUtil.createUriRequest(
+                    doc.getReference(), method);
 
             HttpClientContext ctx = HttpClientContext.create();
 
@@ -358,7 +349,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
             }
 
             // Execute the method.
-            HttpResponse response = httpExecute(request, ctx);
+            HttpResponse response = httpClient.execute(request, ctx);
 
             //--- Process the response -----------------------------------------
 
@@ -417,6 +408,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                     .setCrawlState(CrawlState.BAD_STATUS)
                     .create();
         } catch (Exception e) {
+            analyseException(e);
             //TODO set exception on response instead?
             throw new HttpFetchException(
                     "Could not fetch document: " + doc.getReference(), e);
@@ -453,25 +445,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     }
 
     //TODO Offer global PropertySetter option when adding headers and/or other fields
-
-    /**
-     * Creates the HTTP request to be executed.
-     * @param url the request target URL
-     * @param method HTTP method (never null)
-     * @return Apache HTTP request
-     */
-    protected HttpRequestBase createUriRequest(String url, HttpMethod method) {
-        URI uri = HttpURL.toURI(url);
-        LOG.debug("Encoded URI: {}", uri);
-        switch (method) {
-        case HEAD:
-            return new HttpHead(uri);
-        case POST:
-            return new HttpPost(uri);
-        default:
-            return new HttpGet(uri);
-        }
-    }
 
     protected HttpClient createHttpClient() {
         HttpClientBuilder builder = HttpClientBuilder.create();
@@ -539,45 +512,14 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     }
 
     protected void authenticateUsingForm(HttpClient httpClient) {
-        GenericHttpAuthConfig authConfig = cfg.getAuthConfig();
-
-        HttpPost post = new HttpPost(authConfig.getUrl());
-
-        List<NameValuePair> formparams = new ArrayList<>();
-        formparams.add(new BasicNameValuePair(
-                authConfig.getFormUsernameField(),
-                authConfig.getCredentials().getUsername()));
-        formparams.add(new BasicNameValuePair(
-                authConfig.getFormPasswordField(),
-                EncryptionUtil.decryptPassword(authConfig.getCredentials())));
-
-        for (String name : authConfig.getFormParamNames()) {
-            formparams.add(new BasicNameValuePair(
-                    name, authConfig.getFormParam(name)));
-        }
-
-        LOG.info("Performing FORM authentication at \"{}\" (username={}; p"
-                + "assword=*****)", authConfig.getUrl(),
-                authConfig.getCredentials().getUsername());
         try {
-            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
-                    formparams, authConfig.getFormCharset());
-            post.setEntity(entity);
-            HttpResponse response = httpExecute(post, null);
-            StatusLine statusLine = response.getStatusLine();
-            LOG.info("Authentication status: {}.", statusLine);
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Authentication response:\n{}", IOUtils.toString(
-                        response.getEntity().getContent(),
-                        StandardCharsets.UTF_8));
-            }
-        } catch (Exception e) {
-            LOG.error("Coult not perform FORM-based authentication.", e);
-            throw new CollectorException(e);
+            ApacheHttpUtil.authenticateUsingForm(
+                    httpClient, cfg.getAuthConfig());
+        } catch (IOException e) {
+            analyseException(e);
+            throw new CollectorException(
+                    "Could not perform FORM-based authentication.", e);
         }
-        post.releaseConnection();
-
     }
 
     /**
@@ -614,7 +556,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         // together and we add the preemptive authentication directly
         // in the default HTTP headers.
         if (cfg.getAuthConfig() != null && cfg.getAuthConfig().isPreemptive()) {
-            GenericHttpAuthConfig authConfig = cfg.getAuthConfig();
+            HttpAuthConfig authConfig = cfg.getAuthConfig();
             if (StringUtils.isBlank(
                     authConfig.getCredentials().getUsername())) {
                 LOG.warn("Preemptive authentication is enabled while no "
@@ -691,7 +633,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
 
         //--- Auth ---
-        GenericHttpAuthConfig authConfig = cfg.getAuthConfig();
+        HttpAuthConfig authConfig = cfg.getAuthConfig();
         if (authConfig != null
                 && authConfig.getCredentials().isSet()
                 && !AUTH_METHOD_FORM.equalsIgnoreCase(authConfig.getMethod())
@@ -835,25 +777,17 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
     }
 
-    private HttpResponse httpExecute(
-            HttpRequestBase method, HttpClientContext context)
-                    throws IOException {
-        try {
-            return httpClient.execute(method, context);
-        } catch (SSLHandshakeException e) {
-            if (!cfg.isTrustAllSSLCertificates()) {
-                LOG.warn("SSL handshake exception for {}. Consider "
-                        + "setting 'trustAllSSLCertificates' to true.",
-                        method.getURI());
-                // check for null or use GET
-            }
-            throw e;
+    private void analyseException(Exception e) {
+        if (e instanceof SSLHandshakeException
+                && !cfg.isTrustAllSSLCertificates()) {
+            LOG.warn("SSL handshake exception. Consider "
+                    + "setting 'trustAllSSLCertificates' to true.");
         }
     }
 
     @Override
     public void loadHttpFetcherFromXML(XML xml) {
-        cfg.loadFromXML(xml);
+        xml.populate(cfg);
     }
 
     @Override

@@ -62,7 +62,7 @@ public class HttpCollectorConfigTest {
     public void testValidation() throws IOException {
         try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
                 "/validation/collector-http-full.xml"))) {
-            new HttpCollectorConfig().loadFromXML(new XML(r));
+            new XML(r).populate(new HttpCollectorConfig());
         } catch (XMLValidationException e) {
             Assertions.fail(e.getErrors().size()
                     + "Validation warnings/errors were found.");

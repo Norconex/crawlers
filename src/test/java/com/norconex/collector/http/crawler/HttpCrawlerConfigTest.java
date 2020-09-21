@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.HttpCollectorConfig;
-import com.norconex.collector.http.fetch.impl.GenericHttpAuthConfig;
+import com.norconex.collector.http.fetch.impl.HttpAuthConfig;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
@@ -53,7 +53,7 @@ public class HttpCrawlerConfigTest {
         fetcher.getConfig().getProxySettings().getCredentials().setPasswordKey(
                 new EncryptionKey("C:\\keys\\myEncryptionKey.txt",
                         EncryptionKey.Source.FILE));
-        GenericHttpAuthConfig authConfig = new GenericHttpAuthConfig();
+        HttpAuthConfig authConfig = new HttpAuthConfig();
         authConfig.getCredentials().setPasswordKey(
                 new EncryptionKey("my key"));
 

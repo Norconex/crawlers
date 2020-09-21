@@ -66,7 +66,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private boolean forceContentTypeDetection;
     private boolean forceCharsetDetection;
 
-    private GenericHttpAuthConfig authConfig;
+    private HttpAuthConfig authConfig;
 
     private String cookieSpec = CookieSpecs.STANDARD;
     private final ProxySettings proxySettings = new ProxySettings();
@@ -534,10 +534,10 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         this.disableIfModifiedSince = disableIfModifiedSince;
     }
 
-    public GenericHttpAuthConfig getAuthConfig() {
+    public HttpAuthConfig getAuthConfig() {
         return authConfig;
     }
-    public void setAuthConfig(GenericHttpAuthConfig authConfig) {
+    public void setAuthConfig(HttpAuthConfig authConfig) {
         this.authConfig = authConfig;
     }
 
@@ -556,11 +556,12 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         cookieSpec = xml.getString("cookieSpec", cookieSpec);
 
         xml.ifXML("authentication", x -> {
-            GenericHttpAuthConfig acfg = new GenericHttpAuthConfig();
+            HttpAuthConfig acfg = new HttpAuthConfig();
             acfg.loadFromXML(x);
+//            x.populate(acfg);
             setAuthConfig(acfg);
         });
-        proxySettings.loadFromXML(xml.getXML("proxySettings"));
+        xml.ifXML("proxySettings", x -> x.populate(proxySettings));
         connectionTimeout = xml.getDurationMillis(
                 "connectionTimeout", (long) connectionTimeout).intValue();
         socketTimeout = xml.getDurationMillis(

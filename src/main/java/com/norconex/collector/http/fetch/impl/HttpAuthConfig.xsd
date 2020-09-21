@@ -17,9 +17,9 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:include schemaLocation="../AbstractHttpFetcher.xsd"></xs:include>
-  <xs:include schemaLocation="/com/norconex/commons/lang/security/CredentialsType.xsd"></xs:include>
+  <xs:include schemaLocation="/com/norconex/commons/lang/security/Credentials.xsd"></xs:include>
 
-  <xs:complexType name="GenericHttpAuthConfigType">
+  <xs:complexType name="HttpAuthConfigType">
     <xs:all>
       <xs:element name="formParams" minOccurs="0" maxOccurs="1">
         <xs:complexType>
@@ -61,7 +61,7 @@
       <xs:element name="formSelector" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="formCharset" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="url" type="xs:string" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="hostname" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="host" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="port" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="realm" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="workstation" type="xs:string" minOccurs="0" maxOccurs="1"/>

@@ -91,7 +91,7 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class GenericHttpAuthConfig implements IXMLConfigurable {
+public class HttpAuthConfig implements IXMLConfigurable {
 
     //TODO consider using factory for auth configs and mechanisms.
 
@@ -387,9 +387,11 @@ public class GenericHttpAuthConfig implements IXMLConfigurable {
     @Override
     public void loadFromXML(XML xml) {
         method = xml.getString("method", method);
-        formUsernameField = xml.getString("formUsernameField", formUsernameField);
-        formPasswordField = xml.getString("formPasswordField", formPasswordField);
-        credentials.loadFromXML(xml.getXML("credentials"));
+        formUsernameField =
+                xml.getString("formUsernameField", formUsernameField);
+        formPasswordField =
+                xml.getString("formPasswordField", formPasswordField);
+        xml.ifXML("credentials", x -> x.populate(credentials));
         url = xml.getString("url", url);
         host = Host.loadFromXML(xml.getXML("host"), host);
         realm = xml.getString("realm", realm);
@@ -424,10 +426,10 @@ public class GenericHttpAuthConfig implements IXMLConfigurable {
 
     @Override
     public boolean equals(final Object obj) {
-        if (!(obj instanceof GenericHttpAuthConfig)) {
+        if (!(obj instanceof HttpAuthConfig)) {
             return false;
         }
-        GenericHttpAuthConfig other = (GenericHttpAuthConfig) obj;
+        HttpAuthConfig other = (HttpAuthConfig) obj;
         return EqualsBuilder.reflectionEquals(
                 this, other, "formParams")
                 && EqualsUtil.equalsMap(formParams, other.formParams);

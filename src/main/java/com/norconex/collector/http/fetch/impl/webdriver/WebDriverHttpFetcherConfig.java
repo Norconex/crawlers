@@ -145,6 +145,7 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         xml.ifXML("httpSniffer", x -> {
             HttpSnifferConfig cfg = new HttpSnifferConfig();
             cfg.loadFromXML(x);
+            //x.populate(cfg);
             setHttpSnifferConfig(cfg);
         });
 

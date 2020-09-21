@@ -17,7 +17,8 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:include schemaLocation="../AbstractHttpFetcher.xsd"></xs:include>
-  <xs:include schemaLocation="GenericHttpAuthConfig.xsd"></xs:include>
+  <xs:include schemaLocation="HttpAuthConfig.xsd"></xs:include>
+  <xs:include schemaLocation="/com/norconex/commons/lang/net/ProxySettings.xsd"></xs:include>
 
   <xs:element name="fetcher">
     <xs:complexType>
@@ -25,9 +26,11 @@
         <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="notFoundStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="forceContentTypeDetection" type="xs:boolean"/>
+        <xs:element name="forceCharsetDetection" type="xs:boolean"/>
         <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="detectContentType" type="xs:boolean"/>
-        <xs:element name="detectCharset" type="xs:boolean"/>
+        <xs:element name="detectContentType" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="detectCharset" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="redirectURLProvider" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
         <xs:element name="cookieSpec" minOccurs="0" maxOccurs="1">
           <xs:simpleType>
@@ -39,7 +42,7 @@
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
-        <xs:element name="authentication" type="GenericHttpAuthConfigType" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="authentication" type="HttpAuthConfigType" minOccurs="0" maxOccurs="1"/>
         <xs:element name="connectionTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="socketTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="connectionRequestTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -55,6 +58,7 @@
         <xs:element name="disableSNI" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="sslProtocols" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="proxySettings" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="disableIfModifiedSince" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="headers" minOccurs="0" maxOccurs="1">
           <xs:complexType>
             <xs:all>

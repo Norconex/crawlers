@@ -164,7 +164,7 @@ public class GenericURLNormallizerTest {
         xml = "<urlNormalizer><normalizations></normalizations>"
                 + "</urlNormalizer>";
         try (Reader r = new StringReader(xml)) {
-            n.loadFromXML(new XML(r));
+            new XML(r).populate(n);
         }
         assertEquals(0, n.getNormalizations().size());
 
@@ -172,7 +172,7 @@ public class GenericURLNormallizerTest {
         n = new GenericURLNormalizer();
         xml = "<urlNormalizer></urlNormalizer>";
         try (Reader r = new StringReader(xml)) {
-            n.loadFromXML(new XML(r));
+            new XML(r).populate(n);
         }
         assertEquals(6, n.getNormalizations().size());
 
@@ -182,7 +182,7 @@ public class GenericURLNormallizerTest {
                 + "lowerCaseSchemeHost, removeSessionIds</normalizations>"
                 + "</urlNormalizer>";
         try (Reader r = new StringReader(xml)) {
-            n.loadFromXML(new XML(r));
+            new XML(r).populate(n);
         }
         assertEquals(2, n.getNormalizations().size());
     }

@@ -96,7 +96,7 @@ public class RegexLinkExtractorTest {
         RegexLinkExtractor extractor = new RegexLinkExtractor();
         try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
                 getClass().getSimpleName() + ".cfg.xml"))) {
-            extractor.loadFromXML(new XML(r));
+            new XML(r).populate(extractor);
         }
         // All these must be found
         String[] expectedURLs = {

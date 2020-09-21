@@ -110,14 +110,47 @@
     <httpFetchers maxRetries="5" retryDelay="10 seconds">
       <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
           <userAgent>Here we crawl!</userAgent>
-          <cookiesDisabled>true</cookiesDisabled>
+          <validStatusCodes>200,201</validStatusCodes>
+          <notFoundStatusCodes>404,401</notFoundStatusCodes>
+          <forceContentTypeDetection>true</forceContentTypeDetection>
+          <forceCharsetDetection>true</forceCharsetDetection>
+          <headersPrefix>myprefix</headersPrefix>
+          <detectContentType>true</detectContentType>
+          <detectCharset>true</detectCharset>
+          <redirectURLProvider fallbackCharset="UTF-8"/>
+          <cookieSpec>ignoreCookies</cookieSpec>
+          <authentication>
+            <formParams>
+              <param name="param1">value1</param>
+              <param name="param2">value2</param>
+            </formParams>
+            <method>digest</method>
+            <credentials>
+              <username>user</username>
+              <password>pass</password>
+              <passwordKey>
+                <value>/path/to/my.key</value>
+                <source>file</source>
+              </passwordKey>              
+            </credentials>
+            <formUsernameField>userfield</formUsernameField>
+            <formPasswordField>pwdfield</formPasswordField>
+            <formSelector>#myform</formSelector>
+            <formCharset>UTF-8</formCharset>
+            <url>authURL</url>
+            <host>authHost</host>
+            <port>9</port>
+            <realm>authRealm</realm>
+            <workstation>authWorkstation</workstation>
+            <domain>authDomain</domain>
+            <preemptive>true</preemptive>
+          </authentication>
           <connectionTimeout>1</connectionTimeout>
           <socketTimeout>2 minutes</socketTimeout>
           <connectionRequestTimeout>3 min 30s</connectionRequestTimeout>
           <connectionCharset>US-ASCII</connectionCharset>
           <expectContinueEnabled>true</expectContinueEnabled>
           <maxRedirects>4</maxRedirects>
-          <redirectURLProvider fallbackCharset="UTF-8"/>
           <localAddress>address</localAddress>
           <maxConnections>5</maxConnections>
           <maxConnectionsPerRoute>6</maxConnectionsPerRoute>
@@ -126,42 +159,27 @@
           <trustAllSSLCertificates>true</trustAllSSLCertificates>
           <disableSNI>true</disableSNI>
           <sslProtocols>item1,item2</sslProtocols>
-          <proxyHost>host</proxyHost>
-          <proxyPort>9</proxyPort>
-          <proxyRealm>realm</proxyRealm>
-          <proxyScheme>scheme</proxyScheme>
-          <proxyUsername>username</proxyUsername>
-          <proxyPassword>pwd</proxyPassword>
-          <proxyPasswordKey>key</proxyPasswordKey>
-          <proxyPasswordKeySource>environment</proxyPasswordKeySource>
+          <proxySettings>
+            <host>
+              <name>host</name>
+              <port>9</port>
+            </host>
+            <realm>realm</realm>
+            <scheme>scheme</scheme>
+            <credentials>
+              <username>username</username>
+              <password>pwd</password>
+              <passwordKey>
+                <value>/path/to/my.key</value>
+                <source>file</source>
+              </passwordKey>              
+            </credentials>
+          </proxySettings>
+          <disableIfModifiedSince>true</disableIfModifiedSince>
           <headers>
             <header name="head1"></header>
             <header name="head2">value2</header>
           </headers>
-          <authMethod>digest</authMethod>
-          <authUsername>user</authUsername>
-          <authPassword>pass</authPassword>
-          <authPasswordKey>thekey</authPasswordKey>
-          <authPasswordKeySource>file</authPasswordKeySource>
-          <authUsernameField>userfield</authUsernameField>
-          <authPasswordField>pwdfield</authPasswordField>
-          <authURL>authURL</authURL>
-          <authFormParams>
-            <param name="token1"></param>
-            <param name="token2">somevalue2</param>
-          </authFormParams>
-          <authFormCharset>UTF-8</authFormCharset>
-          <authHostname>authHost</authHostname>
-          <authPort>9</authPort>
-          <authRealm>authRealm</authRealm>
-          <authWorkstation>authWorkstation</authWorkstation>
-          <authDomain>authDomain</authDomain>
-          <authPreemptive>true</authPreemptive>
-          <validStatusCodes>200,201</validStatusCodes>
-          <notFoundStatusCodes>404,401</notFoundStatusCodes>
-          <headersPrefix>myprefix</headersPrefix>
-          <detectContentType>true</detectContentType>
-          <detectCharset>true</detectCharset>
       </fetcher>
     </httpFetchers>    
     

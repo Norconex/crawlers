@@ -405,11 +405,11 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
     @Override
     public void loadHttpFetcherFromXML(XML xml) {
-        cfg.loadFromXML(xml);
+        xml.populate(cfg);
         xml.ifXML("screenshot", x -> {
             ScreenshotHandler h =
                     new ScreenshotHandler(streamFactory);
-            h.loadFromXML(x);
+            x.populate(h);
             setScreenshotHandler(h);
         });
     }

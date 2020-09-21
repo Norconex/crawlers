@@ -81,8 +81,7 @@ public class GenericRecrawlableResolverTest {
                 + ".*</minFrequency>"
                 + "</recrawlableResolver>";
         GenericRecrawlableResolver r = new GenericRecrawlableResolver();
-        r.loadFromXML(new XML(xml));
-
+        new XML(xml).populate(r);
         ZonedDateTime prevCrawlDate = ZonedDateTime.now().minusDays(10);
         HttpDocInfo prevCrawl = new HttpDocInfo();
         prevCrawl.setContentType(ContentType.HTML);
