@@ -76,8 +76,9 @@ import com.norconex.commons.lang.text.TextMatcher;
         extractedURLs.addAll(inScopeUrls);
         docInfo.setReferencedUrls(new ArrayList<>(extractedURLs));
 
-        ctx.fireCrawlerEvent(HttpCrawlerEvent.URLS_POST_IMPORTED,
-                ctx.getDocInfo(), inScopeUrls);
+        ctx.fire(HttpCrawlerEvent.URLS_POST_IMPORTED, b -> b
+                .crawlDocInfo(ctx.getDocInfo())
+                .subject(inScopeUrls));
         return true;
     }
 

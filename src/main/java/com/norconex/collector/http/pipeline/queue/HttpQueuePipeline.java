@@ -67,9 +67,9 @@ public final class HttpQueuePipeline
                             ctx.getDocInfo().getReference());
                 }
                 ctx.getDocInfo().setState(HttpCrawlState.TOO_DEEP);
-                ctx.fireCrawlerEvent(
-                        HttpCrawlerEvent.REJECTED_TOO_DEEP,
-                        ctx.getDocInfo(), ctx.getDocInfo().getDepth());
+                ctx.fire(HttpCrawlerEvent.REJECTED_TOO_DEEP, b -> b
+                        .crawlDocInfo(ctx.getDocInfo())
+                        .subject(ctx.getDocInfo().getDepth()));
                 return false;
             }
             return true;

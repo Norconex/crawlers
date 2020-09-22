@@ -26,8 +26,8 @@
         <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="notFoundStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="forceContentTypeDetection" type="xs:boolean"/>
-        <xs:element name="forceCharsetDetection" type="xs:boolean"/>
+        <xs:element name="forceContentTypeDetection" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="forceCharsetDetection" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="detectContentType" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         <xs:element name="detectCharset" type="xs:boolean" minOccurs="0" maxOccurs="1"/>

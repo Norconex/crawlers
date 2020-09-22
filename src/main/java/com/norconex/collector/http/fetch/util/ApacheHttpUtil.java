@@ -14,19 +14,27 @@
  */
 package com.norconex.collector.http.fetch.util;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.firstNonBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.replaceChars;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 
+import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
@@ -41,7 +49,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.FormBodyPartBuilder;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
@@ -216,7 +227,7 @@ public final class ApacheHttpUtil {
      * @return Apache HTTP request
      */
     public static HttpRequestBase createUriRequest(String url, String method) {
-        String m = defaultIfNull(method, "GET");
+        String m = firstNonBlank(method, "GET");
         return createUriRequest(url, HttpMethod.valueOf(m.toUpperCase()));
     }
     /**
@@ -241,7 +252,7 @@ public final class ApacheHttpUtil {
 
     public static void authenticateUsingForm(
             HttpClient httpClient, HttpAuthConfig authConfig)
-                    throws IOException {
+                    throws IOException, URISyntaxException {
         if (authConfig == null) {
             return;
         }
@@ -286,7 +297,7 @@ public final class ApacheHttpUtil {
             LOG.info("Authentication status: {}.", response.getStatusLine());
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Authentication response:\n{}", IOUtils.toString(
+                LOG.debug("Authentication response: {}", IOUtils.toString(
                         response.getEntity().getContent(),
                         StandardCharsets.UTF_8));
             }
@@ -297,7 +308,7 @@ public final class ApacheHttpUtil {
 
     private static void authLoginPage(
             HttpClient httpClient, HttpAuthConfig cfg)
-                    throws IOException {
+                    throws IOException, URISyntaxException {
 
         LOG.info("Parsing, filing, and submitting login FORM at \"{}\" "
                 + "(username={}; p"
@@ -305,21 +316,37 @@ public final class ApacheHttpUtil {
                 cfg.getCredentials().getUsername());
         HttpGet get = new HttpGet(cfg.getUrl());
         try {
-            HttpResponse response =
+            HttpResponse formReadResponse =
                     httpClient.execute(get, (HttpContext) null);
-            HttpEntity entity = response.getEntity();
+            HttpEntity entity = formReadResponse.getEntity();
             if (entity == null) {
                 LOG.error("Authentication URL returned no content. "
-                        + "Status: {}.", response.getStatusLine());
+                        + "Status: {}.", formReadResponse.getStatusLine());
                 return;
             }
             Document doc = Jsoup.parse(
                     entity.getContent(),
-                    entity.getContentEncoding().getValue(),
+                    entity.getContentEncoding() != null
+                            ? entity.getContentEncoding().getValue()
+                            : null,
                     cfg.getUrl());
-            HttpUriRequest authReq = formToRequest(doc, cfg);
+            HttpRequestBase authReq = formToRequest(doc, cfg);
             if (authReq != null) {
-                //TODO execute auth request
+                try {
+                    // execute auth request
+                    HttpResponse formSubmitResponse =
+                            httpClient.execute(authReq);
+                    LOG.info("Authentication status: {}.",
+                            formSubmitResponse.getStatusLine());
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Authentication response: {}",
+                                IOUtils.toString(formSubmitResponse
+                                        .getEntity().getContent(),
+                                StandardCharsets.UTF_8));
+                    }
+                } finally {
+                    authReq.releaseConnection();
+                }
             }
             //TODO share some of auth code with authFormAction(...)
         } finally {
@@ -331,20 +358,18 @@ public final class ApacheHttpUtil {
 
     }
 
-    private static HttpUriRequest formToRequest(
-            Document doc, HttpAuthConfig cfg) {
-        if (true) {
-            throw new UnsupportedOperationException(
-                    "This type of authentication is not yet supported. "
-                  + "Remove 'formSelector' for classic form-auth.");
-        }
+    private static HttpRequestBase formToRequest(
+            Document doc, HttpAuthConfig cfg) throws URISyntaxException {
+
         Element form = doc.selectFirst(cfg.getFormSelector());
         if (form == null) {
             LOG.error("Page has no login form: {}", cfg.getUrl());
             return null;
         }
 
-        List<NameValuePair> params = new ArrayList<>();
+        //--- Load/populate form ---
+
+        Map<String, String> params = new ListOrderedMap<>();
         // Loop through each input and fill/overwrite matching
         // ones, else take as is.
         for (Element el: form.select("[name]")) {
@@ -353,35 +378,79 @@ public final class ApacheHttpUtil {
             if (StringUtils.isBlank(value)) {
                 value = el.wholeText();
             }
-
-            // check for matches and overite
-
+            params.put(name, value);
         }
 
+        // overwrite matching form params from configuration
+        if (cfg.getFormUsernameField() != null) {
+            params.put(cfg.getFormUsernameField(),
+                    cfg.getCredentials().getUsername());
+        }
+        if (cfg.getFormPasswordField() != null) {
+            params.put(cfg.getFormPasswordField(),
+                    EncryptionUtil.decryptPassword(cfg.getCredentials()));
+        }
+        params.putAll(cfg.getFormParams());
 
-        // todo if config form params were not encountered, add them.
+
+        //--- Form params to HTTP request ---
 
         // If no "action", we assume self.
-        String actionURL = defaultIfNull(form.attr("abs:action"), cfg.getUrl());
-
-        HttpUriRequest method =
+        String actionURL =
+                firstNonBlank(form.attr("abs:action"), cfg.getUrl());
+        // If no "method", we assume "GET".
+        HttpRequestBase httpRequest =
                 createUriRequest(actionURL, form.attr("method"));
 
-
-
-        // form attr:
-           // accept-charset="UTF-8"
-           // enctype  Specifies how the form-data should be encoded when submitting it to the server (only for method="post") https://www.w3schools.com/tags/att_form_enctype.asp
-           // name
-
-//        formparams.add(new BasicNameValuePair(
-//                cfg.getFormUsernameField(),
-//                cfg.getCredentials().getUsername()));
-//        formparams.add(new BasicNameValuePair(
-//                cfg.getFormPasswordField(),
-//                EncryptionUtil.decryptPassword(cfg.getCredentials())));
-
-        return null;
+        // Only for POST. https://www.w3schools.com/tags/att_form_enctype.asp
+        if (httpRequest instanceof HttpPost) {
+            HttpEntity entity;
+            String enctype = form.attr("enctype");
+            Charset charset = ObjectUtils.firstNonNull(
+                    cfg.getFormCharset(),
+                    isNotBlank(form.attr("accept-charset"))
+                            ? Charset.forName(form.attr("accept-charset"))
+                            : UTF_8);
+            if ("multipart/form-data".equalsIgnoreCase(enctype)) {
+                FormBodyPartBuilder fb = FormBodyPartBuilder.create();
+                for (Entry<String, String> en : params.entrySet()) {
+                    fb.addField(en.getKey(), en.getValue());
+                }
+                entity = MultipartEntityBuilder.create().addPart(
+                        fb.build()).build();
+            } else if ("text/plain".equalsIgnoreCase(enctype)) {
+                StringBuilder b = new StringBuilder();
+                for (Entry<String, String> en : params.entrySet()) {
+                    b.append(replaceChars(en.getKey(), ' ', '+'));
+                    b.append('=');
+                    b.append(replaceChars(en.getValue(), ' ', '+'));
+                    b.append('\n');
+                }
+                entity = new StringEntity(b.toString(), charset);
+            } else {
+                // defaults to: application/x-www-form-urlencoded
+                entity = new UrlEncodedFormEntity(
+                        toNameValuePairs(params), charset);
+            }
+            ((HttpPost) httpRequest).setEntity(entity);
+        } else if (httpRequest instanceof HttpGet) {
+            HttpGet get = (HttpGet) httpRequest;
+            get.setURI(new URIBuilder(get.getURI())
+                    .setParameters(toNameValuePairs(params))
+                    .build());
+        } else {
+            LOG.error("Form method not spported: {}", httpRequest.getMethod());
+            return null;
+        }
+        return httpRequest;
     }
 
+    private static List<NameValuePair> toNameValuePairs(
+            Map<String, String> map) {
+        List<NameValuePair> pairs = new ArrayList<>();
+        for (Entry<String, String> en : map.entrySet()) {
+            pairs.add(new BasicNameValuePair(en.getKey(), en.getValue()));
+        }
+        return pairs;
+    }
 }

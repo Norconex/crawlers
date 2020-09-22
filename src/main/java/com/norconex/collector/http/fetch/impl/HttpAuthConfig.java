@@ -52,7 +52,7 @@ import com.norconex.commons.lang.xml.XML;
  *   <formPasswordField>...</formPasswordField>
  *   <url>
  *     (Either a login form's action target URL or the URL of a page containing
- *      a login form if a "authFormSelector" is specified.)
+ *      a login form if a "formSelector" is specified.)
  *   </url>
  *   <formCharset>...</formCharset>
  *   <!-- Extra form parameters required to authenticate (since 2.8.0) -->
@@ -110,6 +110,7 @@ public class HttpAuthConfig implements IXMLConfigurable {
 
     private String method;
     private String url;
+    //TODO consider taking those out in favor of 'formParams'?
     private String formUsernameField;
     private String formPasswordField;
     private final Credentials credentials = new Credentials();
@@ -317,6 +318,14 @@ public class HttpAuthConfig implements IXMLConfigurable {
         return formParams.get(name);
     }
     /**
+     * Gets all authentication form parameters (equivalent to "input" or other
+     * fields in HTML forms).
+     * @return form parameters map (name and value)
+     */
+    public Map<String, String> getFormParams() {
+        return new HashMap<>(formParams);
+    }
+    /**
      * Gets all authentication form parameter names. If no form parameters
      * are set, it returns an empty array.
      * @return HTTP request header names
@@ -399,6 +408,7 @@ public class HttpAuthConfig implements IXMLConfigurable {
         workstation = xml.getString("workstation", workstation);
         domain = xml.getString("domain", domain);
         preemptive = xml.getBoolean("preemptive", preemptive);
+        formSelector = xml.getString("formSelector", formSelector);
         setFormParams(xml.getStringMap(
                 "formParams/param", "@name", ".", formParams));
     }
@@ -416,6 +426,7 @@ public class HttpAuthConfig implements IXMLConfigurable {
         xml.addElement("domain", domain);
         xml.addElement("realm", realm);
         xml.addElement("preemptive", preemptive);
+        xml.addElement("formSelector", formSelector);
 
         XML xmlAuthFormParams = xml.addXML("formParams");
         for (Entry<String, String> entry : formParams.entrySet()) {

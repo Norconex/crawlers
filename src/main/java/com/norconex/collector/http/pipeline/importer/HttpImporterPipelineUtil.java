@@ -143,9 +143,9 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
         } else {
             LOG.debug("URL redirect target not in scope: {}", redirectURL);
             newData.setState(CrawlState.REJECTED);
-            ctx.fireCrawlerEvent(
-                    CrawlerEvent.REJECTED_FILTER, newData,
-                    ctx.getConfig().getURLCrawlScopeStrategy());
+            ctx.fire(CrawlerEvent.REJECTED_FILTER, b -> b
+                    .crawlDocInfo(newData)
+                    .subject(ctx.getConfig().getURLCrawlScopeStrategy()));
         }
     }
 

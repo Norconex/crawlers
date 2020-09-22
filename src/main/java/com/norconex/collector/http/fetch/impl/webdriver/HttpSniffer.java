@@ -137,6 +137,7 @@ public class HttpSniffer {
             profile.setPreference("network.proxy.ssl_port", actualPort);
             profile.setPreference("network.proxy.type", 1);
             profile.setPreference("network.proxy.no_proxies_on", "");
+            profile.setPreference("devtools.console.stdout.content", true);
             // Required since FF v67 to enable a localhost proxy:
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1535581
             profile.setPreference(

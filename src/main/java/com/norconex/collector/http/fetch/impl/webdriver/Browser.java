@@ -28,6 +28,7 @@ import org.openqa.selenium.edge.EdgeDriverService;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.opera.OperaDriver;
 import org.openqa.selenium.opera.OperaDriverService;
@@ -80,6 +81,13 @@ public enum Browser {
             //TODO consider making page load strategy configurable (with
             //different defaults).
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
+
+            FirefoxProfile profile = new FirefoxProfile();
+            profile.setAcceptUntrustedCertificates(true);
+            profile.setAssumeUntrustedCertificateIssuer(true);
+            profile.setPreference("devtools.console.stdout.content", true);
+            options.setCapability(FirefoxDriver.PROFILE, profile);
+
             return options;
         }
         @Override

@@ -14,13 +14,12 @@
  */
 package com.norconex.collector.http.pipeline.importer;
 
-import static com.norconex.collector.core.crawler.CrawlerEvent.REJECTED_FILTER;
-
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.core.filter.IMetadataFilter;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
@@ -87,14 +86,17 @@ class MetadataFiltersStage extends AbstractHttpMethodStage {
                 LOG.debug("ACCEPTED document metadata. Reference={} Filter={}",
                         ctx.getDocInfo().getReference(), filter);
             } else {
-                ctx.fireCrawlerEvent(
-                        REJECTED_FILTER, ctx.getDocInfo(), filter);
+                ctx.fire(CrawlerEvent.REJECTED_FILTER, b -> b
+                        .crawlDocInfo(ctx.getDocInfo())
+                        .subject(filter));
                 return true;
             }
         }
         if (hasIncludes && !atLeastOneIncludeMatch) {
-            ctx.fireCrawlerEvent(REJECTED_FILTER, ctx.getDocInfo(),
-                    "No \"include\" metadata filters matched.");
+            ctx.fire(CrawlerEvent.REJECTED_FILTER, b -> b
+                    .crawlDocInfo(ctx.getDocInfo())
+                    .subject(filters)
+                    .message("No \"include\" metadata filters matched."));
             return true;
         }
         return false;

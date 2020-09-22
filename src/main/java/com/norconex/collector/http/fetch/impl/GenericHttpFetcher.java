@@ -19,6 +19,7 @@ import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.AlgorithmConstraints;
@@ -144,7 +145,9 @@ import com.norconex.importer.util.CharsetUtil;
  * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
  *
  *   <userAgent>(identify yourself!)</userAgent>
- *   <cookiesDisabled>[false|true]</cookiesDisabled>
+ *   <cookieSpec>
+ *     [STANDARD|DEFAULT|IGNORE_COOKIES|NETSCAPE|STANDARD_STRICT]
+ *   </cookieSpec>
  *   <connectionTimeout>(milliseconds)</connectionTimeout>
  *   <socketTimeout>(milliseconds)</socketTimeout>
  *   <connectionRequestTimeout>(milliseconds)</connectionRequestTimeout>
@@ -515,7 +518,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         try {
             ApacheHttpUtil.authenticateUsingForm(
                     httpClient, cfg.getAuthConfig());
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             analyseException(e);
             throw new CollectorException(
                     "Could not perform FORM-based authentication.", e);

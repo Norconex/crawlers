@@ -62,6 +62,10 @@
         New metadata field set when URL changes from normalization:
         "collector.originalReference". 
       </action>
+      <action dev="essiembre" type="add">
+        Form authentication can now parse and submit HTML forms
+        (taking login page URL instead of form action URL). 
+      </action>
       <action dev="essiembre" type="update">
         PhantomJSDocumentFetcher now deprecated in favor of 
         WebDriverHttpFetcher.

@@ -54,8 +54,9 @@ import com.norconex.collector.http.recrawl.IRecrawlableResolver;
                 LOG.debug("{} is not ready to be recrawled, skipping it.",
                         cachedInfo.getReference());
             }
-            ctx.fireCrawlerEvent(
-                    CrawlerEvent.REJECTED_PREMATURE, currentData, rr);
+            ctx.fire(CrawlerEvent.REJECTED_PREMATURE, b -> b
+                    .crawlDocInfo(currentData)
+                    .subject(rr));
             currentData.setState(CrawlState.PREMATURE);
         }
         return isRecrawlable;

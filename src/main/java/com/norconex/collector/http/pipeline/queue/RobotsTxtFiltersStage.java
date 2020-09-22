@@ -19,8 +19,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
-import com.norconex.collector.http.doc.HttpCrawlState;
 import com.norconex.collector.http.robot.IRobotsTxtFilter;
 import com.norconex.collector.http.robot.RobotsTxt;
 
@@ -47,9 +47,10 @@ import com.norconex.collector.http.robot.RobotsTxt;
         if (!ctx.getConfig().isIgnoreRobotsTxt()) {
             IRobotsTxtFilter filter = findRejectingRobotsFilter(ctx);
             if (filter != null) {
-                ctx.getDocInfo().setState(HttpCrawlState.REJECTED);
-                ctx.fireCrawlerEvent(HttpCrawlerEvent.REJECTED_ROBOTS_TXT,
-                        ctx.getDocInfo(), filter);
+                ctx.getDocInfo().setState(CrawlState.REJECTED);
+                ctx.fire(HttpCrawlerEvent.REJECTED_ROBOTS_TXT, b -> b
+                        .crawlDocInfo(ctx.getDocInfo())
+                        .subject(filter));
                 LOG.debug("REJECTED by robots.txt. "
                         + ". Reference={} Filter={}",
                         ctx.getDocInfo().getReference(), filter);
