@@ -32,6 +32,10 @@
         triggers a detection attempt of both encoding and content type 
         based on document content. 
       </action>
+      <action dev="essiembre" type="update">
+        Norconex JEF 4.1.3, Norconex Commons Lang 1.15.2, 
+        Norconex Collector Core 1.10.1.
+      </action>      
       <action dev="essiembre" type="fix" issue="678">
         Fixed REJECTED_REDIRECTED event not being fired for the redirect 
         source URL when the target URL was previously encountered. 
