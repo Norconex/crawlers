@@ -88,7 +88,12 @@
            point to a sitemap.xml. If the list of URLs needs to be dynamically
            built, you can use one or more custom IStartURLsProvider.
            -->    
-      <startURLs stayOnDomain="false" includeSubdomains="false" stayOnPort="false" stayOnProtocol="false">
+      <startURLs 
+          stayOnDomain="false" 
+          includeSubdomains="false" 
+          stayOnPort="false" 
+          stayOnProtocol="false"
+          async="true">
         <url>http://www.example.com</url>
         <url>http://www.sample.com</url>
         <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
