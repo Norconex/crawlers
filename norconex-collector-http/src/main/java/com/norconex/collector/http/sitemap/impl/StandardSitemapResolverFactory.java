@@ -84,6 +84,7 @@ public class StandardSitemapResolverFactory
     private String[] sitemapPaths = 
             StandardSitemapResolver.DEFAULT_SITEMAP_PATHS;
     private boolean lenient;
+    private boolean escalateErrors;
 
     private long from = -1;
 
@@ -101,6 +102,7 @@ public class StandardSitemapResolverFactory
         StandardSitemapResolver sr = new StandardSitemapResolver(
                 resolvedTempDir, new SitemapStore(config, resume));
         sr.setFrom(from);
+        sr.setEscalateErrors(escalateErrors);
         sr.setLenient(lenient);
         sr.setSitemapPaths(sitemapPaths);
         return sr;
@@ -164,6 +166,14 @@ public class StandardSitemapResolverFactory
         this.from = from;
     }
 
+    public boolean isEscalateErrors() {
+        return escalateErrors;
+    }
+    public void setEscalateErrors(boolean escalateErrors) {
+        this.escalateErrors = escalateErrors;
+    }
+
+
     /**
      * Gets the directory where sitemap files are temporary stored
      * before they are parsed.  When <code>null</code> (default), temporary
@@ -196,6 +206,7 @@ public class StandardSitemapResolverFactory
             setTempDir(new File(tempPath));
         }
         setLenient(xml.getBoolean("[@lenient]", false));
+        setEscalateErrors(xml.getBoolean("[@escalateErrors]", false));
         setFrom(xml.getLong("[@from]", -1));
         String[] paths = xml.getList(
                 "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY); 
@@ -229,6 +240,7 @@ public class StandardSitemapResolverFactory
             writer.writeStartElement("sitemapResolverFactory");
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttribute("lenient", Boolean.toString(lenient));
+            writer.writeAttribute("escalateErrors", Boolean.toString(escalateErrors));
             writer.writeAttribute("from", Long.toString(from));
             writer.writeElementString(
                     "tempDir", Objects.toString(getTempDir(), null));
@@ -257,6 +269,7 @@ public class StandardSitemapResolverFactory
                 .append("sitemapPaths", sitemapPaths)
                 .append("lenient", lenient)
                 .append("from", from)
+                .append("escalateErrors", escalateErrors)
                 .append("tempDir", tempDir)
                 .toString();
     }
@@ -272,6 +285,7 @@ public class StandardSitemapResolverFactory
                 .append(sitemapPaths, castOther.sitemapPaths)
                 .append(lenient, castOther.lenient)
                 .append(from, castOther.from)
+                .append(escalateErrors, castOther.escalateErrors)
                 .append(tempDir, castOther.tempDir)
                 .isEquals();
     }
@@ -282,6 +296,7 @@ public class StandardSitemapResolverFactory
                 .append(sitemapPaths)
                 .append(lenient)
                 .append(from)
+                .append(escalateErrors)
                 .append(tempDir)
                 .toHashCode();
     }

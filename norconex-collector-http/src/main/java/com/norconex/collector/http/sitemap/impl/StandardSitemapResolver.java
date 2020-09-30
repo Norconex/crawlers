@@ -111,6 +111,8 @@ public class StandardSitemapResolver implements ISitemapResolver {
     private File tempDir;
     private String[] sitemapPaths = DEFAULT_SITEMAP_PATHS;
     private long from;
+    private boolean escalateErrors;
+
 
     public StandardSitemapResolver(
             File tempDir, 
@@ -119,6 +121,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
         this.tempDir = tempDir;
         this.sitemapStore = sitemapStore;
         from = -1;
+        escalateErrors = false;
     }
     
     /**
@@ -218,6 +221,13 @@ public class StandardSitemapResolver implements ISitemapResolver {
         this.from = from;
     }
 
+    public boolean isEscalateErrors() {
+        return escalateErrors;
+    }
+    public void setEscalateErrors(boolean escalateErrors) {
+        this.escalateErrors = escalateErrors;
+    }
+
     /**
      * Gets the directory where temporary sitemap files are written.
      * @return directory
@@ -276,19 +286,33 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 LOG.info("         Resolved: " + location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 LOG.debug("Sitemap not found : " + location);
+                if(escalateErrors) {
+                    throw new RuntimeException("Sitemap not found : " + location);
+                }
             } else {
                 LOG.error("Could not obtain sitemap: " + location
                         + ".  Expected status code " + HttpStatus.SC_OK
                         + ", but got " + statusCode);
+                if(escalateErrors) {
+                    throw new RuntimeException("Could not obtain sitemap: " + location
+                            + ".  Expected status code " + HttpStatus.SC_OK
+                            + ", but got " + statusCode);
+                }
             }
         } catch (XMLStreamException e) {
                 LOG.error("Cannot fetch sitemap: " + location
                         + " -- Likely an invalid sitemap XML format causing "
                         + "a parsing error (actual error: " 
                         + e.getMessage() + ").");
+                if(escalateErrors) {
+                    throw new RuntimeException(e);
+                }
         } catch (Exception e) {
             LOG.error("Cannot fetch sitemap: " + location
                     + " (" + e.getMessage() + ")");
+            if(escalateErrors) {
+                throw new RuntimeException(e);
+            }
         } finally {
             resolvedLocations.add(location);
             if (method != null) {
