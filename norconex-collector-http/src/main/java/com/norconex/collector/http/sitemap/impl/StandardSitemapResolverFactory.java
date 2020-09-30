@@ -196,6 +196,7 @@ public class StandardSitemapResolverFactory
             setTempDir(new File(tempPath));
         }
         setLenient(xml.getBoolean("[@lenient]", false));
+        setFrom(xml.getLong("[@from]", -1));
         String[] paths = xml.getList(
                 "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY); 
         if (!ArrayUtils.isEmpty(paths)) {
@@ -228,6 +229,7 @@ public class StandardSitemapResolverFactory
             writer.writeStartElement("sitemapResolverFactory");
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttribute("lenient", Boolean.toString(lenient));
+            writer.writeAttribute("from", Long.toString(from));
             writer.writeElementString(
                     "tempDir", Objects.toString(getTempDir(), null));
             if (ArrayUtils.isEmpty(sitemapPaths)) {
@@ -254,6 +256,7 @@ public class StandardSitemapResolverFactory
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .append("sitemapPaths", sitemapPaths)
                 .append("lenient", lenient)
+                .append("from", from)
                 .append("tempDir", tempDir)
                 .toString();
     }
@@ -268,6 +271,7 @@ public class StandardSitemapResolverFactory
         return new EqualsBuilder()
                 .append(sitemapPaths, castOther.sitemapPaths)
                 .append(lenient, castOther.lenient)
+                .append(from, castOther.from)
                 .append(tempDir, castOther.tempDir)
                 .isEquals();
     }
@@ -277,6 +281,7 @@ public class StandardSitemapResolverFactory
         return new HashCodeBuilder()
                 .append(sitemapPaths)
                 .append(lenient)
+                .append(from)
                 .append(tempDir)
                 .toHashCode();
     }
