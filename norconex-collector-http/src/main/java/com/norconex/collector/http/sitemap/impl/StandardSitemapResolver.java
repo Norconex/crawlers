@@ -347,7 +347,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
         try (FileInputStream fis = new FileInputStream(sitemapFile)) {
             XMLInputFactory inputFactory = XMLInputFactory.newInstance();
             inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
-            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(fis);
+            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(new StripInvalidCharInputStream(fis));
             ParseState parseState = new ParseState();
             
             String locationDir = StringUtils.substringBeforeLast(location, "/");
