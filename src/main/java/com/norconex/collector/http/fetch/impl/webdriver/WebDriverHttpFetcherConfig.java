@@ -15,6 +15,7 @@
 package com.norconex.collector.http.fetch.impl.webdriver;
 
 import java.awt.Dimension;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map.Entry;
 
@@ -40,6 +41,7 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
     private Browser browser = Browser.FIREFOX;
     private Path driverPath;
     private Path browserPath;
+    private URL remoteURL;
 
     private HttpSnifferConfig httpSnifferConfig;
 
@@ -136,11 +138,19 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         this.scriptTimeout = scriptTimeout;
     }
 
+    public URL getRemoteURL() {
+        return remoteURL;
+    }
+    public void setRemoteURL(URL remoteURL) {
+        this.remoteURL = remoteURL;
+    }
+
     @Override
     public void loadFromXML(XML xml) {
         setBrowser(xml.getEnum("browser", Browser.class, browser));
         setDriverPath(xml.getPath("driverPath", driverPath));
         setBrowserPath(xml.getPath("browserPath", browserPath));
+        setRemoteURL(xml.getURL("remoteURL", remoteURL));
 
         xml.ifXML("httpSniffer", x -> {
             HttpSnifferConfig cfg = new HttpSnifferConfig();
@@ -169,6 +179,7 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         xml.addElement("browser", browser);
         xml.addElement("driverPath", driverPath);
         xml.addElement("browserPath", browserPath);
+        xml.addElement("remoteURL", remoteURL);
 
         if (httpSnifferConfig != null) {
             httpSnifferConfig.saveToXML(xml.addElement("httpSniffer"));

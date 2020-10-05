@@ -31,6 +31,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.http.HttpHeaders;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.MutableCapabilities;
@@ -54,6 +55,7 @@ import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
+import com.norconex.collector.http.fetch.impl.webdriver.Browser.WebDriverSupplier;
 import com.norconex.collector.http.fetch.impl.webdriver.HttpSniffer.DriverResponseFilter;
 import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
 import com.norconex.commons.lang.SLF4JUtil;
@@ -65,9 +67,7 @@ import com.norconex.commons.lang.xml.XML;
 /**
  * <p>
  * Uses Selenium WebDriver support for using native browsers to crawl documents.
- * Useful for crawling JavaScript-driven websites.  To prevent launching a new
- * browser at each requests and to help maintain web sessions a browser
- * instance is started as a service for the life-duration of the crawler.
+ * Useful for crawling JavaScript-driven websites.
  * </p>
  *
  * <h3>Considerations</h3>
@@ -93,8 +93,13 @@ import com.norconex.commons.lang.xml.XML;
  * <fetcher class="com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcher">
  *
  *   <browser>[chrome|edge|firefox|opera|safari]</browser>
+ *
+ *   <!-- Local web driver settings -->
  *   <browserPath>(browser executable or blank to detect)</browserPath>
  *   <driverPath>(driver executable or blank to detect)</driverPath>
+ *
+ *   <!-- Remote web driver setting -->
+ *   <remoteURL>(URL of the remote web driver cluster)</remoteURL>
  *
  *   <!-- Optional browser capabilities supported by the web driver. -->
  *   <capabilities>
@@ -177,7 +182,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     private String userAgent;
     private HttpSniffer httpSniffer;
     private ScreenshotHandler screenshotHandler;
-    private MutableCapabilities options;
+    private WebDriverSupplier driverSupplier;
     private final ThreadLocal<WebDriver> driverTL = new ThreadLocal<>();
 
     public WebDriverHttpFetcher() {
@@ -208,56 +213,39 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
     @Override
     protected void fetcherStartup(HttpCollector c) {
-        LOG.info("Starting {} driver service...", cfg.getBrowser());
-
         if (c != null) {
             streamFactory = c.getStreamFactory();
         } else {
             streamFactory = new CachedStreamFactory();
         }
 
-        options = cfg.getBrowser().capabilities(cfg.getBrowserPath());
-        configureWebDriverLogging(options);
-
-        options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
-        options.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
-
-        options.merge(cfg.getCapabilities());
+        MutableObject<MutableCapabilities> options = new MutableObject<>();
+        driverSupplier = cfg.getBrowser().driverSupplier(
+                new WebDriverLocation(
+                        cfg.getDriverPath(),
+                        cfg.getBrowserPath(),
+                        cfg.getRemoteURL()),
+                o -> {
+                    configureWebDriverLogging(o);
+                    o.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
+                    o.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
+                    o.merge(cfg.getCapabilities());
+                    options.setValue(o);
+                }
+        );
 
         if (cfg.getHttpSnifferConfig() != null) {
+            LOG.info("Starting {} HTTP sniffer...", cfg.getBrowser());
             httpSniffer = new HttpSniffer();
-            httpSniffer.start(options, cfg.getHttpSnifferConfig());
+            httpSniffer.start(options.getValue(), cfg.getHttpSnifferConfig());
             userAgent = cfg.getHttpSnifferConfig().getUserAgent();
         }
     }
 
     @Override
     protected void fetcherThreadBegin(HttpCrawler crawler) {
-        LOG.info("Creating {} remote driver.", cfg.getBrowser());
-        driverTL.set(createWebDriver());
-    }
-    @Override
-    protected void fetcherThreadEnd(HttpCrawler crawler) {
-        LOG.info("Shutting down {} remote driver.", cfg.getBrowser());
-        if (driverTL.get() != null) {
-            driverTL.get().quit();
-            driverTL.remove();
-        }
-    }
-
-    @Override
-    protected void fetcherShutdown(HttpCollector c) {
-        if (httpSniffer != null) {
-            LOG.info("Shutting down {} HTTP sniffer...", cfg.getBrowser());
-            Sleeper.sleepSeconds(5);
-            httpSniffer.stop();
-        }
-    }
-
-    private WebDriver createWebDriver() {
-        WebDriver driver =
-                cfg.getBrowser().driver(cfg.getDriverPath(), options);
-        driverTL.set(driver);
+        LOG.info("Creating {} web driver.", cfg.getBrowser());
+        WebDriver driver = driverSupplier.get();
 
         if (cfg.getWindowSize() != null) {
             driver.manage().window().setSize(
@@ -283,7 +271,24 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         if (StringUtils.isNotBlank(cfg.getInitScript())) {
             ((JavascriptExecutor) driver).executeScript(cfg.getInitScript());
         }
-        return ThreadGuard.protect(driver);
+        driverTL.set(ThreadGuard.protect(driver));
+    }
+    @Override
+    protected void fetcherThreadEnd(HttpCrawler crawler) {
+        LOG.info("Shutting down {} web driver.", cfg.getBrowser());
+        if (driverTL.get() != null) {
+            driverTL.get().quit();
+            driverTL.remove();
+        }
+    }
+
+    @Override
+    protected void fetcherShutdown(HttpCollector c) {
+        if (httpSniffer != null) {
+            LOG.info("Shutting down {} HTTP sniffer...", cfg.getBrowser());
+            Sleeper.sleepSeconds(5);
+            httpSniffer.stop();
+        }
     }
 
     private void configureWebDriverLogging(MutableCapabilities capabilities) {

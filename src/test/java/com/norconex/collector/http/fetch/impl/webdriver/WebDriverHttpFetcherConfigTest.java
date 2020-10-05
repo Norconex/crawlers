@@ -15,6 +15,8 @@
 package com.norconex.collector.http.fetch.impl.webdriver;
 
 import java.awt.Dimension;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
@@ -25,10 +27,10 @@ import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 
-public class WebDriverHttpFetcherConfigTest  {
+class WebDriverHttpFetcherConfigTest  {
 
     @Test
-    void testWriteReadFetcher() {
+    void testWriteReadFetcher() throws MalformedURLException {
         WebDriverHttpFetcher f = new WebDriverHttpFetcher();
         f.getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("field"),
@@ -49,15 +51,17 @@ public class WebDriverHttpFetcherConfigTest  {
 
 
     @Test
-    void testWriteReadConfig() {
+    void testWriteReadConfig() throws MalformedURLException {
         XML.assertWriteRead(createFetcherConfig(), "fetcher");
     }
 
-    private WebDriverHttpFetcherConfig createFetcherConfig() {
+    private WebDriverHttpFetcherConfig createFetcherConfig()
+            throws MalformedURLException {
         WebDriverHttpFetcherConfig c = new WebDriverHttpFetcherConfig();
         c.setBrowser(Browser.CHROME);
         c.setBrowserPath(Paths.get("/some/browser/path"));
         c.setDriverPath(Paths.get("/some/driver/path"));
+        c.setRemoteURL(new URL("http://example.com"));
         c.setImplicitlyWait(4000);
         c.setInitScript("alert('hello init!');");
         c.setPageLoadTimeout(5000);

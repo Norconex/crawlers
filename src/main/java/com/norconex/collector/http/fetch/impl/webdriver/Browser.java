@@ -14,27 +14,35 @@
  */
 package com.norconex.collector.http.fetch.impl.webdriver;
 
-import java.nio.file.Path;
+import static java.util.Optional.ofNullable;
+import static org.openqa.selenium.chrome.ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY;
+import static org.openqa.selenium.edge.EdgeDriverService.EDGE_DRIVER_EXE_PROPERTY;
+import static org.openqa.selenium.firefox.GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY;
+import static org.openqa.selenium.opera.OperaDriverService.OPERA_DRIVER_EXE_PROPERTY;
+
+import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.edge.EdgeDriverService;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.opera.OperaDriver;
-import org.openqa.selenium.opera.OperaDriverService;
 import org.openqa.selenium.opera.OperaOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
+
+import com.norconex.collector.core.CollectorException;
+import com.norconex.commons.lang.SystemUtil;
 
 /**
  * @author Pascal Essiembre
@@ -44,19 +52,19 @@ public enum Browser {
 
     CHROME() {
         @Override
-        public MutableCapabilities capabilities(Path browserPath) {
+        WebDriverSupplier driverSupplier(
+                WebDriverLocation location,
+                Consumer<MutableCapabilities> optionsConsumer) {
             ChromeOptions options = new ChromeOptions();
             options.setHeadless(true);
-            if (browserPath != null) {
-                options.setBinary(browserPath.toFile());
-            }
-            return options;
-        }
-        @Override
-        public synchronized WebDriver driver(
-                Path driverPath, MutableCapabilities caps) {
-            return webDriver(ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY,
-                    driverPath, () -> new ChromeDriver((ChromeOptions) caps));
+            ofNullable(location.getBrowserPath()).ifPresent(
+                    p -> options.setBinary(p.toFile()));
+            optionsConsumer.accept(options);
+            return new WebDriverSupplier(new WebDriverBuilder()
+                .driverClass(ChromeDriver.class)
+                .driverSystemProperty(CHROME_DRIVER_EXE_PROPERTY)
+                .location(location)
+                .options(options));
         }
     },
     FIREFOX() {
@@ -71,13 +79,12 @@ public enum Browser {
          * NONE:   Does not wait for pages to load, returning immediately.
          */
         @Override
-        public MutableCapabilities capabilities(Path browserPath) {
+        WebDriverSupplier driverSupplier(
+                WebDriverLocation location,
+                Consumer<MutableCapabilities> optionsConsumer) {
             FirefoxOptions options = new FirefoxOptions();
             options.setHeadless(true);
-            if (browserPath != null) {
-                options.setBinary(browserPath);
-
-            }
+            ofNullable(location.getBrowserPath()).ifPresent(options::setBinary);
             //TODO consider making page load strategy configurable (with
             //different defaults).
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
@@ -87,54 +94,54 @@ public enum Browser {
             profile.setAssumeUntrustedCertificateIssuer(true);
             profile.setPreference("devtools.console.stdout.content", true);
             options.setCapability(FirefoxDriver.PROFILE, profile);
-
-            return options;
-        }
-        @Override
-        public synchronized WebDriver driver(
-                Path driverPath, MutableCapabilities caps) {
-            return webDriver(GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY,
-                    driverPath, () -> new FirefoxDriver((FirefoxOptions) caps));
+            optionsConsumer.accept(options);
+            return new WebDriverSupplier(new WebDriverBuilder()
+                    .driverClass(FirefoxDriver.class)
+                    .driverSystemProperty(GECKO_DRIVER_EXE_PROPERTY)
+                    .location(location)
+                    .options(options));
         }
     },
     EDGE() {
         @Override
-        public MutableCapabilities capabilities(Path browserPath) {
-            return new EdgeOptions();
-        }
-        @Override
-        public synchronized WebDriver driver(
-                Path driverPath, MutableCapabilities caps) {
-            return webDriver(EdgeDriverService.EDGE_DRIVER_EXE_PROPERTY,
-                    driverPath, () -> new EdgeDriver((EdgeOptions) caps));
+        WebDriverSupplier driverSupplier(
+                WebDriverLocation location,
+                Consumer<MutableCapabilities> optionsConsumer) {
+            EdgeOptions options = new EdgeOptions();
+            optionsConsumer.accept(options);
+            return new WebDriverSupplier(new WebDriverBuilder()
+                    .driverClass(EdgeDriver.class)
+                    .driverSystemProperty(EDGE_DRIVER_EXE_PROPERTY)
+                    .location(location)
+                    .options(options));
         }
     },
     SAFARI() {
         @Override
-        public MutableCapabilities capabilities(Path browserPath) {
-            return new SafariOptions();
-        }
-        @Override
-        public synchronized WebDriver driver(
-                Path driverPath, MutableCapabilities caps) {
+        WebDriverSupplier driverSupplier(
+                WebDriverLocation location,
+                Consumer<MutableCapabilities> optionsConsumer) {
+            SafariOptions options = new SafariOptions();
             // Safari path is constant so it is ignored if specified.
-            return new SafariDriver((SafariOptions) caps);
+            optionsConsumer.accept(options);
+            return new WebDriverSupplier(new WebDriverBuilder()
+                    .driverClass(SafariDriver.class)
+                    .location(location)
+                    .options(options));
         }
     },
     OPERA() {
         @Override
-        public MutableCapabilities capabilities(Path browserPath) {
+        WebDriverSupplier driverSupplier(
+                WebDriverLocation location,
+                Consumer<MutableCapabilities> optionsConsumer) {
             OperaOptions options = new OperaOptions();
-//            options.addArguments(
-//                    "--headless",
-//                    "--disable-gpu");
-            return options;
-        }
-        @Override
-        public synchronized WebDriver driver(
-                Path driverPath, MutableCapabilities caps) {
-            return webDriver(OperaDriverService.OPERA_DRIVER_EXE_PROPERTY,
-                    driverPath, () -> new OperaDriver((OperaOptions) caps));
+            optionsConsumer.accept(options);
+            return new WebDriverSupplier(new WebDriverBuilder()
+                    .driverClass(OperaDriver.class)
+                    .driverSystemProperty(OPERA_DRIVER_EXE_PROPERTY)
+                    .location(location)
+                    .options(options));
         }
     },
     /*
@@ -144,10 +151,14 @@ public enum Browser {
     IOS*/
     ;
 
-    public abstract MutableCapabilities capabilities(Path browserPath);
-    public abstract WebDriver driver(
-            Path driverPath, MutableCapabilities capabilities);
-    public static Browser from(String name) {
+
+
+    abstract WebDriverSupplier driverSupplier(
+            WebDriverLocation driverLocation,
+            Consumer<MutableCapabilities> optionsConsumer);
+
+
+    public static Browser of(String name) {
         for (Browser d : Browser.values()) {
             if (d.name().equalsIgnoreCase(name)) {
                 return d;
@@ -156,24 +167,68 @@ public enum Browser {
         return null;
     }
 
-    // Set system property but restore to whatever value
-    // in case other crawlers have a different value.
-    // This is why we have it synchronized too.
-    private static synchronized WebDriver webDriver(
-            String sysPropertyKey, Path driverPath, Supplier<WebDriver> s) {
-        String orig = System.getProperty(sysPropertyKey);
-        if (driverPath != null) {
-            System.setProperty(
-                    sysPropertyKey, driverPath.toAbsolutePath().toString());
+    static class WebDriverSupplier implements Supplier<WebDriver> {
+        private final WebDriverBuilder builder;
+        public WebDriverSupplier(WebDriverBuilder builder) {
+            super();
+            this.builder = Objects.requireNonNull(builder);
         }
-        WebDriver driver = s.get();
-        if (driverPath != null) {
-            System.clearProperty(sysPropertyKey);
-            if (orig != null) {
-                System.setProperty(sysPropertyKey, orig);
-            }
+        @Override
+        public WebDriver get() {
+            return builder.build();
         }
-        return driver;
     }
 
+    private static class WebDriverBuilder {
+        private WebDriverLocation location;
+        private String driverSystemProperty;
+        private MutableCapabilities options;
+        private Class<? extends WebDriver> driverClass;
+        public WebDriverBuilder() {
+            super();
+        }
+        WebDriverBuilder location(WebDriverLocation location) {
+            this.location = location;
+            return this;
+        }
+        WebDriverBuilder driverSystemProperty(String propertyName) {
+            this.driverSystemProperty = propertyName;
+            return this;
+        }
+        WebDriverBuilder options(MutableCapabilities options) {
+            this.options = options;
+            return this;
+        }
+        WebDriverBuilder driverClass(Class<? extends WebDriver> driverClass) {
+            this.driverClass = driverClass;
+            return this;
+        }
+
+        // Set system property but restore to whatever value
+        // in case other crawlers have a different value.
+        // This is why we have it synchronized too.
+        synchronized WebDriver build() {
+            Objects.requireNonNull(location);
+            Objects.requireNonNull(options);
+            Objects.requireNonNull(driverClass);
+
+            String driverPath = location.getDriverPath() != null
+                    ? location.getDriverPath().toAbsolutePath().toString()
+                    : null;
+            try {
+                return SystemUtil.callWithProperty(
+                        driverSystemProperty, driverPath, () -> {
+                    if (location.getRemoteURL() != null) {
+                        return new RemoteWebDriver(
+                                location.getRemoteURL(), options);
+                    } else {
+                        return ConstructorUtils.invokeExactConstructor(
+                                driverClass, options);
+                    }
+                });
+            } catch (Exception e) {
+                throw new CollectorException("Could not build web driver", e);
+            }
+        }
+    }
 }

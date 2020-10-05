@@ -55,7 +55,7 @@ import net.lightbody.bmp.util.HttpMessageInfo;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-public class HttpSniffer {
+class HttpSniffer {
 
     //TODO If it gets stable enough, move the proxy setting to Browser class.
 
@@ -65,7 +65,7 @@ public class HttpSniffer {
     private final ThreadLocal<FilterAndSource> tlocal = new ThreadLocal<>();
     private BrowserMobProxyServer mobProxy;
 
-    public void bind(String url) {
+    void bind(String url) {
         if (mobProxy == null) {
             return;
         }
@@ -82,7 +82,7 @@ public class HttpSniffer {
         mobProxy.addLastHttpFilterFactory(s);
     }
 
-    public DriverResponseFilter unbind() {
+    DriverResponseFilter unbind() {
         if (mobProxy == null) {
             return null;
         }
@@ -95,10 +95,7 @@ public class HttpSniffer {
         return fs.filter;
     }
 
-    public void start(MutableCapabilities options) {
-        start(options, null);
-    }
-    public void start(
+    void start(
             MutableCapabilities options, HttpSnifferConfig config) {
         Objects.requireNonNull("'options' must not be null");
 
@@ -159,7 +156,7 @@ public class HttpSniffer {
                 ClientUtil.createSeleniumProxy(mobProxy));
     }
 
-    public void stop() {
+    void stop() {
         if (mobProxy != null && mobProxy.isStarted()) {
             mobProxy.stop();
             mobProxy = null;
@@ -177,7 +174,7 @@ public class HttpSniffer {
         }
     }
 
-    public static class DriverResponseFilter implements ResponseFilter {
+    static class DriverResponseFilter implements ResponseFilter {
         private final List<Map.Entry<String, String>> headers =
                 new ArrayList<>();
         private int statusCode;

@@ -41,6 +41,7 @@
         </xs:element>
         <xs:element name="browserPath" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="driverPath" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="remoteURL" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="capabilities" minOccurs="0" maxOccurs="1">
           <xs:complexType>
