@@ -37,6 +37,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -274,9 +275,8 @@ public class StandardSitemapResolver implements ISitemapResolver {
             if (statusCode == HttpStatus.SC_OK) {
                 LOG.info("Resolving sitemap: " + location);
                 InputStream is = response.getEntity().getContent();
-                String contentType = 
-                        response.getFirstHeader("Content-Type").getValue();
-                if (contentType.endsWith("gzip")) {
+                Header header = response.getFirstHeader("Content-Type");
+                if(header != null && header.getValue().endsWith("gzip")) {
                     is = new GZIPInputStream(is);
                 }
                 File sitemapFile = inputStreamToTempFile(is);
