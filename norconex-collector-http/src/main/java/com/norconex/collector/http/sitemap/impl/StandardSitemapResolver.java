@@ -284,6 +284,8 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 parseLocation(sitemapFile, httpClient, sitemapURLAdder, 
                         resolvedLocations, location);
                 LOG.info("         Resolved: " + location);
+            } else if (statusCode == HttpStatus.SC_NO_CONTENT) {
+                LOG.info("         Resolved: " + location + " but no content.");
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 LOG.debug("Sitemap not found : " + location);
                 if(escalateErrors) {
