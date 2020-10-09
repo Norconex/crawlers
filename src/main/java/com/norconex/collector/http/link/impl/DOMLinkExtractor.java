@@ -51,7 +51,6 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.parser.ParseState;
 import com.norconex.importer.util.DOMUtil;
 
 /**
@@ -200,7 +199,6 @@ import com.norconex.importer.util.DOMUtil;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-@SuppressWarnings("javadoc")
 public class DOMLinkExtractor extends AbstractTextLinkExtractor {
 
     private static final List<String> DEFAULT_SCHEMES =
@@ -319,8 +317,8 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
     }
 
     @Override
-    public void extractTextLinks(Set<Link> links, HandlerDoc doc, Reader reader,
-            ParseState parseState) throws IOException {
+    public void extractTextLinks(
+            Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
         Parser jparser = DOMUtil.toJSoupParser(this.parser);
         Document jdoc = jparser.parseInput(reader, doc.getReference());
         for (Entry<String, String> sel : linkSelectors.entrySet()) {

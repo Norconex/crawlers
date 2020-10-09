@@ -37,7 +37,6 @@ import com.norconex.collector.http.link.Link;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipeline;
 import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * Extract URLs before sending to importer (because the importer may
@@ -141,8 +140,7 @@ import com.norconex.importer.parser.ParseState;
         CrawlDoc doc = ctx.getDocument();
         for (ILinkExtractor extractor : extractors) {
             try {
-                Set<Link> extracted =
-                        extractor.extractLinks(doc, ParseState.PRE);
+                Set<Link> extracted = extractor.extractLinks(doc);
                 if (extracted != null) {
                     links.addAll(extracted);
                 }

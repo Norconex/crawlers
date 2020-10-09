@@ -37,7 +37,6 @@ import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * <p>
@@ -116,7 +115,6 @@ import com.norconex.importer.parser.ParseState;
  * @author Pascal Essiembre
  * @since 2.7.0
  */
-@SuppressWarnings("javadoc")
 public class RegexLinkExtractor extends AbstractTextLinkExtractor {
 
     public static final String DEFAULT_CONTENT_TYPE_PATTERN = "text/.*";
@@ -139,8 +137,8 @@ public class RegexLinkExtractor extends AbstractTextLinkExtractor {
     }
 
     @Override
-    public void extractTextLinks(Set<Link> links, HandlerDoc doc,
-            Reader reader, ParseState parseState) throws IOException {
+    public void extractTextLinks(
+            Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
 
         StringBuilder sb = new StringBuilder();
         int ch;

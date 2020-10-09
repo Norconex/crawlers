@@ -96,11 +96,11 @@ public class WebDriverHttpFetcherTest  {
             .get();
 
 //  https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
-    private static final Path edgeDriverPath = new OSResource<Path>()
-            .win(WebFile.create("https://msedgedriver.azureedge.net/85.0.564.51"
-                    + "/edgedriver_win64.zip!/msedgedriver.exe",
-                    "edgedriver-85.0.564.51.exe"))
-            .get();
+//    private static final Path edgeDriverPath = new OSResource<Path>()
+//            .win(WebFile.create("https://msedgedriver.azureedge.net/85.0.564.51"
+//                    + "/edgedriver_win64.zip!/msedgedriver.exe",
+//                    "edgedriver-85.0.564.51.exe"))
+//            .get();
 
 //  https://github.com/operasoftware/operachromiumdriver/releases
     private static final Path operaDriverPath = new OSResource<Path>()
@@ -115,7 +115,7 @@ public class WebDriverHttpFetcherTest  {
         return Stream.of(
                 createFetcher(Browser.FIREFOX, firefoxDriverPath),
                 createFetcher(Browser.CHROME, chromeDriverPath),
-                createFetcher(Browser.EDGE, edgeDriverPath),
+//                createFetcher(Browser.EDGE, edgeDriverPath),
                 createFetcher(Browser.OPERA, operaDriverPath)
         );
     }

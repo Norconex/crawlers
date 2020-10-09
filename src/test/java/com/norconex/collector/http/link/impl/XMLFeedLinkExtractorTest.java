@@ -36,7 +36,6 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * @author Pascal Essiembre
@@ -71,7 +70,7 @@ public class XMLFeedLinkExtractorTest {
 //                "Atom file not accepted.");
 
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(docURL, ct, is), ParseState.PRE);
+                toCrawlDoc(docURL, ct, is));
         is.close();
 
         for (String expectedURL : expectedURLs) {
@@ -111,7 +110,7 @@ public class XMLFeedLinkExtractorTest {
 
 
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(docURL, ct, is), ParseState.PRE);
+                toCrawlDoc(docURL, ct, is));
         is.close();
 
         for (String expectedURL : expectedURLs) {

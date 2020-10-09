@@ -31,7 +31,6 @@ import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.parser.ParseState;
 import com.norconex.importer.util.CharsetUtil;
 
 /**
@@ -75,27 +74,26 @@ public abstract class AbstractTextLinkExtractor extends AbstractLinkExtractor {
     private TextMatcher fieldMatcher = new TextMatcher();
 
     @Override
-    public final void extractLinks(Set<Link> links,
-            CrawlDoc doc, ParseState parseState) throws IOException {
+    public final void extractLinks(Set<Link> links, CrawlDoc doc)
+            throws IOException {
 
         HandlerDoc hdoc = new HandlerDoc(doc);
         if (fieldMatcher.getPattern() == null) {
             try (Reader reader = toReader(doc)) {
-                extractTextLinks(links, hdoc, reader, parseState);
+                extractTextLinks(links, hdoc, reader);
             }
         } else {
             for (String value : new HashSet<>(doc.getMetadata().matchKeys(
                     fieldMatcher).valueList())) {
                 try (Reader reader = toReader(value)) {
-                    extractTextLinks(links, hdoc, reader, parseState);
+                    extractTextLinks(links, hdoc, reader);
                 }
             }
         }
     }
 
-    public abstract void extractTextLinks(Set<Link> links,
-            HandlerDoc doc, Reader reader, ParseState parseState)
-                    throws IOException;
+    public abstract void extractTextLinks(
+            Set<Link> links, HandlerDoc doc, Reader reader) throws IOException;
 
     private Reader toReader(CrawlDoc doc) throws IOException {
         String charset = CharsetUtil.detectCharsetIfNotBlank(

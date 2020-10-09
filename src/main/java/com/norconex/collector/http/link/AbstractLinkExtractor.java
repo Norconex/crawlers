@@ -26,14 +26,12 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * <p>
@@ -58,7 +56,6 @@ import com.norconex.importer.parser.ParseState;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
-@SuppressWarnings("javadoc")
 public abstract class AbstractLinkExtractor
         implements ILinkExtractor, IXMLConfigurable {
 
@@ -68,36 +65,19 @@ public abstract class AbstractLinkExtractor
     private final PropertyMatchers restrictions = new PropertyMatchers();
 
     @Override
-    public final Set<Link> extractLinks(CrawlDoc doc, ParseState parseState)
-            throws IOException {
-        if (!acceptParseState(parseState)) {
-            throw new CollectorException(
-                    "This link extractor cannot be used when parse state is "
-                    + parseState + ": " + this.getClass().getSimpleName());
-        }
+    public final Set<Link> extractLinks(CrawlDoc doc) throws IOException {
         Set<Link> links = new HashSet<>();
         if (restrictions.isEmpty() || restrictions.matches(doc.getMetadata())) {
-            extractLinks(links, doc, parseState);
+            extractLinks(links, doc);
         } else {
-            LOG.debug("{} extractor does not apply to: {} (preImport={}).",
-                    getClass(), doc.getReference(), parseState);
+            LOG.debug("{} extractor does not apply to: {}).",
+                    getClass(), doc.getReference());
         }
         return links;
     }
 
-    public abstract void extractLinks(Set<Link> links, CrawlDoc doc,
-            ParseState parseState) throws IOException;
-
-    /**
-     * Subclasses can override this method to enforce usage of this extractor
-     * with certain parsing states.
-     * Default implementation accepts any parse state.
-     * @param parseState parse state
-     * @return <code>true</code> if accepting for parse state.
-     */
-    protected boolean acceptParseState(ParseState parseState) {
-        return true;
-    }
+    public abstract void extractLinks(Set<Link> links, CrawlDoc doc)
+            throws IOException;
 
     /**
      * Adds one or more restrictions this extractor should be restricted to.
@@ -174,9 +154,9 @@ public abstract class AbstractLinkExtractor
     @Override
     public final void saveToXML(XML xml) {
         saveLinkExtractorToXML(xml);
-        restrictions.forEach(pm -> {
-            PropertyMatcher.saveToXML(xml.addElement("restrictTo"), pm);
-        });
+        restrictions.forEach(pm ->
+                PropertyMatcher.saveToXML(xml.addElement("restrictTo"), pm)
+        );
     }
 
     /**

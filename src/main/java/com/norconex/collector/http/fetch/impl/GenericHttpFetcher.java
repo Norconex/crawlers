@@ -211,14 +211,16 @@ import com.norconex.importer.util.CharsetUtil;
  *
  * {@nx.xml.example
  * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
- *     <authMethod>form</authMethod>
- *     <authCredentials>
+ *     <authentication>
+ *       <method>form</method>
+ *       <credentials>
  *         <username>joeUser</username>
  *         <password>joePasword</password>
- *     </authCredentials>
- *     <authUsernameField>loginUser</authUsernameField>
- *     <authPasswordField>loginPwd</authPasswordField>
- *     <authURL>http://www.example.com/login/submit</authURL>
+ *       </credentials>
+ *       <formUsernameField>loginUser</formUsernameField>
+ *       <formPasswordField>loginPwd</formPasswordField>
+ *       <url>http://www.example.com/login/submit</url>
+ *     </authentication>
  * </fetcher>
  * }
  * <p>

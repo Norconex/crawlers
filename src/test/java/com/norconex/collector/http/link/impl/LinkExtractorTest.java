@@ -47,7 +47,6 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.parser.ParseState;
 
 
 /**
@@ -142,7 +141,7 @@ public class LinkExtractorTest {
                 "LinkExtractorTest.html");
 
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(docURL, ContentType.HTML, is), ParseState.PRE);
+                toCrawlDoc(docURL, ContentType.HTML, is));
         is.close();
 
         for (String expectedURL : expectedURLs) {
@@ -182,7 +181,7 @@ public class LinkExtractorTest {
         InputStream is =
                 getClass().getResourceAsStream("LinkBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(docURL, ContentType.HTML, is), ParseState.PRE);
+                toCrawlDoc(docURL, ContentType.HTML, is));
         is.close();
         for (String expectedURL : expectedURLs) {
             assertTrue(
@@ -219,7 +218,7 @@ public class LinkExtractorTest {
         InputStream is =
                 getClass().getResourceAsStream("LinkRelativeBaseHrefTest.html");
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(docURL, ContentType.HTML, is), ParseState.PRE);
+                toCrawlDoc(docURL, ContentType.HTML, is));
         is.close();
         for (String expectedURL : expectedURLs) {
             assertTrue(
@@ -252,7 +251,7 @@ public class LinkExtractorTest {
                 getClass().getResourceAsStream("LinkKeepReferrerTest.html");
         Set<Link> links = extractor.extractLinks(
                 toCrawlDoc("http://www.site.com/parent.html",
-                        ContentType.HTML, is), ParseState.PRE);
+                        ContentType.HTML, is));
         is.close();
 
         TestUtil.assertSameEntries(expectedLinks, links);
@@ -310,7 +309,7 @@ public class LinkExtractorTest {
                 "LinkExtractBetweenTest.html")) {
             links = extractor.extractLinks(
                     toCrawlDoc(baseURL + "LinkExtractBetweenTest.html",
-                            ContentType.HTML, is), ParseState.PRE);
+                            ContentType.HTML, is));
         }
 
         for (String expectedURL : expectedURLs) {
@@ -364,7 +363,7 @@ public class LinkExtractorTest {
                 "LinkExtractBetweenTest.html")) {
             links = extractor.extractLinks(
                     toCrawlDoc(baseURL + "LinkExtractBetweenTest.html",
-                            ContentType.HTML, is), ParseState.PRE);
+                            ContentType.HTML, is));
         }
 
         for (String expectedURL : expectedURLs) {
@@ -405,8 +404,7 @@ public class LinkExtractorTest {
         ILinkExtractor extractor = new HtmlLinkExtractor();
         Set<Link> links = extractor.extractLinks(
                 toCrawlDoc(docURL, ContentType.HTML,
-                        new ByteArrayInputStream(html.getBytes())),
-                ParseState.PRE);
+                        new ByteArrayInputStream(html.getBytes())));
 
         Assertions.assertEquals( 1, links.size(),
                 "Invalid number of links extracted.");
@@ -435,7 +433,7 @@ public class LinkExtractorTest {
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
         HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(ref, ContentType.HTML, input), ParseState.PRE);
+                toCrawlDoc(ref, ContentType.HTML, input));
         input.close();
         Assertions.assertTrue(contains(links, url),
                 "URL not extracted: " + url);
@@ -451,7 +449,7 @@ public class LinkExtractorTest {
         HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         extractor.setSchemes("javascript");
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc("N/A", ContentType.HTML, input), ParseState.PRE);
+                toCrawlDoc("N/A", ContentType.HTML, input));
         input.close();
         Assertions.assertTrue(contains(links, url),
                 "URL not extracted: " + url);
@@ -468,7 +466,7 @@ public class LinkExtractorTest {
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
         HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(ref, ContentType.HTML, input), ParseState.PRE);
+                toCrawlDoc(ref, ContentType.HTML, input));
         input.close();
         Assertions.assertTrue(contains(links, url),
                 "URL not extracted: " + url);
@@ -487,7 +485,7 @@ public class LinkExtractorTest {
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
         HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(ref, ContentType.HTML, input), ParseState.PRE);
+                toCrawlDoc(ref, ContentType.HTML, input));
         input.close();
         assertTrue(
                 contains(links, url1),
@@ -510,7 +508,7 @@ public class LinkExtractorTest {
         ByteArrayInputStream input = new ByteArrayInputStream(html.getBytes());
         HtmlLinkExtractor extractor = new HtmlLinkExtractor();
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(ref, ContentType.HTML, input), ParseState.PRE);
+                toCrawlDoc(ref, ContentType.HTML, input));
         input.close();
         assertTrue(
                 contains(links, url1),

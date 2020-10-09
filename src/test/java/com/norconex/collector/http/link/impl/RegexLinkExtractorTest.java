@@ -34,7 +34,6 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * @author Pascal Essiembre
@@ -73,7 +72,7 @@ public class RegexLinkExtractorTest {
                 "RegexLinkExtractorTest.txt");
 
         Set<Link> links = extractor.extractLinks(
-                toCrawlDoc(docURL, ContentType.TEXT, is), ParseState.PRE);
+                toCrawlDoc(docURL, ContentType.TEXT, is));
         is.close();
 
         for (String expectedURL : expectedURLs) {
@@ -108,7 +107,7 @@ public class RegexLinkExtractorTest {
         try (InputStream is = getClass().getResourceAsStream(
                 "RegexLinkExtractorTest.txt")) {
             links = extractor.extractLinks(
-                    toCrawlDoc(docURL, ContentType.TEXT, is), ParseState.PRE);
+                    toCrawlDoc(docURL, ContentType.TEXT, is));
         }
 
         for (String expectedURL : expectedURLs) {

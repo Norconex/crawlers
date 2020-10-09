@@ -39,7 +39,6 @@ import com.norconex.commons.lang.xml.XMLUtil;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * <p>
@@ -90,7 +89,6 @@ import com.norconex.importer.parser.ParseState;
  * @author Pascal Essiembre
  * @since 2.7.0
  */
-@SuppressWarnings("javadoc")
 public class XMLFeedLinkExtractor extends AbstractTextLinkExtractor {
 
     public XMLFeedLinkExtractor() {
@@ -101,8 +99,8 @@ public class XMLFeedLinkExtractor extends AbstractTextLinkExtractor {
     }
 
     @Override
-    public void extractTextLinks(Set<Link> links, HandlerDoc doc,
-            Reader reader, ParseState parseState) throws IOException {
+    public void extractTextLinks(
+            Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
         try {
             XMLReader xmlReader = XMLUtil.createXMLReader();
             FeedHandler handler = new FeedHandler(doc.getReference(), links);

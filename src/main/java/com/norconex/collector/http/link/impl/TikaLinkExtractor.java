@@ -44,7 +44,6 @@ import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * <p>
@@ -70,7 +69,6 @@ import com.norconex.importer.parser.ParseState;
  * @author Pascal Essiembre
  * @see HtmlLinkExtractor
  */
-@SuppressWarnings("javadoc")
 public class TikaLinkExtractor extends AbstractLinkExtractor {
 
     private static final Pattern META_REFRESH_PATTERN = Pattern.compile(
@@ -91,7 +89,7 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
 
     @Override
     public void extractLinks(Set<com.norconex.collector.http.link.Link> nxLinks,
-            CrawlDoc doc, ParseState parseState) throws IOException {
+            CrawlDoc doc) throws IOException {
         LinkContentHandler linkHandler = new LinkContentHandler();
         Metadata metadata = new Metadata();
         ParseContext parseContext = new ParseContext();

@@ -32,7 +32,6 @@ import com.norconex.collector.http.link.Link;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.parser.ParseState;
 
 
 /**
@@ -102,7 +101,7 @@ public class LinkAttributesExtractorTest {
             docInfo.setContentType(ContentType.HTML);
             CrawlDoc doc = new CrawlDoc(docInfo, CachedInputStream.cache(is));
             doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ContentType.HTML);
-            links = ex.extractLinks(doc, ParseState.PRE);
+            links = ex.extractLinks(doc);
         }
 
         TestUtil.assertSameEntries(expectedLinks, links);

@@ -55,7 +55,6 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * <p>
@@ -270,7 +269,6 @@ import com.norconex.importer.parser.ParseState;
  * @author Pascal Essiembre
  * @since 3.0.0 (refactored from GenericLinkExtractor)
  */
-@SuppressWarnings("javadoc")
 public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
     private static final Logger LOG = LoggerFactory.getLogger(
@@ -328,8 +326,8 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
 
     @Override
-    public void extractTextLinks(Set<Link> links, HandlerDoc doc,
-            Reader reader, ParseState parseState) throws IOException {
+    public void extractTextLinks(
+            Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
 
         Referer referer = new Referer(doc.getReference());
         try (TextReader r = new TextReader(reader)) {
@@ -341,11 +339,6 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                 extractLinks(text, referer, links);
             }
         }
-    }
-
-    @Override
-    protected boolean acceptParseState(ParseState parseState) {
-        return ParseState.isPre(parseState);
     }
 
     private Referer adjustReferer(

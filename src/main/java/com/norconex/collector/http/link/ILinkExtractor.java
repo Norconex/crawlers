@@ -19,7 +19,6 @@ import java.util.Set;
 
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * Responsible for finding links in documents.  Links are URLs to be followed
@@ -37,35 +36,5 @@ public interface ILinkExtractor {
     //TODO have ability to return any number of extra info with a link
     // that could be added to target URL as extra metadata.  e.g., store as json.
 
-    //TODO use restrictTo in abstract class instead of accept().
-
-    Set<Link> extractLinks(CrawlDoc doc, ParseState parseState)
-            throws IOException;
-
-
-//    /**
-//     * Extracts links from a document.
-//     * @param input the document input stream
-//     * @param reference document reference (URL)
-//     * @param contentType the document content type
-//     * @return a set of links
-//     * @throws IOException problem reading the document
-//     * @deprecated Since 3.0.0, use {@link #extractLinks(CrawlDoc, ParseState)}
-//     */
-//    @Deprecated
-//    default Set<Link> extractLinks(
-//            InputStream input, String reference, ContentType contentType)
-//            throws IOException { return new HashSet<>(0); };
-//
-//    /**
-//     * Whether this link extraction should be executed for the given URL
-//     * and/or content type.
-//     * @param url the url
-//     * @param contentType the content type
-//     * @return <code>true</code> if the given URL is accepted
-//     * @deprecated Since 3.0.0, use {@link #extractLinks(CrawlDoc, ParseState)}
-//     */
-//    @Deprecated
-//    default boolean accepts(String url, ContentType contentType)
-//            { return true; };
+    Set<Link> extractLinks(CrawlDoc doc) throws IOException;
 }
