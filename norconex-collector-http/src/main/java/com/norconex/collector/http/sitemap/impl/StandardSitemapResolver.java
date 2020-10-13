@@ -367,18 +367,19 @@ public class StandardSitemapResolver implements ISitemapResolver {
                     break;
                 case XMLStreamConstants.CHARACTERS:
                     String value = xmlReader.getText();
-                    if (parseState.sitemapIndex && parseState.loc) {
-                        resolveLocation(value, httpClient, 
-                                sitemapURLAdder, resolvedLocations);
-                        parseState.loc = false;
-                    } else if (parseState.baseURL != null) {
-                        parseCharacters(parseState, value);
-                    } 
+//                    if (parseState.sitemapIndex && parseState.loc && passedFrom(parseState)) {
+//                        resolveLocation(value, httpClient,
+//                                sitemapURLAdder, resolvedLocations);
+//                        parseState.loc = false;
+//                    } else if (parseState.baseURL != null) {
+//                        parseCharacters(parseState, value);
+//                    }
+                    parseCharacters(parseState, value);
                     break;
                 case XMLStreamConstants.END_ELEMENT:
                     tag = xmlReader.getLocalName();
                     parseEndElement(
-                            sitemapURLAdder, parseState, locationDir, tag);
+                            sitemapURLAdder, parseState, locationDir, tag, httpClient, resolvedLocations);
                     break;
                 }
                 if (!xmlReader.hasNext()) {
@@ -404,8 +405,16 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
     private void parseEndElement(SitemapURLAdder sitemapURLAdder,
-            ParseState parseState, String locationDir, String tag) {
+            ParseState parseState, String locationDir, String tag,
+            HttpClient httpClient, Set<String> resolvedLocations) {
         if ("sitemap".equalsIgnoreCase(tag)) {
+            if(passedFrom(parseState)) {
+                resolveLocation(parseState.baseURL.getReference(), httpClient, sitemapURLAdder, resolvedLocations);
+            } else {
+                LOG.info("Sitemap Index rejected, too old."
+                        + " URL:" + parseState.baseURL.getReference());
+            }
+
             parseState.sitemapIndex = false;
         } else if("url".equalsIgnoreCase(tag)
                 && parseState.baseURL.getReference() != null){
@@ -456,6 +465,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
     private void parseStartElement(ParseState parseState, String tag) {
         if("sitemap".equalsIgnoreCase(tag)) {
             parseState.sitemapIndex = true;
+            parseState.baseURL = new HttpCrawlData("", 0);
         } else if("url".equalsIgnoreCase(tag)){
             parseState.baseURL = new HttpCrawlData("", 0);
         } else if("loc".equalsIgnoreCase(tag)){
