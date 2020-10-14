@@ -8,8 +8,11 @@ import java.io.*;
 class StripInvalidCharInputStream extends FilterInputStream {
     private static Logger logger = LogManager.getLogger(StripInvalidCharInputStream.class);
 
+    private boolean started;
+
     protected StripInvalidCharInputStream(InputStream in) {
         super(in);
+        started = false;
     }
 
     @Override
@@ -21,7 +24,7 @@ class StripInvalidCharInputStream extends FilterInputStream {
         int pos = off - 1;
         for (int readPos = off; readPos < off + read; readPos++) {
             // ignore invalid XML 1.0 chars
-            if (isInvalid(cbuf[readPos]) || isInvalid(cbuf, readPos)) {
+            if (isInvalid(cbuf[readPos]) || isInvalid(cbuf, readPos) || isBlankStart(cbuf, readPos)) {
                 logger.info("found control character: " + cbuf[readPos]);
                 continue;
             } else {
@@ -32,6 +35,21 @@ class StripInvalidCharInputStream extends FilterInputStream {
             }
         }
         return pos - off + 1;
+    }
+
+    @Override
+    public void reset() throws IOException {
+        super.reset();
+        started = false;
+    }
+
+    public boolean isBlankStart(byte[] cbuf, int readPos) {
+        if(!started && cbuf[readPos] != '<') {
+            return true;
+        } else {
+            started = true;
+            return false;
+        }
     }
 
     public static boolean isInvalid(byte[] cbuf, int pos) {
