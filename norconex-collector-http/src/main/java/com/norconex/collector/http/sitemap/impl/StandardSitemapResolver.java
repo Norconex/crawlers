@@ -167,7 +167,9 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 resolveLocation(location, httpClient, 
                         sitemapURLAdder, resolvedLocations);
             }
-            sitemapStore.markResolved(urlRoot);
+            if(!stopped) {
+                sitemapStore.markResolved(urlRoot);
+            }
             activeURLRoots.remove(urlRoot);
         }
     }
