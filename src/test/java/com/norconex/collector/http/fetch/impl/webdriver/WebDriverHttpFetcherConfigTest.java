@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
+import com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcherConfig.WaitElementType;
 import com.norconex.collector.http.fetch.util.DocImageHandler.DirStructure;
 import com.norconex.collector.http.fetch.util.DocImageHandler.Target;
 import com.norconex.commons.lang.xml.XML;
@@ -64,6 +65,9 @@ class WebDriverHttpFetcherConfigTest  {
         c.setPageLoadTimeout(5000);
         c.setLatePageScript("alert('hello page!');");
         c.setScriptTimeout(6000);
+        c.setWaitForElementSelector("#header");
+        c.setWaitForElementTimeout(1234);
+        c.setWaitForElementType(WaitElementType.ID);
         c.setWindowSize(new Dimension(666, 999));
         c.getCapabilities().setCapability("cap1", "val1");
         c.getCapabilities().setCapability("cap2", "val2");
