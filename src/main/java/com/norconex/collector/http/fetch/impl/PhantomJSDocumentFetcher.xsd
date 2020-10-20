@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2017 Norconex Inc.
+   Copyright 2017-2020 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,90 +20,94 @@
 
   <xs:element name="fetcher">
     <xs:complexType>
-      <xs:all>
-        <xs:element name="exePath" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="scriptPath" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="renderWaitTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="resourceTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="options" minOccurs="0" maxOccurs="1">
-          <xs:complexType>
-            <xs:all>
-              <xs:element name="opt" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
-            </xs:all>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="referencePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="contentTypePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="notFoundStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="screenshotDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="screenshotZoomFactor" type="xs:float" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="screenshotScaleDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="screenshotScaleStretch" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="screenshotScaleQuality" minOccurs="0" maxOccurs="1">
-          <xs:complexType>
-            <xs:simpleContent>
-              <xs:extension base="xs:string">
-                <xs:attribute name="structure">
-                  <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                      <xs:enumeration value=""/>
-                      <xs:enumeration value="auto"/>
-                      <xs:enumeration value="low"/>
-                      <xs:enumeration value="medium"/>
-                      <xs:enumeration value="high"/>
-                      <xs:enumeration value="max"/>
-                      <xs:enumeration value="AUTO"/>
-                      <xs:enumeration value="LOW"/>
-                      <xs:enumeration value="MEDIUM"/>
-                      <xs:enumeration value="HIGH"/>
-                      <xs:enumeration value="MAX"/>
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:attribute>
-              </xs:extension>
-            </xs:simpleContent>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="screenshotImageFormat" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="screenshotStorage" minOccurs="0" maxOccurs="1">
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:pattern value="((\s*,\s*){0,1}(inline|disk|INLINE|DISK)){0,2}" />
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
-        <xs:element name="screenshotStorageDiskDir" minOccurs="0" maxOccurs="1">
-          <xs:complexType>
-            <xs:simpleContent>
-              <xs:extension base="xs:string">
-                <xs:attribute name="structure">
-                  <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                      <xs:enumeration value=""/>
-                      <xs:enumeration value="url2path"/>
-                      <xs:enumeration value="date"/>
-                      <xs:enumeration value="datetime"/>
-                      <xs:enumeration value="URL2PATH"/>
-                      <xs:enumeration value="DATE"/>
-                      <xs:enumeration value="DATETIME"/>
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:attribute>
-              </xs:extension>
-            </xs:simpleContent>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="screenshotStorageDiskField" type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="screenshotStorageInlineField" type="xs:string" minOccurs="0" maxOccurs="1"/>
-      </xs:all>
-      <xs:attribute name="class" type="xs:string" use="required"/>
-      <xs:attribute name="detectContentType" type="xs:boolean"/>
-      <xs:attribute name="detectCharset" type="xs:boolean"/>
-      <xs:attribute name="screenshotEnabled" type="xs:boolean"/>
+      <xs:complexContent> 
+        <xs:extension base="AbstractHttpFetcher">
+          <xs:all>
+            <xs:element name="exePath" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="scriptPath" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="renderWaitTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="resourceTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="options" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:all>
+                  <xs:element name="opt" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:all>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="referencePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="contentTypePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="notFoundStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="screenshotDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="screenshotZoomFactor" type="xs:float" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="screenshotScaleDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="screenshotScaleStretch" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="screenshotScaleQuality" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:attribute name="structure">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value=""/>
+                          <xs:enumeration value="auto"/>
+                          <xs:enumeration value="low"/>
+                          <xs:enumeration value="medium"/>
+                          <xs:enumeration value="high"/>
+                          <xs:enumeration value="max"/>
+                          <xs:enumeration value="AUTO"/>
+                          <xs:enumeration value="LOW"/>
+                          <xs:enumeration value="MEDIUM"/>
+                          <xs:enumeration value="HIGH"/>
+                          <xs:enumeration value="MAX"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="screenshotImageFormat" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="screenshotStorage" minOccurs="0" maxOccurs="1">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:pattern value="((\s*,\s*){0,1}(inline|disk|INLINE|DISK)){0,2}" />
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="screenshotStorageDiskDir" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:simpleContent>
+                  <xs:extension base="xs:string">
+                    <xs:attribute name="structure">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value=""/>
+                          <xs:enumeration value="url2path"/>
+                          <xs:enumeration value="date"/>
+                          <xs:enumeration value="datetime"/>
+                          <xs:enumeration value="URL2PATH"/>
+                          <xs:enumeration value="DATE"/>
+                          <xs:enumeration value="DATETIME"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
+                  </xs:extension>
+                </xs:simpleContent>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="screenshotStorageDiskField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="screenshotStorageInlineField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          </xs:all>
+          <xs:attribute name="detectContentType" type="xs:boolean"/>
+          <xs:attribute name="detectCharset" type="xs:boolean"/>
+          <xs:attribute name="screenshotEnabled" type="xs:boolean"/>
+        </xs:extension>
+      </xs:complexContent>
     </xs:complexType>
   </xs:element>
+
 
   <xs:simpleType name="dimension">
     <xs:restriction base="xs:string">
