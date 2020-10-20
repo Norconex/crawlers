@@ -21,10 +21,9 @@ import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
 import com.norconex.collector.http.fetch.util.DocImageHandler.DirStructure;
 import com.norconex.collector.http.fetch.util.DocImageHandler.Target;
-import com.norconex.commons.lang.map.PropertyMatcher;
-import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 
 class WebDriverHttpFetcherConfigTest  {
@@ -32,9 +31,7 @@ class WebDriverHttpFetcherConfigTest  {
     @Test
     void testWriteReadFetcher() throws MalformedURLException {
         WebDriverHttpFetcher f = new WebDriverHttpFetcher();
-        f.getRestrictions().add(new PropertyMatcher(
-                TextMatcher.basic("field"),
-                TextMatcher.basic("value")));
+        f.setReferenceFilters(new RegexReferenceFilter("test.*"));
 
         ScreenshotHandler sh = new ScreenshotHandler();
         sh.setCssSelector("selector");
@@ -63,9 +60,9 @@ class WebDriverHttpFetcherConfigTest  {
         c.setDriverPath(Paths.get("/some/driver/path"));
         c.setRemoteURL(new URL("http://example.com"));
         c.setImplicitlyWait(4000);
-        c.setInitScript("alert('hello init!');");
+        c.setEarlyPageScript("alert('hello init!');");
         c.setPageLoadTimeout(5000);
-        c.setPageScript("alert('hello page!');");
+        c.setLatePageScript("alert('hello page!');");
         c.setScriptTimeout(6000);
         c.setWindowSize(new Dimension(666, 999));
         c.getCapabilities().setCapability("cap1", "val1");

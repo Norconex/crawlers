@@ -219,7 +219,7 @@
            like the following examples.
            -->
       <referenceFilters>
-        <filter class="ExtensionReferenceFilter" onMatch="exclude" >
+        <filter class="ExtensionReferenceFilter" onMatch="exclude">
           jpg,gif,png,ico,css,js</filter>
         <filter class="RegexReferenceFilter">https://www.example.com/.*</filter>
       </referenceFilters>
@@ -323,17 +323,13 @@
            -->
       <importer>
         <preParseHandlers>
-          <tagger class="..."/>
-          <transformer class="..." />
-          <filter class="..." />
-          <splitter class="..." />
+          <handler class="..."/>
+          ...
         </preParseHandlers>
         <documentParserFactory class="..." />
         <postParseHandlers>
-          <tagger class="..."/>
-          <transformer class="..." />
-          <filter class="..." />
-          <splitter class="..." />
+          <handler class="..." />
+          ...
         </postParseHandlers>
         <responseProcessors>
           <responseProcessor class="YourClass" />

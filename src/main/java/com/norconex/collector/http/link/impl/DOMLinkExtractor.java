@@ -207,6 +207,10 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
     //TODO document an example how to only consider parts of a document
     //     with nested css syntax.
 
+
+    //TODO add extract/noextractSelector from GitHubLinkExtractor.
+
+
     private final Map<String, String> linkSelectors = new ListOrderedMap<>();
     private String charset = null;
     private String parser = DOMUtil.PARSER_HTML;

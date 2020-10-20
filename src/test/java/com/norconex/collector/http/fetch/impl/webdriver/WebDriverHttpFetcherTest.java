@@ -184,7 +184,7 @@ public class WebDriverHttpFetcherTest  {
     public void testPageScript(
             WebDriverHttpFetcher fetcher) throws Exception {
         assumeDriverPresent(fetcher);
-        fetcher.getConfig().setPageScript(
+        fetcher.getConfig().setLatePageScript(
                 "document.getElementsByTagName('h1')[0].innerHTML='Melon';");
 
         TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
