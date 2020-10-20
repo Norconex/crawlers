@@ -18,7 +18,7 @@
 
   <!-- Elements/types reusable across the Importer module. -->
 
-  <xs:include schemaLocation="/com/norconex/importer/importer.xsd"></xs:include>
+  <xs:include schemaLocation="/com/norconex/importer/Importer.xsd"></xs:include>
 
   <xs:include schemaLocation="/com/norconex/commons/lang/net/Host.xsd"></xs:include>
   
