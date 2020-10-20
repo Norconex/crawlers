@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -41,6 +42,8 @@ import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.support.ThreadGuard;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +60,7 @@ import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.fetch.impl.webdriver.Browser.WebDriverSupplier;
 import com.norconex.collector.http.fetch.impl.webdriver.HttpSniffer.DriverResponseFilter;
+import com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcherConfig.WaitElementType;
 import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
 import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.Sleeper;
@@ -114,12 +118,13 @@ import com.norconex.commons.lang.xml.XML;
  *
  *   <windowSize>(Optional. Browser window dimensions. E.g., 640x480)</windowSize>
  *
- *   <initScript>
- *     (Optional JavaScript code to be run during this class initialization.)
- *   </initScript>
- *   <pageScript>
- *     (Optional JavaScript code to be run after each pages are loaded.)
- *   </pageScript>
+ *   <earlyPageScript>
+ *     (Optional JavaScript code to be run the moment a page is requested.)
+ *   </earlyPageScript>
+ *   <latePageScript>
+ *     (Optional JavaScript code to be run after we are done
+ *      waiting for a page.)
+ *   </latePageScript>
  *
  *   <!-- Timeouts, in milliseconds, or human-readable format (English).
  *      - Default is zero (not set).
@@ -133,6 +138,12 @@ import com.norconex.commons.lang.xml.XML;
  *   <scriptTimeout>
  *     (Max wait time for a scripts to execute before throwing an error.)
  *   </scriptTimeout>
+ *   <waitForElement
+ *       type="[tagName|className|cssSelector|id|linkText|name|partialLinkText|xpath]"
+ *       selector="(Reference to element, as per the type specified.)">
+ *     (Max wait time for an element to show up in browser before returning.
+ *      Default 'type' is 'tagName'.)
+ *   </waitForElement>
  *
  *   <restrictions>
  *     <restrictTo caseSensitive="[false|true]"
@@ -247,29 +258,9 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         LOG.info("Creating {} web driver.", cfg.getBrowser());
         WebDriver driver = driverSupplier.get();
 
-        if (cfg.getWindowSize() != null) {
-            driver.manage().window().setSize(
-                    new org.openqa.selenium.Dimension(
-                            cfg.getWindowSize().width,
-                            cfg.getWindowSize().height));
-        }
-
-        Timeouts timeouts = driver.manage().timeouts();
-        if (cfg.getPageLoadTimeout() != 0) {
-            timeouts.pageLoadTimeout(cfg.getPageLoadTimeout(), MILLISECONDS);
-        }
-        if (cfg.getImplicitlyWait() != 0) {
-            timeouts.implicitlyWait(cfg.getImplicitlyWait(), MILLISECONDS);
-        }
-        if (cfg.getScriptTimeout() != 0) {
-            timeouts.setScriptTimeout(cfg.getScriptTimeout(), MILLISECONDS);
-        }
         if (StringUtils.isBlank(userAgent)) {
             userAgent = (String) ((JavascriptExecutor) driver).executeScript(
                     "return navigator.userAgent;");
-        }
-        if (StringUtils.isNotBlank(cfg.getInitScript())) {
-            ((JavascriptExecutor) driver).executeScript(cfg.getInitScript());
         }
         driverTL.set(ThreadGuard.protect(driver));
     }
@@ -350,8 +341,47 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     protected InputStream fetchDocumentContent(WebDriver driver, String url) {
         driver.get(url);
 
-        if (StringUtils.isNotBlank(cfg.getPageScript())) {
-            ((JavascriptExecutor) driver).executeScript(cfg.getPageScript());
+        if (StringUtils.isNotBlank(cfg.getEarlyPageScript())) {
+            ((JavascriptExecutor) driver).executeScript(
+                    cfg.getEarlyPageScript());
+        }
+
+        if (cfg.getWindowSize() != null) {
+            driver.manage().window().setSize(
+                    new org.openqa.selenium.Dimension(
+                            cfg.getWindowSize().width,
+                            cfg.getWindowSize().height));
+        }
+
+        Timeouts timeouts = driver.manage().timeouts();
+        if (cfg.getPageLoadTimeout() != 0) {
+            timeouts.pageLoadTimeout(cfg.getPageLoadTimeout(),  MILLISECONDS);
+        }
+        if (cfg.getImplicitlyWait() != 0) {
+            timeouts.implicitlyWait(cfg.getImplicitlyWait(), MILLISECONDS);
+        }
+        if (cfg.getScriptTimeout() != 0) {
+            timeouts.setScriptTimeout(cfg.getScriptTimeout(), MILLISECONDS);
+        }
+
+        if (cfg.getWaitForElementTimeout() != 0
+                && StringUtils.isNotBlank(cfg.getWaitForElementSelector())) {
+            WaitElementType elType = ObjectUtils.defaultIfNull(
+                    cfg.getWaitForElementType(), WaitElementType.TAGNAME);
+            LOG.debug("Waiting for element '{}' of type '{}' for '{}'.",
+                    cfg.getWaitForElementSelector(), elType, url);
+
+            WebDriverWait wait = new WebDriverWait(driver, 30);
+            wait.until(ExpectedConditions.presenceOfElementLocated(
+                    elType.getBy(cfg.getWaitForElementSelector())));
+
+            LOG.debug("Done waiting for element '{}' of type '{}' for '{}'.",
+                    cfg.getWaitForElementSelector(), elType, url);
+        }
+
+        if (StringUtils.isNotBlank(cfg.getLatePageScript())) {
+            ((JavascriptExecutor) driver).executeScript(
+                    cfg.getLatePageScript());
         }
         String pageSource = driver.getPageSource();
         LOG.debug("Fetched page source length: {}", pageSource.length());

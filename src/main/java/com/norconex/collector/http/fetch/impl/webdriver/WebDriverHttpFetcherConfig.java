@@ -18,11 +18,13 @@ import java.awt.Dimension;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.openqa.selenium.By;
 import org.openqa.selenium.MutableCapabilities;
 
 import com.norconex.commons.lang.xml.IXMLConfigurable;
@@ -38,6 +40,24 @@ import com.norconex.commons.lang.xml.XML;
  */
 public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
 
+    public enum WaitElementType {
+        TAGNAME(By::tagName),
+        CLASSNAME(By::className),
+        CSSSELECTOR(By::cssSelector),
+        ID(By::id),
+        LINKTEXT(By::linkText),
+        NAME(By::name),
+        PARTIALLINKTEXT(By::partialLinkText),
+        XPATH(By::xpath);
+        private final Function<String, By> byFunction;
+        private WaitElementType(Function<String, By> byFunction) {
+            this.byFunction = byFunction;
+        }
+        By getBy(String selector) {
+            return byFunction.apply(selector);
+        }
+    }
+
     private Browser browser = Browser.FIREFOX;
     private Path driverPath;
     private Path browserPath;
@@ -49,12 +69,16 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
 
     private Dimension windowSize;
 
-    private String initScript;
-    private String pageScript;
+    private String earlyPageScript;
+    private String latePageScript;
 
     private long pageLoadTimeout;
     private long implicitlyWait;
     private long scriptTimeout;
+
+    private WaitElementType waitForElementType;
+    private String waitForElementSelector;
+    private long waitForElementTimeout;
 
     public WebDriverHttpFetcherConfig() {
         super();
@@ -103,18 +127,18 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         this.windowSize = windowSize;
     }
 
-    public String getInitScript() {
-        return initScript;
+    public String getEarlyPageScript() {
+        return earlyPageScript;
     }
-    public void setInitScript(String initScript) {
-        this.initScript = initScript;
+    public void setEarlyPageScript(String initScript) {
+        this.earlyPageScript = initScript;
     }
 
-    public String getPageScript() {
-        return pageScript;
+    public String getLatePageScript() {
+        return latePageScript;
     }
-    public void setPageScript(String pageScript) {
-        this.pageScript = pageScript;
+    public void setLatePageScript(String pageScript) {
+        this.latePageScript = pageScript;
     }
 
     public long getPageLoadTimeout() {
@@ -136,6 +160,27 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
     }
     public void setScriptTimeout(long scriptTimeout) {
         this.scriptTimeout = scriptTimeout;
+    }
+
+    public WaitElementType getWaitForElementType() {
+        return waitForElementType;
+    }
+    public void setWaitForElementType(WaitElementType waitForElementType) {
+        this.waitForElementType = waitForElementType;
+    }
+
+    public String getWaitForElementSelector() {
+        return waitForElementSelector;
+    }
+    public void setWaitForElementSelector(String waitForElementSelector) {
+        this.waitForElementSelector = waitForElementSelector;
+    }
+
+    public long getWaitForElementTimeout() {
+        return waitForElementTimeout;
+    }
+    public void setWaitForElementTimeout(long waitForElementTimeout) {
+        this.waitForElementTimeout = waitForElementTimeout;
     }
 
     public URL getRemoteURL() {
@@ -165,13 +210,20 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         }
 
         setWindowSize(xml.getDimension("windowSize", windowSize));
-        setInitScript(xml.getString("initScript", initScript));
-        setPageScript(xml.getString("pageScript", pageScript));
+        setEarlyPageScript(xml.getString("earlyPageScript", earlyPageScript));
+        setLatePageScript(xml.getString("latePageScript", latePageScript));
         setPageLoadTimeout(
                 xml.getDurationMillis("pageLoadTimeout", pageLoadTimeout));
         setImplicitlyWait(
                 xml.getDurationMillis("implicitlyWait", implicitlyWait));
         setScriptTimeout(xml.getDurationMillis("scriptTimeout", scriptTimeout));
+
+        setWaitForElementType(xml.getEnum("waitForElement/@type",
+                WaitElementType.class, waitForElementType));
+        setWaitForElementSelector(xml.getString("waitForElement/@selector",
+                waitForElementSelector));
+        setWaitForElementTimeout(xml.getDurationMillis("waitForElement",
+                waitForElementTimeout));
     }
 
     @Override
@@ -192,11 +244,15 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         }
 
         xml.addElement("windowSize", windowSize);
-        xml.addElement("initScript", initScript);
-        xml.addElement("pageScript", pageScript);
+        xml.addElement("earlyPageScript", earlyPageScript);
+        xml.addElement("latePageScript", latePageScript);
         xml.addElement("pageLoadTimeout", pageLoadTimeout);
         xml.addElement("implicitlyWait", implicitlyWait);
         xml.addElement("scriptTimeout", scriptTimeout);
+
+        xml.addElement("waitForElement", waitForElementTimeout)
+                .setAttribute("type", waitForElementType)
+                .setAttribute("selector", waitForElementSelector);
     }
 
     @Override
