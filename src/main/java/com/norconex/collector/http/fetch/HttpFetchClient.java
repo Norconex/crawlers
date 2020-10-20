@@ -79,7 +79,16 @@ public class HttpFetchClient {
     public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod) {
 
         HttpFetchClientResponse allResponses = new HttpFetchClientResponse();
+        boolean accepted = false;
         for (IHttpFetcher fetcher : fetchers) {
+            if (!fetcher.accept(doc)) {
+                continue;
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Fetcher {} accepted this reference: \"{}\".",
+                        fetcher.getClass().getSimpleName(), doc.getReference());
+            }
+            accepted = true;
             for (int retryCount = 0; retryCount <= maxRetries; retryCount++) {
                 if (retryCount > 0) {
                     Sleeper.sleepMillis(retryDelay);
@@ -109,6 +118,13 @@ public class HttpFetchClient {
                     return allResponses;
                 }
             }
+        }
+        if (!accepted) {
+            LOG.warn("No HTTP Fetcher accepted to fetch this "
+                    + "reference: \"{}\". "
+                    + "For generic URL filtering it is highly recommended you "
+                    + "use a regular URL filtering options, such as reference "
+                    + "filters.", doc.getReference());
         }
         return allResponses;
     }

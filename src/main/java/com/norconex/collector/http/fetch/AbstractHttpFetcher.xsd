@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2018 Norconex Inc.
+   Copyright 2018-2020 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,27 +16,34 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:include schemaLocation="../HttpCollector.xsd"></xs:include>
+<!--
+  <xs:include schemaLocation="/com/norconex/collector/core/crawler/CrawlerConfig.xsd"></xs:include>
+   -->
+
   <xs:complexType name="AbstractHttpFetcher" abstract="true">
     <xs:all>
-      <xs:element name="restrictions" minOccurs="0" maxOccurs="1">
-        <xs:complexType>
-          <xs:all>
-            <xs:element name="restrictTo" minOccurs="0" maxOccurs="unbounded">
-              <xs:complexType>
-                <xs:simpleContent>
-                  <xs:extension base="xs:string">
-                    <xs:attribute name="caseSensitive" type="xs:boolean"></xs:attribute>
-                    <xs:attribute name="field" type="xs:string"></xs:attribute>
-                  </xs:extension>
-                </xs:simpleContent>
-              </xs:complexType>
-            </xs:element>
-          </xs:all>
-        </xs:complexType>
-      </xs:element>
+      <xs:element name="referenceFilters" type="filterType" minOccurs="0" maxOccurs="1"/>
     </xs:all>
     <xs:attribute name="class" type="xs:string" use="required"/>
   </xs:complexType>
+  
+  <xs:complexType name="filterType">
+    <xs:all>
+      <xs:element name="filter" type="anyComplexRequiredClassType" 
+          minOccurs="1" maxOccurs="unbounded"/>
+    </xs:all>
+  </xs:complexType>
+  
+  <xs:complexType name="anyComplexRequiredClassType" mixed="true">
+    <xs:all>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:all>
+    <!-- Should be "required" but leaving as optional since it is OK to
+         not have one on self-closing tags. -->
+    <xs:attribute name="class" type="xs:string" use="optional"/>
+    <xs:anyAttribute processContents="lax"/>
+  </xs:complexType>  
 
 </xs:schema>
 

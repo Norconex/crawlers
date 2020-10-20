@@ -14,55 +14,61 @@
  */
 package com.norconex.collector.http.fetch;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorEvent;
 import com.norconex.collector.core.crawler.CrawlerEvent;
+import com.norconex.collector.core.filter.IReferenceFilter;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.crawler.HttpCrawler;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.IEventListener;
-import com.norconex.commons.lang.map.PropertyMatcher;
-import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.Doc;
+import com.norconex.importer.handler.filter.IOnMatchFilter;
+import com.norconex.importer.handler.filter.OnMatch;
 
 /**
  * <p>
  * Base class implementing the {@link #accept(Doc)} method
- * using restrictions and offering methods to overwrite for crawler startup
- * and shutdown.
+ * using reference filters to determine if this fetcher will accept to fetch
+ * a URL. It also offers methods to overwrite to react to crawler
+ * startup and shutdown events.
  * </p>
  * <h3>XML configuration usage:</h3>
  * Subclasses inherit this {@link IXMLConfigurable} configuration:
  *
- * <pre>
- *  &lt;restrictions&gt;
- *      &lt;restrictTo caseSensitive="[false|true]"
- *              field="(name of metadata field name to match)"&gt;
- *          (regular expression of value to match)
- *      &lt;/restrictTo&gt;
- *      &lt;!-- multiple "restrictTo" tags allowed (only one needs to match) --&gt;
- *  &lt;/restrictions&gt;
- * </pre>
+ * {@nx.xml.usage #referenceFilters
+ * <referenceFilters>
+ *   <!-- multiple "filter" tags allowed -->
+ *   <filter class="(any reference filter flass)">
+ *      (Refer to the documentation for the implementation of IReferenceFilter
+ *       you are using here for usage details.)
+ *   </filter>
+ * </referenceFilters>
+ * }
  *
  * <h4>Usage example:</h4>
  * <p>This example will restrict applying an HTTP Fetcher to URLs ending with
  * ".pdf".
  * </p>
- * <pre>
- *  ...
- *  &lt;restrictions&gt;
- *      &lt;restrictTo field="document.reference"&gt;.*\.pdf$&lt;/restrictTo&gt;
- *  &lt;/restrictions&gt;
- *  ...
- * </pre>
+ *
+ * {@nx.xml.example
+ * <filter class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
+ *     onMatch="exclude">https://example\.com/pdfs/.*</filter>
+ * }
  *
  * @author Pascal Essiembre
  * @since 3.0.0
@@ -70,19 +76,40 @@ import com.norconex.importer.doc.Doc;
 public abstract class AbstractHttpFetcher implements
         IHttpFetcher, IXMLConfigurable, IEventListener<Event> {
 
-    private final PropertyMatchers restrictions = new PropertyMatchers();
+    private static final Logger LOG =
+            LoggerFactory.getLogger(AbstractHttpFetcher.class);
+
+    private final List<IReferenceFilter> referenceFilters = new ArrayList<>();
 
     public AbstractHttpFetcher() {
         super();
     }
 
-    public PropertyMatchers getRestrictions() {
-        return restrictions;
+    /**
+     * Gets reference filters
+     * @return reference filters
+     */
+    public List<IReferenceFilter> getReferenceFilters() {
+        return Collections.unmodifiableList(referenceFilters);
+    }
+    /**
+     * Sets reference filters.
+     * @param referenceFilters reference filters to set
+     */
+    public void setReferenceFilters(IReferenceFilter... referenceFilters) {
+        setReferenceFilters(Arrays.asList(referenceFilters));
+    }
+    /**
+     * Sets reference filters.
+     * @param referenceFilters the referenceFilters to set
+     */
+    public void setReferenceFilters(List<IReferenceFilter> referenceFilters) {
+        CollectionUtil.setAll(this.referenceFilters, referenceFilters);
     }
 
     @Override
     public boolean accept(Doc doc) {
-        return restrictions.test(doc.getMetadata());
+        return !isRejectedByReferenceFilters(doc);
     }
 
     @Override
@@ -142,24 +169,60 @@ public abstract class AbstractHttpFetcher implements
         //NOOP
     }
 
+
+    // return true if reference is rejected
+    //TODO make reference filters always implement "onMatch" and move
+    // this somewhere more generic?
+    private boolean isRejectedByReferenceFilters(Doc doc) {
+        String ref = doc.getReference();
+        boolean hasIncludes = false;
+        boolean atLeastOneIncludeMatch = false;
+        for (IReferenceFilter filter : referenceFilters) {
+            boolean accepted = filter.acceptReference(ref);
+
+            // Deal with includes
+            if (isIncludeFilter(filter)) {
+                hasIncludes = true;
+                if (accepted) {
+                    atLeastOneIncludeMatch = true;
+                }
+                continue;
+            }
+
+            // Deal with exclude and non-OnMatch filters
+            if (accepted) {
+                LOG.debug("Fetcher {} ACCEPTED reference: '{}'. Filter={}",
+                        getClass().getSimpleName(), ref, filter);
+            } else {
+                LOG.debug("Fetcher {} REJECTED reference: '{}'. Filter={}",
+                        getClass().getSimpleName(), ref, filter);
+                return true;
+            }
+        }
+        if (hasIncludes && !atLeastOneIncludeMatch) {
+            LOG.debug("Fetcher {} REJECTED reference: '{}'. "
+                  + "No 'include' filters matched.",
+                    getClass().getSimpleName(), ref);
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isIncludeFilter(IReferenceFilter filter) {
+        return filter instanceof IOnMatchFilter
+                && OnMatch.INCLUDE == ((IOnMatchFilter) filter).getOnMatch();
+    }
+
     @Override
     public final void loadFromXML(XML xml) {
         loadHttpFetcherFromXML(xml);
-        List<XML> nodes = xml.getXMLList("restrictions/restrictTo");
-        for (XML node : nodes) {
-            restrictions.add(PropertyMatcher.loadFromXML(node));
-        }
+        setReferenceFilters(xml.getObjectListImpl(IReferenceFilter.class,
+                "referenceFilters/filter", referenceFilters));
     }
     @Override
     public final void saveToXML(XML xml) {
         saveHttpFetcherToXML(xml);
-        if (!restrictions.isEmpty()) {
-            XML restrictsXML = xml.addElement("restrictions");
-            for (PropertyMatcher restrict : restrictions) {
-                PropertyMatcher.saveToXML(
-                        restrictsXML.addElement("restrictTo"), restrict);
-            }
-        }
+        xml.addElementList("referenceFilters", "filter", referenceFilters);
     }
 
     protected abstract void loadHttpFetcherFromXML(XML xml);
