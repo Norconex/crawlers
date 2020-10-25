@@ -15,11 +15,18 @@
 package com.norconex.collector.http.sitemap.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
+import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 public class StandardSitemapResolverTest {
 
@@ -39,4 +46,24 @@ public class StandardSitemapResolverTest {
 
     }
 
+
+    @Test
+    public void testTolerantParser() throws IOException, XMLStreamException {
+
+        try (FileInputStream fis = new FileInputStream(new File("src/test/resources/sitemap.xml")) ) {
+            XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+            inputFactory.setProperty(XMLInputFactory.IS_COALESCING,true);
+            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(new StripInvalidCharInputStream(fis));
+//            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(fis);
+            int event = xmlReader.getEventType();
+            while(true){
+                if (!xmlReader.hasNext()) {
+                    break;
+                }
+                event = xmlReader.next();
+            }
+        }
+
+
+    }
 }

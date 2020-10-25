@@ -47,7 +47,7 @@ public class HttpImporterPipeline
     //sharing all thread safe/common information,
     //just changing what is url/doc specific.
 
-    public HttpImporterPipeline(boolean isKeepDownloads, boolean isOrphan) {
+    public HttpImporterPipeline(boolean isKeepDownloads, boolean isOrphan, boolean isLinkExtractorQuitsAtDepth) {
 
         // if an orphan is reprocessed, it could be that it is no longer
         // referenced because of deletion.  Because of that, we need
@@ -73,7 +73,7 @@ public class HttpImporterPipeline
         addStage(new MetadataCanonicalGETStage());
         addStage(new DocumentCanonicalStage());
         addStage(new RobotsMetaCreateStage());
-        addStage(new LinkExtractorStage());
+        addStage(new LinkExtractorStage(isLinkExtractorQuitsAtDepth));
         addStage(new RobotsMetaNoIndexStage());
         addStage(new MetadataFiltersGETStage());
         addStage(new MetadataChecksumStage(false));
