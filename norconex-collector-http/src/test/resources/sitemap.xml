@@ -1,0 +1,15 @@
+
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+<url>
+<loc>https://example.com/path/to/page</loc>
+<news:news>
+<news:keywords>Some Keywords</news:keywords>
+<news:publication>
+<news:name>A Site</news:name>
+<news:language>En</news:language>
+</news:publication>
+<news:publication_date>2020-09-30T10:34:00-06:00</news:publication_date>
+<news:title>Title with illegal ampersand! & !! </news:title>
+</news:news>
+</url>
+</urlset>
