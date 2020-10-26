@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import com.norconex.collector.http.crawler.HttpCrawlerConfig;
-import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+
+import org.junit.Test;
+
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 
 public class StandardSitemapResolverTest {
 
@@ -50,11 +48,12 @@ public class StandardSitemapResolverTest {
     @Test
     public void testTolerantParser() throws IOException, XMLStreamException {
 
-        try (FileInputStream fis = new FileInputStream(new File("src/test/resources/sitemap.xml")) ) {
+        try (FileInputStream fis = new FileInputStream(
+                new File("src/test/resources/sitemap.xml"))) {
             XMLInputFactory inputFactory = XMLInputFactory.newInstance();
             inputFactory.setProperty(XMLInputFactory.IS_COALESCING,true);
-            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(new StripInvalidCharInputStream(fis));
-//            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(fis);
+            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(
+                    new StripInvalidCharInputStream(fis));
             int event = xmlReader.getEventType();
             while(true){
                 if (!xmlReader.hasNext()) {
@@ -63,7 +62,5 @@ public class StandardSitemapResolverTest {
                 event = xmlReader.next();
             }
         }
-
-
     }
 }

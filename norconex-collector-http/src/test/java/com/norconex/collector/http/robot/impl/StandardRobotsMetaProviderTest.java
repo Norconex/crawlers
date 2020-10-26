@@ -1,4 +1,4 @@
-/* Copyright 2010-2015 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.junit.Test;
 
 import com.norconex.collector.http.doc.HttpMetadata;
 import com.norconex.collector.http.robot.RobotsMeta;
-import com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider;
 import com.norconex.commons.lang.file.ContentType;
 
 /**
@@ -32,7 +31,7 @@ import com.norconex.commons.lang.file.ContentType;
  */
 public class StandardRobotsMetaProviderTest {
 
-    
+
     @Test
     public void testNiceRobotsMeta() throws IOException {
         testRobotsMeta("nice");
@@ -52,8 +51,8 @@ public class StandardRobotsMetaProviderTest {
         StandardRobotsMetaProvider p = new StandardRobotsMetaProvider();
         RobotsMeta robotsMeta = p.getRobotsMeta(
                 docReader, docURL, ContentType.HTML, metadata);
-        
-        assertTrue("Robots meta should be noindex nofollow.", 
+
+        assertTrue("Robots meta should be noindex nofollow.",
                 robotsMeta.isNofollow() && robotsMeta.isNoindex());
     }
 }

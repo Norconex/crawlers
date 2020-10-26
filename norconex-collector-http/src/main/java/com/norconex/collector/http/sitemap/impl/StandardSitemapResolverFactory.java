@@ -1,4 +1,4 @@
-/* Copyright 2010-2017 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,8 +85,7 @@ public class StandardSitemapResolverFactory
             StandardSitemapResolver.DEFAULT_SITEMAP_PATHS;
     private boolean lenient;
     private boolean escalateErrors;
-
-    private long from = -1;
+    private long fromDate = -1;
 
     @Override
     public ISitemapResolver createSitemapResolver(
@@ -101,7 +100,7 @@ public class StandardSitemapResolverFactory
         }
         StandardSitemapResolver sr = new StandardSitemapResolver(
                 resolvedTempDir, new SitemapStore(config, resume));
-        sr.setFrom(from);
+        sr.setFromDate(fromDate);
         sr.setEscalateErrors(escalateErrors);
         sr.setLenient(lenient);
         sr.setSitemapPaths(sitemapPaths);
@@ -159,20 +158,43 @@ public class StandardSitemapResolverFactory
         this.lenient = lenient;
     }
 
-    public long getFrom() {
-        return from;
-    }
-    public void setFrom(long from) {
-        this.from = from;
+    
+    /**
+     * Gets the minimum EPOCH date (in milliseconds) a sitemap entry
+     * should have to be considered.
+     * @return from date
+     * @since 2.9.1
+     */
+    public long getFromDate() {
+        return fromDate;
     }
 
+    /**
+     * Sets the minimum EPOCH date (in milliseconds) a sitemap entry
+     * should have to be considered.
+     * @param fromDate from date
+     * @since 2.9.1
+     */
+    public void setFromDate(long fromDate) {
+        this.fromDate = fromDate;
+    }
+
+    /**
+     * Gets whether errors should be thrown instead of logged.
+     * @return <code>true</code> if throwing errors
+     * @since 2.9.1
+     */
     public boolean isEscalateErrors() {
         return escalateErrors;
     }
+    /**
+     * Sets whether errors should be thrown instead of logged.
+     * @param escalateErrors <code>true</code> if throwing errors
+     * @since 2.9.1
+     */
     public void setEscalateErrors(boolean escalateErrors) {
         this.escalateErrors = escalateErrors;
     }
-
 
     /**
      * Gets the directory where sitemap files are temporary stored
@@ -207,7 +229,7 @@ public class StandardSitemapResolverFactory
         }
         setLenient(xml.getBoolean("[@lenient]", false));
         setEscalateErrors(xml.getBoolean("[@escalateErrors]", false));
-        setFrom(xml.getLong("[@from]", -1));
+        setFromDate(xml.getLong("[@from]", -1));
         String[] paths = xml.getList(
                 "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY); 
         if (!ArrayUtils.isEmpty(paths)) {
@@ -241,7 +263,7 @@ public class StandardSitemapResolverFactory
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttribute("lenient", Boolean.toString(lenient));
             writer.writeAttribute("escalateErrors", Boolean.toString(escalateErrors));
-            writer.writeAttribute("from", Long.toString(from));
+            writer.writeAttribute("from", Long.toString(fromDate));
             writer.writeElementString(
                     "tempDir", Objects.toString(getTempDir(), null));
             if (ArrayUtils.isEmpty(sitemapPaths)) {
@@ -268,7 +290,7 @@ public class StandardSitemapResolverFactory
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .append("sitemapPaths", sitemapPaths)
                 .append("lenient", lenient)
-                .append("from", from)
+                .append("from", fromDate)
                 .append("escalateErrors", escalateErrors)
                 .append("tempDir", tempDir)
                 .toString();
@@ -284,7 +306,7 @@ public class StandardSitemapResolverFactory
         return new EqualsBuilder()
                 .append(sitemapPaths, castOther.sitemapPaths)
                 .append(lenient, castOther.lenient)
-                .append(from, castOther.from)
+                .append(fromDate, castOther.fromDate)
                 .append(escalateErrors, castOther.escalateErrors)
                 .append(tempDir, castOther.tempDir)
                 .isEquals();
@@ -295,7 +317,7 @@ public class StandardSitemapResolverFactory
         return new HashCodeBuilder()
                 .append(sitemapPaths)
                 .append(lenient)
-                .append(from)
+                .append(fromDate)
                 .append(escalateErrors)
                 .append(tempDir)
                 .toHashCode();

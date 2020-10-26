@@ -8,6 +8,15 @@
   <body>
 
     <release version="2.9.1-SNAPSHOT" date="2020-??-??" description="Maintenance release">
+    
+      <action dev="simonwibberley" type="add" issue="718">
+        StandardSiteMapResolver can now optionally filter entries that 
+        are older than a given date. 
+      </action>
+      <action dev="simonwibberley" type="add" issue="718">
+        StandardSiteMapResolver can now optionally throw exception instead
+        of logging errors. 
+      </action>
       <action dev="simonwibberley" type="update" issue="697">
         Generic canonical link detector now supports non-standard
         canonical URL definition using meta "property" instead of "rel".

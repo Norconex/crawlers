@@ -1,4 +1,4 @@
-/* Copyright 2017 Norconex Inc.
+/* Copyright 2017-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ import java.util.Iterator;
 
 import org.apache.commons.collections4.iterators.ObjectArrayIterator;
 
-import com.norconex.collector.http.crawler.IStartURLsProvider;
-
 public class MockStartURLsProvider implements IStartURLsProvider {
 
     @Override
@@ -29,7 +27,7 @@ public class MockStartURLsProvider implements IStartURLsProvider {
                 "http://www.provided2.com",
                 "http://www.provided3.com");
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
