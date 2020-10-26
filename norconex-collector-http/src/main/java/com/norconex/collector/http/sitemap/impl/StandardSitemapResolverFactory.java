@@ -38,8 +38,8 @@ import org.apache.log4j.Logger;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.ISitemapResolverFactory;
-import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.config.IXMLConfigurable;
+import com.norconex.commons.lang.config.XMLConfigurationUtil;
 import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
 
 /**
@@ -50,7 +50,11 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *
  * <h3>XML configuration usage:</h3>
  * <pre>
- *  &lt;sitemapResolverFactory ignore="[false|true]" lenient="[false|true]" 
+ *  &lt;sitemapResolverFactory
+ *     ignore="[false|true]"
+ *     lenient="[false|true]"
+ *     escalateErrors="[false|true]"
+ *     fromDate="(Optional EPOCH date, in milliseconds)"
  *     class="com.norconex.collector.http.sitemap.impl.StandardSitemapResolverFactory"&gt;
  *     &lt;tempDir&gt;(where to store temp files)&lt;/tempDir&gt;
  *     &lt;path&gt;
@@ -62,7 +66,7 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  *     (... repeat path tag as needed ...)
  *  &lt;/sitemapResolverFactory&gt;
  * </pre>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
  * The following ignores sitemap files present on web sites.
@@ -70,18 +74,18 @@ import com.norconex.commons.lang.xml.EnhancedXMLStreamWriter;
  * <pre>
  *  &lt;sitemapResolverFactory ignore="true"/&gt;
  * </pre>
- * 
+ *
  * @author Pascal Essiembre
  * @see StandardSitemapResolver
  */
-public class StandardSitemapResolverFactory 
+public class StandardSitemapResolverFactory
         implements ISitemapResolverFactory, IXMLConfigurable {
 
     private static final Logger LOG = LogManager.getLogger(
             StandardSitemapResolverFactory.class);
 
     private File tempDir;
-    private String[] sitemapPaths = 
+    private String[] sitemapPaths =
             StandardSitemapResolver.DEFAULT_SITEMAP_PATHS;
     private boolean lenient;
     private boolean escalateErrors;
@@ -90,7 +94,7 @@ public class StandardSitemapResolverFactory
     @Override
     public ISitemapResolver createSitemapResolver(
             HttpCrawlerConfig config, boolean resume) {
-  
+
         File resolvedTempDir = tempDir;
         if (resolvedTempDir == null) {
             resolvedTempDir = config.getWorkDir();
@@ -108,8 +112,8 @@ public class StandardSitemapResolverFactory
     }
 
     /**
-     * Gets the URL paths, relative to the URL root, from which to try 
-     * locate and resolve sitemaps. Default paths are 
+     * Gets the URL paths, relative to the URL root, from which to try
+     * locate and resolve sitemaps. Default paths are
      * "/sitemap.xml" and "/sitemap-index.xml".
      * @return sitemap paths.
      * @since 2.3.0
@@ -118,7 +122,7 @@ public class StandardSitemapResolverFactory
         return sitemapPaths;
     }
     /**
-     * Sets the URL paths, relative to the URL root, from which to try 
+     * Sets the URL paths, relative to the URL root, from which to try
      * locate and resolve sitemaps.
      * @param sitemapPaths sitemap paths.
      * @since 2.3.0
@@ -126,7 +130,7 @@ public class StandardSitemapResolverFactory
     public void setSitemapPaths(String... sitemapPaths) {
         this.sitemapPaths = sitemapPaths;
     }
-    
+
     /**
      * Get sitemap locations.
      * @return sitemap locations
@@ -142,15 +146,16 @@ public class StandardSitemapResolverFactory
     /**
      * Set sitemap locations.
      * @param sitemapLocations sitemap locations
-     * @deprecated Since 2.3.0, use 
+     * @deprecated Since 2.3.0, use
      *             {@link HttpCrawlerConfig#setStartSitemapURLs(String[])}
      */
+    @Deprecated
     public void setSitemapLocations(String... sitemapLocations) {
         LOG.warn("Since 2.3.0, calling StandardSitemapResolver"
                 + "#setSitemapLocation(String...) has no effect. "
                 + "Use HttpCrawlerConfig#setSitemaps(String[] ...) instead.");
     }
-    
+
     public boolean isLenient() {
         return lenient;
     }
@@ -158,7 +163,7 @@ public class StandardSitemapResolverFactory
         this.lenient = lenient;
     }
 
-    
+
     /**
      * Gets the minimum EPOCH date (in milliseconds) a sitemap entry
      * should have to be considered.
@@ -200,8 +205,8 @@ public class StandardSitemapResolverFactory
      * Gets the directory where sitemap files are temporary stored
      * before they are parsed.  When <code>null</code> (default), temporary
      * files are created directly under {@link HttpCrawlerConfig#getWorkDir()}.
-     * the crawler working directory is also undefined, it will use the 
-     * system temporary directory, as returned by 
+     * the crawler working directory is also undefined, it will use the
+     * system temporary directory, as returned by
      * {@link FileUtils#getTempDirectory()}.
      * @return directory where temporary files are written
      * @since 2.3.0
@@ -211,7 +216,7 @@ public class StandardSitemapResolverFactory
     }
     /**
      * Sets the temporary directory where sitemap files are temporary stored
-     * before they are parsed.  
+     * before they are parsed.
      * @param tempDir directory where temporary files are written
      * @since 2.3.0
      */
@@ -229,13 +234,13 @@ public class StandardSitemapResolverFactory
         }
         setLenient(xml.getBoolean("[@lenient]", false));
         setEscalateErrors(xml.getBoolean("[@escalateErrors]", false));
-        setFromDate(xml.getLong("[@from]", -1));
+        setFromDate(xml.getLong("[@fromDate]", -1));
         String[] paths = xml.getList(
-                "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY); 
+                "path").toArray(ArrayUtils.EMPTY_STRING_ARRAY);
         if (!ArrayUtils.isEmpty(paths)) {
             // not empty but if empty after removing blank ones, consider
             // empty (we want no path)
-            List<String> cleanPaths = new ArrayList<String>(paths.length);
+            List<String> cleanPaths = new ArrayList<>(paths.length);
             for (String path : paths) {
                 if (StringUtils.isNotBlank(path)) {
                     cleanPaths.add(path);
@@ -248,7 +253,7 @@ public class StandardSitemapResolverFactory
                         cleanPaths.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
             }
         }
-        
+
         if (!xml.getList("location").isEmpty()) {
             LOG.warn("Since 2.3.0, the location tag is no longer supported. "
                     + "Use <sitemap> under <startURLs> for an equivalent.");
@@ -263,7 +268,7 @@ public class StandardSitemapResolverFactory
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttribute("lenient", Boolean.toString(lenient));
             writer.writeAttribute("escalateErrors", Boolean.toString(escalateErrors));
-            writer.writeAttribute("from", Long.toString(fromDate));
+            writer.writeAttribute("fromDate", Long.toString(fromDate));
             writer.writeElementString(
                     "tempDir", Objects.toString(getTempDir(), null));
             if (ArrayUtils.isEmpty(sitemapPaths)) {
@@ -290,7 +295,7 @@ public class StandardSitemapResolverFactory
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .append("sitemapPaths", sitemapPaths)
                 .append("lenient", lenient)
-                .append("from", fromDate)
+                .append("fromDate", fromDate)
                 .append("escalateErrors", escalateErrors)
                 .append("tempDir", tempDir)
                 .toString();
@@ -301,7 +306,7 @@ public class StandardSitemapResolverFactory
         if (!(other instanceof StandardSitemapResolverFactory)) {
             return false;
         }
-        StandardSitemapResolverFactory castOther = 
+        StandardSitemapResolverFactory castOther =
                 (StandardSitemapResolverFactory) other;
         return new EqualsBuilder()
                 .append(sitemapPaths, castOther.sitemapPaths)
@@ -322,5 +327,5 @@ public class StandardSitemapResolverFactory
                 .append(tempDir)
                 .toHashCode();
     }
-    
+
 }

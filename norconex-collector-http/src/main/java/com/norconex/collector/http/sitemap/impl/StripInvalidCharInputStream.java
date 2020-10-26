@@ -14,14 +14,18 @@
  */
 package com.norconex.collector.http.sitemap.impl;
 
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.io.*;
-
 class StripInvalidCharInputStream extends FilterInputStream {
-    private static Logger logger = LogManager.getLogger(
+    private static final Logger LOG = LogManager.getLogger(
             StripInvalidCharInputStream.class);
+
+    private static final byte AMP_BYTE = "&".getBytes()[0];
 
     private boolean started;
 
@@ -41,7 +45,7 @@ class StripInvalidCharInputStream extends FilterInputStream {
             // ignore invalid XML 1.0 chars
             if (isInvalid(cbuf[readPos]) || isInvalid(cbuf, readPos)
                     || isBlankStart(cbuf, readPos)) {
-                logger.info("found control character: " + cbuf[readPos]);
+                LOG.info("found control character: " + cbuf[readPos]);
                 continue;
             } else {
                 pos++;
@@ -69,12 +73,14 @@ class StripInvalidCharInputStream extends FilterInputStream {
     }
 
     public static boolean isInvalid(byte[] cbuf, int pos) {
-        if("&".getBytes()[0] == cbuf[pos] && pos + 1 < cbuf.length 
-                && cbuf[pos+1] != "#".getBytes()[0] ) {
-            return true;
-        } else {
+        if (AMP_BYTE != cbuf[pos]) {
             return false;
         }
+        // Grabs up to 20 bytes to check if a valid entity.
+        // Not the most efficient, but handles more cases.
+        String txt = new String(cbuf, pos, Math.min(20, cbuf.length - pos));
+        return !txt.matches(
+                "(?i)^&(#[0-9]+|#x[0-9a-f]+|amp|quot|apos|lt|gt);.*");
     }
 
     public static boolean isInvalid(byte c) {

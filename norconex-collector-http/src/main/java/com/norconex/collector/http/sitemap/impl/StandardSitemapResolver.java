@@ -69,6 +69,8 @@ import com.norconex.commons.lang.file.FileUtil;
  * in a sub-directory applies only to URLs found in that sub-directory and
  * its children. This behavior is respected by default.  Setting lenient
  * to <code>true</code> no longer honors this restriction.
+ * <b>Since 2.9.1</b>, setting lenient will also attempt to parse
+ * XML values with invalid entities.
  * </p>
  * <h3>Since 2.3.0</h3>
  * <p>
@@ -377,11 +379,14 @@ public class StandardSitemapResolver implements ISitemapResolver {
            SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations,
            String location) throws XMLStreamException, IOException {
 
-        try (FileInputStream fis = new FileInputStream(sitemapFile)) {
+        try (InputStream is = lenient
+                ? new StripInvalidCharInputStream(
+                        new FileInputStream(sitemapFile))
+                : new FileInputStream(sitemapFile)) {
             XMLInputFactory inputFactory = XMLInputFactory.newInstance();
             inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
-            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(
-                    new StripInvalidCharInputStream(fis));
+            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(is);
+
             ParseState parseState = new ParseState();
 
             String locationDir = StringUtils.substringBeforeLast(location, "/");
@@ -458,7 +463,10 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
     private void parseCharacters(ParseState parseState, String value) {
-        if (parseState.loc) {
+        if (parseState.sitemapIndex) {
+            parseState.baseURL.setReference(value);
+            parseState.sitemapIndex = false;
+        } if (parseState.loc) {
             parseState.baseURL.setReference(value);
             parseState.loc = false;
         } else if (parseState.lastmod) {
@@ -485,7 +493,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
 
     private void parseStartElement(ParseState parseState, String tag) {
         if("sitemap".equalsIgnoreCase(tag)) {
-            parseState.baseURL = new HttpCrawlData("", 0);
+            parseState.sitemapIndex = true;
         } else if("url".equalsIgnoreCase(tag)){
             parseState.baseURL = new HttpCrawlData("", 0);
         } else if("loc".equalsIgnoreCase(tag)){
@@ -558,6 +566,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
 
     private static class ParseState {
         private HttpCrawlData baseURL = null;
+        private boolean sitemapIndex = false;
         private boolean loc = false;
         private boolean lastmod = false;
         private boolean changefreq = false;

@@ -54,12 +54,12 @@ public class StandardSitemapResolverTest {
             inputFactory.setProperty(XMLInputFactory.IS_COALESCING,true);
             XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(
                     new StripInvalidCharInputStream(fis));
-            int event = xmlReader.getEventType();
+            xmlReader.getEventType();
             while(true){
                 if (!xmlReader.hasNext()) {
                     break;
                 }
-                event = xmlReader.next();
+                xmlReader.next();
             }
         }
     }

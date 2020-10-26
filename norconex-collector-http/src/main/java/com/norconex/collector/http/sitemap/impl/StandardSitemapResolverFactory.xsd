@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2017 Norconex Inc.
+   Copyright 2017-2020 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@
       <xs:attribute name="class" type="xs:string"/>
       <xs:attribute name="ignore" type="xs:boolean"/>
       <xs:attribute name="lenient" type="xs:boolean"/>
+      <xs:attribute name="fromDate" type="xs:long"/>
+      <xs:attribute name="escalateErrors" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
 
