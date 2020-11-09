@@ -18,7 +18,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -48,7 +50,6 @@ import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.impl.GenericSitemapResolver;
 import com.norconex.collector.http.url.IURLNormalizer;
 import com.norconex.collector.http.url.impl.GenericURLNormalizer;
-import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
@@ -59,33 +60,32 @@ import com.norconex.commons.lang.xml.XML;
  * </p>
  * <h3>Keeping Referenced Links</h3>
  * <p>
- * By default the crawler will store as metadata all URLs extracted from
- * documents that are "in scope".  This can be changed using the
- * {@link #setKeepReferencedLinks(KeepLinks)} method. Changing this setting
- * has no incidence on what gets crawled.  Possible options are:
+ * By default the crawler will store as metadata URLs extracted from
+ * documents that are "in scope" (see
+ * {@link #setUrlCrawlScopeStrategy(URLCrawlScopeStrategy)}) if they are not
+ * on a page having reached the configured maximum depth ({@link #maxDepth}.
+ * This can be changed using the
+ * {@link #setKeepReferencedLinks(List<ReferencedLinkType>} method.
+ * Changing this setting has no incidence on what gets crawled.
+ * Possible options are:
  * </p>
  * <ul>
- *   <li><b>NONE:</b> Do not keep extracted links.</li>
- *   <li><b>INSCOPE:</b> Only store "in-scope" links as
+ *   <li><b>INSCOPE:</b> Default. Store "in-scope" links as
  *       {@link HttpDocMetadata#REFERENCED_URLS}.</li>
- *   <li><b>OUTSCOPE:</b> Only store "out-of-scope" links as
+ *   <li><b>OUTSCOPE:</b> Store "out-of-scope" links as
  *       {@link HttpDocMetadata#REFERENCED_URLS_OUT_OF_SCOPE}.</li>
- *   <li><b>ALL:</b> Store both in-scope and out-of-scope URLs in their
- *       respective target field names defined above.</li>
+ *   <li><b>MAXDEPTH:</b> Also store links extracted on pages at max depth.
+ *       Must be used with at least one other option to have any effect.</li>
  * </ul>
  *
  * @author Pascal Essiembre
  */
 public class HttpCrawlerConfig extends CrawlerConfig {
 
-    public enum KeepLinks {
-        NONE, INSCOPE, OUTSCOPE, ALL;
-        public boolean keepInScope() {
-            return this.equals(INSCOPE) || this.equals(ALL);
-        }
-        public boolean keepOutScope() {
-            return this.equals(OUTSCOPE) || this.equals(ALL);
-        }
+    // By default do not include URLs on docs at max depth
+    // (and do not extract them).  Include MAXDEPTH for this.
+    public enum ReferencedLinkType {
+        INSCOPE, OUTSCOPE, MAXDEPTH;
     }
 
     private int maxDepth = -1;
@@ -100,7 +100,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     private boolean ignoreSitemap;
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
-	private KeepLinks keepReferencedLinks = KeepLinks.INSCOPE;
+    private final Set<ReferencedLinkType> keepReferencedLinks =
+            new HashSet<>(Arrays.asList(ReferencedLinkType.INSCOPE));
 	private boolean startURLsAsync;
 
 	private boolean fetchHttpHead;
@@ -531,8 +532,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      */
 	@Deprecated
     public boolean isKeepOutOfScopeLinks() {
-        return EqualsUtil.equalsAny(
-                keepReferencedLinks, KeepLinks.OUTSCOPE, KeepLinks.ALL);
+        return keepReferencedLinks.contains(ReferencedLinkType.OUTSCOPE);
     }
 	/**
 	 * Sets whether links not in scope should be stored as metadata
@@ -544,33 +544,21 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     @Deprecated
     public void setKeepOutOfScopeLinks(boolean keepOutOfScopeLinks) {
         if (keepOutOfScopeLinks) {
-            if (EqualsUtil.equalsAny(
-                    keepReferencedLinks, null, KeepLinks.NONE)) {
-                setKeepReferencedLinks(KeepLinks.OUTSCOPE);
-            } else if (EqualsUtil.equalsAny(
-                    keepReferencedLinks, KeepLinks.INSCOPE)) {
-                setKeepReferencedLinks(KeepLinks.ALL);
-            }
+            keepReferencedLinks.add(ReferencedLinkType.OUTSCOPE);
         } else {
-            if (EqualsUtil.equalsAny(
-                    keepReferencedLinks, KeepLinks.ALL)) {
-                setKeepReferencedLinks(KeepLinks.INSCOPE);
-            } else if (EqualsUtil.equalsAny(
-                    keepReferencedLinks, KeepLinks.OUTSCOPE)) {
-                setKeepReferencedLinks(KeepLinks.NONE);
-            }
+            keepReferencedLinks.remove(ReferencedLinkType.OUTSCOPE);
         }
     }
 
     /**
-     * Gets whether to keep referenced links and what to keep.
+     * Gets what type of referenced links to keep, if any.
      * Those links are URLs extracted by link extractors. See class
      * documentation for more details.
-     * @return option for keeping links
+     * @return preferences for keeping links
      * @since 3.0.0
      */
-    public KeepLinks getKeepReferencedLinks() {
-        return keepReferencedLinks;
+    public Set<ReferencedLinkType> getKeepReferencedLinks() {
+        return Collections.unmodifiableSet(keepReferencedLinks);
     }
     /**
      * Sets whether to keep referenced links and what to keep.
@@ -579,8 +567,20 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * @param keepReferencedLinks option for keeping links
      * @since 3.0.0
      */
-    public void setKeepReferencedLinks(KeepLinks keepReferencedLinks) {
-        this.keepReferencedLinks = keepReferencedLinks;
+    public void setKeepReferencedLinks(
+            Set<ReferencedLinkType> keepReferencedLinks) {
+        CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
+    }
+    /**
+     * Sets whether to keep referenced links and what to keep.
+     * Those links are URLs extracted by link extractors. See class
+     * documentation for more details.
+     * @param keepReferencedLinks option for keeping links
+     * @since 3.0.0
+     */
+    public void setKeepReferencedLinks(
+            ReferencedLinkType... keepReferencedLinks) {
+        CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
     }
 
     /**
@@ -736,7 +736,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
     protected void saveCrawlerConfigToXML(XML xml) {
         xml.addElement("maxDepth", maxDepth);
         xml.addElement("keepDownloads", keepDownloads);
-		xml.addElement("keepReferencedLinks", keepReferencedLinks);
+        xml.addDelimitedElementList("keepReferencedLinks",
+                new ArrayList<>(keepReferencedLinks));
         xml.addElement("fetchHttpHead", fetchHttpHead);
 
 		XML startXML = xml.addElement("startURLs")
@@ -872,8 +873,10 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         setMaxDepth(xml.getInteger("maxDepth", maxDepth));
         setKeepDownloads(xml.getBoolean("keepDownloads", keepDownloads));
         setFetchHttpHead(xml.getBoolean("fetchHttpHead", fetchHttpHead));
-		setKeepReferencedLinks(xml.getEnum("keepReferencedLinks",
-		        KeepLinks.class, keepReferencedLinks));
+
+        setKeepReferencedLinks(new HashSet<>(xml.getDelimitedEnumList(
+                "keepReferencedLinks", ReferencedLinkType.class,
+                        new ArrayList<>(keepReferencedLinks))));
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "ignoreCanonicalLinks", ignoreCanonicalLinks));
         urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(

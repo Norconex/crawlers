@@ -39,20 +39,7 @@
             </xs:complexType>
           </xs:element>
           <xs:element name="keepDownloads" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="keepReferencedLinks" minOccurs="0" maxOccurs="1">
-            <xs:simpleType>
-              <xs:restriction base="xs:string">
-                <xs:enumeration value="NONE"/>
-                <xs:enumeration value="none"/>
-                <xs:enumeration value="INSCOPE"/>
-                <xs:enumeration value="inscope"/>
-                <xs:enumeration value="OUTSCOPE"/>
-                <xs:enumeration value="outscope"/>
-                <xs:enumeration value="ALL"/>
-                <xs:enumeration value="all"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:element>
+          <xs:element name="keepReferencedLinks" type="xs:string" minOccurs="0" maxOccurs="1"/>
           <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
           <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>

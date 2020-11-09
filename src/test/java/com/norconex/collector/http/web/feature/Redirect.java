@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Assertions;
 
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
+import com.norconex.collector.http.crawler.HttpCrawlerConfig.ReferencedLinkType;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core3.UpsertRequest;
@@ -40,6 +41,8 @@ public class Redirect extends AbstractTestFeature {
     protected void doConfigureCralwer(HttpCrawlerConfig crawlerConfig)
             throws Exception {
         crawlerConfig.setMaxDepth(0);
+        crawlerConfig.setKeepReferencedLinks(
+                ReferencedLinkType.INSCOPE, ReferencedLinkType.MAXDEPTH);
     }
 
     @Override

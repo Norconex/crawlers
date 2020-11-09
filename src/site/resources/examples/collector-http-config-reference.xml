@@ -164,11 +164,10 @@
            -->
       <keepDownloads>false</keepDownloads>
   
-      <!-- Decide what type of extracted links to keep (if any) in metadata.
-           Option are (in  relation to the start URLs scope): 
-           NONE, INSCOPE (default), OUTSCOPE, ALL.
+      <!-- Comma-separated list of type of extracted links to keep 
+           in metadata. Default is INSCOPE.
            -->
-      <keepReferencedLinks>[NONE|INSCOPE|OUTSCOPE|ALL]</keepReferencedLinks>
+      <keepReferencedLinks>[INSCOPE|OUTSCOPE|MAXDEPTH]</keepReferencedLinks>
   
       <!-- What to do with orphan documents.  Orphans are valid 
            documents, which on subsequent crawls can no longer be reached when 

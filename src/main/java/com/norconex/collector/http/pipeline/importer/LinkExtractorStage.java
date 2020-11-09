@@ -19,7 +19,6 @@ import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.collections4.SetUtils;
@@ -28,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDoc;
-import com.norconex.collector.http.crawler.HttpCrawlerConfig.KeepLinks;
+import com.norconex.collector.http.crawler.HttpCrawlerConfig.ReferencedLinkType;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.doc.HttpDocMetadata;
@@ -51,23 +50,34 @@ import com.norconex.commons.lang.io.CachedInputStream;
 
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
+
+        Set<ReferencedLinkType> linkTypes =
+                ctx.getConfig().getKeepReferencedLinks();
+
+        // If the current page is the deepest allowed, only extract its URL
+        // if configured to do so.
+        int maxDepth = ctx.getConfig().getMaxDepth();
+        if (maxDepth != -1
+                && ctx.getDocInfo().getDepth() == maxDepth
+                && !linkTypes.contains(ReferencedLinkType.MAXDEPTH)) {
+            return true;
+        }
+
         Set<Link> links = extractLinks(ctx);
         if (links.isEmpty()) {
             return true;
         }
 
-        KeepLinks keepLinks = Optional.ofNullable(ctx.getConfig()
-                .getKeepReferencedLinks()).orElse(KeepLinks.INSCOPE);
         UniqueDocLinks docLinks = new UniqueDocLinks();
 
         for (Link link : links) {
-            handleExtractedLink(ctx, docLinks, link, keepLinks);
+            handleExtractedLink(ctx, docLinks, link);
         }
 
         LOG.debug("inScope count: {}.", docLinks.inScope.size());
         if (!docLinks.inScope.isEmpty()) {
             String[] inScopeUrls = docLinks.inScope.toArray(EMPTY_STRING_ARRAY);
-            if (keepLinks.keepInScope()) {
+            if (linkTypes.contains(ReferencedLinkType.INSCOPE)) {
                 ctx.getMetadata().add(
                         HttpDocMetadata.REFERENCED_URLS, inScopeUrls);
             }
@@ -88,7 +98,11 @@ import com.norconex.commons.lang.io.CachedInputStream;
     }
 
     private void handleExtractedLink(HttpImporterPipelineContext ctx,
-            UniqueDocLinks docLinks, Link link, KeepLinks keepLinks) {
+            UniqueDocLinks docLinks, Link link) {
+
+        Set<ReferencedLinkType> linkTypes =
+                ctx.getConfig().getKeepReferencedLinks();
+
         try {
             String reference = ctx.getDocInfo().getReference();
 
@@ -96,7 +110,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
                     reference, link.getUrl())) {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("URL in crawl scope: {} (keep: {})",
-                            link.getUrl(), keepLinks);
+                            link.getUrl(), linkTypes);
                 }
                 String queuedURL = queueURL(link, ctx, docLinks.extracted);
                 if (StringUtils.isNotBlank(queuedURL)) {
@@ -105,9 +119,9 @@ import com.norconex.commons.lang.io.CachedInputStream;
             } else  {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("URL not in crawl scope: {} (keep: {})",
-                            link.getUrl(), keepLinks);
+                            link.getUrl(), linkTypes);
                 }
-                if (keepLinks.keepOutScope()) {
+                if (linkTypes.contains(ReferencedLinkType.OUTSCOPE)) {
                     docLinks.outScope.add(link.getUrl());
                 }
             }
