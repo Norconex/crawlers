@@ -65,7 +65,7 @@ import com.norconex.commons.lang.xml.XML;
  * {@link #setUrlCrawlScopeStrategy(URLCrawlScopeStrategy)}) if they are not
  * on a page having reached the configured maximum depth ({@link #maxDepth}.
  * This can be changed using the
- * {@link #setKeepReferencedLinks(List<ReferencedLinkType>} method.
+ * {@link #setKeepReferencedLinks(Set)} method.
  * Changing this setting has no incidence on what gets crawled.
  * Possible options are:
  * </p>
@@ -539,7 +539,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * under {@link HttpDocMetadata#REFERENCED_URLS_OUT_OF_SCOPE}
      * @param keepOutOfScopeLinks <code>true</code> if keeping URLs not in scope
      * @since 2.8.0
-     * @deprecated Since 3.0.0, use {@link #setKeepReferencedLinks(KeepLinks)}.
+     * @deprecated Since 3.0.0, use {@link #setKeepReferencedLinks(Set)}.
 	 */
     @Deprecated
     public void setKeepOutOfScopeLinks(boolean keepOutOfScopeLinks) {
