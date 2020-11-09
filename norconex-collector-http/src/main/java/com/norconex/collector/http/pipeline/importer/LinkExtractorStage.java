@@ -1,4 +1,4 @@
-/* Copyright 2010-2016 Norconex Inc.
+/* Copyright 2010-2020 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,11 +47,19 @@ import com.norconex.commons.lang.io.CachedInputStream;
     @Override
     public boolean executeStage(HttpImporterPipelineContext ctx) {
 
+        // If the current page is the deepest allowed, only extract its URL
+        // if configured to do so.
+        int maxDepth = ctx.getConfig().getMaxDepth();
+        if (maxDepth != -1
+                && ctx.getCrawlData().getDepth() == maxDepth
+                && !ctx.getConfig().isKeepMaxDepthLinks()) {
+            return true;
+        }
+
         Set<Link> links = extractLinks(ctx);
         if (links.isEmpty()) {
             return true;
         }
-
 
         String reference = ctx.getCrawlData().getReference();
 

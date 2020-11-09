@@ -84,8 +84,9 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     private boolean ignoreSitemap;
     private boolean keepDownloads;
     private boolean ignoreCanonicalLinks;
-	private boolean keepOutOfScopeLinks;
-	private boolean skipMetaFetcherOnBadStatus;
+    private boolean keepOutOfScopeLinks;
+    private boolean skipMetaFetcherOnBadStatus;
+    private boolean keepMaxDepthLinks;
 
     private String userAgent;
 
@@ -122,7 +123,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             new StandardSitemapResolverFactory();
 
     private IMetadataChecksummer metadataChecksummer =
-    		new LastModifiedMetadataChecksummer();
+            new LastModifiedMetadataChecksummer();
 
     private IHttpDocumentProcessor[] preImportProcessors;
     private IHttpDocumentProcessor[] postImportProcessors;
@@ -215,7 +216,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return documentFetcher;
     }
     public void setDocumentFetcher(
-    		IHttpDocumentFetcher documentFetcher) {
+            IHttpDocumentFetcher documentFetcher) {
         this.documentFetcher = documentFetcher;
     }
     public IHttpMetadataFetcher getMetadataFetcher() {
@@ -273,14 +274,14 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
         return ArrayUtils.clone(preImportProcessors);
     }
     public void setPreImportProcessors(
-    		IHttpDocumentProcessor... httpPreProcessors) {
+            IHttpDocumentProcessor... httpPreProcessors) {
         this.preImportProcessors = ArrayUtils.clone(httpPreProcessors);
     }
     public IHttpDocumentProcessor[] getPostImportProcessors() {
         return ArrayUtils.clone(postImportProcessors);
     }
     public void setPostImportProcessors(
-    		IHttpDocumentProcessor... httpPostProcessors) {
+            IHttpDocumentProcessor... httpPostProcessors) {
         this.postImportProcessors = ArrayUtils.clone(httpPostProcessors);
     }
     public boolean isIgnoreRobotsTxt() {
@@ -295,21 +296,42 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
     public void setKeepDownloads(boolean keepDownloads) {
         this.keepDownloads = keepDownloads;
     }
+
+    /**
+     * Gets whether to keep (and extract) links on pages having reached
+     * the configured maximum depth.
+     * @return <code>true</code> if keeping max depth links.
+     * @see #getMaxDepth()
+     * @since 2.9.1
+     */
+    public boolean isKeepMaxDepthLinks() {
+        return keepMaxDepthLinks;
+    }
+    /**
+     * Sets whether to keep (and extract) links on pages having reached
+     * the configured maximum depth.
+     * @param keepMaxDepthLinks <code>true</code> to keep max depth links.
+     * @see #setMaxDepth(int)
+     * @since 2.9.1
+     */
+    public void setKeepMaxDepthLinks(boolean keepMaxDepthLinks) {
+        this.keepMaxDepthLinks = keepMaxDepthLinks;
+    }
     /**
      * Whether links not in scope should be stored as metadata
      * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
      * @return <code>true</code> if keeping URLs not in scope.
      * @since 2.8.0
      */
-	public boolean isKeepOutOfScopeLinks() {
+    public boolean isKeepOutOfScopeLinks() {
         return keepOutOfScopeLinks;
     }
-	/**
-	 * Sets whether links not in scope should be stored as metadata
+    /**
+     * Sets whether links not in scope should be stored as metadata
      * under {@link HttpMetadata#COLLECTOR_REFERENCED_URLS_OUT_OF_SCOPE}
      * @param keepOutOfScopeLinks <code>true</code> if keeping URLs not in scope
      * @since 2.8.0
-	 */
+     */
     public void setKeepOutOfScopeLinks(boolean keepOutOfScopeLinks) {
         this.keepOutOfScopeLinks = keepOutOfScopeLinks;
     }
@@ -319,13 +341,13 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
      * @return metadata checksummer
      */
     public IMetadataChecksummer getMetadataChecksummer() {
-		return metadataChecksummer;
-	}
-	public void setMetadataChecksummer(
-	        IMetadataChecksummer metadataChecksummer) {
-		this.metadataChecksummer = metadataChecksummer;
-	}
-	public boolean isIgnoreRobotsMeta() {
+        return metadataChecksummer;
+    }
+    public void setMetadataChecksummer(
+            IMetadataChecksummer metadataChecksummer) {
+        this.metadataChecksummer = metadataChecksummer;
+    }
+    public boolean isIgnoreRobotsMeta() {
         return ignoreRobotsMeta;
     }
     public void setIgnoreRobotsMeta(boolean ignoreRobotsMeta) {
@@ -481,8 +503,10 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
             writer.writeElementInteger("maxDepth", getMaxDepth());
             writer.writeElementBoolean("keepDownloads", isKeepDownloads());
 
-			writer.writeElementBoolean(
-			        "keepOutOfScopeLinks", isKeepOutOfScopeLinks());
+            writer.writeElementBoolean(
+                    "keepOutOfScopeLinks", isKeepOutOfScopeLinks());
+            writer.writeElementBoolean(
+                    "keepMaxDepthLinks", isKeepMaxDepthLinks());
             writer.writeStartElement("startURLs");
             writer.writeAttributeBoolean("stayOnProtocol",
                     urlCrawlScopeStrategy.isStayOnProtocol());
@@ -664,8 +688,10 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 xml, "delay", getDelayResolver()));
         setMaxDepth(xml.getInt("maxDepth", getMaxDepth()));
         setKeepDownloads(xml.getBoolean("keepDownloads", isKeepDownloads()));
-		setKeepOutOfScopeLinks(
-		        xml.getBoolean("keepOutOfScopeLinks", isKeepOutOfScopeLinks()));
+        setKeepOutOfScopeLinks(
+                xml.getBoolean("keepOutOfScopeLinks", isKeepOutOfScopeLinks()));
+        setKeepOutOfScopeLinks(
+                xml.getBoolean("keepMaxDepthLinks", isKeepMaxDepthLinks()));
         setIgnoreCanonicalLinks(xml.getBoolean(
                 "ignoreCanonicalLinks", isIgnoreCanonicalLinks()));
         urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
@@ -756,6 +782,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreSitemap, castOther.ignoreSitemap)
                 .append(keepDownloads, castOther.keepDownloads)
                 .append(keepOutOfScopeLinks, castOther.keepOutOfScopeLinks)
+                .append(keepMaxDepthLinks, castOther.keepMaxDepthLinks)
                 .append(ignoreCanonicalLinks, castOther.ignoreCanonicalLinks)
                 .append(skipMetaFetcherOnBadStatus,
                         castOther.skipMetaFetcherOnBadStatus)
@@ -794,6 +821,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append(ignoreSitemap)
                 .append(keepDownloads)
                 .append(keepOutOfScopeLinks)
+                .append(keepMaxDepthLinks)
                 .append(ignoreCanonicalLinks)
                 .append(skipMetaFetcherOnBadStatus)
                 .append(userAgent)
@@ -830,6 +858,7 @@ public class HttpCrawlerConfig extends AbstractCrawlerConfig {
                 .append("ignoreSitemap", ignoreSitemap)
                 .append("keepDownloads", keepDownloads)
                 .append("keepOutOfScopeLinks", keepOutOfScopeLinks)
+                .append("keepMaxDepthLinks", keepMaxDepthLinks)
                 .append("ignoreCanonicalLinks", ignoreCanonicalLinks)
                 .append("skipMetaFetcherOnBadStatus",
                         skipMetaFetcherOnBadStatus)

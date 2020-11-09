@@ -64,6 +64,7 @@ public class BasicFeaturesTest extends AbstractHttpTest {
                 "/test?case=redirect");
         HttpCrawler crawler = (HttpCrawler) collector.getCrawlers()[0];
         crawler.getCrawlerConfig().setMaxDepth(0);
+        crawler.getCrawlerConfig().setKeepMaxDepthLinks(true);
         collector.start(false);
 
         List<HttpDocument> docs = getCommitedDocuments(crawler);

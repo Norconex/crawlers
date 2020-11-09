@@ -182,6 +182,11 @@
          -->
     <keepOutOfScopeLinks>false</keepOutOfScopeLinks>
 
+    <!-- Extract and keep links on pages found at maximum depth (if a maximum
+         depth was specified). If kept, they are stored in a metadata field.
+         -->
+    <keepMaxDepthLinks>false</keepMaxDepthLinks>
+
     <!-- What to do with orphan documents.  Orphans are valid 
          documents, which on subsequent crawls can no longer be reached when 
          running the crawler (e.g. there are no links pointing to that page 

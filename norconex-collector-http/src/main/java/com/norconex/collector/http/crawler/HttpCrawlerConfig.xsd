@@ -38,6 +38,7 @@
           </xs:element>
           <xs:element name="keepDownloads" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
           <xs:element name="keepOutOfScopeLinks" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="keepMaxDepthLinks" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
           <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
           <xs:element name="userAgent" type="nonEmptyString" minOccurs="0" maxOccurs="1"/>
           <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>

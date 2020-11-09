@@ -17,6 +17,11 @@
         StandardSiteMapResolver can now optionally throw exception instead
         of logging errors. 
       </action>
+      <action dev="essiembre" type="update" issue="498">
+        Extracted links are no longer extracted/kept by default for documents
+        having reached the max depth. To keep former behavior, use
+        the new method HttpCrawlerConfig#keepMaxDepthLinks(...). 
+      </action>
       <action dev="simonwibberley" type="update" issue="697">
         Generic canonical link detector now supports non-standard
         canonical URL definition using meta "property" instead of "rel".
