@@ -161,13 +161,13 @@ import com.norconex.importer.ImporterConfig;
  * <h3>Orphan documents</h3>
  * <p>
  * Orphans are valid documents, which on subsequent crawls can no longer be
- * reached (e.g. there are no links pointing to that page anymore). This is
- * regardless whether the file has been deleted or not. You can tell the
- * crawler how to handle those with
+ * reached (e.g. there are no longer referenced). This is
+ * regardless whether the file has been deleted or not at the source.
+ * You can tell the crawler how to handle those with
  * {@link #setOrphansStrategy(OrphansStrategy)}. Possible options are:
  * </p>
  * <ul>
- *   <li><b>PROCESS:</b> Default. Tries to crawl orphan URLs normally
+ *   <li><b>PROCESS:</b> Default. Tries to crawl orphans normally
  *       as if they were still reachable by the crawler.</li>
  *   <li><b>IGNORE:</b> Does nothing with orphans
  *       (not deleted, not processed)..</li>
@@ -176,7 +176,7 @@ import com.norconex.importer.ImporterConfig;
  *
  * <h3>Error Handling</h3>
  * <p>
- * By default the crawler tries report exceptions while preventing them
+ * By default the crawler logs exceptions while trying to prevent them
  * from terminating a crawling session. There might be cases where you want
  * the crawler to halt upon encountering some types of exceptions.
  * You can do so with {@link #setStopOnExceptions(List)}.
@@ -193,14 +193,45 @@ import com.norconex.importer.ImporterConfig;
  * <p>
  * During and between crawl sessions, the crawler needs to preserve
  * specific information in order to keep track of
- * things such as a queue of URLs to process, URLs already processed,
- * whether a document has been modified since last crawled,
- * caching of document checksums, etc.
- * For this the crawler uses a database we call a crawl data store engine.
+ * things such as a queue of document reference to process,
+ * those already processed, whether a document has been modified since last
+ * crawled, caching of document checksums, etc.
+ * For this, the crawler uses a database we call a crawl data store engine.
  * The default implementation uses the local file system to store these
  * (see {@link MVStoreDataStoreEngine}). While very capable and suitable
  * for most sites, if you need a larger storage system, you can provide your
  * own implementation with {@link #setDataStoreEngine(IDataStoreEngine)}.
+ * </p>
+ *
+ * <h3>Document Importing</h3>
+ * <p>
+ * The process of transforming, enhancing, parsing to extracting plain text
+ * and many other document-specific processing activities are handled by the
+ * Norconex Importer module. See {@link ImporterConfig} for many
+ * additional configuration options.
+ * </p>
+ *
+ * <h3>Bad Documents</h3>
+ * <p>
+ * On a fresh crawl, documents that are unreachable or not obtained
+ * successfully for some reason are simply logged and ignored.
+ * On the other hand, documents that were successfully crawled once
+ * and are suddenly failing on a subsequent crawl are considered "spoiled".
+ * You can decide whether to grace (retry next time), delete, or ignore
+ * those spoiled documents with
+ * {@link #setSpoiledReferenceStrategizer(ISpoiledReferenceStrategizer)}.
+ * </p>
+ *
+ * <h3>Committing Documents</h3>
+ * <p>
+ * The last step of a successful processing of a document is to
+ * store it in your preferred target repository (or repositories).
+ * For this to happen, you have to configure one or more Committers
+ * corresponding to your needs or create a custom one.
+ * You can have a look at available Committers here:
+ * <a href="https://opensource.norconex.com/committers/">
+ * https://opensource.norconex.com/committers/</a>
+ * See {@link #setCommitters(List)}.
  * </p>
  *
  * <h3>HTTP Fetcher</h3>
@@ -223,11 +254,8 @@ import com.norconex.importer.ImporterConfig;
  *
  * <h3>Filtering Unwanted Documents</h3>
  * <p>
- * If can often process URLs you are not interested in.  In other cases,
- * you may want to download an HTML page just for the links it contains to be
- * followed, but otherwise not send that page to your Committer.  For these
- * reasons and more, you will likely have to explicitly create filters
- * to restrict crawling to only what you are interested in.
+ * Without filtering, you would typically crawl many documents you are not
+ * interested in.
  * There are different types filtering offered to you, occurring at different
  * type during a URL crawling process. The sooner in a URL processing
  * life-cycle you filter out a document the more you can improve the
@@ -363,46 +391,6 @@ import com.norconex.importer.ImporterConfig;
  * See {@link #setPostImportLinks(TextMatcher)}.
  * </p>
  *
- * <h3>Document Importing</h3>
- * <p>
- * The process of transforming, enhancing, parsing to extracting plain text
- * and many other document-specific processing activities are handled by the
- * Norconex Importer module. See {@link ImporterConfig} for many
- * additional configuration options.
- * </p>
- * <p>
- * There might be
- * cases where you want a document to be parsed by the Importer and establish
- * which links to process yourself during the importing phase (for more
- * advanced use cases). In such cases, you can identify a document metadata
- * field to use as a URL holding tanks after importing has occurred.
- * URLs in that field will become eligible for crawling.
- * See {@link #setPostImportLinks(TextMatcher)}.
- * </p>
- *
- * <h3>Bad Documents</h3>
- * <p>
- * On a fresh crawl, documents that are not found or not returned successfully
- * from the web server are simply logged and ignored.  On the other hand,
- * documents that were successfully crawled on a previous crawl and are
- * suddenly failing on a subsequent crawl are considered "spoiled".
- * You can decide whether to grace (retry next time), delete, or ignore
- * those spoiled documents with
- * {@link #setSpoiledReferenceStrategizer(ISpoiledReferenceStrategizer)}.
- * </p>
- *
- * <h3>Committing Documents</h3>
- * <p>
- * The last step of a successful processing of a web page or document is to
- * store it in your preferred target repository (or repositories).
- * For this to happen, you have to configure one or more Committers
- * corresponding to your needs or create a custom one.
- * You can have a look at available Committers here:
- * <a href="https://opensource.norconex.com/committers/">
- * https://opensource.norconex.com/committers/</a>
- * See {@link #setCommitters(List)}.
- * </p>
- *
  * {@nx.xml.usage
  * <crawler id="(crawler unique identifier)">
  *
@@ -423,37 +411,21 @@ import com.norconex.importer.ImporterConfig;
  *
  *   <delay class="(IDelayResolver implementation)"/>
  *
- *   <numThreads>(maximum number of threads)</numThreads>
  *   <maxDepth>(maximum crawl depth)</maxDepth>
- *   <maxDocuments>(maximum number of documents to crawl)</maxDocuments>
  *   <keepDownloads>[false|true]</keepDownloads>
  *   <keepReferencedLinks>[INSCOPE|OUTSCOPE|MAXDEPTH]</keepReferencedLinks>
- *   <orphansStrategy>[PROCESS|IGNORE|DELETE]</orphansStrategy>
  *
- *   <stopOnExceptions>
- *     <!-- Repeatable -->
- *     <exception>(fully qualified class name of a an exception)</exception>
- *   </stopOnExceptions>
- *
- *   <eventListeners>
- *     <!-- Repeatable -->
- *     <listener class="(IEventListener implementation)"/>
- *   </eventListeners>
- *
- *   <crawlDataStoreEngine class="(ICrawlURLDatabaseFactory implementation)" />
+ *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#init}
  *
  *   <httpFetchers>
  *     <!-- Repeatable -->
  *     <fetcher
- *         class="(IHttpFetcher implementation)" maxRetries="0" retryDelay="0"/>
+ *         class="(IHttpFetcher implementation)"
+ *         maxRetries="(number of times to retry a failed fetch attempt)"
+ *         retryDelay="(how many milliseconds to wait between re-attempting)"/>
  *   </httpFetchers>
  *
- *   <referenceFilters>
- *     <!-- Repeatable -->
- *     <filter
- *         class="(IReferenceFilter implementation)"
- *         onMatch="[include|exclude]" />
- *   </referenceFilters>
+ *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#pipeline-queue}
  *
  *   <robotsTxt
  *       ignore="[false|true]"
@@ -466,13 +438,6 @@ import com.norconex.importer.ImporterConfig;
  *   <redirectURLProvider class="(IRedirectURLProvider implementation)" />
  *
  *   <recrawlableResolver class="(IRecrawlableResolver implementation)" />
- *
- *   <metadataFilters>
- *     <!-- Repeatable -->
- *     <filter
- *         class="(IMetadataFilter implementation)"
- *         onMatch="[include|exclude]" />
- *   </metadataFilters>
  *
  *   <canonicalLinkDetector
  *       ignore="[false|true]"
@@ -489,34 +454,15 @@ import com.norconex.importer.ImporterConfig;
  *     <extractor class="(ILinkExtractor implementation)" />
  *   </linkExtractors>
  *
- *   <documentFilters>
- *     <!-- Repeatable -->
- *     <filter class="(IDocumentFilter implementation)" />
- *   </documentFilters>
+ *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#pipeline-import}
  *
  *   <preImportProcessors>
  *     <!-- Repeatable -->
  *     <processor class="(IHttpDocumentProcessor implementation)"></processor>
  *   </preImportProcessors>
  *
- *   <importer>
- *     <preParseHandlers>
- *       <!-- Repeatable -->
- *       <handler class="(an handler class from the Importer module)"/>
- *     </preParseHandlers>
- *     <documentParserFactory class="(IDocumentParser implementation)" />
- *     <postParseHandlers>
- *       <!-- Repeatable -->
- *       <handler class="(an handler class from the Importer module)"/>
- *     </postParseHandlers>
- *     <responseProcessors>
- *       <!-- Repeatable -->
- *       <responseProcessor
- *              class="(IImporterResponseProcessor implementation)" />
- *     </responseProcessors>
- *   </importer>
- *
- *   <documentChecksummer class="(IDocumentChecksummer implementation)" />
+ *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#import}
+ *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#checksum-doc}
  *
  *   <postImportProcessors>
  *     <!-- Repeatable -->
@@ -528,13 +474,7 @@ import com.norconex.importer.ImporterConfig;
  *       {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes} />
  *   </postImportLinks>
  *
- *   <spoiledReferenceStrategizer
- *       class="(ISpoiledReferenceStrategizer implementation)" />
- *
- *   <committers>
- *     <committer class="(ICommitter implementation)" />
- *   </committers>
- *
+ *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#pipeline-committer}
  * </crawler>
  * }
  *
