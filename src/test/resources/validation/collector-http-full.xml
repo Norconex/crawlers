@@ -53,7 +53,6 @@
     <keepReferencedLinks>INSCOPE, OUTSCOPE, MAXDEPTH</keepReferencedLinks>
     <maxDepth>99</maxDepth>
     <numThreads>1</numThreads>
-    <workDir>/tmp/111</workDir>
     <maxDocuments>111</maxDocuments>
     <orphansStrategy>PROCESS</orphansStrategy>
     
@@ -399,13 +398,11 @@
   <crawlers>
     <crawler id="myCrawler1">
       <numThreads>2</numThreads>
-      <workDir>/tmp/222</workDir>
       <maxDocuments>222</maxDocuments>
       <orphansStrategy>DELETE</orphansStrategy>
     </crawler>
     <crawler id="myCrawler2">
       <numThreads>3</numThreads>
-      <workDir>/tmp/333</workDir>
       <maxDocuments>333</maxDocuments>
       <orphansStrategy>IGNORE</orphansStrategy>
     </crawler>
