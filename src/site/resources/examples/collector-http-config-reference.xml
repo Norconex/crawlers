@@ -159,6 +159,14 @@
            Default is -1 (unlimited)
            -->
       <maxDocuments>-1</maxDocuments>
+
+      <!-- Performs a separate HTTP "HEAD" request on every URL to first
+           obtain the HTTP response headers without getting the document.
+           This can be useful when relying on the obtained metadata to filter
+           documents (saving unecessary downloads).  -->
+      <fetchHttpHead>false</fetchHttpHead>
+  
+
   
       <!-- Keep downloaded files. Default is false.
            -->

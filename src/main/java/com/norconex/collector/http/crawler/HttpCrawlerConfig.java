@@ -27,8 +27,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.norconex.collector.core.checksum.IDocumentChecksummer;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
+import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.core.crawler.CrawlerConfig;
+import com.norconex.collector.core.spoil.ISpoiledReferenceStrategizer;
+import com.norconex.collector.core.store.IDataStoreEngine;
+import com.norconex.collector.core.store.impl.mvstore.MVStoreDataStoreEngine;
 import com.norconex.collector.http.canon.ICanonicalLinkDetector;
 import com.norconex.collector.http.canon.impl.GenericCanonicalLinkDetector;
 import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
@@ -37,6 +42,8 @@ import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
+import com.norconex.collector.http.fetch.impl.GenericHttpFetcherConfig;
+import com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcher;
 import com.norconex.collector.http.link.ILinkExtractor;
 import com.norconex.collector.http.link.impl.HtmlLinkExtractor;
 import com.norconex.collector.http.processor.IHttpDocumentProcessor;
@@ -53,20 +60,93 @@ import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.ImporterConfig;
 
 /**
  * <p>
  * HTTP Crawler configuration.
  * </p>
+ * <h3>Start URLs</h3>
+ * <p>
+ * Crawling begins with one or more "start" URLs.  Multiple start URLs can be
+ * defined, in a combination of ways:
+ * </p>
+ * <ul>
+ *   <li><b>url:</b> A start URL directly in the configuration
+ *       (see {@link #setStartURLs(List)}).</li>
+ *   <li><b>urlsFile:</b> A path to a file containing a list of start URLs
+ *       (see {@link #setStartURLsFiles(List)}). One per line.</li>
+ *   <li><b>sitemap:</b> A URL pointing to a sitemap XML file that contains
+ *       the URLs to crawl (see {@link #setStartSitemapURLs(List)}).</li>
+ *   <li><b>provider:</b> Your own class implementing
+ *       {@link IStartURLsProvider} to dynamically provide a list of start
+ *       URLs (see {@link #setStartURLsProviders(List)}).</li>
+ * </ul>
+ * <p>
+ * <b>Scope: </b> To limit crawling to specific web domains, and avoid creating
+ * many filters to that effect, you can tell the crawler to "stay" within
+ * the web site "scope" with
+ * {@link #setUrlCrawlScopeStrategy(URLCrawlScopeStrategy)}.
+ * </p>
+ *
+ * <h3>URL Normalization</h3>
+ * <p>
+ * Pages on web sites are often referenced using different URL
+ * patterns. Such URL variations can fool the crawler into downloading the
+ * same document multiple times. To avoid this, URLs are "normalized". That is,
+ * they are converted so they are always formulated the same way.
+ * By default, the crawler only applies normalization in ways that are
+ * semantically equivalent (see {@link GenericURLNormalizer}).
+ * </p>
+ *
+ * <h3>Crawl Speed</h3>
+ * <p>
+ * <b>Be kind</b> to web sites you crawl. Being too aggressive can be
+ * perceived as a cyber-attack by the targeted web site (e.g., DoS attack).
+ * This can lead to your crawler being blocked.
+ * </p>
+ * <p>
+ * For this reason, the crawler plays nice by default.  It will wait a
+ * few seconds between each page download, regardless of the maximum
+ * number of threads specified or whether pages crawled are on different
+ * web sites. This can of course be changed to be as fast as you want.
+ * See {@link GenericDelayResolver})
+ * for changing default options. You can also provide your own "delay resolver"
+ * by supplying a class implementing {@link IDelayResolver}.
+ * </p>
+ *
+ * <h3>Crawl Depth</h3>
+ * <p>
+ * The crawl depth represents how many level from the start URL the crawler
+ * goes. From a browser user perspective, it can be seen as the number of
+ * link "clicks" required from a start URL in order to get to a specific page.
+ * The crawler will crawl as deep for as long as it discovers new URLs
+ * not getting rejected by your configuration.  This is not always desirable.
+ * For instance, a web site could have dynamically generated URLs with infinite
+ * possibilities (e.g., dynamically generated web calendars). To avoid
+ * infinite crawls, it is recommended to limit the maximum depth to something
+ * reasonable for your site with {@link #setMaxDepth(int)}.
+ * </p>
+ *
+ * <h3>Keeping downloaded files</h3>
+ * <p>
+ * Downloaded files are deleted after being processed. Set
+ * {@link #setKeepDownloads(boolean)} to <code>true</code> in order to preserve
+ * them. Files will be kept under a new "downloads" folder found under
+ * your working directory.  Keep in mind this is not a method for cloning a
+ * site. Use with caution on large sites as it can quickly
+ * fill up the local disk space.
+ * </p>
+ *
  * <h3>Keeping Referenced Links</h3>
  * <p>
- * By default the crawler will store as metadata URLs extracted from
- * documents that are "in scope" (see
- * {@link #setUrlCrawlScopeStrategy(URLCrawlScopeStrategy)}) if they are not
- * on a page having reached the configured maximum depth ({@link #maxDepth}.
+ * By default the crawler stores, as metadata, URLs extracted from
+ * documents that are in scope. Exceptions
+ * are pages discovered at the configured maximum depth
+ * ({@link #setMaxDepth(int)}).
  * This can be changed using the
  * {@link #setKeepReferencedLinks(Set)} method.
- * Changing this setting has no incidence on what gets crawled.
+ * Changing this setting has no incidence on what page gets crawled.
  * Possible options are:
  * </p>
  * <ul>
@@ -77,6 +157,386 @@ import com.norconex.commons.lang.xml.XML;
  *   <li><b>MAXDEPTH:</b> Also store links extracted on pages at max depth.
  *       Must be used with at least one other option to have any effect.</li>
  * </ul>
+ *
+ * <h3>Orphan documents</h3>
+ * <p>
+ * Orphans are valid documents, which on subsequent crawls can no longer be
+ * reached (e.g. there are no links pointing to that page anymore). This is
+ * regardless whether the file has been deleted or not. You can tell the
+ * crawler how to handle those with
+ * {@link #setOrphansStrategy(OrphansStrategy)}. Possible options are:
+ * </p>
+ * <ul>
+ *   <li><b>PROCESS:</b> Default. Tries to crawl orphan URLs normally
+ *       as if they were still reachable by the crawler.</li>
+ *   <li><b>IGNORE:</b> Does nothing with orphans
+ *       (not deleted, not processed)..</li>
+ *   <li><b>DELETE:</b> Orphans are sent to your Committer for deletion.</li>
+ * </ul>
+ *
+ * <h3>Error Handling</h3>
+ * <p>
+ * By default the crawler tries report exceptions while preventing them
+ * from terminating a crawling session. There might be cases where you want
+ * the crawler to halt upon encountering some types of exceptions.
+ * You can do so with {@link #setStopOnExceptions(List)}.
+ * </p>
+ *
+ * <h3>Crawler Events</h3>
+ * <p>
+ * The crawler fires all kind of events to notify interested parties of such
+ * things as when a document is rejected, imported, committed, etc.).
+ * You can listen to crawler events using {@link #setEventListeners(List)}.
+ * </p>
+ *
+ * <h3>Data Store (Cache)</h3>
+ * <p>
+ * During and between crawl sessions, the crawler needs to preserve
+ * specific information in order to keep track of
+ * things such as a queue of URLs to process, URLs already processed,
+ * whether a document has been modified since last crawled,
+ * caching of document checksums, etc.
+ * For this the crawler uses a database we call a crawl data store engine.
+ * The default implementation uses the local file system to store these
+ * (see {@link MVStoreDataStoreEngine}). While very capable and suitable
+ * for most sites, if you need a larger storage system, you can provide your
+ * own implementation with {@link #setDataStoreEngine(IDataStoreEngine)}.
+ * </p>
+ *
+ * <h3>HTTP Fetcher</h3>
+ * <p>
+ * Two crawl and parse a document, it needs to be downloaded. This is the
+ * role of one or more HTTP Fetchers.  {@link GenericHttpFetcher} is the
+ * default implementation and can handle most web sites.
+ * There might be cases where a more specialized way of obtaining web resources
+ * is needed. For instance, JavaScript-generated web pages are often best
+ * handled by web browsers. In such case you can use the
+ * {@link WebDriverHttpFetcher}. You can also use
+ * {@link #setHttpFetchers(List)} to supply own fetcher implementation.
+ * </p>
+ * <p>
+ * A fetcher typically issues an HTTP GET request to obtain a document.
+ * There might be cases where you first want to issue a HEAD request first
+ * (e.g., for filtering before download). You can enable HEAD requests for
+ * fetchers supporting it using {@link #setFetchHttpHead(boolean)}.
+ * </p>
+ *
+ * <h3>Filtering Unwanted Documents</h3>
+ * <p>
+ * If can often process URLs you are not interested in.  In other cases,
+ * you may want to download an HTML page just for the links it contains to be
+ * followed, but otherwise not send that page to your Committer.  For these
+ * reasons and more, you will likely have to explicitly create filters
+ * to restrict crawling to only what you are interested in.
+ * There are different types filtering offered to you, occurring at different
+ * type during a URL crawling process. The sooner in a URL processing
+ * life-cycle you filter out a document the more you can improve the
+ * crawler performance.  It may be important for you to
+ * understand the differences:
+ * </p>
+ * <ul>
+ *   <li>
+ *     <b>Reference filters:</b> The fastest way to exclude a document.
+ *     The filtering rule applies on the URL, before any HTTP request is made
+ *     for that URL. Rejected documents are not queued for processing.
+ *     They are not be downloaded (thus no URLs are extracted). The
+ *     specified "delay" between downloads is not applied (i.e. no delay
+ *     for rejected documents).
+ *   </li>
+ *   <li>
+ *     <p>
+ *     <b>Metadata filters:</b> Applies filtering on a document metadata fields.
+ *     </p>
+ *     <p>
+ *     If {@link #isFetchHttpHead()} returns <code>true</code>, these filters
+ *     will be invoked after the crawler performs a distinct HTTP HEAD request.
+ *     It gives you the opportunity to filter documents based on the HTTP HEAD
+ *     response to potentially save a more expensive HTTP GET request for
+ *     download (but results in two HTTP requests for valid documents --
+ *     HEAD and GET). Filtering occurs before URLs are extracted.
+ *     </p>
+ *     <p>
+ *     When {@link #isFetchHttpHead()} is <code>false</code>, these filters
+ *     will be invoked on the metadata of the HTTP response
+ *     obtained from an HTTP GET request (as the document is downloaded).
+ *     Filtering occurs after URLs are extracted.
+ *     </p>
+ *   </li>
+ *   <li>
+ *     <b>Document filters:</b> Use when having access to the document itself
+ *     (and its content) is required to apply filtering. Always triggered
+ *     after a document is downloaded and after URLs are extracted,
+ *     but before it is imported (Importer module).
+ *   </li>
+ *   <li>
+ *     <b>Importer filters:</b> The Importer module also offers document
+ *     filtering options. At that point a document is already downloaded
+ *     and its links extracted.  There are two types of filtering offered
+ *     by the Importer: before and after document parsing.  Use
+ *     filters before parsing if you need to filter on raw content or
+ *     want to prevent a more expensive parsing. Use filters after parsing
+ *     when you need to read the content as plain text.
+ *   </li>
+ * </ul>
+ *
+ * <h3>Robot Directives</h3>
+ * <p>
+ * By default, the crawler tries to respect instructions a web site as put
+ * in place for the benefit of crawlers. Here is a list of some of the
+ * popular ones that can be turned off or supports your own implementation.
+ * </p>
+ * <ul>
+ *   <li>
+ *     <b>Robot rules:</b> Rules defined in a "robots.txt" file at the
+ *     root of a web site, or via <code>X-Robots-Tag</code>. See:
+ *     {@link #setIgnoreRobotsTxt(boolean)},
+ *     {@link #setRobotsTxtProvider(IRobotsTxtProvider)},
+ *     {@link #setIgnoreRobotsMeta(boolean)},
+ *     {@link #setRobotsMetaProvider(IRobotsMetaProvider)}
+ *   </li>
+ *   <li>
+ *     <b>HTML "nofollow":</b> Most HTML-oriented link extractors support
+ *     the <code>rel="nofollow"</code> attribute set on HTML links.
+ *     See: {@link HtmlLinkExtractor#setIgnoreNofollow(boolean)}
+ *   </li>
+ *   <li>
+ *     <b>Sitemap:</b> Sitemaps XML files are auto-detected and used to find
+ *     a list of URLs to crawl.  To disable detection, use
+ *     {@link #setIgnoreSitemap(boolean)}.</li>
+ *   <li>
+ *     <b>Canonical URLs:</b> The crawler will reject URLs that are
+ *     non-canonical, as per HTML <code>&lt;meta ...&gt;</code> or
+ *     HTTP response instructions.  To crawl non-canonical pages, use
+ *     {@link #setIgnoreCanonicalLinks(boolean)}.
+ *     </li>
+ *   <li>
+ *     <b>If Modified Since:</b> The default HTTP Fetcher
+ *     ({@link GenericHttpFetcher}) uses the <code>If-Modified-Since</code>
+ *     feature as part of its HTTP requests for web sites supporting it
+ *     (only affects incremental crawls). To turn that off, use
+ *     {@link GenericHttpFetcherConfig#setDisableIfModifiedSince(boolean)}.
+ *   </li>
+ * </ul>
+ *
+ * <h3>Re-crawl Frequency</h3>
+ * <p>
+ * The crawler will crawl any given URL at most one time per crawling session.
+ * It is possible to skip documents that are not yet "ready" to be re-crawled
+ * to speed up each crawling sessions.
+ * Sitemap.xml directives to that effect are respected by default
+ * ("frequency" and "lastmod"). You can have your own conditions for re-crawl
+ * with {@link #setRecrawlableResolver(IRecrawlableResolver)}.
+ * This feature can be used for instance, to crawl a "news" section of your
+ * site more frequently than let's say, an "archive" section of your site.
+ * </p>
+ *
+ * <h3>Document Checksum</h3>
+ * <p>
+ * To find out if a document has changed from one crawling session to another,
+ * the crawler creates and keeps a digital signature, or checksum of each
+ * crawled documents. Upon crawling the same URL again, a new checksum
+ * is created and compared against the previous one. Any difference indicates
+ * a modified document. There are two checksums at play, tested at
+ * different times. One obtained from
+ * a document metadata (default is {@link LastModifiedMetadataChecksummer},
+ * and one from the document itself {@link MD5DocumentChecksummer}. You can
+ * provide your own implementation. See:
+ * {@link #setMetadataChecksummer(IMetadataChecksummer)} and
+ * {@link #setDocumentChecksummer(IDocumentChecksummer)}.
+ * </p>
+ *
+ * <h3>URL Extraction</h3>
+ * <p>
+ * To be able to crawl a web site, links need to be extracted from
+ * web pages.  It is the job of a link extractor.  It is possible to use
+ * multiple link extractor for different type of content.  By default,
+ * the {@link HtmlLinkExtractor} is used, but you can add others or
+ * provide your own with {@link #setLinkExtractors(List)}.
+ * </p>
+ * <p>
+ * There might be
+ * cases where you want a document to be parsed by the Importer and establish
+ * which links to process yourself during the importing phase (for more
+ * advanced use cases). In such cases, you can identify a document metadata
+ * field to use as a URL holding tanks after importing has occurred.
+ * URLs in that field will become eligible for crawling.
+ * See {@link #setPostImportLinks(TextMatcher)}.
+ * </p>
+ *
+ * <h3>Document Importing</h3>
+ * <p>
+ * The process of transforming, enhancing, parsing to extracting plain text
+ * and many other document-specific processing activities are handled by the
+ * Norconex Importer module. See {@link ImporterConfig} for many
+ * additional configuration options.
+ * </p>
+ * <p>
+ * There might be
+ * cases where you want a document to be parsed by the Importer and establish
+ * which links to process yourself during the importing phase (for more
+ * advanced use cases). In such cases, you can identify a document metadata
+ * field to use as a URL holding tanks after importing has occurred.
+ * URLs in that field will become eligible for crawling.
+ * See {@link #setPostImportLinks(TextMatcher)}.
+ * </p>
+ *
+ * <h3>Bad Documents</h3>
+ * <p>
+ * On a fresh crawl, documents that are not found or not returned successfully
+ * from the web server are simply logged and ignored.  On the other hand,
+ * documents that were successfully crawled on a previous crawl and are
+ * suddenly failing on a subsequent crawl are considered "spoiled".
+ * You can decide whether to grace (retry next time), delete, or ignore
+ * those spoiled documents with
+ * {@link #setSpoiledReferenceStrategizer(ISpoiledReferenceStrategizer)}.
+ * </p>
+ *
+ * <h3>Committing Documents</h3>
+ * <p>
+ * The last step of a successful processing of a web page or document is to
+ * store it in your preferred target repository (or repositories).
+ * For this to happen, you have to configure one or more Committers
+ * corresponding to your needs or create a custom one.
+ * You can have a look at available Committers here:
+ * <a href="https://opensource.norconex.com/committers/">
+ * https://opensource.norconex.com/committers/</a>
+ * See {@link #setCommitters(List)}.
+ * </p>
+ *
+ * {@nx.xml.usage
+ * <crawler id="(crawler unique identifier)">
+ *
+ *   <startURLs
+ *       stayOnDomain="[false|true]"
+ *       includeSubdomains="[false|true]"
+ *       stayOnPort="[false|true]"
+ *       stayOnProtocol="[false|true]"
+ *       async="[false|true]">
+ *     <!-- All the following tags are repeatable. -->
+ *     <url>(a URL)</url>
+ *     <urlsFile>(local path to a file containing URLs)</urlsFile>
+ *     <sitemap>(URL to a sitemap XML)</sitemap>
+ *     <provider class="(IStartURLsProvider implementation)"/>
+ *   </startURLs>
+ *
+ *   <urlNormalizer class="(IURLNormalizer implementation)" />
+ *
+ *   <delay class="(IDelayResolver implementation)"/>
+ *
+ *   <numThreads>(maximum number of threads)</numThreads>
+ *   <maxDepth>(maximum crawl depth)</maxDepth>
+ *   <maxDocuments>(maximum number of documents to crawl)</maxDocuments>
+ *   <keepDownloads>[false|true]</keepDownloads>
+ *   <keepReferencedLinks>[INSCOPE|OUTSCOPE|MAXDEPTH]</keepReferencedLinks>
+ *   <orphansStrategy>[PROCESS|IGNORE|DELETE]</orphansStrategy>
+ *
+ *   <stopOnExceptions>
+ *     <!-- Repeatable -->
+ *     <exception>(fully qualified class name of a an exception)</exception>
+ *   </stopOnExceptions>
+ *
+ *   <eventListeners>
+ *     <!-- Repeatable -->
+ *     <listener class="(IEventListener implementation)"/>
+ *   </eventListeners>
+ *
+ *   <crawlDataStoreEngine class="(ICrawlURLDatabaseFactory implementation)" />
+ *
+ *   <httpFetchers>
+ *     <!-- Repeatable -->
+ *     <fetcher
+ *         class="(IHttpFetcher implementation)" maxRetries="0" retryDelay="0"/>
+ *   </httpFetchers>
+ *
+ *   <referenceFilters>
+ *     <!-- Repeatable -->
+ *     <filter
+ *         class="(IReferenceFilter implementation)"
+ *         onMatch="[include|exclude]" />
+ *   </referenceFilters>
+ *
+ *   <robotsTxt
+ *       ignore="[false|true]"
+ *       class="(IRobotsMetaProvider implementation)"/>
+ *
+ *   <sitemapResolver
+ *       ignore="[false|true]"
+ *       class="(ISitemapResolver implementation)"/>
+ *
+ *   <redirectURLProvider class="(IRedirectURLProvider implementation)" />
+ *
+ *   <recrawlableResolver class="(IRecrawlableResolver implementation)" />
+ *
+ *   <metadataFilters>
+ *     <!-- Repeatable -->
+ *     <filter
+ *         class="(IMetadataFilter implementation)"
+ *         onMatch="[include|exclude]" />
+ *   </metadataFilters>
+ *
+ *   <canonicalLinkDetector
+ *       ignore="[false|true]"
+ *       class="(ICanonicalLinkDetector implementation)"/>
+ *
+ *   <metadataChecksummer class="(IMetadataChecksummer implementation)" />
+ *
+ *   <robotsMeta
+ *       ignore="[false|true]"
+ *       class="(IRobotsMetaProvider implementation)" />
+ *
+ *   <linkExtractors>
+ *     <!-- Repeatable -->
+ *     <extractor class="(ILinkExtractor implementation)" />
+ *   </linkExtractors>
+ *
+ *   <documentFilters>
+ *     <!-- Repeatable -->
+ *     <filter class="(IDocumentFilter implementation)" />
+ *   </documentFilters>
+ *
+ *   <preImportProcessors>
+ *     <!-- Repeatable -->
+ *     <processor class="(IHttpDocumentProcessor implementation)"></processor>
+ *   </preImportProcessors>
+ *
+ *   <importer>
+ *     <preParseHandlers>
+ *       <!-- Repeatable -->
+ *       <handler class="(an handler class from the Importer module)"/>
+ *     </preParseHandlers>
+ *     <documentParserFactory class="(IDocumentParser implementation)" />
+ *     <postParseHandlers>
+ *       <!-- Repeatable -->
+ *       <handler class="(an handler class from the Importer module)"/>
+ *     </postParseHandlers>
+ *     <responseProcessors>
+ *       <!-- Repeatable -->
+ *       <responseProcessor
+ *              class="(IImporterResponseProcessor implementation)" />
+ *     </responseProcessors>
+ *   </importer>
+ *
+ *   <documentChecksummer class="(IDocumentChecksummer implementation)" />
+ *
+ *   <postImportProcessors>
+ *     <!-- Repeatable -->
+ *     <processor class="(IHttpDocumentProcessor implementation)"></processor>
+ *   </postImportProcessors>
+ *
+ *   <postImportLinks keep="[false|true]">
+ *     <fieldMatcher
+ *       {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes} />
+ *   </postImportLinks>
+ *
+ *   <spoiledReferenceStrategizer
+ *       class="(ISpoiledReferenceStrategizer implementation)" />
+ *
+ *   <committers>
+ *     <committer class="(ICommitter implementation)" />
+ *   </committers>
+ *
+ * </crawler>
+ * }
  *
  * @author Pascal Essiembre
  */
