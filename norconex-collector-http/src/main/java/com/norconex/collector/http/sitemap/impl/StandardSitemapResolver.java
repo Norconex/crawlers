@@ -339,14 +339,18 @@ public class StandardSitemapResolver implements ISitemapResolver {
             if (escalateErrors) {
                 throw new CollectorException(msg, e);
             } else {
-                LOG.error(msg + " (" + e.getMessage() + ")");
+                LOG.error(msg + " (" + (StringUtils.isBlank(e.getMessage())
+                        ? e.getClass().getCanonicalName()
+                        : e.getMessage()) + ")");
             }
         } catch (Exception e) {
             String msg = "Cannot fetch sitemap: " + location;
             if (escalateErrors) {
                 throw new CollectorException(msg, e);
             } else {
-                LOG.error(msg + " (" + e.getMessage() + ")");
+                LOG.error(msg + " (" + (StringUtils.isBlank(e.getMessage())
+                        ? e.getClass().getCanonicalName()
+                        : e.getMessage()) + ")");
             }
         } finally {
             resolvedLocations.add(location);
@@ -497,6 +501,9 @@ public class StandardSitemapResolver implements ISitemapResolver {
         } else if("url".equalsIgnoreCase(tag)){
             parseState.baseURL = new HttpCrawlData("", 0);
         } else if("loc".equalsIgnoreCase(tag)){
+            if (parseState.baseURL == null) {
+                parseState.baseURL = new HttpCrawlData("", 0);
+            }
             parseState.loc = true;
         } else if("lastmod".equalsIgnoreCase(tag)){
             parseState.lastmod = true;
