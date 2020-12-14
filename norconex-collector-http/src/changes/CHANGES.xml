@@ -9,6 +9,10 @@
 
     <release version="2.9.1-SNAPSHOT" date="2020-??-??" description="Maintenance release">
     
+      <action dev="essiembre" type="add" issue="729">
+        New "validExitCodes" on PhantomJSDocumentFetcher to support other
+        than 0 (now default). 
+      </action>
       <action dev="simonwibberley" type="add" issue="718">
         StandardSiteMapResolver can now optionally filter entries that 
         are older than a given date. 
@@ -53,6 +57,11 @@
         Norconex JEF 4.1.3, Norconex Commons Lang 1.15.2, 
         Norconex Collector Core 1.10.1.
       </action>      
+      <action dev="essiembre" type="fix">
+        Fixed occasional FileNotFoundException with PhantomJS when the
+        downloaded file was not yet written even if PhantomJS has already
+        returned. 
+      </action>
       <action dev="essiembre" type="fix" issue="678">
         Fixed REJECTED_REDIRECTED event not being fired for the redirect 
         source URL when the target URL was previously encountered. 

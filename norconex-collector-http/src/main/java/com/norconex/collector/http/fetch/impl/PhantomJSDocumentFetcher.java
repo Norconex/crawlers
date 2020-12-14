@@ -65,6 +65,7 @@ import com.norconex.collector.http.fetch.IHttpDocumentFetcher;
 import com.norconex.collector.http.processor.impl.ScaledImage;
 import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.commons.lang.EqualsUtil;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.config.IXMLConfigurable;
 import com.norconex.commons.lang.config.XMLConfigurationUtil;
@@ -83,35 +84,35 @@ import com.norconex.importer.util.CharsetUtil;
 
 /**
  * <p>
- * An alternative to the {@link GenericDocumentFetcher} which relies on an 
+ * An alternative to the {@link GenericDocumentFetcher} which relies on an
  * external <a href="http://phantomjs.org/">PhantomJS</a> installation
  * to fetch web pages.  While less efficient, this implementation is meant
  * to provide some way to crawl sites making heavy use of JavaScript to render
- * their pages. This class tells the PhantomJS headless browser to wait a 
- * certain amount of time for the page to load extra content via Ajax requests 
- * before grabbing all loaded HTML. 
+ * their pages. This class tells the PhantomJS headless browser to wait a
+ * certain amount of time for the page to load extra content via Ajax requests
+ * before grabbing all loaded HTML.
  * </p>
- * 
+ *
  * <h3>Considerations</h3>
  * <p>
- * Relying on an external software to fetch pages is slower and not as 
+ * Relying on an external software to fetch pages is slower and not as
  * scalable and may be less stable. The use of {@link GenericDocumentFetcher}
- * should be preferred whenever possible. Use at your own risk. 
+ * should be preferred whenever possible. Use at your own risk.
  * Use PhantomJS 2.1 (or possibly higher).
  * </p>
- * 
+ *
  * <h3>Handling of non-HTML Pages</h3>
  * <p>
  * It is usually only useful to use PhantomJS for HTML pages with JavaScript.
- * Other types of documents are fetched using an instance of 
- * {@link GenericDocumentFetcher}    
+ * Other types of documents are fetched using an instance of
+ * {@link GenericDocumentFetcher}
  * To find out if we are dealing with an HTML
- * documents, this fetcher needs to know the content type first. 
+ * documents, this fetcher needs to know the content type first.
  * By default, the content type
- * of a document is not known before a physical copy is obtained. 
+ * of a document is not known before a physical copy is obtained.
  * This means PhantomJS has to first download the document and if it is not an
  * HTML document at that point, it will be re-downloaded again with the generic
- * document fetcher. 
+ * document fetcher.
  * By default, these content-types are considered HTML:
  * </p>
  * <pre>
@@ -128,55 +129,55 @@ import com.norconex.importer.util.CharsetUtil;
  * </p>
  * <p>
  * Alternatively, if you have a URL pattern that identifies your HTML pages
- * (and only HTML pages), you can specify it using 
+ * (and only HTML pages), you can specify it using
  * {@link #setReferencePattern(String)}.  Only URLs matching the provided
  * regular expression will be fetched by PhantomJS.  By default there is no
- * pattern for discriminating on URL references.  
+ * pattern for discriminating on URL references.
  * </p>
- * 
+ *
  * <h3>How to maintain HTTP sessions</h3>
  * <p>
  * Normally, the HTTP crawler is meant to be used with Apache {@link HttpClient}
  * which is usually configured using {@link GenericHttpClientFactory}. Doing so
- * ensures HTTP sessions are maintained between each URL invocation.  This is 
- * necessary for web sites expecting cookies or session information to be 
- * carried over each requests as part of HTTP headers.  
+ * ensures HTTP sessions are maintained between each URL invocation.  This is
+ * necessary for web sites expecting cookies or session information to be
+ * carried over each requests as part of HTTP headers.
  * Unfortunately, session information
  * is not maintained between requests when invoking PhantomJS for each URLs.
- * This means Apache {@link HttpClient} is not used at all and configuring 
+ * This means Apache {@link HttpClient} is not used at all and configuring
  * {@link IHttpClientFactory} has no effect for fetching documents. As a result,
  * you may have trouble with specific web sites.
  * </p>
  * <p>
  * If that's the case, you may want to try adding the
- * {@link HttpClientProxyCollectorListener} to your collector configuration. 
- * This will start an HTTP proxy and force PhantomJS to use it.  That proxy 
+ * {@link HttpClientProxyCollectorListener} to your collector configuration.
+ * This will start an HTTP proxy and force PhantomJS to use it.  That proxy
  * will use {@link HttpClient} to fetch documents as you would normally expect
  * and you can full advantage of {@link GenericHttpClientFactory} (or
  * your own implementation of {@link IHttpClientFactory}). Using a proxy
- * with secure (<code>https</code>) requests may not always give expected 
+ * with secure (<code>https</code>) requests may not always give expected
  * results either (e.g., screenshots maybe broken). If you run into issues
  * with a given site, try both approaches and pick the one that works best for
  * you.
  * </p>
- * 
+ *
  * <h3>Taking screenshots of pages</h3>
  * <p>
  * Thanks to PhantomJS, one can save images of pages being crawled, including
- * those rendered with JavaScript!  
+ * those rendered with JavaScript!
  * </p>
  * <p>
  * <b>Since 2.8.0</b>, you have to explicitely enabled screenshots with
  * {@link #setScreenshotEnabled(boolean)}. Also screenshots now share the same
- * size by default. 
- * In addition, you can now control how screenshots are resized and how 
- * they are stored stored. 
- * Storage options: 
+ * size by default.
+ * In addition, you can now control how screenshots are resized and how
+ * they are stored stored.
+ * Storage options:
  * </p>
  * <ul>
  *   <li>
  *     <b>inline</b>: Stores a Base64 string of the scaled image, in the format
- *     specified, in a <code>collector.featured-image-inline</code> field. 
+ *     specified, in a <code>collector.featured-image-inline</code> field.
  *     The string is ready to be
  *     used inline, in a &lt;img src="..."&gt; tag.
  *   </li>
@@ -189,20 +190,27 @@ import com.norconex.importer.util.CharsetUtil;
  *
  * <p>
  * <b>Since 2.8.0</b>, it is possible to specify a resource timeout so that
- * slow individual page resources do not cause PhantomJS to hang for a  
- * long time.   
+ * slow individual page resources do not cause PhantomJS to hang for a
+ * long time.
  * </p>
- * 
+ *
+ * <h3>PhantomJS exit values</h3>
+ * <p>
+ * <b>Since 2.9.1</b>, it is possible to specify which PhantomJS exit values
+ * are to be considered "valid". Use a comma-separated-list of integers using
+ * the {@link #setValidExitCodes(int...)} method. By default, only zero is
+ * considered valid.
+ * </p>
  * <p>
  * XML configuration entries expecting millisecond durations
- * can be provided in human-readable format (English only), as per 
+ * can be provided in human-readable format (English only), as per
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
- *  
+ *
  * <h3>XML configuration usage:</h3>
- * 
+ *
  * <pre>
- *  &lt;documentFetcher  
+ *  &lt;documentFetcher
  *      class="com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher"
  *      detectContentType="[false|true]" detectCharset="[false|true]"
  *      screenshotEnabled="[false|true]"&gt;
@@ -211,11 +219,11 @@ import com.norconex.importer.util.CharsetUtil;
  *          (Optional path to a PhantomJS script. Defaults to scripts/phantom.js)
  *      &lt;/scriptPath&gt;
  *      &lt;renderWaitTime&gt;
- *          (Milliseconds to wait for the entire page to load. 
+ *          (Milliseconds to wait for the entire page to load.
  *           Defaults to 3000, i.e., 3 seconds.)
  *      &lt;/renderWaitTime&gt;
  *      &lt;resourceTimeout&gt;
- *          (Optional Milliseconds to wait for a page resource to load. 
+ *          (Optional Milliseconds to wait for a page resource to load.
  *           Defaults is unspecified.)
  *      &lt;/resourceTimeout&gt;
  *      &lt;options&gt;
@@ -226,31 +234,32 @@ import com.norconex.importer.util.CharsetUtil;
  *          (Regular expression matching URLs for which to use the
  *           PhantomJS browser. Non-matching URLs will fallback
  *           to using GenericDocumentFetcher.)
- *      &lt;/referencePattern&gt;      
+ *      &lt;/referencePattern&gt;
  *      &lt;contentTypePattern&gt;
- *          (Regular expression matching content types for which to use 
- *           the PhantomJS browser. Non-matching content types will use 
+ *          (Regular expression matching content types for which to use
+ *           the PhantomJS browser. Non-matching content types will use
  *           the GenericDocumentFetcher.)
- *      &lt;/contentTypePattern&gt;      
+ *      &lt;/contentTypePattern&gt;
+ *      &lt;validExitCodes&gt;(defaults to 0)&lt;/validExitCodes&gt;
  *      &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
  *      &lt;notFoundStatusCodes&gt;(defaults to 404)&lt;/notFoundStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
- *      
+ *
  *      &lt;!-- Only applicable when screenshotEnabled is true: --&gt;
  *      &lt;screenshotDimensions&gt;
  *          (Pixel size of the browser page area to capture: [width]x[height].
- *           E.g., 800x600.  Only used when a screenshot path is specified.  
- *           Default is undefined. It will try to load all it can and may 
+ *           E.g., 800x600.  Only used when a screenshot path is specified.
+ *           Default is undefined. It will try to load all it can and may
  *           produce vertically long images.)
  *      &lt;/screenshotDimensions&gt;
  *      &lt;screenshotZoomFactor&gt;
- *          (A decimal value to scale the screenshot image.  
+ *          (A decimal value to scale the screenshot image.
  *           E.g., 0.25  will make the image 25% its regular size,
  *           which is 25% of the above dimension if specified.
  *           Default is 1, i.e., 100%)
  *      &lt;/screenshotZoomFactor&gt;
  *      &lt;screenshotScaleDimensions&gt;
- *         (Target pixel size the main image should be scaled to. 
+ *         (Target pixel size the main image should be scaled to.
  *          Default is 300.)
  *      &lt;/screenshotScaleDimensions&gt;
  *      &lt;screenshotScaleStretch&gt;
@@ -259,7 +268,7 @@ import com.norconex.importer.util.CharsetUtil;
  *      &lt;/screenshotScaleStretch&gt;
  *      &lt;screenshotScaleQuality&gt;
  *          [auto|low|medium|high|max]
- *          (Default is "auto", which tries the best balance between quality 
+ *          (Default is "auto", which tries the best balance between quality
  *           and speed based on image size. The lower the quality the faster
  *           it is to scale images.)
  *      &lt;/screenshotScaleQuality&gt;
@@ -271,7 +280,7 @@ import com.norconex.importer.util.CharsetUtil;
  *         [disk|inline]
  *         (One or both, comma-separated. Default is "disk".)
  *      &lt;/screenshotStorage&gt;
- *      
+ *
  *      &lt;!-- Only applicable for "disk" storage: --&gt;
  *      &lt;screenshotStorageDiskDir structure="[url2path|date|datetime]"&gt;
  *          (Path where to save screenshots.)
@@ -279,28 +288,28 @@ import com.norconex.importer.util.CharsetUtil;
  *      &lt;screenshotStorageDiskField&gt;
  *          (Overwrite default field where to store the screenshot path.)
  *      &lt;/screenshotStorageDiskField&gt;
- *      
+ *
  *      &lt;!-- Only applicable for "inline" storage: --&gt;
  *      &lt;screenshotStorageInlineField&gt;
  *          (Overwrite default field where to store the inline screenshot.)
  *      &lt;/screenshotStorageInlineField&gt;
- *      
+ *
  *  &lt;/documentFetcher&gt;
  * </pre>
  * <p>
- * When specifying an image size, the format is <code>[width]x[height]</code> 
- * or a single value. When a single value is used, that value represents both 
+ * When specifying an image size, the format is <code>[width]x[height]</code>
+ * or a single value. When a single value is used, that value represents both
  * the width and height (i.e., a square).
  * </p>
  * <p>
- * The "validStatusCodes" and "notFoundStatusCodes" elements expect a 
+ * The "validStatusCodes" and "notFoundStatusCodes" elements expect a
  * coma-separated list of HTTP response code.  If a code is added in both
  * elements, the valid list takes precedence.
  * </p>
- * 
+ *
  * <h4>Usage example:</h4>
  * <p>
- * The following configures HTTP Collector to use PhantomJS with a 
+ * The following configures HTTP Collector to use PhantomJS with a
  * proxy to use HttpClient, only for URLs ending with ".html".
  * </p>
  * <pre>
@@ -312,7 +321,7 @@ import com.norconex.importer.util.CharsetUtil;
  *        &lt;documentFetcher class="com.norconex.collector.http.fetch.impl.PhantomJSDocumentFetcher"&gt;
  *          &lt;exePath&gt;/path/to/phantomjs.exe&lt;/exePath&gt;
  *          &lt;renderWaitTime&gt;5000&lt;/renderWaitTime&gt;
- *          &lt;referencePattern&gt;^.*\.html$&lt;/referencePattern&gt;           
+ *          &lt;referencePattern&gt;^.*\.html$&lt;/referencePattern&gt;
  *        &lt;/documentFetcher&gt;
  *        ...
  *      &lt;/crawler&gt;
@@ -324,13 +333,13 @@ import com.norconex.importer.util.CharsetUtil;
  *    &lt;/collectorListeners&gt;
  *  &lt;/httpcollector&gt;
  * </pre>
- * 
- * 
+ *
+ *
  * @author Pascal Essiembre
  * @see HttpClientProxyCollectorListener
  * @since 2.7.0
  */
-public class PhantomJSDocumentFetcher 
+public class PhantomJSDocumentFetcher
         implements IHttpDocumentFetcher, IXMLConfigurable {
 
     private static final Logger LOG = LogManager.getLogger(
@@ -339,82 +348,83 @@ public class PhantomJSDocumentFetcher
     public enum Storage { INLINE, DISK }
     public enum StorageDiskStructure { URL2PATH, DATE, DATETIME }
     public enum Quality {
-        AUTO(Method.AUTOMATIC), 
-        LOW(Method.SPEED), 
-        MEDIUM(Method.BALANCED), 
-        HIGH(Method.QUALITY), 
+        AUTO(Method.AUTOMATIC),
+        LOW(Method.SPEED),
+        MEDIUM(Method.BALANCED),
+        HIGH(Method.QUALITY),
         MAX(Method.ULTRA_QUALITY);
         private Method scalrMethod;
         private Quality(Method scalrMethod) {
             this.scalrMethod = scalrMethod;
         }
     }
-    
+
     public static final String DEFAULT_SCRIPT_PATH = "scripts/phantom.js";
     public static final int DEFAULT_RENDER_WAIT_TIME = 3000;
     public static final float DEFAULT_SCREENSHOT_ZOOM_FACTOR = 1.0f;
-    public static final String DEFAULT_CONTENT_TYPE_PATTERN = 
+    public static final String DEFAULT_CONTENT_TYPE_PATTERN =
             "^(text/html|application/xhtml\\+xml|vnd.wap.xhtml\\+xml|x-asp)$";
-    public static final String DEFAULT_SCREENSHOT_STORAGE_DISK_DIR = 
+    public static final String DEFAULT_SCREENSHOT_STORAGE_DISK_DIR =
             "./screenshots";
     public static final Storage DEFAULT_SCREENSHOT_STORAGE = Storage.DISK;
     public static final String DEFAULT_SCREENSHOT_IMAGE_FORMAT = "png";
-    public static final Dimension DEFAULT_SCREENSHOT_SCALE_SIZE = 
-            new Dimension(300, 300);    
-    
+    public static final Dimension DEFAULT_SCREENSHOT_SCALE_SIZE =
+            new Dimension(300, 300);
+
     /*default*/ static final int[] DEFAULT_VALID_STATUS_CODES = new int[] {
             HttpStatus.SC_OK,
     };
     /*default*/ static final int[] DEFAULT_NOT_FOUND_STATUS_CODES = new int[] {
             HttpStatus.SC_NOT_FOUND,
     };
-    
-    public static final String COLLECTOR_PHANTOMJS_SCREENSHOT_PATH = 
+
+    public static final String COLLECTOR_PHANTOMJS_SCREENSHOT_PATH =
             CollectorMetadata.COLLECTOR_PREFIX + "phantomjs-screenshot-path";
-    public static final String COLLECTOR_PHANTOMJS_SCREENSHOT_INLINE = 
-            CollectorMetadata.COLLECTOR_PREFIX + "phantomjs-screenshot-inline";    
-    
-    
+    public static final String COLLECTOR_PHANTOMJS_SCREENSHOT_INLINE =
+            CollectorMetadata.COLLECTOR_PREFIX + "phantomjs-screenshot-inline";
+
+
     private String exePath;
     private String scriptPath = DEFAULT_SCRIPT_PATH;
     private int renderWaitTime = DEFAULT_RENDER_WAIT_TIME;
     private int resourceTimeout = -1;
-    
+
     private String[] options;
+    private int[] validExitCodes = new int[] {0};
     private int[] validStatusCodes;
-    private int[] notFoundStatusCodes = 
+    private int[] notFoundStatusCodes =
             PhantomJSDocumentFetcher.DEFAULT_NOT_FOUND_STATUS_CODES;
     private String headersPrefix;
     private boolean detectContentType;
     private boolean detectCharset;
-    private ContentTypeDetector contentTypeDetector = new ContentTypeDetector();    
-    
+    private ContentTypeDetector contentTypeDetector = new ContentTypeDetector();
+
     private String contentTypePattern = DEFAULT_CONTENT_TYPE_PATTERN;
     private String referencePattern;
 
-    private final GenericDocumentFetcher genericFetcher = 
+    private final GenericDocumentFetcher genericFetcher =
             new GenericDocumentFetcher();
 
     private boolean screenshotEnabled;
-    private String screenshotStorageDiskDir = 
+    private String screenshotStorageDiskDir =
             DEFAULT_SCREENSHOT_STORAGE_DISK_DIR;
-    private String screenshotStorageDiskField = 
+    private String screenshotStorageDiskField =
             COLLECTOR_PHANTOMJS_SCREENSHOT_PATH;
-    private String screenshotStorageInlineField = 
+    private String screenshotStorageInlineField =
             COLLECTOR_PHANTOMJS_SCREENSHOT_INLINE;
     private Dimension screenshotDimensions;
     private float screenshotZoomFactor = DEFAULT_SCREENSHOT_ZOOM_FACTOR;
     private Dimension screenshotScaleDimensions = DEFAULT_SCREENSHOT_SCALE_SIZE;
     private boolean screenshotScaleStretch;
     private String screenshotImageFormat = DEFAULT_SCREENSHOT_IMAGE_FORMAT;
-    private Storage[] screenshotStorage = 
+    private Storage[] screenshotStorage =
             new Storage[] { DEFAULT_SCREENSHOT_STORAGE };
-    private StorageDiskStructure screenshotStorageDiskStructure = 
+    private StorageDiskStructure screenshotStorageDiskStructure =
             StorageDiskStructure.DATETIME;
     private Quality screenshotScaleQuality = Quality.AUTO;
-    
+
     private boolean initialized;
-    
+
     public PhantomJSDocumentFetcher() {
         this(PhantomJSDocumentFetcher.DEFAULT_VALID_STATUS_CODES);
     }
@@ -422,7 +432,7 @@ public class PhantomJSDocumentFetcher
         super();
         setValidStatusCodes(validStatusCodes);
     }
-    
+
     public String getExePath() {
         return exePath;
     }
@@ -448,7 +458,7 @@ public class PhantomJSDocumentFetcher
         this.options = options;
     }
     /**
-     * Gets the screenshot directory when storage is "disk". 
+     * Gets the screenshot directory when storage is "disk".
      * @return screenshot directory
      * @deprecated Since 2.8.0, use {@link #getScreenshotStorageDiskDir()}
      */
@@ -476,7 +486,7 @@ public class PhantomJSDocumentFetcher
     }
     /**
      * Sets the directory where screenshots are saved when storage is "disk".
-     * Use this method to overwrite the default 
+     * Use this method to overwrite the default
      * ({@value #DEFAULT_SCREENSHOT_STORAGE_DISK_DIR}).
      * @param screenshotStorageDiskDir directory
      * @since 2.8.0
@@ -497,7 +507,7 @@ public class PhantomJSDocumentFetcher
     /**
      * Sets the target document metadata field where to store the path
      * to thescreen shot image file when storage is "disk".
-     * Use this method to overwrite the default 
+     * Use this method to overwrite the default
      * ({@value #COLLECTOR_PHANTOMJS_SCREENSHOT_PATH}).
      * @param screenshotStorageDiskField field name
      * @since 2.8.0
@@ -519,7 +529,7 @@ public class PhantomJSDocumentFetcher
     /**
      * Sets the target document metadata field where to store the inline
      * (Base64) screenshot image when storage is "inline".
-     * Use this method to overwrite the default 
+     * Use this method to overwrite the default
      * ({@value #COLLECTOR_PHANTOMJS_SCREENSHOT_INLINE}).
      * @param screenshotStorageInlineField field name
      * @since 2.8.0
@@ -559,6 +569,12 @@ public class PhantomJSDocumentFetcher
     public void setScreenshotZoomFactor(float screenshotZoomFactor) {
         this.screenshotZoomFactor = screenshotZoomFactor;
     }
+    public int[] getValidExitCodes() {
+        return ArrayUtils.clone(validExitCodes);
+    }
+    public final void setValidExitCodes(int... validExitCodes) {
+        this.validExitCodes = ArrayUtils.clone(validExitCodes);
+    }
     public int[] getValidStatusCodes() {
         return ArrayUtils.clone(validStatusCodes);
     }
@@ -593,7 +609,7 @@ public class PhantomJSDocumentFetcher
     public void setDetectCharset(boolean detectCharset) {
         this.detectCharset = detectCharset;
         genericFetcher.setDetectCharset(detectCharset);
-    }    
+    }
     public String getContentTypePattern() {
         return contentTypePattern;
     }
@@ -608,7 +624,7 @@ public class PhantomJSDocumentFetcher
     }
 
     /**
-     * Gets the milliseconds timeout after which any resource requested will 
+     * Gets the milliseconds timeout after which any resource requested will
      * stop trying and proceed with other parts of the page.
      * @return the timeout value, or <code>-1</code> if undefined
      * @since 2.8.0
@@ -617,9 +633,9 @@ public class PhantomJSDocumentFetcher
         return resourceTimeout;
     }
     /**
-     * Sets the milliseconds timeout after which any resource requested will 
+     * Sets the milliseconds timeout after which any resource requested will
      * stop trying and proceed with other parts of the page.
-     * @param resourceTimeout the timeout value, or <code>-1</code> 
+     * @param resourceTimeout the timeout value, or <code>-1</code>
      *                        for undefined
      * @since 2.8.0
      */
@@ -652,9 +668,9 @@ public class PhantomJSDocumentFetcher
     public void setScreenshotScaleDimensions(int width, int height) {
         this.screenshotScaleDimensions = new Dimension(width, height);
     }
-    
+
     /**
-     * Gets whether the screenshot should be stretch to to fill all 
+     * Gets whether the screenshot should be stretch to to fill all
      * the scale dimensions.  Default keeps aspect ratio.
      * @return <code>true</code> to stretch
      * @since 2.8.0
@@ -663,7 +679,7 @@ public class PhantomJSDocumentFetcher
         return screenshotScaleStretch;
     }
     /**
-     * Sets whether the screenshot should be stretch to to fill all 
+     * Sets whether the screenshot should be stretch to to fill all
      * the scale dimensions.  Default keeps aspect ratio.
      * @param screenshotScaleStretch <code>true</code> to stretch
      * @since 2.8.0
@@ -672,7 +688,7 @@ public class PhantomJSDocumentFetcher
         this.screenshotScaleStretch = screenshotScaleStretch;
     }
     /**
-     * Gets the screenshot image format (jpg, png, gif, bmp, etc.). 
+     * Gets the screenshot image format (jpg, png, gif, bmp, etc.).
      * @return image format
      * @since 2.8.0
      */
@@ -680,7 +696,7 @@ public class PhantomJSDocumentFetcher
         return screenshotImageFormat;
     }
     /**
-     * Sets the screenshot image format (jpg, png, gif, bmp, etc.). 
+     * Sets the screenshot image format (jpg, png, gif, bmp, etc.).
      * @param screenshotImageFormat image format
      * @since 2.8.0
      */
@@ -706,7 +722,7 @@ public class PhantomJSDocumentFetcher
     /**
      * Gets the screenshot directory structure to create when storage
      * is "disk".
-     * @return directory structure 
+     * @return directory structure
      * @since 2.8.0
      */
     public StorageDiskStructure getScreenshotStorageDiskStructure() {
@@ -715,7 +731,7 @@ public class PhantomJSDocumentFetcher
     /**
      * Sets the screenshot directory structure to create when storage
      * is "disk".
-     * @param screenshotStorageDiskStructure directory structure 
+     * @param screenshotStorageDiskStructure directory structure
      * @since 2.8.0
      */
     public void setScreenshotStorageDiskStructure(
@@ -767,7 +783,7 @@ public class PhantomJSDocumentFetcher
                     + doc.getReference());
             return genericFetcher.fetchDocument(httpClient, doc);
         }
-        
+
         // Fetch using PhantomJS
         try {
             return fetchPhantomJSDocument(httpClient, doc);
@@ -782,7 +798,7 @@ public class PhantomJSDocumentFetcher
             throw new CollectorException(e);
         }
     }
-    
+
     private synchronized void init() {
         if (initialized) {
             return;
@@ -792,18 +808,21 @@ public class PhantomJSDocumentFetcher
     }
 
     private HttpFetchResponse fetchPhantomJSDocument(
-                HttpClient httpClient, HttpDocument doc) 
+                HttpClient httpClient, HttpDocument doc)
                         throws IOException, SystemCommandException {
-        
+
         PhantomJSArguments p = new PhantomJSArguments(this, doc);
 	    SystemCommand cmd = createPhantomJSCommand(p, httpClient);
-	    
+
 	    CmdOutputGrabber output = new CmdOutputGrabber(
 	            cmd, doc.getMetadata(), getHeadersPrefix());
 	    cmd.addErrorListener(output);
 	    cmd.addOutputListener(output);
-	    
+
 	    int exit = cmd.execute();
+	    boolean exitValid =
+	            (ArrayUtils.isEmpty(validExitCodes) && exit == 0)
+	                    || ArrayUtils.contains(validExitCodes, exit);
 
         int statusCode = output.getStatusCode();
         String reason = output.getStatusText();
@@ -812,7 +831,7 @@ public class PhantomJSDocumentFetcher
         // if not obtained via regular headers
         if (!doc.getMetadata().containsKey(HttpMetadata.HTTP_CONTENT_TYPE)
                 && StringUtils.isNotBlank(output.getContentType())) {
-            doc.getMetadata().setString(HttpMetadata.HTTP_CONTENT_TYPE, 
+            doc.getMetadata().setString(HttpMetadata.HTTP_CONTENT_TYPE,
                     output.getContentType());
         }
 
@@ -825,23 +844,33 @@ public class PhantomJSDocumentFetcher
         if (StringUtils.isNotBlank(output.getDebug())) {
             LOG.debug("PhantomJS:" + output.getDebug());
         }
-        
+
         if (StringUtils.isNotBlank(output.getRedirect())) {
             RedirectStrategyWrapper.setRedirectURL(output.getRedirect());
         }
-        
+
         // deal with screenshot regardless whether execution failed or not
         handleScreenshot(p, doc);
-        
+
         // VALID response
-        if (exit == 0 && ArrayUtils.contains(validStatusCodes, statusCode)) {
+        if (exitValid && ArrayUtils.contains(validStatusCodes, statusCode)) {
             //--- Fetch body
+            for (int i = 0; i < 100; i++) {
+                // it has been observed that sometimes the file does not yet
+                // exists because it is not done being written to when
+                // PhandomJS returns.  In case this is what's happening here
+                // we wait up to 10 seconds for the file to be created.
+                if (p.outFile.exists()) {
+                    break;
+                }
+                Sleeper.sleepMillis(100);
+            }
             doc.setContent(doc.getContent().newInputStream(p.outFile));
             //read a copy to force caching
             IOUtils.copy(doc.getContent(), new NullOutputStream());
 
             performDetection(doc);
-            
+
             String contentType = getContentType(doc);
             if (!isHTMLByContentType(contentType)) {
                 LOG.debug("Not a matching content type (" + contentType
@@ -849,11 +878,11 @@ public class PhantomJSDocumentFetcher
                     + "GenericDocumentFetcher for: " + doc.getReference());
                 return genericFetcher.fetchDocument(httpClient, doc);
             }
-            
+
             return new HttpFetchResponse(
                     HttpCrawlState.NEW, statusCode, reason);
         }
-        
+
         // INVALID response
         if (LOG.isTraceEnabled()) {
             LOG.trace("Rejected response content: "
@@ -864,22 +893,22 @@ public class PhantomJSDocumentFetcher
             return new HttpFetchResponse(
                     HttpCrawlState.NOT_FOUND, statusCode, reason);
         }
-        if (exit != 0) {
-            return new HttpFetchResponse(CrawlState.BAD_STATUS, exit, 
+        if (!exitValid) {
+            return new HttpFetchResponse(CrawlState.BAD_STATUS, exit,
                     "PhantomJS execution failed with exit code " + exit);
         }
         LOG.debug("Unsupported HTTP Response: " + reason);
         return new HttpFetchResponse(
                 CrawlState.BAD_STATUS, statusCode, reason);
 	}
-    
+
     private void handleScreenshot(PhantomJSArguments p, HttpDocument doc) {
 
         // must be enabled
         if (!isScreenshotEnabled()) {
             return;
         }
-        
+
         if (!p.phantomScreenshotFile.isFile()) {
             LOG.error("Screenshot file not created for " + doc.getReference());
             return;
@@ -890,7 +919,7 @@ public class PhantomJSDocumentFetcher
             bi = ImageIO.read(p.phantomScreenshotFile);
         } catch (IOException e) {
             LOG.error("Could not load screenshot for: \"" + doc.getReference()
-                    + "\". It was saved here: " 
+                    + "\". It was saved here: "
                     + p.phantomScreenshotFile.getAbsolutePath(), e);
             return;
         }
@@ -904,37 +933,37 @@ public class PhantomJSDocumentFetcher
             LOG.debug("Image is null for: " + doc.getReference());
             return;
         }
-        
+
         Dimension dim = new Dimension(bi.getWidth(), bi.getHeight());
         bi = scale(bi);
-        
+
         ScaledImage img = new ScaledImage(doc.getReference(), dim, bi);
-        
+
         try {
             if (ArrayUtils.contains(screenshotStorage, Storage.INLINE)) {
                 doc.getMetadata().addString(
-                        Objects.toString(screenshotStorageInlineField, 
-                                COLLECTOR_PHANTOMJS_SCREENSHOT_INLINE), 
+                        Objects.toString(screenshotStorageInlineField,
+                                COLLECTOR_PHANTOMJS_SCREENSHOT_INLINE),
                         img.toHTMLInlineString(screenshotImageFormat));
             }
             if (ArrayUtils.contains(screenshotStorage, Storage.DISK)) {
-                String phantomScreenshotDir = 
+                String phantomScreenshotDir =
                         DEFAULT_SCREENSHOT_STORAGE_DISK_DIR;
                 if (StringUtils.isNotBlank(screenshotStorageDiskDir)) {
                     phantomScreenshotDir = screenshotStorageDiskDir;
-                }            
+                }
                 File diskDir = new File(phantomScreenshotDir);
                 File imageFile = null;
-                if (screenshotStorageDiskStructure 
+                if (screenshotStorageDiskStructure
                         == StorageDiskStructure.URL2PATH) {
                     imageFile = new File(FileUtil.createURLDirs(
                             diskDir, img.getUrl(), true).getAbsolutePath()
                             + "." + screenshotImageFormat);
-                } else if (screenshotStorageDiskStructure 
+                } else if (screenshotStorageDiskStructure
                         == StorageDiskStructure.DATE) {
                     String fileId = Long.toString(TimeIdGenerator.next());
                     imageFile = new File(FileUtil.createDateDirs(
-                            diskDir), fileId + "." + screenshotImageFormat);            
+                            diskDir), fileId + "." + screenshotImageFormat);
                 } else { // DATETIME
                     String fileId = Long.toString(TimeIdGenerator.next());
                     imageFile = new File(FileUtil.createDateTimeDirs(
@@ -942,8 +971,8 @@ public class PhantomJSDocumentFetcher
                 }
                 ImageIO.write(img.getImage(), screenshotImageFormat, imageFile);
                 doc.getMetadata().addString(
-                        Objects.toString(screenshotStorageDiskField, 
-                                COLLECTOR_PHANTOMJS_SCREENSHOT_PATH), 
+                        Objects.toString(screenshotStorageDiskField,
+                                COLLECTOR_PHANTOMJS_SCREENSHOT_PATH),
                         imageFile.getCanonicalPath());
             }
         } catch (IOException e) {
@@ -951,7 +980,7 @@ public class PhantomJSDocumentFetcher
                     + doc.getReference(), e);
         }
     }
-    
+
     //TODO share with FeaturedImageProcessor
     private BufferedImage scale(BufferedImage origImg) {
 
@@ -962,7 +991,7 @@ public class PhantomJSDocumentFetcher
 
         int scaledWidth = (int) screenshotScaleDimensions.getWidth();
         int scaledHeight = (int) screenshotScaleDimensions.getHeight();
-        
+
         Mode mode = Mode.AUTOMATIC;
         if (screenshotScaleStretch) {
             mode = Mode.FIT_EXACT;
@@ -970,8 +999,8 @@ public class PhantomJSDocumentFetcher
         Method method = Method.AUTOMATIC;
         if (screenshotScaleQuality != null) {
             method = screenshotScaleQuality.scalrMethod;
-        }        
-        BufferedImage newImg = 
+        }
+        BufferedImage newImg =
                 Scalr.resize(origImg, method, mode, scaledWidth, scaledHeight);
 
         // Remove alpha layer for formats not supporting it. This prevents
@@ -980,15 +1009,15 @@ public class PhantomJSDocumentFetcher
         if (EqualsUtil.equalsNoneIgnoreCase(
                 screenshotImageFormat, "png", "gif")) {
             BufferedImage fixedImg = new BufferedImage(
-                    newImg.getWidth(), newImg.getHeight(), 
+                    newImg.getWidth(), newImg.getHeight(),
                     BufferedImage.TYPE_INT_RGB);
             fixedImg.createGraphics().drawImage(
                     newImg, 0, 0, Color.WHITE, null);
             newImg = fixedImg;
         }
         return newImg;
-    }    
-    
+    }
+
     private SystemCommand createPhantomJSCommand(
             PhantomJSArguments p, HttpClient httpClient) {
         List<String> cmdArgs = new ArrayList<>();
@@ -999,14 +1028,14 @@ public class PhantomJSDocumentFetcher
         }
         cmdArgs.add("--ignore-ssl-errors=true");
         cmdArgs.add("--web-security=false");
-        cmdArgs.add("--cookies-file=" 
+        cmdArgs.add("--cookies-file="
                 + argQuote(p.phantomCookiesFile.getAbsolutePath()));
         cmdArgs.add("--load-images=" + isScreenshotEnabled());
         // Configure for HttpClient proxy if used.
         if (HttpClientProxy.isStarted()) {
             cmdArgs.add("--proxy=" + HttpClientProxy.getProxyHost());
-            
-            cmdArgs.add("--proxy-auth=bindId:" 
+
+            cmdArgs.add("--proxy-auth=bindId:"
                     + HttpClientProxy.getId(httpClient));
         }
         if (ArrayUtils.isNotEmpty(options)) {
@@ -1032,19 +1061,19 @@ public class PhantomJSDocumentFetcher
         } else {
             cmdArgs.add(argQuote(
                     screenshotDimensions.getWidth() + "x"
-                  + screenshotDimensions.getHeight()));       
+                  + screenshotDimensions.getHeight()));
         }
         cmdArgs.add(Float.toString(screenshotZoomFactor)); // phantom.js arg 8
         cmdArgs.add(Integer.toString(resourceTimeout));    // phantom.js arg 9
-        
+
         SystemCommand cmd = new SystemCommand(
                 cmdArgs.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         if (LOG.isDebugEnabled()) {
             LOG.debug("Command: " + cmd);
         }
-        return cmd; 
+        return cmd;
     }
-    
+
     //TODO Copied from GenericDocumentFetcher... should move to util class?
     private void performDetection(HttpDocument doc) throws IOException {
         if (detectContentType) {
@@ -1063,7 +1092,7 @@ public class PhantomJSDocumentFetcher
             }
         }
     }
-    
+
     private void validate() {
 	    if (StringUtils.isBlank(exePath)) {
 	        throw new CollectorException(
@@ -1107,7 +1136,7 @@ public class PhantomJSDocumentFetcher
         }
         return safeArg;
 	}
-    
+
     private boolean isHTMLByReference(String url) {
         return Pattern.matches(referencePattern, Objects.toString(url, ""));
     }
@@ -1135,12 +1164,14 @@ public class PhantomJSDocumentFetcher
                 xml, "renderWaitTime", getRenderWaitTime()));
         setResourceTimeout((int) XMLConfigurationUtil.getDuration(
                 xml, "resourceTimeout", getResourceTimeout()));
-        
+
         String oldDir = xml.getString("screenshotDir", null);
         if (StringUtils.isNotBlank(oldDir)) {
             LOG.warn("\"screenshotDir\" has been deprecated in favor of "
                    + "\"screenshotStorageDiskDir\".");
         }
+        setValidExitCodes(XMLConfigurationUtil.getCSVIntArray(
+                xml, "validExitCodes", getValidExitCodes()));
         setValidStatusCodes(XMLConfigurationUtil.getCSVIntArray(
                 xml, "validStatusCodes", getValidStatusCodes()));
         setNotFoundStatusCodes(XMLConfigurationUtil.getCSVIntArray(
@@ -1148,8 +1179,8 @@ public class PhantomJSDocumentFetcher
         setHeadersPrefix(xml.getString("headersPrefix", getHeadersPrefix()));
         setDetectContentType(
                 xml.getBoolean("[@detectContentType]", isDetectContentType()));
-        setDetectCharset(xml.getBoolean("[@detectCharset]", isDetectCharset()));        
-        
+        setDetectCharset(xml.getBoolean("[@detectCharset]", isDetectCharset()));
+
         String[] opts = xml.getStringArray("options.opt");
         if (ArrayUtils.isNotEmpty(opts)) {
             setOptions(opts);
@@ -1158,7 +1189,7 @@ public class PhantomJSDocumentFetcher
                 xml.getString("referencePattern", getReferencePattern()));
         setContentTypePattern(
                 xml.getString("contentTypePattern", getContentTypePattern()));
-        
+
         // Screenshots
         setScreenshotEnabled(xml.getBoolean(
                 "[@screenshotEnabled]", isScreenshotEnabled()));
@@ -1171,7 +1202,7 @@ public class PhantomJSDocumentFetcher
                 setScreenshotScaleQuality((Quality) null);
             }
         }
-        
+
         if (xml.containsKey("screenshotStorage")) {
             String[] xmlStorages = XMLConfigurationUtil.getCSVStringArray(
                     xml, "screenshotStorage");
@@ -1186,8 +1217,8 @@ public class PhantomJSDocumentFetcher
                 setScreenshotStorage((Storage) null);
             }
         }
-        
-        String newDir = xml.getString("screenshotStorageDiskDir", 
+
+        String newDir = xml.getString("screenshotStorageDiskDir",
                 getScreenshotStorageDiskDir());
         if (StringUtils.isBlank(newDir)) {
             newDir = oldDir;
@@ -1197,14 +1228,14 @@ public class PhantomJSDocumentFetcher
         setScreenshotStorageDiskField(xml.getString(
                 "screenshotStorageDiskField", getScreenshotStorageDiskField()));
         setScreenshotStorageInlineField(xml.getString(
-                "screenshotStorageInlineField", 
+                "screenshotStorageInlineField",
                 getScreenshotStorageInlineField()));
         setScreenshotDimensions(XMLConfigurationUtil.getNullableDimension(
                 xml, "screenshotDimensions", getScreenshotDimensions()));
         setScreenshotZoomFactor(xml.getFloat(
                 "screenshotZoomFactor", getScreenshotZoomFactor()));
         setScreenshotScaleDimensions(XMLConfigurationUtil.getNullableDimension(
-                xml, "screenshotScaleDimensions", 
+                xml, "screenshotScaleDimensions",
                 getScreenshotScaleDimensions()));
         setScreenshotScaleStretch(xml.getBoolean(
                 "screenshotScaleStretch", isScreenshotScaleStretch()));
@@ -1212,7 +1243,7 @@ public class PhantomJSDocumentFetcher
                 "screenshotImageFormat", getScreenshotImageFormat()));
 
         if (xml.containsKey("screenshotStorageDiskDir[@structure]")) {
-            String xmlStructure = 
+            String xmlStructure =
                     xml.getString("screenshotStorageDiskDir[@structure]", null);
             if (StringUtils.isNotBlank(xmlStructure)) {
                 setScreenshotStorageDiskStructure(StorageDiskStructure.valueOf(
@@ -1225,7 +1256,7 @@ public class PhantomJSDocumentFetcher
     @Override
     public void saveToXML(Writer out) throws IOException {
         try {
-            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);         
+            EnhancedXMLStreamWriter writer = new EnhancedXMLStreamWriter(out);
             writer.writeStartElement("documentFetcher");
             writer.writeAttribute("class", getClass().getCanonicalName());
             writer.writeAttributeBoolean(
@@ -1233,16 +1264,18 @@ public class PhantomJSDocumentFetcher
             writer.writeAttributeBoolean("detectCharset", isDetectCharset());
             writer.writeAttributeBoolean(
                     "screenshotEnabled", isScreenshotEnabled());
-            
+
             writer.writeElementString("exePath", exePath);
             writer.writeElementString("scriptPath", scriptPath);
             writer.writeElementInteger("renderWaitTime", renderWaitTime);
             if (resourceTimeout != -1) {
                 writer.writeElementInteger("resourceTimeout", resourceTimeout);
             }
-            writer.writeElementString("validStatusCodes", 
+            writer.writeElementString("validExitCodes",
+                    StringUtils.join(validExitCodes, ','));
+            writer.writeElementString("validStatusCodes",
                     StringUtils.join(validStatusCodes, ','));
-            writer.writeElementString("notFoundStatusCodes", 
+            writer.writeElementString("notFoundStatusCodes",
                     StringUtils.join(notFoundStatusCodes, ','));
             writer.writeElementString("headersPrefix", headersPrefix);
             if (ArrayUtils.isNotEmpty(options)) {
@@ -1256,15 +1289,15 @@ public class PhantomJSDocumentFetcher
             writer.writeElementString("contentTypePattern", contentTypePattern);
 
             // Screenshots
-            writer.writeElementString("screenshotScaleQuality", 
-                    getScreenshotScaleQuality() != null 
-                    ? getScreenshotScaleQuality().toString().toLowerCase() 
+            writer.writeElementString("screenshotScaleQuality",
+                    getScreenshotScaleQuality() != null
+                    ? getScreenshotScaleQuality().toString().toLowerCase()
                     : null, true);
-            writer.writeElementDimension("screenshotScaleDimensions", 
+            writer.writeElementDimension("screenshotScaleDimensions",
                     getScreenshotScaleDimensions(), true);
             writer.writeElementString(
                     "screenshotStorageDiskField", screenshotStorageDiskField);
-            writer.writeElementString("screenshotStorageInlineField", 
+            writer.writeElementString("screenshotStorageInlineField",
                     screenshotStorageInlineField);
             writer.writeElementDimension(
                     "screenshotDimensions", screenshotDimensions, true);
@@ -1279,10 +1312,10 @@ public class PhantomJSDocumentFetcher
                         xmlStorages[i] = storages[i].toString().toLowerCase();
                     }
                 }
-                writer.writeElementString("screenshotStorage", 
+                writer.writeElementString("screenshotStorage",
                         StringUtils.join(xmlStorages, ','), true);
             }
-            
+
             writer.writeStartElement("screenshotStorageDiskDir");
             String structure = null;
             if (getScreenshotStorageDiskStructure() != null) {
@@ -1294,12 +1327,12 @@ public class PhantomJSDocumentFetcher
             writer.writeCharacters(StringUtils.trimToEmpty(
                     getScreenshotStorageDiskDir()));
             writer.writeEndElement();
-            
+
             writer.writeElementBoolean(
                     "screenshotScaleStretch", isScreenshotScaleStretch());
             writer.writeElementString(
                     "screenshotImageFormat", getScreenshotImageFormat());
-            
+
             writer.writeEndElement();
             writer.flush();
             writer.close();
@@ -1307,7 +1340,7 @@ public class PhantomJSDocumentFetcher
             throw new IOException("Cannot save as XML.", e);
         }
     }
-    
+
     @Override
     public boolean equals(final Object other) {
         if (!(other instanceof PhantomJSDocumentFetcher)) {
@@ -1322,29 +1355,30 @@ public class PhantomJSDocumentFetcher
                 .append(options, castOther.options)
                 .append(referencePattern, castOther.referencePattern)
                 .append(contentTypePattern, castOther.contentTypePattern)
+                .append(validExitCodes, castOther.validExitCodes)
                 .append(validStatusCodes, castOther.validStatusCodes)
                 .append(notFoundStatusCodes, castOther.notFoundStatusCodes)
                 .append(headersPrefix, castOther.headersPrefix)
                 .append(detectContentType, castOther.detectContentType)
                 .append(detectCharset, castOther.detectCharset)
                 .append(screenshotEnabled, castOther.screenshotEnabled)
-                .append(screenshotStorageDiskDir, 
+                .append(screenshotStorageDiskDir,
                         castOther.screenshotStorageDiskDir)
-                .append(screenshotStorageDiskField, 
+                .append(screenshotStorageDiskField,
                         castOther.screenshotStorageDiskField)
-                .append(screenshotStorageInlineField, 
+                .append(screenshotStorageInlineField,
                         castOther.screenshotStorageInlineField)
                 .append(screenshotDimensions, castOther.screenshotDimensions)
                 .append(screenshotZoomFactor, castOther.screenshotZoomFactor)
-                .append(screenshotScaleDimensions, 
+                .append(screenshotScaleDimensions,
                         castOther.screenshotScaleDimensions)
-                .append(screenshotScaleStretch, 
+                .append(screenshotScaleStretch,
                         castOther.screenshotScaleStretch)
                 .append(screenshotImageFormat, castOther.screenshotImageFormat)
                 .append(screenshotStorage, castOther.screenshotStorage)
-                .append(screenshotStorageDiskStructure, 
+                .append(screenshotStorageDiskStructure,
                         castOther.screenshotStorageDiskStructure)
-                .append(screenshotScaleQuality, 
+                .append(screenshotScaleQuality,
                         castOther.screenshotScaleQuality)
                 .isEquals();
     }
@@ -1359,6 +1393,7 @@ public class PhantomJSDocumentFetcher
                 .append(options)
                 .append(referencePattern)
                 .append(contentTypePattern)
+                .append(validExitCodes)
                 .append(validStatusCodes)
                 .append(notFoundStatusCodes)
                 .append(headersPrefix)
@@ -1389,6 +1424,7 @@ public class PhantomJSDocumentFetcher
                 .append("options", options)
                 .append("referencePattern", referencePattern)
                 .append("contentTypePattern", contentTypePattern)
+                .append("validExitCodes", validExitCodes)
                 .append("validStatusCodes", validStatusCodes)
                 .append("notFoundStatusCodes", notFoundStatusCodes)
                 .append("headersPrefix", headersPrefix)
@@ -1396,9 +1432,9 @@ public class PhantomJSDocumentFetcher
                 .append("detectCharset", detectCharset)
                 .append("screenshotEnabled", screenshotEnabled)
                 .append("screenshotStorageDiskDir", screenshotStorageDiskDir)
-                .append("screenshotStorageDiskField", 
+                .append("screenshotStorageDiskField",
                         screenshotStorageDiskField)
-                .append("screenshotStorageInlineField", 
+                .append("screenshotStorageInlineField",
                         screenshotStorageInlineField)
                 .append("screenshotDimensions", screenshotDimensions)
                 .append("screenshotZoomFactor", screenshotZoomFactor)
@@ -1406,11 +1442,11 @@ public class PhantomJSDocumentFetcher
                 .append("screenshotScaleStretch", screenshotScaleStretch)
                 .append("screenshotImageFormat", screenshotImageFormat)
                 .append("screenshotStorage", screenshotStorage)
-                .append("screenshotStorageDiskStructure", 
+                .append("screenshotStorageDiskStructure",
                         screenshotStorageDiskStructure)
                 .append("screenshotScaleQuality", screenshotScaleQuality)
                 .toString();
-    }    
+    }
 
     private static class PhantomJSArguments {
         private final String url;
@@ -1420,7 +1456,7 @@ public class PhantomJSDocumentFetcher
         private final File phantomScreenshotFile;
         private final File outFile;
         private final String protocol;
-        
+
         public PhantomJSArguments(
                 PhantomJSDocumentFetcher f, HttpDocument doc) {
             super();
@@ -1434,15 +1470,15 @@ public class PhantomJSDocumentFetcher
             this.phantomScriptFile = new File(f.scriptPath);
             this.phantomCookiesFile = new File(phantomTempdir, "cookies.txt");
             if (f.isScreenshotEnabled()) {
-                this.phantomScreenshotFile = new File(phantomTempdir, 
+                this.phantomScreenshotFile = new File(phantomTempdir,
                         Long.toString(TimeIdGenerator.next()) + ".png");
             } else {
                 this.phantomScreenshotFile = null;
             }
             // outFile is automatically deleted by framework when done with it.
-            this.outFile = new File(phantomTempdir, 
+            this.outFile = new File(phantomTempdir,
                     Long.toString(TimeIdGenerator.next()));
-            
+
             String scheme = "http";
             if (doc.getReference().startsWith("https")) {
                 scheme = "https";
@@ -1450,7 +1486,7 @@ public class PhantomJSDocumentFetcher
             this.protocol = scheme;
         }
     }
-    
+
     //Metadata is expected to be outputed, starting with HEADER: on each line
     private static class CmdOutputGrabber extends InputStreamLineListener {
         private final StringWriter error = new StringWriter();
@@ -1463,7 +1499,7 @@ public class PhantomJSDocumentFetcher
         private String statusText;
         private String contentType;
         private String redirect;
-        public CmdOutputGrabber(SystemCommand cmd, 
+        public CmdOutputGrabber(SystemCommand cmd,
                 HttpMetadata metadata, String headersPrefix) {
             super();
             this.cmd = cmd;
@@ -1475,7 +1511,7 @@ public class PhantomJSDocumentFetcher
             if (line.startsWith("HEADER:")) {
                 String key = StringUtils.substringBetween(line, "HEADER:", "=");
                 String value = StringUtils.substringAfter(line, "=");
-                
+
                 // Redirect hack
                 if (HttpClientProxy.KEY_PROXY_REDIRECT.equals(key)) {
                     this.redirect = value;
