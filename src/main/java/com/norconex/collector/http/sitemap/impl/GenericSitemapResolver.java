@@ -120,6 +120,9 @@ public class GenericSitemapResolver
 
     private Path tempDir;
 
+
+    //TODO Use StaX for simplified sitemap parsing.
+
     //TODO eventually check sitemap last modified date and reprocess if
     // changed (or request to have it only if it changed).
     // use ZonedDateTime instead of Boolean (which is just a dummy value).
@@ -454,15 +457,18 @@ public class GenericSitemapResolver
     private void parseStartElement(ParseState parseState, String tag) {
         if("sitemap".equalsIgnoreCase(tag)) {
             parseState.sitemapIndex = true;
-        } else if("url".equalsIgnoreCase(tag)){
+        } else if("url".equalsIgnoreCase(tag)) {
             parseState.baseURL = new HttpDocInfo("", 0);
-        } else if("loc".equalsIgnoreCase(tag)){
+        } else if("loc".equalsIgnoreCase(tag)) {
+            if (parseState.baseURL == null) {
+                parseState.baseURL = new HttpDocInfo("", 0);
+            }
             parseState.loc = true;
-        } else if("lastmod".equalsIgnoreCase(tag)){
+        } else if("lastmod".equalsIgnoreCase(tag)) {
             parseState.lastmod = true;
-        } else if("changefreq".equalsIgnoreCase(tag)){
+        } else if("changefreq".equalsIgnoreCase(tag)) {
             parseState.changefreq = true;
-        } else if("priority".equalsIgnoreCase(tag)){
+        } else if("priority".equalsIgnoreCase(tag)) {
             parseState.priority = true;
         }
     }

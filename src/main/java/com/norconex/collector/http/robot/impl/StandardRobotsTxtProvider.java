@@ -83,8 +83,6 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
     @Override
     public synchronized RobotsTxt getRobotsTxt(
             HttpFetchClient fetcher, String url) {
-//    public synchronized RobotsTxt getRobotsTxt(
-//            HttpClient httpClient, String url, String userAgent) {
 
         String trimmedURL = StringUtils.trimToEmpty(url);
         String baseURL = getBaseURL(trimmedURL);
@@ -95,14 +93,23 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
 
         String robotsURL = baseURL + "/robots.txt";
         try {
-//            HttpGet method = new HttpGet(robotsURL);
-//            HttpResponse response = httpClient.execute(method);
-//            InputStream is = response.getEntity().getContent();
-//            robotsTxt = parseRobotsTxt(is, trimmedURL, userAgent);
-
+            // Try once
             CrawlDoc doc = new CrawlDoc(new HttpDocInfo(robotsURL),
                     fetcher.getStreamFactory().newInputStream());
             IHttpFetchResponse response = fetcher.fetch(doc, HttpMethod.GET);
+
+            //TODO handle better?
+
+            // Try twice if redirect
+            String redirURL = response.getRedirectTarget();
+            if (StringUtils.isNotBlank(redirURL)) {
+                LOG.debug("Fetching 'robots.txt' from redirect URL: {}",
+                        redirURL);
+                doc = new CrawlDoc(new HttpDocInfo(redirURL),
+                        fetcher.getStreamFactory().newInputStream());
+                response = fetcher.fetch(doc, HttpMethod.GET);
+            }
+
             if (response.getStatusCode() == HttpStatus.SC_OK) {
                 robotsTxt = parseRobotsTxt(doc.getInputStream(), trimmedURL,
                         response.getUserAgent());

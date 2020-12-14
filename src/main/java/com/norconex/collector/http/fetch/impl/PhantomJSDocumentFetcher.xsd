@@ -36,6 +36,7 @@
             </xs:element>
             <xs:element name="referencePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="contentTypePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="validExitCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="notFoundStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>

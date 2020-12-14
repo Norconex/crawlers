@@ -66,6 +66,7 @@ import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcher;
 import com.norconex.collector.http.processor.impl.ScaledImage;
 import com.norconex.commons.lang.EqualsUtil;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.exec.ExecUtil;
@@ -179,6 +180,14 @@ import com.norconex.importer.util.CharsetUtil;
  * long time.
  * </p>
  *
+ * <h3>PhantomJS exit values</h3>
+ * <p>
+ * <b>Since 2.9.1</b>, it is possible to specify which PhantomJS exit values
+ * are to be considered "valid". Use a comma-separated-list of integers using
+ * the {@link #setValidExitCodes(int...)} method. By default, only zero is
+ * considered valid.
+ * </p>
+ *
  * <p>
  * XML configuration entries expecting millisecond durations
  * can be provided in human-readable format (English only), as per
@@ -218,6 +227,7 @@ import com.norconex.importer.util.CharsetUtil;
  *           the PhantomJS browser. Non-matching content types will use
  *           the GenericDocumentFetcher.)
  *      &lt;/contentTypePattern&gt;
+ *      &lt;validExitCodes&gt;(defaults to 0)&lt;/validExitCodes&gt;
  *      &lt;validStatusCodes&gt;(defaults to 200)&lt;/validStatusCodes&gt;
  *      &lt;notFoundStatusCodes&gt;(defaults to 404)&lt;/notFoundStatusCodes&gt;
  *      &lt;headersPrefix&gt;(string to prefix headers)&lt;/headersPrefix&gt;
@@ -367,6 +377,8 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     private int resourceTimeout = -1;
 
     private final List<String> options = new ArrayList<>();
+    private final List<Integer> validExitCodes =
+            new ArrayList<>(Arrays.asList(0));
 
     private String contentTypePattern = DEFAULT_CONTENT_TYPE_PATTERN;
     private String referencePattern;
@@ -540,6 +552,32 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     }
     public void setScreenshotZoomFactor(float screenshotZoomFactor) {
         this.screenshotZoomFactor = screenshotZoomFactor;
+    }
+
+    /**
+     * Sets valid PhantomJS exit values (defaults to 0).
+     * @return valid exit codes
+     * @since 2.9.1
+     */
+    public List<Integer> getValidExitCodes() {
+        return Collections.unmodifiableList(validExitCodes);
+    }
+    /**
+     * Sets valid PhantomJS exit values (defaults to 0).
+     * @param validExitCodes valid exit codes
+     * @since 2.9.1
+     */
+    public void setValidExitCodes(List<Integer> validExitCodes) {
+        CollectionUtil.setAll(this.validExitCodes, validExitCodes);
+    }
+    /**
+     * Sets valid PhantomJS exit values (defaults to 0).
+     * @param validExitCodes valid exit codes
+     * @since 2.9.1
+     */
+    public void setValidExitCodes(int... validExitCodes) {
+        CollectionUtil.setAll(this.validExitCodes,
+                ArrayUtils.toObject(validExitCodes));
     }
 
     public List<Integer> getValidStatusCodes() {
@@ -849,6 +887,8 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
 	    cmd.addOutputListener(output);
 
 	    int exit = cmd.execute();
+        boolean exitValid = (validExitCodes.isEmpty() && exit == 0)
+                || validExitCodes.contains(exit);
 
         int statusCode = output.getStatusCode();
         String reason = output.getStatusText();
@@ -886,9 +926,19 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         handleScreenshot(p, doc);
 
         // VALID response
-        if (exit == 0
+        if (exitValid
                 && fetcherConfig.getValidStatusCodes().contains(statusCode)) {
             //--- Fetch body
+            for (int i = 0; i < 100; i++) {
+                // it has been observed that sometimes the file does not yet
+                // exists because it is not done being written to when
+                // PhandomJS returns.  In case this is what's happening here
+                // we wait up to 10 seconds for the file to be created.
+                if (p.outFile.toFile().exists()) {
+                    break;
+                }
+                Sleeper.sleepMillis(100);
+            }
             doc.setContent(doc.getContent().newInputStream(p.outFile));
             //read a copy to force caching
             IOUtils.copy(doc.getContent(), new NullOutputStream());
@@ -917,7 +967,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
             return responseBuilder.setCrawlState(
                     HttpCrawlState.NOT_FOUND).create();
         }
-        if (exit != 0) {
+        if (!exitValid) {
             return responseBuilder
                     .setCrawlState(HttpCrawlState.BAD_STATUS)
                     .setStatusCode(exit)
@@ -1194,6 +1244,8 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                 "renderWaitTime", (long) renderWaitTime).intValue());
         setResourceTimeout(xml.getDurationMillis(
                 "resourceTimeout", (long) resourceTimeout).intValue());
+        setValidExitCodes(xml.getDelimitedList(
+                "validExitCodes", Integer.class, getValidExitCodes()));
         setValidStatusCodes(xml.getDelimitedList(
                 "validStatusCodes", Integer.class,
                 fetcherConfig.getValidStatusCodes()));
@@ -1253,6 +1305,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
 //        if (resourceTimeout != -1) {
             xml.addElement("resourceTimeout", resourceTimeout);
 //        }
+        xml.addDelimitedElementList("validExitCodes", getValidExitCodes());
         xml.addDelimitedElementList(
                 "validStatusCodes", fetcherConfig.getValidStatusCodes());
         xml.addDelimitedElementList(
