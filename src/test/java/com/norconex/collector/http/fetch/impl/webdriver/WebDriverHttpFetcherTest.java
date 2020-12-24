@@ -105,10 +105,10 @@ public class WebDriverHttpFetcherTest  {
 //  https://github.com/operasoftware/operachromiumdriver/releases
     private static final Path operaDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://github.com/operasoftware/"
-                    + "operachromiumdriver/releases/download/v.85.0.4183.102/"
+                    + "operachromiumdriver/releases/download/v.87.0.4280.67/"
                     + "operadriver_win64.zip!/operadriver_win64/"
                     + "operadriver.exe",
-                    "operadriver-85.0.4183.102.exe"))
+                    "operadriver-87.0.4280.67.exe"))
             .get();
 
     static Stream<WebDriverHttpFetcher> browsersProvider() {

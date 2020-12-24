@@ -114,6 +114,10 @@ public class GenericSitemapResolver
     private static final Logger LOG = LoggerFactory.getLogger(
             GenericSitemapResolver.class);
 
+
+
+    //TODO ---------- follow redirects and/or print redirect target ---------------------
+
     public static final List<String> DEFAULT_SITEMAP_PATHS =
             Collections.unmodifiableList(Arrays.asList(
                     "/sitemap.xml", "/sitemap_index.xml"));
