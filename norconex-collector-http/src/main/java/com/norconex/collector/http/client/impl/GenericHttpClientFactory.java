@@ -730,7 +730,7 @@ public class GenericHttpClientFactory
         if (!xmlAuthFormParams.isEmpty()) {
             authFormParams.clear();
             for (HierarchicalConfiguration xmlParam : xmlAuthFormParams) {
-                requestHeaders.put(
+                authFormParams.put(
                         xmlParam.getString("[@name]"),
                         xmlParam.getString(""));
             }
