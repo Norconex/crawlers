@@ -46,7 +46,7 @@
     <fileSet>
       <directory>${basedir}</directory>
       <includes>
-        <include>LICENSE</include>
+        <include>LICENSE.txt</include>
         <include>CHANGES.xml</include>
       </includes>
       <outputDirectory>./</outputDirectory>
