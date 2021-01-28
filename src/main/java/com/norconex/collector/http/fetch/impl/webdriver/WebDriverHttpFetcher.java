@@ -47,6 +47,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.HttpCollector;
@@ -257,7 +258,19 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     protected void fetcherThreadBegin(HttpCrawler crawler) {
         LOG.info("Creating {} web driver.", cfg.getBrowser());
         WebDriver driver = driverSupplier.get();
-
+        if (driver == null) {
+            throw new CollectorException(
+                    "The current thread failed to obtain a web driver "
+                  + "for browser '" + cfg.getBrowser()
+                  + "'. Possible causes:\n"
+                  + "    - Misconfiguration (e.g., invalid path)\n"
+                  + "    - System defaults are invalid or not set "
+                  + "(when relying on default).\n"
+                  + "Your configuration (null is for OS default):\n"
+                  + "    Driver path: " + cfg.getDriverPath() + "\n"
+                  + "    Browser path: " + cfg.getBrowserPath() + "\n"
+                  + "    RemoteURL path: " + cfg.getRemoteURL() + "\n");
+        }
         if (StringUtils.isBlank(userAgent)) {
             userAgent = (String) ((JavascriptExecutor) driver).executeScript(
                     "return navigator.userAgent;");
