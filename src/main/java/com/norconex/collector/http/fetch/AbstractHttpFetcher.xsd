@@ -31,7 +31,7 @@
   <xs:complexType name="filterType">
     <xs:all>
       <xs:element name="filter" type="anyComplexRequiredClassType" 
-          minOccurs="1" maxOccurs="unbounded"/>
+          minOccurs="0" maxOccurs="unbounded"/>
     </xs:all>
   </xs:complexType>
   

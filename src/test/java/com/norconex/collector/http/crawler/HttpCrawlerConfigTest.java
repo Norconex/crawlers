@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Norconex Inc.
+/* Copyright 2015-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.http.HttpCollectorConfig;
-import com.norconex.collector.http.fetch.impl.HttpAuthConfig;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
+import com.norconex.collector.http.fetch.impl.HttpAuthConfig;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.xml.XML;
@@ -30,14 +30,14 @@ import com.norconex.commons.lang.xml.XML;
 /**
  * @author Pascal Essiembre
  */
-public class HttpCrawlerConfigTest {
+class HttpCrawlerConfigTest {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(HttpCrawlerConfigTest.class);
 
 
     @Test
-    public void testWriteRead() {
+    void testWriteRead() {
         HttpCollectorConfig config = new HttpCollectorConfig();
 
         XML xml = new ConfigurationLoader().loadXML(Paths.get(

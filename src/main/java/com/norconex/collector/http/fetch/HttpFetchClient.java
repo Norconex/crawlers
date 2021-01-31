@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
+import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -112,6 +113,10 @@ public class HttpFetchClient {
                             HttpFetchResponseBuilder.unsupported().create();
                 }
                 allResponses.addResponse(fetchResponse, fetcher);
+
+                doc.getMetadata().add(
+                        HttpDocMetadata.HTTP_FETCHER,
+                        fetcher.getClass().getName());
 
                 if (fetchResponse.getCrawlState() != null
                         && fetchResponse.getCrawlState().isGoodState()) {

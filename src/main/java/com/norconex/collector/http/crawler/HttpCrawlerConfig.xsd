@@ -48,7 +48,7 @@
             <xs:complexType>
               <xs:all>
                 <xs:element name="fetcher" 
-                    type="anyComplexRequiredClassType" minOccurs="1" maxOccurs="unbounded"/>
+                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
               </xs:all>
               <xs:attribute name="maxRetries" type="xs:int"/>
               <xs:attribute name="retryDelay" type="xs:string"/>
@@ -104,7 +104,7 @@
             <xs:complexType>
               <xs:all>
                 <xs:element name="processor" 
-                    type="anyComplexRequiredClassType" minOccurs="1" maxOccurs="unbounded"/>
+                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
               </xs:all>
             </xs:complexType>
           </xs:element>
@@ -112,14 +112,14 @@
             <xs:complexType>
               <xs:all>
                 <xs:element name="processor" 
-                    type="anyComplexRequiredClassType" minOccurs="1" maxOccurs="unbounded"/>
+                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
               </xs:all>
             </xs:complexType>
           </xs:element>
           <xs:element name="postImportLinks" minOccurs="0" maxOccurs="1">
             <xs:complexType>
               <xs:all>
-                <xs:element name="fieldMatcher" type="TextMatcherType" minOccurs="1" maxOccurs="1" />  
+                <xs:element name="fieldMatcher" type="TextMatcherType" minOccurs="0" maxOccurs="1" />  
               </xs:all>
               <xs:attribute name="keep" type="xs:boolean"/>
             </xs:complexType>

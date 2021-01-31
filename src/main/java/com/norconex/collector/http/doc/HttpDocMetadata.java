@@ -1,4 +1,4 @@
-/* Copyright 2010-2020 Norconex Inc.
+/* Copyright 2010-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,10 @@ public final class HttpDocMetadata {
     public static final String REDIRECT_TRAIL = PREFIX + "redirect-trail";
     /** @since 3.0.0 */
     public static final String ORIGINAL_REFERENCE =
-            PREFIX + "originalReference";
+            PREFIX + "original-reference";
+    /** @since 3.0.0 */
+    public static final String HTTP_FETCHER =
+            PREFIX + "http-fetcher";
 
     private HttpDocMetadata() {
         super();

@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.logging.Level;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -32,22 +31,15 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.http.HttpHeaders;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriver.Timeouts;
-import org.openqa.selenium.logging.LogType;
-import org.openqa.selenium.logging.LoggingPreferences;
-import org.openqa.selenium.remote.CapabilityType;
-import org.openqa.selenium.support.ThreadGuard;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.HttpCollector;
@@ -59,11 +51,9 @@ import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
-import com.norconex.collector.http.fetch.impl.webdriver.Browser.WebDriverSupplier;
 import com.norconex.collector.http.fetch.impl.webdriver.HttpSniffer.DriverResponseFilter;
 import com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcherConfig.WaitElementType;
 import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
-import com.norconex.commons.lang.SLF4JUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -194,16 +184,14 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     private String userAgent;
     private HttpSniffer httpSniffer;
     private ScreenshotHandler screenshotHandler;
-    private WebDriverSupplier driverSupplier;
-    private final ThreadLocal<WebDriver> driverTL = new ThreadLocal<>();
+    private WebDriverHolder driverHolder;
 
     public WebDriverHttpFetcher() {
         this(new WebDriverHttpFetcherConfig());
     }
     public WebDriverHttpFetcher(WebDriverHttpFetcherConfig config) {
         super();
-        Objects.requireNonNull(config, "'config' must not be null.");
-        this.cfg = config;
+        this.cfg = Objects.requireNonNull(config, "'config' must not be null.");
     }
 
     public WebDriverHttpFetcherConfig getConfig() {
@@ -231,25 +219,14 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             streamFactory = new CachedStreamFactory();
         }
 
-        MutableObject<MutableCapabilities> options = new MutableObject<>();
-        driverSupplier = cfg.getBrowser().driverSupplier(
-                new WebDriverLocation(
-                        cfg.getDriverPath(),
-                        cfg.getBrowserPath(),
-                        cfg.getRemoteURL()),
-                o -> {
-                    configureWebDriverLogging(o);
-                    o.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
-                    o.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
-                    o.merge(cfg.getCapabilities());
-                    options.setValue(o);
-                }
-        );
+        this.driverHolder = new WebDriverHolder(cfg);
 
         if (cfg.getHttpSnifferConfig() != null) {
             LOG.info("Starting {} HTTP sniffer...", cfg.getBrowser());
             httpSniffer = new HttpSniffer();
-            httpSniffer.start(options.getValue(), cfg.getHttpSnifferConfig());
+            httpSniffer.start(
+                    driverHolder.getDriverOptions().getValue(),
+                    cfg.getHttpSnifferConfig());
             userAgent = cfg.getHttpSnifferConfig().getUserAgent();
         }
     }
@@ -257,32 +234,17 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
     @Override
     protected void fetcherThreadBegin(HttpCrawler crawler) {
         LOG.info("Creating {} web driver.", cfg.getBrowser());
-        WebDriver driver = driverSupplier.get();
-        if (driver == null) {
-            throw new CollectorException(
-                    "The current thread failed to obtain a web driver "
-                  + "for browser '" + cfg.getBrowser()
-                  + "'. Possible causes:\n"
-                  + "    - Misconfiguration (e.g., invalid path)\n"
-                  + "    - System defaults are invalid or not set "
-                  + "(when relying on default).\n"
-                  + "Your configuration (null is for OS default):\n"
-                  + "    Driver path: " + cfg.getDriverPath() + "\n"
-                  + "    Browser path: " + cfg.getBrowserPath() + "\n"
-                  + "    RemoteURL path: " + cfg.getRemoteURL() + "\n");
-        }
+        WebDriver driver = driverHolder.getDriver();
         if (StringUtils.isBlank(userAgent)) {
             userAgent = (String) ((JavascriptExecutor) driver).executeScript(
                     "return navigator.userAgent;");
         }
-        driverTL.set(ThreadGuard.protect(driver));
     }
     @Override
     protected void fetcherThreadEnd(HttpCrawler crawler) {
         LOG.info("Shutting down {} web driver.", cfg.getBrowser());
-        if (driverTL.get() != null) {
-            driverTL.get().quit();
-            driverTL.remove();
+        if (driverHolder != null) {
+            driverHolder.releaseDriver();
         }
     }
 
@@ -293,18 +255,6 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             Sleeper.sleepSeconds(5);
             httpSniffer.stop();
         }
-    }
-
-    private void configureWebDriverLogging(MutableCapabilities capabilities) {
-        LoggingPreferences logPrefs = new LoggingPreferences();
-        Level level = SLF4JUtil.toJavaLevel(SLF4JUtil.getLevel(LOG));
-        logPrefs.enable(LogType.PERFORMANCE, level);
-        logPrefs.enable(LogType.PROFILER, level);
-        logPrefs.enable(LogType.BROWSER, level);
-        logPrefs.enable(LogType.CLIENT, level);
-        logPrefs.enable(LogType.DRIVER, level);
-        logPrefs.enable(LogType.SERVER, level);
-        capabilities.setCapability(CapabilityType.LOGGING_PREFS, logPrefs);
     }
 
     @Override
@@ -328,13 +278,11 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 	        httpSniffer.bind(doc.getReference());
 	    }
 
-        doc.setInputStream(
-                fetchDocumentContent(driverTL.get(), doc.getReference()));
-
+        doc.setInputStream(fetchDocumentContent(doc.getReference()));
         IHttpFetchResponse response = resolveDriverResponse(doc);
 
         if (screenshotHandler != null) {
-            screenshotHandler.takeScreenshot(driverTL.get(), doc);
+            screenshotHandler.takeScreenshot(driverHolder.getDriver(), doc);
         }
 
         if (response != null) {
@@ -349,9 +297,14 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
                 .create();
     }
 
+    protected WebDriver getWebDriver() {
+        return driverHolder.getDriver();
+    }
+
     // Overwrite to perform more advanced configuration/manipulation.
     // thread-safe
-    protected InputStream fetchDocumentContent(WebDriver driver, String url) {
+    protected InputStream fetchDocumentContent(String url) {
+        WebDriver driver = driverHolder.getDriver();
         driver.get(url);
 
         if (StringUtils.isNotBlank(cfg.getEarlyPageScript())) {
