@@ -117,17 +117,17 @@ import com.norconex.commons.lang.xml.XML;
  *      waiting for a page.)
  *   </latePageScript>
  *
- *   <!-- Timeouts, in milliseconds, or human-readable format (English).
- *      - Default is zero (not set).
+ *   <!-- The following timeouts/waits are set in milliseconds or
+ *      - human-readable format (English). Default is zero (not set).
  *      -->
  *   <pageLoadTimeout>
- *     (Max wait time for a page to load before throwing an error.)
+ *     (Web driver max wait time for a page to load.)
  *   </pageLoadTimeout>
  *   <implicitlyWait>
- *     (Wait for that long for the page to finish rendering.)
+ *     (Web driver waits for that long for the page to finish rendering.)
  *   </implicitlyWait>
  *   <scriptTimeout>
- *     (Max wait time for a scripts to execute before throwing an error.)
+ *     (Web driver max wait time for a scripts to execute.)
  *   </scriptTimeout>
  *   <waitForElement
  *       type="[tagName|className|cssSelector|id|linkText|name|partialLinkText|xpath]"
@@ -135,6 +135,12 @@ import com.norconex.commons.lang.xml.XML;
  *     (Max wait time for an element to show up in browser before returning.
  *      Default 'type' is 'tagName'.)
  *   </waitForElement>
+ *   <threadWait>
+ *     (Makes the current thread sleep for the specified duration, to
+ *     give the web driver enough time to load the page.
+ *     Sometimes necessary for some web driver implementations if the above
+ *     options do not work.)
+ *   </threadWait>
  *
  *   <restrictions>
  *     <restrictTo caseSensitive="[false|true]"
@@ -233,7 +239,6 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
     @Override
     protected void fetcherThreadBegin(HttpCrawler crawler) {
-        LOG.info("Creating {} web driver.", cfg.getBrowser());
         WebDriver driver = driverHolder.getDriver();
         if (StringUtils.isBlank(userAgent)) {
             userAgent = (String) ((JavascriptExecutor) driver).executeScript(
@@ -337,7 +342,8 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             LOG.debug("Waiting for element '{}' of type '{}' for '{}'.",
                     cfg.getWaitForElementSelector(), elType, url);
 
-            WebDriverWait wait = new WebDriverWait(driver, 30);
+            WebDriverWait wait = new WebDriverWait(
+                    driver, cfg.getWaitForElementTimeout() / 1000);
             wait.until(ExpectedConditions.presenceOfElementLocated(
                     elType.getBy(cfg.getWaitForElementSelector())));
 
@@ -349,6 +355,11 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
             ((JavascriptExecutor) driver).executeScript(
                     cfg.getLatePageScript());
         }
+
+        if (cfg.getThreadWait() != 0) {
+            Sleeper.sleepMillis(cfg.getThreadWait());
+        }
+
         String pageSource = driver.getPageSource();
         LOG.debug("Fetched page source length: {}", pageSource.length());
         return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);

@@ -50,7 +50,7 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         PARTIALLINKTEXT(By::partialLinkText),
         XPATH(By::xpath);
         private final Function<String, By> byFunction;
-        private WaitElementType(Function<String, By> byFunction) {
+        WaitElementType(Function<String, By> byFunction) {
             this.byFunction = byFunction;
         }
         By getBy(String selector) {
@@ -75,6 +75,7 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
     private long pageLoadTimeout;
     private long implicitlyWait;
     private long scriptTimeout;
+    private long threadWait;
 
     private WaitElementType waitForElementType;
     private String waitForElementSelector;
@@ -183,6 +184,13 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         this.waitForElementTimeout = waitForElementTimeout;
     }
 
+    public long getThreadWait() {
+        return threadWait;
+    }
+    public void setThreadWait(long threadWait) {
+        this.threadWait = threadWait;
+    }
+
     public URL getRemoteURL() {
         return remoteURL;
     }
@@ -217,13 +225,13 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         setImplicitlyWait(
                 xml.getDurationMillis("implicitlyWait", implicitlyWait));
         setScriptTimeout(xml.getDurationMillis("scriptTimeout", scriptTimeout));
-
         setWaitForElementType(xml.getEnum("waitForElement/@type",
                 WaitElementType.class, waitForElementType));
         setWaitForElementSelector(xml.getString("waitForElement/@selector",
                 waitForElementSelector));
         setWaitForElementTimeout(xml.getDurationMillis("waitForElement",
                 waitForElementTimeout));
+        setThreadWait(xml.getDurationMillis("threadWait", threadWait));
     }
 
     @Override
@@ -249,10 +257,10 @@ public class WebDriverHttpFetcherConfig implements IXMLConfigurable {
         xml.addElement("pageLoadTimeout", pageLoadTimeout);
         xml.addElement("implicitlyWait", implicitlyWait);
         xml.addElement("scriptTimeout", scriptTimeout);
-
         xml.addElement("waitForElement", waitForElementTimeout)
                 .setAttribute("type", waitForElementType)
                 .setAttribute("selector", waitForElementSelector);
+        xml.addElement("threadWait", threadWait);
     }
 
     @Override

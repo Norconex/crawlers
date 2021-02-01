@@ -40,6 +40,8 @@ import org.openqa.selenium.opera.OperaOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.CollectorException;
 import com.norconex.commons.lang.SystemUtil;
@@ -151,6 +153,7 @@ public enum Browser {
     IOS*/
     ;
 
+    private static final Logger LOG = LoggerFactory.getLogger(Browser.class);
 
 
     abstract WebDriverSupplier driverSupplier(
@@ -219,9 +222,13 @@ public enum Browser {
                 return SystemUtil.callWithProperty(
                         driverSystemProperty, driverPath, () -> {
                     if (location.getRemoteURL() != null) {
+                        LOG.info("Creating remote \"{}\" web driver.",
+                                driverClass.getSimpleName());
                         return new RemoteWebDriver(
                                 location.getRemoteURL(), options);
                     } else {
+                        LOG.info("Creating local \"{}\" web driver.",
+                                driverClass.getSimpleName());
                         return ConstructorUtils.invokeExactConstructor(
                                 driverClass, options);
                     }

@@ -99,7 +99,7 @@
                 </xs:simpleContent>
               </xs:complexType>
             </xs:element>
-            
+            <xs:element name="threadWait" type="xs:string" minOccurs="0" maxOccurs="1"/>
           </xs:all>
         </xs:extension>
       </xs:complexContent>

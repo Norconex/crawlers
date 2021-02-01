@@ -83,8 +83,8 @@ public class WebDriverHttpFetcherTest  {
 //  https://sites.google.com/a/chromium.org/chromedriver/downloads
     private static final Path chromeDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://chromedriver.storage.googleapis.com/"
-                    + "87.0.4280.20/chromedriver_win32.zip!/chromedriver.exe",
-                    "chromedriver-87.0.4280.20.exe"))
+                    + "88.0.4324.96/chromedriver_win32.zip!/chromedriver.exe",
+                    "chromedriver-88.0.4324.96.exe"))
             .get();
 
 //  https://github.com/mozilla/geckodriver/releases/
