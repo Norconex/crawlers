@@ -144,8 +144,8 @@
         in "doc" package. 
       </action>
       <action dev="essiembre" type="remove">
-        Removed all previously available crawl store implementations for a new
-        MVStore-based one.
+        JDBC crawl store implementation has been removed in favor of 
+        NoSQL only (MVStore + MongoDB).
       </action>
       <action dev="essiembre" type="remove">
         ISitemapResolverFactory removed in favor of ISitemapResolver.

@@ -329,6 +329,10 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
             throws HttpFetchException {
 
+        if (httpClient == null) {
+            throw new IllegalStateException("GenericHttpFetcher was not "
+                    + "initialized ('httpClient' not set).");
+        }
 
         HttpRequestBase request = null;
         try {

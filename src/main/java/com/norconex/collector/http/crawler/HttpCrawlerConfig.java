@@ -417,12 +417,12 @@ import com.norconex.importer.ImporterConfig;
  *
  *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#init}
  *
- *   <httpFetchers>
+ *   <httpFetchers
+ *       maxRetries="(number of times to retry a failed fetch attempt)"
+ *       retryDelay="(how many milliseconds to wait between re-attempting)">
  *     <!-- Repeatable -->
  *     <fetcher
- *         class="(IHttpFetcher implementation)"
- *         maxRetries="(number of times to retry a failed fetch attempt)"
- *         retryDelay="(how many milliseconds to wait between re-attempting)"/>
+ *         class="(IHttpFetcher implementation)"/>
  *   </httpFetchers>
  *
  *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#pipeline-queue}
