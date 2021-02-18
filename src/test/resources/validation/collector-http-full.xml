@@ -137,8 +137,10 @@
             <formSelector>#myform</formSelector>
             <formCharset>UTF-8</formCharset>
             <url>authURL</url>
-            <host>authHost</host>
-            <port>9</port>
+            <host>
+              <name>host</name>
+              <port>9</port>
+            </host>
             <realm>authRealm</realm>
             <workstation>authWorkstation</workstation>
             <domain>authDomain</domain>
