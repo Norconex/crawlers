@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Norconex Inc.
+/* Copyright 2017-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -243,7 +243,7 @@ public class FeaturedImageProcessor
         HIGH(Method.QUALITY),
         MAX(Method.ULTRA_QUALITY);
         private final Method scalrMethod;
-        private Quality(Method scalrMethod) {
+        Quality(Method scalrMethod) {
             this.scalrMethod = scalrMethod;
         }
     }
@@ -473,7 +473,10 @@ public class FeaturedImageProcessor
         for (Iterator<Element> it = els.iterator(); it.hasNext();) {
             Element el = it.next();
             String imgURL = el.absUrl("src");
-            ScaledImage img = getImage(fetcher, imgURL);
+            ScaledImage img = null;
+            if (StringUtils.isNotBlank(imgURL)) {
+                img = getImage(fetcher, imgURL);
+            }
             if (img == null) {
                 continue;
             }
@@ -513,7 +516,6 @@ public class FeaturedImageProcessor
             if (img == null) {
                 BufferedImage bi = fetchImage(fetcher, url);
                 if (bi == null) {
-                    LOG.debug("Image is null: {}", url);
                     return null;
                 }
                 Dimension dim = new Dimension(bi.getWidth(), bi.getHeight());
@@ -580,14 +582,8 @@ public class FeaturedImageProcessor
 
     // make synchronized?
     private BufferedImage fetchImage(HttpFetchClient fetcher, String url) {
-//        HttpResponse response;
-//        InputStream is = null;
-
         try {
             URI uri = HttpURL.toURI(url);
-
-//            HttpFetchResponse response = fetcher.fetchDocument(new Doc(
-//                    uri.toString(), HttpCrawler.get().getStreamFactory()));
             CrawlDoc doc = new CrawlDoc(new HttpDocInfo(uri.toString()),
                     fetcher.getStreamFactory().newInputStream());
 
@@ -597,16 +593,15 @@ public class FeaturedImageProcessor
                     && resp.getCrawlState().isGoodState()) {
                 BufferedImage bufImage = ImageIO.read(doc.getInputStream());
                 doc.dispose();
+                if (bufImage == null) {
+                    LOG.debug("Image could not be read: '{}.' "
+                            + "Detected format: '{}'.", url,
+                            doc.getDocInfo().getContentType());
+                }
                 return bufImage;
             }
-
-//            response = httpClient.execute(new HttpGet(uri));
-//            is = response.getEntity().getContent();
-//            return ImageIO.read(is);
         } catch (IOException e) {
             LOG.debug("Could not load image: {}", url, e);
-//        } finally {
-//            IOUtils.closeQuietly(is);
         }
         LOG.debug(
                 "Image was not recognized or could not be downloaded: {}", url);
