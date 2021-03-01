@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2013-2020 Norconex Inc.
+   Copyright 2013-2021 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@
   <parent>
     <groupId>com.norconex.commons</groupId>
     <artifactId>norconex-commons-maven-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-M1</version>
   </parent>  
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
   <name>Norconex HTTP Collector</name>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>3.0.0-M1</version>
 
   <properties>
     <jetty.version>9.4.34.v20201102</jetty.version>
