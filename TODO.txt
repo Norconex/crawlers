@@ -13,6 +13,8 @@ TODO:
 
 The following are either things to be done, or ideas to consider:
 
+- Allow runtime scaling via JMX.
+
 - Use Apache HTTPClient 5.x for the default fetcher.
 
 - Add AND support with restrictTo

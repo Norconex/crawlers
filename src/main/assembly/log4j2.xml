@@ -11,35 +11,22 @@
            -->
       </PatternLayout>
     </Console>
-    <!-- TODO: check for a format that displays logger name up to X characters, showing truncations as ... -->      
   </Appenders>
   <Loggers>
-    <Logger name="com.norconex.collector.http" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="com.norconex.collector.core" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="com.norconex.importer" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="com.norconex.committer" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="com.norconex.commons.lang" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="com.norconex.jef" level="WARN" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="org.apache" level="WARN" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
+
+    <!-- 
+      NOTE: Most events are typically fired as INFO, but setting the logger 
+      levels here at DEBUG sometimes will log extra information.
+      -->
+
+    <!-- Overall crawler progress -->
+
+    <Logger name="com.norconex.collector.core.crawler.CrawlProgressLogger" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- Events Types -->
+
     <Logger name="CollectorEvent" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
@@ -47,9 +34,6 @@
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="ImporterEvent" level="WARN" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="JefEvent" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="CommitterEvent" level="WARN" additivity="false">
@@ -165,6 +149,12 @@
     <Logger name="CrawlerEvent.DOCUMENT_FETCHED" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_QUEUED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_PROCESSED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
     <Logger name="ImporterEvent.IMPORTER_HANDLER_BEGIN" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
@@ -240,6 +230,30 @@
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="CommitterEvent.COMMITTER_UPSERT_ERROR" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- Others -->
+
+    <Logger name="com.norconex.collector.http" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.collector.core" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.importer" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.committer" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.commons.lang" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
 

@@ -14,11 +14,10 @@
  */
 package com.norconex.collector.http;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Disabled;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -29,14 +28,12 @@ import com.norconex.collector.core.crawler.CrawlerConfig;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
 import com.norconex.committer.core3.impl.LogCommitter;
-import com.norconex.jef5.status.JobState;
 
 
 /**
  * @author Pascal Essiembre
  */
-@Disabled
-public class HttpCollectorTest {
+class HttpCollectorTest {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(HttpCollectorTest.class);
@@ -45,8 +42,7 @@ public class HttpCollectorTest {
     Path folder;
 
     @Test
-    public void testRerunInJVM() {
-
+    void testRerunInJVM() {
         HttpCrawlerConfig crawlerCfg = new HttpCrawlerConfig();
         crawlerCfg.setId("test-crawler");
         crawlerCfg.setCommitters(new LogCommitter());
@@ -61,12 +57,10 @@ public class HttpCollectorTest {
         config.setWorkDir(folder.resolve("multiRunTest"));
         config.setCrawlerConfigs(new CrawlerConfig[] {crawlerCfg});
 
-        //TODO have abstract filter providing easy way to filter by event
-        // type and event name.
+        MutableInt numOfRun = new MutableInt();
         config.addEventListeners(e -> {
             if (e.is(CollectorEvent.COLLECTOR_RUN_END)) {
-                JobState state = ((CollectorEvent) e).getSource().getState();
-                assertEquals(JobState.COMPLETED, state);
+                numOfRun.increment();
             }
         });
 
@@ -75,8 +69,9 @@ public class HttpCollectorTest {
         collector.start();
         LOG.debug("First normal run complete.");
 
-
         collector.start();
         LOG.debug("Second normal run complete.");
+
+        Assertions.assertEquals(2, numOfRun.getValue());
     }
 }

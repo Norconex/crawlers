@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="3.0.0-SNAPSHOT" date="2021-??-??" 
+        description="Next major release">
+      <action dev="essiembre" type="remove">
+        Removed JEF dependency in favor of improved JMX for tracking.
+      </action>
+    </release>
+
     <release version="3.0.0-M1" date="2021-03-01" 
         description="Milestone towards next major release">
       <action dev="essiembre" type="add">

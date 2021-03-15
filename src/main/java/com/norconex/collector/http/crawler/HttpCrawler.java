@@ -1,4 +1,4 @@
-/* Copyright 2010-2020 Norconex Inc.
+/* Copyright 2010-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,8 +58,6 @@ import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.response.ImporterResponse;
-import com.norconex.jef5.status.JobStatusUpdater;
-import com.norconex.jef5.suite.JobSuite;
 
 /**
  * The HTTP Crawler.
@@ -100,22 +98,13 @@ public class HttpCrawler extends Crawler {
         return sitemapResolver;
     }
 
-//    @Override
-//    public void stop(JobStatus jobStatus, JobSuite suite) {
-//        super.stop(jobStatus, suite);
-//        if (sitemapResolver != null) {
-//            sitemapResolver.stop();
-//        }
-//    }
-
     @Override
     protected boolean isQueueInitialized() {
         return initialQueueLoaded;
     }
 
     @Override
-    protected void prepareExecution(
-            JobStatusUpdater statusUpdater, JobSuite suite, boolean resume) {
+    protected void beforeCrawlerExecution(boolean resume) {
 
         HttpCrawlerConfig cfg = getCrawlerConfig();
 
@@ -157,6 +146,11 @@ public class HttpCrawler extends Crawler {
             this.initialQueueLoaded = true;
         }
     }
+    @Override
+    protected void afterCrawlerExecution() {
+        //NOOP
+    }
+
 
     private void queueStartURLs() {
         int urlCount = 0;
@@ -266,16 +260,6 @@ public class HttpCrawler extends Crawler {
                 !getCrawlerConfig().isIgnoreSitemap());
         LOG.info("Canonical links support: {}",
                 !getCrawlerConfig().isIgnoreCanonicalLinks());
-
-//        String userAgent = getCrawlerConfig().getUserAgent();
-//        if (StringUtils.isBlank(userAgent)) {
-//            LOG.info("{}: User-Agent: <None specified>", id);
-//            LOG.debug("It is recommended you identify yourself to web sites "
-//                    + "by specifying a user agent "
-//                    + "(https://en.wikipedia.org/wiki/User_agent)");
-//        } else {
-//            LOG.info("{}: User-Agent: {}", id, userAgent);
-//        }
     }
 
     @Override
@@ -286,17 +270,10 @@ public class HttpCrawler extends Crawler {
         new HttpQueuePipeline().execute(context);
     }
 
-//    @Override
-//    protected Doc wrapDocument(
-//            CrawlDocInfo crawlRef, Doc document) {
-//        return new Doc(document);
-//    }
-
     @Override
     protected Class<? extends CrawlDocInfo> getCrawlReferenceType() {
         return HttpDocInfo.class;
     }
-
 
     @Override
     protected void initCrawlDoc(CrawlDoc doc) {
@@ -435,8 +412,8 @@ public class HttpCrawler extends Crawler {
             HttpDocInfo childData = new HttpDocInfo(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Queueing skipped document's child: "
-                        + childData.getReference());
+                LOG.debug("Queueing skipped document's child: {}",
+                        childData.getReference());
             }
             executeQueuePipeline(childData);
         }
@@ -460,32 +437,11 @@ public class HttpCrawler extends Crawler {
         }
     }
 
-    @Override
-    protected void cleanupExecution(JobStatusUpdater statusUpdater,
-            JobSuite suite) {
-        try {
-//            if (sitemapResolver != null) {
-//                sitemapResolver.stop();
-//            }
-        } catch (Exception e) {
-            LOG.error("Could not stop sitemap store.");
-        }
-//        closeHttpClient();
-    }
-
     private void metadataAddString(
             Properties metadata, String key, String value) {
         if (value != null) {
             metadata.add(key, value);
         }
-    }
-
-    @Override
-    protected void resumeExecution(JobStatusUpdater statusUpdater,
-            JobSuite suite) {
-        //TODO get rid of this method?
-        throw new UnsupportedOperationException("resumeExecution not supported???");
-
     }
 
 //    // Wraps redirection strategy to consider URLs as new documents to
