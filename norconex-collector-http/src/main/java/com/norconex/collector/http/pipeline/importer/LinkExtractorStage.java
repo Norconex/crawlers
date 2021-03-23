@@ -1,4 +1,4 @@
-/* Copyright 2010-2020 Norconex Inc.
+/* Copyright 2010-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package com.norconex.collector.http.pipeline.importer;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.collections4.SetUtils;
@@ -69,6 +70,18 @@ import com.norconex.commons.lang.io.CachedInputStream;
         if (links != null) {
             for (Link link : links) {
                 try {
+                    // #741: Make sure the current reference is not
+                    // adding itself to the extracted URLs
+                    if (Objects.equals(reference, link.getUrl())) {
+                        if (LOG.isTraceEnabled()) {
+                            LOG.trace("Removing " + reference + " from "
+                                    + "extracted URLs since it points to "
+                                    + "itself (the page we are extracting "
+                                    + "URLs from).");
+                            }
+                        continue;
+                    }
+
                     if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
                             reference, link.getUrl())) {
                             String queuedURL = queueURL(
