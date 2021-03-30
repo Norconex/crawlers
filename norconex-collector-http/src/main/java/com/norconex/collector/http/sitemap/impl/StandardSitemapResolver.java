@@ -37,6 +37,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -49,6 +50,7 @@ import org.joda.time.DateTime;
 import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.data.HttpCrawlData;
+import com.norconex.collector.http.redirect.RedirectStrategyWrapper;
 import com.norconex.collector.http.sitemap.ISitemapResolver;
 import com.norconex.collector.http.sitemap.SitemapURLAdder;
 import com.norconex.commons.lang.file.FileUtil;
@@ -293,15 +295,13 @@ public class StandardSitemapResolver implements ISitemapResolver {
             return;
         }
 
-        HttpGet method = null;
+        final MutableObject<HttpGet> method = new MutableObject<>();
         try {
-            method = new HttpGet(location);
-
             // Execute the method.
-            HttpResponse response = httpClient.execute(method);
+            LOG.info("Resolving sitemap: " + location);
+            HttpResponse response = httpGet(location, httpClient, method);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
-                LOG.info("Resolving sitemap: " + location);
                 InputStream is = response.getEntity().getContent();
                 Header ctHeader = response.getFirstHeader("Content-Type");
                 if((ctHeader != null && ctHeader.getValue().endsWith("gzip"))
@@ -354,10 +354,38 @@ public class StandardSitemapResolver implements ISitemapResolver {
             }
         } finally {
             resolvedLocations.add(location);
-            if (method != null) {
-                method.releaseConnection();
+            if (method.getValue() != null) {
+                method.getValue().releaseConnection();
             }
         }
+    }
+
+    // Follow redirects
+    private HttpResponse httpGet(String location,
+            HttpClient httpClient, MutableObject<HttpGet> method)
+                    throws IOException {
+        return httpGet(location, httpClient, method, 0);
+    }
+    private HttpResponse httpGet(String location,
+            HttpClient httpClient, MutableObject<HttpGet> method, int loop)
+                    throws IOException {
+
+        method.setValue(new HttpGet(location));
+        HttpResponse response = httpClient.execute(method.getValue());
+        String redirectURL = RedirectStrategyWrapper.getRedirectURL();
+        if (StringUtils.isNotBlank(redirectURL)
+                && !redirectURL.equalsIgnoreCase(location)) {
+            if (loop >= 100) {
+                LOG.error("Sitemap redirect loop detected. Last redirect: '"
+                        + location + "' --> '" + redirectURL + "'.");
+                return response;
+            }
+            LOG.info("         Redirect: "
+                + location + " --> " + redirectURL);
+            method.getValue().releaseConnection();
+            return httpGet(redirectURL, httpClient, method, loop + 1);
+        }
+        return response;
     }
 
     /*
@@ -408,7 +436,13 @@ public class StandardSitemapResolver implements ISitemapResolver {
                         break;
                     case XMLStreamConstants.CHARACTERS:
                         String value = xmlReader.getText();
-                        parseCharacters(parseState, value);
+                        if (parseState.sitemapIndex && parseState.loc) {
+                            resolveLocation(value, httpClient,
+                                    sitemapURLAdder, resolvedLocations);
+                            parseState.loc = false;
+                        } else if (parseState.baseURL != null) {
+                            parseCharacters(parseState, value);
+                        }
                         break;
                     case XMLStreamConstants.END_ELEMENT:
                         tag = xmlReader.getLocalName();
@@ -439,13 +473,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
              HttpClient httpClient, Set<String> resolvedLocations) {
 
         if ("sitemap".equalsIgnoreCase(tag)) {
-            if(isRecentEnough(parseState)) {
-                resolveLocation(parseState.baseURL.getReference(),
-                        httpClient, sitemapURLAdder, resolvedLocations);
-            } else {
-                LOG.info("Sitemap Index rejected, too old."
-                        + " URL:" + parseState.baseURL.getReference());
-            }
+            parseState.sitemapIndex = false;
         } else if("url".equalsIgnoreCase(tag)
                 && parseState.baseURL.getReference() != null){
             if (isRelaxed(parseState, locationDir)) {
@@ -467,10 +495,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
     private void parseCharacters(ParseState parseState, String value) {
-        if (parseState.sitemapIndex) {
-            parseState.baseURL.setReference(value);
-            parseState.sitemapIndex = false;
-        } if (parseState.loc) {
+        if (parseState.loc) {
             parseState.baseURL.setReference(value);
             parseState.loc = false;
         } else if (parseState.lastmod) {

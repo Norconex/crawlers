@@ -60,6 +60,9 @@
       <action dev="essiembre" type="fix" issue="741">
         Fixed RecrawlableResolver settings not always being respected.
       </action>
+      <action dev="essiembre" type="fix" issue="738">
+        Fixed NullPointerException when resolving sitemaps.
+      </action>
       <action dev="mattbucci" type="fix" issue="730">
         Fixed authFormParams XML configuration not being loaded properly. 
       </action>
