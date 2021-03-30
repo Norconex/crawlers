@@ -8,9 +8,12 @@
   <body>
 
     <release version="3.0.0-SNAPSHOT" date="2021-??-??" 
-        description="Next major release">
+        description="Next major release (since latest milestone)">
       <action dev="essiembre" type="remove">
         Removed JEF dependency in favor of improved JMX for tracking.
+      </action>
+      <action dev="essiembre" type="fix" issue="738">
+        Fixed NullPointerException when resolving sitemaps.
       </action>
     </release>
 

@@ -3,16 +3,21 @@ Roadmap:
 DONE: M1: All Committers upgraded to Committer Core 3.0
 TODO: M2: Update Collector Core and HTTP to take advantage of TextMatcher, OnSet,
           and other constructs introduced in latest Nx importer/Nx commons lang
-DONE: M3: Possibly support one or more additional crawl store imlementation.
+DONE: M3: Possibly support one or more additional crawl store implementation.
           Ideally one that is distributed. 
 TODO: M4: Prioritize/triage and implement several remaining feature requests.
           3.0.0 RELEASE. (Maybe with RC1, RC2... if deemed necessary)
+TODO: M5: Filesystem collector??
+TODO: Ship with sample prometheus config files and documentation how to use
+
 
 TODO:
 ==============
 
 The following are either things to be done, or ideas to consider:
 
+- Test data stores implementations with the new data of HTTP Collector.
+ 
 - Allow runtime scaling via JMX.
 
 - Use Apache HTTPClient 5.x for the default fetcher.

@@ -44,6 +44,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -284,19 +285,16 @@ public class GenericSitemapResolver
             return;
         }
 
-        CrawlDoc doc = null;
+        final MutableObject<CrawlDoc> doc = new MutableObject<>();
         try {
+            LOG.info("Resolving sitemap: {}", location);
             // Execute the method.
-            doc = new CrawlDoc(new HttpDocInfo(location),
-                    fetcher.getStreamFactory().newInputStream());
-            IHttpFetchResponse response = fetcher.fetch(
-                    doc, HttpMethod.GET);
+            IHttpFetchResponse response = httpGet(location, fetcher, doc);
             int statusCode = response.getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
-                LOG.info("Resolving sitemap: {}", location);
-                InputStream is = doc.getInputStream();
+                InputStream is = doc.getValue().getInputStream();
                 String contentType =
-                        doc.getMetadata().getString("Content-Type");
+                        doc.getValue().getMetadata().getString("Content-Type");
                 if (contentType.endsWith("gzip") || location.endsWith(".gz")) {
                     is = new GZIPInputStream(is);
                 }
@@ -323,9 +321,9 @@ public class GenericSitemapResolver
                     location, e.getMessage(), e);
         } finally {
             resolvedLocations.add(location);
-            if (doc != null) {
+            if (doc.getValue() != null) {
                 try {
-                    doc.dispose();
+                    doc.getValue().dispose();
                 } catch (IOException e) {
                     LOG.error("Could not dispose of sitemap file for: {}",
                             location, e);
@@ -333,6 +331,40 @@ public class GenericSitemapResolver
             }
         }
     }
+
+    // Follow redirects
+    private IHttpFetchResponse httpGet(
+            String location,
+            HttpFetchClient fetcher,
+            MutableObject<CrawlDoc> doc)
+                    throws IOException {
+        return httpGet(location, fetcher, doc, 0);
+    }
+    private IHttpFetchResponse httpGet(
+            String location,
+            HttpFetchClient fetcher,
+            MutableObject<CrawlDoc> doc,
+            int loop)
+                    throws IOException {
+        doc.setValue(new CrawlDoc(new HttpDocInfo(location),
+                fetcher.getStreamFactory().newInputStream()));
+        IHttpFetchResponse response =
+                fetcher.fetch(doc.getValue(), HttpMethod.GET);
+        String redirectURL = response.getRedirectTarget();
+        if (StringUtils.isNotBlank(redirectURL)
+                && !redirectURL.equalsIgnoreCase(location)) {
+            if (loop >= 100) {
+                LOG.error("Sitemap redirect loop detected. "
+                        + "Last redirect: {} --> {}", location, redirectURL);
+                return response;
+            }
+            LOG.info("         Redirect: {} --> {}", location, redirectURL);
+            doc.getValue().dispose();
+            return httpGet(redirectURL, fetcher, doc, loop + 1);
+        }
+        return response;
+    }
+
 
     /*
      * Saving sitemap locally first to prevent connection/socket timeouts
@@ -406,7 +438,7 @@ public class GenericSitemapResolver
             ParseState parseState, String locationDir, String tag) {
         if ("sitemap".equalsIgnoreCase(tag)) {
             parseState.sitemapIndex = false;
-        } else if("url".equalsIgnoreCase(tag)
+        } else if ("url".equalsIgnoreCase(tag)
                 && parseState.baseURL.getReference() != null){
             if (isRelaxed(parseState, locationDir)) {
                 sitemapURLConsumer.accept(parseState.baseURL);
