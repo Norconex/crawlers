@@ -7,8 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.9.1-SNAPSHOT" date="2020-??-??" description="Maintenance release">
-    
+    <release version="2.9.1-SNAPSHOT" date="2021-??-??" description="Maintenance release">
       <action dev="essiembre" type="add" issue="729">
         New "validExitCodes" on PhantomJSDocumentFetcher to support other
         than 0 (now default). 
@@ -59,6 +58,10 @@
       </action>
       <action dev="essiembre" type="fix" issue="741">
         Fixed RecrawlableResolver settings not always being respected.
+      </action>
+      <action dev="essiembre" type="fix" issue="741">
+        Fixed redirect targets sometimes being processed again when already
+        processed normally (not through a redirect).
       </action>
       <action dev="essiembre" type="fix" issue="738">
         Fixed NullPointerException when resolving sitemaps.

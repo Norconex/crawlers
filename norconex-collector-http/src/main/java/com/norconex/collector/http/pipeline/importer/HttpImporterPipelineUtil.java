@@ -24,6 +24,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.norconex.collector.core.CollectorException;
+import com.norconex.collector.core.data.CrawlState;
+import com.norconex.collector.core.data.ICrawlData;
 import com.norconex.collector.core.data.store.ICrawlDataStore;
 import com.norconex.collector.http.crawler.HttpCrawlerEvent;
 import com.norconex.collector.http.data.HttpCrawlData;
@@ -240,7 +242,8 @@ import com.norconex.commons.lang.file.ContentType;
         //--- Do not queue target URL if previously handled ---
         //TODO throw an event if already active/processed(ing)?
         if (store.isActive(redirectURL)) {
-            logRedirectTargetAlreadyHandled("being processed", sourceURL, redirectURL);
+            logRedirectTargetAlreadyHandled(
+                    "being processed", sourceURL, redirectURL);
             return;
         } else if (store.isQueued(redirectURL)) {
             logRedirectTargetAlreadyHandled("queued", sourceURL, redirectURL);
@@ -257,17 +260,28 @@ import com.norconex.commons.lang.file.ContentType;
                     LOG.trace("Redirect encountered for 3rd time, rejecting: "
                         + redirectURL);
                 }
-                logRedirectTargetAlreadyHandled("processed", sourceURL, redirectURL);
+                logRedirectTargetAlreadyHandled(
+                        "processed", sourceURL, redirectURL);
                 return;
             //TODO improve this #533 hack in v3
-            } else if (HttpImporterPipeline.GOOD_REDIRECTS.contains(
-                    redirectURL)) {
+            } else if (
+                    HttpImporterPipeline.GOOD_REDIRECTS.contains(redirectURL)) {
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("Redirect URL previously processed and was "
-                            + "valid, rejecting: " + redirectURL);
+                    LOG.trace("Redirect URL previously processed, rejecting: "
+                            + redirectURL);
                 }
-                logRedirectTargetAlreadyHandled("processed", sourceURL, redirectURL);
+                logRedirectTargetAlreadyHandled(
+                        "processed", sourceURL, redirectURL);
                 return;
+            } else {
+                //TODO improve this #741 hack in v3
+                ICrawlData processed = store.getProcessed(redirectURL);
+                CrawlState processedState = processed.getState();
+                if (processedState.isGoodState()) {
+                    logRedirectTargetAlreadyHandled(
+                            "processed", sourceURL, redirectURL);
+                    return;
+                }
             }
 
             requeue = true;
