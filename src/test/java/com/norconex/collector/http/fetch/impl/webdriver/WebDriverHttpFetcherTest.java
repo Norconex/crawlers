@@ -83,16 +83,16 @@ public class WebDriverHttpFetcherTest  {
 //  https://sites.google.com/a/chromium.org/chromedriver/downloads
     private static final Path chromeDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://chromedriver.storage.googleapis.com/"
-                    + "88.0.4324.96/chromedriver_win32.zip!/chromedriver.exe",
-                    "chromedriver-88.0.4324.96.exe"))
+                    + "90.0.4430.24/chromedriver_win32.zip!/chromedriver.exe",
+                    "chromedriver-90.0.4430.24.exe"))
             .get();
 
 //  https://github.com/mozilla/geckodriver/releases/
     private static final Path firefoxDriverPath = new OSResource<Path>()
             .win(WebFile.create(
                     "https://github.com/mozilla/geckodriver/releases/download/"
-                  + "v0.26.0/geckodriver-v0.26.0-win64.zip!/geckodriver.exe",
-                    "geckodriver-0.26.exe"))
+                  + "v0.29.1/geckodriver-v0.29.1-win64.zip!/geckodriver.exe",
+                    "geckodriver-0.29.1.exe"))
             .get();
 
 //  https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
@@ -105,10 +105,10 @@ public class WebDriverHttpFetcherTest  {
 //  https://github.com/operasoftware/operachromiumdriver/releases
     private static final Path operaDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://github.com/operasoftware/"
-                    + "operachromiumdriver/releases/download/v.87.0.4280.67/"
+                    + "operachromiumdriver/releases/download/v.89.0.4389.82/"
                     + "operadriver_win64.zip!/operadriver_win64/"
                     + "operadriver.exe",
-                    "operadriver-87.0.4280.67.exe"))
+                    "operadriver-89.0.4389.82.exe"))
             .get();
 
     static Stream<WebDriverHttpFetcher> browsersProvider() {
