@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2020 Norconex Inc.
+   Copyright 2020-2021 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
     <xs:all>
       <xs:element name="port" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="maxBufferSize" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="headers" minOccurs="0" maxOccurs="1">
         <xs:complexType>
           <xs:all>

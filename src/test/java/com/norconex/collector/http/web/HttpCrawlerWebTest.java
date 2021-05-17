@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Norconex Inc.
+/* Copyright 2019-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import com.norconex.collector.http.web.feature.FileNotFoundDeletion;
 import com.norconex.collector.http.web.feature.IfModifiedSince;
 import com.norconex.collector.http.web.feature.JavaScriptURL;
 import com.norconex.collector.http.web.feature.KeepDownloads;
+import com.norconex.collector.http.web.feature.LargeContent;
 import com.norconex.collector.http.web.feature.MaxDepth;
 import com.norconex.collector.http.web.feature.MaxURLs;
 import com.norconex.collector.http.web.feature.ModifiedFiles;
@@ -82,6 +83,8 @@ public class HttpCrawlerWebTest {
     private static final Map<String, IWebTest> FEATURES_BY_PATH = toMap(
 
         // Misc. feature tests
+
+        new LargeContent(),
         new Redirect(),
         new MultiRedirect(),
         new CanonicalLink(),
@@ -108,6 +111,9 @@ public class HttpCrawlerWebTest {
         // Recovery-related tests
         new StartAfterStopped(),
         new ResumeAfterStopped()
+
+
+
 //        new StartAfterJvmCrash()
 //        new ResumeAfterJvmCrashMvStore(),
 //        new ResumeAfterJvmCrashDerby(),

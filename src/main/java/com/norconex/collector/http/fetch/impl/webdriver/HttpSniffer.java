@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.littleshoot.proxy.HttpFiltersSource;
+import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -104,6 +105,20 @@ class HttpSniffer {
 
         mobProxy = new BrowserMobProxyServer();
         mobProxy.setTrustAllServers(true);
+
+        // maximum content length (#751)
+        if (config.getMaxBufferSize() > 0 ) {
+            mobProxy.addFirstHttpFilterFactory(new HttpFiltersSourceAdapter() {
+                @Override
+                public int getMaximumRequestBufferSizeInBytes() {
+                    return config.getMaxBufferSize();
+                }
+                @Override
+                public int getMaximumResponseBufferSizeInBytes() {
+                    return config.getMaxBufferSize();
+                }
+            });
+        }
 
         // request headers
         config.getRequestHeaders().entrySet().forEach(

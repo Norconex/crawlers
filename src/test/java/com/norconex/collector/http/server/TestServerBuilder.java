@@ -1,4 +1,4 @@
-/* Copyright 2018 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,15 @@ import org.eclipse.jetty.webapp.WebAppContext;
 //TODO consider making part of Norconex Commons Lang?
 public class TestServerBuilder {
 
+
+    private final WebAppContext webAppContext;
     private final HandlerList handlers = new HandlerList();
+
+    public TestServerBuilder() {
+        this.webAppContext = new WebAppContext();
+        this.webAppContext.setResourceBase("/");
+    }
+
 
     /* Adds a static file server using a local directory as root. */
     public TestServerBuilder addDirectory(String path) {
@@ -69,13 +77,8 @@ public class TestServerBuilder {
         return this;
     }
 
-
-    //TODO test below
     public TestServerBuilder addServlet(Servlet servlet, String urlMapping) {
-        WebAppContext wac = new WebAppContext();
-        wac.setResourceBase("/");
-        wac.addServlet(new ServletHolder(servlet), urlMapping);
-        this.handlers.addHandler(wac);
+        webAppContext.addServlet(new ServletHolder(servlet), urlMapping);
         return this;
     }
     public TestServerBuilder addHandler(Handler handler) {
@@ -84,51 +87,13 @@ public class TestServerBuilder {
     }
 
     public TestServerBuilder addFilter(Filter filter, String urlMapping) {
-        WebAppContext wac = new WebAppContext();
-        wac.setResourceBase("/");
-        wac.addFilter(new FilterHolder(filter),
+        webAppContext.addFilter(new FilterHolder(filter),
                 urlMapping, EnumSet.allOf(DispatcherType.class));
-        this.handlers.addHandler(wac);
         return this;
     }
 
-
-
-
-    /*
-    private WebAppContext buildWebappContext() {
-
-        WebAppContext webappContext = new WebAppContext();
-        webappContext.setResourceBase("/");
-
-        // Add test servlet
-        ServletHolder servletHolder = new ServletHolder(new TestServlet());
-        webappContext.addServlet(servletHolder, "/test/*");
-
-        // Add custom error message
-        webappContext.setErrorHandler(new ErrorHandler() {
-            @Override
-            protected void writeErrorPageBody(
-                    HttpServletRequest request,
-                    Writer writer,
-                    int code,
-                    String message,
-                    boolean showStacks) throws IOException {
-                String uri= request.getRequestURI();
-                writeErrorPageMessage(request, writer, code, message, uri);
-                if (showStacks) {
-                    writeErrorPageStacks(request,writer);
-                }
-                writer.write("<hr><i><small>Norconex HTTP Collector Test "
-                        + "Web Server Error Page</small></i><hr/>\n");
-            }
-        });
-
-        return webappContext;
-    }
-    */
-
     public TestServer build() {
+        handlers.addHandler(webAppContext);
         return new TestServer(handlers);
     }
 }

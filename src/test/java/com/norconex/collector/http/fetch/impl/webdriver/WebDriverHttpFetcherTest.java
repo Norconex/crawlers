@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 package com.norconex.collector.http.fetch.impl.webdriver;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -29,7 +30,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -63,22 +66,6 @@ public class WebDriverHttpFetcherTest  {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(WebDriverHttpFetcherTest.class);
-
-    private static TestServer server = new TestServerBuilder()
-            .addPackage("server/js-rendered")
-            .addServlet(new HttpServlet() {
-                private static final long serialVersionUID = 1L;
-                @Override
-                protected void doGet(HttpServletRequest req,
-                        HttpServletResponse resp)
-                        throws ServletException, IOException {
-                    resp.addHeader("TEST_KEY", "test_value");
-                    resp.getWriter().write("HTTP headers test. "
-                            + "TEST_KEY should be found in HTTP headers");
-                    resp.flushBuffer();
-                }
-            }, "/headers")
-            .build();
 
 //  https://sites.google.com/a/chromium.org/chromedriver/downloads
     private static final Path chromeDriverPath = new OSResource<Path>()
@@ -119,6 +106,36 @@ public class WebDriverHttpFetcherTest  {
                 createFetcher(Browser.OPERA, operaDriverPath)
         );
     }
+
+    private static final int LARGE_CONTENT_MIN_SIZE = 5 * 1024 *1024;
+
+    private static TestServer server = new TestServerBuilder()
+            .addPackage("server/js-rendered")
+            .addServlet(new HttpServlet() {
+                private static final long serialVersionUID = 1L;
+                @Override
+                protected void doGet(
+                        HttpServletRequest req, HttpServletResponse resp)
+                        throws ServletException, IOException {
+                    resp.addHeader("TEST_KEY", "test_value");
+                    resp.getWriter().write("HTTP headers test. "
+                            + "TEST_KEY should be found in HTTP headers");
+                    resp.flushBuffer();
+                }
+            }, "/headers")
+            .addServlet(new HttpServlet() {
+                private static final long serialVersionUID = 1L;
+                @Override
+                protected void doGet(
+                        HttpServletRequest req, HttpServletResponse resp)
+                        throws ServletException, IOException {
+                    // Return more than 2 MB of text.
+                    resp.getWriter().write(RandomStringUtils.randomAlphanumeric(
+                            LARGE_CONTENT_MIN_SIZE));
+                    resp.flushBuffer();
+                }
+            }, "/largeContent")
+            .build();
 
     @BeforeAll
     public static void beforeClass() {
@@ -207,6 +224,33 @@ public class WebDriverHttpFetcherTest  {
             Assertions.assertTrue(
                     StringUtils.isNotBlank(userAgent),
                     "Could not resolve user agent.");
+        });
+    }
+
+    // Test case for https://github.com/Norconex/collector-http/issues/751
+    @BrowserTest
+    public void testLargeContentUsingSniffer(WebDriverHttpFetcher fetcher)
+            throws Exception {
+        assumeDriverPresent(fetcher);
+
+        // Test picking up headers
+        Assumptions.assumeTrue(
+                isProxySupported(fetcher.getConfig().getBrowser()),
+                "SKIPPING: " + fetcher.getConfig().getBrowser().name()
+                + " does not support setting proxy.");
+
+        HttpSnifferConfig cfg = new HttpSnifferConfig();
+        cfg.setMaxBufferSize(6 * 1024 * 1024);
+        fetcher.getConfig().setHttpSnifferConfig(cfg);
+
+        TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
+            Doc doc = fetch(fetcher, "/largeContent");
+FileUtils.copyInputStreamToFile(doc.getInputStream(), new File("C:\\temp\\AAAAA.txt"));
+            String txt = IOUtils.toString(
+                    doc.getInputStream(), StandardCharsets.UTF_8);
+            LOG.error("Large content extracted byte length: {}",
+                    txt.getBytes(StandardCharsets.UTF_8).length);
+            Assertions.assertTrue(txt.length() >= LARGE_CONTENT_MIN_SIZE);
         });
     }
 

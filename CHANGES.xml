@@ -12,6 +12,9 @@
       <action dev="essiembre" type="remove">
         Removed JEF dependency in favor of improved JMX for tracking.
       </action>
+      <action dev="essiembre" type="update" issue="751">
+        WebDriver HttpSniffer can now have its max buffer size configured. 
+      </action>
       <action dev="essiembre" type="fix" issue="738">
         Fixed NullPointerException when resolving sitemaps.
       </action>

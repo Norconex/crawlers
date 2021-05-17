@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Norconex Inc.
+/* Copyright 2019-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.commons.lang.EqualsUtil;
+import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
@@ -35,6 +36,10 @@ import com.norconex.commons.lang.xml.XML;
  * {@nx.xml.usage
  * <port>(default is 0 = random free port)</port>
  * <userAgent>(optionally overwrite browser user agent)</userAgent>
+ * <maxBufferSize>
+ *   (Maximum byte size before a request/response content is considered
+ *    too large. Can be specified using notations, e.g., 25MB. Default is 10MB)
+ * </maxBufferSize>
  * <!-- Optional HTTP request headers passed on every HTTP requests -->
  * <headers>
  *   <!-- You can repeat this header tag as needed. -->
@@ -48,16 +53,19 @@ import com.norconex.commons.lang.xml.XML;
  * The expected parent tag name is defined by the consuming classes
  * (e.g. "httpSniffer").
  * </p>
-
  *
  * @author Pascal Essiembre
  * @since 3.0.0
  */
 public class HttpSnifferConfig implements IXMLConfigurable {
 
+    public static final int DEFAULT_MAX_BUFFER_SIZE =
+            DataUnit.MB.toBytes(10).intValue();
+
     private int port;
     private String userAgent;
     private final Map<String, String> requestHeaders = new HashMap<>();
+    private int maxBufferSize = DEFAULT_MAX_BUFFER_SIZE;
 
     public int getPort() {
         return port;
@@ -79,10 +87,19 @@ public class HttpSnifferConfig implements IXMLConfigurable {
         this.requestHeaders.putAll(requestHeaders);
     }
 
+    public int getMaxBufferSize() {
+        return maxBufferSize;
+    }
+    public void setMaxBufferSize(int maxBufferSize) {
+        this.maxBufferSize = maxBufferSize;
+    }
+
     @Override
     public void loadFromXML(XML xml) {
         setPort(xml.getInteger("port", getPort()));
         setUserAgent(xml.getString("userAgent", getUserAgent()));
+        setMaxBufferSize(xml.getDataSize(
+                "maxBufferSize", (long) getMaxBufferSize()).intValue());
         setRequestHeaders(xml.getStringMap(
                 "headers/header", "@name", ".", requestHeaders));
     }
@@ -90,6 +107,7 @@ public class HttpSnifferConfig implements IXMLConfigurable {
     public void saveToXML(XML xml) {
         xml.addElement("port", port);
         xml.addElement("userAgent", userAgent);
+        xml.addElement("maxBufferSize", maxBufferSize);
         XML xmlHeaders = xml.addXML("headers");
         for (Entry<String, String> entry : requestHeaders.entrySet()) {
             xmlHeaders.addXML("header").setAttribute(
