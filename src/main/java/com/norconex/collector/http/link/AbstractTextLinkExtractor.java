@@ -96,7 +96,7 @@ public abstract class AbstractTextLinkExtractor extends AbstractLinkExtractor {
             Set<Link> links, HandlerDoc doc, Reader reader) throws IOException;
 
     private Reader toReader(CrawlDoc doc) throws IOException {
-        String charset = CharsetUtil.detectCharsetIfNotBlank(
+        String charset = CharsetUtil.detectCharsetIfBlank(
                 doc.getDocInfo().getContentEncoding(), doc.getInputStream());
         return IOUtils.buffer(
                 new InputStreamReader(doc.getInputStream(), charset));
