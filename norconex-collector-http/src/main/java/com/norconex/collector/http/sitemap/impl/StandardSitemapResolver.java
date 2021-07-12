@@ -14,14 +14,19 @@
  */
 package com.norconex.collector.http.sitemap.impl;
 
+import static java.lang.Float.parseFloat;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
@@ -409,9 +414,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
     private void parseLocation(
             String location, File sitemapFile, ParseContext ctx)
                     throws XMLStreamException, IOException {
-
         String locationDir = StringUtils.substringBeforeLast(location, "/");
-
         try (InputStream is = lenient
                 ? new StripInvalidCharInputStream(
                         new FileInputStream(sitemapFile))
@@ -428,12 +431,9 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 }
                 XMLEvent ev = reader.nextEvent();
                 if (ev.isStartElement()) {
-                    path.addLast(ev.asStartElement().getName().getLocalPart());
-                    parseElement(
-                            '/' + StringUtils.join(path, "/"),
-                            locationDir,
-                            reader,
-                            ctx);
+                    path.addLast(ev.asStartElement()
+                            .getName().getLocalPart().toLowerCase());
+                    parseElement(path, locationDir, reader, ctx);
                 } else if (ev.isEndElement()) {
                     path.removeLast();
                 }
@@ -445,81 +445,84 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
     private void parseElement(
-            String path, String locationDir, XMLEventReader r, ParseContext ctx)
-            throws XMLStreamException {
-        int depth = 0;
-        if ("/sitemapindex/sitemap".equalsIgnoreCase(path)) {
-            while (!r.peek().isEndDocument() && depth == 0) {
-                XMLEvent ev = r.nextEvent();
-                if (ev.isStartElement()) {
-                    depth++;
-                }
-                if (ev.isEndElement()) {
-                    depth--;
-                }
-                String tagValue = null;
-                if ((tagValue = tagValue("loc", ev, r)) != null) {
-                    resolveLocation(tagValue, ctx);
-                }
-            }
-        } else if ("/urlset/url".equalsIgnoreCase(path)) {
+            LinkedList<String> path,
+            String locationDir,
+            XMLEventReader r,
+            ParseContext ctx)
+                    throws XMLStreamException {
+
+        String pathStr = StringUtils.join(path, "/");
+        if (!StringUtils.equalsAny(pathStr,
+                "sitemapindex/sitemap",
+                "urlset/url")) {
+            return;
+        }
+
+        Map<String, String> map = elementAsMap(path, r);
+        if ("sitemapindex/sitemap".equals(pathStr)) {
+            resolveLocation(map.get("loc"), ctx);
+        } else if ("urlset/url".equals(pathStr)) {
             HttpCrawlData crawlData = new HttpCrawlData();
-            while (!r.peek().isEndElement() && depth == 0) {
-                XMLEvent ev = r.nextEvent();
-                if (ev.isStartElement()) {
-                    depth++;
+            crawlData.setReference(map.get("loc"));
+            try {
+                DateTime dt = DateTime.parse(map.get("lastmod"));
+                if (dt != null) {
+                    crawlData.setSitemapLastMod(dt.getMillis());
                 }
-                if (ev.isEndElement()) {
-                    depth--;
-                }
-                String tagValue = null;
-                if ((tagValue = tagValue("loc", ev, r)) != null) {
-                    crawlData.setReference(tagValue);
-                } else if ((tagValue = tagValue("lastmod", ev, r)) != null) {
-                    try {
-                        crawlData.setSitemapLastMod(
-                                DateTime.parse(tagValue).getMillis());
-                    } catch (Exception e) {
-                        LOG.info("Invalid sitemap date: " + tagValue);
-                    }
-                } else if ((tagValue = tagValue("changefreq", ev, r)) != null) {
-                    crawlData.setSitemapChangeFreq(tagValue);
-                } else if ((tagValue = tagValue("priority", ev, r)) != null) {
-                    try {
-                        crawlData.setSitemapPriority(
-                                Float.parseFloat(tagValue));
-                    } catch (NumberFormatException e) {
-                        LOG.info("Invalid sitemap priority: " + tagValue);
-                    }
-                }
+            } catch (Exception e) {
+                LOG.info("Invalid sitemap date: " + map.get("lastmod"));
             }
-
-            if (crawlData.getReference() == null) {
-                return;
-            }
-
-            if (lenient || crawlData.getReference().startsWith(locationDir)) {
-                if(isRecentEnough(crawlData)) {
-                    ctx.sitemapURLAdder.add(crawlData);
+            crawlData.setSitemapChangeFreq(map.get("changefreq"));
+            try {
+                String priority = map.get("priority");
+                if (priority != null) {
+                    crawlData.setSitemapPriority(parseFloat(priority));
                 }
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("Sitemap URL invalid for location directory."
-                        + " URL:" + crawlData.getReference()
-                        + " Location directory: " + locationDir);
+            } catch (NumberFormatException e) {
+                LOG.info("Invalid sitemap priority: " + map.get("priority"));
+            }
+            if (crawlData.getReference() != null) {
+                if (isValidLocation(crawlData, locationDir)) {
+                    if(isRecentEnough(crawlData)) {
+                        ctx.sitemapURLAdder.add(crawlData);
+                    }
+                } else if (LOG.isDebugEnabled()) {
+                    LOG.debug("Sitemap URL invalid for location directory."
+                            + " URL:" + crawlData.getReference()
+                            + " Location directory: " + locationDir);
+                }
             }
         }
     }
 
-    private String tagValue(String tag, XMLEvent ev, XMLEventReader r)
-            throws XMLStreamException {
-        if (!ev.isStartElement()) {
-            return null;
+    private boolean isValidLocation(
+            HttpCrawlData crawlData, String locationDir) {
+        return lenient || crawlData.getReference().startsWith(locationDir);
+    }
+
+    private Map<String, String> elementAsMap(
+            LinkedList<String> elPath, XMLEventReader r)
+                    throws XMLStreamException {
+        Map<String, String> map = new HashMap<>();
+        LinkedList<String> currPath = new LinkedList<>(elPath);
+        String name = null;
+        while (!r.peek().isEndElement() || !elPath.equals(currPath) ) {
+            XMLEvent ev = r.nextEvent();
+            if (ev.isStartElement()) {
+                name = ev.asStartElement()
+                        .getName().getLocalPart().toLowerCase();
+                currPath.addLast(name);
+            } else if (ev.isEndElement()) {
+                name = null;
+                currPath.removeLast();
+            } else if (ev.isCharacters()) {
+                String value = trimToNull(ev.asCharacters().getData());
+                if (!StringUtils.isAnyBlank(name, value)) {
+                    map.put(name, value);
+                }
+            }
         }
-        if (StringUtils.equalsAnyIgnoreCase(
-                tag, ev.asStartElement().getName().getLocalPart())) {
-            return StringUtils.trimToNull(r.getElementText());
-        }
-        return null;
+        return map;
     }
 
     private boolean isRecentEnough(HttpCrawlData crawlData) {
