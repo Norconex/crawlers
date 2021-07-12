@@ -1,4 +1,4 @@
-/* Copyright 2010-2020 Norconex Inc.
+/* Copyright 2010-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,14 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.XMLEvent;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -156,7 +157,6 @@ public class StandardSitemapResolver implements ISitemapResolver {
             boolean startURLs) {
 
         if (isResolutionRequired(urlRoot)) {
-            final Set<String> resolvedLocations = new HashSet<>();
             Set<String> uniqueLocations = null;
             if (startURLs) {
                 uniqueLocations = new HashSet<>();
@@ -168,8 +168,9 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 LOG.debug("Sitemap locations: " + uniqueLocations);
             }
             for (String location : uniqueLocations) {
-                resolveLocation(location, httpClient,
-                        sitemapURLAdder, resolvedLocations);
+                ParseContext ctx =
+                        new ParseContext(sitemapURLAdder, httpClient);
+                resolveLocation(location, ctx);
             }
             if(!stopped) {
                 sitemapStore.markResolved(urlRoot);
@@ -282,10 +283,8 @@ public class StandardSitemapResolver implements ISitemapResolver {
         sitemapStore.close();
     }
 
-    private void resolveLocation(String location, HttpClient httpClient,
-            SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations) {
-
-        if (resolvedLocations.contains(location)) {
+    private void resolveLocation(String location, ParseContext ctx) {
+        if (ctx.resolvedLocations.contains(location)) {
             return;
         }
 
@@ -299,7 +298,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
         try {
             // Execute the method.
             LOG.info("Resolving sitemap: " + location);
-            HttpResponse response = httpGet(location, httpClient, method);
+            HttpResponse response = httpGet(location, ctx.httpClient, method);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 InputStream is = response.getEntity().getContent();
@@ -310,8 +309,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 }
                 File sitemapFile = inputStreamToTempFile(is);
                 IOUtils.closeQuietly(is);
-                parseLocation(sitemapFile, httpClient, sitemapURLAdder,
-                        resolvedLocations, location);
+                parseLocation(location, sitemapFile, ctx);
                 LOG.info("         Resolved: " + location);
             } else if (statusCode == HttpStatus.SC_NO_CONTENT) {
                 LOG.info("         Resolved: " + location + " but no content.");
@@ -353,7 +351,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                         : e.getMessage()) + ")");
             }
         } finally {
-            resolvedLocations.add(location);
+            ctx.resolvedLocations.add(location);
             if (method.getValue() != null) {
                 method.getValue().releaseConnection();
             }
@@ -407,9 +405,12 @@ public class StandardSitemapResolver implements ISitemapResolver {
     }
 
 
-    private void parseLocation(File sitemapFile, HttpClient httpClient,
-           SitemapURLAdder sitemapURLAdder, Set<String> resolvedLocations,
-           String location) throws XMLStreamException, IOException {
+
+    private void parseLocation(
+            String location, File sitemapFile, ParseContext ctx)
+                    throws XMLStreamException, IOException {
+
+        String locationDir = StringUtils.substringBeforeLast(location, "/");
 
         try (InputStream is = lenient
                 ? new StripInvalidCharInputStream(
@@ -417,125 +418,116 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 : new FileInputStream(sitemapFile)) {
             XMLInputFactory inputFactory = XMLInputFactory.newInstance();
             inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
-            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(is);
-
-            ParseState parseState = new ParseState();
-
-            String locationDir = StringUtils.substringBeforeLast(location, "/");
-            int event = xmlReader.getEventType();
-            while(true){
+            XMLEventReader reader = inputFactory.createXMLEventReader(is);
+            LinkedList<String> path = new LinkedList<>();
+            while (reader.hasNext()) {
                 if (stopped) {
-                    LOG.debug("Sitemap not entirely parsed due to "
+                    LOG.info("Sitemap not entirely parsed due to "
                             + "crawler being stopped.");
                     break;
                 }
-                switch(event) {
-                    case XMLStreamConstants.START_ELEMENT:
-                        String tag = xmlReader.getLocalName();
-                        parseStartElement(parseState, tag);
-                        break;
-                    case XMLStreamConstants.CHARACTERS:
-                        String value = xmlReader.getText();
-                        if (parseState.sitemapIndex && parseState.loc) {
-                            resolveLocation(value, httpClient,
-                                    sitemapURLAdder, resolvedLocations);
-                            parseState.loc = false;
-                        } else if (parseState.baseURL != null) {
-                            parseCharacters(parseState, value);
-                        }
-                        break;
-                    case XMLStreamConstants.END_ELEMENT:
-                        tag = xmlReader.getLocalName();
-                        parseEndElement(sitemapURLAdder, parseState,
-                               locationDir, tag, httpClient, resolvedLocations);
-                        break;
+                XMLEvent ev = reader.nextEvent();
+                if (ev.isStartElement()) {
+                    path.addLast(ev.asStartElement().getName().getLocalPart());
+                    parseElement(
+                            '/' + StringUtils.join(path, "/"),
+                            locationDir,
+                            reader,
+                            ctx);
+                } else if (ev.isEndElement()) {
+                    path.removeLast();
                 }
-                if (!xmlReader.hasNext()) {
-                    break;
-                }
-                event = xmlReader.next();
             }
+            reader.close();
+
         }
         FileUtil.delete(sitemapFile);
     }
 
-    private boolean isRecentEnough(ParseState parseState) {
-        Long lastMod = parseState.baseURL.getSitemapLastMod();
+    private void parseElement(
+            String path, String locationDir, XMLEventReader r, ParseContext ctx)
+            throws XMLStreamException {
+        int depth = 0;
+        if ("/sitemapindex/sitemap".equalsIgnoreCase(path)) {
+            while (!r.peek().isEndDocument() && depth == 0) {
+                XMLEvent ev = r.nextEvent();
+                if (ev.isStartElement()) {
+                    depth++;
+                }
+                if (ev.isEndElement()) {
+                    depth--;
+                }
+                String tagValue = null;
+                if ((tagValue = tagValue("loc", ev, r)) != null) {
+                    resolveLocation(tagValue, ctx);
+                }
+            }
+        } else if ("/urlset/url".equalsIgnoreCase(path)) {
+            HttpCrawlData crawlData = new HttpCrawlData();
+            while (!r.peek().isEndElement() && depth == 0) {
+                XMLEvent ev = r.nextEvent();
+                if (ev.isStartElement()) {
+                    depth++;
+                }
+                if (ev.isEndElement()) {
+                    depth--;
+                }
+                String tagValue = null;
+                if ((tagValue = tagValue("loc", ev, r)) != null) {
+                    crawlData.setReference(tagValue);
+                } else if ((tagValue = tagValue("lastmod", ev, r)) != null) {
+                    try {
+                        crawlData.setSitemapLastMod(
+                                DateTime.parse(tagValue).getMillis());
+                    } catch (Exception e) {
+                        LOG.info("Invalid sitemap date: " + tagValue);
+                    }
+                } else if ((tagValue = tagValue("changefreq", ev, r)) != null) {
+                    crawlData.setSitemapChangeFreq(tagValue);
+                } else if ((tagValue = tagValue("priority", ev, r)) != null) {
+                    try {
+                        crawlData.setSitemapPriority(
+                                Float.parseFloat(tagValue));
+                    } catch (NumberFormatException e) {
+                        LOG.info("Invalid sitemap priority: " + tagValue);
+                    }
+                }
+            }
+
+            if (crawlData.getReference() == null) {
+                return;
+            }
+
+            if (lenient || crawlData.getReference().startsWith(locationDir)) {
+                if(isRecentEnough(crawlData)) {
+                    ctx.sitemapURLAdder.add(crawlData);
+                }
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("Sitemap URL invalid for location directory."
+                        + " URL:" + crawlData.getReference()
+                        + " Location directory: " + locationDir);
+            }
+        }
+    }
+
+    private String tagValue(String tag, XMLEvent ev, XMLEventReader r)
+            throws XMLStreamException {
+        if (!ev.isStartElement()) {
+            return null;
+        }
+        if (StringUtils.equalsAnyIgnoreCase(
+                tag, ev.asStartElement().getName().getLocalPart())) {
+            return StringUtils.trimToNull(r.getElementText());
+        }
+        return null;
+    }
+
+    private boolean isRecentEnough(HttpCrawlData crawlData) {
+        Long lastMod = crawlData.getSitemapLastMod();
         if(fromDate > 0 && lastMod != null) {
             return lastMod > fromDate;
         } else {
             return true;
-        }
-    }
-
-    private void parseEndElement(SitemapURLAdder sitemapURLAdder,
-             ParseState parseState, String locationDir, String tag,
-             HttpClient httpClient, Set<String> resolvedLocations) {
-
-        if ("sitemap".equalsIgnoreCase(tag)) {
-            parseState.sitemapIndex = false;
-        } else if("url".equalsIgnoreCase(tag)
-                && parseState.baseURL.getReference() != null){
-            if (isRelaxed(parseState, locationDir)) {
-                if(isRecentEnough(parseState)) {
-                    sitemapURLAdder.add(parseState.baseURL);
-                }
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("Sitemap URL invalid for location directory."
-                        + " URL:" + parseState.baseURL.getReference()
-                        + " Location directory: " + locationDir);
-            }
-            parseState.baseURL = null;
-        }
-    }
-
-    private boolean isRelaxed(ParseState parseState, String locationDir) {
-        return lenient
-                || parseState.baseURL.getReference().startsWith(locationDir);
-    }
-
-    private void parseCharacters(ParseState parseState, String value) {
-        if (parseState.loc) {
-            parseState.baseURL.setReference(value);
-            parseState.loc = false;
-        } else if (parseState.lastmod) {
-            try {
-                parseState.baseURL.setSitemapLastMod(
-                        DateTime.parse(value).getMillis());
-            } catch (Exception e) {
-                LOG.info("Invalid sitemap date: " + value);
-            }
-            parseState.lastmod = false;
-        } else if (parseState.changefreq) {
-            parseState.baseURL.setSitemapChangeFreq(value);
-            parseState.changefreq = false;
-        } else if (parseState.priority) {
-            try {
-                parseState.baseURL.setSitemapPriority(
-                        Float.parseFloat(value));
-            } catch (NumberFormatException e) {
-                LOG.info("Invalid sitemap priority: " + value);
-            }
-            parseState.priority = false;
-        }
-    }
-
-    private void parseStartElement(ParseState parseState, String tag) {
-        if("sitemap".equalsIgnoreCase(tag)) {
-            parseState.sitemapIndex = true;
-        } else if("url".equalsIgnoreCase(tag)){
-            parseState.baseURL = new HttpCrawlData("", 0);
-        } else if("loc".equalsIgnoreCase(tag)){
-            if (parseState.baseURL == null) {
-                parseState.baseURL = new HttpCrawlData("", 0);
-            }
-            parseState.loc = true;
-        } else if("lastmod".equalsIgnoreCase(tag)){
-            parseState.lastmod = true;
-        } else if("changefreq".equalsIgnoreCase(tag)){
-            parseState.changefreq = true;
-        } else if("priority".equalsIgnoreCase(tag)){
-            parseState.priority = true;
         }
     }
 
@@ -596,12 +588,16 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 .toString();
     }
 
-    private static class ParseState {
-        private HttpCrawlData baseURL = null;
-        private boolean sitemapIndex = false;
-        private boolean loc = false;
-        private boolean lastmod = false;
-        private boolean changefreq = false;
-        private boolean priority = false;
+    private static class ParseContext {
+        private final SitemapURLAdder sitemapURLAdder;
+        private final HttpClient httpClient;
+        private final Set<String> resolvedLocations = new HashSet<>();
+        public ParseContext(
+                SitemapURLAdder sitemapURLAdder,
+                HttpClient httpClient) {
+            super();
+            this.sitemapURLAdder = sitemapURLAdder;
+            this.httpClient = httpClient;
+        }
     }
 }
