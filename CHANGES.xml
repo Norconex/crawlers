@@ -18,6 +18,10 @@
       <action dev="essiembre" type="fix" issue="738">
         Fixed NullPointerException when resolving sitemaps.
       </action>
+      <action dev="essiembre" type="fix" issue="758">
+        Fixed sitemap.xml URL entries not being extracted when they contain 
+        custom elements. 
+      </action>
     </release>
 
     <release version="3.0.0-M1" date="2021-03-01" 

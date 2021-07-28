@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Norconex Inc.
+/* Copyright 2015-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ import com.norconex.collector.http.fetch.impl.GenericHttpFetcherConfig;
  * @since 2.4.0
  */
 public interface IRedirectURLProvider {
-
-    //TODO Put this and implementation in a fetch.util package?
 
     /**
      * Provides the redirect URL that the crawler must follow. This method

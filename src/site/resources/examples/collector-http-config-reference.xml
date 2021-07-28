@@ -51,9 +51,9 @@
   </eventListeners>
   
   <!-- Maximum number of crawlers to run at once. Only useful when you have
-       multiple crawlers defined. Default is unlimited.
+       multiple crawlers defined. Default runs all crawlers simultaneously.
        -->
-  <maxParallelCrawlers>-1</maxParallelCrawlers>
+  <maxConcurrentCrawlers>-1</maxConcurrentCrawlers>
 
   <!-- All crawler configuration options (except for the crawler "id") 
        can be set here as default to prevent repeating them.
@@ -208,7 +208,7 @@
            com.norconex.collector.core.data.store.ICrawlURLDatabaseFactory.  
            Default implementation is the following.
            -->
-      <crawlDataStoreEngine class="MVStoreDataStoreEngine" />
+      <dataStoreEngine class="MVStoreDataStoreEngine" />
   
       <!-- One or more HTTP Fetchers, responsible for making HTTP requests
            and fetching associated content. Fetchers are defined in execution 
@@ -280,7 +280,7 @@
            com.norconex.collector.core.checksum.IMetadataChecksummer.  
            Default implementation is the following. 
            -->
-      <metadataChecksummer class="HttpMetadataChecksummer" />
+      <metadataChecksummer class="LastModifiedMetadataChecksummer" />
   
       <!-- Establish whether to follow a page URLs or to index a given page
            based on in-page meta tag robot information. Classes must implement 

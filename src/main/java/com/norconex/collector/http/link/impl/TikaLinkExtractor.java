@@ -69,6 +69,7 @@ import com.norconex.importer.handler.CommonRestrictions;
  * @author Pascal Essiembre
  * @see HtmlLinkExtractor
  */
+@SuppressWarnings("javadoc")
 public class TikaLinkExtractor extends AbstractLinkExtractor {
 
     private static final Pattern META_REFRESH_PATTERN = Pattern.compile(

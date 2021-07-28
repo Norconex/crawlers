@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Norconex Inc.
+/* Copyright 2019-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.norconex.collector.http.sitemap.impl;
 
+import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,16 +29,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,7 +64,7 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.xml.IXMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLUtil;
+import com.norconex.commons.lang.xml.XMLCursor;
 
 /**
  * <p>
@@ -115,9 +115,7 @@ public class GenericSitemapResolver
     private static final Logger LOG = LoggerFactory.getLogger(
             GenericSitemapResolver.class);
 
-
-
-    //TODO ---------- follow redirects and/or print redirect target ---------------------
+    //TODO Follow redirects and/or print redirect target
 
     public static final List<String> DEFAULT_SITEMAP_PATHS =
             Collections.unmodifiableList(Arrays.asList(
@@ -125,12 +123,8 @@ public class GenericSitemapResolver
 
     private Path tempDir;
 
-
-    //TODO Use StaX for simplified sitemap parsing.
-
     //TODO eventually check sitemap last modified date and reprocess if
     // changed (or request to have it only if it changed).
-    // use ZonedDateTime instead of Boolean (which is just a dummy value).
 
     private IDataStore<Boolean> resolvedURLRoots;
 
@@ -225,7 +219,7 @@ public class GenericSitemapResolver
             }
             LOG.debug("Sitemap locations: {}", uniqueLocations);
             for (String location : uniqueLocations) {
-                resolveLocation(location, fetcher,
+                resolveSitemap(location, fetcher,
                         sitemapURLConsumer, resolvedLocations);
                 if (stopping) {
                     break;
@@ -271,7 +265,9 @@ public class GenericSitemapResolver
         this.tempDir = tempDir;
     }
 
-    private void resolveLocation(String location, HttpFetchClient fetcher,
+    private void resolveSitemap(
+            String location,
+            HttpFetchClient fetcher,
             Consumer<HttpDocInfo> sitemapURLConsumer,
             Set<String> resolvedLocations) {
 
@@ -300,7 +296,7 @@ public class GenericSitemapResolver
                 }
                 File sitemapFile = inputStreamToTempFile(is);
                 is.close();
-                parseLocation(sitemapFile, fetcher, sitemapURLConsumer,
+                parseSitemap(sitemapFile, fetcher, sitemapURLConsumer,
                         resolvedLocations, location);
                 LOG.info("         Resolved: {}", location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
@@ -384,129 +380,95 @@ public class GenericSitemapResolver
     }
 
 
-    private void parseLocation(File sitemapFile, HttpFetchClient fetcher,
+    private void parseSitemap(File sitemapFile, HttpFetchClient fetcher,
             Consumer<HttpDocInfo> sitemapURLConsumer,
             Set<String> resolvedLocations,
             String location) throws XMLStreamException, IOException {
-
         try (FileInputStream fis = new FileInputStream(sitemapFile)) {
-            XMLInputFactory inputFactory = XMLUtil.createXMLInputFactory();
-            inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
-            XMLStreamReader xmlReader = inputFactory.createXMLStreamReader(fis);
-            ParseState parseState = new ParseState();
-
-            String locationDir = StringUtils.substringBeforeLast(location, "/");
-            int event = xmlReader.getEventType();
-            while(true){
-                if (stopping) {
-                    LOG.debug("Sitemap not entirely parsed due to "
-                            + "crawler being stopped.");
-                    break;
-                }
-                switch(event) {
-                case XMLStreamConstants.START_ELEMENT:
-                    String tag = xmlReader.getLocalName();
-                    parseStartElement(parseState, tag);
-                    break;
-                case XMLStreamConstants.CHARACTERS:
-                    String value = xmlReader.getText();
-                    if (parseState.sitemapIndex && parseState.loc) {
-                        resolveLocation(value, fetcher,
-                                sitemapURLConsumer, resolvedLocations);
-                        parseState.loc = false;
-                    } else if (parseState.baseURL != null) {
-                        parseCharacters(parseState, value);
-                    }
-                    break;
-                case XMLStreamConstants.END_ELEMENT:
-                    tag = xmlReader.getLocalName();
-                    parseEndElement(
-                            sitemapURLConsumer, parseState, locationDir, tag);
-                    break;
-                }
-                if (!xmlReader.hasNext()) {
-                    break;
-                }
-                event = xmlReader.next();
-            }
+            parseSitemap(fis, fetcher,
+                    sitemapURLConsumer, resolvedLocations, location);
         }
         FileUtil.delete(sitemapFile);
     }
 
-    private void parseEndElement(
+    void parseSitemap(InputStream is, HttpFetchClient fetcher,
             Consumer<HttpDocInfo> sitemapURLConsumer,
-            ParseState parseState, String locationDir, String tag) {
-        if ("sitemap".equalsIgnoreCase(tag)) {
-            parseState.sitemapIndex = false;
-        } else if ("url".equalsIgnoreCase(tag)
-                && parseState.baseURL.getReference() != null){
-            if (isRelaxed(parseState, locationDir)) {
-                sitemapURLConsumer.accept(parseState.baseURL);
+            Set<String> resolvedLocations,
+            String sitemapLocation) throws XMLStreamException, IOException {
+
+        String sitemapLocationDir = substringBeforeLast(sitemapLocation, "/");
+        Iterator<XMLCursor> it = XML.iterator(is);
+        while (it.hasNext()) {
+            XMLCursor c = it.next();
+
+            if (stopping) {
+                LOG.debug("Sitemap not entirely parsed due to "
+                        + "crawler being stopped.");
+                break;
             }
+
+            if ("sitemap".equalsIgnoreCase(c.getLocalName())) {
+                //TODO handle lastmod to speed up re-crawling even further?
+                String url = c.readAsXML().getString("loc");
+                if (StringUtils.isNotBlank(url)) {
+                    resolveSitemap(url, fetcher,
+                            sitemapURLConsumer, resolvedLocations);
+                }
+            } else if ("url".equalsIgnoreCase(c.getLocalName())) {
+                HttpDocInfo doc = toDocInfo(c.readAsXML(), sitemapLocationDir);
+                if (doc != null) {
+                    sitemapURLConsumer.accept(doc);
+                }
+            }
+        }
+    }
+
+    private HttpDocInfo toDocInfo(XML xml, String sitemapLocationDir) {
+        String url = xml.getString("loc");
+
+        // Is URL valid?
+        if (StringUtils.isBlank(url)
+                || !(lenient || url.startsWith(sitemapLocationDir))) {
             LOG.debug("Sitemap URL invalid for location directory."
                     + " URL: {}  Location directory: {}",
-                    parseState.baseURL.getReference(), locationDir);
-            parseState.baseURL = null;
+                    url, sitemapLocationDir);
+            return null;
         }
-    }
 
-    private boolean isRelaxed(ParseState parseState, String locationDir) {
-        return lenient
-                || parseState.baseURL.getReference().startsWith(locationDir);
-    }
-
-    private void parseCharacters(ParseState parseState, String value) {
-        if (parseState.loc) {
-            LOG.debug("Sitemap URL: {}", value);
-            parseState.baseURL.setReference(value);
-            parseState.loc = false;
-        } else if (parseState.lastmod) {
+        HttpDocInfo doc = new HttpDocInfo(url);
+        doc.setSitemapLastMod(toDateTime(xml.getString("lastmod")));
+        doc.setSitemapChangeFreq(xml.getString("changefreq"));
+        String priority = xml.getString("priority");
+        if (StringUtils.isNotBlank(priority)) {
             try {
-                ZonedDateTime zdt = null;
-                if (value.contains("T")) {
-                    // has time
-                    zdt = ZonedDateTime.parse(value);
-                } else {
-                    // has no time
-                    zdt = ZonedDateTime.of(LocalDate.parse(value),
-                            LocalTime.MIDNIGHT, ZoneOffset.UTC);
-                }
-                parseState.baseURL.setSitemapLastMod(zdt);
-            } catch (Exception e) {
-                LOG.info("Invalid sitemap date: {}", value);
-            }
-            parseState.lastmod = false;
-        } else if (parseState.changefreq) {
-            parseState.baseURL.setSitemapChangeFreq(value);
-            parseState.changefreq = false;
-        } else if (parseState.priority) {
-            try {
-                parseState.baseURL.setSitemapPriority(
-                        Float.parseFloat(value));
+                doc.setSitemapPriority(Float.parseFloat(priority));
             } catch (NumberFormatException e) {
-                LOG.info("Invalid sitemap priority: {}", value);
+                LOG.info("Invalid sitemap urlset/url/priority: {}",
+                        priority);
             }
-            parseState.priority = false;
         }
+        LOG.debug("Sitemap urlset/url: {}", doc.getReference());
+        return doc;
     }
 
-    private void parseStartElement(ParseState parseState, String tag) {
-        if("sitemap".equalsIgnoreCase(tag)) {
-            parseState.sitemapIndex = true;
-        } else if("url".equalsIgnoreCase(tag)) {
-            parseState.baseURL = new HttpDocInfo("", 0);
-        } else if("loc".equalsIgnoreCase(tag)) {
-            if (parseState.baseURL == null) {
-                parseState.baseURL = new HttpDocInfo("", 0);
-            }
-            parseState.loc = true;
-        } else if("lastmod".equalsIgnoreCase(tag)) {
-            parseState.lastmod = true;
-        } else if("changefreq".equalsIgnoreCase(tag)) {
-            parseState.changefreq = true;
-        } else if("priority".equalsIgnoreCase(tag)) {
-            parseState.priority = true;
+    private ZonedDateTime toDateTime(String value) {
+        ZonedDateTime zdt = null;
+        if (StringUtils.isBlank(value)) {
+            return zdt;
         }
+        try {
+            if (value.contains("T")) {
+                // has time
+                zdt = ZonedDateTime.parse(value);
+            } else {
+                // has no time
+                zdt = ZonedDateTime.of(LocalDate.parse(value),
+                        LocalTime.MIDNIGHT, ZoneOffset.UTC);
+            }
+        } catch (Exception e) {
+            LOG.info("Invalid sitemap date: {}", value);
+        }
+        return zdt;
     }
 
     private Set<String> combineLocations(
@@ -575,14 +537,5 @@ public class GenericSitemapResolver
         return new ReflectionToStringBuilder(
                 this, ToStringStyle.SHORT_PREFIX_STYLE)
                 .setExcludeFieldNames("stopped").toString();
-    }
-
-    private static class ParseState {
-        private HttpDocInfo baseURL = null;
-        private boolean sitemapIndex = false;
-        private boolean loc = false;
-        private boolean lastmod = false;
-        private boolean changefreq = false;
-        private boolean priority = false;
     }
 }

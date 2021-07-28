@@ -480,6 +480,7 @@ import com.norconex.importer.ImporterConfig;
  *
  * @author Pascal Essiembre
  */
+@SuppressWarnings("javadoc")
 public class HttpCrawlerConfig extends CrawlerConfig {
 
     // By default do not include URLs on docs at max depth

@@ -269,6 +269,7 @@ import com.norconex.importer.handler.HandlerDoc;
  * @author Pascal Essiembre
  * @since 3.0.0 (refactored from GenericLinkExtractor)
  */
+@SuppressWarnings("javadoc")
 public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
     private static final Logger LOG = LoggerFactory.getLogger(
