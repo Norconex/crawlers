@@ -47,23 +47,21 @@ import com.norconex.commons.lang.xml.XML;
  * To use different fields (one or several) to constitute a checksum,
  * you can instead use the {@link GenericMetadataChecksummer}.
  * </p>
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;metadataChecksummer
- *      class="com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer"
- *      disabled="[false|true]"
- *      keep="[false|true]"
- *      targetField="(field to store checksum)" /&gt;
- * </pre>
+ * {@nx.xml.usage
+ * <metadataChecksummer
+ *     class="com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer"
+ *     disabled="[false|true]"
+ *     keep="[false|true]"
+ *     targetField="(field to store checksum)" />
+ * }
  *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ * <metadataChecksummer keep="true" targetField="metaChecksum" />
+ * }
  * <p>
- * The following will store the last modified date used for checksum purposes
- * in a field called "metaChecksum".
+ * The above example will store the last modified date used for checksum
+ * purposes in a field called "metaChecksum".
  * </p>
- * <pre>
- *  &lt;metadataChecksummer keep="true" targetField="metaChecksum" /&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 2.2.0

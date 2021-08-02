@@ -115,6 +115,7 @@ import com.norconex.importer.handler.HandlerDoc;
  * @author Pascal Essiembre
  * @since 2.7.0
  */
+@SuppressWarnings("javadoc")
 public class RegexLinkExtractor extends AbstractTextLinkExtractor {
 
     public static final String DEFAULT_CONTENT_TYPE_PATTERN = "text/.*";

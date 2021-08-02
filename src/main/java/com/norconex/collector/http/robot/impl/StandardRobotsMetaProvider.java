@@ -54,20 +54,20 @@ import com.norconex.commons.lang.xml.XML;
  * HTTP header, the ones in HTML page will take precedence, and the
  * ones in HTTP header will be ignored.</p>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;robotsMeta ignore="false"
- *     class="com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider"&gt;
- *     &lt;headersPrefix&gt;(string prefixing headers)&lt;/headersPrefix&gt;
- *  &lt;/robotsMeta&gt;
- * </pre>
+ * {@nx.xml.usage
+ *  <robotsMeta ignore="false"
+ *     class="com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider">
+ *     <headersPrefix>(string prefixing headers)</headersPrefix>
+ *  </robotsMeta>
+ * }
  *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ * <robotsMeta ignore="true" />
+ * }
  * <p>
- * The following ignores robot meta information.</p>
+ * The above example ignores robot meta information.
+ * </p>
  * <pre>
- *  &lt;robotsMeta ignore="true" /&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  */

@@ -108,105 +108,104 @@ import com.norconex.importer.doc.Doc;
  *   </li>
  * </ul>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;processor class="com.norconex.collector.http.processor.impl.FeaturedImageProcessor"&gt;
+ * {@nx.xml.usage
+ * <processor class="com.norconex.collector.http.processor.impl.FeaturedImageProcessor">
  *
- *     &lt;pageContentTypePattern&gt;
- *         (Optional regex to overwrite default matching of HTML pages)
- *     &lt;/pageContentTypePattern&gt;
+ *    <pageContentTypePattern>
+ *        (Optional regex to overwrite default matching of HTML pages)
+ *    </pageContentTypePattern>
  *
- *     &lt;domSelector&gt;
- *         (Optional CSS-like path matching one or more image elements)
- *     &lt;/domSelector&gt;
- *     &lt;minDimensions&gt;
- *         (Minimum pixel size for an image to be considered.
- *          Default is 400x400).
- *     &lt;/minDimensions&gt;
- *     &lt;largest&gt;[false|true]&lt;/largest&gt;
+ *    <domSelector>
+ *        (Optional CSS-like path matching one or more image elements)
+ *    </domSelector>
+ *    <minDimensions>
+ *        (Minimum pixel size for an image to be considered.
+ *         Default is 400x400).
+ *    </minDimensions>
+ *    <largest>[false|true]</largest>
  *
- *     &lt;imageCacheSize&gt;
- *         (Maximum number of images to cache for faster processing.
- *          Set to 0 to disable caching.)
- *     &lt;/imageCacheSize&gt;
- *     &lt;imageCacheDir&gt;
- *         (Directory where to create the image cache)
- *     &lt;/imageCacheDir&gt;
+ *    <imageCacheSize>
+ *        (Maximum number of images to cache for faster processing.
+ *         Set to 0 to disable caching.)
+ *    </imageCacheSize>
+ *    <imageCacheDir>
+ *        (Directory where to create the image cache)
+ *    </imageCacheDir>
  *
- *     &lt;storage&gt;
- *         [url|inline|disk]
- *         (One or more, comma-separated. Default is "url".)
- *     &lt;/storage&gt;
+ *    <storage>
+ *        [url|inline|disk]
+ *        (One or more, comma-separated. Default is "url".)
+ *    </storage>
  *
- *     &lt;!-- Only applicable for "inline" and "disk" storage: --&gt;
- *     &lt;scaleDimensions&gt;
- *         (Target pixel size the featured image should be scaled to.
- *          Default is 150x150.)
- *     &lt;/scaleDimensions&gt;
- *     &lt;scaleStretch&gt;
- *         [false|true]
- *         (Whether to stretch to match scale size. Default keeps aspect ratio.)
- *     &lt;/scaleStretch&gt;
- *     &lt;scaleQuality&gt;
- *         [auto|low|medium|high|max]
- *         (Default is "auto", which tries the best balance between quality
- *          and speed based on image size. The lower the quality the faster
- *          it is to scale images.)
- *     &lt;/scaleQuality&gt;
- *     &lt;imageFormat&gt;
- *         (Target format of stored image. E.g., "jpg", "png", "gif", "bmp", ...
- *          Default is "png")
- *     &lt;/imageFormat&gt;
+ *    <!-- Only applicable for "inline" and "disk" storage: -->
+ *    <scaleDimensions>
+ *        (Target pixel size the featured image should be scaled to.
+ *         Default is 150x150.)
+ *    </scaleDimensions>
+ *    <scaleStretch>
+ *        [false|true]
+ *        (Whether to stretch to match scale size. Default keeps aspect ratio.)
+ *    </scaleStretch>
+ *    <scaleQuality>
+ *        [auto|low|medium|high|max]
+ *        (Default is "auto", which tries the best balance between quality
+ *         and speed based on image size. The lower the quality the faster
+ *         it is to scale images.)
+ *    </scaleQuality>
+ *    <imageFormat>
+ *        (Target format of stored image. E.g., "jpg", "png", "gif", "bmp", ...
+ *         Default is "png")
+ *    </imageFormat>
  *
- *     &lt;!-- Only applicable for "disk" storage: --&gt;
- *     &lt;storageDiskDir structure="[url2path|date|datetime]"&gt;
- *         (Path to directory where to store images on disk.)
- *     &lt;/storageDiskDir&gt;
- *     &lt;storageDiskField&gt;
- *         (Overwrite default field where to store the image path.
- *          Default is {@value #COLLECTOR_FEATURED_IMAGE_PATH}.)
- *     &lt;/storageDiskField&gt;
+ *    <!-- Only applicable for "disk" storage: -->
+ *    <storageDiskDir structure="[url2path|date|datetime]">
+ *        (Path to directory where to store images on disk.)
+ *    </storageDiskDir>
+ *    <storageDiskField>
+ *        (Overwrite default field where to store the image path.
+ *         Default is {@value #COLLECTOR_FEATURED_IMAGE_PATH}.)
+ *    </storageDiskField>
  *
- *     &lt;!-- Only applicable for "inline" storage: --&gt;
- *     &lt;storageInlineField&gt;
- *         (Overwrite default field where to store the inline image.
- *          Default is {@value #COLLECTOR_FEATURED_IMAGE_INLINE}.)
- *     &lt;/storageInlineField&gt;
+ *    <!-- Only applicable for "inline" storage: -->
+ *    <storageInlineField>
+ *        (Overwrite default field where to store the inline image.
+ *         Default is {@value #COLLECTOR_FEATURED_IMAGE_INLINE}.)
+ *    </storageInlineField>
  *
- *     &lt;!-- Only applicable for "url" storage: --&gt;
- *     &lt;storageUrlField&gt;
- *         (Overwrite default field where to store the image URL.
- *          Default is {@value #COLLECTOR_FEATURED_IMAGE_URL}.)
- *     &lt;/storageUrlField&gt;
+ *    <!-- Only applicable for "url" storage: -->
+ *    <storageUrlField>
+ *        (Overwrite default field where to store the image URL.
+ *         Default is {@value #COLLECTOR_FEATURED_IMAGE_URL}.)
+ *    </storageUrlField>
  *
- *  &lt;/processor&gt;
- * </pre>
+ * </processor>
+ * }
  *
  * When specifying an image size, the format is <code>[width]x[height]</code>
  * or a single value. When a single value is used, that value represents both
  * the width and height (i.e., a square).
  *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ * <preImportProcessors>
+ *   <processor class="FeaturedImageProcessor">
+ *     <minDimensions>300x400</minDimensions>
+ *     <scaleDimensions>50</scaleDimensions>
+ *     <imageFormat>jpg</imageFormat>
+ *     <scaleQuality>max</scaleQuality>
+ *     <storage>inline</storage>
+ *   </processor>
+ * </preImportProcessors>
+ * }
  * <p>
- * The following extracts the first image being 300x400 or larger, scaling
+ * The above example extracts the first image being 300x400 or larger, scaling
  * it down to be 50x50 and storing it as an inline JPEG in a document field,
  * preserving aspect ratio and using the best quality possible.
  * </p>
- * <pre>
- *  &lt;preImportProcessors&gt;
- *    &lt;processor class="com.norconex.collector.http.processor.impl.FeaturedImageProcessor"&gt;
- *      &lt;minDimensions&gt;300x400&lt;/minDimensions&gt;
- *      &lt;scaleDimensions&gt;50&lt;/scaleDimensions&gt;
- *      &lt;imageFormat&gt;jpg&lt;/imageFormat&gt;
- *      &lt;scaleQuality&gt;max&lt;/scaleQuality&gt;
- *      &lt;storage&gt;inline&lt;/storage&gt;
- *    &lt;/processor&gt;
- *  &lt;/preImportProcessors&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 2.8.0
  */
+@SuppressWarnings("javadoc")
 public class FeaturedImageProcessor
         implements IHttpDocumentProcessor, IXMLConfigurable {
 

@@ -37,6 +37,7 @@ public class PostImportLinks extends AbstractTestFeature {
 
 //    private List<String> queuedURLs = new ArrayList<>();
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void doConfigureCralwer(HttpCrawlerConfig crawlerConfig)
             throws Exception {

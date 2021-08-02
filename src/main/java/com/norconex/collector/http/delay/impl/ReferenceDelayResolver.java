@@ -64,31 +64,29 @@ import com.norconex.commons.lang.xml.XML;
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
  *
- * <h3>XML configuration usage:</h3>
+ * {@nx.xml.usage
+ * <delay class="com.norconex.collector.http.delay.impl.ReferenceDelayResolver"
+ *         default="(milliseconds)"
+ *         ignoreRobotsCrawlDelay="[false|true]"
+ *         scope="[crawler|site|thread]">
+ *     <pattern delay="(delay in milliseconds)">
+ *       (regular expression applied against document reference)
+ *     </pattern>
+ *
+ *     (... repeat pattern tag as needed ...)
+ * </delay>
+ * }
+ *
+ * {@nx.xml.example
  * <pre>
- *  &lt;delay class="com.norconex.collector.http.delay.impl.ReferenceDelayResolver"
- *          default="(milliseconds)"
- *          ignoreRobotsCrawlDelay="[false|true]"
- *          scope="[crawler|site|thread]" &gt;
- *      &lt;pattern delay="(delay in milliseconds)"&gt;
- *        (regular expression applied against document reference)
- *      &lt;/pattern&gt;
- *
- *      (... repeat pattern tag as needed ...)
- *  &lt;/delay&gt;
- * </pre>
- *
- * <h4>Usage example:</h4>
+ * <delay class="ReferenceDelayResolver" default="3 seconds" >
+ *     <pattern delay="10 seconds">.*\.pdf</pattern>
+ * </delay>
+ * }
  * <p>
- * The following will increase the delay to 10 seconds when encountering PDFs
- * from a default of 3 seconds.
+ * The above examlpe will increase the delay to 10 seconds when encountering
+ * PDFs from a default of 3 seconds.
  * </p>
- * <pre>
- *  &lt;delay class="com.norconex.collector.http.delay.impl.ReferenceDelayResolver"
- *          default="3 seconds" &gt;
- *      &lt;pattern delay="10 seconds"&gt;.*\.pdf&lt;/pattern&gt;
- *  &lt;/delay&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 2.5.0

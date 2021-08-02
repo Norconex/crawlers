@@ -68,13 +68,13 @@ import com.norconex.commons.lang.xml.XML;
  * The following should be shared across concrete implementations
  * (which can add more configurable attributes and tags).
  * </p>
- * <pre>
- *  &lt;delay class="(implementing class)"
- *          default="(milliseconds)"
- *          ignoreRobotsCrawlDelay="[false|true]"
- *          scope="[crawler|site|thread]" &gt;
- *  &lt;/delay&gt;
- * </pre>
+ * {@nx.xml
+ * <delay class="(implementing class)"
+ *     default="(milliseconds)"
+ *     ignoreRobotsCrawlDelay="[false|true]"
+ *     scope="[crawler|site|thread]">
+ * </delay>
+ * }
  *
  * @author Pascal Essiembre
  * @since 2.5.0

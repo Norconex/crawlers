@@ -125,7 +125,7 @@ public final class TestUtil {
      * @param workdir working directory
      * @param startURLs start URLs
      * @return HTTP Collector configuration
-     * @throws IOException
+     * @throws IOException IO exception
      */
     public static HttpCollectorConfig newMemoryCollectorConfig(
             String id, Path workdir, String... startURLs) throws IOException {
@@ -186,7 +186,7 @@ public final class TestUtil {
      * @param workdir working directory
      * @param startURLs start URLs
      * @return HTTP Collector
-     * @throws IOException
+     * @throws IOException IO exception
      */
     public static HttpCollector newMemoryCollector(
             String id, Path workdir, String... startURLs) throws IOException {

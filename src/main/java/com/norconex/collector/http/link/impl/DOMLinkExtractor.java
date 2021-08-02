@@ -199,6 +199,7 @@ import com.norconex.importer.util.DOMUtil;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
+@SuppressWarnings("javadoc")
 public class DOMLinkExtractor extends AbstractTextLinkExtractor {
 
     private static final List<String> DEFAULT_SCHEMES =

@@ -72,25 +72,23 @@ import com.norconex.commons.lang.xml.XML;
  * <p>You can specify your own content types as long as they contain HTML
  * text.</p>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;canonicalLinkDetector
- *          class="com.norconex.collector.http.canon.impl.GenericCanonicalLinkDetector"
- *          ignore="(false|true)"&gt;
- *      &lt;contentTypes&gt;
- *          (CSV list of content types on which to perform canonical link
- *           detection. Leave blank or remove this tag to use defaults.)
- *      &lt;/contentTypes&gt;
- *  &lt;/canonicalLinkDetector&gt;
- * </pre>
+ * {@nx.xml.usage
+ * <canonicalLinkDetector
+ *     class="com.norconex.collector.http.canon.impl.GenericCanonicalLinkDetector"
+ *     ignore="(false|true)">
+ *   <contentTypes>
+ *     (CSV list of content types on which to perform canonical link
+ *     detection. Leave blank or remove this tag to use defaults.)
+ *   </contentTypes>
+ * </canonicalLinkDetector>
+ * }
  *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ * <canonicalLinkDetector ignore="true"/>
+ * }
  * <p>
- * The following example ignores canonical link resolution.
+ * The above example ignores canonical link resolution.
  * </p>
- * <pre>
- *  &lt;canonicalLinkDetector ignore="true"/&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 2.2.0

@@ -53,24 +53,21 @@ import com.norconex.importer.handler.filter.OnMatch;
  * number of duplicate segments found.
  * </p>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
- *          onMatch="[include|exclude]"
- *          count="(numeric value)"
- *          duplicate="[false|true]"
- *          separator="(a regex identifying segment separator)" /&gt;
- * </pre>
+ * {@nx.xml.usage
+ *  <filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
+ *      onMatch="[include|exclude]"
+ *      count="(numeric value)"
+ *      duplicate="[false|true]"
+ *      separator="(a regex identifying segment separator)" />
+ * }
  *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ *  <filter class="SegmentCountURLFilter" onMatch="exclude" count="5" />
+ * }
  * <p>
- * The following will reject URLs with more than 5 forward slashes after
+ * The above example will reject URLs with more than 5 forward slashes after
  * the domain.
  * </p>
- * <pre>
- *  &lt;filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
- *          onMatch="exclude" count="5" /&gt;
- * </pre>
  *
  * @author Pascal Essiembre
  * @since 1.2

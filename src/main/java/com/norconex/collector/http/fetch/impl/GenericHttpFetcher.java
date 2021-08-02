@@ -233,6 +233,7 @@ import com.norconex.importer.util.CharsetUtil;
  * @since 3.0.0 (Merged from GenericDocumentFetcher and
  *        GenericHttpClientFactory)
  */
+@SuppressWarnings("javadoc")
 public class GenericHttpFetcher extends AbstractHttpFetcher {
 
     private static final Logger LOG =

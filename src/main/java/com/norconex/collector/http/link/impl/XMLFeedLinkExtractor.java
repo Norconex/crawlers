@@ -89,6 +89,7 @@ import com.norconex.importer.handler.HandlerDoc;
  * @author Pascal Essiembre
  * @since 2.7.0
  */
+@SuppressWarnings("javadoc")
 public class XMLFeedLinkExtractor extends AbstractTextLinkExtractor {
 
     public XMLFeedLinkExtractor() {

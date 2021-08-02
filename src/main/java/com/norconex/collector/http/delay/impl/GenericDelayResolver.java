@@ -71,36 +71,34 @@ import com.norconex.commons.lang.xml.XML;
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
- *          default="(milliseconds)"
- *          ignoreRobotsCrawlDelay="[false|true]"
- *          scope="[crawler|site|thread]" &gt;
- *      &lt;schedule
- *          dayOfWeek="from (week day) to (week day)"
- *          dayOfMonth="from [1-31] to [1-31]"
- *          time="from (HH:mm) to (HH:mm)"&gt;
- *        (delay in milliseconds)
- *      &lt;/schedule&gt;
+ * {@nx.xml.usage
+ * <delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
+ *       default="(milliseconds)"
+ *       ignoreRobotsCrawlDelay="[false|true]"
+ *       scope="[crawler|site|thread]">
+ *   <schedule
+ *       dayOfWeek="from (week day) to (week day)"
+ *       dayOfMonth="from [1-31] to [1-31]"
+ *       time="from (HH:mm) to (HH:mm)">
+ *     (delay in milliseconds)
+ *   </schedule>
  *
- *      (... repeat schedule tag as needed ...)
- *  &lt;/delay&gt;
- * </pre>
+ *   (... repeat schedule tag as needed ...)
+ * </delay>
+ * }
  *
- * <h4>Usage example:</h4>
+ * {@nx.xml.example
+ * <delay class="GenericDelayResolver"
+ *     default="5 seconds" ignoreRobotsCrawlDelay="true" scope="site" >
+ *   <schedule dayOfWeek="from Saturday to Sunday">1 second</schedule>
+ * </delay>
+ * }
+ *
  * <p>
- * The following set the minimum delay between each document download
+ * The above example set the minimum delay between each document download
  * on a given site to 5 seconds, no matter what the crawler robots.txt may
  * say, except on weekend, where it is more agressive (1 second).
  * </p>
- * <pre>
- *  &lt;delay class="com.norconex.collector.http.delay.impl.GenericDelayResolver"
- *          default="5 seconds" ignoreRobotsCrawlDelay="true" scope="site" &gt;
- *      &lt;schedule dayOfWeek="from Saturday to Sunday"&gt;1 second&lt;/schedule&gt;
- *  &lt;/delay&gt;
- * </pre>
- *
  * @author Pascal Essiembre
  */
 public class GenericDelayResolver extends AbstractDelayResolver {

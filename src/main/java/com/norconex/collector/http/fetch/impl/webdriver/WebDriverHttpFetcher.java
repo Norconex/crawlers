@@ -177,6 +177,7 @@ import com.norconex.commons.lang.xml.XML;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
+@SuppressWarnings("javadoc")
 public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
   //TODO download files?

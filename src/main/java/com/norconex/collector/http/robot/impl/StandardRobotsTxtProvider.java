@@ -55,19 +55,18 @@ import com.norconex.importer.handler.filter.OnMatch;
  * described at <a href="http://www.robotstxt.org/robotstxt.html">
  * http://www.robotstxt.org/robotstxt.html</a>.
  * </p>
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;robotsTxt ignore="false"
- *     class="com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider"/&gt;
- * </pre>
+ * {@nx.xml.usage
+ * <robotsTxt ignore="false"
+ *     class="com.norconex.collector.http.robot.impl.StandardRobotsTxtProvider"/>
+ * }
  *
- * <h4>Usage example:</h4>
- * <p>
- * The following ignores "robots.txt" files present on web sites.
- * </p>
+ * {@nx.xml.example
  * <pre>
- *  &lt;robotsTxt ignore="true" /&gt;
- * </pre>
+ * <robotsTxt ignore="true" />
+ * }
+ * <p>
+ * The above example ignores "robots.txt" files present on web sites.
+ * </p>
  *
  * @author Pascal Essiembre
  */

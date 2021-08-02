@@ -68,6 +68,7 @@ import com.norconex.importer.doc.Doc;
  * @author Pascal Essiembre
  * @since 3.0.0
  */
+@SuppressWarnings("javadoc")
 public class ScreenshotHandler extends DocImageHandler {
 
     public static final Path DEFAULT_SCREENSHOT_DIR =

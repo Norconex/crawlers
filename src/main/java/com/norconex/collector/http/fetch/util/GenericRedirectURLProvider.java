@@ -88,21 +88,20 @@ import com.norconex.commons.lang.xml.XML;
  *   </li>
  * </ul>
  *
- * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;redirectURLProvider
- *      class="com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider"
- *      fallbackCharset="(character encoding)" /&gt;
- * </pre>
+ * {@nx.xml.usage
+ * <redirectURLProvider
+ *     class="com.norconex.collector.http.redirect.impl.GenericRedirectURLProvider"
+ *     fallbackCharset="(character encoding)" />
+ * }
  *
- * <h4>Usage example:</h4>
- * <p>
- * The following sets the default character encoding to be "ISO-8859-1" when
- * it could not be detected.
- * </p>
+ * {@nx.xml.example
  * <pre>
- *  &lt;redirectURLProvider fallbackCharset="ISO-8859-1" /&gt;
- * </pre>
+ * <redirectURLProvider fallbackCharset="ISO-8859-1" />
+ * }
+ * <p>
+ * The above example sets the default character encoding to be "ISO-8859-1"
+ * when it could not be detected.
+ * </p>
  *
  * @author Pascal Essiembre
  * @since 2.4.0
@@ -126,7 +125,7 @@ public class GenericRedirectURLProvider
     public void setFallbackCharset(String fallbackCharset) {
         this.fallbackCharset = fallbackCharset;
     }
-    
+
     @Override
     public String provideRedirectURL(HttpRequest request,
             HttpResponse response, HttpContext context) {
