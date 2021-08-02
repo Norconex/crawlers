@@ -67,7 +67,6 @@ import com.norconex.commons.lang.xml.XML;
  * <p>
  * The above example ignores robot meta information.
  * </p>
- * <pre>
  *
  * @author Pascal Essiembre
  */
