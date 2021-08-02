@@ -59,7 +59,7 @@ jobs:
             {
               "id": "sonatype-oss-snapshots",
               "name": "Sonatype OSS Snapshot Repository",
-              "url": "http://oss.sonatype.org/content/repositories/snapshots",
+              "url": "https://oss.sonatype.org/content/repositories/snapshots",
               "releases": {
                 "enabled": "false"
               },
