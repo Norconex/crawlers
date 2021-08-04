@@ -54,22 +54,7 @@ public class HttpCollector extends Collector {
      *    list of command-line options.
      */
 	public static void main(String[] args) {
-//	    HttpCollector collector = new HttpCollector();
 	    new CollectorCommandLauncher().launch(new HttpCollector(), args);
-
-
-//	    new AbstractCollectorLauncher() {
-//	        @Override
-//	        protected Collector createCollector(
-//	                CollectorConfig config) {
-//	            return new HttpCollector((HttpCollectorConfig) config);
-//	        }
-//	        @Override
-//	        protected Class<? extends CollectorConfig>
-//	                getCollectorConfigClass() {
-//	            return HttpCollectorConfig.class;
-//	        }
-//	    }.launch(args);
 	}
 
 

@@ -182,9 +182,6 @@ import com.norconex.commons.lang.io.CachedInputStream;
             if (!link.getMetadata().isEmpty()) {
                 newURL.setReferrerLinkMetadata(link.getMetadata().toString());
             }
-//            newURL.setReferrerLinkTag(link.getTag());
-//            newURL.setReferrerLinkText(link.getText());
-//            newURL.setReferrerLinkTitle(link.getTitle());
             HttpQueuePipelineContext newContext =
                     new HttpQueuePipelineContext(ctx.getCrawler(), newURL);
             new HttpQueuePipeline().execute(newContext);

@@ -40,8 +40,7 @@ import com.norconex.collector.core.store.DataStoreException;
  * @author Pascal Essiembre
  * @since 2.8.0
  */
-//TODO consider managing MVStore instances within this class to avoid
-// file lock issues.
+//TODO consider using DataStorageEngine instead.
 public class ImageCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(ImageCache.class);

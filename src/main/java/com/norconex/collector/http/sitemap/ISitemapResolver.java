@@ -67,12 +67,4 @@ public interface ISitemapResolver {
             List<String> sitemapLocations,
             Consumer<HttpDocInfo> sitemapURLConsumer,
             boolean startURLs);
-
-//    /**
-//     * Stops any ongoing sitemap resolution.  Some sitemaps can be huge,
-//     * and they may take a while to process.  Upon the crawler receiving a
-//     * stop request, this method will be invoked and implementors should
-//     * try to exit cleanly without much delay.
-//     */
-//    void stop();
 }

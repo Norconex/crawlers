@@ -29,11 +29,6 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
 
     public HttpCommitterPipelineContext(HttpCrawler crawler, CrawlDoc doc) {
         super(crawler, doc);
-
-//            ,
-//            HttpDocInfo crawlRef,
-//            HttpDocInfo cachedCrawlRef) {
-//        super(crawler, crawlRef, cachedCrawlRef, doc);
     }
 
     @Override
@@ -54,9 +49,4 @@ public class HttpCommitterPipelineContext extends DocumentPipelineContext {
     public HttpFetchClient getHttpFetchClient() {
         return getCrawler().getHttpFetchClient();
     }
-
-//    @Override
-//    public Doc getDocument() {
-//        return super.getDocument();
-//    }
 }

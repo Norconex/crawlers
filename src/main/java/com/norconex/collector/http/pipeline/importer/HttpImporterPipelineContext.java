@@ -46,10 +46,8 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
 
     public HttpImporterPipelineContext(
             HttpCrawler crawler,
-//            HttpDocInfo crawlRef, HttpDocInfo cachedCrawlRef,
             CrawlDoc doc) {
         super(crawler, doc);
-//        super(crawler, crawlRef, cachedCrawlRef, doc);
     }
 
     @Override

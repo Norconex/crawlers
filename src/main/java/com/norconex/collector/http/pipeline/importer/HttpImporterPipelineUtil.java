@@ -128,9 +128,6 @@ import com.norconex.collector.http.pipeline.queue.HttpQueuePipelineContext;
                 redirectURL, crawlRef.getDepth());
         newData.setReferrerReference(crawlRef.getReferrerReference());
         newData.setReferrerLinkMetadata(crawlRef.getReferrerLinkMetadata());
-//        newData.setReferrerLinkTag(crawlRef.getReferrerLinkTag());
-//        newData.setReferrerLinkText(crawlRef.getReferrerLinkText());
-//        newData.setReferrerLinkTitle(crawlRef.getReferrerLinkTitle());
         newData.setRedirectTrail(crawlRef.getRedirectTrail());
         newData.addRedirectURL(sourceURL);
         if (requeue) {

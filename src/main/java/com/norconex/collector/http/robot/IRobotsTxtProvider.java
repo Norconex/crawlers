@@ -29,10 +29,8 @@ public interface IRobotsTxtProvider {
      * This method signature changed in 1.3 to include the userAgent.
      * @param fetchClient http fetcher executor to grab robots.txt
      * @param url the URL to derive the robots.txt from
-//     * @param userAgent the User-Agent to match ourselves with the robot rules
      * @return robots.txt rules
      */
     RobotsTxt getRobotsTxt(HttpFetchClient fetchClient, String url);
-//    RobotsTxt getRobotsTxt(HttpFetcherExecutor fetcher, String url, String userAgent);
 
 }
