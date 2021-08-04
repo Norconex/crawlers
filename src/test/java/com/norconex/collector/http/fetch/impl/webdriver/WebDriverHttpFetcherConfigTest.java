@@ -1,4 +1,4 @@
-/* Copyright 2020 Norconex Inc.
+/* Copyright 2020-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
+import com.norconex.collector.core.filter.impl.ReferenceFilter;
 import com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcherConfig.WaitElementType;
 import com.norconex.collector.http.fetch.util.DocImageHandler.DirStructure;
 import com.norconex.collector.http.fetch.util.DocImageHandler.Target;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 
 class WebDriverHttpFetcherConfigTest  {
@@ -32,7 +33,7 @@ class WebDriverHttpFetcherConfigTest  {
     @Test
     void testWriteReadFetcher() throws MalformedURLException {
         WebDriverHttpFetcher f = new WebDriverHttpFetcher();
-        f.setReferenceFilters(new RegexReferenceFilter("test.*"));
+        f.setReferenceFilters(new ReferenceFilter(TextMatcher.regex("test.*")));
 
         ScreenshotHandler sh = new ScreenshotHandler();
         sh.setCssSelector("selector");

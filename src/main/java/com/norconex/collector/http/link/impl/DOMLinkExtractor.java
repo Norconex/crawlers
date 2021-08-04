@@ -174,21 +174,31 @@ import com.norconex.importer.util.DOMUtil;
  *      leave blank or remove tag to use defaults.)
  *   </schemes>
  *
- *   <!-- Repeat as needed -->
- *   <dom selector="(selector syntax)"
- *       {@nx.include com.norconex.importer.util.DOMUtil#attributes}
- *       />
+ *   <!-- Repeat as needed: -->
+ *   <linkSelector
+ *       {@nx.include com.norconex.importer.util.DOMUtil#attributes}>
+ *      (selector syntax)
+ *   </linkSelector>
+ *
+ *   <!-- Optional. Only apply link selectors to portions of a document
+ *        matching these selectors. Repeat as needed. -->
+ *   <extractSelector>(selector syntax)</extractSelector>
+ *
+ *   <!-- Optional. Do not apply link selectors to portions of a document
+ *        matching these selectors. Repeat as needed. -->
+ *   <noExtractSelector>(selector syntax)</noExtractSelector>
+ *
  * </extractor>
  * }
  *
  * {@nx.xml.example
  * <extractor class="com.norconex.collector.http.link.impl.DOMLinkExtractor">
- *   <dom selector="a[href]" extract="attr(href)"/>
- *   <dom selector="[src]" extract="attr(src)"/>
- *   <dom selector="link[href]" extract="attr(href)"/>
- *   <dom selector="meta[http-equiv='refresh']" extract="attr(content)"/>
+ *   <linkSelector extract="attr(href)">a[href]</linkSelector>
+ *   <linkSelector extract="attr(src)">[src]</linkSelector>
+ *   <linkSelector extract="attr(href)">link[href]</linkSelector>
+ *   <linkSelector extract="attr(content)">meta[http-equiv='refresh']</linkSelector>
  *
- *   <dom selector="[data-myurl]" extract="attr(data-myurl)"/>
+ *   <linkSelector extract="attr(data-myurl)">[data-myurl]</linkSelector>
  * </extractor>
  * }
  *
@@ -205,14 +215,11 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
     private static final List<String> DEFAULT_SCHEMES =
             Collections.unmodifiableList(Arrays.asList("http", "https", "ftp"));
 
-    //TODO document an example how to only consider parts of a document
-    //     with nested css syntax.
-
-
-    //TODO add extract/noextractSelector from GitHubLinkExtractor.
-
 
     private final Map<String, String> linkSelectors = new ListOrderedMap<>();
+    private final List<String> extractSelectors = new ArrayList<>();
+    private final List<String> noExtractSelectors = new ArrayList<>();
+
     private String charset = null;
     private String parser = DOMUtil.PARSER_HTML;
     private boolean ignoreNofollow;
@@ -299,6 +306,38 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
         linkSelectors.clear();
     }
 
+    public List<String> getExtractSelectors() {
+        return Collections.unmodifiableList(extractSelectors);
+    }
+    public void setExtractSelectors(List<String> selectors) {
+        CollectionUtil.setAll(this.extractSelectors, selectors);
+    }
+    public void setExtractSelectors(String... selectors) {
+        CollectionUtil.setAll(this.extractSelectors, Arrays.asList(selectors));
+    }
+    public void addExtractSelectors(List<String> selectors) {
+        this.extractSelectors.addAll(selectors);
+    }
+    public void addExtractSelectors(String... selectors) {
+        this.extractSelectors.addAll(Arrays.asList(selectors));
+    }
+
+    public List<String> getNoExtractSelectors() {
+        return Collections.unmodifiableList(noExtractSelectors);
+    }
+    public void setNoExtractSelectors(List<String> selectors) {
+        CollectionUtil.setAll(this.noExtractSelectors, selectors);
+    }
+    public void setNoExtractSelectors(String... selectors) {
+        CollectionUtil.setAll(this.noExtractSelectors, Arrays.asList(selectors));
+    }
+    public void addNoExtractSelectors(List<String> selectors) {
+        this.noExtractSelectors.addAll(selectors);
+    }
+    public void addNoExtractSelectors(String... selectors) {
+        this.noExtractSelectors.addAll(Arrays.asList(selectors));
+    }
+
     /**
      * Gets the schemes to be extracted.
      * @return schemes to be extracted
@@ -326,6 +365,8 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
             Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
         Parser jparser = DOMUtil.toJSoupParser(this.parser);
         Document jdoc = jparser.parseInput(reader, doc.getReference());
+        jdoc = excludeUnwantedContent(jdoc);
+
         for (Entry<String, String> sel : linkSelectors.entrySet()) {
             for (Element elm : jdoc.select(sel.getKey())) {
                 Link link = extractLink(elm, sel.getValue());
@@ -392,6 +433,25 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
         return link;
     }
 
+    private Document excludeUnwantedContent(Document doc) {
+        Document newDoc = doc;
+
+        // we join multiple selectors into one so matches are read in order.
+        String extractSelector = StringUtils.join(extractSelectors, ", ");
+        if (StringUtils.isNotBlank(extractSelector)) {
+            Document copyDoc = new Document(newDoc.baseUri());
+            for (Element el : newDoc.select(extractSelector)) {
+                copyDoc.appendChild(el);
+            }
+            newDoc = copyDoc;
+        }
+
+        for (String selector : noExtractSelectors) {
+            newDoc.select(selector).forEach(Element::remove);
+        }
+        return newDoc;
+    }
+
     @Override
     protected void loadTextLinkExtractorFromXML(XML xml) {
         setIgnoreNofollow(xml.getBoolean("@ignoreNofollow", ignoreNofollow));
@@ -399,6 +459,9 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
         setCharset(xml.getString("@charset", charset));
         setParser(xml.getString("@parser", parser));
         setSchemes(xml.getDelimitedStringList("schemes", schemes));
+
+        // load link selectors the deprecated way
+        xml.checkDeprecated("dom", "linkSelector", false);
         List<XML> nodes = xml.getXMLList("dom");
         if (!nodes.isEmpty()) {
             linkSelectors.clear();
@@ -407,6 +470,28 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
                         node.getString("@selector", null),
                         node.getString("@extract", null));
             }
+        }
+        // Overwrite the link selectors with the new way if present
+        List<XML> linkSelectXMLs = xml.getXMLList("linkSelector");
+        if (!linkSelectXMLs.isEmpty()) {
+            linkSelectors.clear();
+            for (XML linkSelectXML : linkSelectXMLs) {
+                addLinkSelector(
+                        linkSelectXML.getString(".", null),
+                        linkSelectXML.getString("@extract", null));
+            }
+        }
+
+        // extract selector
+        List<String> extractSelList = xml.getStringList("extractSelector");
+        if (!extractSelList.isEmpty()) {
+            CollectionUtil.setAll(this.extractSelectors, extractSelList);
+        }
+
+        // no extract selector
+        List<String> noExtractSelList = xml.getStringList("noExtractSelector");
+        if (!noExtractSelList.isEmpty()) {
+            CollectionUtil.setAll(this.noExtractSelectors, noExtractSelList);
         }
     }
 
@@ -418,10 +503,16 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
         xml.setAttribute("parser", parser);
         xml.addDelimitedElementList("schemes", schemes);
         for (Entry<String, String> en : linkSelectors.entrySet()) {
-            xml.addElement("dom")
-                    .setAttribute("selector", en.getKey())
-                    .setAttribute("extract", en.getValue());
+            xml.addElement("linkSelector")
+                    .setAttribute("extract", en.getValue())
+                    .setTextContent(en.getKey());
         }
+
+        // extract selector
+        xml.addElementList("extractSelector", extractSelectors);
+
+        // no extract selector
+        xml.addElementList("noExtractSelector", noExtractSelectors);
     }
 
     @Override

@@ -52,11 +52,11 @@ import com.norconex.commons.lang.xml.XML;
  *     class="com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer"
  *     disabled="[false|true]"
  *     keep="[false|true]"
- *     targetField="(field to store checksum)" />
+ *     toField="(field to store checksum)" />
  * }
  *
  * {@nx.xml.example
- * <metadataChecksummer keep="true" targetField="metaChecksum" />
+ * <metadataChecksummer keep="true" toField="metaChecksum" />
  * }
  * <p>
  * The above example will store the last modified date used for checksum

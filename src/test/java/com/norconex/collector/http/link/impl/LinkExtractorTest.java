@@ -24,8 +24,10 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -330,68 +332,82 @@ public class LinkExtractorTest {
 
     @Test
     public void testExtractSelector() throws IOException {
-        String baseURL = "http://www.example.com/";
 
-        // All these must be found
-        String[] expectedURLs = {
-                baseURL + "include1.html",
-                baseURL + "include2.html",
-                baseURL + "include3.html",
-                baseURL + "include4.html",
-                baseURL + "include5.html",
-        };
-        // All these must NOT be found
-        String[] unexpectedURLs = {
-                baseURL + "exclude1.html",
-                baseURL + "exclude2.html",
-                baseURL + "exclude3.html",
-                baseURL + "exclude4.html",
-                baseURL + "exclude5.html",
-                baseURL + "exclude6.html",
-                baseURL + "exclude7.html",
-        };
+        List<ILinkExtractor> extractors = new ArrayList<>();
 
-        // Only HtmlLinkExtractor:
-        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
-        extractor.addExtractSelectors("include1");
-        extractor.addExtractSelectors("include2");
-        extractor.addNoExtractSelectors("exclude1");
-        extractor.addNoExtractSelectors("exclude2");
+        HtmlLinkExtractor htmlExtractor = new HtmlLinkExtractor();
+        htmlExtractor.addExtractSelectors("include1", "include2");
+        htmlExtractor.addNoExtractSelectors("exclude1", "exclude2");
+        extractors.add(htmlExtractor);
 
-        Set<Link> links;
-        try (InputStream is = getClass().getResourceAsStream(
-                "LinkExtractBetweenTest.html")) {
-            links = extractor.extractLinks(
-                    toCrawlDoc(baseURL + "LinkExtractBetweenTest.html",
-                            ContentType.HTML, is));
+        DOMLinkExtractor domExtractor = new DOMLinkExtractor();
+        domExtractor.addExtractSelectors("include1", "include2");
+        domExtractor.addNoExtractSelectors("exclude1", "exclude2");
+        extractors.add(htmlExtractor);
+
+        for (ILinkExtractor extractor : extractors) {
+            String baseURL = "http://www.example.com/";
+
+            // All these must be found
+            String[] expectedURLs = {
+                    baseURL + "include1.html",
+                    baseURL + "include2.html",
+                    baseURL + "include3.html",
+                    baseURL + "include4.html",
+                    baseURL + "include5.html",
+            };
+            // All these must NOT be found
+            String[] unexpectedURLs = {
+                    baseURL + "exclude1.html",
+                    baseURL + "exclude2.html",
+                    baseURL + "exclude3.html",
+                    baseURL + "exclude4.html",
+                    baseURL + "exclude5.html",
+                    baseURL + "exclude6.html",
+                    baseURL + "exclude7.html",
+            };
+
+            Set<Link> links;
+            try (InputStream is = getClass().getResourceAsStream(
+                    "LinkExtractBetweenTest.html")) {
+                links = extractor.extractLinks(
+                        toCrawlDoc(baseURL + "LinkExtractBetweenTest.html",
+                                ContentType.HTML, is));
+            }
+
+            for (String expectedURL : expectedURLs) {
+                Assertions.assertTrue(contains(links, expectedURL),
+                        "Could not find expected URL: " + expectedURL);
+            }
+            for (String unexpectedURL : unexpectedURLs) {
+                Assertions.assertFalse(contains(links, unexpectedURL),
+                        "Found unexpected URL: " + unexpectedURL);
+            }
+
+            Assertions.assertEquals(expectedURLs.length, links.size(),
+                    "Invalid number of links extracted.");
         }
-
-        for (String expectedURL : expectedURLs) {
-            Assertions.assertTrue(contains(links, expectedURL),
-                    "Could not find expected URL: " + expectedURL);
-        }
-        for (String unexpectedURL : unexpectedURLs) {
-            Assertions.assertFalse(contains(links, unexpectedURL),
-                    "Found unexpected URL: " + unexpectedURL);
-        }
-
-        Assertions.assertEquals(expectedURLs.length, links.size(),
-                "Invalid number of links extracted.");
     }
 
     //--- Other Tests ----------------------------------------------------------
     @Test
     public void testHtmlWriteRead() {
-        HtmlLinkExtractor extractor = new HtmlLinkExtractor();
-        extractor.setIgnoreNofollow(true);
-        extractor.addLinkTag("food", "chocolate");
-        extractor.addLinkTag("friend", "Thor");
-        extractor.addExtractBetween("start1", "end1", true);
-        extractor.addExtractBetween("start2", "end2", false);
-        extractor.addNoExtractBetween("nostart1", "noend1", true);
-        extractor.addNoExtractBetween("nostart2", "noend2", false);
-        LOG.debug("Writing/Reading this: {}", extractor);
-        XML.assertWriteRead(extractor, "extractor");
+        HtmlLinkExtractor htmlExtractor = new HtmlLinkExtractor();
+        htmlExtractor.setIgnoreNofollow(true);
+        htmlExtractor.addLinkTag("food", "chocolate");
+        htmlExtractor.addLinkTag("friend", "Thor");
+        htmlExtractor.addExtractBetween("start1", "end1", true);
+        htmlExtractor.addExtractBetween("start2", "end2", false);
+        htmlExtractor.addNoExtractBetween("nostart1", "noend1", true);
+        htmlExtractor.addNoExtractBetween("nostart2", "noend2", false);
+        XML.assertWriteRead(htmlExtractor, "extractor");
+
+        DOMLinkExtractor domExtractor = new DOMLinkExtractor();
+        domExtractor.setIgnoreNofollow(true);
+        domExtractor.addLinkSelector("food", "text");
+        domExtractor.addExtractSelectors("one", "two", "three");
+        domExtractor.addNoExtractSelectors("four", "five", "six");
+        XML.assertWriteRead(domExtractor, "extractor");
     }
 
     @Test

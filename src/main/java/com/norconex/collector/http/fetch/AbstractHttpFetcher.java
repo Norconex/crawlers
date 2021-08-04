@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  * {@nx.xml.usage #referenceFilters
  * <referenceFilters>
  *   <!-- multiple "filter" tags allowed -->
- *   <filter class="(any reference filter flass)">
+ *   <filter class="(any reference filter class)">
  *      (Refer to the documentation for the implementation of IReferenceFilter
  *       you are using here for usage details.)
  *   </filter>
@@ -61,13 +61,16 @@ import com.norconex.importer.handler.filter.OnMatch;
  * }
  *
  * <h4>Usage example:</h4>
- * <p>This example will restrict applying an HTTP Fetcher to URLs ending with
- * ".pdf".
+ * <p>This filter example will restrict applying an HTTP Fetcher to URLs
+ * ending with ".pdf".
  * </p>
  *
  * {@nx.xml.example
- * <filter class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
- *     onMatch="exclude">https://example\.com/pdfs/.*</filter>
+ * <referenceFilters>
+ *   <filter class="ReferenceFilter" onMatch="exclude">
+ *     <valueMatcher method="regex">https://example\.com/pdfs/.*</valueMatcher>
+ *   </filter>
+ * </referenceFilters>
  * }
  *
  * @author Pascal Essiembre

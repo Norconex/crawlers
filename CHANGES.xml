@@ -9,7 +9,17 @@
 
     <release version="3.0.0-SNAPSHOT" date="2021-??-??" 
         description="Changes since last milestone for this upcoming major release.">
-
+      <action dev="essiembre" type="add">
+        New DOMLinkExtractor repeatable "extractSelector" and 
+        "noExtractSelector".  
+      </action>
+      <action dev="essiembre" type="update">
+        DOMLinkExtractor configurable "dom" elements deprecated in favor 
+        of "linkSelector".  
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed invalid configuration in POM "maven-dependency-plugin".
+      </action>
     </release>
 
     <release version="3.0.0-M2" date="2021-07-28" 

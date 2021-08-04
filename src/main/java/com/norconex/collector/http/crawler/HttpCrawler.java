@@ -443,28 +443,4 @@ public class HttpCrawler extends Crawler {
             metadata.add(key, value);
         }
     }
-
-//    // Wraps redirection strategy to consider URLs as new documents to
-//    // queue for processing.
-//    private void initializeRedirectionStrategy() {
-//        try {
-//            Object chain = FieldUtils.readField(httpClient, "execChain", true);
-//            Object redir = FieldUtils.readField(
-//                    chain, "redirectStrategy", true);
-//            if (redir instanceof RedirectStrategy) {
-//                RedirectStrategy originalStrategy = (RedirectStrategy) redir;
-//                RedirectStrategyWrapper strategyWrapper =
-//                        new RedirectStrategyWrapper(originalStrategy,
-//                                getCrawlerConfig().getRedirectURLProvider());
-//                FieldUtils.writeField(
-//                        chain, "redirectStrategy", strategyWrapper, true);
-//            } else {
-//                LOG.warn("Could not wrap RedirectStrategy to properly handle"
-//                        + "redirects.");
-//            }
-//        } catch (Exception e) {
-//            LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
-//                    + "internal connection manager does not support it.");
-//        }
-//    }
 }

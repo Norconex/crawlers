@@ -47,9 +47,7 @@ public class HttpDocInfo extends CrawlDocInfo {
     private String sitemapChangeFreq;
     private Float sitemapPriority;
     private String originalReference; //TODO keep the trail if it changes often?
-//    @ToStringExclude
     private String referrerReference;
-//    @ToStringExclude
     private String referrerLinkMetadata;
 
     @ToStringSummary

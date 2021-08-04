@@ -38,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.doc.CrawlDoc;
-import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
+import com.norconex.collector.core.filter.impl.ReferenceFilter;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.HttpFetchClient;
 import com.norconex.collector.http.fetch.HttpMethod;
@@ -46,6 +46,7 @@ import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.robot.IRobotsTxtFilter;
 import com.norconex.collector.http.robot.IRobotsTxtProvider;
 import com.norconex.collector.http.robot.RobotsTxt;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.importer.handler.filter.OnMatch;
 
@@ -315,12 +316,12 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         }
     }
 
-    private static class RobotsTxtFilter extends RegexReferenceFilter
+    private static class RobotsTxtFilter extends ReferenceFilter
             implements IRobotsTxtFilter {
         private final String path;
         public RobotsTxtFilter(
                 String path, String regex, OnMatch onMatch) {
-            super(regex, onMatch, false);
+            super(TextMatcher.regex(regex).setIgnoreCase(true), onMatch);
             this.path = path;
         }
         @Override
@@ -339,7 +340,7 @@ public class StandardRobotsTxtProvider implements IRobotsTxtProvider {
         public String toString() {
             return "Robots.txt -> " + (getOnMatch() == OnMatch.INCLUDE
                     ? "Allow: " : "Disallow: ") + path
-                            + " (" + getRegex().toString() + ")";
+                            + " (" + getValueMatcher().getPattern() + ")";
         }
     }
 }

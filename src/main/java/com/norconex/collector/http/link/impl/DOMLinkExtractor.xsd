@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2020 Norconex Inc.
+   Copyright 2020-2021 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,7 +24,15 @@
         <xs:extension base="AbstractTextLinkExtractor">
           <xs:all>
             <xs:element name="schemes" type="xs:string" minOccurs="0" maxOccurs="1"/>
-            <xs:element ref="dom" minOccurs="1" maxOccurs="unbounded" />
+            
+            <!-- TODO: Make minOccurs 1 when deprecation is removed. -->
+            <xs:element ref="linkSelector" minOccurs="0" maxOccurs="unbounded" />
+            
+            <!-- Deprecated in favor of linkSelector: -->
+            <xs:element ref="dom" minOccurs="0" maxOccurs="unbounded" />
+            
+            <xs:element name="extractSelector" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="noExtractSelector" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
           </xs:all>
           
           <xs:attribute name="ignoreNofollow" type="xs:boolean"/>
@@ -37,6 +45,24 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="linkSelector">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute name="extract">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:pattern
+                  value="text|html|outerHtml|ownText|data|tagName|val|className|cssSelector|(attr\(.*\))" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Deprecated: -->
   <xs:element name="dom">
     <xs:complexType>
       <xs:attribute name="selector" type="xs:string" use="required"></xs:attribute>

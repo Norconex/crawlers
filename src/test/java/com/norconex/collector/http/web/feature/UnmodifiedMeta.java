@@ -18,6 +18,7 @@ import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
 import com.norconex.committer.core3.impl.MemoryCommitter;
+import com.norconex.commons.lang.text.TextMatcher;
 
 /**
  * Tests that the page does not produce any Committer addition on subsequent
@@ -37,7 +38,7 @@ public class UnmodifiedMeta extends AbstractInfiniteDepthTestFeature {
     protected void doConfigureCralwer(HttpCrawlerConfig cfg) throws Exception {
         cfg.setMaxDepth(0);
         MD5DocumentChecksummer cs = new MD5DocumentChecksummer();
-        cs.setSourceFields("article:modified_time");
+        cs.setFieldMatcher(TextMatcher.basic("article:modified_time"));
         cfg.setDocumentChecksummer(cs);
     }
 

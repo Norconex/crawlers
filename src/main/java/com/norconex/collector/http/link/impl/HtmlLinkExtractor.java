@@ -473,6 +473,15 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         CollectionUtil.setAll(this.extractSelectors, selectors);
     }
     /**
+     * Sets the selectors matching the portions of a document to be considered
+     * for link extraction.
+     * @param selectors selectors
+     * @since 3.0.0
+     */
+    public void setExtractSelectors(List<String> selectors) {
+        CollectionUtil.setAll(this.extractSelectors, selectors);
+    }
+    /**
      * Adds selectors matching the portions of a document to be considered
      * for link extraction.
      * @param selectors selectors
@@ -480,6 +489,15 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      */
     public void addExtractSelectors(String... selectors) {
         this.extractSelectors.addAll(Arrays.asList(selectors));
+    }
+    /**
+     * Adds selectors matching the portions of a document to be considered
+     * for link extraction.
+     * @param selectors selectors
+     * @since 3.0.0
+     */
+    public void addExtractSelectors(List<String> selectors) {
+        this.extractSelectors.addAll(selectors);
     }
 
     /**
@@ -501,6 +519,15 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         CollectionUtil.setAll(this.noExtractSelectors, selectors);
     }
     /**
+     * Sets the selectors matching the portions of a document to be excluded
+     * from link extraction.
+     * @param selectors selectors
+     * @since 3.0.0
+     */
+    public void setNoExtractSelectors(List<String> selectors) {
+        CollectionUtil.setAll(this.noExtractSelectors, selectors);
+    }
+    /**
      * Adds selectors matching the portions of a document to be excluded
      * from link extraction.
      * @param selectors selectors
@@ -508,6 +535,15 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      */
     public void addNoExtractSelectors(String... selectors) {
         this.noExtractSelectors.addAll(Arrays.asList(selectors));
+    }
+    /**
+     * Adds selectors matching the portions of a document to be excluded
+     * from link extraction.
+     * @param selectors selectors
+     * @since 3.0.0
+     */
+    public void addNoExtractSelectors(List<String> selectors) {
+        this.noExtractSelectors.addAll(selectors);
     }
 
     /**

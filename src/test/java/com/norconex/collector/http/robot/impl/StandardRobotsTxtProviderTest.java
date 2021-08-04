@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.collector.core.filter.IReferenceFilter;
-import com.norconex.collector.core.filter.impl.RegexReferenceFilter;
+import com.norconex.collector.core.filter.impl.ReferenceFilter;
 import com.norconex.collector.http.robot.IRobotsTxtFilter;
 
 /**
@@ -161,10 +161,10 @@ public class StandardRobotsTxtProviderTest {
 
     private void assertMatch(
             String url, IReferenceFilter robotRule, Boolean match) {
-        RegexReferenceFilter regexFilter = (RegexReferenceFilter) robotRule;
+        ReferenceFilter regexFilter = (ReferenceFilter) robotRule;
         Assertions.assertEquals(
                 match,
-                url.matches(regexFilter.getRegex()));
+                url.matches(regexFilter.getValueMatcher().getPattern()));
     }
 
     private void assertMatch(

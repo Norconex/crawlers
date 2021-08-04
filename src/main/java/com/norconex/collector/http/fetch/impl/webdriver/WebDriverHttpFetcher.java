@@ -142,13 +142,7 @@ import com.norconex.commons.lang.xml.XML;
  *     options do not work.)
  *   </threadWait>
  *
- *   <restrictions>
- *     <restrictTo caseSensitive="[false|true]"
- *         field="(name of metadata field name to match)">
- *       (regular expression of value to match)
- *     </restrictTo>
- *     <!-- multiple "restrictTo" tags allowed (only one needs to match) -->
- *   </restrictions>
+ *   {@nx.include com.norconex.collector.http.fetch.AbstractHttpFetcher@nx.xml.usage#referenceFilters}
  *
  *   <!-- Optionally setup an HTTP proxy that allows to set and capture
  *        HTTP headers. For advanced use only. Not recommended
@@ -164,9 +158,11 @@ import com.norconex.commons.lang.xml.XML;
  * <fetcher class="com.norconex.collector.http.fetch.impl.webdriver.WebDriverHttpFetcher">
  *   <browser>firefox</browser>
  *   <driverPath>/drivers/geckodriver.exe</driverPath>
- *   <restrictions>
- *     <restrictTo field="document.reference">.*dynamic.*$</restrictTo>
- *   </restrictions>
+ *   <referenceFilters>
+ *     <filter class="ReferenceFilter">
+ *       <valueMatcher method="regex">.*dynamic.*$</valueMatcher>
+ *     </filter>
+ *   </referenceFilters>
  * </fetcher>
  * }
  *

@@ -417,6 +417,8 @@ import com.norconex.importer.ImporterConfig;
  *
  *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#init}
  *
+ *   <fetchHttpHead>[false|true]</fetchHttpHead>
+ *
  *   <httpFetchers
  *       maxRetries="(number of times to retry a failed fetch attempt)"
  *       retryDelay="(how many milliseconds to wait between re-attempting)">
@@ -434,8 +436,6 @@ import com.norconex.importer.ImporterConfig;
  *   <sitemapResolver
  *       ignore="[false|true]"
  *       class="(ISitemapResolver implementation)"/>
- *
- *   <redirectURLProvider class="(IRedirectURLProvider implementation)" />
  *
  *   <recrawlableResolver class="(IRecrawlableResolver implementation)" />
  *

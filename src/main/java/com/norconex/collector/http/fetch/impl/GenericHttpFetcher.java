@@ -199,13 +199,8 @@ import com.norconex.importer.util.CharsetUtil;
  *   <forceContentTypeDetection>[false|true]</forceContentTypeDetection>
  *   <forceCharsetDetection>[false|true]</forceCharsetDetection>
  *
- *   <restrictions>
- *     <restrictTo caseSensitive="[false|true]"
- *         field="(name of metadata field name to match)">
- *       (regular expression of value to match)
- *     </restrictTo>
- *     <!-- multiple "restrictTo" tags allowed (only one needs to match) -->
- *   </restrictions>
+ *   {@nx.include com.norconex.collector.http.fetch.AbstractHttpFetcher@nx.xml.usage#referenceFilters}
+ *
  * </fetcher>
  * }
  *

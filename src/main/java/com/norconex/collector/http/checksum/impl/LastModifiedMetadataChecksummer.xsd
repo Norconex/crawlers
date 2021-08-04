@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2017 Norconex Inc.
+   Copyright 2017-2021 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,7 +21,10 @@
       <xs:attribute name="class" type="xs:string"/>
       <xs:attribute name="disabled" type="xs:boolean"/>
       <xs:attribute name="keep" type="xs:boolean"/>
-      <xs:attribute name="targetField" type="xs:string"/>
+      <xs:attribute name="toField" type="xs:string"/>
+
+      <!-- Deprecated: -->
+      <xs:attribute name="targetField" type="xs:string" />      
     </xs:complexType>
   </xs:element>
 

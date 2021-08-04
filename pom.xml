@@ -260,7 +260,7 @@
             <configuration>
               <classifier>resources</classifier>
               <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-              <includeArtifacIds>norconex-commons-lang</includeArtifacIds>
+              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
               <includeGroupIds>com.norconex.commons</includeGroupIds>
               <excludeTransitive>true</excludeTransitive>
             </configuration>
