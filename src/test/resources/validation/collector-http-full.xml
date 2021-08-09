@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2017-2020 Norconex Inc.
+   Copyright 2017-2021 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,15 +21,8 @@
      -->
 <httpcollector id="Test Collector HTTP Config">
 
-  <!-- NEW: -->
   <workDir>/workdir</workDir>
   
-<!-- DEPRECATED:
-  <progressDir>/progress</progressDir>
-  <logsDir>/logs</logsDir>
- -->
- 
-  <!-- NEW: -->
   <eventListeners>
     <listener class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener">
       <statusCodes>404</statusCodes>
@@ -47,31 +40,22 @@
       <provider class="com.norconex.collector.http.crawler.MockStartURLsProvider"/>
     </startURLs>
     <keepDownloads>true</keepDownloads>
-    <!-- Replaced: 
-    <keepOutOfScopeLinks>false</keepOutOfScopeLinks>
-    -->
     <keepReferencedLinks>INSCOPE, OUTSCOPE, MAXDEPTH</keepReferencedLinks>
     <maxDepth>99</maxDepth>
     <numThreads>1</numThreads>
     <maxDocuments>111</maxDocuments>
     <orphansStrategy>PROCESS</orphansStrategy>
+    <fetchHttpHead>OPTIONAL</fetchHttpHead>
+    <fetchHttpGet>DISABLED</fetchHttpGet>
     
-    <!-- NEW: -->
-    <fetchHttpHead>true</fetchHttpHead>
-    
-    <!-- DEPRECATED:
-    <crawlerListeners>
-      <listener class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener">
-        <statusCodes>404</statusCodes>
-        <outputDir>/tmp/path</outputDir>
-        <fileNamePrefix>broken-links</fileNamePrefix>
+    <eventListeners>
+      <listener class="URLStatusCrawlerEventListener">
+        <statusCodes>200</statusCodes>
+        <outputDir>/tmp/okpath</outputDir>
+        <fileNamePrefix>good-pages</fileNamePrefix>
       </listener>
-    </crawlerListeners>
-     -->
+    </eventListeners>
     
-    <!-- DEPRECATED (part of httpFetchers):
-    <userAgent>Please identify your Crawler</userAgent>
-     -->
     <urlNormalizer disabled="false" class="com.norconex.collector.http.url.impl.GenericURLNormalizer">
       <normalizations>
         lowerCaseSchemeHost, upperCaseEscapeSequence, 
@@ -99,13 +83,6 @@
       <autoCommitDelay>100</autoCommitDelay>    
     </dataStoreEngine>
     
-    <!-- DEPRECATED:
-    <httpClientFactory class="com.norconex.collector.http.client.impl.GenericHttpClientFactory">
-      ...
-    </httpClientFactory>
-    -->
-    
-    <!-- NEW: -->
     <httpFetchers maxRetries="5" retryDelay="10 seconds">
       <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
           <userAgent>Here we crawl!</userAgent>
@@ -187,8 +164,9 @@
     <referenceFilters>
       <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
           onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
-      <filter class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
-          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+      <filter class=".ReferenceFilter" onMatch="exclude">
+        <valueMatcher ignoreCase="false" method="regex">.*example.com.*</valueMatcher>
+      </filter>
       <filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
               onMatch="exclude" count="5" duplicate="false" separator="/" />
     </referenceFilters>    
@@ -199,10 +177,7 @@
       <path>/path1/</path>
       <path>/path2/</path>
     </sitemapResolver>
-    <!-- DEPRECATED:
-    <redirectURLProvider class="com.norconex.collector.http.fetch.util.GenericRedirectURLProvider"
-        fallbackCharset="UTF-8" />
-     -->
+
     <recrawlableResolver class="com.norconex.collector.http.recrawl.impl.GenericRecrawlableResolver"
              sitemapSupport="last" >
          <minFrequency applyTo="reference" caseSensitive="false" value="always" >
@@ -213,20 +188,16 @@
          </minFrequency>
     </recrawlableResolver>
     
-    <!-- DEPRECATED:
-    <metadataFetcher class="com.norconex.collector.http.fetch.impl.GenericMetadataFetcher" >
-      <validStatusCodes>200,123</validStatusCodes>
-      <notFoundStatusCodes>404,456</notFoundStatusCodes>
-      <headersPrefix>prefix</headersPrefix>
-    </metadataFetcher>
-     -->
     <metadataFilters>
       <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
           onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
-      <filter class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
-          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
-      <filter class="com.norconex.collector.core.filter.impl.RegexMetadataFilter"
-          onMatch="include" caseSensitive="false" field="title">Blah.*</filter>
+      <filter class=".ReferenceFilter" onMatch="exclude">
+        <valueMatcher ignoreCase="true" method="regex">.*example.com.*</valueMatcher>
+      </filter>
+      <filter class=".MetadataFilter" onMatch="include">
+        <valueMatcher ignoreCase="true" method="regex">Blah.*</valueMatcher>
+        <fieldMatcher>title</fieldMatcher>
+      </filter>
       <filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
               onMatch="exclude" count="5" duplicate="false" separator="/" />
     </metadataFilters>
@@ -236,24 +207,13 @@
     </canonicalLinkDetector>
     <metadataChecksummer 
         class="com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer"
-        disabled="false" keep="true" targetField="myfield" />
+        disabled="false" keep="true" toField="myfield" />
         
-    <!-- DEPRECATED:
-    <documentFetcher class="com.norconex.collector.http.fetch.impl.GenericDocumentFetcher"
-        detectContentType="true" detectCharset="true">
-      <validStatusCodes>200,123</validStatusCodes>
-      <notFoundStatusCodes>404,456</notFoundStatusCodes>
-      <headersPrefix>prefix</headersPrefix>
-    </documentFetcher>
-     -->    
     <robotsMeta ignore="false" 
        class="com.norconex.collector.http.robot.impl.StandardRobotsMetaProvider">
        <headersPrefix>prefix</headersPrefix>
     </robotsMeta>
     <linkExtractors>
-    <!-- DEPRECATED:
-       - all content type + reference filter options, replaced with restrictTo
-       -->
       <extractor class="com.norconex.collector.http.link.impl.HtmlLinkExtractor"
           maxURLLength="999" ignoreNofollow="false" 
           commentsEnabled="true" charset="UTF-8" >
@@ -317,10 +277,13 @@
     <documentFilters>
       <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
           onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
-      <filter class="com.norconex.collector.core.filter.impl.RegexReferenceFilter"
-          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
-      <filter class="com.norconex.collector.core.filter.impl.RegexMetadataFilter"
-          onMatch="include" caseSensitive="false" field="title">Blah.*</filter>
+      <filter class=".ReferenceFilter" onMatch="exclude">
+        <valueMatcher ignoreCase="true" method="regex">.*example.com.*</valueMatcher>
+      </filter>
+      <filter class=".MetadataFilter" onMatch="include">
+        <fieldMatcher>title</fieldMatcher>
+        <valueMatcher ignoreCase="true" method="regex">Blah.*</valueMatcher>
+      </filter>
       <filter class="com.norconex.collector.http.filter.impl.SegmentCountURLFilter"
               onMatch="exclude" count="5" duplicate="false" separator="/" />
     </documentFilters>
@@ -348,7 +311,6 @@
          Importer project. -->
     <importer>
       <preParseHandlers>
-        <!-- "transformer" DEPRECATED for "handler": -->
         <handler class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
           <replace><valueMatcher>A</valueMatcher><toValue>B</toValue></replace>
         </handler>  
@@ -362,8 +324,8 @@
 
     <documentChecksummer 
         class="com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer"
-        disabled="false" keep="true" targetField="afield">
-      <sourceFields>field1,field2</sourceFields>
+        disabled="false" keep="true" toField="afield">
+      <fieldMatcher method="csv">field1,field2</fieldMatcher>
     </documentChecksummer>
     <postImportProcessors>
       <processor class="com.norconex.collector.http.processor.impl.MockHttpDocumentProcessor"/>
@@ -380,20 +342,11 @@
     </spoiledReferenceStrategizer>
 
 
-    <!-- NEW: -->
     <committers>
       <committer class="com.norconex.committer.core3.fs.impl.JSONFileCommitter">
         <directory>/tmp/somepath</directory>
       </committer>
     </committers>
-    <!-- DEPRECATED:
-       - Now supports multiple committers, so needs to be wrapp in <committers>
-       -->
-    <!--
-    <committer class="com.norconex.committer.core.impl.FileSystemCommitter">
-      <directory>/tmp/somepath</directory>
-    </committer>
-      -->
 
   </crawlerDefaults>
   

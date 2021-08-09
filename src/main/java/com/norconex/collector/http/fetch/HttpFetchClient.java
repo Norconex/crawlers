@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class HttpFetchClient {
         HttpFetchClientResponse allResponses = new HttpFetchClientResponse();
         boolean accepted = false;
         for (IHttpFetcher fetcher : fetchers) {
-            if (!fetcher.accept(doc)) {
+            if (!fetcher.accept(doc, httpMethod)) {
                 continue;
             }
             if (LOG.isDebugEnabled()) {
@@ -125,7 +125,14 @@ public class HttpFetchClient {
             }
         }
         if (!accepted) {
-            LOG.warn("No HTTP Fetcher accepted to fetch this "
+            allResponses.addResponse(HttpFetchResponseBuilder
+                    .unsupported()
+                    .setReasonPhrase(
+                            "No HTTP fetcher defined accepting URL '"
+                          + doc.getReference() + "' for HTTP method '"
+                          + httpMethod + "'.")
+                    .create(), null);
+            LOG.debug("No HTTP Fetcher accepted to fetch this "
                     + "reference: \"{}\". "
                     + "For generic URL filtering it is highly recommended you "
                     + "use a regular URL filtering options, such as reference "

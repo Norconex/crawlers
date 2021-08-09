@@ -1,4 +1,4 @@
-/* Copyright 2020 Norconex Inc.
+/* Copyright 2020-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package com.norconex.collector.http.pipeline.importer;
 
 import java.util.Objects;
 
+import com.norconex.collector.http.crawler.HttpCrawlerConfig.HttpMethodSupport;
 import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.commons.lang.EqualsUtil;
 
@@ -37,8 +38,8 @@ import com.norconex.commons.lang.EqualsUtil;
     }
     @Override
     public final boolean executeStage(HttpImporterPipelineContext ctx) {
-        // If stage is HEAD but fetching HEAD was NOT requested, skip.
-        if (method == HttpMethod.HEAD && !ctx.isHttpHeadFetchEnabled()) {
+        // If stage is for a method that was disabled, skip
+        if (!isMethodEnabled(method, ctx)) {
             return true;
         }
         return executeStage(ctx, method);
@@ -62,7 +63,18 @@ import com.norconex.commons.lang.EqualsUtil;
      */
     protected boolean wasHttpHeadPerformed(HttpImporterPipelineContext ctx) {
         // If GET and fetching HEAD was requested, we ran filters already, skip.
-        return method == HttpMethod.GET && ctx.getConfig().isFetchHttpHead();
+        return method == HttpMethod.GET
+                &&  HttpMethodSupport.isEnabled(
+                        ctx.getConfig().getFetchHttpHead());
     }
 
+    private boolean isMethodEnabled(
+            HttpMethod method,  HttpImporterPipelineContext ctx) {
+        return (method == HttpMethod.HEAD
+                && HttpMethodSupport.isEnabled(
+                        ctx.getConfig().getFetchHttpHead()))
+                || (method == HttpMethod.GET
+                        && HttpMethodSupport.isEnabled(
+                                ctx.getConfig().getFetchHttpGet()));
+    }
 }

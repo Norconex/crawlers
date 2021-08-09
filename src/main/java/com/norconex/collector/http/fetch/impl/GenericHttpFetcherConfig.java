@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package com.norconex.collector.http.fetch.impl;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 
+import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.util.GenericRedirectURLProvider;
 import com.norconex.collector.http.fetch.util.IRedirectURLProvider;
 import com.norconex.commons.lang.EqualsUtil;
@@ -86,6 +88,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private String userAgent;
     private IRedirectURLProvider redirectURLProvider =
             new GenericRedirectURLProvider();
+    private final List<HttpMethod> httpMethods = new ArrayList<>(Arrays.asList(
+            HttpMethod.GET, HttpMethod.HEAD));
 
     // Security settings
     private boolean trustAllSSLCertificates;
@@ -541,6 +545,23 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         this.authConfig = authConfig;
     }
 
+    /**
+     * Gets the list of HTTP methods to be accepted by this fetcher.
+     * Defaults are {@link HttpMethod#GET} and {@link HttpMethod#HEAD}.
+     * @return HTTP methods
+     */
+    public List<HttpMethod> getHttpMethods() {
+        return Collections.unmodifiableList(httpMethods);
+    }
+    /**
+     * Sets the list of HTTP methods to be accepted by this fetcher.
+     * Defaults are {@link HttpMethod#GET} and {@link HttpMethod#HEAD}.
+     * @param httpMethods HTTP methods
+     */
+    public void setHttpMethods(List<HttpMethod> httpMethods) {
+        CollectionUtil.setAll(this.httpMethods, httpMethods);
+    }
+
     @Override
     public void loadFromXML(XML xml) {
         setValidStatusCodes(xml.getDelimitedList(
@@ -558,7 +579,6 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         xml.ifXML("authentication", x -> {
             HttpAuthConfig acfg = new HttpAuthConfig();
             acfg.loadFromXML(x);
-//            x.populate(acfg);
             setAuthConfig(acfg);
         });
         xml.ifXML("proxySettings", x -> x.populate(proxySettings));
@@ -596,6 +616,8 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         disableSNI = xml.getBoolean("disableSNI", disableSNI);
         setSSLProtocols(
                 xml.getDelimitedStringList("sslProtocols", sslProtocols));
+        setHttpMethods(xml.getDelimitedEnumList(
+                "httpMethods", HttpMethod.class, httpMethods));
     }
 
     @Override
@@ -637,6 +659,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
         xml.addElement("disableSNI", disableSNI);
         xml.setDelimitedAttributeList("sslProtocols", sslProtocols);
+        xml.addDelimitedElementList("httpMethods", httpMethods);
     }
 
     @Override

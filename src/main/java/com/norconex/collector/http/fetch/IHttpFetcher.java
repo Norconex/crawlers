@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,21 +26,9 @@ import com.norconex.importer.doc.Doc;
  */
 public interface IHttpFetcher {
 
-
-
-
-    //TODO have HttpMethod enum class (POST, GET, etc)
-    //TODO modify this interface to have:
-    //     HttpFetchResponse fetch(HttpMethod method, Doc doc);
-    //     and one of:
-    //         boolean accept(Doc doc);
-    //           or HttpFetchResponse.UNSUPPORTED (singleton?)
-
-
     String getUserAgent();
 
-    //TODO remove this method?
-    boolean accept(Doc doc);
+    boolean accept(Doc doc, HttpMethod httpMethod);
 
     /**
      * <p>

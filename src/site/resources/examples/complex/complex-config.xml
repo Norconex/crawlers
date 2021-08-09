@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2010-2020 Norconex Inc.
+   Copyright 2010-2021 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@
 
     <referenceFilters>
       <filter class="ExtensionReferenceFilter" onMatch="exclude">jpg,gif,png,ico,css,js</filter>
-      <filter class="RegexReferenceFilter">https://opensource\.norconex\.com/collectors/http/test/.*</filter>
+      <filter class="impl.ReferenceFilter">
+        <valueMatcher method="regex">https://opensource\.norconex\.com/collectors/http/test/.*</valueMatcher>
+      </filter>
     </referenceFilters>
 
   </crawlerDefaults>

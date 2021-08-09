@@ -42,9 +42,11 @@ import com.norconex.importer.handler.filter.OnMatch;
 
 /**
  * <p>
- * Base class implementing the {@link #accept(Doc)} method
+ * Base class implementing the {@link #accept(Doc, HttpMethod)} method
  * using reference filters to determine if this fetcher will accept to fetch
- * a URL. It also offers methods to overwrite to react to crawler
+ * a URL and delegating the HTTP method check to its own
+ * {@link #accept(HttpMethod)} abstract method.
+ * It also offers methods to overwrite in order to react to crawler
  * startup and shutdown events.
  * </p>
  * <h3>XML configuration usage:</h3>
@@ -111,9 +113,24 @@ public abstract class AbstractHttpFetcher implements
     }
 
     @Override
-    public boolean accept(Doc doc) {
+    public boolean accept(Doc doc, HttpMethod httpMethod) {
+        if (accept(httpMethod)) {
+            LOG.debug("Fetcher {} ACCEPTED HTTP method '{}' for {}.",
+                    getClass().getSimpleName(), httpMethod, doc.getReference());
+        } else {
+            LOG.debug("Fetcher {} REJECTED HTTP method '{}' for {}.",
+                    getClass().getSimpleName(), httpMethod, doc.getReference());
+            return false;
+        }
         return !isRejectedByReferenceFilters(doc);
     }
+
+    /**
+     * Whether the supplied HttpMethod is supported by this fetcher.
+     * @param httpMethod the HTTP method
+     * @return <code>true</code> if supported
+     */
+    protected abstract boolean accept(HttpMethod httpMethod);
 
     @Override
     public final void accept(Event event) {

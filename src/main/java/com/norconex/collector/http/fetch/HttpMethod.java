@@ -1,4 +1,4 @@
-/* Copyright 2020 Norconex Inc.
+/* Copyright 2020-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,5 +17,17 @@ package com.norconex.collector.http.fetch;
 public enum HttpMethod {
     GET,
     HEAD,
-    POST
+    POST;
+
+    public boolean is(HttpMethod httpMethod) {
+        return this.equals(httpMethod);
+    }
+    public boolean isAny(HttpMethod... httpMethods) {
+        for (HttpMethod httpMethod : httpMethods) {
+            if (is(httpMethod)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

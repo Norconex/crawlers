@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Norconex Inc.
+/* Copyright 2017-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -341,7 +341,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         HIGH(Method.QUALITY),
         MAX(Method.ULTRA_QUALITY);
         private Method scalrMethod;
-        private Quality(Method scalrMethod) {
+        Quality(Method scalrMethod) {
             this.scalrMethod = scalrMethod;
         }
     }
@@ -383,8 +383,6 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     private String contentTypePattern = DEFAULT_CONTENT_TYPE_PATTERN;
     private String referencePattern;
 
-    //TODO rely on fallback/chaining and do not use generic fetcher here?
-    //TODO remove proxy methods and document proxy is no longer supported
     private final GenericHttpFetcherConfig fetcherConfig =
             new GenericHttpFetcherConfig();
 
@@ -807,7 +805,11 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
     }
 
     @Override
-    public boolean accept(Doc doc) {
+    public boolean accept(Doc doc, HttpMethod httpMethod) {
+        if (!accept(httpMethod)) {
+            return false;
+        }
+
         // If there is a reference pattern and it does not match, reject
         if (StringUtils.isNotBlank(referencePattern)
                 && !isHTMLByReference(doc.getReference())) {
@@ -827,6 +829,10 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         }
         return true;
     }
+    @Override
+    protected boolean accept(HttpMethod httpMethod) {
+        return HttpMethod.GET.is(httpMethod);
+    }
 
     @Override
     public IHttpFetchResponse fetch(CrawlDoc doc, HttpMethod httpMethod)
@@ -837,17 +843,6 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
             return HttpFetchResponseBuilder.unsupported().setReasonPhrase(
                     "HTTP " + httpMethod + " method not supported.").create();
         }
-//        return null;
-//    }
-//
-//
-//    @Override
-//    public IHttpFetchResponse head(String url, Properties httpHeaders) {
-//        // Not supported
-//        return HttpFetchResponseBuilder.unsupported().build();
-//    }
-//    @Override
-//    public IHttpFetchResponse get(Doc doc) {
 
         init();
         validate();
@@ -952,7 +947,6 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                     + "GenericDocumentFetcher for: {}",
                     contentType, doc.getReference());
                 return null;
-//                return fetcherConfig.fetchDocument(doc);
             }
             return responseBuilder.setCrawlState(HttpCrawlState.NEW).create();
         }
@@ -1108,13 +1102,6 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         cmdArgs.add("--cookies-file="
                 + argQuote(p.phantomCookiesFile.toAbsolutePath().toString()));
         cmdArgs.add("--load-images=" + isScreenshotEnabled());
-        // Configure for HttpClient proxy if used.
-//        if (HttpClientProxy.isStarted()) {
-//            cmdArgs.add("--proxy=" + HttpClientProxy.getProxyHost());
-//
-//            cmdArgs.add("--proxy-auth=bindId:"
-//                    + HttpClientProxy.getId(httpClient));
-//        }
         if (!options.isEmpty()) {
             cmdArgs.addAll(options);
         }
@@ -1123,11 +1110,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         cmdArgs.add(argQuote(
                 p.outFile.toAbsolutePath().toString()));   // phantom.js arg 2
         cmdArgs.add(Integer.toString(renderWaitTime));     // phantom.js arg 3
-//        if (HttpClientProxy.isStarted()) {                 // phantom.js arg 4
-//            cmdArgs.add(Integer.toString(HttpClientProxy.getId(httpClient)));
-//        } else {
-            cmdArgs.add(Integer.toString(-1));
-//        }
+        cmdArgs.add(Integer.toString(-1));
         cmdArgs.add(p.protocol);                           // phantom.js arg 5
         if (p.phantomScreenshotFile == null) {             // phantom.js arg 6
             cmdArgs.add(argQuote(""));
@@ -1153,7 +1136,6 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         return cmd;
     }
 
-    //TODO Copied from GenericDocumentFetcher... should move to util class?
     private void performDetection(Doc doc) throws IOException {
         if (fetcherConfig.isForceContentTypeDetection()) {
             ContentType ct = ContentTypeDetector.detect(
@@ -1302,9 +1284,7 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
         xml.addElement("exePath", exePath);
         xml.addElement("scriptPath", scriptPath);
         xml.addElement("renderWaitTime", renderWaitTime);
-//        if (resourceTimeout != -1) {
-            xml.addElement("resourceTimeout", resourceTimeout);
-//        }
+        xml.addElement("resourceTimeout", resourceTimeout);
         xml.addDelimitedElementList("validExitCodes", getValidExitCodes());
         xml.addDelimitedElementList(
                 "validStatusCodes", fetcherConfig.getValidStatusCodes());
@@ -1362,9 +1342,6 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                 PhantomJSDocumentFetcher f, Doc doc) {
             super();
             String ref = doc.getReference();
-//            if (HttpClientProxy.isStarted()) {
-//                ref = ref.replaceFirst("^https", "http");
-//            }
             this.url = ref;
 
             this.phantomTempdir = doc.getContent().getCacheDirectory();
@@ -1413,10 +1390,6 @@ public class PhantomJSDocumentFetcher extends AbstractHttpFetcher {
                 String key = StringUtils.substringBetween(line, "HEADER:", "=");
                 String value = StringUtils.substringAfter(line, "=");
 
-                // Redirect hack
-//                if (HttpClientProxy.KEY_PROXY_REDIRECT.equals(key)) {
-//                    this.redirect = value;
-//                } else
                 if (StringUtils.isNotBlank(headersPrefix)) {
                     key = headersPrefix + key;
                 }

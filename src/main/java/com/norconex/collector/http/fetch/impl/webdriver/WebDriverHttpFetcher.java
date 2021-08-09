@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,10 +73,15 @@ import com.norconex.commons.lang.xml.XML;
  * should be preferred whenever possible. Use at your own risk.
  * </p>
  *
+ * <h3>Supported HTTP method</h3>
+ * <p>
+ * This fetcher only supports HTTP GET method.
+ * </p>
+ *
  * <h3>HTTP Headers</h3>
  * <p>
- * By default, web drivers do not expose HTTP headers.  If you want to
- * capture them, configure the "httpSniffer". A proxy service
+ * By default, web drivers do not expose HTTP headers from HTTP GET request.
+ * If you want to capture them, configure the "httpSniffer". A proxy service
  * will be started to monitor HTTP traffic and store HTTP headers.
  * </p>
  * <p>
@@ -199,6 +204,11 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
     public WebDriverHttpFetcherConfig getConfig() {
         return cfg;
+    }
+
+    @Override
+    protected boolean accept(HttpMethod httpMethod) {
+        return HttpMethod.GET.is(httpMethod);
     }
 
     @Override

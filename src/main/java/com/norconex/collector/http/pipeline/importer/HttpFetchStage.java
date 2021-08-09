@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Norconex Inc.
+/* Copyright 2015-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.collector.core.crawler.CrawlerEvent;
 import com.norconex.collector.core.doc.CrawlState;
+import com.norconex.collector.http.crawler.HttpCrawlerConfig.HttpMethodSupport;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.doc.HttpDocMetadata;
 import com.norconex.collector.http.fetch.HttpFetchClient;
@@ -47,11 +48,9 @@ import com.norconex.importer.doc.DocMetadata;
         HttpDocInfo docInfo = ctx.getDocInfo();
         HttpFetchClient fetcher = ctx.getHttpFetchClient();
         IHttpFetchResponse response = fetcher.fetch(ctx.getDocument(), method);
+        CrawlState originalCrawlState = docInfo.getState();
 
-        // If GET set the crawl date
-        if (method == HttpMethod.GET) {
-            docInfo.setCrawlDate(ZonedDateTime.now());
-        }
+        docInfo.setCrawlDate(ZonedDateTime.now());
 
         //--- Add collector-specific metadata ---
         Properties meta = ctx.getDocument().getMetadata();
@@ -81,6 +80,7 @@ import com.norconex.importer.doc.DocMetadata;
                     b -> b.crawlDocInfo(docInfo).subject(response));
             return true;
         }
+
         String eventType = null;
         if (state.isOneOf(CrawlState.NOT_FOUND)) {
             eventType = CrawlerEvent.REJECTED_NOTFOUND;
@@ -88,6 +88,47 @@ import com.norconex.importer.doc.DocMetadata;
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;
         }
         ctx.fire(eventType, b -> b.crawlDocInfo(docInfo).subject(response));
+
+        // At this stage, the URL is either unsupported or with a bad status.
+        // In either case, whether we break the pipeline or not (returning
+        // false or true) depends on http fetch methods supported.
+        return continueOnBadState(ctx, method, originalCrawlState);
+    }
+
+    private boolean continueOnBadState(
+            HttpImporterPipelineContext ctx,
+            HttpMethod method,
+            CrawlState originalCrawlState) {
+        // Note: a disabled method will never get here,
+        // and when both are enabled, GET always comes after HEAD.
+        HttpMethodSupport headSupport = ctx.getConfig().getFetchHttpHead();
+        HttpMethodSupport getSupport = ctx.getConfig().getFetchHttpGet();
+
+        //--- HEAD ---
+        if (HttpMethod.HEAD.is(method)) {
+            // if method is required, we end it here.
+            if (HttpMethodSupport.REQUIRED.is(headSupport)) {
+                return false;
+            }
+            // if head is optional and there is a GET, we continue
+            return HttpMethodSupport.OPTIONAL.is(headSupport)
+                    && HttpMethodSupport.isEnabled(getSupport);
+
+        //--- GET ---
+        } else if (HttpMethod.GET.is(method)) {
+            // if method is required, we end it here.
+            if (HttpMethodSupport.REQUIRED.is(getSupport)) {
+                return false;
+            }
+            // if method is optional and HEAD was enabled and successful,
+            // we continue
+            return HttpMethodSupport.OPTIONAL.is(getSupport)
+                    && HttpMethodSupport.isEnabled(headSupport)
+                    && originalCrawlState.isGoodState();
+        }
+
+        // If a custom implementation introduces another http method,
+        // we do not know the intent so end here.
         return false;
     }
 }

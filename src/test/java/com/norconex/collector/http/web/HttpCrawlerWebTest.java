@@ -45,6 +45,7 @@ import com.norconex.collector.http.web.feature.CanonicalLink;
 import com.norconex.collector.http.web.feature.CanonicalRedirectLoop;
 import com.norconex.collector.http.web.feature.ContentTypeCharset;
 import com.norconex.collector.http.web.feature.FileNotFoundDeletion;
+import com.norconex.collector.http.web.feature.HttpFetcherAccept;
 import com.norconex.collector.http.web.feature.IfModifiedSince;
 import com.norconex.collector.http.web.feature.JavaScriptURL;
 import com.norconex.collector.http.web.feature.KeepDownloads;
@@ -84,6 +85,7 @@ public class HttpCrawlerWebTest {
 
         // Misc. feature tests
 
+        new HttpFetcherAccept(),
         new LargeContent(),
         new Redirect(),
         new MultiRedirect(),

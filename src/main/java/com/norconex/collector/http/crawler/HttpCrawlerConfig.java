@@ -1,4 +1,4 @@
-/* Copyright 2010-2020 Norconex Inc.
+/* Copyright 2010-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.norconex.collector.core.checksum.IDocumentChecksummer;
 import com.norconex.collector.core.checksum.IMetadataChecksummer;
@@ -236,7 +239,7 @@ import com.norconex.importer.ImporterConfig;
  *
  * <h3>HTTP Fetcher</h3>
  * <p>
- * Two crawl and parse a document, it needs to be downloaded. This is the
+ * To crawl and parse a document, it needs to be downloaded first. This is the
  * role of one or more HTTP Fetchers.  {@link GenericHttpFetcher} is the
  * default implementation and can handle most web sites.
  * There might be cases where a more specialized way of obtaining web resources
@@ -245,11 +248,42 @@ import com.norconex.importer.ImporterConfig;
  * {@link WebDriverHttpFetcher}. You can also use
  * {@link #setHttpFetchers(List)} to supply own fetcher implementation.
  * </p>
+ *
+ * <h3>HTTP Methods</h3>
  * <p>
  * A fetcher typically issues an HTTP GET request to obtain a document.
- * There might be cases where you first want to issue a HEAD request first
- * (e.g., for filtering before download). You can enable HEAD requests for
- * fetchers supporting it using {@link #setFetchHttpHead(boolean)}.
+ * There might be cases where you first want to issue a separate HEAD request.
+ * One example is to filter documents based on the HTTP HEAD response
+ * information, thus possibly saving downloading large files you don't want.
+ * </p>
+ * <p>
+ * You can tell the crawler how it should handle HTTP GET and HEAD requests
+ * using using {@link #setFetchHttpGet(HttpMethodSupport)} and
+ * {@link #setFetchHttpHead(HttpMethodSupport)} respectively.
+ * For each, the options are:
+ * </p>
+ * <ul>
+ *   <li><b>DISABLED:</b> No HTTP call willl be made using that method.</li>
+ *   <li>
+ *     <b>OPTIONAL:</b> If the HTTP method is not supported by any fetcher or
+ *     the HTTP request for it was not successful, the document can still be
+ *     processed successfully by the other HTTP method. Only relevant when
+ *     both HEAD and GET are enabled.
+ *   </li>
+ *   <li>
+ *     <b>REQUIRED:</b> If the HTTP method is not supported by any fetcher or
+ *     the HTTP request for it was not successful, the document will be
+ *     rejected and won't go any further,
+ *     even if the other HTTP method was or could have been successful.
+ *     Only relevant when both HEAD and GET are enabled.
+ *   </li>
+ * </ul>
+ * <p>
+ * If you enable only one HTTP method (default), then specifying
+ * OPTIONAL or REQUIRED for it have the same effect.
+ * At least one method needs to be enabled for an HTTP request to be attempted.
+ * By default HEAD requests are DISABLED and GET are REQUIRED. If you are
+ * unsure what settings to use, keep the defaults.
  * </p>
  *
  * <h3>Filtering Unwanted Documents</h3>
@@ -417,7 +451,8 @@ import com.norconex.importer.ImporterConfig;
  *
  *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#init}
  *
- *   <fetchHttpHead>[false|true]</fetchHttpHead>
+ *   <fetchHttpHead>[DISABLED|REQUIRED|OPTIONAL]</fetchHttpHead>
+ *   <fetchHttpGet>[REQUIRED|DISABLED|OPTIONAL]</fetchHttpGet>
  *
  *   <httpFetchers
  *       maxRetries="(number of times to retry a failed fetch attempt)"
@@ -483,11 +518,27 @@ import com.norconex.importer.ImporterConfig;
 @SuppressWarnings("javadoc")
 public class HttpCrawlerConfig extends CrawlerConfig {
 
+    private static final Logger LOG = LoggerFactory.getLogger(XML.class);
+
     // By default do not include URLs on docs at max depth
     // (and do not extract them).  Include MAXDEPTH for this.
     public enum ReferencedLinkType {
         INSCOPE, OUTSCOPE, MAXDEPTH;
     }
+
+    public enum HttpMethodSupport {
+        DISABLED, OPTIONAL, REQUIRED;
+        public boolean is(HttpMethodSupport methodSupport) {
+            // considers null as disabled.
+            return (this == DISABLED && methodSupport == null)
+                    || (this == methodSupport);
+        }
+        public static boolean isEnabled(HttpMethodSupport methodSupport) {
+            return methodSupport == HttpMethodSupport.OPTIONAL
+                    || methodSupport == HttpMethodSupport.REQUIRED;
+        }
+    }
+
 
     private int maxDepth = -1;
     private final List<String> startURLs = new ArrayList<>();
@@ -505,7 +556,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
             new HashSet<>(Arrays.asList(ReferencedLinkType.INSCOPE));
 	private boolean startURLsAsync;
 
-	private boolean fetchHttpHead;
+	private HttpMethodSupport fetchHttpHead = HttpMethodSupport.DISABLED;
+    private HttpMethodSupport fetchHttpGet = HttpMethodSupport.REQUIRED;
 
     private URLCrawlScopeStrategy urlCrawlScopeStrategy =
             new URLCrawlScopeStrategy();
@@ -553,31 +605,103 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 
 
     /**
+     * Deprecated.
+     * @deprecated Use {@link #getFetchHttpHead()}.
+     * @return <code>true</code> if fetching HTTP response headers separately
+     * @since 3.0.0-M1
+     */
+    @Deprecated
+    public boolean isFetchHttpHead() {
+        return fetchHttpHead != null
+                && fetchHttpHead != HttpMethodSupport.DISABLED;
+    }
+    /**
+     * Deprecated.
+     * @deprecated Use {@link #setFetchHttpHead(HttpMethodSupport)}.
+     * @param fetchHttpHead <code>true</code>
+     *        if fetching HTTP response headers separately
+     * @since 3.0.0-M1
+     */
+    @Deprecated
+    public void setFetchHttpHead(boolean fetchHttpHead) {
+        this.fetchHttpHead = HttpMethodSupport.REQUIRED;
+    }
+
+    /**
+     * <p>
      * Gets whether to fetch HTTP response headers using an
      * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4">
      * HTTP HEAD</a> request.  That HTTP request is performed separately from
-     * a document download request. Usually useful when you need to filter
+     * a document download request (HTTP "GET"). Useful when you need to filter
      * documents based on HTTP header values, without downloading them first
      * (e.g., to save bandwidth).
      * When dealing with small documents on average, it may be best to
      * avoid issuing two requests when a single one could do it.
-     * @return <code>true</code> if fetching HTTP response headers separately
+     * </p>
+     * <p>
+     * {@link HttpMethodSupport#DISABLED} by default.
+     * See class documentation for more details.
+     * <p>
+     * @return HTTP HEAD method support
      * @since 3.0.0
      */
-    public boolean isFetchHttpHead() {
+    public HttpMethodSupport getFetchHttpHead() {
         return fetchHttpHead;
     }
     /**
+     * <p>
      * Sets whether to fetch HTTP response headers using an
      * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4">
      * HTTP HEAD</a> request.
-     * @param fetchHttpHead <code>true</code>
+     * </p>
+     * <p>
+     * See class documentation for more details.
+     * <p>
+     * @param fetchHttpHead HTTP HEAD method support
+     * @since 3.0.0
+     */
+    public void setFetchHttpHead(HttpMethodSupport fetchHttpHead) {
+        this.fetchHttpHead = fetchHttpHead;
+    }
+    /**
+     * <p>
+     * Gets whether to fetch HTTP documents using an
+     * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3">
+     * HTTP GET</a> request.
+     * Requests made using the HTTP GET method are usually required
+     * to download a document and have its content extracted and links
+     * discovered. It should never be disabled unless you have an
+     * exceptional use case.
+     * </p>
+     * <p>
+     * {@link HttpMethodSupport#REQUIRED} by default.
+     * See class documentation for more details.
+     * <p>
+     * @return <code>true</code> if fetching HTTP response headers separately
+     * @since 3.0.0
+     */
+    public HttpMethodSupport getFetchHttpGet() {
+        return fetchHttpGet;
+    }
+    /**
+     * <p>
+     * Sets whether to fetch HTTP documents using an
+     * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3">
+     * HTTP GET</a> request.
+     * Requests made using the HTTP GET method are usually required
+     * to download a document and have its content extracted and links
+     * discovered. It should never be disabled unless you have an
+     * exceptional use case.
+     * </p>
+     * <p>
+     * See class documentation for more details.
+     * <p>
+     * @param fetchHttpGet <code>true</code>
      *        if fetching HTTP response headers separately
      * @since 3.0.0
-     * @see #isFetchHttpHead()
      */
-    public void setFetchHttpHead(boolean fetchHttpHead) {
-        this.fetchHttpHead = fetchHttpHead;
+    public void setFetchHttpGet(HttpMethodSupport fetchHttpGet) {
+        this.fetchHttpGet = fetchHttpGet;
     }
 
     /**
@@ -1140,6 +1264,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         xml.addDelimitedElementList("keepReferencedLinks",
                 new ArrayList<>(keepReferencedLinks));
         xml.addElement("fetchHttpHead", fetchHttpHead);
+        xml.addElement("fetchHttpGet", fetchHttpGet);
 
 		XML startXML = xml.addElement("startURLs")
 		        .setAttribute("stayOnProtocol",
@@ -1273,7 +1398,19 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 IDelayResolver.class, "delay", delayResolver));
         setMaxDepth(xml.getInteger("maxDepth", maxDepth));
         setKeepDownloads(xml.getBoolean("keepDownloads", keepDownloads));
-        setFetchHttpHead(xml.getBoolean("fetchHttpHead", fetchHttpHead));
+
+        String fetchHttpHeadValue = xml.getString("fetchHttpHead", null);
+        if (StringUtils.equalsAnyIgnoreCase(
+                fetchHttpHeadValue, "true", "false")) {
+            LOG.warn("Configuring 'fetchHttpHead' with a boolean value has "
+                    + "been deprecated. It now expects one of "
+                    + "DISABLED, OPTIONAL, or REQUIRED.");
+            setFetchHttpHead(Boolean.valueOf(fetchHttpHeadValue));
+        }
+        setFetchHttpHead(xml.getEnum(
+                "fetchHttpHead", HttpMethodSupport.class, fetchHttpHead));
+        setFetchHttpGet(xml.getEnum(
+                "fetchHttpGet", HttpMethodSupport.class, fetchHttpGet));
 
         setKeepReferencedLinks(new HashSet<>(xml.getDelimitedEnumList(
                 "keepReferencedLinks", ReferencedLinkType.class,

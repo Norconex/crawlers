@@ -9,6 +9,14 @@
 
     <release version="3.0.0-SNAPSHOT" date="2021-??-??" 
         description="Changes since last milestone for this upcoming major release.">
+      <action dev="essiembre" type="add" issue="654">
+        Added support for restricting which HTTP method GenericHttpFetcher 
+        accepts.   
+      </action>
+      <action dev="essiembre" type="add" issue="654">
+        Added "DISABLED", "OPTIONAL", "REQUIRED" options for HTTP 
+        HEAD and GET methods. 
+      </action>
       <action dev="essiembre" type="add">
         New DOMLinkExtractor repeatable "extractSelector" and 
         "noExtractSelector".  

@@ -1,4 +1,4 @@
-/* Copyright 2018-2020 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,9 +114,16 @@ import com.norconex.importer.util.CharsetUtil;
  * </p>
  *
  * <p>
- * The "validStatusCodes" and "notFoundStatusCodes" elements expect a
- * coma-separated list of HTTP response code.  If a code is added in both
- * elements, the valid list takes precedence.
+ * The "validStatusCodes" and "notFoundStatusCodes" configuration options
+ * expect a comma-separated list of HTTP response codes.  If a code is added
+ * to both, the valid list takes precedence.
+ * </p>
+ *
+ * <h3>Accepted HTTP methods</h3>
+ * <p>
+ * By default this fetcher accepts HTTP GET and HEAD requests.  You can limit
+ * it to only process one method with
+ * {@link GenericHttpFetcherConfig#setHttpMethods(List)}.
  * </p>
  *
  * <h3>Content type and character encoding</h3>
@@ -201,6 +208,9 @@ import com.norconex.importer.util.CharsetUtil;
  *
  *   {@nx.include com.norconex.collector.http.fetch.AbstractHttpFetcher@nx.xml.usage#referenceFilters}
  *
+ *   <!-- Comma-separated list of supported HTTP methods. -->
+ *   <httpMethods>(defaults to: GET, HEAD)</httpMethods>
+ *
  * </fetcher>
  * }
  *
@@ -284,6 +294,11 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
     }
     public HttpClient getHttpClient() {
         return httpClient;
+    }
+
+    @Override
+    protected boolean accept(HttpMethod httpMethod) {
+        return cfg.getHttpMethods().contains(httpMethod);
     }
 
     @Override
@@ -374,11 +389,13 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                     response, cfg.getHeadersPrefix(), doc);
 
             //--- Extract body ---
-            if (ApacheHttpUtil.applyResponseContent(response, doc)) {
-                performDetection(doc);
-            } else {
-                LOG.warn("Content expected but not returned for: {}",
-                        doc.getReference());
+            if (HttpMethod.GET.is(method) || HttpMethod.POST.is(method)) {
+                if (ApacheHttpUtil.applyResponseContent(response, doc)) {
+                    performDetection(doc);
+                } else {
+                    LOG.warn("Content expected but not returned for: {}",
+                            doc.getReference());
+                }
             }
 
             //--- VALID http response handling ---------------------------------
