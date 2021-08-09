@@ -56,7 +56,8 @@ import com.norconex.importer.handler.filter.OnMatch;
  * <referenceFilters>
  *   <!-- multiple "filter" tags allowed -->
  *   <filter class="(any reference filter class)">
- *      (Refer to the documentation for the implementation of IReferenceFilter
+ *      (Restrict usage of this fetcher to matching reference filters.
+ *       Refer to the documentation for the IReferenceFilter implementation
  *       you are using here for usage details.)
  *   </filter>
  * </referenceFilters>

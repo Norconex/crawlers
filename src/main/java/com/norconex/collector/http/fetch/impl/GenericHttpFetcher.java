@@ -206,7 +206,7 @@ import com.norconex.importer.util.CharsetUtil;
  *   <forceContentTypeDetection>[false|true]</forceContentTypeDetection>
  *   <forceCharsetDetection>[false|true]</forceCharsetDetection>
  *
- *   {@nx.include com.norconex.collector.http.fetch.AbstractHttpFetcher@nx.xml.usage#referenceFilters}
+ *   {@nx.include com.norconex.collector.http.fetch.AbstractHttpFetcher#referenceFilters}
  *
  *   <!-- Comma-separated list of supported HTTP methods. -->
  *   <httpMethods>(defaults to: GET, HEAD)</httpMethods>

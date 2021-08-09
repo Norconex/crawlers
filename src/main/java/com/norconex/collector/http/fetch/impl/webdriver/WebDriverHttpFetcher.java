@@ -147,7 +147,7 @@ import com.norconex.commons.lang.xml.XML;
  *     options do not work.)
  *   </threadWait>
  *
- *   {@nx.include com.norconex.collector.http.fetch.AbstractHttpFetcher@nx.xml.usage#referenceFilters}
+ *   {@nx.include com.norconex.collector.http.fetch.AbstractHttpFetcher#referenceFilters}
  *
  *   <!-- Optionally setup an HTTP proxy that allows to set and capture
  *        HTTP headers. For advanced use only. Not recommended
