@@ -91,6 +91,7 @@ import com.norconex.collector.core.CollectorException;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.http.HttpCollector;
+import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.fetch.AbstractHttpFetcher;
 import com.norconex.collector.http.fetch.HttpFetchException;
 import com.norconex.collector.http.fetch.HttpFetchResponseBuilder;
@@ -99,6 +100,8 @@ import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.IHttpFetcher;
 import com.norconex.collector.http.fetch.util.ApacheHttpUtil;
 import com.norconex.collector.http.fetch.util.ApacheRedirectCaptureStrategy;
+import com.norconex.collector.http.fetch.util.HstsResolver;
+import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
@@ -148,6 +151,21 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
  *
+ * <h3>HSTS Support</h3>
+ * <p>
+ * Upon first encountering a secure site, this fetcher will check whether the
+ * site root domain has the "Strict-Transport-Security" (HSTS) policy support
+ * part of its HTTP response headers. That information gets cached for future
+ * requests. If the site supports HSTS, any non-secure URLs encountered
+ * on the same domain will be automatically converted to "https" (including
+ * sub-domains if HSTS indicates as such).
+ * </p>
+ * <p>
+ * If you want to convert non-secure URLs secure ones regardless of website
+ * HSTS support, use
+ * {@link GenericURLNormalizer.Normalization#secureScheme} instead.
+ * </p>
+ *
  * {@nx.xml.usage
  * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
  *
@@ -176,6 +194,9 @@ import com.norconex.importer.util.CharsetUtil;
  *
  *   <!-- Disable Server Name Indication (SNI) -->
  *   <disableSNI>[false|true]</disableSNI>
+ *
+ *   <!-- Disable support for website "Strict-Transport-Security" setting. -->
+ *   <disableHSTS>[false|true]</disableHSTS>
  *
  *   <!-- You can use a specific key store for SSL Certificates -->
  *   <keyStoreFile></keyStoreFile>
@@ -330,7 +351,6 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         }
     }
 
-
     @Override
     public String getUserAgent() {
         return cfg.getUserAgent();
@@ -348,15 +368,21 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
         HttpRequestBase request = null;
         try {
 
+            //--- HSTS Policy --------------------------------------------------
+            if (!cfg.isDisableHSTS()) {
+                HstsResolver.resolve(
+                        httpClient, (HttpDocInfo) doc.getDocInfo());
+            }
+
             //--- Prepare the request ------------------------------------------
 
-            HttpMethod method = ofNullable(httpMethod).orElse(GET);
             LOG.debug("Fetching document: {}", doc.getReference());
+
+            HttpMethod method = ofNullable(httpMethod).orElse(GET);
             request = ApacheHttpUtil.createUriRequest(
                     doc.getReference(), method);
 
             HttpClientContext ctx = HttpClientContext.create();
-
             // auth cache
             ctx.setAuthCache(authCache);
             // user token

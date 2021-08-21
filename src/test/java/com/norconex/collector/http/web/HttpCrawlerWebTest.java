@@ -80,6 +80,8 @@ public class HttpCrawlerWebTest {
     private static final Logger LOG =
             LoggerFactory.getLogger(HttpCrawlerWebTest.class);
 
+    public static final String ATTR_HTTP_PORT = "http.port";
+    public static final String ATTR_HTTPS_PORT = "https.port";
 
     private static final Map<String, IWebTest> FEATURES_BY_PATH = toMap(
 
@@ -115,6 +117,10 @@ public class HttpCrawlerWebTest {
         new ResumeAfterStopped()
 
 
+        // Disabled: depends on external site
+        //new StrictTransportSecurity()
+
+
 
 //        new StartAfterJvmCrash()
 //        new ResumeAfterJvmCrashMvStore(),
@@ -148,6 +154,11 @@ public class HttpCrawlerWebTest {
                 htmlIndexPage(req, resp);
                 return;
             }
+
+            // Add ports as convinience for tests that may need it.
+            req.setAttribute(ATTR_HTTP_PORT, server.getPort());
+            req.setAttribute(ATTR_HTTPS_PORT, server.getSecurePort());
+
 
             IWebTest feature = FEATURES_BY_PATH.get(path);
             if (feature == null) {
@@ -211,9 +222,6 @@ public class HttpCrawlerWebTest {
     }
 
     static Stream<IWebTest> featuresProvider() {
-
-        // Un-comment when troubleshooting:
-//        return Arrays.asList((IWebTest) new PostImportLinks()).stream();
         return FEATURES_BY_PATH.values().stream();
     }
 

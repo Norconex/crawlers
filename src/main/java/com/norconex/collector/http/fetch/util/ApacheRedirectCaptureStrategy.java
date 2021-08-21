@@ -72,5 +72,4 @@ public class ApacheRedirectCaptureStrategy extends LaxRedirectStrategy {
         }
         return null;
     }
-
 }

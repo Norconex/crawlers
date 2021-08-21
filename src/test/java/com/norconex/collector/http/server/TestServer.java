@@ -1,4 +1,4 @@
-/* Copyright 2018 Norconex Inc.
+/* Copyright 2018-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,15 @@ package com.norconex.collector.http.server;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,10 +41,16 @@ public class TestServer {
 
     private Server server = new Server();
     private int port;
+    private int securePort;
     private boolean startedOnce;
     private Thread shutdownHook;
+    private final boolean enableHttps;
 
     public TestServer(HandlerList handlers) {
+        this(handlers, false);
+    }
+    public TestServer(HandlerList handlers, boolean enableHttps) {
+        this.enableHttps = enableHttps;
         server.setHandler(handlers);
         shutdownHook = new Thread() {
             @Override
@@ -63,10 +75,7 @@ public class TestServer {
         }
         startedOnce = true;
 
-        // Set a random port
-        ServerConnector connector = new ServerConnector(server);
-        connector.setPort(0);
-        server.addConnector(connector);
+        setupConnectors();
 
         // Start it
         Runtime.getRuntime().addShutdownHook(shutdownHook);
@@ -77,6 +86,11 @@ public class TestServer {
                     server.start();
                     port = ((ServerConnector)
                             server.getConnectors()[0]).getLocalPort();
+                    if (enableHttps) {
+                        securePort = ((ServerConnector)
+                                server.getConnectors()[1]).getLocalPort();
+                    }
+
                     watch.stop();
                     LOG.info("Test server started on port " + port
                             + " (" + (watch.getTime() / 1000.0) + " s)");
@@ -113,9 +127,39 @@ public class TestServer {
     }
 
     /**
-     * @return the localPort
+     * @return the localPort (http)
      */
     public int getPort() {
         return port;
+    }
+    /**
+     * @return the secure localPort (https)
+     */
+    public int getSecurePort() {
+        return securePort;
+    }
+
+    private void setupConnectors() {
+        ServerConnector connector = new ServerConnector(server);
+        connector.setPort(0);
+        server.addConnector(connector);
+
+        if (enableHttps) {
+            HttpConfiguration https = new HttpConfiguration();
+            https.addCustomizer(new SecureRequestCustomizer());
+
+            SslContextFactory sslCtxFactory = new SslContextFactory.Server();
+            sslCtxFactory.setKeyStorePath(TestServer.class.getResource(
+                    "/ssl/keystore.jks").toExternalForm());
+            sslCtxFactory.setKeyStorePassword("selfsigned");
+            sslCtxFactory.setKeyManagerPassword("selfsigned");
+
+           ServerConnector sslConnector = new ServerConnector(server,
+                   new SslConnectionFactory(
+                           sslCtxFactory, HttpVersion.HTTP_1_1.asString()),
+                   new HttpConnectionFactory(https));
+           sslConnector.setPort(0);
+           server.addConnector(sslConnector);
+        }
     }
 }

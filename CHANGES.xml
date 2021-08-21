@@ -9,6 +9,10 @@
 
     <release version="3.0.0-SNAPSHOT" date="2021-??-??" 
         description="Changes since last milestone for this upcoming major release.">
+      <action dev="essiembre" type="add" issue="694">
+        Added supports HTTP Strict Transport Security (HSTS) to 
+        GenericHttpFetcher. Active by default.
+      </action>
       <action dev="essiembre" type="add" issue="654">
         Added support for restricting which HTTP method GenericHttpFetcher 
         accepts.   

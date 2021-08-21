@@ -1,4 +1,4 @@
-/* Copyright 2010-2020 Norconex Inc.
+/* Copyright 2010-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  */
 package com.norconex.collector.http.processor;
 
-import com.norconex.importer.doc.Doc;
 import com.norconex.collector.http.fetch.HttpFetchClient;
+import com.norconex.importer.doc.Doc;
 
 /**
  * Custom processing (optional) performed on a document.  Can be used
@@ -23,6 +23,7 @@ import com.norconex.collector.http.fetch.HttpFetchClient;
  * @author Pascal Essiembre
  * @since 2.8.0 (moved from "com.norconex.collector.http.doc" package)
  */
+@FunctionalInterface
 public interface IHttpDocumentProcessor {
 
 	/**

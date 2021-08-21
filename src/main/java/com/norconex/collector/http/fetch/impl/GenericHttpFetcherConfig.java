@@ -95,6 +95,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private boolean trustAllSSLCertificates;
     private boolean disableSNI;
     private final List<String> sslProtocols = new ArrayList<>();
+    private boolean disableHSTS;
 
     /**
      * Gets the redirect URL provider.
@@ -520,7 +521,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Gets whether adding the <code>If-Modified-Since</code> HTTP request
      * header is disabled.
-     * Servers supporting this header will only returne the requested document
+     * Servers supporting this header will only return the requested document
      * if it was last modified since the supplied date.
      * @return <code>true</code> if disabled
      */
@@ -530,12 +531,31 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     /**
      * Sets whether adding the <code>If-Modified-Since</code> HTTP request
      * header is disabled.
-     * Servers supporting this header will only returne the requested document
+     * Servers supporting this header will only return the requested document
      * if it was last modified since the supplied date.
      * @param disableIfModifiedSince <code>true</code> if disabled
      */
     public void setDisableIfModifiedSince(boolean disableIfModifiedSince) {
         this.disableIfModifiedSince = disableIfModifiedSince;
+    }
+
+    /**
+     * Gets whether the forcing of non secure URLs to secure ones is disabled,
+     * according to the URL domain <code>Strict-Transport-Security</code> policy
+     * (obtained from HTTP response header).
+     * @return <code>true</code> if disabled
+     */
+    public boolean isDisableHSTS() {
+        return disableHSTS;
+    }
+    /**
+     * Sets whether the forcing of non secure URLs to secure ones is disabled,
+     * according to the URL domain <code>Strict-Transport-Security</code> policy
+     * (obtained from HTTP response header).
+     * @param disableHSTS <code>true</code> if disabled
+     */
+    public void setDisableHSTS( boolean disableHSTS) {
+        this.disableHSTS = disableHSTS;
     }
 
     public HttpAuthConfig getAuthConfig() {
@@ -614,6 +634,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
         trustAllSSLCertificates = xml.getBoolean(
                 "trustAllSSLCertificates", trustAllSSLCertificates);
         disableSNI = xml.getBoolean("disableSNI", disableSNI);
+        setDisableHSTS(xml.getBoolean("disableHSTS", disableHSTS));
         setSSLProtocols(
                 xml.getDelimitedStringList("sslProtocols", sslProtocols));
         setHttpMethods(xml.getDelimitedEnumList(
@@ -658,6 +679,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
 
         xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
         xml.addElement("disableSNI", disableSNI);
+        xml.addElement("disableHSTS", disableHSTS);
         xml.setDelimitedAttributeList("sslProtocols", sslProtocols);
         xml.addDelimitedElementList("httpMethods", httpMethods);
     }

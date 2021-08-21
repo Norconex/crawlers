@@ -31,7 +31,7 @@ import com.norconex.collector.http.fetch.HttpMethod;
 import com.norconex.collector.http.fetch.IHttpFetchResponse;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcher;
 import com.norconex.collector.http.fetch.impl.GenericHttpFetcherConfig;
-import com.norconex.collector.http.web.AbstractInfiniteDepthTestFeature;
+import com.norconex.collector.http.web.AbstractTestFeature;
 import com.norconex.committer.core3.UpsertRequest;
 import com.norconex.committer.core3.impl.MemoryCommitter;
 
@@ -40,7 +40,7 @@ import com.norconex.committer.core3.impl.MemoryCommitter;
  * @author Pascal Essiembre
  */
 //Related to https://github.com/Norconex/collector-http/issues/654
-public class HttpFetcherAccept extends AbstractInfiniteDepthTestFeature {
+public class HttpFetcherAccept extends AbstractTestFeature {
 
     @Override
     public int numberOfRun() {
