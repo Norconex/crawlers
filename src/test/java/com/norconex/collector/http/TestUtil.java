@@ -29,9 +29,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.provider.Arguments;
 
 import com.norconex.collector.core.CollectorEvent;
-import com.norconex.collector.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.collector.core.crawler.CrawlerEvent;
-import com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.collector.http.crawler.HttpCrawler;
 import com.norconex.collector.http.crawler.HttpCrawlerConfig;
 import com.norconex.collector.http.delay.impl.GenericDelayResolver;
@@ -151,13 +149,8 @@ public final class TestUtil {
         httpConfig.setIgnoreSitemap(true);
         httpConfig.setCommitters(committer);
 
-        LastModifiedMetadataChecksummer metaChecksum =
-                new LastModifiedMetadataChecksummer();
-        metaChecksum.setDisabled(true);
-        httpConfig.setMetadataChecksummer(metaChecksum);
-        MD5DocumentChecksummer docChecksum = new MD5DocumentChecksummer();
-        docChecksum.setDisabled(true);
-        httpConfig.setDocumentChecksummer(docChecksum);
+        httpConfig.setMetadataChecksummer(null);
+        httpConfig.setDocumentChecksummer(null);
 
         colConfig.setCrawlerConfigs(httpConfig);
         return colConfig;

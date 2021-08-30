@@ -52,6 +52,10 @@ public class HttpFetcherAccept extends AbstractTestFeature {
 
         cfg.setMaxDepth(0);
 
+        // disable checksums so they do not influence tests
+        cfg.setDocumentChecksummer(null);
+        cfg.setMetadataChecksummer(null);
+
         GenericHttpFetcher headFetcher = createFetcher(HEAD);
         GenericHttpFetcher getFetcher = createFetcher(GET);
 

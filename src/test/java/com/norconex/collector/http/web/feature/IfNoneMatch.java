@@ -83,6 +83,9 @@ public class IfNoneMatch extends AbstractInfiniteDepthTestFeature {
     @Override
     protected void doConfigureCralwer(HttpCrawlerConfig cfg) throws Exception {
         cfg.setMaxDepth(0);
+        // disable checksums so they do not influence tests
+        cfg.setDocumentChecksummer(null);
+        cfg.setMetadataChecksummer(null);
 
         // disable ETag client support on 3 run
         if (isThirdRun()) {

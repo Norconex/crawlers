@@ -98,6 +98,9 @@ public class IfModifiedSince extends AbstractInfiniteDepthTestFeature {
     @Override
     protected void doConfigureCralwer(HttpCrawlerConfig cfg) throws Exception {
         cfg.setMaxDepth(0);
+        // disable checksums so they do not influence tests
+        cfg.setDocumentChecksummer(null);
+        cfg.setMetadataChecksummer(null);
     }
 
     @Override
