@@ -1,4 +1,4 @@
-/* Copyright 2020 Norconex Inc.
+/* Copyright 2020-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,12 +122,12 @@ public final class ApacheHttpUtil {
      * <p>
      * Applies the HTTP response headers to a document. This method will
      * do its best to derive relevant information from the HTTP headers
-     * that can be set on the document {@link DocInfo}:
+     * that can be set on the document {@link HttpDocInfo}:
      * </p>
      * <ul>
      *   <li>Content type</li>
      *   <li>Content encoding</li>
-     *   <!--<li>Document checksum</li>-->
+     *   <li>ETag</li>
      * </ul>
      * <p>
      * In addition, all HTTP headers will be added to the document metadata,
@@ -155,11 +155,11 @@ public final class ApacheHttpUtil {
                 applyContentTypeAndCharset(value, docInfo);
             }
 
-//Have people grab it from metadata if they want to use it for checksum
-//            // MD5 Checksum
-//            if (HttpHeaders.CONTENT_MD5.equalsIgnoreCase(name)) {
-//                docInfo.setMetaChecksum(value);
-//            }
+            // ETag
+            if (HttpHeaders.ETAG.equalsIgnoreCase(name)
+                    && StringUtils.isNotBlank(value)) {
+                docInfo.setEtag(value);
+            }
 
             if (StringUtils.isNotBlank(prefix)) {
                 name = prefix + name;
@@ -203,12 +203,11 @@ public final class ApacheHttpUtil {
 
 
     /**
-     * Sets the <code>If-Modified-Since</code> HTTP requeset header based
-     * on document last crawled date.
+     * Sets the <code>If-Modified-Since</code> HTTP request header based
+     * on document cached last crawled date (if any).
      * @param request HTTP request
      * @param doc document
      */
-    //TODO abstract authentication (e.g., factory)
     public static void setRequestIfModifiedSince(
             HttpRequest request, CrawlDoc doc) {
         if (doc.hasCache()) {
@@ -216,6 +215,22 @@ public final class ApacheHttpUtil {
             if (zdt != null) {
                 request.addHeader(HttpHeaders.IF_MODIFIED_SINCE,
                         zdt.format(DateTimeFormatter.RFC_1123_DATE_TIME));
+            }
+        }
+    }
+
+    /**
+     * Sets the ETag <code>If-None-Match</code> HTTP request header based
+     * on document cached ETag value (if any).
+     * @param request HTTP request
+     * @param doc document
+     */
+    public static void setRequestIfNoneMatch(
+            HttpRequest request, CrawlDoc doc) {
+        if (doc.hasCache()) {
+            HttpDocInfo docInfo = (HttpDocInfo) doc.getCachedDocInfo();
+            if (docInfo.getEtag() != null) {
+                request.addHeader(HttpHeaders.IF_NONE_MATCH, docInfo.getEtag());
             }
         }
     }

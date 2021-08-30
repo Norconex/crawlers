@@ -9,6 +9,9 @@
 
     <release version="3.0.0-SNAPSHOT" date="2021-??-??" 
         description="Changes since last milestone for this upcoming major release.">
+      <action dev="essiembre" type="add" issue="182">
+        Added support for ETag/If-None-Match to GenericHttpFetcher.
+      </action>
       <action dev="essiembre" type="add" issue="694">
         Added supports HTTP Strict Transport Security (HSTS) to 
         GenericHttpFetcher. Active by default.
@@ -28,6 +31,10 @@
       <action dev="essiembre" type="update">
         DOMLinkExtractor configurable "dom" elements deprecated in favor 
         of "linkSelector".  
+      </action>
+      <action dev="essiembre" type="update">
+        Checksummers "disabled" flag deprecated in favor of setting a null
+        checksummer or using a self-closed checksummer tag in config.  
       </action>
       <action dev="essiembre" type="fix">
         Fixed invalid configuration in POM "maven-dependency-plugin".

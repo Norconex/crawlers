@@ -14,7 +14,6 @@
  */
 package com.norconex.collector.http.fetch.impl.webdriver;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -30,7 +29,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +54,7 @@ import com.norconex.commons.lang.file.WebFile;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.doc.Doc;
 
-//TODO if EDGE fails, log an error and Assume false (ignore the test).
+//TODO if EDGE fails, log an error and assume false (ignore the test).
 
 //TODO merge http client with document fetcher.
 // have 1 doc fetcher and 1 http fetcher that can be the same or different.
@@ -245,7 +243,6 @@ public class WebDriverHttpFetcherTest  {
 
         TestUtil.mockCrawlerRunLifeCycle(fetcher, () -> {
             Doc doc = fetch(fetcher, "/largeContent");
-FileUtils.copyInputStreamToFile(doc.getInputStream(), new File("C:\\temp\\AAAAA.txt"));
             String txt = IOUtils.toString(
                     doc.getInputStream(), StandardCharsets.UTF_8);
             LOG.error("Large content extracted byte length: {}",

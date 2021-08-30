@@ -85,6 +85,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     private int maxConnectionInactiveTime;
     private final Map<String, String> requestHeaders = new HashMap<>();
     private boolean disableIfModifiedSince;
+    private boolean disableETag;
     private String userAgent;
     private IRedirectURLProvider redirectURLProvider =
             new GenericRedirectURLProvider();
@@ -540,6 +541,29 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
     }
 
     /**
+     * Gets whether adding "ETag" <code>If-None-Match</code>
+     * HTTP request header is disabled.
+     * Servers supporting this header will only return the requested document
+     * if the ETag value has changed, indicating a more recent version is
+     * available.
+     * @return <code>true</code> if disabled
+     */
+    public boolean isDisableETag() {
+        return disableETag;
+    }
+    /**
+     * Sets whether whether adding "ETag" <code>If-None-Match</code>
+     * HTTP request header is disabled.
+     * Servers supporting this header will only return the requested document
+     * if the ETag value has changed, indicating a more recent version is
+     * available.
+     * @param disableETag <code>true</code> if disabled
+     */
+    public void setDisableETag(boolean disableETag) {
+        this.disableETag = disableETag;
+    }
+
+    /**
      * Gets whether the forcing of non secure URLs to secure ones is disabled,
      * according to the URL domain <code>Strict-Transport-Security</code> policy
      * (obtained from HTTP response header).
@@ -628,6 +652,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
                 "headers/header", "@name", ".", requestHeaders));
         setDisableIfModifiedSince(xml.getBoolean(
                 "disableIfModifiedSince", disableIfModifiedSince));
+        setDisableETag(xml.getBoolean("disableETag", disableETag));
         setRedirectURLProvider(xml.getObjectImpl(IRedirectURLProvider.class,
                 "redirectURLProvider", redirectURLProvider));
 
@@ -674,6 +699,7 @@ public class GenericHttpFetcherConfig implements IXMLConfigurable {
                     "name", entry.getKey()).setTextContent(entry.getValue());
         }
         xml.addElement("disableIfModifiedSince", disableIfModifiedSince);
+        xml.addElement("disableETag", disableETag);
 
         xml.addElement("redirectURLProvider", redirectURLProvider);
 

@@ -1,4 +1,4 @@
-/* Copyright 2010-2020 Norconex Inc.
+/* Copyright 2010-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ public class HttpDocInfo extends CrawlDocInfo {
     private String originalReference; //TODO keep the trail if it changes often?
     private String referrerReference;
     private String referrerLinkMetadata;
+    private String etag;
 
     @ToStringSummary
     private final List<String> referencedUrls = new ArrayList<>();
@@ -78,6 +79,23 @@ public class HttpDocInfo extends CrawlDocInfo {
      */
     public HttpDocInfo(DocInfo docDetails) {
         super(docDetails);
+    }
+
+    /**
+     * Gets the HTTP ETag.
+     * @return etag
+     * @since 3.0.0
+     */
+    public String getEtag() {
+        return etag;
+    }
+    /**
+     * Sets the HTTP ETag.
+     * @param etag the ETag
+     * @since 3.0.0
+     */
+    public void setEtag(String etag) {
+        this.etag = etag;
     }
 
     public String getOriginalReference() {

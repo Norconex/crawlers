@@ -19,12 +19,12 @@
   <xs:element name="metadataChecksummer">
     <xs:complexType>
       <xs:attribute name="class" type="xs:string"/>
-      <xs:attribute name="disabled" type="xs:boolean"/>
       <xs:attribute name="keep" type="xs:boolean"/>
       <xs:attribute name="toField" type="xs:string"/>
 
       <!-- Deprecated: -->
       <xs:attribute name="targetField" type="xs:string" />      
+      <xs:attribute name="disabled" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
 

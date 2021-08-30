@@ -166,6 +166,27 @@ import com.norconex.importer.util.CharsetUtil;
  * {@link GenericURLNormalizer.Normalization#secureScheme} instead.
  * </p>
  *
+ * <h3>Pro-active change detection</h3>
+ * <p>
+ * This fetcher takes advantage of the
+ * <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag">
+ * ETag</a> and
+ * <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since">
+ * If-Modified-Since</a> HTTP specifications.
+ * </p>
+ * <p>
+ * On subsequent crawls, HTTP requests will include previously cached
+ * <code>ETag</code> and <code>If-Modified-Since</code> values to tell
+ * supporting servers we only want to download a document if it was modified
+ * since our last request.
+ * To disable support for pro-active change detection, you can use
+ * {@link GenericHttpFetcherConfig#setDisableIfModifiedSince(boolean)} and
+ * {@link GenericHttpFetcherConfig#setDisableETag(boolean)}.
+ * </p>
+ * <p>
+ * These settings have no effect for web servers not supporting them.
+ * </p>
+ *
  * {@nx.xml.usage
  * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
  *
@@ -214,6 +235,9 @@ import com.norconex.importer.util.CharsetUtil;
  *   <!-- Disable conditionally getting a document based on last crawl date. -->
  *   <disableIfModifiedSince>[false|true]</disableIfModifiedSince>
  *
+ *   <!-- Disable ETag support. -->
+ *   <disableETag>[false|true]</disableETag>
+ *
  *   <!-- Optional authentication details. -->
  *   <authentication>
  *     {@nx.include com.norconex.collector.http.fetch.impl.HttpAuthConfig@nx.xml.usage}
@@ -236,7 +260,7 @@ import com.norconex.importer.util.CharsetUtil;
  * }
  *
  * {@nx.xml.example
- * <fetcher class="com.norconex.collector.http.fetch.impl.GenericHttpFetcher">
+ * <fetcher class="GenericHttpFetcher">
  *     <authentication>
  *       <method>form</method>
  *       <credentials>
@@ -390,6 +414,9 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 ctx.setUserToken(userToken);
             }
 
+            if (!cfg.isDisableETag()) {
+                ApacheHttpUtil.setRequestIfNoneMatch(request, doc);
+            }
             if (!cfg.isDisableIfModifiedSince()) {
                 ApacheHttpUtil.setRequestIfModifiedSince(request, doc);
             }
@@ -419,7 +446,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
                 if (ApacheHttpUtil.applyResponseContent(response, doc)) {
                     performDetection(doc);
                 } else {
-                    LOG.warn("Content expected but not returned for: {}",
+                    LOG.debug("No content returned for: {}",
                             doc.getReference());
                 }
             }

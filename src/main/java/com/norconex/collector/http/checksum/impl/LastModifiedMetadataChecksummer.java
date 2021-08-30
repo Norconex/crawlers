@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Norconex Inc.
+/* Copyright 2015-2021 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,6 @@ import com.norconex.commons.lang.xml.XML;
  * {@nx.xml.usage
  * <metadataChecksummer
  *     class="com.norconex.collector.http.checksum.impl.LastModifiedMetadataChecksummer"
- *     disabled="[false|true]"
  *     keep="[false|true]"
  *     toField="(field to store checksum)" />
  * }
@@ -61,6 +60,12 @@ import com.norconex.commons.lang.xml.XML;
  * <p>
  * The above example will store the last modified date used for checksum
  * purposes in a field called "metaChecksum".
+ * </p>
+ *
+ * <p>
+ * <b>Since 2.0.0</b>, a self-closing
+ * <code>&lt;metadataChecksummer/&gt;</code> tag without any attributes
+ * is used to disable checksum generation.
  * </p>
  *
  * @author Pascal Essiembre
@@ -75,13 +80,9 @@ public class LastModifiedMetadataChecksummer
 
     /** HTTP header name used to perform checksum. */
     private static final String LAST_MODIFIED_FIELD = "Last-Modified";
-    private boolean disabled;
 
     @Override
     protected String doCreateMetaChecksum(Properties metadata) {
-        if (disabled) {
-            return null;
-        }
         String checksum = metadata.getString(LAST_MODIFIED_FIELD);
         LOG.debug("HTTP Header \"Last-Modified\" value: {}", checksum);
         if (StringUtils.isNotBlank(checksum)) {
@@ -91,30 +92,37 @@ public class LastModifiedMetadataChecksummer
     }
 
     /**
-     * Whether this checksummer is disabled or not. When disabled, not
-     * checksum will be created (the checksum will be <code>null</code>).
-     * @return <code>true</code> if disabled
+     * Deprecated.
+     * @return always <code>false</code>
+     * @deprecated Since 2.0.0, not having a checksummer defined or
+     * setting one explicitly to <code>null</code> effectively disables
+     * it.
      */
+    @Deprecated
     public boolean isDisabled() {
-        return disabled;
+        return false;
     }
     /**
-     * Sets whether this checksummer is disabled or not. When disabled, not
-     * checksum will be created (the checksum will be <code>null</code>).
-     * @param disabled <code>true</code> if disabled
+     * Deprecated. Invoking this method has no effect
+     * @param disabled argument is ignored
+     * @deprecated Since 2.0.0, not having a checksummer defined or
+     * setting one explicitly to <code>null</code> effectively disable
+     * it.
      */
+    @Deprecated
     public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
+        //NOOP
     }
 
     @Override
     protected void loadChecksummerFromXML(XML xml) {
-        setDisabled(xml.getBoolean("@disabled", disabled));
+        xml.checkDeprecated("@disabled",
+                "Use self-closing <metadataChecksummer/>", false);
     }
 
     @Override
     protected void saveChecksummerToXML(XML xml) {
-        xml.setAttribute("disabled", isDisabled());
+        //NOOP
     }
 
     @Override

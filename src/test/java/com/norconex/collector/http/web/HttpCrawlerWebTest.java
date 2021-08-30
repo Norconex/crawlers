@@ -47,6 +47,7 @@ import com.norconex.collector.http.web.feature.ContentTypeCharset;
 import com.norconex.collector.http.web.feature.FileNotFoundDeletion;
 import com.norconex.collector.http.web.feature.HttpFetcherAccept;
 import com.norconex.collector.http.web.feature.IfModifiedSince;
+import com.norconex.collector.http.web.feature.IfNoneMatch;
 import com.norconex.collector.http.web.feature.JavaScriptURL;
 import com.norconex.collector.http.web.feature.KeepDownloads;
 import com.norconex.collector.http.web.feature.LargeContent;
@@ -110,6 +111,7 @@ public class HttpCrawlerWebTest {
         new JavaScriptURL(),
         new UnmodifiedMeta(),
         new IfModifiedSince(),
+        new IfNoneMatch(),
         new PostImportLinks(),
 
         // Recovery-related tests

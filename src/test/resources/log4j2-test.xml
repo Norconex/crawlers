@@ -247,7 +247,10 @@
       <AppenderRef ref="Console"/>
     </Logger>
 
-    <Logger name="com.norconex.collector.http.web.HttpCrawlerWebTest" level="INFO" additivity="false">
+    <Logger name="com.norconex.collector.http.web.HttpCrawlerWebTest" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.collector.http.web.feature" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
 
