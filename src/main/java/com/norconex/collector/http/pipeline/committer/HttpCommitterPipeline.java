@@ -29,6 +29,7 @@ public class HttpCommitterPipeline
 
     public HttpCommitterPipeline() {
         addStage(new DocumentChecksumStage());
+        addStage(new DocumentDedupStage());
         addStage(new DocumentPostProcessingStage());
         addStage(new PostImportLinksStage());
         addStage(new CommitModuleStage());

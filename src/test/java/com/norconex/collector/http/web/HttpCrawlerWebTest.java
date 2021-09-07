@@ -44,6 +44,7 @@ import com.norconex.collector.http.server.TestServerBuilder;
 import com.norconex.collector.http.web.feature.CanonicalLink;
 import com.norconex.collector.http.web.feature.CanonicalRedirectLoop;
 import com.norconex.collector.http.web.feature.ContentTypeCharset;
+import com.norconex.collector.http.web.feature.Deduplication;
 import com.norconex.collector.http.web.feature.FileNotFoundDeletion;
 import com.norconex.collector.http.web.feature.HttpFetcherAccept;
 import com.norconex.collector.http.web.feature.IfModifiedSince;
@@ -113,6 +114,7 @@ public class HttpCrawlerWebTest {
         new IfModifiedSince(),
         new IfNoneMatch(),
         new PostImportLinks(),
+        new Deduplication(),
 
         // Recovery-related tests
         new StartAfterStopped(),

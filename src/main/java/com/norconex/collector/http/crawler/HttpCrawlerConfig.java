@@ -392,7 +392,7 @@ import com.norconex.importer.ImporterConfig;
  * site more frequently than let's say, an "archive" section of your site.
  * </p>
  *
- * <h3>Document Checksum</h3>
+ * <h3>Change Detection (Checksums)</h3>
  * <p>
  * To find out if a document has changed from one crawling session to another,
  * the crawler creates and keeps a digital signature, or checksum of each
@@ -405,6 +405,26 @@ import com.norconex.importer.ImporterConfig;
  * provide your own implementation. See:
  * {@link #setMetadataChecksummer(IMetadataChecksummer)} and
  * {@link #setDocumentChecksummer(IDocumentChecksummer)}.
+ * </p>
+ *
+ * <h3>Deduplication</h3>
+ * <p>
+ * <b>EXPERIMENTAL:</b>
+ * The crawler can attempt to detect and reject documents considered as
+ * duplicates within a crawler session.  A document will be considered
+ * duplicate if there was already a document processed with the same
+ * metadata or document checksum. To enable this feature, set
+ * {@link #setMetadataDeduplicate(boolean)} and/or
+ * {@link #setDocumentDeduplicate(boolean)} to <code>true</code>. Setting
+ * those will have no effect if the corresponding checksummers are
+ * not set (<code>null</code>).
+ * </p>
+ * <p>
+ * Deduplication can impact crawl performance.  It is recommended you
+ * use it only if you can't distinguish duplicates via other means
+ * (URL normalizer, canonical URL support, etc.).  Also, you should only
+ * enable this feature if you know your checksummer(s) will generate
+ * a checksum that is acceptably unique to you.
  * </p>
  *
  * <h3>URL Extraction</h3>
@@ -478,7 +498,8 @@ import com.norconex.importer.ImporterConfig;
  *       ignore="[false|true]"
  *       class="(ICanonicalLinkDetector implementation)"/>
  *
- *   <metadataChecksummer class="(IMetadataChecksummer implementation)" />
+ *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#checksum-meta}
+ *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#dedup-meta}
  *
  *   <robotsMeta
  *       ignore="[false|true]"
@@ -498,6 +519,7 @@ import com.norconex.importer.ImporterConfig;
  *
  *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#import}
  *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#checksum-doc}
+ *   {@nx.include com.norconex.collector.core.crawler.CrawlerConfig#dedup-doc}
  *
  *   <postImportProcessors>
  *     <!-- Repeatable -->
@@ -588,8 +610,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
             new StandardRobotsMetaProvider();
     private ISitemapResolver sitemapResolver = new GenericSitemapResolver();
 
-    private IMetadataChecksummer metadataChecksummer =
-    		new LastModifiedMetadataChecksummer();
+//    private IMetadataChecksummer metadataChecksummer =
+//    		new LastModifiedMetadataChecksummer();
 
     private final List<IHttpDocumentProcessor> preImportProcessors =
             new ArrayList<>();
@@ -600,9 +622,8 @@ public class HttpCrawlerConfig extends CrawlerConfig {
             new GenericRecrawlableResolver();
 
     public HttpCrawlerConfig() {
-        super();
+        setMetadataChecksummer(new LastModifiedMetadataChecksummer());
     }
-
 
     /**
      * Deprecated.
@@ -1108,18 +1129,20 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
     }
 
-    /**
-     * Gets the metadata checksummer. Default implementation is
-     * {@link LastModifiedMetadataChecksummer} (since 2.2.0).
-     * @return metadata checksummer
-     */
-    public IMetadataChecksummer getMetadataChecksummer() {
-		return metadataChecksummer;
-	}
-	public void setMetadataChecksummer(
-	        IMetadataChecksummer metadataChecksummer) {
-		this.metadataChecksummer = metadataChecksummer;
-	}
+//    /**
+//     * Gets the metadata checksummer. Default implementation is
+//     * {@link LastModifiedMetadataChecksummer} (since 2.2.0).
+//     * @return metadata checksummer
+//     */
+//    @Override
+//    public IMetadataChecksummer getMetadataChecksummer() {
+//		return metadataChecksummer;
+//	}
+//	@Override
+//    public void setMetadataChecksummer(
+//	        IMetadataChecksummer metadataChecksummer) {
+//		this.metadataChecksummer = metadataChecksummer;
+//	}
 
 	public boolean isIgnoreRobotsMeta() {
         return ignoreRobotsMeta;
@@ -1295,7 +1318,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
                 .setAttribute("retryDelay", httpFetchersRetryDelay)
                 .addElementList("fetcher", httpFetchers);
 
-        xml.addElement("metadataChecksummer", metadataChecksummer);
+//        xml.addElement("metadataChecksummer", metadataChecksummer);
         xml.addElement("robotsMeta", robotsMetaProvider)
                 .setAttribute("ignore", ignoreRobotsMeta);
         xml.addElementList("linkExtractors", "extractor", linkExtractors);
@@ -1346,9 +1369,9 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         setHttpFetchersRetryDelay(xml.getDurationMillis(
                 "httpFetchers/@retryDelay", httpFetchersRetryDelay));
 
-        // Metadata Checksummer
-        setMetadataChecksummer(xml.getObjectImpl(IMetadataChecksummer.class,
-                "metadataChecksummer", metadataChecksummer));
+//        // Metadata Checksummer
+//        setMetadataChecksummer(xml.getObjectImpl(IMetadataChecksummer.class,
+//                "metadataChecksummer", metadataChecksummer));
 
         // RobotsMeta provider
         setRobotsMetaProvider(xml.getObjectImpl(

@@ -59,6 +59,7 @@ public class HttpImporterPipeline
         addStage(new MetadataFiltersStage(HttpMethod.HEAD));
         addStage(new CanonicalStage(HttpMethod.HEAD));
         addStage(new MetadataChecksumStage(HttpMethod.HEAD));
+        addStage(new MetadataDedupStage(HttpMethod.HEAD));
 
         // HTTP "GET" and onward:
         addStage(new HttpFetchStage(HttpMethod.GET));
@@ -71,6 +72,7 @@ public class HttpImporterPipeline
         addStage(new RobotsMetaNoIndexStage());
         addStage(new MetadataFiltersStage(HttpMethod.GET));
         addStage(new MetadataChecksumStage(HttpMethod.GET));
+        addStage(new MetadataDedupStage(HttpMethod.GET));
         addStage(new DocumentFiltersStage());
         addStage(new DocumentPreProcessingStage());
         addStage(new ImportModuleStage());

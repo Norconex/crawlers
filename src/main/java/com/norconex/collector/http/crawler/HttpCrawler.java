@@ -44,6 +44,7 @@ import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.core.doc.CrawlState;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
+import com.norconex.collector.core.store.IDataStore;
 import com.norconex.collector.http.HttpCollector;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.doc.HttpDocMetadata;
@@ -62,6 +63,7 @@ import com.norconex.importer.response.ImporterResponse;
 /**
  * The HTTP Crawler.
  * @author Pascal Essiembre
+ * @see HttpCrawlerConfig
  */
 public class HttpCrawler extends Crawler {
 
@@ -71,6 +73,8 @@ public class HttpCrawler extends Crawler {
 	private ISitemapResolver sitemapResolver;
 	private HttpFetchClient fetchClient;
 	private boolean initialQueueLoaded = true;
+    private IDataStore<String> dedupMetadataStore;
+    private IDataStore<String> dedupDocumentStore;
 
     /**
      * Constructor.
@@ -98,6 +102,13 @@ public class HttpCrawler extends Crawler {
         return sitemapResolver;
     }
 
+    public IDataStore<String> getDedupMetadataStore() {
+        return dedupMetadataStore;
+    }
+    public IDataStore<String> getDedupDocumentStore() {
+        return dedupDocumentStore;
+    }
+
     @Override
     protected boolean isQueueInitialized() {
         return initialQueueLoaded;
@@ -117,6 +128,18 @@ public class HttpCrawler extends Crawler {
         // We always initialize the sitemap resolver even if ignored
         // because sitemaps can be specified as start URLs.
         this.sitemapResolver = cfg.getSitemapResolver();
+
+        // Set deduplication data stores if requested (checksum -> ref).
+        if (getCrawlerConfig().isMetadataDeduplicate()
+                && getCrawlerConfig().getMetadataChecksummer() != null) {
+            this.dedupMetadataStore = getDataStoreEngine().openStore(
+                    "dedup-metadata", String.class);
+        }
+        if (getCrawlerConfig().isDocumentDeduplicate()
+                && getCrawlerConfig().getDocumentChecksummer() != null) {
+            this.dedupDocumentStore = getDataStoreEngine().openStore(
+                    "dedup-document", String.class);
+        }
 
         if (!resume) {
             this.initialQueueLoaded = false;

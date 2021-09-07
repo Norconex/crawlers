@@ -9,6 +9,10 @@
 
     <release version="3.0.0-SNAPSHOT" date="2021-??-??" 
         description="Changes since last milestone for this upcoming major release.">
+      <action dev="essiembre" type="add" issue="579">
+        Added optional deduplication feature based on metadata and/or document 
+        checksums.
+      </action>
       <action dev="essiembre" type="add" issue="182">
         Added support for ETag/If-None-Match to GenericHttpFetcher.
       </action>
@@ -27,6 +31,9 @@
       <action dev="essiembre" type="add">
         New DOMLinkExtractor repeatable "extractSelector" and 
         "noExtractSelector".  
+      </action>
+      <action dev="essiembre" type="update">
+        HttpCrawlerConfig metadata checksummer move to base class CrawlerConfig.  
       </action>
       <action dev="essiembre" type="update">
         DOMLinkExtractor configurable "dom" elements deprecated in favor 
