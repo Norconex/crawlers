@@ -409,8 +409,6 @@ public class StandardSitemapResolver implements ISitemapResolver {
         return tempFile;
     }
 
-
-
     private void parseLocation(
             String location, File sitemapFile, ParseContext ctx)
                     throws XMLStreamException, IOException {
@@ -419,29 +417,33 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 ? new StripInvalidCharInputStream(
                         new FileInputStream(sitemapFile))
                 : new FileInputStream(sitemapFile)) {
-            XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-            inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
-            XMLEventReader reader = inputFactory.createXMLEventReader(is);
-            LinkedList<String> path = new LinkedList<>();
-            while (reader.hasNext()) {
-                if (stopped) {
-                    LOG.info("Sitemap not entirely parsed due to "
-                            + "crawler being stopped.");
-                    break;
-                }
-                XMLEvent ev = reader.nextEvent();
-                if (ev.isStartElement()) {
-                    path.addLast(ev.asStartElement()
-                            .getName().getLocalPart().toLowerCase());
-                    parseElement(path, locationDir, reader, ctx);
-                } else if (ev.isEndElement()) {
-                    path.removeLast();
-                }
-            }
-            reader.close();
-
+            parseXml(locationDir, is, ctx);
         }
         FileUtil.delete(sitemapFile);
+    }
+
+    void parseXml(String locationDir, InputStream is, ParseContext ctx)
+            throws XMLStreamException, IOException {
+        XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+        inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
+        XMLEventReader reader = inputFactory.createXMLEventReader(is);
+        LinkedList<String> path = new LinkedList<>();
+        while (reader.hasNext()) {
+            if (stopped) {
+                LOG.info("Sitemap not entirely parsed due to "
+                        + "crawler being stopped.");
+                break;
+            }
+            XMLEvent ev = reader.nextEvent();
+            if (ev.isStartElement()) {
+                path.addLast(ev.asStartElement()
+                        .getName().getLocalPart().toLowerCase());
+                parseElement(path, locationDir, reader, ctx);
+            } else if (ev.isEndElement()) {
+                path.removeLast();
+            }
+        }
+        reader.close();
     }
 
     private void parseElement(
@@ -509,7 +511,12 @@ public class StandardSitemapResolver implements ISitemapResolver {
         while (!r.peek().isEndElement() || !elPath.equals(currPath) ) {
             XMLEvent ev = r.nextEvent();
             if (ev.isStartElement()) {
-                name = ev.asStartElement()
+                String prefix = StringUtils.trimToEmpty(
+                        ev.asStartElement().getName().getPrefix());
+                if (prefix.length() > 0) {
+                    prefix += ":";
+                }
+                name = prefix + ev.asStartElement()
                         .getName().getLocalPart().toLowerCase();
                 currPath.addLast(name);
             } else if (ev.isEndElement()) {
@@ -591,7 +598,7 @@ public class StandardSitemapResolver implements ISitemapResolver {
                 .toString();
     }
 
-    private static class ParseContext {
+    static class ParseContext {
         private final SitemapURLAdder sitemapURLAdder;
         private final HttpClient httpClient;
         private final Set<String> resolvedLocations = new HashSet<>();

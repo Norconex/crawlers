@@ -56,6 +56,10 @@
         Norconex JEF 4.1.3, Norconex Commons Lang 1.15.2, 
         Norconex Collector Core 1.10.1.
       </action>
+      <action dev="essiembre" type="fix" issue="761">
+        Fixed sitemap.xml URL entries not being extracted when "loc" is 
+        from a sitemap extension namespace (e.g., "image:loc"). 
+      </action>
       <action dev="essiembre" type="fix" issue="758">
         Fixed sitemap.xml URL entries not being extracted when they also contain 
         images. 
