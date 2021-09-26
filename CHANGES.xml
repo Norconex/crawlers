@@ -9,6 +9,10 @@
 
     <release version="3.0.0-SNAPSHOT" date="2021-??-??" 
         description="Changes since last milestone for this upcoming major release.">
+      <action dev="essiembre" type="add" issue="211">
+        Can now send deletion requests to committers based on "rejected" events
+        thanks to the new Collector Core "DeleteRejectedEventListener" class.
+      </action>
       <action dev="essiembre" type="add" issue="579">
         Added optional deduplication feature based on metadata and/or document 
         checksums.

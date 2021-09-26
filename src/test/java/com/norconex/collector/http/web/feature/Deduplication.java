@@ -71,7 +71,7 @@ public class Deduplication extends AbstractTestFeature {
 
         if (StringUtils.isBlank(page)) {
             out.println("<h1>Deduplicate files test main page</h1>");
-            out.println("<p>The 3 links below point to pages that are: "
+            out.println("<p>The 3 links below point to pages that are:</p>"
                 + "<ul>"
                 + "<li><a href=\"?page=1\">"
                 + "Link 1: Not a duplicate.</li>"

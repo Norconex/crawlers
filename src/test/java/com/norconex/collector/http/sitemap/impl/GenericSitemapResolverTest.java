@@ -56,7 +56,8 @@ public class GenericSitemapResolverTest {
                 Arrays.asList(
                         "https://example.com/linkA",
                         "https://example.com/linkB",
-                        "https://example.com/linkC"),
+                        "https://example.com/linkC",
+                        "https://example.com/linkD"),
                 extractedLinks.stream()
                         .map(HttpDocInfo::getReference)
                         .collect(Collectors.toList()));

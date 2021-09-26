@@ -59,6 +59,7 @@ import com.norconex.collector.http.web.feature.MultiRedirect;
 import com.norconex.collector.http.web.feature.PostImportLinks;
 import com.norconex.collector.http.web.feature.Redirect;
 import com.norconex.collector.http.web.feature.RedirectCanonicalLoop;
+import com.norconex.collector.http.web.feature.RejectedRefsDeletion;
 import com.norconex.collector.http.web.feature.ScriptTags;
 import com.norconex.collector.http.web.feature.SitemapURLDeletion;
 import com.norconex.collector.http.web.feature.SpecialURLs;
@@ -115,6 +116,7 @@ public class HttpCrawlerWebTest {
         new IfNoneMatch(),
         new PostImportLinks(),
         new Deduplication(),
+        new RejectedRefsDeletion(),
 
         // Recovery-related tests
         new StartAfterStopped(),
