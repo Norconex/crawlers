@@ -63,6 +63,7 @@ import com.norconex.collector.http.web.feature.RejectedRefsDeletion;
 import com.norconex.collector.http.web.feature.ScriptTags;
 import com.norconex.collector.http.web.feature.SitemapURLDeletion;
 import com.norconex.collector.http.web.feature.SpecialURLs;
+import com.norconex.collector.http.web.feature.StopCrawlerOnMaxEvent;
 import com.norconex.collector.http.web.feature.Timeout;
 import com.norconex.collector.http.web.feature.UnmodifiedMeta;
 import com.norconex.collector.http.web.feature.UserAgent;
@@ -117,6 +118,7 @@ public class HttpCrawlerWebTest {
         new PostImportLinks(),
         new Deduplication(),
         new RejectedRefsDeletion(),
+        new StopCrawlerOnMaxEvent(),
 
         // Recovery-related tests
         new StartAfterStopped(),

@@ -111,12 +111,7 @@
       <AppenderRef ref="Console"/>
     </Logger>
 
-    <Logger name="CrawlerEvent.DOCUMENT_COMMITTED_UPSERT" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="CrawlerEvent.DOCUMENT_COMMITTED_DELETE" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
+
     <Logger name="CrawlerEvent.REJECTED_ROBOTS_TXT" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
@@ -157,6 +152,12 @@
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="CrawlerEvent.DOCUMENT_PROCESSED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_COMMITTED_UPSERT" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_COMMITTED_DELETE" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
 

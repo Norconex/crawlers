@@ -65,11 +65,11 @@ public class WebDriverHttpFetcherTest  {
     private static final Logger LOG =
             LoggerFactory.getLogger(WebDriverHttpFetcherTest.class);
 
-//  https://sites.google.com/a/chromium.org/chromedriver/downloads
+//  https://sites.google.com/chromium.org/driver/downloads
     private static final Path chromeDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://chromedriver.storage.googleapis.com/"
-                    + "92.0.4515.43/chromedriver_win32.zip!/chromedriver.exe",
-                    "chromedriver-92.0.4515.43.exe"))
+                    + "94.0.4606.61/chromedriver_win32.zip!/chromedriver.exe",
+                    "chromedriver-94.0.4606.61"))
             .get();
 
 //  https://github.com/mozilla/geckodriver/releases/
