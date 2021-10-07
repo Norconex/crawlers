@@ -134,8 +134,7 @@ import com.norconex.commons.lang.xml.XML;
  * }
  *
  * {@nx.xml.example
- * <listener
- *     class="com.norconex.collector.http.crawler.event.impl.URLStatusCrawlerEventListener">
+ * <listener class="URLStatusCrawlerEventListener">
  *   <statusCodes>404</statusCodes>
  *   <outputDir>/report/path/</outputDir>
  *   <fileNamePrefix>brokenLinks</fileNamePrefix>

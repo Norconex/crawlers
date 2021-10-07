@@ -610,9 +610,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
             new StandardRobotsMetaProvider();
     private ISitemapResolver sitemapResolver = new GenericSitemapResolver();
 
-//    private IMetadataChecksummer metadataChecksummer =
-//    		new LastModifiedMetadataChecksummer();
-
     private final List<IHttpDocumentProcessor> preImportProcessors =
             new ArrayList<>();
     private final List<IHttpDocumentProcessor> postImportProcessors =
@@ -1128,21 +1125,6 @@ public class HttpCrawlerConfig extends CrawlerConfig {
             ReferencedLinkType... keepReferencedLinks) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
     }
-
-//    /**
-//     * Gets the metadata checksummer. Default implementation is
-//     * {@link LastModifiedMetadataChecksummer} (since 2.2.0).
-//     * @return metadata checksummer
-//     */
-//    @Override
-//    public IMetadataChecksummer getMetadataChecksummer() {
-//		return metadataChecksummer;
-//	}
-//	@Override
-//    public void setMetadataChecksummer(
-//	        IMetadataChecksummer metadataChecksummer) {
-//		this.metadataChecksummer = metadataChecksummer;
-//	}
 
 	public boolean isIgnoreRobotsMeta() {
         return ignoreRobotsMeta;

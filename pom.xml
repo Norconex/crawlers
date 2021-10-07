@@ -20,17 +20,25 @@
   <parent>
     <groupId>com.norconex.commons</groupId>
     <artifactId>norconex-commons-maven-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-RC1</version>
   </parent>  
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
   <name>Norconex HTTP Collector</name>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>3.0.0-RC1</version>
 
   <properties>
-    <jetty.version>9.4.34.v20201102</jetty.version>
+    <jetty.version>9.4.44.v20210927</jetty.version>
+    <selenium.version>3.141.59</selenium.version>
+    <imgscalr.version>4.2</imgscalr.version>
+    <browsermob.version>2.1.5</browsermob.version>
   </properties>
   <inceptionYear>2009</inceptionYear>
+
+  <dependencyManagement>
+    <dependencies>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
   
@@ -41,28 +49,12 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
-      <!--
-      <exclusions>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-        </exclusion>
-      </exclusions>
-      -->
     </dependency>
 
     <dependency>
       <groupId>org.imgscalr</groupId>
       <artifactId>imgscalr-lib</artifactId>
-      <version>4.2</version>
+      <version>${imgscalr.version}</version>
     </dependency>  
     <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -75,100 +67,29 @@
         <version>${jetty.version}</version>
     </dependency>
     
-    <!-- === Web Driver Dependencies === -->
-    
-    <!-- Could download drivers separately instead with
-         just selenimum-support artifact if not using many drivers
-         or do not want to package them all.
-         Could also use the selenium-server instead for grid
+    <!-- About Web Driver Dependencies:
+         You could download drivers separately instead, with
+         just the "selenimum-support" artifact if you are not using many 
+         drivers or do not want to package them all.
+         You could also use the "selenium-server" instead for grid
          support and running server embedded.
          https://www.seleniumhq.org/download/maven.jsp
           -->
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
-      <version>3.141.59</version>
+      <version>${selenium.version}</version>
     </dependency>
-    <!-- 
-    <dependency>
-      <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-support</artifactId>
-      <version>3.9.1</version>
-    </dependency>
-    -->
+
     <!-- For capturing http headers: -->
     <dependency>
       <groupId>net.lightbody.bmp</groupId>
       <artifactId>browsermob-core</artifactId>
-      <version>2.1.5</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>${browsermob.version}</version>
     </dependency>
 
-    <!-- Mark drivers as "provided" and document? -->
-    <!-- 
-    <dependency>
-      <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-htmlunit-driver</artifactId>
-      <version>2.52.0</version>
-    </dependency>
-     -->
-    
-    <!-- 
-    <dependency>
-      <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-chrome-driver</artifactId>
-      <version>3.9.1</version>
-    </dependency>
-     -->
-     
-    <!-- Tests and provided. -->
-    
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
+    <!-- Logging dependencies: -->
 
-<!--
-     <dependency>
-      <groupId>com.github.fakemongo</groupId>
-      <artifactId>fongo</artifactId>
-      <version>2.1.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
- -->
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- Logging Dependency. Replace to have your own.
-         MAYBE: add log4j support through assembly and leave those 
-         as tests?
-      -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
@@ -187,7 +108,19 @@
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
     </dependency>
-        
+
+    <!-- Test + provided dependencies: -->
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>

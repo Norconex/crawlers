@@ -400,7 +400,7 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
             //--- Prepare the request ------------------------------------------
 
-            LOG.debug("Fetching document: {}", doc.getReference());
+            LOG.debug("Fetching: {}", doc.getReference());
 
             HttpMethod method = ofNullable(httpMethod).orElse(GET);
             request = ApacheHttpUtil.createUriRequest(
@@ -428,6 +428,9 @@ public class GenericHttpFetcher extends AbstractHttpFetcher {
 
             int statusCode = response.getStatusLine().getStatusCode();
             String reason = response.getStatusLine().getReasonPhrase();
+
+            LOG.debug("Fetch status for: \"{}\": {} - {}",
+                    doc.getReference(), statusCode, reason);
 
             HttpFetchResponseBuilder responseBuilder =
                     new HttpFetchResponseBuilder()

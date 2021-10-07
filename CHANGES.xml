@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="3.0.0-SNAPSHOT" date="2021-??-??" 
+    <release version="3.0.0-RC1" date="2021-??-??" 
         description="Changes since last milestone for this upcoming major release.">
       <action dev="essiembre" type="add" issue="172">
         Can now automatically stop a crawler when it reached a certain number

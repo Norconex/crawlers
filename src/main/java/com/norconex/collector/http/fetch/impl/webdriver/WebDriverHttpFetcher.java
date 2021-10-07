@@ -181,9 +181,6 @@ import com.norconex.commons.lang.xml.XML;
 @SuppressWarnings("javadoc")
 public class WebDriverHttpFetcher extends AbstractHttpFetcher {
 
-  //TODO download files?
-  //https://www.toolsqa.com/selenium-webdriver/how-to-download-files-using-selenium/
-
     private static final Logger LOG = LoggerFactory.getLogger(
             WebDriverHttpFetcher.class);
 
@@ -393,7 +390,7 @@ public class WebDriverHttpFetcher extends AbstractHttpFetcher {
         }
 
         //TODO we assume text/html as default until WebDriver expands its API
-        // to obtain it.
+        // to obtain different types of files.
         if (doc.getDocInfo().getContentType() == null) {
             doc.getDocInfo().setContentType(ContentType.HTML);
         }

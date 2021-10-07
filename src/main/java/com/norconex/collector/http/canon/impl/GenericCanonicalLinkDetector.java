@@ -215,21 +215,10 @@ public class GenericCanonicalLinkDetector
     public void loadFromXML(XML xml) {
         setContentTypes(xml.getDelimitedList(
                 "contentTypes", ContentType.class, contentTypes));
-//        ContentType[] cts = ContentType.valuesOf(StringUtils.split(
-//                StringUtils.trimToNull(xml.getString("contentTypes")), ", "));
-//        if (!ArrayUtils.isEmpty(cts)) {
-//            setContentTypes(cts);
-//        }
     }
-
     @Override
     public void saveToXML(XML xml) {
         xml.addDelimitedElementList("contentTypes", contentTypes);
-//        // Content Types
-//        if (!ArrayUtils.isEmpty(getContentTypes())) {
-//            xml.addElement("contentTypes",
-//                    StringUtils.join(getContentTypes(), ','));
-//        }
     }
 
     @Override
