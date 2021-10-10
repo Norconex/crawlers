@@ -1,58 +1,30 @@
-Roadmap:
-==============
-DONE: M1: All Committers upgraded to Committer Core 3.0
-TODO: M2: Update Collector Core and HTTP to take advantage of TextMatcher, OnSet,
-          and other constructs introduced in latest Nx importer/Nx commons lang
-DONE: M3: Possibly support one or more additional crawl store implementation.
-          Ideally one that is distributed. 
-TODO: M4: Prioritize/triage and implement several remaining feature requests.
-          3.0.0 RELEASE. (Maybe with RC1, RC2... if deemed necessary)
-TODO: M5: Filesystem collector??
-TODO: Ship with sample prometheus config files and documentation how to use
-
-
 TODO:
 ==============
 
-The following are either things to be done, or ideas to consider:
+- Make sure Collector + Importer Temp directories are derived from 
+  collector instead of system /tmp when not set. E.g.,
+  /workDir/collectorDir/crawlerDir/temp
 
-- Test data stores implementations with the new data of HTTP Collector.
- 
+- Come up with sample prometheus config files and documentation how to use
+
 - Allow runtime scaling via JMX.
 
 - Use Apache HTTPClient 5.x for the default fetcher.
 
-- Add AND support with restrictTo
 - Sitemap ignore flag should be move intuitive (ignore auto-detection)
   maybe separate detection from sitemap parsing.
-- Clean should not commit what is left in committers.
-
+  
 - Once document reference can be updated anywhere in the process, keeping
   a collection of them (from original to final), then remove support
   for defining a field as source ID in committers.
 
-- Have a flag that says if coming from sitemap OR better: add a field that stores
-  the sitemap file where a page was found.
+- Have a flag that says if coming from sitemap OR better: add a field that 
+  stores the sitemap file where a page was found.
 
 - Standarsize collector/importer generated metadata field names
   (e.g., "camel-case vs hypens", "collector." vs "document." prefixes).
 
-- Add the option to skip URL extraction when max depth is reached.
-
-- Make sure Importer Temp directory is derived from collector (workdir/temp)
-  instead of system /tmp when not set.
-
-- Add equivalent of skipOnBadStatus to skip bad HEAD requests
-  instead of rejecting the document (including #695).
-
-- Add ability to specify path to keystore and trustore:
-  e.g. https://dzone.com/articles/use-client-certificate-authentication-with-java-an
-
 - Create a class holding constants for frequent XML config attributes. 
-
-- Consider porting the HttpImporterPipelineContext#httpHeadSuccessful update
-  to continue processing a doc if HTTP HEAD fails.
-  https://github.com/Norconex/collector-http/issues/655
 
 - Enforce naming convention where possible (e.g. disabled vs ignored).
 
@@ -64,15 +36,8 @@ The following are either things to be done, or ideas to consider:
 
 - Document that the data store can be used for anything now, not just crawl data.
 
-- Document all migration changes.
-
 - CrawlReference is casted to HttpCrawlReference in many places.
   Use generic in Collector Core to prevent casting?
-
-- Move changes.xml to project root folder to make it obvious?
-
-- Allow storing document/metadata checksummers as null (instead or same as 
-  disabled).
 
 - <referenceFilters> should be urlFilters to avoid conflict with
   Importer equivalent?
@@ -82,22 +47,9 @@ The following are either things to be done, or ideas to consider:
 - Add a reference filter that matches URLs with the same segment repeated
   Nth consecutive times.
 
-- Add ability to export crawlstore in neutral format to switch from one to 
-  another.
-
-- Remove MultiCommitter in favor of supporting multiple committers natively.
-
 - Do lib dups check on startup.
 
 - Fix javadoc (including links) all over.
-
-- Use Norconex parent project for all collector projects
-
-- Switch to short semantic versioning on Github, and get rid of "develop"
-  branch concept (where master is trunk).
-
-- Have ability in XML to only create object (IXMLConfigurable) if any child
-  elements are defined (for optional config blocks). 
 
 - Add xdoclet or equivalent that could be extracted from java doc to build
   online doc automatically/dynamically.
@@ -116,36 +68,18 @@ The following are either things to be done, or ideas to consider:
 
 - Try version 2.12.0 of apache xerces that came up in June 2018.
 
-- Where appropriate, remove the many places where we pass an collector or 
+- Where appropriate, remove the many places where we pass a collector or 
   http config in favor of those classes being able to get it on startup or 
   statically.
 
 - Remove stop() methods in a few classes and listen for crawler/collector
   shutdown instead. 
 
-- Have logging show thread name and make it crawler id (and stop adding 
-  it in logging statements found in many places).
-
-- Have a generic page describing password encryption and point all javadoc to
-  it (could be the javadoc page from Nx Commons Lang.
-
-- ChromeDriver:
-  1. Download latest chrome driver:
-     https://sites.google.com/a/chromium.org/chromedriver/downloads
-  2. Make sure you have chrome installed to default location, or 
-     specify custom location as per: 
-     https://sites.google.com/a/chromium.org/chromedriver/capabilities#TOC-Using-a-Chrome-executable-in-a-non-standard-location
-  3. Add ChromeDriver to Windows PATH or set system property in Java. E.g.:
-       System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
-
-- MAYBE: Upon encountering specific warnings, make command line interfactive
+- MAYBE: Upon encountering specific warnings, make command line interactive
   by default (unless headless detected) and provide option to turn off.
 
 - Optionally keep the URL trail or at least start URL for document:
   https://github.com/Norconex/collector-http/issues/514
-
-- Form authentication: add ability to first parse a login page, look for 
-  login form, and pass all its input field to the login request.
 
 - Have ability to download and install committers from command line?
 
@@ -154,20 +88,9 @@ The following are either things to be done, or ideas to consider:
 - Because the QueuePipeline can be invoked from anywhere, make the 
   "inscope" check part of it instead of always forcing to check first.
 
-- Have an option that sends committer deletion requests at every rejection
-  (once per session per URLs).
-
-- Support custom arguments to the PhantomJS script file.
-  https://github.com/Norconex/collector-http/issues/505
-
 - Support HTTP v2.  Example site: https://www.eetimes.com/rss_simple.asp
 
 - Add external site depth?
-
-- Create parent project to set managed dependencies?
-
-- Use safe filename methods for saving sitemap data (otherwise fails when 
-  containing spaces or others).
 
 - Add one of these as JVM arg: 
       -XX:ExitOnOutOfMemoryError
@@ -192,20 +115,8 @@ The following are either things to be done, or ideas to consider:
 - Maybe add "stayOnDomainMaxSub" for how many subdomain level to support?
   (default would be zero).
 
-- Make default directory for logs and progress the workdir.
-
 - Fix redirects used to authenticate or create session but otherwise return
   to original URL which then can be crawled.
-
-- Change sample config to have just "$workdir" for logs and progress dirs.
-
-- Change sample config to have crawlerDefaults empty instead.
-
-- Remove <dependencyManagement> which is mainly valuable when used with
-  parent projects (which we are not here).  Use regular <dependencies instead.
-  Do this for all projects.
-
-- Use Norconex Commons Lang Proxy class wherever proxies are used.
 
 - Use Apache HttpClient-Win for Windows Auth support like done with
   Azure Search Committer.
@@ -217,20 +128,17 @@ The following are either things to be done, or ideas to consider:
 
 - Have a way to store all data for easy recrawl.
 
-- Reorganize Basic+Execution tests to combine servlet test cases with their 
-  test classes.
-
 - On GenericLinkExtractor, offer a flag to convert \ to /.  Cannot be done
   at normalization time since relative URLs will not be converted to full
   URLs properly without that.
 
-- Consider deprecating TikaLinkExctractor, or at least update it to support
+- Consider deprecating TikaLinkExtractor, or at least update it to support
   relative base hrefs (share some code with GenericLinkExtractor).
 
 - Offer a separate process to run on the crawl store and produce some kind of 
   flat file with referring URL counts so people can decide to use this
   to create some form of relevancy in their search engine (e.g. using 
-  inboud links as a popularity indicator).
+  inbound links as a popularity indicator).
 
 - Have a global settings for making Properties (HttpMetadata, 
   ImporterMetadata, etc) case sensitive or not.
@@ -241,13 +149,8 @@ The following are either things to be done, or ideas to consider:
 - Offer a flag to merge frame/iframe elements on HTML pages as opposed to
   crawl them as separate documents.
 
-- Add a command-line flag that saves the constructed config back to disk 
-  for easy sharing (XML-write).
-
 - Carry a flag that tells if we are running a full crawl, or an incremental one.
   Some operations may be relevant only on incremental runs.
-
-- Add total execution time, periodic time elapsed and estimated remaining.
 
 - Store somewhere in metadata (and maybe carry in code?) whether a 
   document is new or modified.
@@ -274,24 +177,14 @@ The following are either things to be done, or ideas to consider:
 - Have a crawler event listener that generated a tree-like graph of all URLs
   (i.e. a kind of sitemap).
   
-- To consider: Interface for how to save documents whey they are kept.
+- To consider: Interface for how to save documents when they are kept.
   Same with default committer queue location.
   File system is used for both now, but could be others like MongoDB?
   Same as previous item?   
 
-- Add a command prompt action to flush the committer queue. This can be useful
-  if the collector crashed for some reason, while there were files left in
-  the committer queue.  Shall this be done on an AbstractCommitter class
-  so all future collectors automatically has that?
-
 - Add support for having different HTTPContext for each call and/or each
   sites.
   
-- Provide some duplicate content detection mechanism.  Maybe using existing 
-  checksums, or create a distinction between a "modified" checksum (to find out
-  if a document was modified) and a "duplicate" checksum (to find out if 
-  documents are identical).
-
 - Add the ability to control how many successive crawls it has to go through
   before deleting a document because it was not found (404).
 
@@ -300,14 +193,13 @@ The following are either things to be done, or ideas to consider:
      - type: none|all|first|last
      - stacktrace: false|true
 
-- Rotate/break log files when too big.
-
 - If a URL filter rule was changed and a document is now rejected (never 
   processed), it will not be deleted (since it did not get a 404/NOT_FOUND).
   Maybe check if rejected URL in URLProcessor are in cache and send deletion 
   if so.
 
-- Integrate with distributed computing frameworks such as Hadoop.
+- Integrate with distributed computing/storing/streaming frameworks such as 
+  Spark/Hadoop/Kafka.
 
 - Test that IPV6 is supported (as domain names).
 
@@ -319,8 +211,6 @@ The following are either things to be done, or ideas to consider:
 - Add option to skip certain http response code (like 500).  Those docs 
   that should not be added nor deleted because they are in a temporary bad 
   state.  Is it really useful?
-
-- Add a GUI application to help manage collectors and report useful info.
 
 - Deal with <a rel="noreferrer" ... ??
 

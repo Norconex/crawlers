@@ -7,8 +7,8 @@
   </properties>
   <body>
 
-    <release version="3.0.0-RC1" date="2021-??-??" 
-        description="Changes since last milestone for this upcoming major release.">
+    <release version="3.0.0-RC1" date="2021-10-10" 
+        description="Release Candidate 1.">
       <action dev="essiembre" type="add" issue="172">
         Can now automatically stop a crawler when it reached a certain number
         of crawler events, thanks to the new Collector Core 
