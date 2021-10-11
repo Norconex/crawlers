@@ -1,6 +1,9 @@
 TODO:
 ==============
 
+- Exclude some transitive dependency and/or force more recent versions.
+  E.g., exclude commons-logging (do it up to Maven Parent).
+
 - Make sure Collector + Importer Temp directories are derived from 
   collector instead of system /tmp when not set. E.g.,
   /workDir/collectorDir/crawlerDir/temp
