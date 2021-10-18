@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="2.9.1-SNAPSHOT" date="2021-??-??" description="Maintenance release">
+    <release version="2.9.1" date="2021-10-18" description="Maintenance release">
       <action dev="essiembre" type="add" issue="729">
         New "validExitCodes" on PhantomJSDocumentFetcher to support other
         than 0 (now default). 
