@@ -294,7 +294,7 @@ public class HttpCrawler extends Crawler {
     }
 
     @Override
-    protected Class<? extends CrawlDocInfo> getCrawlReferenceType() {
+    protected Class<? extends CrawlDocInfo> getCrawlDocInfoType() {
         return HttpDocInfo.class;
     }
 

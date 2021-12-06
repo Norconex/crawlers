@@ -129,7 +129,8 @@ import com.norconex.commons.lang.xml.XML;
  *     (Web driver max wait time for a page to load.)
  *   </pageLoadTimeout>
  *   <implicitlyWait>
- *     (Web driver waits for that long for the page to finish rendering.)
+ *     (Web driver max wait time for an element to appear. See
+ *      "waitForElement".)
  *   </implicitlyWait>
  *   <scriptTimeout>
  *     (Web driver max wait time for a scripts to execute.)

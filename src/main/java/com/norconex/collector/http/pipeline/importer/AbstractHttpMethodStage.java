@@ -28,7 +28,7 @@ import com.norconex.commons.lang.EqualsUtil;
 /*default*/ abstract class AbstractHttpMethodStage
         extends AbstractImporterStage {
     private final HttpMethod method;
-    public AbstractHttpMethodStage(HttpMethod method) {
+    protected AbstractHttpMethodStage(HttpMethod method) {
         super();
         this.method = Objects.requireNonNull(
                 method, "'method' must not be null.");

@@ -29,7 +29,8 @@ TODO:
 
 - Create a class holding constants for frequent XML config attributes. 
 
-- Enforce naming convention where possible (e.g. disabled vs ignored).
+- Enforce naming convention where possible (e.g. disabled vs ignored)
+  and maybe remove disabled/ignored in favor of null / <selfClosed/>.
 
 - GenericHttpFetcher: rename "headers" to "requestHeaders", rename 
   "headersPrefix" to "responseHeadersPrefix" and add:

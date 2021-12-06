@@ -56,9 +56,6 @@ import com.norconex.importer.doc.Doc;
 
 //TODO if EDGE fails, log an error and assume false (ignore the test).
 
-//TODO merge http client with document fetcher.
-// have 1 doc fetcher and 1 http fetcher that can be the same or different.
-// have ability to specify different fetchers for different URL patterns.
 //@Disabled
 public class WebDriverHttpFetcherTest  {
 
@@ -68,16 +65,16 @@ public class WebDriverHttpFetcherTest  {
 //  https://sites.google.com/chromium.org/driver/downloads
     private static final Path chromeDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://chromedriver.storage.googleapis.com/"
-                    + "94.0.4606.61/chromedriver_win32.zip!/chromedriver.exe",
-                    "chromedriver-94.0.4606.61"))
+                    + "96.0.4664.45/chromedriver_win32.zip!/chromedriver.exe",
+                    "chromedriver-96.0.4664.45"))
             .get();
 
 //  https://github.com/mozilla/geckodriver/releases/
     private static final Path firefoxDriverPath = new OSResource<Path>()
             .win(WebFile.create(
                     "https://github.com/mozilla/geckodriver/releases/download/"
-                  + "v0.29.1/geckodriver-v0.29.1-win64.zip!/geckodriver.exe",
-                    "geckodriver-0.29.1.exe"))
+                  + "v0.30.0/geckodriver-v0.30.0-win64.zip!/geckodriver.exe",
+                    "geckodriver-0.30.0.exe"))
             .get();
 
 //  https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
@@ -90,10 +87,10 @@ public class WebDriverHttpFetcherTest  {
 //  https://github.com/operasoftware/operachromiumdriver/releases
     private static final Path operaDriverPath = new OSResource<Path>()
             .win(WebFile.create("https://github.com/operasoftware/"
-                    + "operachromiumdriver/releases/download/v.93.0.4577.63/"
+                    + "operachromiumdriver/releases/download/v.96.0.4664.45/"
                     + "operadriver_win64.zip!/operadriver_win64/"
                     + "operadriver.exe",
-                    "operadriver-93.0.4577.63.exe"))
+                    "operadriver-96.0.4664.45.exe"))
             .get();
 
     static Stream<WebDriverHttpFetcher> browsersProvider() {

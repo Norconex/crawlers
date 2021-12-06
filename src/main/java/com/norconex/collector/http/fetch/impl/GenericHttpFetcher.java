@@ -164,6 +164,8 @@ import com.norconex.importer.util.CharsetUtil;
  * If you want to convert non-secure URLs secure ones regardless of website
  * HSTS support, use
  * {@link GenericURLNormalizer.Normalization#secureScheme} instead.
+ * To disable HSTS support, use
+ * {@link GenericHttpFetcherConfig#setDisableHSTS(boolean)}.
  * </p>
  *
  * <h3>Pro-active change detection</h3>

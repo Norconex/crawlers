@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="3.0.0-SNAPSHOT" date="2021-??-??"
+        description="Changes since RC1.">
+      <action dev="essiembre" type="fix" issue="766">
+        Fixed data store engine errors (via "collector-core" dependency update). 
+      </action>
+    </release>
+
     <release version="3.0.0-RC1" date="2021-10-10" 
         description="Release Candidate 1.">
       <action dev="essiembre" type="add" issue="172">
@@ -15,7 +22,7 @@
         "StopCrawlerOnMaxEventListener" class.
       </action>
       <action dev="essiembre" type="add" issue="211">
-        Can now send deletion requests to committers based on "rejected" events
+        Can now send deletion requests to Committers based on "rejected" events
         thanks to the new Collector Core "DeleteRejectedEventListener" class.
       </action>
       <action dev="essiembre" type="add" issue="579">
