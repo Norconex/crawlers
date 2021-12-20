@@ -52,6 +52,7 @@ import com.norconex.collector.http.web.feature.IfNoneMatch;
 import com.norconex.collector.http.web.feature.JavaScriptURL;
 import com.norconex.collector.http.web.feature.KeepDownloads;
 import com.norconex.collector.http.web.feature.LargeContent;
+import com.norconex.collector.http.web.feature.MaxConcurrentCrawlers;
 import com.norconex.collector.http.web.feature.MaxDepth;
 import com.norconex.collector.http.web.feature.MaxURLs;
 import com.norconex.collector.http.web.feature.ModifiedFiles;
@@ -91,6 +92,7 @@ public class HttpCrawlerWebTest {
 
         // Misc. feature tests
 
+        new MaxConcurrentCrawlers(),
         new HttpFetcherAccept(),
         new LargeContent(),
         new Redirect(),

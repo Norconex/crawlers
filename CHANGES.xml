@@ -12,6 +12,9 @@
       <action dev="essiembre" type="fix" issue="766">
         Fixed data store engine errors (via "collector-core" dependency update). 
       </action>
+      <action dev="essiembre" type="fix" issue="770">
+        Fixed "Connection Pool Shut Down" error (from collector-core update).
+      </action>
     </release>
 
     <release version="3.0.0-RC1" date="2021-10-10" 

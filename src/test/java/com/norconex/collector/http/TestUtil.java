@@ -117,8 +117,7 @@ public final class TestUtil {
 
     /**
      * Gets a single-crawler configuration that uses a {@link MemoryCommitter}
-     * to store documents. Both the collector and its unique crawler are
-     * guaranteed to have unique ids (UUID).
+     * to store documents.
      * @param id collector id
      * @param workdir working directory
      * @param startURLs start URLs
@@ -130,12 +129,13 @@ public final class TestUtil {
         //--- Collector ---
         HttpCollectorConfig colConfig = new HttpCollectorConfig();
         colConfig.setId("Unit Test HTTP Collector " + id);
-
         colConfig.setWorkDir(workdir);
+        colConfig.setCrawlerConfigs(newMemoryCrawlerConfig(id, startURLs));
+        return colConfig;
+    }
 
-        MemoryCommitter committer = new MemoryCommitter();
-
-        //--- Crawler ---
+    public static HttpCrawlerConfig newMemoryCrawlerConfig(
+            String id, String... startURLs) {
         HttpCrawlerConfig httpConfig = new HttpCrawlerConfig();
         httpConfig.setId("Unit Test HTTP Crawler " + id);
         httpConfig.setStartURLs(startURLs);
@@ -147,15 +147,12 @@ public final class TestUtil {
         httpConfig.setIgnoreRobotsMeta(true);
         httpConfig.setIgnoreRobotsTxt(true);
         httpConfig.setIgnoreSitemap(true);
-        httpConfig.setCommitters(committer);
+        httpConfig.setCommitters(new MemoryCommitter());
 
         httpConfig.setMetadataChecksummer(null);
         httpConfig.setDocumentChecksummer(null);
-
-        colConfig.setCrawlerConfigs(httpConfig);
-        return colConfig;
+        return httpConfig;
     }
-
 
 //    /**
 //     * Gets a single-crawler that uses a {@link MemoryCommitter} to store
@@ -223,6 +220,15 @@ public final class TestUtil {
                     CollectorEvent.COLLECTOR_RUN_END, collector).build());
             em.clearListeners();
         }
+    }
+
+    public static HttpCrawlerConfig firstCrawlerConfig(
+            HttpCollectorConfig colConfig) {
+        return crawlerConfigAt(colConfig, 0);
+    }
+    public static HttpCrawlerConfig crawlerConfigAt(
+            HttpCollectorConfig colConfig, int index) {
+        return (HttpCrawlerConfig) colConfig.getCrawlerConfigs().get(index);
     }
 
     @FunctionalInterface
