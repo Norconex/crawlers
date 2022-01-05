@@ -7,18 +7,23 @@
   </properties>
   <body>
 
-    <release version="3.0.0-SNAPSHOT" date="2021-??-??"
-        description="Changes since RC1.">
+    <release version="3.0.0" date="2022-01-05"
+            description="Major release. NOT a drop-in replacement for 2.x.">
+            
+      <!-- 3.0.0 (GA) -->
+      
+      <action dev="essiembre" type="update">
+        Updated transitive dependencies with known vulnerabilities.
+      </action>
       <action dev="essiembre" type="fix" issue="766">
         Fixed data store engine errors (via "collector-core" dependency update). 
       </action>
       <action dev="essiembre" type="fix" issue="770">
         Fixed "Connection Pool Shut Down" error (from collector-core update).
       </action>
-    </release>
-
-    <release version="3.0.0-RC1" date="2021-10-10" 
-        description="Release Candidate 1.">
+      
+      <!-- 3.0.0-RC1 -->
+      
       <action dev="essiembre" type="add" issue="172">
         Can now automatically stop a crawler when it reached a certain number
         of crawler events, thanks to the new Collector Core 
@@ -65,10 +70,9 @@
       <action dev="essiembre" type="fix">
         Fixed invalid configuration in POM "maven-dependency-plugin".
       </action>
-    </release>
-
-    <release version="3.0.0-M2" date="2021-07-28" 
-        description="Changes since last milestone for this upcoming major release.">
+      
+      <!-- 3.0.0-M2 -->
+      
       <action dev="essiembre" type="remove">
         Removed JEF dependency in favor of improved JMX for tracking.
       </action>
@@ -82,10 +86,9 @@
         Fixed sitemap.xml URL entries not being extracted when they contain 
         custom elements. 
       </action>
-    </release>
 
-    <release version="3.0.0-M1" date="2021-03-01" 
-        description="Milestone towards next major release">
+      <!-- 3.0.0-M1 -->
+
       <action dev="essiembre" type="add">
         New IHttpFetcher for making HTTP requests. Multiple instances
         can now be specified and tried in sequence.  This replaces 
