@@ -127,46 +127,46 @@ public class HttpCrawler extends Crawler {
 
         // We always initialize the sitemap resolver even if ignored
         // because sitemaps can be specified as start URLs.
-        this.sitemapResolver = cfg.getSitemapResolver();
+        sitemapResolver = cfg.getSitemapResolver();
 
         // Set deduplication data stores if requested (checksum -> ref).
         if (getCrawlerConfig().isMetadataDeduplicate()
                 && getCrawlerConfig().getMetadataChecksummer() != null) {
-            this.dedupMetadataStore = getDataStoreEngine().openStore(
+            dedupMetadataStore = getDataStoreEngine().openStore(
                     "dedup-metadata", String.class);
         }
         if (getCrawlerConfig().isDocumentDeduplicate()
                 && getCrawlerConfig().getDocumentChecksummer() != null) {
-            this.dedupDocumentStore = getDataStoreEngine().openStore(
+            dedupDocumentStore = getDataStoreEngine().openStore(
                     "dedup-document", String.class);
         }
 
         if (!resume) {
-            this.initialQueueLoaded = false;
+            initialQueueLoaded = false;
             if (cfg.isStartURLsAsync()) {
                 ExecutorService executor = Executors.newSingleThreadExecutor();
-                executor.submit(() -> {
-                    try {
+                try {
+                    executor.submit(() -> {
                         LOG.info("Reading start URLs asynchronously.");
                         Thread.currentThread().setName(getId());
                         queueStartURLs();
-                    } finally {
-                        initialQueueLoaded = true;
-                        try {
-                            executor.shutdown();
-                            executor.awaitTermination(5, TimeUnit.SECONDS);
-                        } catch (InterruptedException e) {
-                            LOG.error("Reading of start URLs interrupted.", e);
-                            Thread.currentThread().interrupt();
-                        }
+                    });
+                } finally {
+                    initialQueueLoaded = true;
+                    try {
+                        executor.shutdown();
+                        executor.awaitTermination(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        LOG.error("Reading of start URLs interrupted.", e);
+                        Thread.currentThread().interrupt();
                     }
-                });
+                }
             } else {
                 queueStartURLs();
-                this.initialQueueLoaded = true;
+                initialQueueLoaded = true;
             }
         } else {
-            this.initialQueueLoaded = true;
+            initialQueueLoaded = true;
         }
     }
     @Override
@@ -235,7 +235,7 @@ public class HttpCrawler extends Crawler {
         }
 
         final MutableInt urlCount = new MutableInt();
-        Consumer<HttpDocInfo> urlConsumer = (ref) -> {
+        Consumer<HttpDocInfo> urlConsumer = ref -> {
                 executeQueuePipeline(ref);
                 urlCount.increment();
         };
@@ -326,14 +326,12 @@ public class HttpCrawler extends Crawler {
         // below.
         // We do not need to do this for sitemap information since the queue
         // pipeline takes care of (re)adding it.
-        if (cachedDocInfo != null && docInfo.getReferrerReference() != null
+        if ((cachedDocInfo != null && docInfo.getReferrerReference() != null
                 && Objects.equal(
                         docInfo.getReferrerReference(),
-                        cachedDocInfo.getReferrerReference())) {
-            if (docInfo.getReferrerLinkMetadata() == null) {
-                docInfo.setReferrerLinkMetadata(
-                        cachedDocInfo.getReferrerLinkMetadata());
-            }
+                        cachedDocInfo.getReferrerReference())) && (docInfo.getReferrerLinkMetadata() == null)) {
+            docInfo.setReferrerLinkMetadata(
+                    cachedDocInfo.getReferrerLinkMetadata());
         }
 
         // Add referrer data to metadata
