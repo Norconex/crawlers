@@ -56,7 +56,7 @@ import com.norconex.importer.doc.Doc;
 
 //TODO if EDGE fails, log an error and assume false (ignore the test).
 
-//@Disabled
+@Disabled
 public class WebDriverHttpFetcherTest  {
 
     private static final Logger LOG =
