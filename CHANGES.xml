@@ -7,6 +7,15 @@
   </properties>
   <body>
 
+    <release version="3.0.1-SNAPSHOT" date="2022-??-??" description="Bugfix release">
+      <action dev="essiembre" type="fix" issue="781">
+        Fixed occasional concurrency issue when crawler terminates.
+      </action>
+      <action dev="essiembre" type="fix">
+        Fixed the crawler sometimes not exiting when done. 
+      </action>
+    </release>
+
     <release version="3.0.0" date="2022-01-05"
             description="Major release. NOT a drop-in replacement for 2.x.">
             
