@@ -28,6 +28,7 @@
         <include>**</include>
       </includes>
       <outputDirectory>./examples</outputDirectory>
+      <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
       <directory>${basedir}/src/main/assembly/</directory>
@@ -42,6 +43,7 @@
         <include>collector*</include>
       </includes>
       <outputDirectory>./</outputDirectory>
+      <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
       <directory>${basedir}</directory>
@@ -50,10 +52,12 @@
         <include>CHANGES.xml</include>
       </includes>
       <outputDirectory>./</outputDirectory>
+      <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}/site/apidocs</directory>
       <outputDirectory>apidocs</outputDirectory>
+      <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}/shared-resources</directory>
@@ -61,10 +65,11 @@
         <exclude>install*</exclude>
       </excludes>
       <outputDirectory>./</outputDirectory>
-    </fileSet>    
+    </fileSet>
     <fileSet>
       <directory>${project.build.directory}/generated-resources</directory>
       <outputDirectory>third-party</outputDirectory>
+      <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}/generated-sources/license</directory>
@@ -72,16 +77,19 @@
         <include>THIRD-PARTY.txt</include>
       </includes>
       <outputDirectory>third-party</outputDirectory>
+      <lineEnding>unix</lineEnding>
     </fileSet>
   </fileSets>
   <files>
     <file>
       <source>src/main/assembly/log4j2.xml</source>
       <outputDirectory>./</outputDirectory>
+      <lineEnding>unix</lineEnding>
     </file>
     <file>
       <source>src/main/assembly/CLASSES_README.txt</source>
       <outputDirectory>./classes</outputDirectory>
+      <lineEnding>unix</lineEnding>
     </file>
   </files>
   <dependencySets>
