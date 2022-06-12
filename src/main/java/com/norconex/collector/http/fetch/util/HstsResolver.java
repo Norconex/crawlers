@@ -28,6 +28,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.net.InternetDomainName;
 import com.norconex.collector.http.doc.HttpDocInfo;
 import com.norconex.collector.http.url.impl.GenericURLNormalizer.Normalization;
 
@@ -63,20 +64,37 @@ public final class HstsResolver {
 
     public static void resolve(HttpClient httpClient, HttpDocInfo docInfo) {
 
-        String domain = docInfo.getReference().replaceFirst(
+        // The idea: "public" suffixes are "effective" top-level domains
+        // under which new domains can be registered. When considering a root
+        // domain name for a site (and checking for HSTS), we consider that
+        // domain to be the first level before a public suffix.
+        // Google Guava is being well-maintained, we rely on it instead of
+        // loading and caching the list from https://publicsuffix.org ourselves.
+        // We only perform the public suffix resolution if a valid domain.
+        // See: https://github.com/Norconex/collector-http/issues/785
+
+        String rootDomain = docInfo.getReference().replaceFirst(
                 "(?i)^https?://([^/\\?#]+).*", "$1");
         boolean isSubdomain = false;
-        // if there are sub-domains, get just the domain
-        if (StringUtils.countMatches(domain, '.') > 1) {
+        if (InternetDomainName.isValid(rootDomain)) {
+            InternetDomainName dn = InternetDomainName.from(rootDomain);
+            isSubdomain = !dn.isPublicSuffix() && !dn.isTopPrivateDomain();
+            dn = dn.topPrivateDomain();
+            if (dn != null) {
+                rootDomain = dn.toString();
+            }
+        // Plan B, just in case:
+        } else if (StringUtils.countMatches(rootDomain, '.') > 1) {
             isSubdomain = true;
-            domain = domain.replaceFirst(".*\\.([^\\.]+\\.[^\\.]+)$", "$1");
+            rootDomain =
+                    rootDomain.replaceFirst(".*\\.([^\\.]+\\.[^\\.]+)$", "$1");
         }
 
         // If secure, cache HSTS support settings
         if (startsWithIgnoreCase(docInfo.getReference(), "https:")) {
-            resolveHstsSupport(httpClient, /* ctx, */domain);
+            resolveHstsSupport(httpClient, rootDomain);
         } else {
-            applyHstsSupport(docInfo, domain, isSubdomain);
+            applyHstsSupport(docInfo, rootDomain, isSubdomain);
         }
     }
 
@@ -87,7 +105,7 @@ public final class HstsResolver {
                 || (support == HstsSupport.DOMAIN_ONLY && !isSubdomain)) {
             LOG.debug("Converting protocol to https according to "
                     + "domain Strict-Transport-Security (HSTS) settings "
-                    + "for URL: {}", docInfo.getReference());
+                    + "for effective top-level domain: {}", domain);
             docInfo.setOriginalReference(docInfo.getReference());
             docInfo.setReference(docInfo.getReference().replaceFirst(
                     "(?i)^http://", "https://"));

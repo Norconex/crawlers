@@ -8,6 +8,10 @@
   <body>
 
     <release version="3.0.1-SNAPSHOT" date="2022-??-??" description="Bugfix release">
+      <action dev="essiembre" type="fix" issue="785">
+        Fixed not always considering effective top level domain properly 
+        in HSTS resolution.
+      </action>
       <action dev="essiembre" type="fix" issue="781">
         Fixed occasional concurrency issue when crawler terminates.
       </action>

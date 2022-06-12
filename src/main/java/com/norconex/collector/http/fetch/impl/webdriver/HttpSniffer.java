@@ -178,12 +178,11 @@ class HttpSniffer {
         }
     }
 
-    private class FilterAndSource {
+    private static class FilterAndSource {
         private final DriverResponseFilter filter;
         private final HttpFiltersSource source;
         public FilterAndSource(
                 DriverResponseFilter filter, HttpFiltersSource source) {
-            super();
             this.filter = filter;
             this.source = source;
         }
@@ -196,7 +195,6 @@ class HttpSniffer {
         private String reasonPhrase;
         private final String url;
         public DriverResponseFilter(String url) {
-            super();
             this.url = url;
         }
         @Override
@@ -204,8 +202,8 @@ class HttpSniffer {
                 HttpMessageContents contents, HttpMessageInfo messageInfo) {
             if (url.equals(messageInfo.getOriginalUrl())) {
                 headers.addAll(response.headers().entries());
-                statusCode = response.getStatus().code();
-                reasonPhrase = response.getStatus().reasonPhrase();
+                statusCode = response.status().code();
+                reasonPhrase = response.status().reasonPhrase();
             }
         }
         public List<Map.Entry<String, String>> getHeaders() {
