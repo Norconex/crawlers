@@ -78,10 +78,12 @@ public final class HstsResolver {
         boolean isSubdomain = false;
         if (InternetDomainName.isValid(rootDomain)) {
             InternetDomainName dn = InternetDomainName.from(rootDomain);
-            isSubdomain = !dn.isPublicSuffix() && !dn.isTopPrivateDomain();
-            dn = dn.topPrivateDomain();
-            if (dn != null) {
+
+            if (dn.isTopPrivateDomain()) {
+                dn = dn.topPrivateDomain();
                 rootDomain = dn.toString();
+            } else if (!dn.isPublicSuffix()) {
+                isSubdomain = true;
             }
         // Plan B, just in case:
         } else if (StringUtils.countMatches(rootDomain, '.') > 1) {
