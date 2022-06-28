@@ -51,6 +51,7 @@ import com.norconex.collector.http.url.impl.GenericURLNormalizer;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
@@ -308,8 +309,6 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     private final List<RegexPair> noExtractBetweens = new ArrayList<>();
 
     public HtmlLinkExtractor() {
-        super();
-
         // default content type this extractor applies to
         setRestrictions(CommonRestrictions.htmlContentTypes(
                 DocMetadata.CONTENT_TYPE));
@@ -329,30 +328,28 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     @Override
     public void extractTextLinks(
             Set<Link> links, HandlerDoc doc, Reader reader) throws IOException {
-
-        Referer referer = new Referer(doc.getReference());
+        String refererUrl = doc.getReference();
         try (TextReader r = new TextReader(reader)) {
             boolean firstChunk = true;
             String text = null;
             while ((text = r.readText()) != null) {
-                referer = adjustReferer(text, referer, firstChunk);
+                refererUrl = adjustReferer(text, refererUrl, firstChunk);
                 firstChunk = false;
-                extractLinks(text, referer, links);
+                extractLinks(text, refererUrl, links);
             }
         }
     }
 
-    private Referer adjustReferer(
-            final String content, final Referer referer,
+    private String adjustReferer(
+            final String content, final String refererUrl,
             final boolean firstChunk) {
-        Referer ref = referer;
+        String ref = refererUrl;
         if (firstChunk) {
             Matcher matcher = BASE_HREF_PATTERN.matcher(content);
             if (matcher.find()) {
-                String reference = matcher.group(2);
-                if (StringUtils.isNotBlank(reference)) {
-                    reference = toCleanAbsoluteURL(referer, reference);
-                    ref = new Referer(reference);
+                String baseUrl = matcher.group(2);
+                if (StringUtils.isNotBlank(baseUrl)) {
+                    ref = toCleanAbsoluteURL(refererUrl, baseUrl);
                 }
             }
         }
@@ -390,7 +387,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 2.8.0
      */
     public void setExtractBetweens(RegexPair... betweens) {
-        CollectionUtil.setAll(this.extractBetweens, betweens);
+        CollectionUtil.setAll(extractBetweens, betweens);
     }
     /**
      * Sets the patterns delimiting the portions of a document to be considered
@@ -399,7 +396,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 3.0.0
      */
     public void setExtractBetweens(List<RegexPair> betweens) {
-        CollectionUtil.setAll(this.extractBetweens, betweens);
+        CollectionUtil.setAll(extractBetweens, betweens);
     }
     /**
      * Adds patterns delimiting a portion of a document to be considered
@@ -411,7 +408,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      */
     public void addExtractBetween(
             String start, String end, boolean caseSensitive) {
-        this.extractBetweens.add(new RegexPair(start, end, caseSensitive));
+        extractBetweens.add(new RegexPair(start, end, caseSensitive));
     }
 
     /**
@@ -430,7 +427,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 2.8.0
      */
     public void setNoExtractBetweens(RegexPair... betweens) {
-        CollectionUtil.setAll(this.noExtractBetweens, betweens);
+        CollectionUtil.setAll(noExtractBetweens, betweens);
     }
     /**
      * Sets the patterns delimiting the portions of a document to be excluded
@@ -439,7 +436,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 3.0.0
      */
     public void setNoExtractBetweens(List<RegexPair> betweens) {
-        CollectionUtil.setAll(this.noExtractBetweens, betweens);
+        CollectionUtil.setAll(noExtractBetweens, betweens);
     }
     /**
      * Adds patterns delimiting a portion of a document to be excluded
@@ -451,7 +448,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      */
     public void addNoExtractBetween(
             String start, String end, boolean caseSensitive) {
-        this.noExtractBetweens.add(new RegexPair(start, end, caseSensitive));
+        noExtractBetweens.add(new RegexPair(start, end, caseSensitive));
     }
 
     /**
@@ -470,7 +467,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 2.9.0
      */
     public void setExtractSelectors(String... selectors) {
-        CollectionUtil.setAll(this.extractSelectors, selectors);
+        CollectionUtil.setAll(extractSelectors, selectors);
     }
     /**
      * Sets the selectors matching the portions of a document to be considered
@@ -479,7 +476,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 3.0.0
      */
     public void setExtractSelectors(List<String> selectors) {
-        CollectionUtil.setAll(this.extractSelectors, selectors);
+        CollectionUtil.setAll(extractSelectors, selectors);
     }
     /**
      * Adds selectors matching the portions of a document to be considered
@@ -488,7 +485,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 2.9.0
      */
     public void addExtractSelectors(String... selectors) {
-        this.extractSelectors.addAll(Arrays.asList(selectors));
+        extractSelectors.addAll(Arrays.asList(selectors));
     }
     /**
      * Adds selectors matching the portions of a document to be considered
@@ -497,7 +494,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 3.0.0
      */
     public void addExtractSelectors(List<String> selectors) {
-        this.extractSelectors.addAll(selectors);
+        extractSelectors.addAll(selectors);
     }
 
     /**
@@ -516,7 +513,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 2.9.0
      */
     public void setNoExtractSelectors(String... selectors) {
-        CollectionUtil.setAll(this.noExtractSelectors, selectors);
+        CollectionUtil.setAll(noExtractSelectors, selectors);
     }
     /**
      * Sets the selectors matching the portions of a document to be excluded
@@ -525,7 +522,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 3.0.0
      */
     public void setNoExtractSelectors(List<String> selectors) {
-        CollectionUtil.setAll(this.noExtractSelectors, selectors);
+        CollectionUtil.setAll(noExtractSelectors, selectors);
     }
     /**
      * Adds selectors matching the portions of a document to be excluded
@@ -534,7 +531,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 2.9.0
      */
     public void addNoExtractSelectors(String... selectors) {
-        this.noExtractSelectors.addAll(Arrays.asList(selectors));
+        noExtractSelectors.addAll(Arrays.asList(selectors));
     }
     /**
      * Adds selectors matching the portions of a document to be excluded
@@ -543,7 +540,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * @since 3.0.0
      */
     public void addNoExtractSelectors(List<String> selectors) {
-        this.noExtractSelectors.addAll(selectors);
+        noExtractSelectors.addAll(selectors);
     }
 
     /**
@@ -675,7 +672,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     private static final Pattern COMMENT_PATTERN = Pattern.compile(
             "<!--.*?-->", PATTERN_FLAGS);
     private void extractLinks(
-            String theContent, Referer referrer, Set<Link> links) {
+            String theContent, String referrerUrl, Set<Link> links) {
         String content = theContent;
 
         // Eliminate content not matching extract patterns
@@ -701,12 +698,12 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                 String url = null;
                 if (bodyMatcher.find(matcher.start())) {
                     url = bodyMatcher.group(1).trim();
-                    url = toCleanAbsoluteURL(referrer, url);
+                    url = toCleanAbsoluteURL(referrerUrl, url);
                     if (url == null) {
                         continue;
                     }
                     Link link = new Link(url);
-                    link.setReferrer(referrer.url);
+                    link.setReferrer(referrerUrl);
                     links.add(link);
                     addLinkMeta(link, tagName, null, null, restOfTag);
                 }
@@ -719,7 +716,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                 continue;
             }
             if ("meta".equalsIgnoreCase(tagName)) {
-                extractMetaRefresh(restOfTag, referrer, links);
+                extractMetaRefresh(restOfTag, referrerUrl, links);
                 continue;
             }
             if ("a".equalsIgnoreCase(tagName)) {
@@ -758,12 +755,12 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                 }
 
                 for (String url : urls) {
-                    url = toCleanAbsoluteURL(referrer, url);
+                    url = toCleanAbsoluteURL(referrerUrl, url);
                     if (url == null) {
                         continue;
                     }
                     Link link = new Link(url);
-                    link.setReferrer(referrer.url);
+                    link.setReferrer(referrerUrl);
                     addLinkMeta(link, tagName, attribName, text, restOfTag);
                     links.add(link);
                 }
@@ -856,12 +853,11 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         while (leftMatch.find()) {
             Pattern rightPattern = Pattern.compile(pair.getEnd(), flags);
             Matcher rightMatch = rightPattern.matcher(content);
-            if (rightMatch.find(leftMatch.end())) {
-                matches.add(new ImmutablePair<>(
-                        leftMatch.start(), rightMatch.end()));
-            } else {
+            if (!rightMatch.find(leftMatch.end())) {
                 break;
             }
+            matches.add(new ImmutablePair<>(
+                    leftMatch.start(), rightMatch.end()));
         }
         return matches;
     }
@@ -897,7 +893,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
           + "\\s*=\\s*([\"']{0,1})([^\\<\\>\"']+?)[\\<\\>\"'].*?",
             PATTERN_FLAGS);
     private void extractMetaRefresh(
-            String restOfTag, Referer referrer, Set<Link> links) {
+            String restOfTag, String referrerUrl, Set<Link> links) {
         if (!META_EQUIV_REFRESH_PATTERN.matcher(restOfTag).find()) {
             return;
         }
@@ -905,9 +901,9 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         if (!m.find()) {
             return;
         }
-        String url = toCleanAbsoluteURL(referrer, m.group(4));
+        String url = toCleanAbsoluteURL(referrerUrl, m.group(4));
         Link link = new Link(url);
-        link.setReferrer(referrer.url);
+        link.setReferrer(referrerUrl);
         addLinkMeta(link, "meta", "content", null, restOfTag);
         links.add(link);
     }
@@ -925,7 +921,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
 
     private String toCleanAbsoluteURL(
-            final Referer urlParts, final String newURL) {
+            final String referrerUrl, final String newURL) {
         String url = StringUtils.trimToNull(newURL);
         if (!isValidNewURL(url)) {
             return null;
@@ -939,24 +935,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             return null;
         }
 
-        if (url.startsWith("//")) {
-            // this is URL relative to protocol
-            url = urlParts.scheme
-                    + StringUtils.substringAfter(url, "//");
-        } else if (url.startsWith("/")) {
-            // this is a URL relative to domain name
-            url = urlParts.absoluteBase + url;
-        } else if (url.startsWith("?") || url.startsWith("#")) {
-            // this is a relative url and should have the full page base
-            url = urlParts.documentBase + url;
-        } else if (!url.contains(":")) {
-            if (urlParts.relativeBase.endsWith("/")) {
-                // This is a URL relative to the last URL segment
-                url = urlParts.relativeBase + url;
-            } else {
-                url = urlParts.relativeBase + "/" + url;
-            }
-        }
+        url = HttpURL.toAbsolute(referrerUrl, url);
 
         if (url.length() > maxURLLength) {
             if (LOG.isDebugEnabled()) {
@@ -1043,13 +1022,13 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         // extract selector
         List<String> extractSelList = xml.getStringList("extractSelector");
         if (!extractSelList.isEmpty()) {
-            CollectionUtil.setAll(this.extractSelectors, extractSelList);
+            CollectionUtil.setAll(extractSelectors, extractSelList);
         }
 
         // no extract selector
         List<String> noExtractSelList = xml.getStringList("noExtractSelector");
         if (!noExtractSelList.isEmpty()) {
-            CollectionUtil.setAll(this.noExtractSelectors, noExtractSelList);
+            CollectionUtil.setAll(noExtractSelectors, noExtractSelList);
         }
 
     }
@@ -1096,48 +1075,12 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
     }
 
-    //TODO delete this class and use HttpURL#toAbsolute() instead?
-    private static class Referer {
-        private final String scheme;
-        private final String path;
-        private final String relativeBase;
-        private final String absoluteBase;
-        private final String documentBase;
-        private final String url;
-        public Referer(String documentUrl) {
-            super();
-            this.url = documentUrl;
-
-            // URL Protocol/scheme, up to double slash (included)
-            scheme = documentUrl.replaceFirst("(.*?:(//){0,1})(.*)", "$1");
-
-            // URL Path (anything after double slash)
-            path = documentUrl.replaceFirst("(.*?:(//){0,1})(.*)", "$3");
-
-            // URL Relative Base: truncate to last / before a ? or #
-            String relBase = path.replaceFirst(
-                    "(.*?)([\\?\\#])(.*)", "$1");
-            relativeBase = scheme +  relBase.replaceFirst("(.*/)(.*)", "$1");
-
-            // URL Absolute Base: truncate to first / if present, after protocol
-            absoluteBase = scheme + path.replaceFirst("(.*?)(/.*)", "$1");
-
-            // URL Document Base: truncate from first ? or #
-            documentBase =
-                    scheme + path.replaceFirst("(.*?)([\\?\\#])(.*)", "$1");
-
-            LOG.trace("DOCUMENT URL: {}  BASE RELATIVE: {}  BASE ABSOLUTE: {}",
-                    documentUrl, relativeBase, absoluteBase);
-        }
-    }
-
     //TODO make standalone class?
     public static class RegexPair {
         private final String start;
         private final String end;
         private final boolean caseSensitive;
         public RegexPair(String start, String end, boolean caseSensitive) {
-            super();
             this.start = start;
             this.end = end;
             this.caseSensitive = caseSensitive;
