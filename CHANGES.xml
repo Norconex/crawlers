@@ -7,7 +7,12 @@
   </properties>
   <body>
 
-    <release version="3.0.1-SNAPSHOT" date="2022-??-??" description="Bugfix release">
+    <release version="3.0.1-SNAPSHOT" date="2022-??-??" description="Maintenance release">
+      <action dev="essiembre" type="add" issue="790">
+        New MDC attributes which can be used in supporting logging framework:
+        "ctx:crawler.id", "ctx:crawler.id.safe", "ctx:collector.id.safe", 
+        and "ctx:collector.id.safe".
+      </action>
       <action dev="essiembre" type="fix" issue="788">
         Fixed invalid relative URLs resolution when such URLs contain a 
         colon (:) that is not the scheme.

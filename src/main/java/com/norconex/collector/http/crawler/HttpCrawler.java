@@ -1,4 +1,4 @@
-/* Copyright 2010-2021 Norconex Inc.
+/* Copyright 2010-2022 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import com.norconex.collector.core.crawler.Crawler;
 import com.norconex.collector.core.doc.CrawlDoc;
 import com.norconex.collector.core.doc.CrawlDocInfo;
 import com.norconex.collector.core.doc.CrawlState;
+import com.norconex.collector.core.monitor.MdcUtil;
 import com.norconex.collector.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.collector.core.store.IDataStore;
 import com.norconex.collector.http.HttpCollector;
@@ -147,8 +148,9 @@ public class HttpCrawler extends Crawler {
                 ExecutorService executor = Executors.newSingleThreadExecutor();
                 try {
                     executor.submit(() -> {
-                        LOG.info("Reading start URLs asynchronously.");
+                        MdcUtil.setCrawlerId(getId());
                         Thread.currentThread().setName(getId());
+                        LOG.info("Reading start URLs asynchronously.");
                         queueStartURLs();
                     });
                 } finally {
