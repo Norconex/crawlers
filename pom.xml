@@ -20,12 +20,12 @@
   <parent>
     <groupId>com.norconex.commons</groupId>
     <artifactId>norconex-commons-maven-parent</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
   </parent>  
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
   <name>Norconex HTTP Collector</name>
-  <version>3.0.1-SNAPSHOT</version>
+  <version>3.0.1</version>
 
   <properties>
     <bc.version>1.69</bc.version>
