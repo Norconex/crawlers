@@ -7,6 +7,13 @@
   </properties>
   <body>
 
+    <release version="3.0.2-SNAPSHOT" date="2022-??-??" description="Maintenance release">
+      <action dev="essiembre" type="add" issue="803">
+        Fixed GenericSitemapResolver NPE when the sitemap content-type
+        could not be detected.
+      </action>
+    </release>
+
     <release version="3.0.1" date="2022-08-30" description="Maintenance release">
       <action dev="essiembre" type="add" issue="790">
         New MDC attributes which can be used in supporting logging framework:
