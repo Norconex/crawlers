@@ -1,0 +1,811 @@
+<!-- 
+   Copyright 2022 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.norconex.crawler</groupId>
+  <artifactId>nx-crawler-parent</artifactId>  
+  <version>4.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Norconex Crawler Parent</name>
+
+  <properties>
+    <java.version>11</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <!-- Norconex dependencies -->
+    <norconex-commons-lang.version>3.0.0-SNAPSHOT</norconex-commons-lang.version>
+
+    <!-- Apache Commons dependencies -->
+    <commons-cli.version>1.4</commons-cli.version>
+    <commons-codec.version>1.15</commons-codec.version>
+    <commons-collections4.version>4.4</commons-collections4.version>
+    <commons-csv.version>1.9.0</commons-csv.version>
+    <commons-io.version>2.11.0</commons-io.version>
+    <commons-lang3.version>3.12.0</commons-lang3.version>
+    <commons-logging.version>1.2</commons-logging.version>
+    <commons-text.version>1.9</commons-text.version>
+    
+    <!-- Other dependencies -->
+    <aws-java-sdk.version>1.12.78</aws-java-sdk.version>
+    <ant.version>1.10.11</ant.version>
+    <httpclient5.version>5.1</httpclient5.version>
+    <jackson.version>2.13.0</jackson.version>
+    <jaxb-runtime.version>2.3.5</jaxb-runtime.version>
+    <java-cup.version>10k</java-cup.version>
+    <jetty.version>9.4.44.v20210927</jetty.version>
+    <json.version>1.8</json.version>
+    <log4j.version>2.17.1</log4j.version>
+    <picocli.version>4.6.1</picocli.version>
+    <slf4j.version>1.7.32</slf4j.version>
+    <velocity-engine.version>2.3</velocity-engine.version>
+    <xerces.version>2.12.2</xerces.version>
+    <xml-bind-api.version>2.3.3</xml-bind-api.version>
+    <xpath2.version>2.1.100</xpath2.version>
+
+    <!-- Test/Provided dependencies -->
+    <assertj.version>3.23.1</assertj.version>
+    <easy-random.version>5.0.0</easy-random.version>
+    <junit-jupiter.version>5.8.1</junit-jupiter.version>
+    <lombok.version>1.18.22</lombok.version>
+    <mockito.version>4.6.1</mockito.version>
+    <mockserver.version>5.14.0</mockserver.version>
+    <testcontainers.version>1.16.0</testcontainers.version>
+  </properties>
+
+  <inceptionYear>2009</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <repositories>
+    <repository>
+      <id>sonatype-oss-snapshots</id>
+      <name>Sonatype OSS Snapshot Repository</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <dependencyManagement>
+    <dependencies>
+    
+      <!-- Norconex dependencies -->
+    
+      <dependency>
+        <groupId>com.norconex.commons</groupId>
+        <artifactId>norconex-commons-lang</artifactId>
+        <version>${norconex-commons-lang.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.norconex.commons</groupId>
+        <artifactId>norconex-commons-lang</artifactId>
+        <version>${norconex-commons-lang.version}</version>
+        <classifier>resources</classifier>
+        <type>zip</type>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.norconex.crawlers</groupId>
+        <artifactId>norconex-crawler-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.norconex.crawlers</groupId>
+        <artifactId>norconex-importer</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.norconex.crawlers</groupId>
+        <artifactId>norconex-committer-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- Jackson dependencies -->
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jsr310</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jdk8</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <!-- Other dependencies -->
+
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-collections4</artifactId>
+        <version>${commons-collections4.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${commons-io.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-text</artifactId>
+        <version>${commons-text.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>${commons-logging.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>${commons-codec.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-csv</artifactId>
+        <version>${commons-csv.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.velocity</groupId>
+        <artifactId>velocity-engine-core</artifactId>
+        <version>${velocity-engine.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk</artifactId>
+        <version>${aws-java-sdk.version}</version>
+      </dependency>      
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${httpclient5.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>${xml-bind-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jaxb</groupId>
+        <artifactId>jaxb-runtime</artifactId>
+        <version>${jaxb-runtime.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-proxy</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+
+      <!-- TODO: REMOVE THIS ONE IN FAVOR OF PICOCLI? -->
+      <dependency>
+        <groupId>commons-cli</groupId>
+        <artifactId>commons-cli</artifactId>
+        <version>${commons-cli.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>info.picocli</groupId>
+        <artifactId>picocli</artifactId>
+        <version>${picocli.version}</version>
+      </dependency>      
+      
+      <!-- For XSD 1.1 support until Apache releases their Xerces version
+           with 1.1 support to Maven central. -->
+      <dependency>
+        <groupId>org.exist-db.thirdparty.xerces</groupId>
+        <artifactId>xercesImpl</artifactId>
+        <version>${xerces.version}</version>
+        <classifier>xml-schema-1.1</classifier>
+        <exclusions>
+          <!-- This exclusion is to fix: 
+            "The package javax.xml.namespace is accessible from more than 
+            one module: <unnamed>, java.xml"
+           -->
+          <exclusion>
+            <groupId>xml-apis</groupId>
+              <artifactId>xml-apis</artifactId>
+            </exclusion>
+        </exclusions>
+      </dependency>
+      
+      <!-- xpath2 and java-cup are needed at runtime
+              for xercesImpl Schema 1.1 support with above dep. -->
+      <dependency>
+        <groupId>com.rackspace.eclipse.webtools.sourceediting</groupId>
+        <artifactId>org.eclipse.wst.xml.xpath2.processor</artifactId>
+        <version>${xpath2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>edu.princeton.cup</groupId>
+        <artifactId>java-cup</artifactId>
+        <version>${java-cup.version}</version>
+      </dependency>      
+
+      <dependency>
+        <groupId>com.tdunning</groupId>
+        <artifactId>json</artifactId>
+        <version>${json.version}</version>
+      </dependency>
+
+      <!-- Tests and provided. -->
+      <dependency>
+        <groupId>org.jeasy</groupId>
+        <artifactId>easy-random-core</artifactId>
+        <version>${easy-random.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant</artifactId>
+        <version>${ant.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${testcontainers.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${assertj.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mock-server</groupId>
+        <artifactId>mockserver-netty</artifactId>
+        <version>${mockserver.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mock-server</groupId>
+        <artifactId>mockserver-client-java</artifactId>
+        <version>${mockserver.version}</version>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <filtering>false</filtering>
+        <directory>${project.build.sourceDirectory}</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <filtering>false</filtering>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+      <resource>
+        <filtering>false</filtering>
+        <directory>${project.basedir}</directory>
+        <targetPath>${project.build.directory}/site</targetPath>
+        <includes>
+          <include>CHANGES.xml</include>
+        </includes>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <filtering>false</filtering>
+        <directory>${project.build.testSourceDirectory}</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
+      </testResource>
+      <testResource>
+        <filtering>false</filtering>
+        <directory>src/test/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </testResource>
+    </testResources>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh</artifactId>
+        <version>3.4.1</version>
+      </extension>
+    </extensions>
+
+    <pluginManagement>
+      <plugins>
+
+        <!-- This is only required to avoid false warnings in Eclipse:
+             https://stackoverflow.com/questions/23908837/
+             apache-camel-maven-remote-resources-plugin-goal-process-is-
+             ignored-by-m2e
+           -->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-remote-resources-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                        <goal>process</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore>
+                    </ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.0</version>
+          <configuration>
+            <source>${maven.compiler.source}</source>
+            <target>${maven.compiler.target}</target>
+            <encoding>UTF-8</encoding>
+          </configuration>
+          <inherited>true</inherited>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.1.1</version>
+          <executions>
+            <execution>
+              <id>make-dist-assembly</id>
+              <phase>package</phase>
+              <goals>
+                <goal>single</goal>
+              </goals>
+              <configuration>
+                <descriptors>
+                  <descriptor>src/main/assembly/dist.xml</descriptor>
+                </descriptors>
+                <appendAssemblyId>false</appendAssemblyId>
+              </configuration>
+            </execution>
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-remote-resources-plugin</artifactId>
+          <version>1.6.0</version>
+          <inherited>true</inherited>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.2.0</version>
+          <configuration>
+            <reportOutputDirectory>${project.build.directory}/site</reportOutputDirectory>
+            <outputDirectory>${project.build.directory}/site/apidocs</outputDirectory>
+            <stylesheetfile>${project.build.directory}/site/apidocs/norconex-javadoc.css</stylesheetfile>
+            <resourcesArtifacts>
+              <resourcesArtifact>
+                <groupId>com.norconex.commons</groupId>
+                <artifactId>javadoc-resources</artifactId>
+                <version>${project.parent.version}</version>
+              </resourcesArtifact>
+            </resourcesArtifacts>
+            <additionalJOptions>
+              <additionalJOption>&#45;&#45;allow-script-in-comments</additionalJOption>
+              <additionalJOption>-J-Dbasedir=${basedir}</additionalJOption>
+            </additionalJOptions>
+            <overview>src/main/javadoc/overview.html</overview>
+            <packagesheader>${project.name} API</packagesheader>
+            <top><![CDATA[
+              <script src="{@docRoot}/jquery-3.3.1.min.js" type="text/javascript"></script>
+              <script src="{@docRoot}/bootstrap.bundle.min.js" type="text/javascript"></script>
+              <script src="{@docRoot}/prism.js" type="text/javascript"></script>
+              <link href="{@docRoot}/bootstrap.min.css" rel="stylesheet" type="text/css">
+              <link href="{@docRoot}/prism.css" rel="stylesheet" type="text/css">
+              <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+            ]]>
+            </top>
+            <header><![CDATA[
+              <div id="pom" class="d-none"
+                   data-doc-root="{@docRoot}"
+                   data-project-name="${project.name}"
+                   data-project-url="${project.url}"
+                   data-project-version="${project.version}"></div>
+            ]]>
+            </header>
+            <footer><![CDATA[
+              <a style="font-size: 1.4em;" href="${project.issueManagement.url}">Submit an Issue</a>
+              &nbsp;&nbsp;|&nbsp;&nbsp; 
+              <a style="font-size: 1.4em;" href="https://norconex.com">norconex.com</a>
+              <script src="{@docRoot}/norconex-javadoc.js" type="text/javascript"></script>
+            ]]>
+            </footer>
+            <show>protected</show>
+            <nodeprecated>false</nodeprecated>
+            <source>${maven.compiler.source}</source>
+            <detectLinks>false</detectLinks>
+            <links>
+              <!-- All above dependencies are referenced here. 
+                   Do not end with forward slash as it can cause issues
+                   finding the links.
+                -->
+
+              <!-- Norconex dependencies -->
+              <link>https://opensource.norconex.com/commons/lang/v2/apidocs</link>
+              <link>https://opensource.norconex.com/importer/v3/apidocs</link>
+              <link>https://opensource.norconex.com/committers/core/v3/apidocs</link>
+              <link>https://opensource.norconex.com/crawlers/core/v2/apidocs</link>
+
+              <!-- Regular dependencies -->
+              <link>https://commons.apache.org/proper/commons-lang/javadocs/api-release</link>
+              <link>https://commons.apache.org/proper/commons-collections/javadocs/api-${commons-collections4.version}</link>
+              <link>https://commons.apache.org/proper/commons-io/javadocs/api-release</link>
+              <link>https://commons.apache.org/proper/commons-text/apidocs</link>
+              <link>https://commons.apache.org/proper/commons-cli/javadocs/api-release</link>
+              <link>https://commons.apache.org/proper/commons-logging/javadocs/api-release</link>
+              <link>https://picocli.info/apidocs</link>
+              <link>https://velocity.apache.org/engine/${velocity-engine.version}/apidocs</link>
+              <link>https://www.slf4j.org/apidocs</link>
+              <link>https://javadoc.io/doc/com.tdunning/json/latest</link>
+              <!-- Missing: xerces (1.1 schema), xpath2, java-cup, jackson/fasterxml --> 
+
+              <!-- Test dependencies -->
+              <link>https://junit.org/junit5/docs/${junit-jupiter.version}/api</link>
+              <link>https://logging.apache.org/log4j/2.x/log4j-api/apidocs</link>
+              <link>https://ant.apache.org/manual/api</link>
+            </links>
+            
+            <!-- For IncludeTaglet to work on external source files, the 
+                 "-sources.jar" artifact must be present in local Maven 
+                 repository or needs to be explicitly added as a JavaDoc
+                 additional dependency. 
+                 -->
+            <taglets>
+              <taglet><tagletClass>com.norconex.commons.lang.javadoc.IncludeTaglet</tagletClass></taglet>
+              <taglet><tagletClass>com.norconex.commons.lang.javadoc.XMLTaglet</tagletClass></taglet>
+              <taglet><tagletClass>com.norconex.commons.lang.javadoc.XMLUsageTaglet</tagletClass></taglet>
+              <taglet><tagletClass>com.norconex.commons.lang.javadoc.XMLExampleTaglet</tagletClass></taglet>
+              <taglet><tagletClass>com.norconex.commons.lang.javadoc.BlockTaglet</tagletClass></taglet>
+              <taglet><tagletClass>com.norconex.commons.lang.javadoc.HTMLTaglet</tagletClass></taglet>
+              <taglet><tagletClass>com.norconex.commons.lang.javadoc.JSONTaglet</tagletClass></taglet>
+            </taglets>
+            <tagletArtifacts>
+              <tagletArtifact>
+                <groupId>com.norconex.commons</groupId>
+                <artifactId>norconex-commons-lang</artifactId>
+                <version>${norconex-commons-lang.version}</version>
+              </tagletArtifact>
+            </tagletArtifacts>
+          </configuration>
+          <executions>
+            <execution>
+              <id>make-javadoc</id>
+              <phase>prepare-package</phase>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.0.1</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar-no-fork</goal>
+              </goals>
+            </execution>
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.1.1</version>
+          <configuration>
+            <archive>
+              <manifest>
+                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+              </manifest>
+            </archive>
+            <excludes>
+              <exclude>THIRD-PARTY.txt</exclude>
+            </excludes>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>test-jar</goal>
+              </goals>
+            </execution>
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+        
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.0.0-M5</version>
+        </plugin>
+
+        <!-- https://www.mojohaus.org/license-maven-plugin/ -->
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>1.17</version>
+          <executions>
+            <execution>
+              <id>download-licenses</id>
+              <goals>
+                <goal>download-licenses</goal>
+              </goals>
+              <phase>generate-resources</phase>
+            </execution>
+            <!-- NOT NEEDED: listing available in licenses.xml sufficient?
+            <execution>
+              <id>create-license-list</id>
+              <goals>
+                <goal>add-third-party</goal>
+              </goals>
+              <phase>generate-resources</phase>
+            </execution>
+             -->
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+
+        <!-- Use VM argument -Dgpg.skip=true to disable GPG signing. -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.6</version>
+          <executions>
+            <execution>
+              <id>sign-artifacts</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+              <configuration>
+                <!-- This is necessary for gpg to not try to use the pinentry programs -->
+                <gpgArguments>
+                  <arg>--pinentry-mode</arg>
+                  <arg>loopback</arg>
+                </gpgArguments>
+              </configuration>
+            </execution>
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>1.6.8</version>
+          <extensions>true</extensions>
+          <configuration>
+            <serverId>ossrh</serverId>
+            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+          </configuration>
+          <inherited>true</inherited>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.1.1</version>
+        </plugin>
+        
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.9.1</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.apache.maven.wagon</groupId>
+              <artifactId>wagon-ssh</artifactId>
+              <version>3.4.1</version>
+            </dependency>
+          </dependencies>
+          <inherited>true</inherited>
+        </plugin>        
+        
+<!-- 
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>2.6</version>
+        </plugin>
+ -->
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+      </plugin>    
+    </plugins>
+
+  </build>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+  <organization>
+    <name>Norconex Inc.</name>
+    <url>https://norconex.com</url>
+  </organization>
+  <url>https://github.com/Norconex/crawlers</url>
+  <scm>
+    <url>https://github.com/Norconex/crawlers</url>
+    <connection>scm:git:git@github.com:Norconex/commons-maven-parent.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/commons-maven-parent.git</developerConnection>
+  </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/Norconex/commons-maven-parent/issues</url>
+  </issueManagement>
+
+  <developers>
+    <developer>
+      <id>essiembre</id>
+      <name>Pascal Essiembre</name>
+      <email>pascal.essiembre@norconex.com</email>
+      <organization>Norconex Inc.</organization>
+      <organizationUrl>https://norconex.com</organizationUrl>
+      <roles>
+        <role>project leader</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-4</timezone>
+    </developer>
+  </developers>
+  <contributors>
+  </contributors>
+
+  <description>Maven parent POM for Norconex crawler-related projects.</description>
+  <modules>
+    <module>crawler/core</module>
+<!--     <module>javadoc-resources</module>
+    <module>committer/core</module>
+    <module>importer</module>
+    <module>crawler/web</module>
+    <module>crawler/filesystem</module>
+ -->
+  </modules>
+</project>

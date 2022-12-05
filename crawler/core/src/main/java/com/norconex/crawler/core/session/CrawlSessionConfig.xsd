@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2017-2018 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="config">
+    <xs:complexType>
+      <xs:complexContent> 
+        <xs:extension base="CrawlSessionConfigType"/> 
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="CrawlSessionConfigType" abstract="true">
+    <xs:all>
+        <xs:element name="workDir" 
+                    type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="tempDir" 
+                    type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="eventListeners"
+                    type="listenersType" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="maxConcurrentCrawlers"
+                    type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="crawlersStartInterval"
+                    type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="maxStreamCachePoolSize"
+                    type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="maxStreamCacheSize"
+                    type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="crawlerDefaults"
+                    type="anyComplexType" minOccurs="0" maxOccurs="1"/>                  
+        <xs:element name="crawlers" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="crawler" type="crawlerType" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>                  
+    </xs:all>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="class" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="listenersType">
+    <xs:all>
+      <xs:element name="listener" 
+          type="anyComplexWithClassType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="anyComplexType" mixed="true">
+    <xs:all>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:all>
+    <xs:anyAttribute processContents="lax"/>
+  </xs:complexType>
+
+  <xs:complexType name="anyComplexWithClassType" mixed="true">
+    <xs:all>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:all>
+    <xs:attribute name="class" type="xs:string" use="required"></xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+  </xs:complexType>
+
+  <xs:complexType name="crawlerType" mixed="true">
+    <xs:all>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:all>
+    <xs:attribute name="id" type="xs:string" use="required"></xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+  </xs:complexType>
+
+</xs:schema>

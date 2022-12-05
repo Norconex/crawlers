@@ -1,3 +1,6 @@
-# TODO
+crawler-core
+==============
 
-Placeholder file for now.
+Collector-related code shared between different collector implementations
+
+Website: https://opensource.norconex.com/crawlers/core/
