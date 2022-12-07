@@ -19,7 +19,7 @@ import com.norconex.commons.lang.event.EventListener;
 /**
  * Crawl session event listener adapter for session startup/shutdown.
  *
- * @since 4.0.0 (renamed from v3.x CollectorSessionLifeCycleListener)
+ * @since 4.0.0 (renamed CollectorSessionLifeCycleListener)
  */
 public class CrawlSessionLifeCycleListener
         implements EventListener<CrawlSessionEvent> {
@@ -30,21 +30,21 @@ public class CrawlSessionLifeCycleListener
             return;
         }
         onCrawlSessionEvent(event);
-        if (event.is(CrawlSessionEvent.SESSION_RUN_BEGIN)) {
+        if (event.is(CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN)) {
             onCrawlSessionRunBegin(event);
-        } else if (event.is(CrawlSessionEvent.SESSION_RUN_END)) {
+        } else if (event.is(CrawlSessionEvent.CRAWLSESSION_RUN_END)) {
             onCrawlSessionRunEnd(event);
             onCrawlSessionShutdown(event);
-        } else if (event.is(CrawlSessionEvent.SESSION_STOP_BEGIN)) {
+        } else if (event.is(CrawlSessionEvent.CRAWLSESSION_STOP_BEGIN)) {
             onCrawlSessionStopBegin(event);
-        } else if (event.is(CrawlSessionEvent.SESSION_STOP_END)) {
+        } else if (event.is(CrawlSessionEvent.CRAWLSESSION_STOP_END)) {
             onCrawlSessionStopEnd(event);
             onCrawlSessionShutdown(event);
-        } else if (event.is(CrawlSessionEvent.SESSION_CLEAN_BEGIN)) {
+        } else if (event.is(CrawlSessionEvent.CRAWLSESSION_CLEAN_BEGIN)) {
             onCrawlSessionCleanBegin(event);
-        } else if (event.is(CrawlSessionEvent.SESSION_CLEAN_END)) {
+        } else if (event.is(CrawlSessionEvent.CRAWLSESSION_CLEAN_END)) {
             onCrawlSessionCleanEnd(event);
-        } else if (event.is(CrawlSessionEvent.SESSION_ERROR)) {
+        } else if (event.is(CrawlSessionEvent.CRAWLSESSION_ERROR)) {
             onCrawlSessionError(event);
             onCrawlSessionShutdown(event);
         }
@@ -56,9 +56,9 @@ public class CrawlSessionLifeCycleListener
 
     /**
      * Triggered when a crawl session is ending its execution on either
-     * a {@link CrawlSessionEvent#SESSION_ERROR},
-     * {@link CrawlSessionEvent#SESSION_RUN_END} or
-     * {@link CrawlSessionEvent#SESSION_STOP_END} event.
+     * a {@link CrawlSessionEvent#CRAWLSESSION_ERROR},
+     * {@link CrawlSessionEvent#CRAWLSESSION_RUN_END} or
+     * {@link CrawlSessionEvent#CRAWLSESSION_STOP_END} event.
      * @param event crawl session event
      */
     protected void onCrawlSessionShutdown(CrawlSessionEvent event) {

@@ -22,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 /**
  * A crawl session event.
  *
- * @since 2.0.0
+ * @since 4.0.0 (renamed from v3.x CollectorEvent)
  */
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
@@ -30,30 +30,45 @@ public class CrawlSessionEvent extends Event {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String SESSION_RUN_BEGIN = "SESSION_RUN_BEGIN";
-    public static final String SESSION_RUN_END = "SESSION_RUN_END";
-    public static final String SESSION_STOP_BEGIN = "SESSION_STOP_BEGIN";
-    public static final String SESSION_STOP_END = "SESSION_STOP_END";
-    public static final String SESSION_CLEAN_BEGIN = "SESSION_CLEAN_BEGIN";
-    public static final String SESSION_CLEAN_END = "SESSION_CLEAN_END";
-    public static final String SESSION_STORE_EXPORT_BEGIN =
-            "SESSION_STORE_EXPORT_BEGIN";
-    public static final String SESSION_STORE_EXPORT_END =
-            "SESSION_STORE_EXPORT_END";
-    public static final String SESSION_STORE_IMPORT_BEGIN =
-            "SESSION_STORE_IMPORT_BEGIN";
-    public static final String SESSION_STORE_IMPORT_END =
-            "SESSION_STORE_IMPORT_END";
+    public static final String CRAWLSESSION_RUN_BEGIN =
+            "CRAWLSESSION_RUN_BEGIN";
+    public static final String CRAWLSESSION_RUN_END = "CRAWLSESSION_RUN_END";
+    public static final String CRAWLSESSION_STOP_BEGIN =
+            "CRAWLSESSION_STOP_BEGIN";
+    public static final String CRAWLSESSION_STOP_END = "CRAWLSESSION_STOP_END";
+    public static final String CRAWLSESSION_CLEAN_BEGIN =
+            "CRAWLSESSION_CLEAN_BEGIN";
+    public static final String CRAWLSESSION_CLEAN_END =
+            "CRAWLSESSION_CLEAN_END";
+    public static final String CRAWLSESSION_STORE_EXPORT_BEGIN =
+            "CRAWLSESSION_STORE_EXPORT_BEGIN";
+    public static final String CRAWLSESSION_STORE_EXPORT_END =
+            "CRAWLSESSION_STORE_EXPORT_END";
+    public static final String CRAWLSESSION_STORE_IMPORT_BEGIN =
+            "CRAWLSESSION_STORE_IMPORT_BEGIN";
+    public static final String CRAWLSESSION_STORE_IMPORT_END =
+            "CRAWLSESSION_STORE_IMPORT_END";
 
     //TODO Not used. Needed?
-    public static final String SESSION_ERROR = "SESSION_ERROR";
+    public static final String CRAWLSESSION_ERROR = "CRAWLSESSION_ERROR";
 
     @Override
     public CrawlSession getSource() {
         return (CrawlSession) super.getSource();
     }
-
-    public boolean isCollectorShutdown(Event event) {
-        return is(SESSION_RUN_END, SESSION_ERROR, SESSION_STOP_END);
+    public boolean isCrawlSessionShutdown() {
+        return is(
+                CRAWLSESSION_RUN_END,
+                CRAWLSESSION_ERROR,
+                CRAWLSESSION_STOP_END);
+    }
+    public static boolean isCrawlSessionShutdown(Event event) {
+        if (event == null) {
+            return false;
+        }
+        return event.is(
+                CRAWLSESSION_RUN_END,
+                CRAWLSESSION_ERROR,
+                CRAWLSESSION_STOP_END);
     }
 }

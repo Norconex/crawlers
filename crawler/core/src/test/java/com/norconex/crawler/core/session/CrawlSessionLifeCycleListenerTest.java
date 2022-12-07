@@ -27,13 +27,13 @@ import org.junit.jupiter.api.Test;
 class CrawlSessionLifeCycleListenerTest {
 
     static List<String> eventNames = Arrays.asList(
-            CrawlSessionEvent.SESSION_RUN_BEGIN,
-            CrawlSessionEvent.SESSION_RUN_END,
-            CrawlSessionEvent.SESSION_STOP_BEGIN,
-            CrawlSessionEvent.SESSION_STOP_END,
-            CrawlSessionEvent.SESSION_CLEAN_BEGIN,
-            CrawlSessionEvent.SESSION_CLEAN_END,
-            CrawlSessionEvent.SESSION_ERROR
+            CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN,
+            CrawlSessionEvent.CRAWLSESSION_RUN_END,
+            CrawlSessionEvent.CRAWLSESSION_STOP_BEGIN,
+            CrawlSessionEvent.CRAWLSESSION_STOP_END,
+            CrawlSessionEvent.CRAWLSESSION_CLEAN_BEGIN,
+            CrawlSessionEvent.CRAWLSESSION_CLEAN_END,
+            CrawlSessionEvent.CRAWLSESSION_ERROR
     );
 
 
@@ -69,37 +69,37 @@ class CrawlSessionLifeCycleListenerTest {
         @Override
         protected void onCrawlSessionShutdown(CrawlSessionEvent event) {
             assertOneOf(event,
-                    CrawlSessionEvent.SESSION_RUN_END,
-                    CrawlSessionEvent.SESSION_STOP_END,
-                    CrawlSessionEvent.SESSION_ERROR);
+                    CrawlSessionEvent.CRAWLSESSION_RUN_END,
+                    CrawlSessionEvent.CRAWLSESSION_STOP_END,
+                    CrawlSessionEvent.CRAWLSESSION_ERROR);
         }
         @Override
         protected void onCrawlSessionError(CrawlSessionEvent event) {
-            assertOneOf(event, CrawlSessionEvent.SESSION_ERROR);
+            assertOneOf(event, CrawlSessionEvent.CRAWLSESSION_ERROR);
         }
         @Override
         protected void onCrawlSessionRunBegin(CrawlSessionEvent event) {
-            assertOneOf(event, CrawlSessionEvent.SESSION_RUN_BEGIN);
+            assertOneOf(event, CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN);
         }
         @Override
         protected void onCrawlSessionRunEnd(CrawlSessionEvent event) {
-            assertOneOf(event, CrawlSessionEvent.SESSION_RUN_END);
+            assertOneOf(event, CrawlSessionEvent.CRAWLSESSION_RUN_END);
         }
         @Override
         protected void onCrawlSessionStopBegin(CrawlSessionEvent event) {
-            assertOneOf(event, CrawlSessionEvent.SESSION_STOP_BEGIN);
+            assertOneOf(event, CrawlSessionEvent.CRAWLSESSION_STOP_BEGIN);
         }
         @Override
         protected void onCrawlSessionStopEnd(CrawlSessionEvent event) {
-            assertOneOf(event, CrawlSessionEvent.SESSION_STOP_END);
+            assertOneOf(event, CrawlSessionEvent.CRAWLSESSION_STOP_END);
         }
         @Override
         protected void onCrawlSessionCleanBegin(CrawlSessionEvent event) {
-            assertOneOf(event, CrawlSessionEvent.SESSION_CLEAN_BEGIN);
+            assertOneOf(event, CrawlSessionEvent.CRAWLSESSION_CLEAN_BEGIN);
         }
         @Override
         protected void onCrawlSessionCleanEnd(CrawlSessionEvent event) {
-            assertOneOf(event, CrawlSessionEvent.SESSION_CLEAN_END);
+            assertOneOf(event, CrawlSessionEvent.CRAWLSESSION_CLEAN_END);
         }
     }
 }

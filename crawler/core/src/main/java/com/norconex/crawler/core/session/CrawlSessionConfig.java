@@ -134,7 +134,8 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * @return maximum number of bytes for all reusable streams combined
      */
     @SuppressWarnings("javadoc")
-    private long maxStreamCachePoolSize = ImporterConfig.DEFAULT_MAX_MEM_POOL;
+    private long maxStreamCachePoolSize =
+            ImporterConfig.DEFAULT_MAX_STREAM_CACHE_POOL_SIZE;
 
     /**
      * Maximum number of bytes used for memory caching of a single reusable
@@ -146,7 +147,8 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * @return maximum number of bytes for a single reusable stream
      */
     @SuppressWarnings("javadoc")
-    private long maxStreamCacheSize = ImporterConfig.DEFAULT_MAX_MEM_INSTANCE;
+    private long maxStreamCacheSize =
+            ImporterConfig.DEFAULT_MAX_STREAM_CACHE_SIZE;
 
     /**
      * The maximum number of crawlers that can be executed concurrently.
@@ -176,7 +178,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
 
     //TODO check if there is a way to not have to do this?
     // Replace with CrawlConfigFactory? Or set it at CrawlSession
-    // creation time via CrawlSessionBuilder?
+    // creation time via CrawlSessionBuilderMaybe?
     private final Class<? extends CrawlerConfig> crawlerConfigClass;
     public CrawlSessionConfig() {
         this(CrawlerConfig.class);

@@ -14,6 +14,11 @@ Classes/methods:
 * `Collector#maxMemoryInstance` → `CrawlSession#maxStreamCacheSize`
 * `CollectorLifeCycleListener#onCollector*`
   → `CrawlSessionLifeCycleListener#onCrawlSession*`
+* `ImporterConfig#maxMemoryPool` → `ImporterConfig#maxStreamCachePoolSize`
+* `ImporterConfig#maxMemoryInstance` → `ImporterConfig#maxStreamCacheSize`
+* `ImporterConfig#DEFAULT_MAX_MEM_POOL` → `ImporterConfig#DEFAULT_MAX_STREAM_CACHE_POOL_SIZE`
+* `ImporterConfig#DEFAULT_MAX_MEM_INSTANCE` → `ImporterConfig#DEFAULT_MAX_STREAM_CACHE_SIZE`
+
 
 ## Removed
 

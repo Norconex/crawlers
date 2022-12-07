@@ -17,17 +17,29 @@ package com.norconex.crawler.core.session;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
+
+import org.slf4j.MDC;
 
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileLocker;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.monitor.MdcUtil;
+import com.norconex.crawler.core.stop.CrawlSessionStopper;
+import com.norconex.crawler.core.stop.impl.FileBasedStopper;
 
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -56,48 +68,90 @@ public class CrawlSession {
             new InheritableThreadLocal<>();
 
     private final CrawlSessionConfig crawlSessionConfig;
-    private final List<Crawler> crawlers = new CopyOnWriteArrayList<>();
     private final EventManager eventManager;
+    private final Supplier<Crawler> crawlerFactory;
+
+    private final List<Crawler> crawlers = new CopyOnWriteArrayList<>();
 
     private CachedStreamFactory streamFactory;
     private Path workDir;
-    private Path tempDir;
+//    private Path tempDir;
     private FileLocker lock;
 
     //TODO make configurable
-//    private final ICollectorStopper stopper = new FileBasedStopper();
+    private final CrawlSessionStopper stopper = new FileBasedStopper();
 
-    /**
-     * Creates and configure a CrawlSession with the provided
-     * configuration.
-     * @param crawlSessionConfig CrawlSession configuration
-     */
-    public CrawlSession(CrawlSessionConfig crawlSessionConfig) {
-        this(crawlSessionConfig, null);
+
+    public static CrawlSessionBuilder builder() {
+        return new CrawlSessionBuilder();
     }
 
-    /**
-     * Creates and configure a CrawlSession with the provided
-     * configuration.
-     * @param crawlSessionConfig CrawlSession configuration
-     * @param eventManager event manager
-     */
-    public CrawlSession(
-            CrawlSessionConfig crawlSessionConfig, EventManager eventManager) {
 
+    @Data
+    @Accessors(fluent = true)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @Getter(value = AccessLevel.NONE)
+    public static class CrawlSessionBuilder {
+        private Supplier<Crawler> crawlerFactory;
+        private CrawlSessionConfig crawlSessionConfig;
+        private EventManager eventManager;
+        public CrawlSession build() {
+            return new CrawlSession(this);
+        }
+    }
 
+    protected CrawlSession(CrawlSessionBuilder builder) {
         //TODO clone config so modifications no longer apply?
-        Objects.requireNonNull(
-                crawlSessionConfig, "'crawlSessionConfig' must not be null.");
 
-        this.crawlSessionConfig = crawlSessionConfig;
-        this.eventManager = new EventManager(eventManager);
+        crawlSessionConfig = Objects.requireNonNull(builder.crawlSessionConfig,
+                "'crawlSessionConfig' must not be null.");
+        eventManager = new EventManager(builder.eventManager);
+        crawlerFactory = Objects.requireNonNull(builder.crawlerFactory,
+                "'crawlerFactory' must not be null.");
+
+        //TODO create crawlers from configs, same place it was done before (in initCollector)
 
         INSTANCE.set(this);
     }
 
+
+
+//    /**
+//     * Creates and configure a CrawlSession with the provided
+//     * configuration.
+//     * @param crawlSessionConfig CrawlSession configuration
+//     */
+//    public CrawlSession(CrawlSessionConfig crawlSessionConfig) {
+//        this(crawlSessionConfig, null);
+//    }
+//
+//    /**
+//     * Creates and configure a CrawlSession with the provided
+//     * configuration.
+//     * @param crawlSessionConfig CrawlSession configuration
+//     * @param eventManager event manager
+//     */
+//    public CrawlSession(
+//            CrawlSessionConfig crawlSessionConfig, EventManager eventManager) {
+//
+//
+//        //TODO clone config so modifications no longer apply?
+//        Objects.requireNonNull(
+//                crawlSessionConfig, "'crawlSessionConfig' must not be null.");
+//
+//        this.crawlSessionConfig = crawlSessionConfig;
+//        this.eventManager = new EventManager(eventManager);
+//
+//        INSTANCE.set(this);
+//    }
+
     public static CrawlSession get() {
-        return INSTANCE.get();
+        CrawlSession cs = INSTANCE.get();
+        if (cs == null) {
+            throw new IllegalStateException(
+                    "Crawl session not yet initialized.");
+        }
+        return cs;
     }
 
     public synchronized Path getWorkDir() {
@@ -312,48 +366,51 @@ public class CrawlSession {
 //                getTempDir());
 //    }
 //
-//    protected void destroyCollector() {
+    protected void destroyCollector() {
 //        try {
 //            FileUtil.delete(getTempDir().toFile());
 //        } catch (IOException e) {
 //            throw new CrawlSessionException("Could not delete temp directory", e);
 //        } finally {
-//            eventManager.clearListeners();
-//            unlock();
+            eventManager.clearListeners();
+            unlock();
 //        }
-//        MDC.clear();
-//    }
+        MDC.clear();
+    }
 //
 //    public void fireStopRequest() {
 //        stopper.fireStopRequest();
 //    }
 //
-//    /**
-//     * Stops a running instance of this CrawlSession. The caller can be a
-//     * different JVM instance than the instance we want to stop.
-//     */
-//    public void stop() {
-//        if (!isRunning()) {
-//            LOG.info("CANNOT STOP: CrawlSession is not running.");
-//            return;
-//        }
-//        MdcUtil.setCollectorId(getId());
-//        Thread.currentThread().setName(getId() + "/STOP");
-//        eventManager.fire(new CollectorEvent.Builder(
-//                CollectorEvent.COLLECTOR_STOP_BEGIN, this).build());
-//
-//        try {
-//            getCrawlers().forEach(Crawler::stop);
-//        } finally {
-//            try {
-//                eventManager.fire(new CollectorEvent.Builder(
-//                        CollectorEvent.COLLECTOR_STOP_END, this).build());
-//                destroyCollector();
-//            } finally {
-//                stopper.destroy();
-//            }
-//        }
-//    }
+    /**
+     * Stops a running instance of this CrawlSession. The caller can be a
+     * different JVM instance than the instance we want to stop.
+     */
+    public void stop() {
+        if (!isRunning()) {
+            LOG.info("CANNOT STOP: CrawlSession is not running.");
+            return;
+        }
+        MdcUtil.setCrawlSessionId(getId());
+        Thread.currentThread().setName(getId() + "/STOP");
+        eventManager.fire(CrawlSessionEvent.builder()
+                .name(CrawlSessionEvent.CRAWLSESSION_STOP_BEGIN)
+                .source(this)
+                .build());
+        try {
+            getCrawlers().forEach(Crawler::stop);
+        } finally {
+            try {
+                eventManager.fire(CrawlSessionEvent.builder()
+                        .name(CrawlSessionEvent.CRAWLSESSION_STOP_END)
+                        .source(this)
+                        .build());
+                destroyCollector();
+            } finally {
+                stopper.destroy();
+            }
+        }
+    }
 //
 //    /**
 //     * Gets the event manager.
@@ -409,14 +466,14 @@ public class CrawlSession {
     public String getId() {
         return crawlSessionConfig.getId();
     }
-//
-//    /**
-//     * Gets all crawler instances in this CrawlSession.
-//     * @return crawlers
-//     */
-//    public List<Crawler> getCrawlers() {
-//        return Collections.unmodifiableList(crawlers);
-//    }
+
+    /**
+     * Gets all crawler instances in this CrawlSession.
+     * @return crawlers
+     */
+    public List<Crawler> getCrawlers() {
+        return Collections.unmodifiableList(crawlers);
+    }
 //
 //    public String getVersion() {
 //        return VersionUtil.getVersion(getClass(), "Undefined");
@@ -486,22 +543,22 @@ public class CrawlSession {
 //        }
 //        LOG.debug("CrawlSession execution locked");
 //    }
-//    protected synchronized void unlock() {
-//        try {
-//            if (lock != null) {
-//                lock.unlock();
-//            }
-//        } catch (IOException e) {
-//            throw new CrawlSessionException(
-//                    "Cannot unlock CrawlSession execution.", e);
-//        }
-//        lock = null;
-//        LOG.debug("CrawlSession execution unlocked");
-//    }
-//
-//    public boolean isRunning() {
-//        return lock != null && lock.isLocked();
-//    }
+    protected synchronized void unlock() {
+        try {
+            if (lock != null) {
+                lock.unlock();
+            }
+        } catch (IOException e) {
+            throw new CrawlSessionException(
+                    "Cannot unlock CrawlSession execution.", e);
+        }
+        lock = null;
+        LOG.debug("CrawlSession execution unlocked");
+    }
+
+    public boolean isRunning() {
+        return lock != null && lock.isLocked();
+    }
 //
 //    @Override
 //    public String toString() {

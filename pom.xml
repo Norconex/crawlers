@@ -112,22 +112,20 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>com.norconex.crawlers</groupId>
-        <artifactId>norconex-crawler-core</artifactId>
+        <groupId>com.norconex.crawler</groupId>
+        <artifactId>nx-crawler-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.norconex.crawlers</groupId>
-        <artifactId>norconex-importer</artifactId>
+        <groupId>com.norconex.importer</groupId>
+        <artifactId>nx-importer</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.norconex.crawlers</groupId>
-        <artifactId>norconex-committer-core</artifactId>
+        <groupId>com.norconex.committer</groupId>
+        <artifactId>nx-committer-core</artifactId>
         <version>${project.version}</version>
       </dependency>
-
-      <!-- Jackson dependencies -->
 
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -544,10 +542,10 @@
                 -->
 
               <!-- Norconex dependencies -->
-              <link>https://opensource.norconex.com/commons/lang/v2/apidocs</link>
-              <link>https://opensource.norconex.com/importer/v3/apidocs</link>
-              <link>https://opensource.norconex.com/committers/core/v3/apidocs</link>
-              <link>https://opensource.norconex.com/crawlers/core/v2/apidocs</link>
+              <link>https://opensource.norconex.com/commons/lang/v3/apidocs</link>
+              <link>https://opensource.norconex.com/importer/v4/apidocs</link>
+              <link>https://opensource.norconex.com/committers/core/v4/apidocs</link>
+              <link>https://opensource.norconex.com/crawlers/core/v4/apidocs</link>
 
               <!-- Regular dependencies -->
               <link>https://commons.apache.org/proper/commons-lang/javadocs/api-release</link>
@@ -802,9 +800,11 @@
   <modules>
     <module>crawler/core</module>
 <!--     <module>javadoc-resources</module>
+ -->
     <module>committer/core</module>
     <module>importer</module>
     <module>crawler/web</module>
+<!--     <module>javadoc-resources</module>
     <module>crawler/filesystem</module>
  -->
   </modules>

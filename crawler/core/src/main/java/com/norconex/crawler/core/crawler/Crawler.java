@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.crawler;
 
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -28,10 +30,38 @@ import lombok.extern.slf4j.Slf4j;
  *     -DenableJMX=true
  * </pre>
  *
- * 
+ *
  * @see CrawlerConfig
  */
 @Slf4j
+@SuperBuilder
+@RequiredArgsConstructor
 public class Crawler {
 
+    private final CrawlerConfig crawlerConfig;
+
+
+//    private CrawlSession crawlSession;
+
+
+    public String getId() {
+        return crawlerConfig.getId();
+    }
+
+    public void stop() {
+//        getEventManager().fire(
+//                new CrawlerEvent.Builder(CRAWLER_STOP_BEGIN, this).build());
+//        stopped = true;
+//        LOG.info("Stopping the crawler.");
+    }
+
+
+
+//    public static class CrawlerBuilder {
+//
+//
+//        public Crawler create(CrawlerConfig crawlerConfig) {
+//
+//        }
+//    }
 }
