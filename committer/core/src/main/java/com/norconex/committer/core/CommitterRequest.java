@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2020-2022 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.norconex.committer.core;
 
-public class ToDo {
+import com.norconex.commons.lang.map.Properties;
 
+/**
+ * A document (or record, entry, entity, etc.) to be committed.
+ */
+public interface CommitterRequest {
+
+    /**
+     * Gets the document reference.
+     * @return document reference
+     */
+    String getReference();
+
+    /**
+     * Gets the metadata.
+     * @return metadata
+     */
+    Properties getMetadata();
 }

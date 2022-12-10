@@ -1,26 +1,38 @@
-# V3 to V4
+V3 to V4
+========
 
 All notes we can take for users, to facilitate migration from V3 to V4.
 
-## Renamed
+Renamed
+-------
 
-Packages:
+### General
+
+* All interfaces prefixed with "I" were renamed to drop the "I".
+
+### Packages:
+
 * `com.norconex.collector` → `com.norconex.crawler`
+* `com.norconex.committer.core3` → `com.norconex.committer.core`
 
-Classes/methods:
+### Classes/methods:
+
 * `Collector*` → `CrawlSession*`
 * `CollectorEvent#COLLECTOR_*` → `CrawlSessionEvent#SESSION_*`
 * `Collector#maxMemoryPool` → `CrawlSession#maxStreamCachePoolSize`
 * `Collector#maxMemoryInstance` → `CrawlSession#maxStreamCacheSize`
 * `CollectorLifeCycleListener#onCollector*`
   → `CrawlSessionLifeCycleListener#onCrawlSession*`
+
 * `ImporterConfig#maxMemoryPool` → `ImporterConfig#maxStreamCachePoolSize`
 * `ImporterConfig#maxMemoryInstance` → `ImporterConfig#maxStreamCacheSize`
 * `ImporterConfig#DEFAULT_MAX_MEM_POOL` → `ImporterConfig#DEFAULT_MAX_STREAM_CACHE_POOL_SIZE`
 * `ImporterConfig#DEFAULT_MAX_MEM_INSTANCE` → `ImporterConfig#DEFAULT_MAX_STREAM_CACHE_SIZE`
 
+* `ImporterConfig#maxMemoryPool` → `ImporterConfig#maxStreamCachePoolSize`
 
-## Removed
+Removed
+-------
 
 * Removed classes methods deprecated in previous major release.
 * Removed "tempDir". Only "workDir" is configurable now. Classes 
@@ -30,14 +42,19 @@ Classes/methods:
   to now only accept a collection. 
 * Removed CrawlerConfigLoader.
 
-## XML Changes
+XML Changes
+-----------
 
 * `collector` → `crawlSession`
 * `maxMemoryPool` → `maxStreamCachePoolSize`
 * `maxMemoryInstance` → `maxStreamCacheSize`
 
 
-## Misc Changes
+Misc. Changes
+-------------
 
+* Minimum Java version: 17
 
+### Committer Core
 
+* MemoryCommitter#clean will now clear the cached requests.
