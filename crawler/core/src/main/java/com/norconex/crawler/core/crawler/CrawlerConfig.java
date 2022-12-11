@@ -113,7 +113,7 @@ import lombok.Data;
  *       class="(ISpoiledReferenceStrategizer implementation)" />
  *
  *   <committers>
- *     <committer class="(ICommitter implementation)" />
+ *     <committer class="(Committer implementation)" />
  *   </committers>
  * }
  *
@@ -185,7 +185,7 @@ public /* abstract */ class CrawlerConfig implements XMLConfigurable {
 //        xml.checkDeprecated("crawlDataStoreEngine", "dataStoreEngine", true);
 //        setDataStoreEngine(xml.getObjectImpl(
 //                IDataStoreEngine.class, "dataStoreEngine", dataStoreEngine));
-//        setCommitters(xml.getObjectListImpl(ICommitter.class,
+//        setCommitters(xml.getObjectListImpl(Committer.class,
 //                "committers/committer", committers));
 //        setMetadataChecksummer(xml.getObjectImpl(IMetadataChecksummer.class,
 //                "metadataChecksummer", metadataChecksummer));

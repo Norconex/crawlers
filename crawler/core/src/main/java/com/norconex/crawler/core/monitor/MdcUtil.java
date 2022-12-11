@@ -22,9 +22,13 @@ import com.norconex.commons.lang.file.FileUtil;
  * Utility methods to simplify adding Mapped Diagnostic Context (MDC) to
  * logging in a consistent way for crawlers and crawl sessions, as well as
  * offering filename-friendly version as well.
- * @since 2.0.1
  */
 public final class MdcUtil {
+
+    public static final String CRAWLER_ID = "crawler.id";
+    public static final String CRAWLER_ID_SAFE = "crawler.id.safe";
+    public static final String CRAWL_SESSION_ID = "crawlsession.id";
+    public static final String CRAWL_SESSION_ID_SAFE = "crawlsession.id.safe";
 
     private MdcUtil() {}
 
@@ -43,8 +47,8 @@ public final class MdcUtil {
      * @param crawlerId crawler id
      */
     public static void setCrawlerId(String crawlerId) {
-        MDC.put("crawler.id", crawlerId);
-        MDC.put("crawler.id.safe", FileUtil.toSafeFileName(crawlerId));
+        MDC.put(CRAWLER_ID, crawlerId);
+        MDC.put(CRAWLER_ID_SAFE, FileUtil.toSafeFileName(crawlerId));
     }
 
     /**
@@ -66,8 +70,7 @@ public final class MdcUtil {
      * @param crawlSessionId crawl session ID
      */
     public static void setCrawlSessionId(String crawlSessionId) {
-        MDC.put("crawlsession.id", crawlSessionId);
-        MDC.put("crawlsession.id.safe",
-                FileUtil.toSafeFileName(crawlSessionId));
+        MDC.put(CRAWL_SESSION_ID, crawlSessionId);
+        MDC.put(CRAWL_SESSION_ID_SAFE, FileUtil.toSafeFileName(crawlSessionId));
     }
 }

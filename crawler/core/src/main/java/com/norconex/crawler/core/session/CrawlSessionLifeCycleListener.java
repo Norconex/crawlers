@@ -19,7 +19,6 @@ import com.norconex.commons.lang.event.EventListener;
 /**
  * Crawl session event listener adapter for session startup/shutdown.
  *
- * @since 4.0.0 (renamed CollectorSessionLifeCycleListener)
  */
 public class CrawlSessionLifeCycleListener
         implements EventListener<CrawlSessionEvent> {

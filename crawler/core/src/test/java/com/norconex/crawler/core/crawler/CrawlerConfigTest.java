@@ -42,9 +42,37 @@ class CrawlerConfigTest {
 
     @Test
     void testCrawlerConfig() {
-        CrawlerConfig cfg = easyRandom.nextObject(CrawlerConfig.class);
+        var cfg = easyRandom.nextObject(CrawlerConfig.class);
         assertThatNoException().isThrownBy(
                 () -> XML.assertWriteRead(cfg, "crawler"));
 
     }
+
+//    @Test
+//    public void testNullingDefaultsViaXml() {
+//        CrawlerConfig c = new CrawlerConfig();
+//        c.setId("id");
+//
+//        // Make sure default is set
+//        Assertions.assertEquals(
+//                new MD5DocumentChecksummer(), c.getDocumentChecksummer());
+//
+//        // make sure self-closed with attribute is not treated as null.
+//        c.loadFromXML(new XML(
+//                "<crawler id=\"id\">"
+//              +   "<documentChecksummer keep=\"true\" />"
+//              + "</crawler>"
+//        ));
+//        Assertions.assertTrue(
+//                ((MD5DocumentChecksummer) c.getDocumentChecksummer()).isKeep());
+//
+//        // make sure self-closed without attribute is treated as null.
+//        c.loadFromXML(new XML(
+//                "<crawler id=\"id\">"
+//              +   "<documentChecksummer />"
+//              + "</crawler>"
+//        ));
+//        Assertions.assertNull(c.getDocumentChecksummer());
+//
+//    }
 }

@@ -55,13 +55,15 @@ import lombok.extern.slf4j.Slf4j;
 public class CrawlSession {
 
     /** Simple ASCI art of Norconex. */
-    public static final String NORCONEX_ASCII =
-            " _   _  ___  ____   ____ ___  _   _ _______  __\n"
-          + "| \\ | |/ _ \\|  _ \\ / ___/ _ \\| \\ | | ____\\ \\/ /\n"
-          + "|  \\| | | | | |_) | |  | | | |  \\| |  _|  \\  / \n"
-          + "| |\\  | |_| |  _ <| |__| |_| | |\\  | |___ /  \\ \n"
-          + "|_| \\_|\\___/|_| \\_\\\\____\\___/|_| \\_|_____/_/\\_\\\n\n"
-          + "================ C R A W L E R ================\n";
+    public static final String NORCONEX_ASCII = """
+         _   _  ___  ____   ____ ___  _   _ _______  __
+        | \\ | |/ _ \\|  _ \\ / ___/ _ \\| \\ | | ____\\ \\/ /
+        |  \\| | | | | |_) | |  | | | |  \\| |  _|  \\  /\s
+        | |\\  | |_| |  _ <| |__| |_| | |\\  | |___ /  \\\s
+        |_| \\_|\\___/|_| \\_\\\\____\\___/|_| \\_|_____/_/\\_\\
+
+        ================ C R A W L E R ================
+    """;
 
 
     private static final InheritableThreadLocal<CrawlSession> INSTANCE =
@@ -146,7 +148,7 @@ public class CrawlSession {
 //    }
 
     public static CrawlSession get() {
-        CrawlSession cs = INSTANCE.get();
+        var cs = INSTANCE.get();
         if (cs == null) {
             throw new IllegalStateException(
                     "Crawl session not yet initialized.");
@@ -156,7 +158,7 @@ public class CrawlSession {
 
     public synchronized Path getWorkDir() {
         if (workDir == null) {
-            workDir = createCollectorSubDirectory(Optional.ofNullable(
+            workDir = createCrawlSessionSubDirectory(Optional.ofNullable(
                     crawlSessionConfig.getWorkDir()).orElseGet(
                             () -> CrawlSessionConfig.DEFAULT_WORK_DIR));
         }
@@ -183,9 +185,9 @@ public class CrawlSession {
 //    }
 
     // parent is never null
-    private Path createCollectorSubDirectory(Path parentDir) {
-        String fileSafeId = FileUtil.toSafeFileName(getId());
-        Path subDir = parentDir.resolve(fileSafeId);
+    private Path createCrawlSessionSubDirectory(Path parentDir) {
+        var fileSafeId = FileUtil.toSafeFileName(getId());
+        var subDir = parentDir.resolve(fileSafeId);
         try {
             return Files.createDirectories(subDir);
         } catch (IOException e) {
@@ -228,7 +230,7 @@ public class CrawlSession {
 //            try {
 //                eventManager.fire(new CollectorEvent.Builder(
 //                        COLLECTOR_RUN_END, this).build());
-//                destroyCollector();
+//                destroyCrawlSession();
 //            } finally {
 //                stopper.destroy();
 //            }
@@ -290,7 +292,7 @@ public class CrawlSession {
 //                               + "impact previously committed data)...")
 //                        .build());
 //            getCrawlers().forEach(Crawler::clean);
-//            destroyCollector();
+//            destroyCrawlSession();
 //            eventManager.fire(new CollectorEvent.Builder(
 //                    COLLECTOR_CLEAN_END, this)
 //                        .message("Done cleaning CrawlSession.")
@@ -311,7 +313,7 @@ public class CrawlSession {
 //                    COLLECTOR_STORE_IMPORT_BEGIN, this).build());
 //            inFiles.forEach(
 //                    f -> getCrawlers().forEach(c -> c.importDataStore(f)));
-//            destroyCollector();
+//            destroyCrawlSession();
 //            eventManager.fire(new CollectorEvent.Builder(
 //                    COLLECTOR_STORE_IMPORT_END, this).build());
 //        } finally {
@@ -329,7 +331,7 @@ public class CrawlSession {
 //                    COLLECTOR_STORE_EXPORT_BEGIN, this).build());
 //            //TODO zip all exported data stores in a single file?
 //            getCrawlers().forEach(c -> c.exportDataStore(dir));
-//            destroyCollector();
+//            destroyCrawlSession();
 //            eventManager.fire(new CollectorEvent.Builder(
 //                    COLLECTOR_STORE_EXPORT_END, this).build());
 //        } finally {
@@ -366,7 +368,7 @@ public class CrawlSession {
 //                getTempDir());
 //    }
 //
-    protected void destroyCollector() {
+    protected void destroyCrawlSession() {
 //        try {
 //            FileUtil.delete(getTempDir().toFile());
 //        } catch (IOException e) {
@@ -405,7 +407,7 @@ public class CrawlSession {
                         .name(CrawlSessionEvent.CRAWLSESSION_STOP_END)
                         .source(this)
                         .build());
-                destroyCollector();
+                destroyCrawlSession();
             } finally {
                 stopper.destroy();
             }
@@ -415,8 +417,7 @@ public class CrawlSession {
 //    /**
 //     * Gets the event manager.
 //     * @return event manager
-//     * @since 2.0.0
-//     */
+//    //     */
 //    public EventManager getEventManager() {
 //        return eventManager;
 //    }
@@ -495,7 +496,7 @@ public class CrawlSession {
 //        versions.add(releaseVersion("Importer", Importer.class));
 //        versions.add(releaseVersion("Lang", ClassFinder.class));
 //        versions.add("Committer(s):");
-//        versions.add(releaseVersion("  Core", ICommitter.class));
+//        versions.add(releaseVersion("  Core", Committer.class));
 //        for (Class<?> c : nonCoreClasspathCommitters()) {
 //            versions.add(releaseVersion("  " + StringUtils.removeEndIgnoreCase(
 //                    c.getSimpleName(), "Committer"), c));

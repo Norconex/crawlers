@@ -40,7 +40,7 @@
       </postParseHandlers>    
     </importer>
     <committers>
-      <committer class="com.norconex.committer.core3.fs.impl.JSONFileCommitter">
+      <committer class="com.norconex.committer.core.fs.impl.JSONFileCommitter">
         <directory>defaultCommitter</directory>
       </committer>
     </committers>
@@ -62,7 +62,7 @@
         </preParseHandlers>
       </importer>
       <committers>
-        <committer class="com.norconex.committer.core3.fs.impl.JSONFileCommitter">
+        <committer class="com.norconex.committer.core.fs.impl.JSONFileCommitter">
           <directory>crawlACommitter</directory>
         </committer>
       </committers>

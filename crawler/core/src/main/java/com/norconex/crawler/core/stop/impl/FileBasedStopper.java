@@ -34,7 +34,6 @@ import com.norconex.crawler.core.stop.CrawlSessionStopperException;
  * Listens for STOP requests using a stop file.  The stop file
  * file is created under the working directory as {@value #STOP_FILE_NAME}.
  *
- * @since 2.0.0
  */
 public class FileBasedStopper implements CrawlSessionStopper {
 

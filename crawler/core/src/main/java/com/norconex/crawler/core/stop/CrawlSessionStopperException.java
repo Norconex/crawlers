@@ -14,23 +14,13 @@
  */
 package com.norconex.crawler.core.stop;
 
+import lombok.experimental.StandardException;
+
 /**
  * Exception thrown when a problem occurred while trying to stop
  * a collector.
- * @since 4.0.0 (renamed from CollectorStopperException)
  */
+@StandardException
 public class CrawlSessionStopperException extends RuntimeException {
-
     private static final long serialVersionUID = 1L;
-
-    public CrawlSessionStopperException(final String message) {
-        super(message);
-    }
-    public CrawlSessionStopperException(final Throwable exception) {
-        super(exception);
-    }
-    public CrawlSessionStopperException(
-            final String message, final Throwable exception) {
-        super(message, exception);
-    }
 }

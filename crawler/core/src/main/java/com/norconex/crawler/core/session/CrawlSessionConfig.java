@@ -156,8 +156,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * @param maxConcurrentCrawlers
      *     maximum number of crawlers to be executed concurrently
      * @return maximum number of crawlers to be executed concurrently
-     * @since 2.0.0
-     */
+         */
     @SuppressWarnings("javadoc")
     private int maxConcurrentCrawlers = -1;
 
@@ -167,8 +166,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * crawlers).
      * @param crawlersStartInterval amount of time
      * @return amount of time or <code>null</code>
-     * @since 2.0.0
-     */
+         */
     @SuppressWarnings("javadoc")
     private Duration crawlersStartInterval;
 
@@ -192,8 +190,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Configurations for each crawlers to be executed together in a crawl
      * session.
      * @return crawler configuration list (never <code>null</code>)
-     * @since 1.7.0
-     */
+         */
     public List<CrawlerConfig> getCrawlerConfigs() {
         return Collections.unmodifiableList(crawlerConfigs);
     }
@@ -201,8 +198,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Configurations for each crawlers to be executed together in a crawl
      * session.
      * @param crawlerConfigs crawler configuration list
-     * @since 2.0.0
-     */
+         */
     public void setCrawlerConfigs(List<CrawlerConfig> crawlerConfigs) {
         CollectionUtil.setAll(this.crawlerConfigs, crawlerConfigs);
     }
@@ -212,8 +208,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
      * @return event listeners.
-     * @since 2.0.0
-     */
+         */
     public List<EventListener<?>> getEventListeners() {
         return Collections.unmodifiableList(eventListeners);
     }
@@ -222,8 +217,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
      * @param eventListeners event listeners.
-     * @since 2.0.0
-     */
+         */
     public void setEventListeners(List<EventListener<?>> eventListeners) {
         CollectionUtil.setAll(this.eventListeners, eventListeners);
     }
@@ -232,8 +226,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
      * @param eventListeners event listeners.
-     * @since 2.0.0
-     */
+         */
     public void addEventListeners(List<EventListener<?>> eventListeners) {
         this.eventListeners.addAll(eventListeners);
     }
@@ -241,8 +234,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Clears all event listeners. The automatically
      * detected configuration objects implementing {@link EventListener}
      * are not cleared.
-     * @since 2.0.0
-     */
+         */
     public void clearEventListeners() {
         eventListeners.clear();
     }

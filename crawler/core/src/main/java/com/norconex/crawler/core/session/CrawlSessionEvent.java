@@ -22,7 +22,6 @@ import lombok.experimental.SuperBuilder;
 /**
  * A crawl session event.
  *
- * @since 4.0.0 (renamed from v3.x CollectorEvent)
  */
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)

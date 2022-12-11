@@ -26,7 +26,6 @@ import com.norconex.crawler.core.session.CrawlSession;
  * A stop request can typically be triggered from another JVM (see concrete
  * implementation details).
  * </p>
- * @since 4.0.0 (renamed from ICollectorStopper)
  */
 public interface CrawlSessionStopper {
 
