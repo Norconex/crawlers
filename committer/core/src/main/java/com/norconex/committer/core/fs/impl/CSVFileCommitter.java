@@ -14,7 +14,7 @@
  */
 package com.norconex.committer.core.fs.impl;
 
-import static com.norconex.commons.lang.xml.XPathUtil.att;
+import static com.norconex.commons.lang.xml.XPathUtil.attr;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
@@ -280,25 +280,25 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
 
     @Override
     public void loadFSCommitterFromXML(XML xml) {
-        setFormat(xml.getString(att(Fields.format), getFormat()));
+        setFormat(xml.getString(attr(Fields.format), getFormat()));
         setDelimiter(xml.get(
-                att(Fields.delimiter), Character.class, getDelimiter()));
-        setQuote(xml.get(att(Fields.quote), Character.class, getQuote()));
+                attr(Fields.delimiter), Character.class, getDelimiter()));
+        setQuote(xml.get(attr(Fields.quote), Character.class, getQuote()));
         setShowHeaders(xml.getBoolean(
-                att(Fields.showHeaders), isShowHeaders()));
-        setEscape(xml.get(att(Fields.escape), Character.class, getEscape()));
-        setTruncateAt(xml.getInteger(att(Fields.truncateAt), getTruncateAt()));
+                attr(Fields.showHeaders), isShowHeaders()));
+        setEscape(xml.get(attr(Fields.escape), Character.class, getEscape()));
+        setTruncateAt(xml.getInteger(attr(Fields.truncateAt), getTruncateAt()));
         setMultiValueJoinDelimiter(xml.getString(
-                att(Fields.multiValueJoinDelimiter),
+                attr(Fields.multiValueJoinDelimiter),
                 getMultiValueJoinDelimiter()));
-        setTypeHeader(xml.getString(att(Fields.typeHeader), getTypeHeader()));
+        setTypeHeader(xml.getString(attr(Fields.typeHeader), getTypeHeader()));
 
         List<Column> cols = new ArrayList<>();
         for (XML colXml : xml.getXMLList("col")) {
             cols.add(new Column(
-                    colXml.getString(att(Column.Fields.field), null),
-                    colXml.getString(att(Column.Fields.header), null),
-                    colXml.getInteger(att(Column.Fields.truncateAt), 0)));
+                    colXml.getString(attr(Column.Fields.field), null),
+                    colXml.getString(attr(Column.Fields.header), null),
+                    colXml.getInteger(attr(Column.Fields.truncateAt), 0)));
         }
         setColumns(cols);
     }
