@@ -745,6 +745,47 @@
           <version>2.6</version>
         </plugin>
  -->
+
+        <plugin>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok-maven-plugin</artifactId>
+          <version>1.18.20.0</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </dependency>
+          </dependencies>
+          <executions>
+            <execution>
+              <id>delombok</id>
+              <phase>generate-sources</phase>
+              <goals>
+                <goal>delombok</goal>
+              </goals>
+              <configuration>
+                <addOutputDirectory>false</addOutputDirectory>
+                <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+              </configuration>
+            </execution>
+            <execution>
+              <id>test-delombok</id>
+              <phase>generate-test-sources</phase>
+              <goals>
+                <goal>testDelombok</goal>
+              </goals>
+              <configuration>
+                <addOutputDirectory>false</addOutputDirectory>
+                <sourceDirectory>${project.basedir}/src/test/java</sourceDirectory>
+              </configuration>
+            </execution>
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+
+ 
+ 
       </plugins>
     </pluginManagement>
 
@@ -759,6 +800,13 @@
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>    
+
+      <plugin>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok-maven-plugin</artifactId>
+      </plugin>    
+
+
     </plugins>
 
   </build>

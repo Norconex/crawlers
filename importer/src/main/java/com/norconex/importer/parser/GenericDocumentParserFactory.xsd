@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2017 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="documentParserFactory">
+    <xs:complexType>
+      <xs:all>
+        <xs:element ref="ocr" minOccurs="0" maxOccurs="1" />
+        <xs:element name="ignoredContentTypes" type="nonEmptyValue" minOccurs="0" maxOccurs="1" />
+        <xs:element ref="embedded" minOccurs="0" maxOccurs="1" />
+        <xs:element ref="fallbackParser" minOccurs="0" maxOccurs="1" />
+        <xs:element ref="parsers" minOccurs="0" maxOccurs="1" />
+      </xs:all>
+      <xs:attribute name="class" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="ocr">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="languages" type="nonEmptyValue" minOccurs="0" maxOccurs="1" />
+        <xs:element name="contentTypes" type="nonEmptyValue" minOccurs="0" maxOccurs="1" />
+      </xs:all>
+      <xs:attribute name="path" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="embedded">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="splitContentTypes" type="nonEmptyValue" minOccurs="0" maxOccurs="1" />
+        <xs:element name="noExtractEmbeddedContentTypes" type="nonEmptyValue" minOccurs="0" maxOccurs="1" />
+        <xs:element name="noExtractContainerContentTypes" type="nonEmptyValue" minOccurs="0" maxOccurs="1" />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="fallbackParser">
+    <xs:complexType mixed="true">
+      <xs:all>
+        <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+      </xs:all>
+      <xs:attribute name="class" type="xs:string" use="required"/>
+      <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="parsers">
+    <xs:complexType mixed="true">
+      <xs:all>
+        <xs:element ref="parser" minOccurs="1" maxOccurs="unbounded" />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="parser">
+    <xs:complexType mixed="true">
+      <xs:all>
+        <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+      </xs:all>
+      <xs:attribute name="contentType" type="xs:string" use="required"/>
+      <xs:attribute name="class" type="xs:string" use="required"/>
+      <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="nonEmptyValue">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<people>
+  <person>
+    <firstName>John</firstName>
+    <lastName>Smith</lastName>
+  </person>
+  <person>
+    <firstName>Bruce</firstName>
+    <lastName>Wayne</lastName>
+  </person>
+  <person>
+    <firstName>Joe</firstName>
+    <lastName>Dalton</lastName>
+  </person>
+</people>

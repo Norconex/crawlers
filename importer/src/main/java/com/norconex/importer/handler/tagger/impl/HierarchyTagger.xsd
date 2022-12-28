@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2017-2020 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="../AbstractDocumentTagger.xsd"></xs:include>
+  
+  <xs:element name="handler">
+    <xs:complexType>
+      <xs:complexContent> 
+        <xs:extension base="AbstractDocumentTagger"> 
+          <xs:all>
+            <xs:element ref="hierarchy" minOccurs="1" maxOccurs="unbounded" />
+          </xs:all>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="hierarchy">
+    <xs:complexType>
+      <xs:attribute name="fromField" type="xs:string" use="required"/>
+      <xs:attribute name="toField" type="xs:string"/>
+      <xs:attribute name="fromSeparator" type="xs:string" use="required"/>
+      <xs:attribute name="toSeparator" type="xs:string"/>
+      <xs:attribute name="onSet">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="APPEND"/>
+            <xs:enumeration value="append"/>
+            <xs:enumeration value="PREPEND"/>
+            <xs:enumeration value="prepend"/>
+            <xs:enumeration value="REPLACE"/>
+            <xs:enumeration value="replace"/>
+            <xs:enumeration value="OPTIONAL"/>
+            <xs:enumeration value="optional"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="keepEmptySegments" type="xs:boolean"/>
+      <xs:attribute name="regex" type="xs:boolean"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,89 @@
+/* Copyright 2022 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.norconex.importer.handler.condition.impl;
+
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+
+import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.TestUtil;
+import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.handler.ScriptRunner;
+import com.norconex.importer.parser.ParseState;
+
+class ScriptConditionTest {
+
+    @ParameterizedTest
+    @ArgumentsSource(SimpleProvider.class)
+    void testScriptCondition(String engineName, String script)
+            throws ImporterHandlerException, IOException {
+        var cond = new ScriptCondition(new ScriptRunner<>(engineName, script));
+
+        var htmlFile = TestUtil.getAliceHtmlFile();
+        InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
+        var metadata = new Properties();
+        metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
+        var returnValue = cond.testDocument(
+                TestUtil.newHandlerDoc(htmlFile.getAbsolutePath(), is, metadata),
+                is, ParseState.PRE);
+        is.close();
+        Assertions.assertTrue(returnValue);
+    }
+
+    static class SimpleProvider implements ArgumentsProvider {
+        @Override
+        public Stream<Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                Arguments.of(ScriptRunner.JAVASCRIPT_ENGINE, """
+                    returnValue = metadata.getString('character') == 'Alice'
+                        || content.indexOf('Alice') > -1;
+                    """),
+                Arguments.of(ScriptRunner.LUA_ENGINE, """
+                    returnValue = metadata:getString('character') == 'Alice'
+                        or content:find('Alice') ~= nil;
+                    """),
+//                Arguments.of(ScriptRunner.PYTHON_ENGINE, """
+//                    returnValue = metadata.getString('character') == 'Alice' \
+//                        or content.__contains__('Alice');
+//                    """),
+                Arguments.of(ScriptRunner.VELOCITY_ENGINE, """
+                    #set($returnValue =
+                        $metadata.getString("character") == "Alice"
+                            || $content.contains("Alice"))
+                    """)
+            );
+        }
+    }
+
+    @Test
+    void testWriteRead() {
+        XML.assertWriteRead(new ScriptCondition(
+                new ScriptRunner<>(ScriptRunner.JAVASCRIPT_ENGINE,
+                        "returnValue = blah == 'blah';")), "condition");
+    }
+}

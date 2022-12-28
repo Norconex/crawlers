@@ -58,3 +58,11 @@ Misc. Changes
 ### Committer Core
 
 * MemoryCommitter#clean will now clear the cached requests.
+
+### Importer
+
+* Added Apache Velocity JSR 223 Script Engine.
+* JavaScript JSR 223 Script Engine now using GraalVM implementation.
+* The Operator inner class on DateMetadataFilter and NumericMetadataFilter
+  were removed in favor of com.norconex.commons.lang.Operator
+  

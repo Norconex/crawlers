@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2017-2018 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="../AbstractDocumentSplitter.xsd"></xs:include>
+  
+  <xs:element name="handler">
+    <xs:complexType>
+      <xs:complexContent> 
+        <xs:extension base="AbstractDocumentSplitter"> 
+          <xs:attribute name="separatorCharacter" type="charType" />
+          <xs:attribute name="quoteCharacter" type="charType" />
+          <xs:attribute name="escapeCharacter" type="charType" />
+          <xs:attribute name="useFirstRowAsFields" type="xs:boolean" />
+          <xs:attribute name="linesToSkip" type="xs:int" />
+          <xs:attribute name="referenceColumn" type="xs:string" />
+          <xs:attribute name="contentColumns" type="xs:string" />
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:simpleType name="charType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

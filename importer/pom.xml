@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2010-2021 Norconex Inc.
+   Copyright 2010-2022 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,9 +30,11 @@
   <properties>
     <commons-compress.version>1.21</commons-compress.version>
     <cxf.version>3.4.5</cxf.version>
+    <graalvm-js.version>22.3.0</graalvm-js.version>
     <jdom2.version>2.0.6.1</jdom2.version>
     <jpeg2000-imageio.version>1.4.0</jpeg2000-imageio.version>
     <jsoup.version>1.14.3</jsoup.version>
+    <jython.version>2.7.3</jython.version>
     <luaj-jse.version>3.0.1</luaj-jse.version>
     <opencsv.version>5.5.2</opencsv.version>
     <tika.version>1.27</tika.version>
@@ -138,11 +140,34 @@
       </exclusions>
     </dependency>
 
+    <!-- JSR223 scripting engines -->
     <dependency>
       <groupId>org.luaj</groupId>
       <artifactId>luaj-jse</artifactId>
       <version>${luaj-jse.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js-scriptengine</artifactId>
+      <version>${graalvm-js.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js</artifactId>
+      <version>${graalvm-js.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity-engine-scripting</artifactId>
+      <version>${velocity-engine.version}</version>
+    </dependency>
+    <!--
+    <dependency>
+      <groupId>org.python</groupId>
+      <artifactId>jython-standalone</artifactId>
+      <version>${jython.version}</version>
+    </dependency>
+    -->
 
     <!-- image/webp format -->
     <dependency>
@@ -208,6 +233,16 @@
     <dependency>
       <groupId>org.jeasy</groupId>
       <artifactId>easy-random-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
 
