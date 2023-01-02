@@ -27,12 +27,12 @@ package com.norconex.importer.doc;
  */
 public final class DocMetadata {
 
-    //TODO move to Doc/DocInfo and delete this class.
+    //TODO move to Doc/DocRecord and delete this class.
 
 
-    //MAYBE DELETE these if they can be referenced from DocInfo?
+    //MAYBE DELETE these if they can be referenced from DocRecord?
     //    (still have them as metadata, just no longer need constants).
-    // maybe we could document all DocInfo properties are copied as
+    // maybe we could document all DocRecord properties are copied as
     // metadata automatically using X reflection pattern?
 
     private static final String PREFIX = "document.";

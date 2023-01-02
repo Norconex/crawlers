@@ -45,7 +45,7 @@ import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocInfo;
+import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -378,7 +378,7 @@ public class TranslatorSplitter extends AbstractDocumentSplitter {
         var childEmbedRef = "translation-" + targetLang;
         var childDocRef = doc.getReference() + "!" + childEmbedRef;
 
-        var childInfo = new DocInfo(childDocRef);
+        var childInfo = new DocRecord(childDocRef);
 
         childMeta.set(
                 DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);

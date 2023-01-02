@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2022 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ class CrawlerConfigTest {
     }
 
 //    @Test
-//    public void testNullingDefaultsViaXml() {
+//    void testNullingDefaultsViaXml() {
 //        CrawlerConfig c = new CrawlerConfig();
 //        c.setId("id");
 //

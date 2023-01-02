@@ -24,7 +24,7 @@
   <crawlerDefaults>
     <numThreads>1</numThreads>
     <referenceFilters>
-      <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
+      <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
           onMatch="exclude" caseSensitive="true">defaultFilter</filter>
     </referenceFilters>
     <importer>
@@ -51,7 +51,7 @@
     <crawler id="myCrawlerA">
       <numThreads>22</numThreads>
       <referenceFilters>
-        <filter class="com.norconex.collector.core.filter.impl.ExtensionReferenceFilter"
+        <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
             onMatch="exclude" caseSensitive="true">crawlAFilter</filter>
       </referenceFilters>
       <importer>

@@ -30,18 +30,16 @@ import lombok.NonNull;
 
 /**
  * Important information about a document that has specific meaning and purpose
- * for processing by the Importer and needs to be referenced in a
- * consistent way.
- * Those are information needing to be tracked independently from metadata,
- * which can be anything, and can be modified at will by implementors
- * (thus not always constant).
- * In most cases where light caching is involved, implementors can cache this
- * class data as opposed to caching {@link Doc}.
+ * for processing by the Importer and needs to be stored/referenced in a
+ * consistent way. In some contexts, a document record is a lightweight,
+ * cacheable version of a document ({@link Doc}).
  */
 @Data
-public class DocInfo implements Serializable {
+public class DocRecord implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    // DocRecord?
 
     //TODO DocProperties?  misleading because of Properties
     //TODO DocAttributes?  seems distinct enough.  Use this.
@@ -74,21 +72,21 @@ public class DocInfo implements Serializable {
     /**
      * Constructor.
      */
-    public DocInfo() {}
+    public DocRecord() {}
 
     /**
      * Constructor.
      * @param reference document reference
      */
-    public DocInfo(String reference) {
+    public DocRecord(String reference) {
         setReference(reference);
     }
     /**
      * Copy constructor.
-     * @param docInfo document details to copy
+     * @param docRecord document details to copy
      */
-    public DocInfo(@NonNull DocInfo docInfo) {
-        copyFrom(docInfo);
+    public DocRecord(@NonNull DocRecord docRecord) {
+        copyFrom(docRecord);
     }
 
     public List<String> getEmbeddedParentReferences() {
@@ -105,16 +103,16 @@ public class DocInfo implements Serializable {
 
     //MAYBE: use this new method instead of having clone functional
     //  interface on Crawler class.
-    public DocInfo withReference(String reference, DocInfo docInfo) {
-        var newDocInfo = new DocInfo(docInfo);
+    public DocRecord withReference(String reference, DocRecord docRecord) {
+        var newDocInfo = new DocRecord(docRecord);
         newDocInfo.setReference(reference);
         return newDocInfo;
     }
 
-    public void copyTo(DocInfo target) {
+    public void copyTo(DocRecord target) {
         BeanUtil.copyProperties(target, this);
     }
-    public void copyFrom(DocInfo source) {
+    public void copyFrom(DocRecord source) {
         BeanUtil.copyProperties(this, source);
     }
 }

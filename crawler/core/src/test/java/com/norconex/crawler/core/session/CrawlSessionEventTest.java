@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2022 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ class CrawlSessionEventTest {
     @Test
     void testCrawlSessionEvent() {
 
-        CrawlSession crawlSession = CrawlSession.builder()
-                .crawlerFactory(() -> Crawler.builder().build())
+        var crawlSession = CrawlSession.builder()
+                .crawlerFactory((sess, cfg) -> Crawler.builder().build())
                 .crawlSessionConfig(new CrawlSessionConfig())
 //                .eventManager(null)
                 .build();

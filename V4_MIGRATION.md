@@ -65,4 +65,9 @@ Misc. Changes
 * JavaScript JSR 223 Script Engine now using GraalVM implementation.
 * The Operator inner class on DateMetadataFilter and NumericMetadataFilter
   were removed in favor of com.norconex.commons.lang.Operator
+* Renamed DocInfo to DocRecord
+
+### Committer Core
+* Renamed CrawlDocInfo to CrawlDocRecord.
+* Renamed .cmdline package to .cli
   

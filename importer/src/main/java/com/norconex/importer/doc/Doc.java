@@ -38,7 +38,7 @@ public class Doc {
     //MAYBE: still allow String reference in constructor and create?
     //MAYBE: add parent reference info here?
 
-    private final DocInfo docInfo;
+    private final DocRecord docRecord;
     private final Properties metadata;
     @ToString.Exclude
     private CachedInputStream content;
@@ -48,29 +48,29 @@ public class Doc {
     }
     public Doc(@NonNull String reference, CachedInputStream content,
             Properties metadata) {
-        this(new DocInfo(reference), content, metadata);
+        this(new DocRecord(reference), content, metadata);
     }
 
     /**
      * Creates a blank importer document using the supplied input stream
      * to handle content.
      * The document reference automatically gets added to the metadata.
-     * @param docInfo document details
+     * @param docRecord document details
      * @param content content input stream
      */
-    public Doc(DocInfo docInfo, CachedInputStream content) {
-        this(docInfo, content, null);
+    public Doc(DocRecord docRecord, CachedInputStream content) {
+        this(docRecord, content, null);
     }
     /**
      * Creates a blank importer document using the supplied input stream
      * to handle content.
-     * @param docInfo document details
+     * @param docRecord document details
      * @param content content input stream
      * @param metadata importer document metadata
      */
-    public Doc(@NonNull DocInfo docInfo, @NonNull CachedInputStream content,
+    public Doc(@NonNull DocRecord docRecord, @NonNull CachedInputStream content,
             Properties metadata) {
-        this.docInfo = docInfo;
+        this.docRecord = docRecord;
         this.content = content;
         if (metadata == null) {
             this.metadata = new Properties();
@@ -117,8 +117,8 @@ public class Doc {
         return content.getStreamFactory();
     }
 
-    public DocInfo getDocInfo() {
-        return docInfo;
+    public DocRecord getDocInfo() {
+        return docRecord;
     }
 
     public Properties getMetadata() {
@@ -132,6 +132,6 @@ public class Doc {
      * @see #getDocInfo()
      */
     public String getReference() {
-        return docInfo.getReference();
+        return docRecord.getReference();
     }
 }

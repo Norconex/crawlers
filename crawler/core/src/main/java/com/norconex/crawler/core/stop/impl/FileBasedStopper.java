@@ -17,12 +17,9 @@ package com.norconex.crawler.core.stop.impl;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.monitor.MdcUtil;
@@ -30,48 +27,48 @@ import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stop.CrawlSessionStopper;
 import com.norconex.crawler.core.stop.CrawlSessionStopperException;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Listens for STOP requests using a stop file.  The stop file
  * file is created under the working directory as {@value #STOP_FILE_NAME}.
- *
  */
+@Slf4j
 public class FileBasedStopper implements CrawlSessionStopper {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(FileBasedStopper.class);
-
     public static final String STOP_FILE_NAME = ".crawlsession-stop";
-
-    private CrawlSession startedCollector;
+    private Path monitoredStopFile;
+//    private CrawlSession startedCollector;
     private boolean monitoring;
 
     @Override
     public void listenForStopRequest(CrawlSession startedSession)
             throws CrawlSessionStopperException {
-        startedCollector = startedSession;
-        final Path stopFile = stopFile(startedSession);
+        monitoredStopFile = stopFile(startedSession);
+//        startedCollector = startedSession;
+//        final var stopFile = stopFile(startedSession);
 
         // If there is already a stop file and the crawl session is not running,
         // delete it
-        if (stopFile.toFile().exists() && !startedSession.isRunning()) {
+        if (Files.exists(monitoredStopFile) && !startedSession.isRunning()) {
             LOG.info("Old stop file found, deleting it.");
             try {
-                FileUtils.forceDelete(stopFile.toFile());
+                FileUtils.forceDelete(monitoredStopFile.toFile());
             } catch (IOException e) {
                 throw new CrawlSessionStopperException(
                         "Could not delete old stop file.", e);
             }
         }
 
-        ExecutorService execService = Executors.newSingleThreadExecutor();
+        var execService = Executors.newSingleThreadExecutor();
         try {
             execService.submit(() -> {
                 MdcUtil.setCrawlSessionId(startedSession.getId());
                 Thread.currentThread().setName("Collector stop file monitor");
                 monitoring = true;
                 while(monitoring) {
-                    if (stopFile.toFile().exists()) {
-                        stopMonitoring(startedSession);
+                    if (Files.exists(monitoredStopFile)) {
+                        stopMonitoring();
                         LOG.info("STOP request received.");
                         startedSession.stop();
                     }
@@ -86,17 +83,27 @@ public class FileBasedStopper implements CrawlSessionStopper {
 
     @Override
     public void destroy() throws CrawlSessionStopperException {
-        if (startedCollector != null) {
-            stopMonitoring(startedCollector);
+        stopMonitoring();
+    }
+
+    private synchronized void stopMonitoring()
+            throws CrawlSessionStopperException {
+        monitoring = false;
+        try {
+            Files.deleteIfExists(monitoredStopFile);
+        } catch (IOException e) {
+            throw new CrawlSessionStopperException(
+                    "Cannot delete stop file: "
+                            + monitoredStopFile.toAbsolutePath(), e);
         }
-        startedCollector = null;
     }
 
     @Override
-    public boolean fireStopRequest() throws CrawlSessionStopperException {
-        final Path stopFile = stopFile(startedCollector);
+    public boolean fireStopRequest(CrawlSession crawlSession)
+            throws CrawlSessionStopperException {
+        final var stopFile = stopFile(crawlSession);
 
-        if (!startedCollector.isRunning()) {
+        if (!crawlSession.isRunning()) {
             LOG.info("CANNOT STOP: The Collector is not running.");
             return false;
         }
@@ -110,23 +117,14 @@ public class FileBasedStopper implements CrawlSessionStopper {
         try {
             Files.createFile(stopFile);
         } catch (IOException e) {
-            throw new CrawlSessionStopperException("Could not create stop file: "
-                    + stopFile.toAbsolutePath(), e);
+            throw new CrawlSessionStopperException(
+                    "Could not create stop file: "
+                            + stopFile.toAbsolutePath(), e);
         }
         return true;
     }
 
-    private synchronized void stopMonitoring(CrawlSession crawlSession)
-            throws CrawlSessionStopperException {
-        monitoring = false;
-        Path stopFile = stopFile(crawlSession);
-        try {
-            Files.deleteIfExists(stopFile);
-        } catch (IOException e) {
-            throw new CrawlSessionStopperException(
-                    "Cannot delete stop file: " + stopFile.toAbsolutePath(), e);
-        }
-    }
+
     private static Path stopFile(CrawlSession crawlSession) {
         return crawlSession.getWorkDir().resolve(STOP_FILE_NAME);
     }

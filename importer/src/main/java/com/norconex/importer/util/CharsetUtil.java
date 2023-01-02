@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import com.norconex.commons.lang.io.ByteArrayOutputStream;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocInfo;
+import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.parser.ParseState;
 
 /**
@@ -195,9 +195,9 @@ public final class CharsetUtil {
 
     /**
      * Detects a document character encoding. It first checks if it is defined
-     * in the document {@link DocInfo#getContentEncoding()}. If not,
+     * in the document {@link DocRecord#getContentEncoding()}. If not,
      * it will attempt to detect it from the document input stream.
-     * This method will NOT set the detected encoding on the {@link DocInfo}.
+     * This method will NOT set the detected encoding on the {@link DocRecord}.
      * If unable to detect, <code>UTF-8</code> is assumed.
      * @param doc document to detect encoding on
      * @return string representation of character encoding
@@ -209,9 +209,9 @@ public final class CharsetUtil {
     /**
      * Detects a document character encoding if the supplied
      * <code>charset</code> is blank. When blank, it checks if it is defined
-     * in the document {@link DocInfo#getContentEncoding()}. If not,
+     * in the document {@link DocRecord#getContentEncoding()}. If not,
      * it will attempt to detect it from the document input stream.
-     * This method will NOT set the detected encoding on the {@link DocInfo}.
+     * This method will NOT set the detected encoding on the {@link DocRecord}.
      * If unable to detect, <code>UTF-8</code> is assumed.
      * @param charset character encoding to use if not blank
      * @param doc document to detect encoding on

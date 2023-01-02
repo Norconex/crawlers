@@ -45,7 +45,7 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.ImporterEvent.ImporterEventBuilder;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocInfo;
+import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -265,7 +265,7 @@ public class Importer {
             is = requestStreamFactory.newInputStream();
         }
 
-        var info = new DocInfo(ref);
+        var info = new DocRecord(ref);
         info.setContentEncoding(req.getContentEncoding());
         info.setContentType(req.getContentType());
 

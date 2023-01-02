@@ -23,7 +23,7 @@ import org.apache.commons.lang3.builder.ToStringSummary;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocInfo;
+import com.norconex.importer.doc.DocRecord;
 
 import lombok.EqualsAndHashCode;
 
@@ -41,7 +41,7 @@ public class HandlerDoc {
         this.doc = Objects.requireNonNull(doc, "'doc' must not be null.");
     }
 
-    public DocInfo getDocInfo() {
+    public DocRecord getDocInfo() {
         return doc.getDocInfo();
     }
     public Properties getMetadata() {

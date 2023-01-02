@@ -30,7 +30,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocInfo;
+import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -141,7 +141,7 @@ public class PDFPageSplitter extends AbstractDocumentSplitter
                 var pageMeta = new Properties();
                 pageMeta.loadFromMap(doc.getMetadata());
 
-                var pageInfo = new DocInfo(pageRef);
+                var pageInfo = new DocRecord(pageRef);
 
 //                pageInfo.setEmbeddedReference(Integer.toString(pageNo));
                 pageMeta.set(DocMetadata.EMBEDDED_REFERENCE,

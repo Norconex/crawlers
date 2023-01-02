@@ -231,6 +231,13 @@ public class CrawlSessionConfig implements XMLConfigurable {
         this.eventListeners.addAll(eventListeners);
     }
     /**
+     * Adds a single event listener to already registered listeners.
+     * @param eventListener event listener
+     */
+    public void addEventListener(EventListener<?> eventListener) {
+        eventListeners.add(eventListener);
+    }
+    /**
      * Clears all event listeners. The automatically
      * detected configuration objects implementing {@link EventListener}
      * are not cleared.
@@ -256,7 +263,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
 
     @Override
     public final void loadFromXML(XML xml) {
-        String crawlSessionId = xml.getString("@" + Fields.id, null);
+        var crawlSessionId = xml.getString("@" + Fields.id, null);
         if (StringUtils.isBlank(crawlSessionId)) {
             throw new CrawlSessionException(
                     "Crawl session id attribute is mandatory.");
@@ -275,7 +282,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
                 Fields.maxStreamCacheSize, getMaxStreamCacheSize()));
 
         if (crawlerConfigClass != null) {
-            List<CrawlerConfig> cfgs = loadCrawlerConfigs(xml);
+            var cfgs = loadCrawlerConfigs(xml);
             if (CollectionUtils.isNotEmpty(cfgs)) {
                 setCrawlerConfigs(cfgs);
             }
@@ -284,8 +291,8 @@ public class CrawlSessionConfig implements XMLConfigurable {
 
     List<CrawlerConfig> loadCrawlerConfigs(XML xml) {
         try {
-            XML crawlerDefaultsXML = xml.getXML("crawlerDefaults");
-            List<XML> crawlersXML = xml.getXMLList("crawlers/crawler");
+            var crawlerDefaultsXML = xml.getXML("crawlerDefaults");
+            var crawlersXML = xml.getXMLList("crawlers/crawler");
             List<CrawlerConfig> configs = new ArrayList<>();
             for (XML crawlerXML : crawlersXML) {
                 CrawlerConfig config = crawlerConfigClass
@@ -314,7 +321,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
 
         // grab id only if we are not populating default crawler settings
         if (!"crawlerDefaults".equalsIgnoreCase(xml.getName())) {
-            String crawlerId = xml.getString("@id", null);
+            var crawlerId = xml.getString("@id", null);
             if (StringUtils.isBlank(crawlerId)) {
                 throw new CrawlSessionException(
                         "Crawler ID is missing in configuration.");

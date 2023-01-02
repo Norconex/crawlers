@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2022 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ class CrawlSessionConfigTest {
 
     @Test
     void testCrawlSessionConfig() {
-        CrawlSessionConfig cfg =
+        var cfg =
                 easyRandom.nextObject(CrawlSessionConfig.class);
         assertThatNoException().isThrownBy(
                 () -> XML.assertWriteRead(cfg, "config"));
@@ -75,13 +75,13 @@ class CrawlSessionConfigTest {
 
     @Test
     void testOverwriteCrawlerDefaults() throws IOException {
-        CrawlSessionConfig cfg = new CrawlSessionConfig();
+        var cfg = new CrawlSessionConfig();
         try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
                 "overwrite-crawlerDefaults.xml"))) {
             XML.of(r).create().populate(cfg);
         }
 
-        CrawlerConfig crawlA = cfg.getCrawlerConfigs().get(0);
+        var crawlA = cfg.getCrawlerConfigs().get(0);
 //TODO when CrawlerConfig has been migrated
 //        assertEquals(22, crawlA.getNumThreads(),
 //                "crawlA");

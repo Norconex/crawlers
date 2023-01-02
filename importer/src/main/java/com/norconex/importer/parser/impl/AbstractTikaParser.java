@@ -56,7 +56,7 @@ import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocInfo;
+import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.parser.DocumentParserException;
 import com.norconex.importer.parser.HintsAwareParser;
 import com.norconex.importer.parser.OCRConfig;
@@ -339,7 +339,7 @@ public class AbstractTikaParser implements HintsAwareParser {
                 Properties embedMeta = new Properties();
                 addTikaMetadataToImporterMetadata(tikaMeta, embedMeta);
 
-                DocInfo embedDocInfo = resolveEmbeddedResourceName(
+                DocRecord embedDocInfo = resolveEmbeddedResourceName(
                         tikaMeta, embedMeta, embedCount);
 
                 // Read the steam into cache for reuse since Tika will
@@ -369,17 +369,17 @@ public class AbstractTikaParser implements HintsAwareParser {
             return embeddedDocs;
         }
 
-        private DocInfo resolveEmbeddedResourceName(
+        private DocRecord resolveEmbeddedResourceName(
                 Metadata tikaMeta, Properties embedMeta, int embedCount) {
 
-            DocInfo docInfo = new DocInfo();
+            DocRecord docRecord = new DocRecord();
 
             String name = null;
 
             // Package item file name (e.g. a file in a zip)
             name = tikaMeta.get(Metadata.EMBEDDED_RELATIONSHIP_ID);
             if (StringUtils.isNotBlank(name)) {
-                docInfo.setReference(reference + "!" + name);
+                docRecord.setReference(reference + "!" + name);
                 embedMeta.set(EMBEDDED_REFERENCE, name);
                 embedMeta.set(EMBEDDED_TYPE, "package-file");
 
@@ -389,14 +389,14 @@ public class AbstractTikaParser implements HintsAwareParser {
 //                embedMeta.setEmbeddedReference(name);
 //                embedMeta.setEmbeddedType("package-file");
 //                return name;
-                return docInfo;
+                return docRecord;
             }
 
             // Name of Embedded file in regular document
             // (e.g. excel file in a word doc)
             name = tikaMeta.get(Metadata.RESOURCE_NAME_KEY);
             if (StringUtils.isNotBlank(name)) {
-                docInfo.setReference(reference + "!" + name);
+                docRecord.setReference(reference + "!" + name);
 
                 embedMeta.set(EMBEDDED_REFERENCE, name);
                 embedMeta.set(EMBEDDED_TYPE, "file-file");
@@ -406,7 +406,7 @@ public class AbstractTikaParser implements HintsAwareParser {
 //                embedMeta.setEmbeddedReference(name);
 //                embedMeta.setEmbeddedType("file-file");
 //                return name;
-                return docInfo;
+                return docRecord;
             }
 
             // Name of embedded content in regular document
@@ -420,7 +420,7 @@ public class AbstractTikaParser implements HintsAwareParser {
                     String embedRef =
                             "embedded-" + embedCount + "." + ct.getExtension();
 
-                    docInfo.setReference(reference + "!" + embedRef);
+                    docRecord.setReference(reference + "!" + embedRef);
 
                     embedMeta.set(EMBEDDED_REFERENCE, embedRef);
                     embedMeta.set(EMBEDDED_TYPE, "file-file");
@@ -428,7 +428,7 @@ public class AbstractTikaParser implements HintsAwareParser {
 //                    docInfo.setEmbeddedType("file-object");
 //                    embedMeta.setEmbeddedType("file-object");
 //                    return "embedded-" + embedCount + "." + ct.getExtension();
-                    return docInfo;
+                    return docRecord;
                 }
             }
 
@@ -442,9 +442,9 @@ public class AbstractTikaParser implements HintsAwareParser {
             embedMeta.set(EMBEDDED_TYPE, "unknown");
 
 //            docInfo.setEmbeddedType("unknown");
-            docInfo.setReference(reference + "!" + embedRef);
+            docRecord.setReference(reference + "!" + embedRef);
 //                    + "embedded-" + embedCount + ".unknown");
-            return docInfo;
+            return docRecord;
         }
     }
 
