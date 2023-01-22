@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.filter.IDocumentFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.OnMatchFilter;
@@ -62,7 +62,7 @@ public class DocumentFiltersStage
                         .crawlDocRecord(ctx.getDocRecord())
                         .subject(filter)
                         .build());
-                ctx.getDocRecord().setState(CrawlState.REJECTED);
+                ctx.getDocRecord().setState(CrawlDocState.REJECTED);
                 return false;
             }
             if (LOG.isDebugEnabled()) {
@@ -79,7 +79,7 @@ public class DocumentFiltersStage
                     .subject(filters)
                     .message("No \"include\" document filters matched.")
                     .build());
-            ctx.getDocRecord().setState(CrawlState.REJECTED);
+            ctx.getDocRecord().setState(CrawlDocState.REJECTED);
             return false;
         }
         return true;

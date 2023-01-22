@@ -1,4 +1,4 @@
-/* Copyright 2022-2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,16 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 
 class CrawlSessionTest {
 
-//    @Test
-//    void testBuilder() {
-//        throw new RuntimeException("not yet implemented");
-//    }
-//
+    @TempDir
+    private Path tempDir;
+
     @Test
     void testCrawlSession() {
         var sesCfg = new CrawlSessionConfig();
@@ -57,48 +56,63 @@ class CrawlSessionTest {
         assertThat(ses.getId()).isEqualTo("sessionId");
         assertThat(CrawlSession.get()).isSameAs(ses);
         assertThat(ses.getWorkDir()).isEqualTo(Paths.get("/tmp/sessionId"));
-
-//        assertThat(ses.get).isEqualTo("sessionId");
     }
-
-//    @Test
-//    void testGet() {
-//        throw new RuntimeException("not yet implemented");
-//    }
 //
 //    @Test
-//    void testGetWorkDir() {
-//        throw new RuntimeException("not yet implemented");
-//    }
+//    void testLifeCycle() throws IOException {
 //
-//    @Test
-//    void testDestroyCollector() {
-//        throw new RuntimeException("not yet implemented");
-//    }
+//        var crawlSession = Stubber.crawlSession(tempDir,
+//                "mock:ref1", "mock:ref2", "mock:ref3", "mock:ref4");
 //
-//    @Test
-//    void testStop() {
-//        throw new RuntimeException("not yet implemented");
-//    }
+//        // Start
+//        crawlSession.start();
+//        // All 4 docs must be committed and not be found in cache
+//        assertThat(TestUtil
+//                .getFirstMemoryCommitter(crawlSession)
+//                .getAllRequests())
+//            .allMatch(req -> req.getReference().startsWith("mock:ref"))
+//            .allMatch(req -> !req.getMetadata().getBoolean("mock.alsoCached"))
+//            .hasSize(4);
 //
-//    @Test
-//    void testGetId() {
-//        throw new RuntimeException("not yet implemented");
-//    }
+//        // Export
+//        var exportDir = tempDir.resolve("exportdir");
+//        var exportFile = exportDir.resolve("test-crawler.zip");
+//        crawlSession.exportDataStore(exportDir);
 //
-//    @Test
-//    void testGetCrawlers() {
-//        throw new RuntimeException("not yet implemented");
-//    }
+//        // Clean
+//        crawlSession.clean();
 //
-//    @Test
-//    void testUnlock() {
-//        throw new RuntimeException("not yet implemented");
-//    }
+//        // Import
+//        crawlSession.importDataStore(List.of(exportFile));
 //
-//    @Test
-//    void testIsRunning() {
-//        throw new RuntimeException("not yet implemented");
+//        // New session with 1 new 2 modified, and 1 orphan
+//        crawlSession = Stubber.crawlSession(tempDir,
+//                "mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5");
+//
+//        // Start
+//        crawlSession.start();
+//        // 5 docs must be committed:
+//        //    1 new
+//        //    3 modified (also cached)
+//        //    1 orphan (also cached)
+//        assertThat(TestUtil
+//                .getFirstMemoryCommitter(crawlSession)
+//                .getAllRequests())
+//            .allMatch(req -> req.getReference().startsWith("mock:ref"))
+//            .hasSize(5)
+//            .areExactly(4, new Condition<>(req ->
+//                    req.getMetadata().getBoolean("mock.alsoCached"), ""))
+//            .areExactly(1, new Condition<>(req -> req.getMetadata().getBoolean(
+//                    "collector.is-crawl-new"), ""))
+//            .map(CommitterRequest::getReference)
+//            // ref1 is last because orphans are processed last
+//            .containsExactly("mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5",
+//                    "mock:ref1");
+//
+//        // The following must be set:
+//        var crawler = TestUtil.getFirstCrawler(crawlSession);
+//        assertThat(crawler.getQueuePipeline()).isNotNull();
+//        assertThat(crawler.getImporterPipeline()).isNotNull();
+//        assertThat(crawler.getCommitterPipeline()).isNotNull();
 //    }
-
 }

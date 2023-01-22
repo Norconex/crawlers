@@ -17,6 +17,7 @@ package com.norconex.crawler.core.session;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -349,7 +350,7 @@ public class CrawlSession {
         }
     }
 
-    public void importDataStore(List<Path> inFiles) {
+    public void importDataStore(Collection<Path> inFiles) {
         MdcUtil.setCrawlSessionId(getId());
         Thread.currentThread().setName(getId() + "/IMPORT");
         lock();

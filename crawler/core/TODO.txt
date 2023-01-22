@@ -1,6 +1,10 @@
 TODO:
 ==============
 
+- Whall we merge import and commit pipelines? likely not if we want
+  to split them one day (e.g. micro-services).
+
+
 - Remove all the @since ...?   As we change the package structure, they are all
   considered "new". 
 
@@ -13,6 +17,10 @@ TODO:
 //        }
 
 
+- Some crawl store implementation sort the queued URLs so they
+  are not processed in order inserted. Do we want to ensure they are?
+  Do we want to allow for different strategies for establishing
+  priorities? 
 
 Maybe:
 

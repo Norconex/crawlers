@@ -19,14 +19,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.doc.CrawlDocRecord.Stage;
-import com.norconex.crawler.core.pipeline.DocInfoPipelineContext;
+import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
  * Common pipeline stage for queuing documents.
  */
 public class QueueReferenceStage
-        implements IPipelineStage<DocInfoPipelineContext> {
+        implements IPipelineStage<DocRecordPipelineContext> {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(QueueReferenceStage.class);
@@ -39,7 +39,7 @@ public class QueueReferenceStage
     }
 
     @Override
-    public boolean execute(DocInfoPipelineContext ctx) {
+    public boolean execute(DocRecordPipelineContext ctx) {
         //TODO document and make sure it cannot be blank and remove this check?
         String ref = ctx.getDocRecord().getReference();
         if (StringUtils.isBlank(ref)) {

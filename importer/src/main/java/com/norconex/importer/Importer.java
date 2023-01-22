@@ -193,7 +193,7 @@ public class Importer {
     }
 
     private void prepareDocumentForImporting(Doc document) {
-        var docInfo = document.getDocInfo();
+        var docInfo = document.getDocRecord();
 
         //--- Ensure non-null content Type on Doc ---
         var ct = docInfo.getContentType();
@@ -368,7 +368,7 @@ public class Importer {
 
         var factory = importerConfig.getParserFactory();
         var parser = factory.getParser(
-                doc.getReference(), doc.getDocInfo().getContentType());
+                doc.getReference(), doc.getDocRecord().getContentType());
 
         // Do not attempt to parse zero-length content
         if (doc.getInputStream().isEmpty()) {
@@ -394,13 +394,13 @@ public class Importer {
                     doc.getReference());
             var nestedDocs = parser.parseDocument(doc, output);
             output.flush();
-            if (doc.getDocInfo().getContentType() == null) {
-                doc.getDocInfo().setContentType(ContentType.valueOf(
+            if (doc.getDocRecord().getContentType() == null) {
+                doc.getDocRecord().setContentType(ContentType.valueOf(
                         StringUtils.trimToNull(doc.getMetadata().getString(
                                 DocMetadata.CONTENT_TYPE))));
             }
-            if (StringUtils.isBlank(doc.getDocInfo().getContentEncoding())) {
-                doc.getDocInfo().setContentEncoding(doc.getMetadata().getString(
+            if (StringUtils.isBlank(doc.getDocRecord().getContentEncoding())) {
+                doc.getDocRecord().setContentEncoding(doc.getMetadata().getString(
                         DocMetadata.CONTENT_ENCODING));
             }
             if (nestedDocs != null) {
@@ -474,7 +474,7 @@ public class Importer {
         try {
             var ext = FilenameUtils.getExtension(doc.getReference());
             if (StringUtils.isBlank(ext)) {
-                var ct = doc.getDocInfo().getContentType();
+                var ct = doc.getDocRecord().getContentType();
                 if (ct != null) {
                     ext = ct.getExtension();
                 }

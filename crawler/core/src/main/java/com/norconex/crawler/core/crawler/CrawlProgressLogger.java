@@ -27,9 +27,9 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.crawler.core.monitor.CrawlerMonitor;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationUnit;
+import com.norconex.crawler.core.monitor.CrawlerMonitor;
 
 /**
  * Logs useful information about the crawler execution progress.
@@ -58,10 +58,9 @@ class CrawlProgressLogger {
 
     // Minimum 1 second
     CrawlProgressLogger(CrawlerMonitor monitor, long minLoggingInterval) {
-        super();
         this.monitor = monitor;
-        this.prevProcessedCount = monitor.getProcessedCount();
-        this.prevQueuedCount = monitor.getQueuedCount();
+        prevProcessedCount = monitor.getProcessedCount();
+        prevQueuedCount = monitor.getQueuedCount();
         this.minLoggingInterval = Math.max(minLoggingInterval, 1000);
     }
 
@@ -81,9 +80,9 @@ class CrawlProgressLogger {
     }
 
     String getExecutionSummary() {
-        long elapsed = stopWatch.getTime();
-        long processedCount = monitor.getProcessedCount();
-        StringBuilder b = new StringBuilder()
+        var elapsed = stopWatch.getTime();
+        var processedCount = monitor.getProcessedCount();
+        var b = new StringBuilder()
                 .append("\nTotal processed:   ")
                 .append(processedCount)
                 .append("\nSince (re)start:")
@@ -103,16 +102,16 @@ class CrawlProgressLogger {
     synchronized void doLogProgress() {
 
         // If not enough time has elapsed, return
-        long elapsed = stopWatch.getTime();
+        var elapsed = stopWatch.getTime();
         if (elapsed < prevElapsed + minLoggingInterval) {
             return;
         }
 
         // OK, log it
-        long processedCount = monitor.getProcessedCount();
-        long queuedCount = monitor.getQueuedCount();
+        var processedCount = monitor.getProcessedCount();
+        var queuedCount = monitor.getQueuedCount();
 
-        String msg = infoMessage(elapsed, processedCount, queuedCount);
+        var msg = infoMessage(elapsed, processedCount, queuedCount);
         if (LOG.isDebugEnabled()) {
             // if debugging, compute and show more stats
             LOG.info("{}{}", msg,
@@ -120,17 +119,17 @@ class CrawlProgressLogger {
         } else {
             LOG.info(msg);
         }
-        this.prevProcessedCount = processedCount;
-        this.prevQueuedCount = queuedCount;
-        this.prevElapsed = elapsed;
+        prevProcessedCount = processedCount;
+        prevQueuedCount = queuedCount;
+        prevElapsed = elapsed;
     }
 
     private String infoMessage(
             long elapsed, long processedCount, long queuedCount) {
-        String processedDelta = plusMinus(processedCount - prevProcessedCount);
-        String queuedDelta = plusMinus(queuedCount - prevQueuedCount);
-        String elapsedTime = durationFormatter.format(stopWatch.getTime());
-        String throughput = divideDownStr(
+        var processedDelta = plusMinus(processedCount - prevProcessedCount);
+        var queuedDelta = plusMinus(queuedCount - prevQueuedCount);
+        var elapsedTime = durationFormatter.format(stopWatch.getTime());
+        var throughput = divideDownStr(
                 (processedCount - prevProcessedCount) * 1000,
                 elapsed - prevElapsed,
                 1);
@@ -145,9 +144,9 @@ class CrawlProgressLogger {
     }
     private String debugMessage(
             long elapsed, long processedCount, long queuedCount) {
-        long totalSoFar = processedCount + queuedCount;
-        String progress = divideDownStr(processedCount * 100, totalSoFar, 2);
-        String remaining = durationFormatter.format(divideDown(
+        var totalSoFar = processedCount + queuedCount;
+        var progress = divideDownStr(processedCount * 100, totalSoFar, 2);
+        var remaining = durationFormatter.format(divideDown(
                 elapsed * queuedCount,
                 processedCount,
                 0).longValueExact());

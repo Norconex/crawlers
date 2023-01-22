@@ -16,6 +16,7 @@ package com.norconex.crawler.core.crawler.event.impl;
 
 import org.apache.commons.io.input.NullInputStream;
 
+import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.io.CachedInputStream;
@@ -135,12 +136,13 @@ public class DeleteRejectedEventListener
         } else if (event.is(CrawlerEvent.CRAWLER_RUN_END)) {
             doneCrawling = true;
             commitDeletions(crawlerEvent.getSource());
-            close(crawlerEvent.getSource());
+            close();
         } else if (event.is(CrawlerEvent.CRAWLER_STOP_END)) {
-            close(crawlerEvent.getSource());
-        } else if (event.is(CrawlerEvent.DOCUMENT_COMMITTED_DELETE)
+            close();
+
+        } else if (event.is(CommitterServiceEvent.COMMITTER_SERVICE_DELETE_END)
                 && !doneCrawling) {
-            storeRejection(crawlerEvent.getCrawlDocInfo().getReference(), true);
+            storeRejection(crawlerEvent.getCrawlDocRecord().getReference(), true);
         } else {
             storeRejection(crawlerEvent);
         }
@@ -154,7 +156,7 @@ public class DeleteRejectedEventListener
                 "rejected-refs", Boolean.class);
 
     }
-    private void close(Crawler crawler) {
+    private void close() {
         if (refStore != null) {
             refStore.close();
         }
@@ -168,7 +170,7 @@ public class DeleteRejectedEventListener
         }
 
         // does it have a document reference?
-        var docInfo = event.getCrawlDocInfo();
+        var docInfo = event.getCrawlDocRecord();
         if (docInfo == null) {
             LOG.warn("Listening for reference rejections on a crawler event "
                     + "that has no reference: {}", event.getName());
@@ -182,7 +184,7 @@ public class DeleteRejectedEventListener
         // If deletionSent flag is false, check first if already there so we do
         // not risk overwriting a previously saved "true" flag.
         // If deletionSent is true, we want it to overwrite.
-        // TODO do we care about synchronization?
+        //MAYBE: should we synchronize?
         if (deletionSent || !refStore.find(ref).isPresent()) {
             refStore.save(ref, deletionSent);
         }
@@ -194,7 +196,7 @@ public class DeleteRejectedEventListener
                     refStore.count());
         }
         refStore.forEach((ref, sent) -> {
-            if (!sent) {
+            if (Boolean.FALSE.equals(sent)) {
                 crawler.getCommitterService().delete(new CrawlDoc(
                         new CrawlDocRecord(ref),
                         CachedInputStream.cache(new NullInputStream())));

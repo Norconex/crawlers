@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,32 +22,127 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.jeasy.random.EasyRandom;
+import org.jeasy.random.EasyRandomParameters;
+import org.jeasy.random.randomizers.number.LongRandomizer;
+import org.jeasy.random.randomizers.text.StringRandomizer;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
+import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 
+import lombok.NonNull;
+
 public final class Stubber {
+
+    public static final String MOCK_CRAWLER_ID = "test-crawler";
+    public static final String MOCK_CRAWL_SESSION_ID = "test-session";
+
+    private static EasyRandom easyRandom = new EasyRandom(
+            new EasyRandomParameters()
+            .seed(System.currentTimeMillis())
+            .collectionSizeRange(1, 5)
+            .randomizationDepth(5)
+            .scanClasspathForConcreteTypes(true)
+            .overrideDefaultInitialization(true)
+            .randomize(Path.class,
+                    () -> Path.of(new StringRandomizer(100).getRandomValue()))
+            .randomize(Long.class,
+                    () -> Math.abs(new LongRandomizer().getRandomValue()))
+    );
 
     private Stubber() {}
 
+    public static <T> T randomize(Class<T> cls) {
+        return easyRandom.nextObject(cls);
+    }
+
+    //--- Crawler Config -------------------------------------------------------
+
+    /**
+     * <p>Crawler config stub:</p>
+     * <ul>
+     *   <li>Crawler id: {@value #MOCK_CRAWLER_ID}.</li>
+     *   <li>Single-threaded</li>
+     *   <li>1 Memory Committer</li>
+     *   <li>Default values for everything else.</li>
+     * </ul>
+     * @return crawler config
+     */
     public static CrawlerConfig crawlerConfig() {
         var crawlerConfig = new CrawlerConfig();
-        crawlerConfig.setId("test-crawler");
+        crawlerConfig.setId(MOCK_CRAWLER_ID);
+        crawlerConfig.setNumThreads(1);
         crawlerConfig.setCommitters(List.of(new MemoryCommitter()));
         return crawlerConfig;
     }
+    /**
+     * <p>Random crawler config stub:</p>
+     * <ul>
+     *   <li>Single-threaded</li>
+     *   <li>1 Memory Committer</li>
+     *   <li>Random values for everything else.</li>
+     * </ul>
+     * @return random crawler config
+     */
+    public static CrawlerConfig crawlerConfigRandom() {
+        var cfg = easyRandom.nextObject(CrawlerConfig.class);
+        cfg.setNumThreads(1);
+        cfg.setCommitters(List.of(new MemoryCommitter()));
+        return cfg;
+    }
 
-    public static CrawlSessionConfig crawlSessionConfig() {
+    //--- Crawl Session Config -------------------------------------------------
+
+    /**
+     * <p>Crawl session config stub:</p>
+     * <ul>
+     *   <li>Crawl session id: {@value #MOCK_CRAWL_SESSION_ID}.</li>
+     *   <li>1 crawler from {@link #crawlerConfig()}.</li>
+     *   <li>Default values for everything else.</li>
+     * </ul>
+     * @param workDir where to store generated files (including crawl store)
+     * @return crawl session config
+     */
+    public static CrawlSessionConfig crawlSessionConfig(@NonNull Path workDir) {
         var sessionConfig = new CrawlSessionConfig();
-        sessionConfig.setId("test-session");
+        sessionConfig.setWorkDir(workDir);
+        sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
         sessionConfig.setCrawlerConfigs(List.of(crawlerConfig()));
         return sessionConfig;
     }
+    /**
+     * <p>Random crawl session config stub:</p>
+     * <ul>
+     *   <li>1 crawler from {@link #crawlerConfigRandom()}.</li>
+     *   <li>Default values for everything else.</li>
+     * </ul>
+     *
+     * @param workDir where to store generated files (including crawl store)
+     * @return random crawl session config
+     */
+    public static CrawlSessionConfig crawlSessionConfigRandom(
+            @NonNull Path workDir) {
+        var sessionConfig = easyRandom.nextObject(CrawlSessionConfig.class);
+        sessionConfig.setWorkDir(workDir);
+        sessionConfig.setCrawlerConfigs(List.of(crawlerConfigRandom()));
+        return sessionConfig;
+    }
+
+    //--- CrawlDocRecord -------------------------------------------------------
+
+    public static CrawlDocRecord crawlDocRecord(String ref) {
+        return new CrawlDocRecord(ref);
+    }
+    public static CrawlDocRecord crawlDocRecordRandom() {
+        return easyRandom.nextObject(CrawlDocRecord.class);
+    }
+
+    //--- Misc. ----------------------------------------------------------------
 
     public static Path writeSampleConfigToDir(Path dir) {
 
@@ -64,52 +159,52 @@ public final class Stubber {
         return cfgFile;
     }
 
-//    public static CrawlSession crawlSession(Path configFile) {
-//        return crawlSession(configFile, null);
-//    }
-//    public static CrawlSession crawlSession(Path configFile, Path varsFile) {
-//
-//        // if config file does not exist, assume we want to use the
-//        // stubber default.
-//        if (!Files.exists(configFile)) {
-//            try {
-//                Files.writeString(configFile, getXmlString(Stubber.class));
-//            } catch (IOException e) {
-//                throw new UncheckedIOException(e);
-//            }
-//        }
-//        return CrawlSession.builder()
-//                .crawlerFactory((sess, cfg) -> Crawler.builder()
-//                        .crawlSession(sess)
-//                        .crawlerConfig(cfg)
-//                        .build())
-//                .crawlSessionConfig(new ConfigurationLoader()
-//                        .setVariablesFile(varsFile)
-//                        .loadFromXML(configFile, CrawlSessionConfig.class))
-//                .build();
-//    }
-
-    public static CrawlSession crawlSession() {
+    /**
+     * A crawl session that has 1 crawler and 0 documents in queue.
+     * @param workDir where to store generated files (including crawl store)
+     * @param startReferences initial queue references
+     * @return crawl session.
+     */
+    public static CrawlSession crawlSession(
+            @NonNull Path workDir, String... startReferences) {
         return CrawlSession.builder()
                 .crawlerFactory((crawlSess, crawlerCfg) -> Crawler.builder()
                         .crawlSession(crawlSess)
                         .crawlerConfig(crawlerCfg)
-                        .crawlerImpl(mockCrawlerImpl(crawlerCfg))
+                        .crawlerImpl(
+                                crawlerImpl(crawlerCfg, startReferences))
                         .build())
-                .crawlSessionConfig(new CrawlSessionConfig())
+                .crawlSessionConfig(crawlSessionConfig(workDir))
                 .build();
     }
 
-    public static CrawlerImpl mockCrawlerImpl(CrawlerConfig crawlerConfig) {
+    public static CrawlerImpl crawlerImpl(
+            CrawlerConfig crawlerConfig, String... startReferences) {
         return CrawlerImpl.builder()
                 .fetcherProvider(crawler -> new MockFetcher())
-                .committerPipelineExecutor((crawler, doc) -> {})
-                .crawlerConfig(crawlerConfig)
-                .importerPipelineExecutor(ctx -> null)
-                .queueInitializer((crawler, bool) -> new MutableBoolean())
-                .queuePipelineExecutor(ctx -> {})
-//                .childDocRecordFactory((ref, cached) ->
-//                        new CrawlDocRecord(ref))
+                .committerPipeline(new MockCommitterPipeline())
+//TODO needed?                .crawlerConfig(crawlerConfig)
+                .importerPipeline(new MockImporterPipeline())
+                .queueInitializer(new MockQueueInitializer(startReferences))
+                .queuePipeline(new MockQueuePipeline())
+                .build();
+    }
+
+    public static Crawler crawler(
+            @NonNull Path workDir, String... startReferences) {
+        var cfg = crawlerConfig();
+        return Crawler.builder()
+                .crawlerConfig(cfg)
+                .crawlSession(crawlSession(workDir))
+                .crawlerImpl(CrawlerImpl.builder()
+                        .fetcherProvider(crawler -> new MockFetcher())
+                        .committerPipeline(new MockCommitterPipeline())
+//TODO needed?                        .crawlerConfig(crawlerConfig())
+                        .importerPipeline(new MockImporterPipeline())
+                        .queueInitializer(
+                                new MockQueueInitializer(startReferences))
+                        .queuePipeline(new MockQueuePipeline())
+                        .build())
                 .build();
     }
 }

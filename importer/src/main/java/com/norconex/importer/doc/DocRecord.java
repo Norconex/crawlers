@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.builder.ToStringSummary;
+import org.apache.commons.lang3.builder.ToStringExclude;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -35,6 +35,10 @@ import lombok.NonNull;
  * cacheable version of a document ({@link Doc}).
  */
 @Data
+//@JsonAutoDetect(
+//    getterVisibility = JsonAutoDetect.Visibility.NONE,
+//    isGetterVisibility = JsonAutoDetect.Visibility.NONE
+//)
 public class DocRecord implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -60,7 +64,8 @@ public class DocRecord implements Serializable {
     //MAYBE: remove prefix "embedded" and just keep parent* ?
 
     // trail of parent references (first one is root/top-level)
-    @ToStringSummary
+//    @ToStringSummary
+    @ToStringExclude
     private List<String> embeddedParentReferences = new ArrayList<>();
 
 

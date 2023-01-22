@@ -33,7 +33,7 @@ public class CrawlerMonitor implements CrawlerMonitorMXBean {
 
     public CrawlerMonitor(Crawler crawler) {
         Objects.requireNonNull(crawler, "'crawler' must not be null.");
-        this.service = Objects.requireNonNull(crawler.getDocInfoService(),
+        this.service = Objects.requireNonNull(crawler.getDocRecordService(),
                 "'crawler#getDocInfoService() must not be null.");
         EventManager eventManager =
                 Objects.requireNonNull(crawler.getEventManager(),

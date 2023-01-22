@@ -25,13 +25,14 @@ import org.h2.mvstore.MVStore;
 
 import com.norconex.crawler.core.store.IDataStore;
 
+import lombok.NonNull;
+
 public class MVStoreDataStore<T> implements IDataStore<T> {
 
     private final MVMap<String, T> map;
     private String name;
 
     MVStoreDataStore(MVStore mvstore, String name) {
-        super();
         requireNonNull(mvstore, "'mvstore' must not be null.");
         this.name = requireNonNull(name, "'name' must not be null.");
         map = mvstore.openMap(name);
@@ -42,14 +43,14 @@ public class MVStoreDataStore<T> implements IDataStore<T> {
         return name;
     }
     String rename(String newName) {
-        String oldName = name;
+        var oldName = name;
         map.store.renameMap(map, newName);
         name = newName;
         return oldName;
     }
 
     @Override
-    public void save(String id, T object) {
+    public void save(String id, @NonNull T object) {
         // MVStore doc says values cannot be changed after stored...
         // but testings shows it is OK for us and faster.
         // If issues arise, re-introduce cloning.
@@ -64,7 +65,7 @@ public class MVStoreDataStore<T> implements IDataStore<T> {
 
     @Override
     public Optional<T> findFirst() {
-        String id = map.firstKey();
+        var id = map.firstKey();
         if (id != null) {
             return Optional.ofNullable(map.get(id));
         }
@@ -88,9 +89,9 @@ public class MVStoreDataStore<T> implements IDataStore<T> {
 
     @Override
     public Optional<T> deleteFirst() {
-        String id = map.firstKey();
+        var id = map.firstKey();
         if (id != null) {
-            T removed = map.remove(id);
+            var removed = map.remove(id);
             return Optional.ofNullable(removed);
         }
         return Optional.empty();

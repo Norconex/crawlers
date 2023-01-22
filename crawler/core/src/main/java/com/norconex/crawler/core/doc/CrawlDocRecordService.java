@@ -28,7 +28,6 @@ import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocRecord.Stage;
 import com.norconex.crawler.core.store.IDataStore;
-import com.norconex.crawler.core.store.IDataStoreEngine;
 
 public class CrawlDocRecordService implements Closeable {
 
@@ -77,7 +76,8 @@ public class CrawlDocRecordService implements Closeable {
                 type, "'type' must not be null.");
     }
 
-    // return true if resuming, false otherwise
+    // return true if resuming (holds records that have not been processed),
+    // false otherwise
     public boolean open() {
         if (open) {
             throw new IllegalStateException("Already open.");
@@ -89,6 +89,30 @@ public class CrawlDocRecordService implements Closeable {
         active = storeEngine.openStore("active", type);
         processed = storeEngine.openStore("processed", type);
         cached = storeEngine.openStore("cached", type);
+
+        return !isQueueEmpty() || !isActiveEmpty();
+
+
+
+        // XXXXXXXXXXXXXX
+
+        //TODO do not do resume/non-resume activities when exporting/importing
+        // do it only on start()
+
+        // Way to do it.. have open just open and maybe return if
+        // resuming or not but do nothing
+        // then, add a new init() or prepare() method that will only be called
+        // by crawler start()
+
+        // or maybe, move below code out of here.
+
+        // XXXXXXXXXXXXXX
+
+
+    }
+
+    //MAYBE: Move elsewhere since only used once, when starting crawler?
+    public boolean prepareForCrawlerStart() {
 
         var resuming = !isQueueEmpty() || !isActiveEmpty();
 
@@ -115,6 +139,7 @@ public class CrawlDocRecordService implements Closeable {
                         processedCount, totalCount);
             }
         } else {
+            var storeEngine = crawler.getDataStoreEngine();
             //TODO really clear cache or keep to have longer history of
             // each items?
             cached.clear();

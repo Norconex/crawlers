@@ -25,8 +25,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.AbstractCommitter;
 import com.norconex.committer.core.CommitterException;
@@ -38,6 +36,9 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -60,15 +61,15 @@ import lombok.EqualsAndHashCode;
  */
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode(callSuper = true)
+@Slf4j
 public class MemoryCommitter extends AbstractCommitter {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(MemoryCommitter.class);
 
     private final List<CommitterRequest> requests = new ArrayList<>();
 
     private int upsertCount = 0;
     private int deleteCount = 0;
+    @Getter @Setter
+    private boolean closed;
 
     private boolean ignoreContent;
     private final TextMatcher fieldMatcher = new TextMatcher();
@@ -175,6 +176,7 @@ public class MemoryCommitter extends AbstractCommitter {
             throws com.norconex.committer.core.CommitterException {
         LOG.info("{} upserts committed.", upsertCount);
         LOG.info("{} deletions committed.", deleteCount);
+        closed = true;
     }
 
     @Override

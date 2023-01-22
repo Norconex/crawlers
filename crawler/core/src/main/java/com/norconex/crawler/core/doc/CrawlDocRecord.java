@@ -16,8 +16,6 @@ package com.norconex.crawler.core.doc;
 
 import java.time.ZonedDateTime;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringExclude;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -25,8 +23,13 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.importer.doc.DocRecord;
 
-/**
- */
+import lombok.EqualsAndHashCode;
+
+//@JsonAutoDetect(
+//    getterVisibility = JsonAutoDetect.Visibility.NONE,
+//    isGetterVisibility = JsonAutoDetect.Visibility.NONE
+//)
+@EqualsAndHashCode
 public class CrawlDocRecord extends DocRecord {
 
     //TODO create @ignore metadata to prevent storing some fields?
@@ -50,11 +53,12 @@ public class CrawlDocRecord extends DocRecord {
 
     @ToStringExclude
     private String parentRootReference;
-    private CrawlState state;
+    private CrawlDocState state;
     @ToStringExclude
     private String metaChecksum;
     @ToStringExclude
     private String contentChecksum;
+    @ToStringExclude
     private ZonedDateTime crawlDate;
 
     public CrawlDocRecord() {}
@@ -71,7 +75,7 @@ public class CrawlDocRecord extends DocRecord {
     }
 
     public CrawlDocRecord withReference(String reference) {
-        CrawlDocRecord docInfo = BeanUtil.clone(this);
+        var docInfo = BeanUtil.clone(this);
         docInfo.setReference(reference);
         return docInfo;
     }
@@ -109,10 +113,10 @@ public class CrawlDocRecord extends DocRecord {
         this.parentRootReference = parentRootReference;
     }
 
-    public CrawlState getState() {
+    public CrawlDocState getState() {
         return state;
     }
-    public void setState(CrawlState state) {
+    public void setState(CrawlDocState state) {
         this.state = state;
     }
 
@@ -154,16 +158,8 @@ public class CrawlDocRecord extends DocRecord {
     }
 
     @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
     public String toString() {
-        ReflectionToStringBuilder b = new ReflectionToStringBuilder(
+        var b = new ReflectionToStringBuilder(
                 this, ToStringStyle.SHORT_PREFIX_STYLE);
         b.setExcludeNullValues(true);
         return b.toString();

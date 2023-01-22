@@ -225,7 +225,7 @@ public class XMLStreamSplitter extends AbstractDocumentSplitter
                         w.close();
                         out = null;
                         w = null;
-                        var childInfo = childDoc.getDocInfo();
+                        var childInfo = childDoc.getDocRecord();
                         childInfo.addEmbeddedParentReference(
                                 xmlDoc.getReference());
                         childMeta.set(

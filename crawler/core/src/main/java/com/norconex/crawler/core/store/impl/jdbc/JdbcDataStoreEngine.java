@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,7 @@ import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -29,8 +27,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
@@ -41,6 +37,8 @@ import com.norconex.crawler.core.store.IDataStore;
 import com.norconex.crawler.core.store.IDataStoreEngine;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -106,11 +104,9 @@ import com.zaxxer.hikari.HikariDataSource;
  * The above example contains basic settings for creating a MySQL data source.
  * </p>
  */
+@Slf4j
 public class JdbcDataStoreEngine
         implements IDataStoreEngine, XMLConfigurable {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(JdbcDataStoreEngine.class);
 
     private static final String STORE_TYPES_NAME = "_storetypes";
 

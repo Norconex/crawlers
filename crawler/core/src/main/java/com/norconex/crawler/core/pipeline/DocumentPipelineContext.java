@@ -24,17 +24,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
-import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.commons.lang.pipeline.IPipelineStage;
-import com.norconex.commons.lang.pipeline.Pipeline;
-import com.norconex.importer.doc.Doc;
 
 /**
- * {@link IPipelineStage} context for collector {@link Pipeline}s dealing with
- * an {@link Doc}.
+ * Pipeline context for document processing.
  */
 public class DocumentPipelineContext extends AbstractPipelineContext {
 
@@ -53,16 +49,16 @@ public class DocumentPipelineContext extends AbstractPipelineContext {
     }
 
     public CrawlDocRecord getDocRecord() {
-        return document.getDocInfo();
+        return document.getDocRecord();
     }
 
 
     /**
      * Gets cached crawl data.
      * @return cached crawl data
-         */
-    public CrawlDocRecord getCachedDocInfo() {
-        return document.getCachedDocInfo();
+     */
+    public CrawlDocRecord getCachedDocRecord() {
+        return document.getCachedDocRecord();
     }
 
     public CachedInputStream getContent() {

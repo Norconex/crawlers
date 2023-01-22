@@ -16,7 +16,7 @@ package com.norconex.crawler.core.spoil.impl;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
 import com.norconex.commons.lang.xml.XML;
 
@@ -29,8 +29,8 @@ class GenericSpoiledReferenceStrategizerTest  {
         GenericSpoiledReferenceStrategizer s =
                 new GenericSpoiledReferenceStrategizer();
         s.setFallbackStrategy(SpoiledReferenceStrategy.GRACE_ONCE);
-        s.addMapping(CrawlState.MODIFIED, SpoiledReferenceStrategy.IGNORE);
-        s.addMapping(CrawlState.BAD_STATUS, SpoiledReferenceStrategy.DELETE);
+        s.addMapping(CrawlDocState.MODIFIED, SpoiledReferenceStrategy.IGNORE);
+        s.addMapping(CrawlDocState.BAD_STATUS, SpoiledReferenceStrategy.DELETE);
         XML.assertWriteRead(s, "spoiledReferenceStrategizer");
     }
 }

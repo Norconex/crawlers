@@ -42,7 +42,7 @@ public class HandlerDoc {
     }
 
     public DocRecord getDocInfo() {
-        return doc.getDocInfo();
+        return doc.getDocRecord();
     }
     public Properties getMetadata() {
         return doc.getMetadata();

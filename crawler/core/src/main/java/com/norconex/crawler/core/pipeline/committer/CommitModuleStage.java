@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.pipeline.committer;
 
-import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
+import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 
 /**
  * Common pipeline stage for committing documents.
@@ -27,6 +27,11 @@ public class CommitModuleStage
 
         // Event triggered by service
         ctx.getCommitterService().upsert(ctx.getDocument());
+
+
+        //TODO rewend was done in CrawlerCommitterService when it was in this
+        // core project. Now here... best place?
+        ctx.getDocument().getInputStream().rewind();
 
         return true;
     }

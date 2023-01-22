@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,24 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Reference processing status.
  */
-public class CrawlState implements Serializable {
+@JsonAutoDetect(
+    getterVisibility = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE
+)
+public class CrawlDocState implements Serializable {
 
-    private static final Map<String, CrawlState> STATUSES =
+    private static final Map<String, CrawlDocState> STATUSES =
             new HashMap<>();
+
+    //MAYBE refactor to facilitate JSON serialization without annotations?
 
     //TODO make default state UNKNOWN/UNPROCESSED, or equivalent that means
     // TBD/IN_PROGRESS????
@@ -36,20 +47,20 @@ public class CrawlState implements Serializable {
     // no checksum defined... then it is nether new nor modified.
     private static final long serialVersionUID = 6542269270632505768L;
 
-    public static final CrawlState NEW        = new CrawlState("NEW");
-    public static final CrawlState MODIFIED   = new CrawlState("MODIFIED");
-    public static final CrawlState UNMODIFIED = new CrawlState("UNMODIFIED");
-    public static final CrawlState ERROR      = new CrawlState("ERROR");
-    public static final CrawlState REJECTED   = new CrawlState("REJECTED");
-    public static final CrawlState BAD_STATUS = new CrawlState("BAD_STATUS");
-    public static final CrawlState DELETED    = new CrawlState("DELETED");
-    public static final CrawlState NOT_FOUND  = new CrawlState("NOT_FOUND");
+    public static final CrawlDocState NEW        = new CrawlDocState("NEW");
+    public static final CrawlDocState MODIFIED   = new CrawlDocState("MODIFIED");
+    public static final CrawlDocState UNMODIFIED = new CrawlDocState("UNMODIFIED");
+    public static final CrawlDocState ERROR      = new CrawlDocState("ERROR");
+    public static final CrawlDocState REJECTED   = new CrawlDocState("REJECTED");
+    public static final CrawlDocState BAD_STATUS = new CrawlDocState("BAD_STATUS");
+    public static final CrawlDocState DELETED    = new CrawlDocState("DELETED");
+    public static final CrawlDocState NOT_FOUND  = new CrawlDocState("NOT_FOUND");
     /**
      * For collectors that support it, this state indicates a previously
      * crawled document is not yet ready to be re-crawled.  It may or may not
      * be re-crawled in the next crawl session (if ready).
          */
-    public static final CrawlState PREMATURE  = new CrawlState("PREMATURE");
+    public static final CrawlDocState PREMATURE  = new CrawlDocState("PREMATURE");
 
 
     //TODO testing this... remove if not used:
@@ -58,9 +69,11 @@ public class CrawlState implements Serializable {
      * not supported by the collector or one of its configured
      * component.
          */
-    public static final CrawlState UNSUPPORTED = new CrawlState("UNSUPPORTED");
+    public static final CrawlDocState UNSUPPORTED = new CrawlDocState("UNSUPPORTED");
 
 
+    @JsonProperty
+    @JsonValue
     private final String state;
 
 
@@ -68,7 +81,7 @@ public class CrawlState implements Serializable {
      * Constructor.
      * @param state state code
      */
-    protected CrawlState(String state) {
+    protected CrawlDocState(String state) {
         this.state = state;
         STATUSES.put(state, this);
     }
@@ -100,17 +113,17 @@ public class CrawlState implements Serializable {
      * Returns whether a state indicate the document is to be skipped
      * ({@link #UNMODIFIED} or {@link #PREMATURE}).
      * @return <code>true</code> if skipped
-         */
+     */
     public boolean isSkipped() {
         return isOneOf(UNMODIFIED, PREMATURE);
     }
 
 
-    public boolean isOneOf(CrawlState... states) {
+    public boolean isOneOf(CrawlDocState... states) {
         if (ArrayUtils.isEmpty(states)) {
             return false;
         }
-        for (CrawlState crawlState : states) {
+        for (CrawlDocState crawlState : states) {
             if (equals(crawlState)) {
                 return true;
             }
@@ -118,10 +131,12 @@ public class CrawlState implements Serializable {
         return false;
     }
 
-    public static synchronized CrawlState valueOf(String state) {
-        CrawlState refState = STATUSES.get(state);
+    @JsonCreator
+    public static synchronized CrawlDocState valueOf(
+            @JsonProperty("state") String state) {
+        var refState = STATUSES.get(state);
         if (refState == null) {
-            refState = new CrawlState(state);
+            refState = new CrawlDocState(state);
         }
         return refState;
     }

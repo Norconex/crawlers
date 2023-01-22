@@ -189,7 +189,7 @@ public final class TestUtil {
         }
         var ct = doc.getMetadata().getString(DocMetadata.CONTENT_TYPE);
         if (ct != null) {
-            doc.getDocInfo().setContentType(ContentType.valueOf(ct));
+            doc.getDocRecord().setContentType(ContentType.valueOf(ct));
         }
 
         return new HandlerDoc(doc);

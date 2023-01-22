@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  */
 package com.norconex.crawler.core.doc;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocRecord;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * A crawl document, which holds an additional {@link DocRecord} from cache
  * (if any).
  */
+@EqualsAndHashCode
+@ToString
 public class CrawlDoc extends Doc {
 
     private final CrawlDocRecord cachedDocInfo;
@@ -51,15 +51,15 @@ public class CrawlDoc extends Doc {
     }
 
     @Override
-    public CrawlDocRecord getDocInfo() {
-        return (CrawlDocRecord) super.getDocInfo();
+    public CrawlDocRecord getDocRecord() {
+        return (CrawlDocRecord) super.getDocRecord();
     }
 
     public boolean isOrphan() {
         return orphan;
     }
 
-    public CrawlDocRecord getCachedDocInfo() {
+    public CrawlDocRecord getCachedDocRecord() {
         return cachedDocInfo;
     }
 
@@ -67,19 +67,11 @@ public class CrawlDoc extends Doc {
         return cachedDocInfo != null;
     }
 
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        ReflectionToStringBuilder b = new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE);
-        b.setExcludeNullValues(true);
-        return b.toString();
-    }
+//    @Override
+//    public String toString() {
+//        var b = new ReflectionToStringBuilder(
+//                this, ToStringStyle.SHORT_PREFIX_STYLE);
+//        b.setExcludeNullValues(true);
+//        return b.toString();
+//    }
 }

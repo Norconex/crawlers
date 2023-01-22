@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.norconex.commons.lang.event.Event;
+import com.norconex.commons.lang.event.EventListener;
+import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.commons.lang.event.Event;
-import com.norconex.commons.lang.event.IEventListener;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -102,14 +101,13 @@ import com.norconex.commons.lang.xml.XML;
  * The above example will stop the crawler when the sum of committed documents
  * (upserts + deletions) reaches 100.
  * </p>
- *
  */
 @SuppressWarnings("javadoc")
+@Slf4j
+@EqualsAndHashCode
+@ToString
 public class StopCrawlerOnMaxEventListener
-        implements IEventListener<Event>, XMLConfigurable {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(StopCrawlerOnMaxEventListener.class);
+        implements EventListener<Event>, XMLConfigurable {
 
     public enum OnMultiple {
         /**
@@ -133,7 +131,9 @@ public class StopCrawlerOnMaxEventListener
     private Crawler crawler;
 
     private final TextMatcher eventMatcher = TextMatcher.regex(null);
+    @Getter @Setter
     private OnMultiple onMultiple = OnMultiple.ANY;
+    @Getter @Setter
     private long maximum;
 
     /**
@@ -151,25 +151,11 @@ public class StopCrawlerOnMaxEventListener
         this.eventMatcher.copyFrom(eventMatcher);
     }
 
-    public OnMultiple getOnMultiple() {
-        return onMultiple;
-    }
-    public void setOnMultiple(OnMultiple onMultiple) {
-        this.onMultiple = onMultiple;
-    }
-
-    public long getMaximum() {
-        return maximum;
-    }
-    public void setMaximum(long maximum) {
-        this.maximum = maximum;
-    }
-
     @Override
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_RUN_BEGIN)) {
             eventCounts.clear();
-            this.crawler = ((CrawlerEvent) event).getSource();
+            crawler = ((CrawlerEvent) event).getSource();
         }
 
         if (!eventMatcher.matches(event.getName())) {
@@ -190,13 +176,13 @@ public class StopCrawlerOnMaxEventListener
         if (OnMultiple.ALL == onMultiple) {
             return eventCounts.values().stream()
                     .allMatch(v -> v.get() >= maximum);
-        } else if (OnMultiple.SUM == onMultiple) {
+        }
+        if (OnMultiple.SUM == onMultiple) {
             return eventCounts.values().stream().collect(
                     Collectors.summingLong(AtomicLong::get)) >= maximum;
-        } else { // ANY
-            return eventCounts.values().stream()
-                    .anyMatch(v -> v.get() >= maximum);
         }
+        return eventCounts.values().stream()
+                .anyMatch(v -> v.get() >= maximum);
     }
 
     @Override
@@ -210,19 +196,5 @@ public class StopCrawlerOnMaxEventListener
         xml.setAttribute("onMultiple", onMultiple);
         xml.setAttribute("maximum", maximum);
         eventMatcher.saveToXML(xml.addElement("eventMatcher"));
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

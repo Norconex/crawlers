@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterEvent;
+import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.crawler.core.Stubber;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
@@ -39,8 +40,7 @@ import picocli.CommandLine.PicocliException;
 @Slf4j
 class CliLauncherTest {
 
-    // Maybe one test per class?
-
+    // Maybe a class for each crawler action/test?
 
     @TempDir
     private Path tempDir;
@@ -54,44 +54,42 @@ class CliLauncherTest {
 
     @Test
     void testNoArgs() throws IOException {
-        var exit = testLaunch();
+        var exit = testLaunch(tempDir);
         assertThat(exit.ok()).isFalse();
-        assertThat(exit.getStdOutErr()).contains(
-            "No arguments provided.",
+        assertThat(exit.getStdErr()).contains("No arguments provided.");
+        assertThat(exit.getStdOut()).contains(
             "Usage:",
             "help configcheck"
         );
     }
 
     @Test
-    void testErrors() throws IOException {
+    void testErrors() throws Exception {
         // Bad args
-        var exit1 = testLaunch("potato", "--soup");
+        var exit1 = testLaunch(tempDir, "potato", "--soup");
         assertThat(exit1.ok()).isFalse();
-        assertThat(exit1.getStdOutErr()).contains(
+        assertThat(exit1.getStdErr()).contains(
             "Unmatched arguments"
         );
 
         // Non existant config file
-        var exit2 = testLaunch("configcheck",
-                "-config=" + configFile + "IDontExist");
+        var exit2 = testLaunch(tempDir,
+                "configcheck", "-config=" + configFile + "IDontExist");
         assertThat(exit2.ok()).isFalse();
-        assertThat(exit2.getStdOutErr()).contains(
+        assertThat(exit2.getStdErr()).contains(
             "Configuration file does not exist"
         );
 
         // Simulate Picocli Exception
-        var out = SystemUtil.captureStdoutStderr(() -> {
-            var exitCode = CliLauncher.launch(
-                    CrawlSession.builder()
-                        .crawlSessionConfig(new CrawlSessionConfig())
-                        .crawlerFactory((s, c) -> {
-                                throw new PicocliException("Fake exception.");
-                        }),
-                    "clean", "-config=" + configFile);
-            assertThat(exitCode).isNotZero();
-        });
-        assertThat(out).contains(
+        var captured = SystemUtil.callAndCaptureOutput(() -> CliLauncher.launch(
+                CrawlSession.builder()
+                    .crawlSessionConfig(new CrawlSessionConfig())
+                    .crawlerFactory((s, c) -> {
+                            throw new PicocliException("Fake exception.");
+                    }),
+                "clean", "-config=" + configFile));
+        assertThat(captured.getReturnValue()).isNotZero();
+        assertThat(captured.getStdErr()).contains(
                 "Fake exception.",
                 "Usage:",
                 "Clean the");
@@ -102,9 +100,9 @@ class CliLauncherTest {
                   <crawlers badAttr="badAttr"></crawlers>
                 </crawlSession>
                 """);
-        var exit3 = testLaunch("configcheck", "-config=" + configFile);
+        var exit3 = testLaunch(tempDir, "configcheck", "-config=" + configFile);
         assertThat(exit3.ok()).isFalse();
-        assertThat(exit3.getStdOutErr()).contains(
+        assertThat(exit3.getStdErr()).contains(
             "2 XML configuration errors detected",
             "Attribute 'badAttr' is not allowed",
             "The content of element 'crawlers' is not complete."
@@ -113,9 +111,9 @@ class CliLauncherTest {
 
     @Test
     void testHelp() throws IOException {
-        var exit = testLaunch("-h");
+        var exit = testLaunch(tempDir, "-h");
         assertThat(exit.ok()).isTrue();
-        assertThat(exit.getStdOutErr()).contains(
+        assertThat(exit.getStdOut()).contains(
             "Usage:",
             "help",
             "start",
@@ -130,9 +128,9 @@ class CliLauncherTest {
 
     @Test
     void testVersion() throws IOException {
-        var exit = testLaunch("-v");
+        var exit = testLaunch(tempDir, "-v");
         assertThat(exit.ok()).isTrue();
-        assertThat(exit.getStdOutErr()).contains(
+        assertThat(exit.getStdOut()).contains(
             "Crawler and main components:",
             "Crawler:",
             "Committers:",
@@ -146,53 +144,55 @@ class CliLauncherTest {
 
     @Test
     void testConfigCheck() throws IOException {
-        var exit = testLaunch("configcheck", "-config=" + configFile);
+        var exit = testLaunch(tempDir, "configcheck", "-config=" + configFile);
         assertThat(exit.ok()).isTrue();
-        assertThat(exit.getStdOutErr()).contains(
+        assertThat(exit.getStdOut()).contains(
                 "No XML configuration errors detected.");
     }
 
     @Test
     void testStoreExportImport() throws IOException {
         var exportDir = tempDir.resolve("exportdir");
+        var exportFile = exportDir.resolve("test-crawler.zip");
 
         // Export
-        var exit1 = testLaunch(
+        var exit1 = testLaunch(tempDir,
                 "storeexport",
                 "-config=" + configFile,
                 "-dir=" + exportDir);
 
         assertThat(exit1.ok()).isTrue();
-        assertThat(exportDir.resolve("test-crawler.zip")).isNotEmptyFile();
+        assertThat(exportFile).isNotEmptyFile();
 
         // Import
-        var exit2 = testLaunch(
+        var exit2 = testLaunch(tempDir,
                 "storeimport",
                 "-config=" + configFile,
-                "-file=" + exportDir.resolve("test-crawler.zip"));
-
+                "-file=" + exportFile);
         assertThat(exit2.ok()).isTrue();
-
-        //TODO test with actual data in stores
     }
 
     @Test
     void testStart() throws IOException {
         LOG.debug("=== Run 1: Start ===");
-        var exit1 = testLaunch("start", "-config=" + configFile);
+        var exit1 = testLaunch(tempDir, "start", "-config=" + configFile);
         assertThat(exit1.ok()).isTrue();
         assertThat(exit1.getEvents()).containsExactly(
                 CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_INIT_BEGIN,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_INIT_END,
                 CrawlerEvent.CRAWLER_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
                 CrawlerEvent.CRAWLER_RUN_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
                 CrawlSessionEvent.CRAWLSESSION_RUN_END
         );
 
@@ -200,35 +200,46 @@ class CliLauncherTest {
         // doc made the whole journey (also test rejection, deletion, etc).
 
         LOG.debug("=== Run 2: Clean and Start ===");
-        var exit2 = testLaunch("start", "-clean", "-config=" + configFile);
+        var exit2 = testLaunch(
+                tempDir, "start", "-clean", "-config=" + configFile);
         assertThat(exit2.ok()).isTrue();
         assertThat(exit2.getEvents()).containsExactly(
                 // Clean flow
                 CrawlSessionEvent.CRAWLSESSION_CLEAN_BEGIN,
                 CrawlerEvent.CRAWLER_INIT_BEGIN,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_INIT_END,
                 CrawlerEvent.CRAWLER_CLEAN_BEGIN,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
                 CrawlerEvent.CRAWLER_CLEAN_END,
                 CrawlSessionEvent.CRAWLSESSION_CLEAN_END,
 
                 // Regular flow
                 CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_INIT_BEGIN,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_INIT_END,
                 CrawlerEvent.CRAWLER_RUN_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN,
                 CrawlerEvent.CRAWLER_RUN_THREAD_END,
                 CrawlerEvent.CRAWLER_RUN_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
                 CrawlSessionEvent.CRAWLSESSION_RUN_END
         );
 
@@ -239,19 +250,25 @@ class CliLauncherTest {
 
     @Test
     void testClean() throws IOException {
-        var exit = testLaunch("clean", "-config=" + configFile);
+        var exit = testLaunch(tempDir, "clean", "-config=" + configFile);
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getEvents()).containsExactly(
                 CrawlSessionEvent.CRAWLSESSION_CLEAN_BEGIN,
                 CrawlerEvent.CRAWLER_INIT_BEGIN,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_INIT_END,
                 CrawlerEvent.CRAWLER_CLEAN_BEGIN,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_BEGIN,
                 CommitterEvent.COMMITTER_CLEAN_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
                 CrawlerEvent.CRAWLER_CLEAN_END,
                 CrawlSessionEvent.CRAWLSESSION_CLEAN_END
         );
@@ -261,29 +278,30 @@ class CliLauncherTest {
     // actually stopping a crawl session and being on a cluster?
     @Test
     void testStop() throws IOException {
-        var exit = testLaunch("stop", "-config=" + configFile);
+        var exit = testLaunch(tempDir, "stop", "-config=" + configFile);
         assertThat(exit.ok()).isTrue();
     }
 
     @Test
     void testConfigRender() throws IOException {
-        var exit1 = testLaunch("configrender", "-config=" + configFile);
+        var exit1 = testLaunch(
+                tempDir, "configrender", "-config=" + configFile);
         assertThat(exit1.ok()).isTrue();
         // check that some entries not explicitely configured are present:
-        assertThat(exit1.getStdOutErr()).contains(
+        assertThat(exit1.getStdOut()).contains(
             "ignoreDiacritic=\"false\"",
             "<fallbackParser ",
             ".impl.GenericSpoiledReferenceStrategizer"
         );
 
         var renderedFile = tempDir.resolve("configrender.xml");
-        var exit2 = testLaunch(
+        var exit2 = testLaunch(tempDir,
                 "configrender",
                 "-config=" + configFile,
                 "-output=" + renderedFile);
         assertThat(exit2.ok()).isTrue();
         assertThat(Files.readString(renderedFile).trim()).isEqualTo(
-                exit1.getStdOutErr().trim());
+                exit1.getStdOut().trim());
     }
 
 

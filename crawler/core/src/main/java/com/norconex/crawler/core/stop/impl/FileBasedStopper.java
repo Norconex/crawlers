@@ -90,7 +90,9 @@ public class FileBasedStopper implements CrawlSessionStopper {
             throws CrawlSessionStopperException {
         monitoring = false;
         try {
-            Files.deleteIfExists(monitoredStopFile);
+            if (monitoredStopFile != null) {
+                Files.deleteIfExists(monitoredStopFile);
+            }
         } catch (IOException e) {
             throw new CrawlSessionStopperException(
                     "Cannot delete stop file: "

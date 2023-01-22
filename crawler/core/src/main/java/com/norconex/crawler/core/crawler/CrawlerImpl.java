@@ -1,4 +1,4 @@
-/* Copyright 2022-2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.crawler;
 
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -23,82 +22,118 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
+import com.norconex.crawler.core.doc.CrawlDocRecordFactory;
 import com.norconex.crawler.core.fetch.IFetchRequest;
 import com.norconex.crawler.core.fetch.IFetchResponse;
 import com.norconex.crawler.core.fetch.IFetcher;
-import com.norconex.crawler.core.pipeline.DocInfoPipelineContext;
-import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.importer.response.ImporterResponse;
+import com.norconex.crawler.core.pipeline.committer.CommitterPipeline;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipeline;
+import com.norconex.crawler.core.pipeline.queue.QueuePipeline;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 
-//Name could be: CrawlerDefinition, CrawlerInitializer, CrawlerStrategies
-// CrawlerFactory, CrawlerAssets, CrawlerSettings
-// CrawlerStrategyProvider, CrawlerImplementation, CrawlerExtensions
-
-//CrawlerBuilder?  CrawlerFlavor?  CrawlerConnector
-
-//@Data
-//@Setter
-//@Getter
-//@Accessors(fluent = true)
-
-//Maybe have a builder directly on Crawler instead?
-
 /**
-* Inner workings specific to a given crawler implementation. Not meant
-* to be configured <i>directly</i> at runtime.
-*/
+ * <p>
+ * Inner workings specific to a given crawler implementation. Not
+ * for general use, and not meant to be configured <i>directly</i> at runtime.
+ * </p>
+ */
 @Builder
 @Getter
 @Accessors(fluent = true)
-// maybe have better naming?
 public class CrawlerImpl {
 
-    //--- Required -------------------------------------------------------------
-
+    /**
+     * Provides a required fetcher implementation, responsible for obtaining
+     * resources being crawled.
+     * @param fetcherProvider fetcher provider function
+     * @return a function returning a fetcher to associate with a given crawler.
+     */
+    @SuppressWarnings("javadoc")
     @NonNull
     Function<Crawler, IFetcher<IFetchRequest, IFetchResponse>> fetcherProvider;
 
-    //TODO needed?
+    /**
+     * The exact type of {@link CrawlDocRecord} if your crawler is subclassing
+     * it. Defaults to {@link CrawlDocRecord} class.
+     * @param crawlDocRecordType crawl document record class
+     * @return crawl document record class
+     */
+    @SuppressWarnings("javadoc")
     @Default
     @NonNull
     Class<? extends CrawlDocRecord> crawlDocRecordType = CrawlDocRecord.class;
 
-    //--- Optional/per implementation ------------------------------------------
-
-
-
-//     IFetcher<?, ?> fetcher;
-    // required
-    //TODO maybe use DocRecord#withReference instead?
-//    Function<Crawler, CrawlDocRecord> crawlDocInfoCloner;
-
+    /**
+     * Required pipeline to be executed for each reference that should
+     * end-up in the crawler queue.
+     * @param queuePipeline queue pipeline
+     * @return queue pipeline
+     */
+    @SuppressWarnings("javadoc")
     @NonNull
-    BiFunction<Crawler, Boolean, MutableBoolean> queueInitializer;
+    QueuePipeline queuePipeline;
 
-    // required
+    /**
+     * Required pipeline to be executed for each reference read
+     * from the crawler queue up to the importing of the corresponding
+     * document.
+     * @param importerPipeline importer pipeline
+     * @return importer pipeline
+     */
+    @SuppressWarnings("javadoc")
     @NonNull
-    Consumer<DocInfoPipelineContext> queuePipelineExecutor;  //TODO Rename queueExecutor ?
-    // required
+    ImporterPipeline importerPipeline;
+
+    /**
+     * Required pipeline to be executed for each document that has been
+     * imported and are ready to be committed for insertion/update or
+     * deletion.
+     * @param committerPipeline committer pipeline
+     * @return committer pipeline
+     */
+    @SuppressWarnings("javadoc")
     @NonNull
-    Function<ImporterPipelineContext, ImporterResponse>
-            importerPipelineExecutor;  //TODO Rename importExecutor ?
-    // required
-    @NonNull
-    BiConsumer<Crawler, CrawlDoc> committerPipelineExecutor;  //TODO Rename commitExecutor ?
-    // required (unless we use reflection? is there value in controlling the child creation per-crawler?)
+    CommitterPipeline committerPipeline;
 
+    /**
+     * Holds contextual objects necessary to initialize a crawler queue.
+     */
+    @Accessors(fluent = false)
+    @AllArgsConstructor
+    public static class QueueInitContext {
+        @Getter
+        private final Crawler crawler;
+        @Getter
+        private final boolean resuming;
+        private final Consumer<CrawlDocRecord> queuer;
+        public void queue(CrawlDocRecord rec) {
+            queuer.accept(rec);
+        }
+    }
 
-    //TODO pass equivalent of RecordCreatorContext which holds
-    // - parent doc record
-    // - whether parent doc record is from being embedded
-    // - cached doc record, if any
+    /**
+     * Function responsible for initializing a queue, which typically involved
+     * inserting the initial references necessary to start crawling.
+     * The function's return value indicate if we are done initializing
+     * the queue.  Should always be <code>true</code> unless
+     * the queue can be initialized asynchronously. In such case,
+     * the mutable boolean can be returned right away, but must be set to
+     * <code>true</code> when initialization is complete.
+     * @param queueInitializer queue initializer function
+     * @return queue initializer function
+     */
+    @SuppressWarnings("javadoc")
+    Function<QueueInitContext, MutableBoolean> queueInitializer;
 
+    /**
+     * Holds contextual objects necessary to create new document records.
+     */
     @Builder
     @Getter
     public static class DocRecordFactoryContext {
@@ -107,17 +142,30 @@ public class CrawlerImpl {
         private final CrawlDocRecord cachedDocRecord;
     }
 
+    /**
+     * Function responsible for creating new document records
+     * specific to this crawler implementation. The default factory
+     * creates instances of {@link CrawlDocRecord} initialized with
+     * a possible parent document record.
+     * @param docRecordFactory factory function for creating doc records
+     * @return factory function for creating doc records
+     */
+    @SuppressWarnings("javadoc")
     @NonNull
     @Default
-    Function<DocRecordFactoryContext, CrawlDocRecord> docRecordFactory =
+    CrawlDocRecordFactory docRecordFactory =
             ctx -> new CrawlDocRecord(ctx.parentDocRecord);
 
+    //TODO crawlerConfig needed here?
+//    /**
+//     * Required crawler configuration.
+//     * @param crawlerConfig crawler configuration
+//     * @return crawler configuration
+//     */
+//    @SuppressWarnings("javadoc")
+//    @NonNull
+//    CrawlerConfig crawlerConfig;
 
-    // required
-    @NonNull
-    CrawlerConfig crawlerConfig;
-
-    // optional
     /**
      * Gives crawler implementations a chance to prepare before execution
      * starts. Invoked right after the
@@ -125,14 +173,13 @@ public class CrawlerImpl {
      * This method is different than the {@link #initCrawler()} method,
      * which is invoked for any type of actions where as this one is only
      * invoked before an effective request for crawling.
-     * -- SETTER --
      * @param beforeCrawlerExecution bi-consumer accepting a crawler and
-     *     a "resume" indicator session.
-     * -- GETTER --
+     *     a "resume" indicator.
      * @return bi-consumer accepting a crawler and a "resume" indicator
      */
+    @SuppressWarnings("javadoc")
     BiConsumer<Crawler, Boolean> beforeCrawlerExecution;
-    // optional
+
     /**
      * Gives crawler implementations a chance to do something right after
      * the crawler is done processing its last reference, before all resources
@@ -140,21 +187,28 @@ public class CrawlerImpl {
      * Invoked right after {@link CrawlerEvent#CRAWLER_STOP_END} or
      * {@link CrawlerEvent#CRAWLER_RUN_END} (depending which of the two is
      * triggered).
-     * -- SETTER --
      * @param afterCrawlerExecution consumer accepting a crawler
-     * -- GETTER --
      * @return consumer accepting a crawler
      */
+    @SuppressWarnings("javadoc")
     Consumer<Crawler> afterCrawlerExecution;
-    // optional
+
+
+
+    //TODO are those used? Should they be?
+    // Add those that are missing to ReferencesProcessor
     BiConsumer<Crawler, CrawlDoc> beforeDocumentProcessing;
-    // optional
     BiConsumer<Crawler, CrawlDoc> afterDocumentProcessing;
 
-    // optional
+    // need those, or we can replace beforeDocumentFinalizing
+    // (the only one used) with after processing?
     BiConsumer<Crawler, CrawlDoc> beforeDocumentFinalizing;
-    // optional
     BiConsumer<Crawler, CrawlDoc> afterDocumentFinalizing;
+
+
+
+
+
 
 
 

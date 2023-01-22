@@ -24,7 +24,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.ISpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
 import com.norconex.commons.lang.xml.XMLConfigurable;
@@ -78,7 +78,7 @@ public class GenericSpoiledReferenceStrategizer implements
     public static final SpoiledReferenceStrategy DEFAULT_FALLBACK_STRATEGY =
             SpoiledReferenceStrategy.DELETE;
 
-    private final Map<CrawlState, SpoiledReferenceStrategy> mappings =
+    private final Map<CrawlDocState, SpoiledReferenceStrategy> mappings =
             new HashMap<>();
     private SpoiledReferenceStrategy fallbackStrategy =
             DEFAULT_FALLBACK_STRATEGY;
@@ -86,15 +86,15 @@ public class GenericSpoiledReferenceStrategizer implements
     public GenericSpoiledReferenceStrategizer() {
         super();
         // store default mappings
-        mappings.put(CrawlState.NOT_FOUND, SpoiledReferenceStrategy.DELETE);
-        mappings.put(CrawlState.BAD_STATUS,
+        mappings.put(CrawlDocState.NOT_FOUND, SpoiledReferenceStrategy.DELETE);
+        mappings.put(CrawlDocState.BAD_STATUS,
                 SpoiledReferenceStrategy.GRACE_ONCE);
-        mappings.put(CrawlState.ERROR, SpoiledReferenceStrategy.GRACE_ONCE);
+        mappings.put(CrawlDocState.ERROR, SpoiledReferenceStrategy.GRACE_ONCE);
     }
 
     @Override
     public SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
-            String reference, CrawlState state) {
+            String reference, CrawlDocState state) {
 
         SpoiledReferenceStrategy strategy = mappings.get(state);
         if (strategy == null) {
@@ -114,7 +114,7 @@ public class GenericSpoiledReferenceStrategizer implements
     }
 
     public void addMapping(
-            CrawlState state, SpoiledReferenceStrategy strategy) {
+            CrawlDocState state, SpoiledReferenceStrategy strategy) {
         mappings.put(state, strategy);
     }
 
@@ -134,7 +134,7 @@ public class GenericSpoiledReferenceStrategizer implements
             if (StringUtils.isBlank(attribState) || strategy == null) {
                 continue;
             }
-            CrawlState state = CrawlState.valueOf(attribState);
+            CrawlDocState state = CrawlDocState.valueOf(attribState);
             addMapping(state, strategy);
         }
     }
@@ -142,7 +142,7 @@ public class GenericSpoiledReferenceStrategizer implements
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("fallbackStrategy", getFallbackStrategy());
-        for (Entry<CrawlState, SpoiledReferenceStrategy> entry :
+        for (Entry<CrawlDocState, SpoiledReferenceStrategy> entry :
                 mappings.entrySet()) {
             xml.addElement("mapping")
                     .setAttribute("state", entry.getKey())

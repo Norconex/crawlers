@@ -109,11 +109,11 @@ public class AbstractTikaParser implements HintsAwareParser {
             throws DocumentParserException {
 
         Metadata tikaMetadata = new Metadata();
-        if (doc.getDocInfo().getContentType() == null) {
+        if (doc.getDocRecord().getContentType() == null) {
             throw new DocumentParserException(
                     "Doc must have a content-type.");
         }
-        String contentType = doc.getDocInfo().getContentType().toString();
+        String contentType = doc.getDocRecord().getContentType().toString();
         //TODO getContent() here does a rewind just to get stream
         //which may be an unnecessary read.  Have stream factory
         //directly on document instead to save a read?
@@ -123,7 +123,7 @@ public class AbstractTikaParser implements HintsAwareParser {
         tikaMetadata.set(Metadata.RESOURCE_NAME_KEY,
                 doc.getReference());
         tikaMetadata.set(Metadata.CONTENT_ENCODING,
-                doc.getDocInfo().getContentEncoding());
+                doc.getDocRecord().getContentEncoding());
         tikaMetadata.set(Metadata.CONTENT_LENGTH,
                 Long.toString(content.length()));
 

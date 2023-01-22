@@ -14,23 +14,24 @@
  */
 package com.norconex.crawler.core.pipeline;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
+import com.norconex.committer.core.service.CommitterService;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 import com.norconex.commons.lang.pipeline.Pipeline;
 import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerCommitterService;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecordService;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * Base {@link IPipelineStage} context for collector {@link Pipeline}s.
  */
+@EqualsAndHashCode
+@ToString
 public abstract class AbstractPipelineContext {
 
     private final Crawler crawler;
@@ -52,10 +53,10 @@ public abstract class AbstractPipelineContext {
     }
 
     public CrawlDocRecordService getDocInfoService() {
-        return crawler.getDocInfoService();
+        return crawler.getDocRecordService();
     }
 
-    public CrawlerCommitterService getCommitterService() {
+    public CommitterService<CrawlDoc> getCommitterService() {
         return crawler.getCommitterService();
     }
 
@@ -76,19 +77,5 @@ public abstract class AbstractPipelineContext {
                 .name(eventName)
                 .source(crawler)
                 .build());
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

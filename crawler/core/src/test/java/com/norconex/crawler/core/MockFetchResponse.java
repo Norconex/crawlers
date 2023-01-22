@@ -14,12 +14,12 @@
  */
 package com.norconex.crawler.core;
 
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.IFetchResponse;
 
 public class MockFetchResponse implements IFetchResponse {
     @Override
-    public CrawlState getCrawlState() {
+    public CrawlDocState getCrawlState() {
         // TODO Auto-generated method stub
         return null;
     }

@@ -58,6 +58,7 @@ Misc. Changes
 ### Committer Core
 
 * MemoryCommitter#clean will now clear the cached requests.
+* New CommitterService and CommitterServiceEvent classes.
 
 ### Importer
 
@@ -70,4 +71,9 @@ Misc. Changes
 ### Committer Core
 * Renamed CrawlDocInfo to CrawlDocRecord.
 * Renamed .cmdline package to .cli
+* Store export no longer prepare the store for a new crawl (exports as is).
+* CrawlerCommitterService has been migrated from Crawler Core to
+  Committer Core
+* CrawlState renamed to CrawlDocState
+
   

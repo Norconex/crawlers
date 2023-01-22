@@ -203,7 +203,7 @@ public class CsvSplitter extends AbstractDocumentSplitter
                     }
                     var childDoc = new Doc(
                             childDocRef, content, childMeta);
-                    var childInfo = childDoc.getDocInfo();
+                    var childInfo = childDoc.getDocRecord();
                     childInfo.setReference(childDocRef);
                     childInfo.addEmbeddedParentReference(doc.getReference());
 

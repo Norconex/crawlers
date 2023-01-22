@@ -1,4 +1,4 @@
-/* Copyright 2018-2022 Norconex Inc.
+/* Copyright 2018-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 package com.norconex.committer.core;
-
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.commons.lang.event.Event;
 
@@ -103,11 +100,15 @@ public class CommitterEvent extends Event {
 
     @Override
     public String toString() {
-        // Cannot use ReflectionToStringBuilder here to prevent
-        // "An illegal reflective access operation has occurred"
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .appendSuper(super.toString())
-                .append("request", request)
-                .build();
+        if (request == null) {
+            return "";
+//            return CommitterEvent.class.getSimpleName();
+        }
+        //TODO show committer id (with reference if ref is not null
+
+        return request.getReference();
+//        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+//                .append("reference", request.getReference())
+//                .build();
     }
 }

@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.filter.IReferenceFilter;
-import com.norconex.crawler.core.pipeline.DocInfoPipelineContext;
+import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.OnMatchFilter;
 
@@ -42,7 +42,7 @@ public final class ReferenceFiltersStageUtil {
     // return true if reference is rejected
     public static boolean resolveReferenceFilters(
             List<IReferenceFilter> filters,
-            DocInfoPipelineContext ctx, String type) {
+            DocRecordPipelineContext ctx, String type) {
         if (filters == null) {
             return false;
         }
@@ -91,7 +91,7 @@ public final class ReferenceFiltersStageUtil {
     }
 
     private static void fireDocumentRejected(
-            Object subject, DocInfoPipelineContext ctx) {
+            Object subject, DocRecordPipelineContext ctx) {
         ctx.fire(CrawlerEvent.builder()
                 .name(REJECTED_FILTER)
                 .source(ctx.getCrawler())

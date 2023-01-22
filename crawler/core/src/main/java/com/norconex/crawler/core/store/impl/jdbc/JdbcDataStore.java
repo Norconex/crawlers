@@ -19,7 +19,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,13 +26,12 @@ import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
-import com.google.gson.Gson;
 import com.norconex.crawler.core.store.DataStoreException;
 import com.norconex.crawler.core.store.IDataStore;
+import com.norconex.crawler.core.store.impl.SerialUtil;
 
 public class JdbcDataStore<T> implements IDataStore<T> {
 
-    private static final Gson GSON = new Gson();
     private static final PreparedStatementConsumer NO_ARGS = stmt -> {};
 
     private final JdbcDataStoreEngine engine;
@@ -91,7 +89,7 @@ public class JdbcDataStore<T> implements IDataStore<T> {
                 stmt -> {
                     stmt.setString(1, adapter.serializableId(id));
                     stmt.setTimestamp(2, new Timestamp(currentTimeMillis()));
-                    stmt.setClob(3, new StringReader(GSON.toJson(object)));
+                    stmt.setClob(3, SerialUtil.toJsonReader(object));
         });
     }
 
@@ -255,7 +253,7 @@ public class JdbcDataStore<T> implements IDataStore<T> {
     }
     private Optional<T> toObject(Reader reader) throws IOException {
         try (var r = reader) {
-            return Optional.ofNullable(GSON.fromJson(r, type));
+            return Optional.ofNullable(SerialUtil.fromJson(r, type));
         }
     }
 

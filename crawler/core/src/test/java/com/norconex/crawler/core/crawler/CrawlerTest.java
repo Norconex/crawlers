@@ -15,38 +15,115 @@
 package com.norconex.crawler.core.crawler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.nio.file.Path;
+import java.util.List;
+
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.norconex.committer.core.CommitterRequest;
+import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.TestUtil;
+import com.norconex.crawler.core.crawler.CrawlerConfig.OrphansStrategy;
 
 class CrawlerTest {
 
+    @TempDir
+    private Path tempDir;
+
     @Test
-    void testCrawlerCrawlerConfig() {
-        var cfg = new CrawlerConfig();
-        cfg.setId("myId");
+    void testLifeCycle() {
 
+        var crawlSession = Stubber.crawlSession(tempDir,
+                "mock:ref1", "mock:ref2", "mock:ref3", "mock:ref4");
 
-        Crawler crawler = Crawler.builder()
-                //TODO have a mock crawler factory
-                .crawlerConfig(cfg)
-                .build();
+        // Start
+        crawlSession.start();
+        // All 4 docs must be committed and not be found in cache
+        assertThat(TestUtil
+                .getFirstMemoryCommitter(crawlSession)
+                .getAllRequests())
+            .allMatch(req -> req.getReference().startsWith("mock:ref"))
+            .allMatch(req -> !req.getMetadata().getBoolean("mock.alsoCached"))
+            .hasSize(4);
 
-        assertThat(crawler.getId()).isEqualTo("myId");
+        // Export
+        var exportDir = tempDir.resolve("exportdir");
+        var exportFile = exportDir.resolve("test-crawler.zip");
+        crawlSession.exportDataStore(exportDir);
+
+        // Clean
+        crawlSession.clean();
+
+        // Import
+        crawlSession.importDataStore(List.of(exportFile));
+
+        // New session with 1 new 2 modified, and 1 orphan
+        crawlSession = Stubber.crawlSession(tempDir,
+                "mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5");
+
+        // Start
+        crawlSession.start();
+        // 5 docs must be committed:
+        //    1 new
+        //    3 modified (also cached)
+        //    1 orphan (also cached)
+        assertThat(TestUtil
+                .getFirstMemoryCommitter(crawlSession)
+                .getAllRequests())
+            .allMatch(req -> req.getReference().startsWith("mock:ref"))
+            .hasSize(5)
+            .areExactly(4, new Condition<>(req ->
+                    req.getMetadata().getBoolean("mock.alsoCached"), ""))
+            .areExactly(1, new Condition<>(req -> req.getMetadata().getBoolean(
+                    "collector.is-crawl-new"), ""))
+            .map(CommitterRequest::getReference)
+            // ref1 is last because orphans are processed last
+            .containsExactly("mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5",
+                    "mock:ref1");
+
+        // The following must be set:
+        var crawler = TestUtil.getFirstCrawler(crawlSession);
+        assertThat(crawler.getQueuePipeline()).isNotNull();
+        assertThat(crawler.getImporterPipeline()).isNotNull();
+        assertThat(crawler.getCommitterPipeline()).isNotNull();
     }
 
+
+    @Test
+    void testErrors() {
+        var sess = Stubber.crawlSession(tempDir);
+        TestUtil.getFirstCrawlerConfig(sess).setId(null);
+        assertThatExceptionOfType(CrawlerException.class).isThrownBy(() ->
+            sess.start());
+    }
+
+    @Test
+    void testOrphanDeletion() {
+
+        var crawlSession = Stubber.crawlSession(tempDir,
+                "mock:ref1", "mock:ref2", "mock:ref3", "mock:ref4");
+        crawlSession.start();
+
+        // New session with 1 new 2 modified, and 1 orphan
+        crawlSession = Stubber.crawlSession(tempDir,
+                "mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5");
+        TestUtil.getFirstCrawlerConfig(
+                crawlSession).setOrphansStrategy(OrphansStrategy.DELETE);
+        crawlSession.start();
+
+        var mem = TestUtil.getFirstMemoryCommitter(crawlSession);
+
+        assertThat(mem.getAllRequests())
+            .allMatch(req -> req.getReference().startsWith("mock:ref"))
+            .hasSize(5);
+
+        assertThat(mem.getUpsertCount()).isEqualTo(4);
+        assertThat(mem.getDeleteCount()).isEqualTo(1);
+        assertThat(mem.getDeleteRequests().get(0).getReference())
+            .isEqualTo("mock:ref1");
+    }
 }
-
-
-/*
-
-CrawlSessionFactoryBuilder
-CrawlSessionFactory
-   setCrawlerFactory
-CrawlSession
-
-
-CrawlerFactoryBuilder
-CrawlerFactory
-Crawler
-
-*/

@@ -1,4 +1,4 @@
-/* Copyright 2018-2022 Norconex Inc.
+/* Copyright 2018-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,16 +132,16 @@ public class CrawlerEvent extends Event {
      * A document post-import processor was executed properly.
      */
     public static final String DOCUMENT_POSTIMPORTED = "DOCUMENT_POSTIMPORTED";
-    /**
-     * A document was submitted to a committer for upsert.
-     */
-    public static final String DOCUMENT_COMMITTED_UPSERT =
-            "DOCUMENT_COMMITTED_UPSERT";
-    /**
-     * A document was submitted to a committer for removal.
-     */
-    public static final String DOCUMENT_COMMITTED_DELETE =
-            "DOCUMENT_COMMITTED_DELETE";
+//    /**
+//     * A document was submitted to a committer for upsert.
+//     */
+//    public static final String DOCUMENT_COMMITTED_UPSERT =
+//            "DOCUMENT_COMMITTED_UPSERT";
+//    /**
+//     * A document was submitted to a committer for removal.
+//     */
+//    public static final String DOCUMENT_COMMITTED_DELETE =
+//            "DOCUMENT_COMMITTED_DELETE";
     /**
      * A document metadata fields were successfully retrieved.
      */
@@ -172,48 +172,13 @@ public class CrawlerEvent extends Event {
     private final Object subject;
     //TODO keep a reference to actual document?
 
-
-//    public static class Builder extends Event.Builder<Builder> {
-//
-//        private CrawlDocRecord crawlDocRecord;
-//        private Object subject;
-//
-//        public Builder(String name, Crawler source) {
-//            super(name, source);
-//        }
-//
-//        public Builder crawlDocRecord(CrawlDocRecord crawlDocRecord) {
-//            this.crawlDocInfo = crawlDocRecord;
-//            return this;
-//        }
-//        public Builder subject(Object subject) {
-//            this.subject = subject;
-//            return this;
-//        }
-//
-//        @Override
-//        public CrawlerEvent build() {
-//            return new CrawlerEvent(this);
-//        }
-//    }
-//
-//    /**
-//     * New event.
-//     * @param b builder
-//     */
-//    CrawlerEvent(Builder b) {
-//        super(b);
-//        crawlDocRecord = b.crawlDocInfo;
-//        subject = b.subject;
-//    }
-
     /**
      * Gets the crawl data holding contextual information about the
      * crawled reference.  CRAWLER_* events will return a <code>null</code>
      * crawl data.
      * @return crawl data
      */
-    public CrawlDocRecord getCrawlDocInfo() {
+    public CrawlDocRecord getCrawlDocRecord() {
         return crawlDocRecord;
     }
 

@@ -39,6 +39,7 @@ public class Doc {
     //MAYBE: add parent reference info here?
 
     private final DocRecord docRecord;
+    @ToString.Exclude
     private final Properties metadata;
     @ToString.Exclude
     private CachedInputStream content;
@@ -117,7 +118,7 @@ public class Doc {
         return content.getStreamFactory();
     }
 
-    public DocRecord getDocInfo() {
+    public DocRecord getDocRecord() {
         return docRecord;
     }
 
@@ -129,7 +130,7 @@ public class Doc {
      * Gets the document reference. Same as
      * invoking <code>getDocInfo().getReference()</code>.
      * @return reference
-     * @see #getDocInfo()
+     * @see #getDocRecord()
      */
     public String getReference() {
         return docRecord.getReference();

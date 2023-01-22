@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
@@ -34,6 +33,7 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 /**
  * <p>
@@ -172,10 +172,9 @@ public abstract class AbstractCommitter
     }
 
     @Override
-    public final void init(
-            CommitterContext committerContext) throws CommitterException {
-        this.committerContext = Objects.requireNonNull(
-                committerContext, "'committerContext' must not be null.");
+    public final void init(@NonNull CommitterContext committerContext)
+            throws CommitterException {
+        this.committerContext = committerContext;
         fireInfo(CommitterEvent.COMMITTER_INIT_BEGIN);
         try {
             doInit();

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.spoil;
 
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 
 /**
  * <p>
@@ -28,7 +28,7 @@ import com.norconex.crawler.core.doc.CrawlState;
  * <p>
  * A "bad" state is any state but <code>NEW</code>, <code>MODIFIED</code>,
  * and <code>UNMODIFIED</code>. These statuses never have to be resolved.
- * A complete list of statuses can be obtained from {@link CrawlState}
+ * A complete list of statuses can be obtained from {@link CrawlDocState}
  * or a subclass.
  * </p>
  * <p>
@@ -46,5 +46,5 @@ public interface ISpoiledReferenceStrategizer {
      * @return a spoiled reference strategy
      */
     SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
-            String reference, CrawlState state);
+            String reference, CrawlDocState state);
 }

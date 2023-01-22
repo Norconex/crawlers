@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -43,7 +43,7 @@ public class GenericMultiFetchResponse<R extends IFetchResponse>
             new ArrayList<>();
 
     @Override
-    public CrawlState getCrawlState() {
+    public CrawlDocState getCrawlState() {
         return getLastFetchResponse().map(
                 IFetchResponse::getCrawlState).orElse(null);
     }

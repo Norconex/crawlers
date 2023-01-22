@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.function.BiPredicate;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.google.gson.Gson;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -35,6 +34,7 @@ import com.mongodb.client.model.RenameCollectionOptions;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.Sorts;
 import com.norconex.crawler.core.store.IDataStore;
+import com.norconex.crawler.core.store.impl.SerialUtil;
 
 public class MongoDataStore<T> implements IDataStore<T> {
 
@@ -47,11 +47,9 @@ public class MongoDataStore<T> implements IDataStore<T> {
     private final FindOneAndDeleteOptions findOneAndDeleteOptions =
             new FindOneAndDeleteOptions().sort(fifoSort());
     private final Class<? extends T> type;
-    private static final Gson GSON = new Gson();
 
     MongoDataStore(
             MongoDatabase db, String name, Class<? extends T> type) {
-        super();
         this.type = type;
         requireNonNull(db, "'db' must not be null.");
         this.name = requireNonNull(name, "'name' must not be null.");
@@ -137,7 +135,7 @@ public class MongoDataStore<T> implements IDataStore<T> {
         return type;
     }
     String rename(String dbName, String newColName) {
-        String oldName = name;
+        var oldName = name;
         collection.renameCollection(new MongoNamespace(dbName, newColName),
                 new RenameCollectionOptions().dropTarget(true));
         name = newColName;
@@ -161,9 +159,9 @@ public class MongoDataStore<T> implements IDataStore<T> {
         return new Document()
                 .append("id", id)
                 .append(SORT_TIME_FIELD, Instant.now().toEpochMilli())
-                .append("object", GSON.toJson(object));
+                .append("object", SerialUtil.toJsonString(object));
     }
     private static <T> T fromDocument(Document doc, Class<T> type) {
-        return GSON.fromJson(doc.getString("object"), type);
+        return SerialUtil.fromJson(doc.getString("object"), type);
     }
 }

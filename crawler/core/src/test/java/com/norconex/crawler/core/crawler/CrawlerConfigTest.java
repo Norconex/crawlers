@@ -1,4 +1,4 @@
-/* Copyright 2022-2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,63 +16,17 @@ package com.norconex.crawler.core.crawler;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.nio.file.Path;
-
-import org.jeasy.random.EasyRandom;
-import org.jeasy.random.EasyRandomParameters;
-import org.jeasy.random.randomizers.number.LongRandomizer;
-import org.jeasy.random.randomizers.text.StringRandomizer;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.core.Stubber;
 
 class CrawlerConfigTest {
 
-    private EasyRandom easyRandom = new EasyRandom(new EasyRandomParameters()
-            .seed(System.currentTimeMillis())
-            .collectionSizeRange(1, 5)
-            .randomizationDepth(5)
-            .scanClasspathForConcreteTypes(true)
-            .overrideDefaultInitialization(true)
-            .randomize(Path.class,
-                    () -> Path.of(new StringRandomizer(100).getRandomValue()))
-            .randomize(Long.class,
-                    () -> Math.abs(new LongRandomizer().getRandomValue()))
-    );
-
     @Test
     void testCrawlerConfig() {
-        var cfg = easyRandom.nextObject(CrawlerConfig.class);
-        assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(cfg, "crawler"));
-
+        assertThatNoException().isThrownBy(() ->
+                XML.assertWriteRead(Stubber.crawlerConfigRandom(), "crawler"));
     }
 
-//    @Test
-//    void testNullingDefaultsViaXml() {
-//        CrawlerConfig c = new CrawlerConfig();
-//        c.setId("id");
-//
-//        // Make sure default is set
-//        Assertions.assertEquals(
-//                new MD5DocumentChecksummer(), c.getDocumentChecksummer());
-//
-//        // make sure self-closed with attribute is not treated as null.
-//        c.loadFromXML(new XML(
-//                "<crawler id=\"id\">"
-//              +   "<documentChecksummer keep=\"true\" />"
-//              + "</crawler>"
-//        ));
-//        Assertions.assertTrue(
-//                ((MD5DocumentChecksummer) c.getDocumentChecksummer()).isKeep());
-//
-//        // make sure self-closed without attribute is treated as null.
-//        c.loadFromXML(new XML(
-//                "<crawler id=\"id\">"
-//              +   "<documentChecksummer />"
-//              + "</crawler>"
-//        ));
-//        Assertions.assertNull(c.getDocumentChecksummer());
-//
-//    }
 }

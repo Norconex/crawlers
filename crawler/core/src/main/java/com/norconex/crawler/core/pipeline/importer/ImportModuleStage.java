@@ -31,7 +31,7 @@ public class ImportModuleStage
 
         Doc doc = ctx.getDocument();
 
-        boolean isContentTypeSet = doc.getDocInfo().getContentType() != null;
+        boolean isContentTypeSet = doc.getDocRecord().getContentType() != null;
 
         ImporterResponse response = importer.importDocument(doc);
         ctx.setImporterResponse(response);
@@ -41,7 +41,7 @@ public class ImportModuleStage
         // has one to deal with
         if (!isContentTypeSet && response.getDocument() != null) {
             ctx.getDocRecord().setContentType(
-                    response.getDocument().getDocInfo().getContentType());
+                    response.getDocument().getDocRecord().getContentType());
         }
 
         return true;

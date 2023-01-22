@@ -182,7 +182,7 @@ public class EmbeddedTest {
 
         // the only content type must be zip
         Assertions.assertEquals(ZIP, zipResponse.getDocument()
-                .getDocInfo().getContentType().toString(),
+                .getDocRecord().getContentType().toString(),
                         "Must be zip content type.");
 
         String content = IOUtils.toString(
@@ -233,7 +233,7 @@ public class EmbeddedTest {
         // the only content type must be zip
         Assertions.assertEquals(
                 ZIP, zipResponse.getDocument()
-                        .getDocInfo().getContentType().toString(),
+                        .getDocRecord().getContentType().toString(),
                                 "Must be zip content type.");
 
         String content = IOUtils.toString(
@@ -480,7 +480,7 @@ public class EmbeddedTest {
 
     private ImporterResponse findResponse(
             ImporterResponse response, String contentType) {
-        if (response.getDocument().getDocInfo()
+        if (response.getDocument().getDocRecord()
                 .getContentType().toString().equals(contentType)) {
             return response;
         }

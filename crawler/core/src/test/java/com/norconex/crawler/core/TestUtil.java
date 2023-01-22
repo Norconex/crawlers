@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2017-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 
+import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.SystemUtil;
+import com.norconex.commons.lang.SystemUtil.Captured;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 
 import lombok.Data;
+import lombok.NonNull;
 
 public final class TestUtil {
 
     @Data
     public static class Exit {
-        private int code;
-        private String stdOutErr;
+        private int code = -1;
+        private String stdOut;
+        private String stdErr;
         private final List<String> events = new ArrayList<>();
         public boolean ok() {
             return code == 0;
@@ -47,22 +55,64 @@ public final class TestUtil {
     private TestUtil() {
     }
 
-    public static Exit testLaunch(String... cmdArgs) throws IOException {
+    /**
+     * Gets the {@link MemoryCommitter} from first committer of the first
+     * crawler from a crawl session.  This is the default committer
+     * when using a {@link MockCrawlSession}.  If that committer does not
+     * exists or is not a memory committer, an exception is thrown.
+     * @param crawlSession crawl session
+     * @return Memory committer
+     */
+    public static MemoryCommitter getFirstMemoryCommitter(
+            @NonNull CrawlSession crawlSession) {
+        return (MemoryCommitter) getFirstCrawlerConfig(
+                crawlSession).getCommitters().get(0);
+    }
+    public static Crawler getFirstCrawler(
+            @NonNull CrawlSession crawlSession) {
+        if (!crawlSession.getCrawlers().isEmpty()) {
+            return crawlSession.getCrawlers().get(0);
+
+        }
+        return null;
+    }
+    public static CrawlerConfig getFirstCrawlerConfig(
+            @NonNull CrawlSession crawlSession) {
+        return crawlSession.getCrawlSessionConfig().getCrawlerConfigs().get(0);
+    }
+
+    public static Exit testLaunch(
+            @NonNull Path workDir, String... cmdArgs) throws IOException {
+        return testLaunch(workDir, (List<String>) null, cmdArgs);
+
+    }
+
+    public static Exit testLaunch(
+            @NonNull Path workDir,
+            List<String> startReferences,
+            String... cmdArgs) throws IOException {
         var exit = new Exit();
         var crawlSessionConfig = new CrawlSessionConfig();
+        crawlSessionConfig.setWorkDir(workDir);
         crawlSessionConfig.addEventListener(
                 event -> exit.getEvents().add(event.getName()));
-        exit.setStdOutErr(SystemUtil.captureStdoutStderr(() ->
-                exit.setCode(CliLauncher.launch(
-                        CrawlSession.builder()
-                            .crawlerFactory((sess, cfg) -> Crawler.builder()
-                                .crawlSession(sess)
-                                .crawlerConfig(cfg)
-                                .crawlerImpl(Stubber.mockCrawlerImpl(cfg))
-                                .build())
-                            .crawlSessionConfig(crawlSessionConfig),
-                        cmdArgs))
-        ));
+        var refs = Optional.ofNullable(startReferences)
+                .map(list -> list.toArray(ArrayUtils.EMPTY_STRING_ARRAY))
+                .orElse(ArrayUtils.EMPTY_STRING_ARRAY);
+
+        Captured<Integer> captured = SystemUtil.callAndCaptureOutput(() ->
+                CliLauncher.launch(
+                    CrawlSession.builder()
+                        .crawlerFactory((sess, cfg) -> Crawler.builder()
+                            .crawlSession(sess)
+                            .crawlerConfig(cfg)
+                            .crawlerImpl(Stubber.crawlerImpl(cfg, refs))
+                            .build())
+                        .crawlSessionConfig(crawlSessionConfig),
+                    cmdArgs));
+        exit.setCode(captured.getReturnValue());
+        exit.setStdOut(captured.getStdOut());
+        exit.setStdErr(captured.getStdErr());
         return exit;
     }
 

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 
 /**
  *
@@ -22,7 +22,7 @@ import com.norconex.crawler.core.doc.CrawlState;
  */
 public interface IFetchResponse{ //<T> {
 
-    CrawlState getCrawlState();
+    CrawlDocState getCrawlState();
 
     int getStatusCode();
 

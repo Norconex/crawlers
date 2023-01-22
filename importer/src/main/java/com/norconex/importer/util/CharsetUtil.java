@@ -223,7 +223,7 @@ public final class CharsetUtil {
         if (StringUtils.isNotBlank(charset)) {
             return charset;
         }
-        String detectedCharset = doc.getDocInfo().getContentEncoding();
+        String detectedCharset = doc.getDocRecord().getContentEncoding();
         if (StringUtils.isBlank(detectedCharset)) {
             detectedCharset = CharsetUtil.detectCharset(doc.getInputStream());
         }

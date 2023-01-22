@@ -15,7 +15,7 @@
 package com.norconex.crawler.core.pipeline.committer;
 
 import com.norconex.crawler.core.checksum.IDocumentChecksummer;
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.pipeline.ChecksumStageUtil;
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
@@ -38,7 +38,7 @@ public class DocumentChecksumStage
             if (ctx.getDocRecord().getState() == null
                     || !ctx.getDocRecord().getState().isNewOrModified()) {
                 // NEW is default state (?)
-                ctx.getDocRecord().setState(CrawlState.NEW);
+                ctx.getDocRecord().setState(CrawlDocState.NEW);
             }
             return true;
         }

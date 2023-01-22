@@ -14,15 +14,15 @@
  */
 package com.norconex.crawler.core.pipeline.queue;
 
-import com.norconex.crawler.core.doc.CrawlState;
-import com.norconex.crawler.core.pipeline.DocInfoPipelineContext;
+import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
  * Common pipeline stage for filtering references.
  */
 public class ReferenceFiltersStage
-        implements IPipelineStage<DocInfoPipelineContext> {
+        implements IPipelineStage<DocRecordPipelineContext> {
 
     private final String type;
 
@@ -35,10 +35,10 @@ public class ReferenceFiltersStage
     }
 
     @Override
-    public boolean execute(DocInfoPipelineContext ctx) {
+    public boolean execute(DocRecordPipelineContext ctx) {
         if (ReferenceFiltersStageUtil.resolveReferenceFilters(
                 ctx.getConfig().getReferenceFilters(), ctx, type)) {
-            ctx.getDocRecord().setState(CrawlState.REJECTED);
+            ctx.getDocRecord().setState(CrawlDocState.REJECTED);
             return false;
         }
         return true;

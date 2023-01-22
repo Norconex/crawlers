@@ -36,7 +36,7 @@ class DocTest {
     void testDoc() {
         var doc = new Doc("ref.html", toCachedInputStream("a test"));
         assertThat(doc.getReference()).isEqualTo(
-                doc.getDocInfo().getReference());
+                doc.getDocRecord().getReference());
         assertThat(TestUtil.contentAsString(doc)).isEqualTo("a test");
 
         doc = new Doc(new DocRecord("ref.html"), toCachedInputStream("a test"));

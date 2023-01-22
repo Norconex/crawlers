@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 
 /**
  * Checksum stage utility methods.
@@ -62,12 +62,12 @@ public final class ChecksumStageUtil {
         }
 
         // Get old checksum from cache
-        var cachedDocInfo = ctx.getCachedDocInfo();
+        var cachedDocInfo = ctx.getCachedDocRecord();
 
         // if there was nothing in cache, or what is in cache is a deleted
         // doc, consider as new.
         if (cachedDocInfo == null
-                || CrawlState.DELETED.isOneOf(cachedDocInfo.getState())) {
+                || CrawlDocState.DELETED.isOneOf(cachedDocInfo.getState())) {
             LOG.debug("ACCEPTED {} checkum (new): Reference={}",
                     type, docInfo.getReference());
 
@@ -75,7 +75,7 @@ public final class ChecksumStageUtil {
             // (which otherwise do not have a status.
             // But if already has a status, keep it.
             if (docInfo.getState() == null) {
-                docInfo.setState(CrawlState.NEW);
+                docInfo.setState(CrawlDocState.NEW);
             }
             return true;
         }
@@ -94,7 +94,7 @@ public final class ChecksumStageUtil {
                 LOG.debug("REJECTED {} checkum (unmodified): Reference={}",
                         type, docInfo.getReference());
             }
-            docInfo.setState(CrawlState.UNMODIFIED);
+            docInfo.setState(CrawlDocState.UNMODIFIED);
 
             var s = new StringBuilder();
             if (subject != null) {
@@ -112,7 +112,7 @@ public final class ChecksumStageUtil {
             return false;
         }
 
-        docInfo.setState(CrawlState.MODIFIED);
+        docInfo.setState(CrawlDocState.MODIFIED);
         LOG.debug("ACCEPTED {} checksum (modified): Reference={}",
                 type, docInfo.getReference());
         return true;

@@ -23,7 +23,7 @@ import org.apache.commons.collections4.map.ListOrderedMap;
 
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.doc.CrawlState;
+import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.commons.lang.Sleeper;
 
 import lombok.NonNull;
@@ -55,7 +55,7 @@ public class GenericMultiFetcher
 
     @FunctionalInterface
     public interface IUnsuccessfulResponseAdaptor<R extends IFetchResponse> {
-        R adapt(CrawlState crawlState, String message, Exception e);
+        R adapt(CrawlDocState crawlState, String message, Exception e);
     }
 
     public GenericMultiFetcher(
@@ -116,7 +116,7 @@ public class GenericMultiFetcher
         }
         if (!accepted) {
             allResponses.put(unsuccessfulResponseAdaptor.adapt(
-                    CrawlState.UNSUPPORTED,
+                    CrawlDocState.UNSUPPORTED,
                     "No HTTP fetcher defined accepting URL '"
                             + doc.getReference() + "' for fetch request: "
                             + fetchRequest,
@@ -148,11 +148,11 @@ public class GenericMultiFetcher
             LOG.error("Fetcher {} failed to execute request.",
                     fetcher.getClass().getSimpleName(), e);
             fetchResponse = unsuccessfulResponseAdaptor.adapt(
-                    CrawlState.ERROR, "Fetcher execution failure.", e);
+                    CrawlDocState.ERROR, "Fetcher execution failure.", e);
         }
         if (fetchResponse == null) {
             fetchResponse = unsuccessfulResponseAdaptor.adapt(
-                    CrawlState.UNSUPPORTED,
+                    CrawlDocState.UNSUPPORTED,
                     "Fetch operation unsupported by fetcher.",
                     null);
         }
