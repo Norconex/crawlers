@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.crawler;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,13 +25,13 @@ import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XPathUtil;
-import com.norconex.crawler.core.checksum.IDocumentChecksummer;
-import com.norconex.crawler.core.checksum.IMetadataChecksummer;
+import com.norconex.crawler.core.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer;
-import com.norconex.crawler.core.filter.IDocumentFilter;
-import com.norconex.crawler.core.filter.IMetadataFilter;
-import com.norconex.crawler.core.filter.IReferenceFilter;
-import com.norconex.crawler.core.filter.impl.ReferenceFilter;
+import com.norconex.crawler.core.filter.DocumentFilter;
+import com.norconex.crawler.core.filter.MetadataFilter;
+import com.norconex.crawler.core.filter.ReferenceFilter;
+import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.spoil.ISpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.IDataStoreEngine;
@@ -56,6 +57,7 @@ import lombok.experimental.FieldNameConstants;
  *
  *   <numThreads>(maximum number of threads)</numThreads>
  *   <maxDocuments>(maximum number of documents to crawl)</maxDocuments>
+ *   <idleTimeout>(thread inactivity timeout)</idleTimeout>
  *   <orphansStrategy>[PROCESS|IGNORE|DELETE]</orphansStrategy>
  *
  *   <stopOnExceptions>
@@ -160,6 +162,11 @@ public class CrawlerConfig implements XMLConfigurable {
         IGNORE
     }
 
+    public static final Duration DEFAULT_IDLE_PROCESSING_TIMEOUT =
+            Duration.ofMinutes(10);
+    public static final Duration DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL =
+            Duration.ofSeconds(30);
+
     //--- Properties -----------------------------------------------------------
 
     /**
@@ -192,6 +199,45 @@ public class CrawlerConfig implements XMLConfigurable {
      */
     @SuppressWarnings("javadoc")
     private int maxDocuments = -1;
+
+    /**
+     * The maximum amount of time to wait before shutting down an inactive
+     * crawler thread.
+     * A document taking longer to process than the specified timeout
+     * when no other thread are available to process remaining documents
+     * is also considered "inactive". Default is
+     * {@value #DEFAULT_IDLE_PROCESSING_TIMEOUT}. A <code>null</code>
+     * value means no timeouts.
+     * @param idleTimeout time to wait for a document to be processed
+     * @return time to wait for a document to be processed
+     */
+    @SuppressWarnings("javadoc")
+    private Duration idleTimeout;
+
+    /**
+     * Minimum amount of time to wait between each logging of crawling
+     * progress.
+     * Default value is {@value #DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL}.
+     * A <code>null</code> value disables progress logging. Minimum value
+     * is 1 second.
+     * @param minProgressLoggingInterval time to wait between each logging
+     *     of crawling progress
+     * @return time to wait between each logging of crawling progress
+     */
+    @SuppressWarnings("javadoc")
+    private Duration minProgressLoggingInterval;
+
+//    /**
+//     * The maximum amount of time to wait before forcing the crawler to
+//     * shut down due to the crawler reference queue taking too long to
+//     * initialize.
+//     * {@value #DEFAULT_QUEUE_INIT_TIMEOUT}. A <code>null</code>
+//     * value means no timeouts.
+//     * @param queueInitTimeout time to wait for queue to initialize
+//     * @return time to wait for queue to initialize
+//     */
+//    @SuppressWarnings("javadoc")
+//    private Duration queueInitTimeout;
 
     /**
      * <p>The strategy to adopt when there are orphans.  Orphans are
@@ -230,9 +276,9 @@ public class CrawlerConfig implements XMLConfigurable {
     @SuppressWarnings("javadoc")
     private IDataStoreEngine dataStoreEngine = new MVStoreDataStoreEngine();
 
-    private final List<IReferenceFilter> referenceFilters = new ArrayList<>();
-    private final List<IMetadataFilter> metadataFilters = new ArrayList<>();
-    private final List<IDocumentFilter> documentFilters = new ArrayList<>();
+    private final List<ReferenceFilter> referenceFilters = new ArrayList<>();
+    private final List<MetadataFilter> metadataFilters = new ArrayList<>();
+    private final List<DocumentFilter> documentFilters = new ArrayList<>();
 
     /**
      * The metadata checksummer.
@@ -240,7 +286,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * @return metadata checksummer
      */
     @SuppressWarnings("javadoc")
-    private IMetadataChecksummer metadataChecksummer;
+    private MetadataChecksummer metadataChecksummer;
 
     /**
      * The Importer module configuration.
@@ -282,7 +328,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * @return document checksummer
      */
     @SuppressWarnings("javadoc")
-    private IDocumentChecksummer documentChecksummer =
+    private DocumentChecksummer documentChecksummer =
             new MD5DocumentChecksummer();
 
     /**
@@ -333,14 +379,14 @@ public class CrawlerConfig implements XMLConfigurable {
      * Gets reference filters
      * @return reference filters
      */
-    public List<IReferenceFilter> getReferenceFilters() {
+    public List<ReferenceFilter> getReferenceFilters() {
         return Collections.unmodifiableList(referenceFilters);
     }
     /**
      * Sets reference filters.
      * @param referenceFilters the referenceFilters to set
      */
-    public void setReferenceFilters(List<IReferenceFilter> referenceFilters) {
+    public void setReferenceFilters(List<ReferenceFilter> referenceFilters) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
     }
 
@@ -348,14 +394,14 @@ public class CrawlerConfig implements XMLConfigurable {
      * Gets the document filters.
      * @return document filters
      */
-    public List<IDocumentFilter> getDocumentFilters() {
+    public List<DocumentFilter> getDocumentFilters() {
         return Collections.unmodifiableList(documentFilters);
     }
     /**
      * Sets document filters.
      * @param documentFilters document filters
      */
-    public void setDocumentFilters(List<IDocumentFilter> documentFilters) {
+    public void setDocumentFilters(List<DocumentFilter> documentFilters) {
         CollectionUtil.setAll(this.documentFilters, documentFilters);
     }
 
@@ -363,14 +409,14 @@ public class CrawlerConfig implements XMLConfigurable {
      * Gets metadata filters.
      * @return metadata filters
      */
-    public List<IMetadataFilter> getMetadataFilters() {
+    public List<MetadataFilter> getMetadataFilters() {
         return Collections.unmodifiableList(metadataFilters);
     }
     /**
      * Sets metadata filters.
      * @param metadataFilters metadata filters
      */
-    public void setMetadataFilters(List<IMetadataFilter> metadataFilters) {
+    public void setMetadataFilters(List<MetadataFilter> metadataFilters) {
         CollectionUtil.setAll(this.metadataFilters, metadataFilters);
     }
 
@@ -441,26 +487,31 @@ public class CrawlerConfig implements XMLConfigurable {
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute(Fields.id, id);
-        xml.addElement("numThreads", numThreads);
-        xml.addElement("maxDocuments", maxDocuments);
-        xml.addElementList("stopOnExceptions", "exception", stopOnExceptions);
-        xml.addElement("orphansStrategy", orphansStrategy);
-        xml.addElement("dataStoreEngine", dataStoreEngine);
-        xml.addElementList("referenceFilters", "filter", referenceFilters);
-        xml.addElementList("metadataFilters", "filter", metadataFilters);
-        xml.addElementList("documentFilters", "filter", documentFilters);
+        xml.addElement(Fields.numThreads, numThreads);
+        xml.addElement(Fields.maxDocuments, maxDocuments);
+        xml.addElement(Fields.idleTimeout, idleTimeout);
+        xml.addElement(Fields.minProgressLoggingInterval,
+                minProgressLoggingInterval);
+//        xml.addElement(Fields.queueInitTimeout, queueInitTimeout);
+        xml.addElementList(
+                Fields.stopOnExceptions, "exception", stopOnExceptions);
+        xml.addElement(Fields.orphansStrategy, orphansStrategy);
+        xml.addElement(Fields.dataStoreEngine, dataStoreEngine);
+        xml.addElementList(Fields.referenceFilters, "filter", referenceFilters);
+        xml.addElementList(Fields.metadataFilters, "filter", metadataFilters);
+        xml.addElementList(Fields.documentFilters, "filter", documentFilters);
         if (importerConfig != null) {
             xml.addElement("importer", importerConfig);
         }
-        xml.addElementList("committers", "committer", committers);
-        xml.addElement("metadataChecksummer", metadataChecksummer);
-        xml.addElement("metadataDeduplicate", metadataDeduplicate);
-        xml.addElement("documentChecksummer", documentChecksummer);
-        xml.addElement("documentDeduplicate", documentDeduplicate);
-        xml.addElement(
-                "spoiledReferenceStrategizer", spoiledReferenceStrategizer);
+        xml.addElementList(Fields.committers, "committer", committers);
+        xml.addElement(Fields.metadataChecksummer, metadataChecksummer);
+        xml.addElement(Fields.metadataDeduplicate, metadataDeduplicate);
+        xml.addElement(Fields.documentChecksummer, documentChecksummer);
+        xml.addElement(Fields.documentDeduplicate, documentDeduplicate);
+        xml.addElement(Fields.spoiledReferenceStrategizer,
+                spoiledReferenceStrategizer);
 
-        xml.addElementList("eventListeners", "listener", eventListeners);
+        xml.addElementList(Fields.eventListeners, "listener", eventListeners);
 
 //        saveCrawlerConfigToXML(xml);
     }
@@ -469,17 +520,22 @@ public class CrawlerConfig implements XMLConfigurable {
     @Override
     public void loadFromXML(XML xml) {
         setId(xml.getString(XPathUtil.attr(Fields.id), id));
-        setNumThreads(xml.getInteger("numThreads", numThreads));
-        setOrphansStrategy(xml.getEnum(
-                "orphansStrategy", OrphansStrategy.class, orphansStrategy));
-        setMaxDocuments(xml.getInteger("maxDocuments", maxDocuments));
+        setNumThreads(xml.getInteger(Fields.numThreads, numThreads));
+        setMaxDocuments(xml.getInteger(Fields.maxDocuments, maxDocuments));
+        setOrphansStrategy(xml.getEnum(Fields.orphansStrategy,
+                OrphansStrategy.class, orphansStrategy));
+        setIdleTimeout(xml.getDuration(Fields.idleTimeout, idleTimeout));
+        setMinProgressLoggingInterval(xml.getDuration(
+                Fields.minProgressLoggingInterval, minProgressLoggingInterval));
+//        setQueueInitTimeout(xml.getDuration(
+//                Fields.queueInitTimeout, queueInitTimeout));
         setStopOnExceptions(xml.getClassList(
                 "stopOnExceptions/exception", stopOnExceptions));
-        setReferenceFilters(xml.getObjectListImpl(ReferenceFilter.class,
+        setReferenceFilters(xml.getObjectListImpl(GenericReferenceFilter.class,
                 "referenceFilters/filter", referenceFilters));
-        setMetadataFilters(xml.getObjectListImpl(IMetadataFilter.class,
+        setMetadataFilters(xml.getObjectListImpl(MetadataFilter.class,
                 "metadataFilters/filter", metadataFilters));
-        setDocumentFilters(xml.getObjectListImpl(IDocumentFilter.class,
+        setDocumentFilters(xml.getObjectListImpl(DocumentFilter.class,
                 "documentFilters/filter", documentFilters));
 
         var importerXML = xml.getXML("importer");
@@ -492,24 +548,23 @@ public class CrawlerConfig implements XMLConfigurable {
             setImporterConfig(new ImporterConfig());
         }
 
-        xml.checkDeprecated("crawlDataStoreEngine", "dataStoreEngine", true);
         setDataStoreEngine(xml.getObjectImpl(
                 IDataStoreEngine.class, "dataStoreEngine", dataStoreEngine));
         setCommitters(xml.getObjectListImpl(Committer.class,
                 "committers/committer", committers));
-        setMetadataChecksummer(xml.getObjectImpl(IMetadataChecksummer.class,
-                "metadataChecksummer", metadataChecksummer));
+        setMetadataChecksummer(xml.getObjectImpl(MetadataChecksummer.class,
+                Fields.metadataChecksummer, metadataChecksummer));
         setMetadataDeduplicate(xml.getBoolean("metadataDeduplicate",
                 metadataDeduplicate));
-        setDocumentChecksummer(xml.getObjectImpl(IDocumentChecksummer.class,
-                "documentChecksummer", documentChecksummer));
+        setDocumentChecksummer(xml.getObjectImpl(DocumentChecksummer.class,
+                Fields.documentChecksummer, documentChecksummer));
         setDocumentDeduplicate(xml.getBoolean("documentDeduplicate",
                 documentDeduplicate));
         setSpoiledReferenceStrategizer(xml.getObjectImpl(
                 ISpoiledReferenceStrategizer.class,
-                "spoiledReferenceStrategizer", spoiledReferenceStrategizer));
+                Fields.spoiledReferenceStrategizer,
+                spoiledReferenceStrategizer));
 
-        xml.checkDeprecated("crawlerListeners", "eventListeners", true);
         setEventListeners(xml.getObjectListImpl(EventListener.class,
                 "eventListeners/listener", eventListeners));
 

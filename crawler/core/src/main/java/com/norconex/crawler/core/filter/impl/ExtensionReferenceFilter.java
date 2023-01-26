@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,20 @@ import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.crawler.core.filter.IDocumentFilter;
-import com.norconex.crawler.core.filter.IMetadataFilter;
-import com.norconex.crawler.core.filter.IReferenceFilter;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.crawler.core.filter.DocumentFilter;
+import com.norconex.crawler.core.filter.MetadataFilter;
+import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.filter.OnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
+import com.norconex.importer.handler.filter.OnMatchFilter;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * <p>
@@ -64,11 +63,13 @@ import com.norconex.importer.handler.filter.OnMatch;
  * extensions: .html, .htm, .php, and .asp.
  * </p>
  */
+@EqualsAndHashCode
+@ToString
 public class ExtensionReferenceFilter implements
         OnMatchFilter,
-        IReferenceFilter,
-        IDocumentFilter,
-        IMetadataFilter,
+        ReferenceFilter,
+        DocumentFilter,
+        MetadataFilter,
         XMLConfigurable {
 
     private boolean caseSensitive;
@@ -86,7 +87,6 @@ public class ExtensionReferenceFilter implements
     }
     public ExtensionReferenceFilter(
             String extensions, OnMatch onMatch, boolean caseSensitive) {
-        super();
         setExtensions(extensions);
         setOnMatch(onMatch);
         setCaseSensitive(caseSensitive);
@@ -102,26 +102,24 @@ public class ExtensionReferenceFilter implements
 
     @Override
     public boolean acceptReference(String reference) {
-        OnMatch safeOnMatch = OnMatch.includeIfNull(onMatch);
+        var safeOnMatch = OnMatch.includeIfNull(onMatch);
 
         if (extensions.isEmpty()) {
             return safeOnMatch == OnMatch.INCLUDE;
         }
         String referencePath;
         try {
-            URL referenceUrl = new URL(reference);
+            var referenceUrl = new URL(reference);
             referencePath = referenceUrl.getPath();
         } catch (MalformedURLException ex) {
             referencePath = reference;
         }
 
-        String refExtension = FilenameUtils.getExtension(referencePath);
+        var refExtension = FilenameUtils.getExtension(referencePath);
 
         for (String ext : extensions) {
-            if (!isCaseSensitive() && ext.equalsIgnoreCase(refExtension)) {
-                return safeOnMatch == OnMatch.INCLUDE;
-            }
-            if (isCaseSensitive() && ext.equals(refExtension)) {
+            if ((!isCaseSensitive() && ext.equalsIgnoreCase(refExtension))
+                    || (isCaseSensitive() && ext.equals(refExtension))) {
                 return safeOnMatch == OnMatch.INCLUDE;
             }
         }
@@ -165,19 +163,5 @@ public class ExtensionReferenceFilter implements
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {
         return acceptReference(reference);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

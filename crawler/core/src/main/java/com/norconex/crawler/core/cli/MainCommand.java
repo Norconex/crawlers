@@ -68,11 +68,6 @@ import picocli.CommandLine.Spec;
 public class MainCommand
         implements Callable<Integer>, IExecutionExceptionHandler {
 
-//    private final CrawlSession crawlSession;
-
-//    @NonNull private final CrawlSessionConfig crawlSessionConfig;
-//    @NonNull private final BiFunction
-//            <CrawlSession, CrawlerConfig, Crawler> crawlerFactory;
     @NonNull private final CrawlSessionBuilder crawlSessionBuilder;
 
     @Option(
@@ -90,29 +85,13 @@ public class MainCommand
     @Spec
     private CommandSpec spec;
 
-//    public MainCommand(CrawlSessionConfig crawlSessionConfig) {
-//        this.crawlSessionConfig = crawlSessionConfig;
-//    }
-
     public MainCommand(@NonNull CrawlSessionBuilder crawlSessionBuilder) {
         this.crawlSessionBuilder = crawlSessionBuilder;
     }
 
-//    CrawlSessionConfig getCrawlSessionConfig() {
-//        return crawlSessionBuilder.crawlSessionConfig();
-//    }
     CrawlSessionBuilder getCrawlSessionBuilder() {
         return crawlSessionBuilder;
     }
-
-
-//    public MainCommand(CrawlSession crawlSession) {
-//        this.crawlSession = crawlSession;
-//    }
-//
-//    CrawlSession getCrawlSession() {
-//        return crawlSession;
-//    }
 
     @Override
     public Integer call() throws Exception {
@@ -128,7 +107,6 @@ public class MainCommand
     public int handleExecutionException(Exception ex, CommandLine commandLine,
             ParseResult parseResult) throws Exception {
         if (ex instanceof PicocliException) {
-//                || ex instanceof IllegalArgumentException) {
             commandLine.getErr().println(ex.getMessage());
             commandLine.getErr().println();
             commandLine.usage(commandLine.getErr());

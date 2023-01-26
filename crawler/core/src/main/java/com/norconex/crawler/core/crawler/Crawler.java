@@ -43,9 +43,9 @@ import com.norconex.crawler.core.crawler.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecordFactory;
 import com.norconex.crawler.core.doc.CrawlDocRecordService;
-import com.norconex.crawler.core.fetch.IFetchRequest;
-import com.norconex.crawler.core.fetch.IFetchResponse;
-import com.norconex.crawler.core.fetch.IFetcher;
+import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.crawler.core.fetch.FetchResponse;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.monitor.CrawlerMonitor;
 import com.norconex.crawler.core.monitor.CrawlerMonitorJMX;
 import com.norconex.crawler.core.monitor.MdcUtil;
@@ -153,7 +153,7 @@ public class Crawler {
     private CrawlProgressLogger progressLogger;
 
     @Getter
-    private IFetcher<IFetchRequest, IFetchResponse> fetcher;
+    private Fetcher<FetchRequest, FetchResponse> fetcher;
 
     @Getter
     private IDataStore<String> dedupMetadataStore;
@@ -234,11 +234,12 @@ public class Crawler {
     CrawlDocRecordFactory getDocRecordFactory() {
         return crawlerImpl.docRecordFactory();
     }
-    CrawlerImpl getCrawlerImpl() {
-        return crawlerImpl;
-    }
     void logProgress() {
-        progressLogger.logProgress();
+        if (progressLogger != null) {
+            progressLogger.logProgress();
+        } else {
+            LOG.debug("ProgressLogger is null.");
+        }
     }
 
 //    public Path getDownloadDir() {
@@ -292,9 +293,9 @@ public class Crawler {
                 getCrawlerConfig().getImporterConfig(),
                 getEventManager());
         monitor = new CrawlerMonitor(this);
-        //TODO make interval configurable
         //TODO make general logging messages verbosity configurable
-        progressLogger = new CrawlProgressLogger(monitor, 30 * 1000);
+        progressLogger = new CrawlProgressLogger(monitor,
+                getCrawlerConfig().getMinProgressLoggingInterval());
         progressLogger.startTracking();
 
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
@@ -374,6 +375,12 @@ public class Crawler {
                 //TODO execute ReferenceProcessor here instead,
                 // passing context instead of flags
                 // and renaming it to CrawlThread or something like that.
+//                launchCrawlerThread(execService, latch, CrawlerThread.builder()
+//                        .crawler(this)
+//                        .threadIndex(threadIndex)
+//                        .deleting(flags.delete)
+//                        .orphan(flags.orphan)
+//                        .build());
 
                 execService.execute(CrawlerThread.builder()
                     .crawler(this)
@@ -406,6 +413,18 @@ public class Crawler {
         }
     }
 
+//    private void launchCrawlerThread(
+//            ExecutorService execService,
+//            CountDownLatch latch,
+//            CrawlerThread thread) {
+//        try {
+//            execService.execute(thread);
+//        } catch (Exception e) {
+//            LOG.error("Problem in thread execution.", e);
+//        } finally {
+//            latch.countDown();
+//        }
+//    }
 
     /**
      * Whether the crawler job was stopped.

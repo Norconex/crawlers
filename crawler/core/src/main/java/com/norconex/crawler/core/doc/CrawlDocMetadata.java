@@ -44,7 +44,7 @@ public final class CrawlDocMetadata {
      * not found in that cache. If the crawler runs for the first time
      * or its URL cache has been deleted, this flag will always be
      * <code>true</code>.
-         */
+     */
     public static final String IS_CRAWL_NEW =
             PREFIX + "is-crawl-new";
 
@@ -53,6 +53,5 @@ public final class CrawlDocMetadata {
          */
     public static final String FETCHER = PREFIX + "fetcher";
 
-    private CrawlDocMetadata() {
-    }
+    private CrawlDocMetadata() {}
 }

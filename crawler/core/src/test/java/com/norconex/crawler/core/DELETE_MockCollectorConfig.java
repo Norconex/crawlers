@@ -1,4 +1,4 @@
-/* Copyright 2022-2022 Norconex Inc.
+/* Copyright 2016-2022 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,30 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.fetch;
+package com.norconex.crawler.core;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.session.CrawlSessionConfig;
 
-/**
- *
-// * @param <T> response attributes specific to a collection or crawler fetcher
- */
-public interface IFetchResponse{ //<T> {
+class DELETE_MockCollectorConfig extends CrawlSessionConfig {
 
-    CrawlDocState getCrawlState();
+//    MockCollectorConfig() {
+//        super(MockCrawlerConfig.class);
+//        setId("Mock Collector");
+//    }
 
-    int getStatusCode();
-
-    String getReasonPhrase();
+//    @Override
+//    protected void loadCollectorConfigFromXML(XML xml) {
+//        // TODO Auto-generated method stub
 //
-//    String getUserAgent();
+//    }
+//    @Override
+//    protected void saveCollectorConfigToXML(XML xml) {
+//        // TODO Auto-generated method stub
 //
-    Exception getException();
-//
-//    String getRedirectTarget();
-
-//    <T> Optional<T> getAttributes();
-//    default Optional<T> getAttributes() {
-//        return Optional.empty();
 //    }
 }

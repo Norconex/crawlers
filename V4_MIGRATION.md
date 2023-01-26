@@ -68,12 +68,17 @@ Misc. Changes
   were removed in favor of com.norconex.commons.lang.Operator
 * Renamed DocInfo to DocRecord
 
-### Committer Core
+### Crawler Core
 * Renamed CrawlDocInfo to CrawlDocRecord.
 * Renamed .cmdline package to .cli
 * Store export no longer prepare the store for a new crawl (exports as is).
 * CrawlerCommitterService has been migrated from Crawler Core to
   Committer Core
 * CrawlState renamed to CrawlDocState
-
+* CrawlerLifeCycleListener is now abstract
+* New CRAWLER_ERROR event.
+* New crawler "idleTimeout" configuration option.
+* New crawler "minProgressLoggingInterval" configuration option.
+* MetadataFilter and ReferenceFilter renamed to GenericMetadataFilter and 
+  GenericReferenceFilter.
   

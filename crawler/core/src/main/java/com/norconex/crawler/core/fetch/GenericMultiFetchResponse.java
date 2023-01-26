@@ -34,46 +34,46 @@ import lombok.Setter;
  * using a fetch client.
  */
 @Data
-public class GenericMultiFetchResponse<R extends IFetchResponse>
-        implements IMultiFetchResponse<R> {
+public class GenericMultiFetchResponse<R extends FetchResponse>
+        implements MultiFetchResponse<R> {
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private final List<Pair<R, IFetcher<?, R>>> fetchResponses =
+    private final List<Pair<R, Fetcher<?, R>>> fetchResponses =
             new ArrayList<>();
 
     @Override
     public CrawlDocState getCrawlState() {
         return getLastFetchResponse().map(
-                IFetchResponse::getCrawlState).orElse(null);
+                FetchResponse::getCrawlState).orElse(null);
     }
 
     @Override
     public int getStatusCode() {
         return getLastFetchResponse().map(
-                IFetchResponse::getStatusCode).orElse(0);
+                FetchResponse::getStatusCode).orElse(0);
     }
 
     @Override
     public String getReasonPhrase() {
         return getLastFetchResponse().map(
-                IFetchResponse::getReasonPhrase).orElse(null);
+                FetchResponse::getReasonPhrase).orElse(null);
     }
 //    @Override
 //    public String getUserAgent() {
 //        return lastResponse().map(
-//                IFetchResponse::getUserAgent).orElse(null);
+//                FetchResponse::getUserAgent).orElse(null);
 //    }
 //    @Override
     @Override
     public Exception getException() {
         return getLastFetchResponse().map(
-                IFetchResponse::getException).orElse(null);
+                FetchResponse::getException).orElse(null);
     }
 //    @Override
 //    public String getRedirectTarget() {
 //        return lastResponse().map(
-//                IFetchResponse::getRedirectTarget).orElse(null);
+//                FetchResponse::getRedirectTarget).orElse(null);
 //    }
 
     @Override
@@ -83,7 +83,7 @@ public class GenericMultiFetchResponse<R extends IFetchResponse>
     }
 
     @Override
-    public void addFetchResponse(R resp, IFetcher<?, R> fetcher) {
+    public void addFetchResponse(R resp, Fetcher<?, R> fetcher) {
         fetchResponses.add(0, new ImmutablePair<>(resp, fetcher));
     }
 
@@ -94,7 +94,7 @@ public class GenericMultiFetchResponse<R extends IFetchResponse>
         }
         return Optional.ofNullable(fetchResponses.get(0).getLeft());
     }
-    private Optional<IFetcher<?, ?>> lastFetcher() {
+    private Optional<Fetcher<?, ?>> lastFetcher() {
         if (fetchResponses.isEmpty()) {
             return Optional.empty();
         }

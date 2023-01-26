@@ -27,7 +27,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * <p>Abstract implementation of {@link IMetadataChecksummer} giving the option
+ * <p>Abstract implementation of {@link MetadataChecksummer} giving the option
  * to keep the generated checksum.  The checksum can be stored
  * in a target field name specified.  If no target field name is specified,
  * it stores it under the
@@ -54,7 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 @ToString
 @Slf4j
 public abstract class AbstractMetadataChecksummer
-        implements IMetadataChecksummer, XMLConfigurable {
+        implements MetadataChecksummer, XMLConfigurable {
 
 	private boolean keep;
     private String toField = CrawlDocMetadata.CHECKSUM_METADATA;

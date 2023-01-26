@@ -35,6 +35,8 @@
     <xs:all>
       <xs:element name="numThreads" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="maxDocuments" type="xs:int" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="idleTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="minProgressLoggingInterval" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="stopOnExceptions" minOccurs="0" maxOccurs="1">
         <xs:complexType>
           <xs:all>

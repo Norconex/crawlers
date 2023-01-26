@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.core;
 
+import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.crawler.core.pipeline.queue.QueuePipeline;
 
@@ -21,6 +24,13 @@ public class MockQueuePipeline implements QueuePipeline {
 
     @Override
     public void accept(DocRecordPipelineContext ctx) {
+        for (ReferenceFilter f : ctx.getConfig().getReferenceFilters()) {
+            if (!f.acceptReference(ctx.getDocRecord().getReference())) {
+                ctx.getDocRecord().setState(CrawlDocState.REJECTED);
+                ctx.fire(CrawlerEvent.REJECTED_FILTER);
+                return;
+            }
+        }
         ctx.getDocInfoService().queue(ctx.getDocRecord());
     }
 }

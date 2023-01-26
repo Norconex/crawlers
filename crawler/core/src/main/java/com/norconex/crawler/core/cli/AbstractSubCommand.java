@@ -129,47 +129,9 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
         if (exitVal != 0) {
             return exitVal;
         }
-//        try {
-            runCommand();
-            return 0;
-//        } catch (Exception e) {
-//            throw new CrawlSessionException(
-//                    "Could not execute crawl command.", e);
-//        }
+        runCommand();
+        return 0;
     }
-
-
-//    @Override
-//    public Integer call() throws Exception {
-//        var exitVal = createCrawlSession();
-//        if (exitVal != 0) {
-//            return exitVal;
-//        }
-//        try {
-//            runCommand();
-//            return 0;
-//        } catch (Exception e) {
-////            if (e instanceof NullPointerException) {// && e.getMessage() == null) {
-////                //TODO maybe cache message and if blank always print
-////                //stacktrace regardless of exception type?
-////                printErr("ERROR: " + ExceptionUtils.getStackTrace(e));
-////            } else {
-//                printErr("ERROR: " + ExceptionUtil.getFormattedMessages(e));
-////                printErr("ERROR: " + msg);
-////                var mi = new MutableInt();
-////                ExceptionUtils.getThrowableList(e).forEach(ex -> {
-////                    var i = mi.getAndIncrement();
-////                    var msg = ex.getLocalizedMessage();
-////                    if (i == 0) {
-////                        printErr("ERROR: " + msg);
-////                    } else {
-////                        printErr(StringUtils.repeat(' ', i * 2) + "→ " + msg);
-////                    }
-////                });
-////            }
-//            return -1;
-//        }
-//    }
 
     protected abstract void runCommand();
 }

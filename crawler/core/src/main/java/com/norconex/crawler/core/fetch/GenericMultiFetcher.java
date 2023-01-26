@@ -35,10 +35,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class GenericMultiFetcher
-        <T extends IFetchRequest, R extends IFetchResponse>
-            implements IMultiFetcher<T, R> {
+        <T extends FetchRequest, R extends FetchResponse>
+            implements MultiFetcher<T, R> {
 
-    private final List<IFetcher<T, R>> fetchers =
+    private final List<Fetcher<T, R>> fetchers =
             new ArrayList<>();
     private final IMultiResponseAdaptor<T, R> multiResponseAdaptor;
     private final IUnsuccessfulResponseAdaptor<R> unsuccessfulResponseAdaptor;
@@ -48,18 +48,18 @@ public class GenericMultiFetcher
 
     @FunctionalInterface
     public interface IMultiResponseAdaptor
-            <T extends IFetchRequest, R extends IFetchResponse> {
+            <T extends FetchRequest, R extends FetchResponse> {
         //TODO Document responses are ordered from first to last
-        IMultiFetchResponse<R> adapt(Map<R, IFetcher<T, R>> responses);
+        MultiFetchResponse<R> adapt(Map<R, Fetcher<T, R>> responses);
     }
 
     @FunctionalInterface
-    public interface IUnsuccessfulResponseAdaptor<R extends IFetchResponse> {
+    public interface IUnsuccessfulResponseAdaptor<R extends FetchResponse> {
         R adapt(CrawlDocState crawlState, String message, Exception e);
     }
 
     public GenericMultiFetcher(
-            List<? extends IFetcher<T, R>> fetchers,
+            List<? extends Fetcher<T, R>> fetchers,
             @NonNull IMultiResponseAdaptor<T, R> multiResponseAdaptor,
             @NonNull IUnsuccessfulResponseAdaptor<R> unsuccessfulResponseAdaptor,
             int maxRetries,
@@ -85,13 +85,13 @@ public class GenericMultiFetcher
      * @return fetch response
      */
     @Override
-    public IMultiFetchResponse<R> fetch(T fetchRequest) {
+    public MultiFetchResponse<R> fetch(T fetchRequest) {
 
         CrawlDoc doc = (CrawlDoc) fetchRequest.getDoc();
 
-        Map<R, IFetcher<T, R>> allResponses = new ListOrderedMap<>();
+        Map<R, Fetcher<T, R>> allResponses = new ListOrderedMap<>();
         boolean accepted = false;
-        for (IFetcher<T, R> fetcher : fetchers) {
+        for (Fetcher<T, R> fetcher : fetchers) {
             if (!fetcher.accept(fetchRequest)) {
                 continue;
             }
@@ -131,7 +131,7 @@ public class GenericMultiFetcher
     }
 
     private R doFetch(
-            IFetcher<T, R> fetcher, T fetchRequest, int retryCount) {
+            Fetcher<T, R> fetcher, T fetchRequest, int retryCount) {
 
         if (retryCount > 0) {
             Sleeper.sleepMillis(retryDelay);

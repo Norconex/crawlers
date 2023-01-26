@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
@@ -33,6 +34,7 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 
@@ -68,6 +70,11 @@ public final class TestUtil {
         return (MemoryCommitter) getFirstCrawlerConfig(
                 crawlSession).getCommitters().get(0);
     }
+    public static MemoryCommitter getFirstMemoryCommitter(
+            @NonNull Crawler crawler) {
+        return (MemoryCommitter)
+                crawler.getCrawlerConfig().getCommitters().get(0);
+    }
     public static Crawler getFirstCrawler(
             @NonNull CrawlSession crawlSession) {
         if (!crawlSession.getCrawlers().isEmpty()) {
@@ -79,6 +86,37 @@ public final class TestUtil {
     public static CrawlerConfig getFirstCrawlerConfig(
             @NonNull CrawlSession crawlSession) {
         return crawlSession.getCrawlSessionConfig().getCrawlerConfigs().get(0);
+    }
+
+    // One crawler, one committer
+    public static MemoryCommitter runSingleCrawler(
+            @NonNull Path workDir,
+            Consumer<CrawlerConfig> c,
+            String... startReferences) {
+
+        var sess = Stubber.crawlSession(workDir, startReferences);
+        var cfg = TestUtil.getFirstCrawlerConfig(sess);
+        if (c != null) {
+            c.accept(cfg);
+        }
+        sess.start();
+        return TestUtil.getFirstMemoryCommitter(sess);
+    }
+    // One crawler, one committer
+    public static MemoryCommitter runSingleCrawler(
+            @NonNull Path workDir,
+            Consumer<CrawlerConfig> c,
+            Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
+            String... startReferences) {
+
+        var sess = Stubber.crawlSession(
+                workDir, crawlerImplBuilderModifier, startReferences);
+        var cfg = TestUtil.getFirstCrawlerConfig(sess);
+        if (c != null) {
+            c.accept(cfg);
+        }
+        sess.start();
+        return TestUtil.getFirstMemoryCommitter(sess);
     }
 
     public static Exit testLaunch(

@@ -39,7 +39,7 @@ import com.norconex.importer.doc.Doc;
  *
  * @see AbstractMetadataChecksummer
  */
-public interface IMetadataChecksummer {
+public interface MetadataChecksummer {
 
     /**
      * Creates a metadata checksum.

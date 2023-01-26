@@ -19,14 +19,14 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.checksum.AbstractMetadataChecksummer;
 import com.norconex.crawler.core.checksum.ChecksumUtil;
-import com.norconex.crawler.core.checksum.IMetadataChecksummer;
+import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 
 import lombok.Data;
 
 /**
  * <p>
- * Generic implementation of {@link IMetadataChecksummer} that uses
+ * Generic implementation of {@link MetadataChecksummer} that uses
  * specified field names and their values to create a checksum. The name
  * and values are simply returned as is, joined using this format:
  * <code>fieldName=fieldValue;fieldName=fieldValue;...</code>.

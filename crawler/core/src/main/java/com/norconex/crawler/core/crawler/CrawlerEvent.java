@@ -82,6 +82,8 @@ public class CrawlerEvent extends Event {
     public static final String CRAWLER_CLEAN_BEGIN = "CRAWLER_CLEAN_BEGIN";
     public static final String CRAWLER_CLEAN_END = "CRAWLER_CLEAN_END";
 
+    public static final String CRAWLER_ERROR = "CRAWLER_ERROR";
+
     /**
      * A document was rejected by a filters.
      */

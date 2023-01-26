@@ -23,7 +23,7 @@ import com.norconex.commons.lang.text.TextMatcher.Method;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.checksum.AbstractDocumentChecksummer;
 import com.norconex.crawler.core.checksum.ChecksumUtil;
-import com.norconex.crawler.core.checksum.IDocumentChecksummer;
+import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.session.CrawlSessionException;
 import com.norconex.importer.doc.Doc;
@@ -32,7 +32,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
- * <p>Implementation of {@link IDocumentChecksummer} which
+ * <p>Implementation of {@link DocumentChecksummer} which
  * returns a MD5 checksum value of the extracted document content unless
  * one or more given source fields are specified, in which case the MD5
  * checksum value is constructed from those fields.  This checksum is normally

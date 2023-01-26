@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.core;
 
-import com.norconex.crawler.core.fetch.IFetchRequest;
+import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.importer.doc.Doc;
 
-public class MockFetchRequest implements IFetchRequest {
+public class MockFetchRequest implements FetchRequest {
 
     @Override
     public Doc getDoc() {

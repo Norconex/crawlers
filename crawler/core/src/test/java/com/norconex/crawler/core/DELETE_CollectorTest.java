@@ -19,35 +19,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.committer.core.fs.impl.JSONFileCommitter;
 import com.norconex.commons.lang.xml.ErrorHandlerCapturer;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.crawler.MockCrawlerConfig;
 
 /**
  * @since 1.7.0
  */
-class CollectorTest {
+class DELETE_CollectorTest {
 
-    @Test
-    void testWriteRead() {
-        var config = new MockCollectorConfig();
-        config.setId("test-collector");
-        config.setMaxConcurrentCrawlers(100);
-        config.setEventListeners(List.of(new MockCollectorEventListener()));
-
-        var crawlerCfg = new MockCrawlerConfig();
-        crawlerCfg.setId("myCrawler");
-        crawlerCfg.setCommitters(List.of(new JSONFileCommitter()));
-
-        config.setCrawlerConfigs(List.of(crawlerCfg));
-
-        XML.assertWriteRead(config, "collector");
-    }
+//    @Test
+//    void testWriteRead() {
+//        var config = new MockCollectorConfig();
+//        config.setId("test-collector");
+//        config.setMaxConcurrentCrawlers(100);
+//        config.setEventListeners(List.of(new MockCollectorEventListener()));
+//
+//        var crawlerCfg = new MockCrawlerConfig();
+//        crawlerCfg.setId("myCrawler");
+//        crawlerCfg.setCommitters(List.of(new JSONFileCommitter()));
+//
+//        config.setCrawlerConfigs(List.of(crawlerCfg));
+//
+//        XML.assertWriteRead(config, "collector");
+//    }
 
 //    @SuppressWarnings("deprecation")
 //    @Test
@@ -102,7 +99,7 @@ class CollectorTest {
                 "/validation/collector-core-full.xml"))) {
             var eh = new ErrorHandlerCapturer();
             XML.of(r).setErrorHandler(eh).create().populate(
-                    new MockCollectorConfig());
+                    new DELETE_MockCollectorConfig());
             assertEquals(0, eh.getErrors().size(),
                 "Validation warnings/errors were found: " + eh.getErrors());
         }

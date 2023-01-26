@@ -15,21 +15,20 @@
 package com.norconex.crawler.core.filter.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.crawler.core.filter.IDocumentFilter;
-import com.norconex.crawler.core.filter.IMetadataFilter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.crawler.core.filter.DocumentFilter;
+import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.filter.OnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
+import com.norconex.importer.handler.filter.OnMatchFilter;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 /**
  * <p>
  * Accepts or rejects a reference based on whether one or more
@@ -37,7 +36,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  * </p>
  *
  * {@nx.xml.usage
- * <filter class="com.norconex.crawler.core.filter.impl.MetadataFilter"
+ * <filter class="com.norconex.crawler.core.filter.impl.GenericMetadataFilter"
  *     onMatch="[include|exclude]">
  *   <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
  *     (Expression matching one or more fields to evaluate.)
@@ -49,7 +48,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  * }
  *
  * {@nx.xml.example
- * <filter class="MetadataFilter" onMatch="exclude">
+ * <filter class="GenericMetadataFilter" onMatch="exclude">
  *   <fieldMatcher>Content-Type</fieldMatcher>
  *   <valueMatcher>application/zip</valueMatcher>
  * </filter>
@@ -61,20 +60,23 @@ import com.norconex.importer.handler.filter.OnMatch;
  *
  */
 @SuppressWarnings("javadoc")
-public class MetadataFilter implements OnMatchFilter, IMetadataFilter,
-        IDocumentFilter, XMLConfigurable {
+@EqualsAndHashCode
+@ToString
+public class GenericMetadataFilter implements OnMatchFilter, MetadataFilter,
+        DocumentFilter, XMLConfigurable {
 
     private OnMatch onMatch;
     private final TextMatcher fieldMatcher = new TextMatcher();
     private final TextMatcher valueMatcher = new TextMatcher();
 
-    public MetadataFilter() {
+    public GenericMetadataFilter() {
         this(null, null, OnMatch.INCLUDE);
     }
-    public MetadataFilter(TextMatcher fieldMatcher, TextMatcher valueMatcher) {
+    public GenericMetadataFilter(
+            TextMatcher fieldMatcher, TextMatcher valueMatcher) {
         this(fieldMatcher, valueMatcher, OnMatch.INCLUDE);
     }
-    public MetadataFilter(
+    public GenericMetadataFilter(
             TextMatcher fieldMatcher,
             TextMatcher valueMatcher,
             OnMatch onMatch) {
@@ -123,10 +125,9 @@ public class MetadataFilter implements OnMatchFilter, IMetadataFilter,
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {
         if (StringUtils.isBlank(fieldMatcher.getPattern())
-                || StringUtils.isBlank(valueMatcher.getPattern())) {
-            return getOnMatch() == OnMatch.INCLUDE;
-        }
-        if (new PropertyMatcher(fieldMatcher, valueMatcher).matches(metadata)) {
+                || StringUtils.isBlank(valueMatcher.getPattern())
+                || new PropertyMatcher(
+                        fieldMatcher, valueMatcher).matches(metadata)) {
             return getOnMatch() == OnMatch.INCLUDE;
         }
         return getOnMatch() == OnMatch.EXCLUDE;
@@ -151,21 +152,6 @@ public class MetadataFilter implements OnMatchFilter, IMetadataFilter,
         xml.setAttribute("onMatch", onMatch);
         fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
         valueMatcher.saveToXML(xml.addElement("valueMatcher"));
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .toString();
     }
 }
 

@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.crawler;
 
+import static java.io.InputStream.nullInputStream;
 import static java.util.Optional.ofNullable;
 
 import java.util.Optional;
@@ -22,7 +23,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.bean.BeanUtil;
+import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.crawler.CrawlerThread.ReferenceContext;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
@@ -37,14 +40,20 @@ final class ThreadActionFinalize {
 
     static void execute(ReferenceContext ctx) {
 
-        if (ctx.finalized()) {
+        // only finalize a record if not already finalized and if
+        // there id a doc record (meaning a reference was loaded).
+        if (ctx.finalized() || ctx.docRecord() == null) {
             return;
         }
 
         ctx.finalized(true);
 
+        var docRecord = ctx.docRecord();
+        if (ctx.doc() == null) {
+            ctx.doc(new CrawlDoc(
+                    docRecord, CachedInputStream.cache(nullInputStream())));
+        }
         var doc = ctx.doc();
-        var docRecord = doc.getDocRecord();
         var cachedDocRecord = doc.getCachedDocRecord();
 
         //--- Ensure we have a state -------------------------------------------
@@ -103,6 +112,8 @@ final class ThreadActionFinalize {
         }
     }
 
+    // passing CrawlDoc here because sometimes it can be null in context
+    // and we do not want to set one on context.
     private static void dealWithBadState(ReferenceContext ctx) {
         var doc = ctx.doc();
         var docRecord = ctx.docRecord();

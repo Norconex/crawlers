@@ -15,22 +15,29 @@
 package com.norconex.crawler.core;
 
 import static com.norconex.commons.lang.ResourceLoader.getXmlString;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Consumer;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.randomizers.number.LongRandomizer;
 import org.jeasy.random.randomizers.text.StringRandomizer;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
@@ -142,6 +149,26 @@ public final class Stubber {
         return easyRandom.nextObject(CrawlDocRecord.class);
     }
 
+    //--- CrawlDoc -------------------------------------------------------------
+
+    public static CrawlDoc crawlDoc(String ref) {
+        return crawlDoc(ref, "Some content.", new Object[] {});
+    }
+    public static CrawlDoc crawlDoc(String ref, String content) {
+        return crawlDoc(ref, content, new Object[] {});
+    }
+    public static CrawlDoc crawlDoc(
+            String ref, String content, Object... metaKeyValues) {
+        var doc = new CrawlDoc(
+                new CrawlDocRecord(ref),
+                new CachedStreamFactory().newInputStream(
+                        IOUtils.toInputStream(content, UTF_8)));
+        if (ArrayUtils.isNotEmpty(metaKeyValues)) {
+            doc.getMetadata().loadFromMap(MapUtil.toMap(metaKeyValues));
+        }
+        return doc;
+    }
+
     //--- Misc. ----------------------------------------------------------------
 
     public static Path writeSampleConfigToDir(Path dir) {
@@ -159,20 +186,30 @@ public final class Stubber {
         return cfgFile;
     }
 
+    public static CrawlSession crawlSession(
+            @NonNull Path workDir, String... startReferences) {
+        return crawlSession(workDir, null, startReferences);
+    }
+
     /**
      * A crawl session that has 1 crawler and 0 documents in queue.
      * @param workDir where to store generated files (including crawl store)
+     * @param crawlerImplBuilderModifier gives a chance to modify CrawlerImpl
      * @param startReferences initial queue references
      * @return crawl session.
      */
     public static CrawlSession crawlSession(
-            @NonNull Path workDir, String... startReferences) {
+            @NonNull Path workDir,
+            Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
+            String... startReferences) {
         return CrawlSession.builder()
                 .crawlerFactory((crawlSess, crawlerCfg) -> Crawler.builder()
                         .crawlSession(crawlSess)
                         .crawlerConfig(crawlerCfg)
-                        .crawlerImpl(
-                                crawlerImpl(crawlerCfg, startReferences))
+                        .crawlerImpl(crawlerImpl(
+                                crawlerCfg,
+                                crawlerImplBuilderModifier,
+                                startReferences))
                         .build())
                 .crawlSessionConfig(crawlSessionConfig(workDir))
                 .build();
@@ -180,31 +217,53 @@ public final class Stubber {
 
     public static CrawlerImpl crawlerImpl(
             CrawlerConfig crawlerConfig, String... startReferences) {
-        return CrawlerImpl.builder()
+        return crawlerImpl(crawlerConfig, null, startReferences);
+    }
+    public static CrawlerImpl crawlerImpl(
+            CrawlerConfig crawlerConfig,
+            Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
+            String... startReferences) {
+
+        var crawlerImplBuilder = CrawlerImpl.builder()
                 .fetcherProvider(crawler -> new MockFetcher())
                 .committerPipeline(new MockCommitterPipeline())
-//TODO needed?                .crawlerConfig(crawlerConfig)
                 .importerPipeline(new MockImporterPipeline())
                 .queueInitializer(new MockQueueInitializer(startReferences))
-                .queuePipeline(new MockQueuePipeline())
-                .build();
+                .queuePipeline(new MockQueuePipeline());
+        if (crawlerImplBuilderModifier != null) {
+            crawlerImplBuilderModifier.accept(crawlerImplBuilder);
+        }
+        return crawlerImplBuilder.build();
     }
 
+//    public static Crawler crawlerInitialized(
+//            @NonNull Path workDir, String... startReferences) {
+//        Crawler crawler = crawler(workDir, startReferences);
+//        crawler.ini
+//    }
     public static Crawler crawler(
             @NonNull Path workDir, String... startReferences) {
+        return crawler(workDir, null, startReferences);
+    }
+    public static Crawler crawler(
+            @NonNull Path workDir,
+            Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
+            String... startReferences) {
         var cfg = crawlerConfig();
+        var crawlerImplBuilder = CrawlerImpl.builder()
+                .fetcherProvider(crawler -> new MockFetcher())
+                .committerPipeline(new MockCommitterPipeline())
+                .importerPipeline(new MockImporterPipeline())
+                .queueInitializer(
+                        new MockQueueInitializer(startReferences))
+                .queuePipeline(new MockQueuePipeline());
+        if (crawlerImplBuilderModifier != null) {
+            crawlerImplBuilderModifier.accept(crawlerImplBuilder);
+        }
         return Crawler.builder()
                 .crawlerConfig(cfg)
                 .crawlSession(crawlSession(workDir))
-                .crawlerImpl(CrawlerImpl.builder()
-                        .fetcherProvider(crawler -> new MockFetcher())
-                        .committerPipeline(new MockCommitterPipeline())
-//TODO needed?                        .crawlerConfig(crawlerConfig())
-                        .importerPipeline(new MockImporterPipeline())
-                        .queueInitializer(
-                                new MockQueueInitializer(startReferences))
-                        .queuePipeline(new MockQueuePipeline())
-                        .build())
+                .crawlerImpl(crawlerImplBuilder.build())
                 .build();
     }
 }

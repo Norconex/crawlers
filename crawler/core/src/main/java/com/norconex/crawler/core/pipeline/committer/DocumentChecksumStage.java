@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.pipeline.committer;
 
-import com.norconex.crawler.core.checksum.IDocumentChecksummer;
+import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.pipeline.ChecksumStageUtil;
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
@@ -29,7 +29,7 @@ public class DocumentChecksumStage
 
     @Override
     public boolean execute(DocumentPipelineContext ctx) {
-        IDocumentChecksummer checksummer =
+        DocumentChecksummer checksummer =
                 ctx.getConfig().getDocumentChecksummer();
 
         // if there are no checksum defined and state is not new/modified,

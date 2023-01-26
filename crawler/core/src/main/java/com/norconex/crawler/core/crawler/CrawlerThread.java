@@ -17,11 +17,14 @@ package com.norconex.crawler.core.crawler;
 import static com.norconex.crawler.core.crawler.CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN;
 import static com.norconex.crawler.core.crawler.CrawlerEvent.CRAWLER_RUN_THREAD_END;
 
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.time.StopWatch;
 
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
@@ -42,13 +45,6 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 class CrawlerThread implements Runnable {
 
-    private final CountDownLatch latch;
-    private final int threadIndex;
-    private final Crawler crawler;
-    private final boolean deleting;
-    private final boolean orphan;
-
-
     @Data
     @Accessors(fluent = true)
     static class ReferenceContext {
@@ -59,6 +55,15 @@ class CrawlerThread implements Runnable {
         private boolean orphan;
         private boolean finalized;
     }
+
+    private final CountDownLatch latch;
+    private final int threadIndex;
+    private final Crawler crawler;
+    private final boolean deleting;
+    private final boolean orphan;
+
+    private final TimeoutWatcher activeTimeoutWatcher = new TimeoutWatcher();
+//    private final TimeoutWatcher queueInitTimeoutWatcher = new TimeoutWatcher();
 
     @Override
     public void run() {
@@ -95,6 +100,8 @@ class CrawlerThread implements Runnable {
             if (ctx.docRecord() == null) {
                 return isCrawlerStillActive() || isQueueStillInitializing();
             }
+            activeTimeoutWatcher.reset();
+//            queueInitTimeoutWatcher.reset();
 
             ctx.doc(createDocWithDocRecordFromCache(ctx.docRecord()));
 
@@ -106,8 +113,8 @@ class CrawlerThread implements Runnable {
         } catch (RuntimeException e) {
             if (handleExceptionAndCheckIfStopCrawler(ctx, e)) {
                 crawler.stop();
-                return false;
             }
+            return false;
         } finally {
             ThreadActionFinalize.execute(ctx);
         }
@@ -144,9 +151,9 @@ class CrawlerThread implements Runnable {
     }
 
     private boolean isCrawlerStillActive() {
-        var noneActive = crawler.getDocRecordService().isActiveEmpty();
+        var activeEmpty = crawler.getDocRecordService().isActiveEmpty();
         var queueEmpty = crawler.getDocRecordService().isQueueEmpty();
-        if (noneActive && queueEmpty) {
+        if (activeEmpty && queueEmpty) {
             LOG.trace("Queue is empty and no documents are currently"
                     + "being processed.");
             return false;
@@ -154,7 +161,20 @@ class CrawlerThread implements Runnable {
         Sleeper.sleepMillis(1); // to avoid fast loops taking all CPU
         // If there are some activity left, it means the queue
         // can grow again, we stop processing this non-existing doc
-        // and let parent wait an try again.
+        // and let parent wait an try again, for as long as the activity timeout
+        // is not reached.
+        if (activeTimeoutWatcher.isTimedOut(
+                crawler.getCrawlerConfig().getIdleTimeout())) {
+            LOG.warn("""
+                Crawler thread has been idle for more than {} and will\s\
+                be shut down. \s\
+                Documents still being processed by\s\
+                other crawler threads: {}. Crawler queue is empty: {}.""",
+                    DurationFormatter.FULL.format(
+                            crawler.getCrawlerConfig().getIdleTimeout()),
+                    !activeEmpty, queueEmpty);
+            return false;
+        }
         return true;
     }
 
@@ -162,6 +182,16 @@ class CrawlerThread implements Runnable {
         if (crawler.isQueueInitialized()) {
             return false;
         }
+//        if (queueInitTimeoutWatcher.isTimedOut(
+//                crawler.getCrawlerConfig().getQueueInitTimeout())) {
+//            LOG.warn("""
+//                Queue has been initializing for more than {}.\s\
+//                Shutting down crawler.""",
+//                    DurationFormatter.FULL.format(
+//                            crawler.getCrawlerConfig().getQueueInitTimeout()));
+//            crawler.stop();
+//            return false;
+//        }
         LOG.info("References are still being queued. "
                 + "Waiting for new references...");
         Sleeper.sleepSeconds(5);
@@ -193,14 +223,27 @@ class CrawlerThread implements Runnable {
     // true to stop crawler
     private boolean handleExceptionAndCheckIfStopCrawler(
             ReferenceContext ctx, RuntimeException e) {
-        ctx.docRecord().setState(CrawlDocState.ERROR);
-        crawler.getEventManager().fire(
-                CrawlerEvent.builder()
-                    .name(CrawlerEvent.REJECTED_ERROR)
-                    .source(crawler)
-                    .crawlDocRecord(ctx.docRecord())
-                    .exception(e)
-                    .build());
+        var stopTheCrawler = true;
+
+        // if an exception was thrown and there is no CrawlDocRecord we
+        // stop the crawler since it means we can't no longer read for the
+        // queue, and we can no longer fetch a next document, possibly leading
+        // to an infinite loop if it keeps trying and failing.
+        var rec = ctx.docRecord();
+        if (rec == null) {
+            LOG.error("An unrecoverable error was detected. The crawler will "
+                    + "stop.", e);
+            crawler.getEventManager().fire(
+                    CrawlerEvent.builder()
+                        .name(CrawlerEvent.CRAWLER_ERROR)
+                        .source(crawler)
+                        .crawlDocRecord(rec)
+                        .exception(e)
+                        .build());
+            return stopTheCrawler;
+        }
+
+        rec.setState(CrawlDocState.ERROR);
         if (LOG.isDebugEnabled()) {
             LOG.info("Could not process document: {} ({})",
                     ctx.docRecord().getReference(), e.getMessage(), e);
@@ -208,6 +251,13 @@ class CrawlerThread implements Runnable {
             LOG.info("Could not process document: {} ({})",
                     ctx.docRecord().getReference(), e.getMessage());
         }
+        crawler.getEventManager().fire(
+                CrawlerEvent.builder()
+                    .name(CrawlerEvent.REJECTED_ERROR)
+                    .source(crawler)
+                    .crawlDocRecord(rec)
+                    .exception(e)
+                    .build());
         ThreadActionFinalize.execute(ctx);
 
         // Rethrow exception if we want the crawler to stop
@@ -218,10 +268,50 @@ class CrawlerThread implements Runnable {
                 if (c.isAssignableFrom(e.getClass())) {
                     LOG.error("Encountered a crawler-stopping exception as "
                             + "per configuration.", e);
-                    return true;
+                    return stopTheCrawler;
                 }
             }
         }
-        return false;
+        return !stopTheCrawler;
     }
+
+    // thread safe
+    //TODO maybe move to commons lang?
+    private static class TimeoutWatcher {
+        private final StopWatch watch = new StopWatch();
+        private void reset() {
+            watch.reset();
+        }
+        void track() {
+            if (!watch.isStarted()) {
+                watch.start();
+            }
+        }
+        boolean isTimedOut(Duration duration) {
+            if (duration == null) {
+                return false;
+            }
+            track();
+            return watch.getTime() > duration.toMillis();
+        }
+    }
+
+//    private static class EmptyQueueTimeTracker {
+//        private final StopWatch activeWatch = new StopWatch();
+//        private final StopWatch queueInitWatch = new StopWatch();
+//        private void reset() {
+//            activeWatch.reset();
+//            queueInitWatch.reset();
+//        }
+//        void trackActive() {
+//            if (!activeWatch.isStarted()) {
+//                activeWatch.start();
+//            }
+//        }
+//        void trackQueueInit() {
+//            if (!queueInitWatch.isStarted()) {
+//                queueInitWatch.start();
+//            }
+//        }
+//    }
 }

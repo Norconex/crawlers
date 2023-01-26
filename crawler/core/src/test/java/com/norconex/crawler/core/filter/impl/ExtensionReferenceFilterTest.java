@@ -1,4 +1,4 @@
-/* Copyright 2016-2022 Norconex Inc.
+/* Copyright 2016-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,22 @@
  */
 package com.norconex.crawler.core.filter.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.core.Stubber;
 import com.norconex.importer.handler.filter.OnMatch;
 
 class ExtensionReferenceFilterTest {
 
     @Test
     void testOnlyDetectExtensionsInLastPathSegment() {
-        ExtensionReferenceFilter filter = initFilter("com", "xml");
+        var filter = initFilter("com", "xml");
 
         Assertions.assertFalse(
                 filter.acceptReference("http://example.com"));
@@ -76,18 +81,41 @@ class ExtensionReferenceFilterTest {
         Assertions.assertFalse(filter.acceptReference("dir.com/file.pdf"));
     }
 
+    @Test
+    void testEmpty() {
+        var f = new ExtensionReferenceFilter(null);
+        assertThat(f.acceptReference("ref")).isTrue();
+        assertThat(f.getOnMatch()).isSameAs(OnMatch.INCLUDE);
+        assertThat(f.getExtensions()).isEmpty();
+
+        // here we exclude if it matches. since it does not match, it returns
+        // true (record is accepted)
+        f = new ExtensionReferenceFilter("blah", OnMatch.EXCLUDE);
+        assertThat(f.acceptReference("")).isTrue();
+    }
+
+    @Test
+    void testDocumentAndMetadata() {
+        var f = new ExtensionReferenceFilter("pdf");
+        assertThat(f.acceptDocument(
+                Stubber.crawlDoc("http://example.com/test.pdf"))).isTrue();
+        assertThat(f.acceptMetadata(
+                "http://example.com/test.pdf", new Properties())).isTrue();
+    }
+
     private ExtensionReferenceFilter initFilter(String... extensions) {
-        ExtensionReferenceFilter filter = new ExtensionReferenceFilter();
+        var filter = new ExtensionReferenceFilter();
         filter.setExtensions(extensions);
         return filter;
     }
 
     @Test
     void testWriteRead() {
-        ExtensionReferenceFilter f = new ExtensionReferenceFilter();
+        var f = new ExtensionReferenceFilter();
         f.setCaseSensitive(true);
         f.setExtensions("com","pdf");
         f.setOnMatch(OnMatch.EXCLUDE);
-        XML.assertWriteRead(f, "filter");
+        assertThatNoException().isThrownBy(
+                () -> XML.assertWriteRead(f, "filter"));
     }
 }

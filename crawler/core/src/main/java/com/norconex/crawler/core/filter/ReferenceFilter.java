@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,21 @@ package com.norconex.crawler.core.filter;
 
 
 /**
+ * <p>
  * Filter a document based on its reference, before its properties or content
  * gets read or otherwise acquired.
- * <br><br>
- * It is highly recommended to overwrite the <code>toString()</code> method
+ * </p>
+ * <p>
+ * <b>Note to implementors:</b> It is highly recommended to overwrite the
+ * <code>toString()</code> method
  * to representing this filter properly in human-readable form
  * (e.g. for logging by a crawler).
  * It is a good idea to include specifics of this filter so crawler users
  * can know exactly why documents got accepted/rejected rejected if need be.
- * <br><br>
- * <p>Implementors also implementing XMLConfigurable must name their XML tag
- * <code>filter</code> to ensure it gets loaded properly.</p>
+ * </p>
  */
 @FunctionalInterface
-public interface IReferenceFilter {
+public interface ReferenceFilter {
 
     /**
      * Whether to accept this reference.

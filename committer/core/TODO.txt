@@ -1,3 +1,5 @@
+Change duration in millis to Duration everywhere.
+
 - Redo AbstractFSCommitter to favor composition.  In fact, see if we 
   can redo most to avoid that much inheritance.
 

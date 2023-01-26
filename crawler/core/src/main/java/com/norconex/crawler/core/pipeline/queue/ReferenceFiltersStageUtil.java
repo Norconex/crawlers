@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.filter.IReferenceFilter;
+import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.OnMatchFilter;
@@ -41,7 +41,7 @@ public final class ReferenceFiltersStageUtil {
 
     // return true if reference is rejected
     public static boolean resolveReferenceFilters(
-            List<IReferenceFilter> filters,
+            List<ReferenceFilter> filters,
             DocRecordPipelineContext ctx, String type) {
         if (filters == null) {
             return false;
@@ -54,7 +54,7 @@ public final class ReferenceFiltersStageUtil {
         String ref = ctx.getDocRecord().getReference();
         var hasIncludes = false;
         var atLeastOneIncludeMatch = false;
-        for (IReferenceFilter filter : filters) {
+        for (ReferenceFilter filter : filters) {
             var accepted = filter.acceptReference(ref);
 
             // Deal with includes
@@ -100,7 +100,7 @@ public final class ReferenceFiltersStageUtil {
                 .build());
     }
 
-    private static boolean isIncludeFilter(IReferenceFilter filter) {
+    private static boolean isIncludeFilter(ReferenceFilter filter) {
         return filter instanceof OnMatchFilter f
                 && OnMatch.INCLUDE == f.getOnMatch();
     }

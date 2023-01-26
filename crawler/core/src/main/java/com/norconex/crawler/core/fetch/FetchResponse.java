@@ -14,13 +14,28 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.importer.doc.Doc;
+import com.norconex.crawler.core.doc.CrawlDocState;
 
 /**
- * Fetch request.
+ *
+// * @param <T> response attributes specific to a collection or crawler fetcher
  */
-public interface IFetchRequest {
+public interface FetchResponse{ //<T> {
 
-    Doc getDoc();
+    CrawlDocState getCrawlState();
 
+    int getStatusCode();
+
+    String getReasonPhrase();
+//
+//    String getUserAgent();
+//
+    Exception getException();
+//
+//    String getRedirectTarget();
+
+//    <T> Optional<T> getAttributes();
+//    default Optional<T> getAttributes() {
+//        return Optional.empty();
+//    }
 }

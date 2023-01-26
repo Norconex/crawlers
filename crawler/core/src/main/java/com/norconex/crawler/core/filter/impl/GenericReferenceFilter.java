@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,27 @@ package com.norconex.crawler.core.filter.impl;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.norconex.crawler.core.filter.IDocumentFilter;
-import com.norconex.crawler.core.filter.IMetadataFilter;
-import com.norconex.crawler.core.filter.IReferenceFilter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.crawler.core.filter.DocumentFilter;
+import com.norconex.crawler.core.filter.MetadataFilter;
+import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.filter.OnMatchFilter;
 import com.norconex.importer.handler.filter.OnMatch;
+import com.norconex.importer.handler.filter.OnMatchFilter;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 /**
  * <p>
- * Filters URL based on a regular expression.
+ * Filters URL based on a matching expression.
  * </p>
  *
  * {@nx.xml.usage
- * <filter class="com.norconex.crawler.core.filter.impl.ReferenceFilter"
+ * <filter class="com.norconex.crawler.core.filter.impl.GenericReferenceFilter"
  *     onMatch="[include|exclude]">
  *   <valueMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
  *     (Expression matching the document reference.)
@@ -47,7 +46,7 @@ import com.norconex.importer.handler.filter.OnMatch;
  * }
  *
  * {@nx.xml.example
- * <filter class="ReferenceFilter" onMatch="exclude">
+ * <filter class="GenericReferenceFilter" onMatch="exclude">
  *   <valueMatcher method="regex">.*&#47;login/.*</valueMatcher>
  * </filter>
  * }
@@ -57,23 +56,25 @@ import com.norconex.importer.handler.filter.OnMatch;
  * @see Pattern
  */
 @SuppressWarnings("javadoc")
-public class ReferenceFilter implements
+@EqualsAndHashCode
+@ToString
+public class GenericReferenceFilter implements
         OnMatchFilter,
-        IReferenceFilter,
-        IDocumentFilter,
-        IMetadataFilter,
+        ReferenceFilter,
+        DocumentFilter,
+        MetadataFilter,
         XMLConfigurable {
 
     private OnMatch onMatch;
     private final TextMatcher valueMatcher = new TextMatcher();
 
-    public ReferenceFilter() {
+    public GenericReferenceFilter() {
         this(null, OnMatch.INCLUDE);
     }
-    public ReferenceFilter(TextMatcher valueMatcher) {
+    public GenericReferenceFilter(TextMatcher valueMatcher) {
         this(valueMatcher, OnMatch.INCLUDE);
     }
-    public ReferenceFilter(
+    public GenericReferenceFilter(
             TextMatcher valueMatcher,
             OnMatch onMatch) {
         setValueMatcher(valueMatcher);
@@ -105,12 +106,12 @@ public class ReferenceFilter implements
 
     @Override
     public boolean acceptReference(String reference) {
-        boolean isInclude = getOnMatch() == OnMatch.INCLUDE;
+        var isInclude = getOnMatch() == OnMatch.INCLUDE;
         if (StringUtils.isBlank(valueMatcher.getPattern())) {
             return isInclude;
         }
-        boolean matches = valueMatcher.matches(reference);
-        return matches && isInclude || !matches && !isInclude;
+        var matches = valueMatcher.matches(reference);
+        return matches == isInclude;
     }
 
     @Override
@@ -131,21 +132,6 @@ public class ReferenceFilter implements
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {
         return acceptReference(reference);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .toString();
     }
 }
 

@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2022-2022 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,15 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.crawler;
+package com.norconex.crawler.core.fetch;
 
-import com.norconex.commons.lang.event.EventListener;
+import com.norconex.importer.doc.Doc;
 
-class MockCrawlerEventListener
-        implements EventListener<CrawlerEvent> {
+/**
+ * Fetch request.
+ */
+public interface FetchRequest {
 
-    @Override
-    public void accept(CrawlerEvent t) {
-        //NOOP
-    }
+    Doc getDoc();
+
 }

@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.norconex.commons.lang.pipeline.IPipelineStage;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.filter.IDocumentFilter;
+import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.OnMatchFilter;
 
@@ -42,7 +42,7 @@ public class DocumentFiltersStage
 
         var hasIncludes = false;
         var atLeastOneIncludeMatch = false;
-        for (IDocumentFilter filter : filters) {
+        for (DocumentFilter filter : filters) {
             var accepted = filter.acceptDocument(ctx.getDocument());
 
             // Deal with includes
@@ -85,7 +85,7 @@ public class DocumentFiltersStage
         return true;
     }
 
-    private boolean isIncludeFilter(IDocumentFilter filter) {
+    private boolean isIncludeFilter(DocumentFilter filter) {
         if (filter instanceof OnMatchFilter f) {
             var onMatch = OnMatch.includeIfNull(f.getOnMatch());
             return OnMatch.INCLUDE == onMatch;

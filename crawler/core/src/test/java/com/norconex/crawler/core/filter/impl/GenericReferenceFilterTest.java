@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.filter.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,13 +22,35 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.core.Stubber;
 import com.norconex.importer.handler.filter.OnMatch;
 
-class ReferenceFilterTest {
+class GenericReferenceFilterTest {
+
+    @Test
+    void testGenericReferenceFilter() {
+        var f = new GenericReferenceFilter(TextMatcher.regex(".*blah.*"));
+        assertThat(
+                f.getValueMatcher()).isEqualTo(TextMatcher.regex(".*blah.*"));
+
+        var doc1 = Stubber.crawlDoc("http://blah.com", "content");
+        assertThat(f.acceptDocument(doc1)).isTrue();
+        assertThat(f.acceptMetadata(
+                doc1.getReference(), doc1.getMetadata())).isTrue();
+
+        var doc2 = Stubber.crawlDoc("http://asdf.com", "content");
+        assertThat(f.acceptDocument(doc2)).isFalse();
+        assertThat(f.acceptMetadata(
+                doc2.getReference(), doc2.getMetadata())).isFalse();
+
+        // a blank expression means a match
+        f = new GenericReferenceFilter(TextMatcher.basic(""));
+        assertThat(f.acceptReference(null)).isTrue();
+    }
 
     @Test
     void testCaseSensitivity() {
-        ReferenceFilter f = new ReferenceFilter();
+        var f = new GenericReferenceFilter();
         f.setOnMatch(OnMatch.INCLUDE);
 
         // must match any case:
@@ -44,7 +67,7 @@ class ReferenceFilterTest {
 
     @Test
     void testWriteRead() {
-        ReferenceFilter f = new ReferenceFilter();
+        var f = new GenericReferenceFilter();
         f.setValueMatcher(TextMatcher.regex(".*blah.*"));
         f.setOnMatch(OnMatch.EXCLUDE);
         XML.assertWriteRead(f, "filter");

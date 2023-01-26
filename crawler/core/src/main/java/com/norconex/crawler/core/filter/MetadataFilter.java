@@ -14,26 +14,30 @@
  */
 package com.norconex.crawler.core.filter;
 
-import com.norconex.importer.doc.Doc;
+import com.norconex.commons.lang.map.Properties;
 
 /**
- * Filter a document after the document content is fetched, downloaded,
- * or otherwise read or acquired.
  * <p>
+ * Filter a reference based on the metadata that could be obtained for a
+ * document, before it was fetched, downloaded, or otherwise read or acquired
+ * (e.g. HTTP headers, File properties, ...).
+ * </p>
+ * <p>
+ * <b>Note to implementors:</b>
  * It is highly recommended to overwrite the <code>toString()</code> method
  * to representing this filter properly in human-readable form (e.g. logging).
  * It is a good idea to include specifics of this filter so crawler users
- * can know exactly why documents got accepted/rejected if need be.
+ * can know exactly why documents got accepted/rejected rejected if need be.
  * </p>
  */
 @FunctionalInterface
-public interface IDocumentFilter {
+public interface MetadataFilter {
 
     /**
-     * Whether to accept a document.
-     * @param document the document to accept/reject
+     * Whether to accept the metadata.
+     * @param reference the reference associated with the metadata
+     * @param metadata metadata associated with the reference
      * @return <code>true</code> if accepted, <code>false</code> otherwise
      */
-    boolean acceptDocument(Doc document);
-
+    boolean acceptMetadata(String reference, Properties metadata);
 }

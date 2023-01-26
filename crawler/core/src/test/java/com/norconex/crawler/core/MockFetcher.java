@@ -15,19 +15,19 @@
 package com.norconex.crawler.core;
 
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.core.fetch.IFetchRequest;
-import com.norconex.crawler.core.fetch.IFetchResponse;
-import com.norconex.crawler.core.fetch.IFetcher;
+import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.crawler.core.fetch.FetchResponse;
+import com.norconex.crawler.core.fetch.Fetcher;
 
-public class MockFetcher implements IFetcher<IFetchRequest, IFetchResponse> {
+public class MockFetcher implements Fetcher<FetchRequest, FetchResponse> {
 
     @Override
-    public boolean accept(IFetchRequest fetchRequest) {
+    public boolean accept(FetchRequest fetchRequest) {
         // TODO Auto-generated method stub
         return false;
     }
     @Override
-    public IFetchResponse fetch(IFetchRequest fetchRequest)
+    public FetchResponse fetch(FetchRequest fetchRequest)
             throws FetchException {
         // TODO Auto-generated method stub
         return null;

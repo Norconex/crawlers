@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,30 @@ package com.norconex.crawler.core.crawler;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.time.Duration;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.time.StopWatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationUnit;
 import com.norconex.crawler.core.monitor.CrawlerMonitor;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Logs useful information about the crawler execution progress.
  */
+@Slf4j
+@EqualsAndHashCode
+@ToString
 class CrawlProgressLogger {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(CrawlProgressLogger.class);
 
     private final StopWatch stopWatch = new StopWatch();
 
-    private final long minLoggingInterval;
+    private final Duration minLoggingInterval;
     private final CrawlerMonitor monitor;
 
     // Just so we can show the delta between each log entry
@@ -57,11 +56,15 @@ class CrawlProgressLogger {
     private final NumberFormat intFormatter = NumberFormat.getIntegerInstance();
 
     // Minimum 1 second
-    CrawlProgressLogger(CrawlerMonitor monitor, long minLoggingInterval) {
+    CrawlProgressLogger(CrawlerMonitor monitor, Duration minLoggingInterval) {
         this.monitor = monitor;
         prevProcessedCount = monitor.getProcessedCount();
         prevQueuedCount = monitor.getQueuedCount();
-        this.minLoggingInterval = Math.max(minLoggingInterval, 1000);
+        if (minLoggingInterval != null && minLoggingInterval.getSeconds() < 0) {
+            this.minLoggingInterval = Duration.ofSeconds(1);
+        } else {
+            this.minLoggingInterval = minLoggingInterval;
+        }
     }
 
     void startTracking() {
@@ -74,7 +77,7 @@ class CrawlProgressLogger {
     // only log if logging was requested and enough time has elapsed.
     void logProgress() {
         // If not logging, return right away
-        if (LOG.isInfoEnabled()) {
+        if (minLoggingInterval != null && LOG.isInfoEnabled()) {
             doLogProgress();
         }
     }
@@ -103,7 +106,7 @@ class CrawlProgressLogger {
 
         // If not enough time has elapsed, return
         var elapsed = stopWatch.getTime();
-        if (elapsed < prevElapsed + minLoggingInterval) {
+        if (elapsed < prevElapsed + minLoggingInterval.toMillis()) {
             return;
         }
 
@@ -168,20 +171,4 @@ class CrawlProgressLogger {
     private String divideDownStr(long dividend, long divisor, int scale) {
         return divideDown(dividend, divisor, scale).toPlainString();
     }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
-    }
-
-
 }

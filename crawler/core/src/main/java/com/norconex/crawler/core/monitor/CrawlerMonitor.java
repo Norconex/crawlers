@@ -22,7 +22,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.doc.CrawlDocRecordService;
-import com.norconex.commons.lang.event.EventManager;
+
+import lombok.NonNull;
 
 public class CrawlerMonitor implements CrawlerMonitorMXBean {
 
@@ -31,11 +32,10 @@ public class CrawlerMonitor implements CrawlerMonitorMXBean {
     private final Map<String, AtomicLong> eventCounts =
             new ConcurrentHashMap<>();
 
-    public CrawlerMonitor(Crawler crawler) {
-        Objects.requireNonNull(crawler, "'crawler' must not be null.");
-        this.service = Objects.requireNonNull(crawler.getDocRecordService(),
-                "'crawler#getDocInfoService() must not be null.");
-        EventManager eventManager =
+    public CrawlerMonitor(@NonNull Crawler crawler) {
+        service = Objects.requireNonNull(crawler.getDocRecordService(),
+                "'crawler#getDocRecordService() must not be null.");
+        var eventManager =
                 Objects.requireNonNull(crawler.getEventManager(),
                         "'crawler#getEventManager() must not be null.");
         eventManager.addListener(e -> eventCounts.computeIfAbsent(

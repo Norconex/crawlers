@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  */
 package com.norconex.crawler.core.crawler;
 
-import com.norconex.commons.lang.event.IEventListener;
+import com.norconex.commons.lang.event.EventListener;
 
 /**
- * Listener adapter for crawler events.
+ * Listener adapter for crawler life-cycle events (e.g., start,
+ * init, stop, clean).
  */
-public class CrawlerLifeCycleListener
-        implements IEventListener<CrawlerEvent/*  */> {
+public abstract class CrawlerLifeCycleListener
+        implements EventListener<CrawlerEvent> {
 
     @Override
     public final void accept(CrawlerEvent event) {

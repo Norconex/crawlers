@@ -20,14 +20,20 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.crawler.CrawlerImpl.QueueInitContext;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 
+import lombok.Data;
+
+@Data
 public class MockQueueInitializer
         implements Function<QueueInitContext, MutableBoolean> {
 
-//    private final MockQueue mockQueue;
     private final List<String> startReferences = new ArrayList<>();
+    private boolean async;
+    private long delay;
+    private final MutableBoolean done = new MutableBoolean(false);
 
     public MockQueueInitializer(String... startReferences) {
         this.startReferences.addAll(List.of(startReferences));
@@ -35,67 +41,19 @@ public class MockQueueInitializer
 
     @Override
     public MutableBoolean apply(QueueInitContext ctx) {
-
-//        if (mockQueue != null) {
-//            var cnt = 0;
-//            for (Mock mock : mockQueue.getMocks()) {
-//                ctx.queue(record(mock, ++cnt));
-//            }
-//        }
-
-        startReferences.forEach(ref -> ctx.queue(new CrawlDocRecord(ref)));
-
-        return new MutableBoolean(true);
-
-//        mockQueue.
-
-//
-//        var rec1 = new CrawlDocRecord("mock://sampledoc/1");
-//        rec1.setContentChecksum("blah1-checksum");
-//        rec1.setContentType(ContentType.HTML);
-//        rec1.setDepth(0);
-//        rec1.setState(CrawlState.MODIFIED);
-//        // add more stuff?
-//        ctx.queue(rec1);
-//
-//        var rec2 = new CrawlDocRecord("mock://sampledoc/2");
-//        // add more stuff?
-//        rec2.setDepth(1);
-//        ctx.queue(rec2);
-//
-//        return new MutableBoolean(true);
+        if (async) {
+            new Thread(() -> queueAll(ctx)).start();
+        } else {
+            queueAll(ctx);
+        }
+        return done;
     }
 
-
-//    private CrawlDocRecord record(Mock mock, int index) {
-//        var rec = new CrawlDocRecord("mock://sampledoc/" + index);
-//        switch (mock) {
-//        case UNMODIFIED -> {
-//            rec.setContentChecksum("unmodified-checksum-" + index);
-//            rec.setContentType(ContentType.HTML);
-//        }
-////            return new CrawlDocRecord();
-////              var rec1 = new CrawlDocRecord("mock://sampledoc/1");
-////              rec1.setContentChecksum("blah1-checksum");
-////              rec1.setContentType(ContentType.HTML);
-////              rec1.setDepth(0);
-////              rec1.setState(CrawlState.MODIFIED);
-////              // add more stuff?
-////              ctx.queue(rec1);
-//
-//
-//
-//        default ->
-//            throw new IllegalArgumentException("Unexpected value: " + mock);
-//        }
-//        return rec;
-////        var rec1 = new CrawlDocRecord("mock://sampledoc/1");
-////        rec1.setContentChecksum("blah1-checksum");
-////        rec1.setContentType(ContentType.HTML);
-////        rec1.setDepth(0);
-////        rec1.setState(CrawlState.MODIFIED);
-////        // add more stuff?
-////        ctx.queue(rec1);
-//
-//    }
+    private void queueAll(QueueInitContext ctx) {
+        startReferences.forEach(ref -> {
+            Sleeper.sleepMillis(getDelay());
+            ctx.queue(new CrawlDocRecord(ref));
+        });
+        done.setTrue();
+    }
 }

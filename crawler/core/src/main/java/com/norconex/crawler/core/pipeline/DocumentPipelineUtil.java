@@ -18,7 +18,7 @@ import java.util.List;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.filter.IMetadataFilter;
+import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.OnMatchFilter;
 
@@ -41,7 +41,7 @@ public final class DocumentPipelineUtil {
         var metadata = ctx.getDocument().getMetadata();
         var hasIncludes = false;
         var atLeastOneIncludeMatch = false;
-        for (IMetadataFilter filter : filters) {
+        for (MetadataFilter filter : filters) {
             var accepted = filter.acceptMetadata(
                     ctx.getDocRecord().getReference(), metadata);
             var isInclude = filter instanceof OnMatchFilter

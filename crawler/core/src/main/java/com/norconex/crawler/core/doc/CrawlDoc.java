@@ -29,7 +29,7 @@ import lombok.ToString;
 @ToString
 public class CrawlDoc extends Doc {
 
-    private final CrawlDocRecord cachedDocInfo;
+    private final CrawlDocRecord cachedDocRecord;
     private final boolean orphan;
 
     public CrawlDoc(DocRecord docRecord, CachedInputStream content) {
@@ -37,16 +37,16 @@ public class CrawlDoc extends Doc {
     }
     public CrawlDoc(
             DocRecord docRecord,
-            CrawlDocRecord cachedDocInfo,
+            CrawlDocRecord cachedDocRecord,
             CachedInputStream content) {
-        this(docRecord, cachedDocInfo, content, false);
+        this(docRecord, cachedDocRecord, content, false);
     }
     public CrawlDoc(
             DocRecord docRecord,
             CrawlDocRecord cachedDocInfo,
             CachedInputStream content, boolean orphan) {
         super(docRecord, content, null);
-        this.cachedDocInfo = cachedDocInfo;
+        cachedDocRecord = cachedDocInfo;
         this.orphan = orphan;
     }
 
@@ -60,18 +60,10 @@ public class CrawlDoc extends Doc {
     }
 
     public CrawlDocRecord getCachedDocRecord() {
-        return cachedDocInfo;
+        return cachedDocRecord;
     }
 
     public boolean hasCache() {
-        return cachedDocInfo != null;
+        return cachedDocRecord != null;
     }
-
-//    @Override
-//    public String toString() {
-//        var b = new ReflectionToStringBuilder(
-//                this, ToStringStyle.SHORT_PREFIX_STYLE);
-//        b.setExcludeNullValues(true);
-//        return b.toString();
-//    }
 }

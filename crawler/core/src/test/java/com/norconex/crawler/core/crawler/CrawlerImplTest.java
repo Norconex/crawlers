@@ -14,15 +14,68 @@
  */
 package com.norconex.crawler.core.crawler;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.crawler.CrawlerImpl.CrawlerImplBuilder;
+import com.norconex.crawler.core.crawler.CrawlerImpl.QueueInitContext;
+import com.norconex.crawler.core.doc.CrawlDocRecord;
 
 class CrawlerImplTest {
 
+    @TempDir
+    private Path tempDir;
+
     @Test
-    void test() {
-        fail("Not yet implemented");
+    void testQueueInitContext() {
+        var docRec1 = Stubber.crawlDocRecord("ref1");
+        var docRec2 = Stubber.crawlDocRecordRandom();
+
+        CrawlDocRecord[] expected = {docRec1, docRec2};
+
+        List<CrawlDocRecord> actual = new ArrayList<>();
+        var qic = new QueueInitContext(
+                Stubber.crawler(tempDir),
+                false,
+                docRec -> actual.add(docRec));
+
+        qic.queue(docRec1);
+        qic.queue(docRec2);
+
+        assertThat(actual).containsExactly(expected);
     }
 
+    @Test
+    void testConstructor() {
+        assertThatNoException().isThrownBy(CrawlerImplBuilder::new);
+    }
+
+    @Test
+    void testErrors() {
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
+            CrawlerImpl.builder()
+                .committerPipeline(null)
+                .fetcherProvider(req -> null)
+                .importerPipeline(ctx -> null)
+                .queuePipeline(ctx -> {})
+                .build()
+        );
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
+            CrawlerImpl.builder()
+                .committerPipeline(ctx -> {})
+                .fetcherProvider(null)
+                .importerPipeline(ctx -> null)
+                .queuePipeline(ctx -> {})
+                .build()
+        );
+    }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2017-2022 Norconex Inc.
+/* Copyright 2022-2022 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,23 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.filter.impl;
+package com.norconex.crawler.core.fetch;
 
-import org.junit.jupiter.api.Test;
+import java.util.List;
+import java.util.Optional;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.importer.handler.filter.OnMatch;
+/**
+ *
+ * @param <R> type of fetch responses this multi response holds
+ */
+public interface MultiFetchResponse<R extends FetchResponse>
+        extends FetchResponse {
 
-@Deprecated
-class RegexMetadataFilterTest {
+    List<R> getFetchResponses();
+    void addFetchResponse(R fetchResponse, Fetcher<?, R> fetcher);
+    Optional<R> getLastFetchResponse();
 
-    @Test
-    void testWriteRead() {
-        RegexMetadataFilter f = new RegexMetadataFilter();
-        f.setCaseSensitive(true);
-        f.setField("title");
-        f.setRegex(".*blah.*");
-        f.setOnMatch(OnMatch.EXCLUDE);
-        XML.assertWriteRead(f, "filter");
-    }
+//    Optional<Fetcher<?, ?>> lastFetcher();
+
 }

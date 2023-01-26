@@ -23,9 +23,9 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.doc.CrawlDocRecordFactory;
-import com.norconex.crawler.core.fetch.IFetchRequest;
-import com.norconex.crawler.core.fetch.IFetchResponse;
-import com.norconex.crawler.core.fetch.IFetcher;
+import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.crawler.core.fetch.FetchResponse;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.pipeline.committer.CommitterPipeline;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipeline;
 import com.norconex.crawler.core.pipeline.queue.QueuePipeline;
@@ -56,7 +56,7 @@ public class CrawlerImpl {
      */
     @SuppressWarnings("javadoc")
     @NonNull
-    Function<Crawler, IFetcher<IFetchRequest, IFetchResponse>> fetcherProvider;
+    Function<Crawler, Fetcher<FetchRequest, FetchResponse>> fetcherProvider;
 
     /**
      * The exact type of {@link CrawlDocRecord} if your crawler is subclassing
@@ -67,6 +67,7 @@ public class CrawlerImpl {
     @SuppressWarnings("javadoc")
     @Default
     @NonNull
+    //TODO Needed since we also have CrawlDocRecord Factory? keep only one?
     Class<? extends CrawlDocRecord> crawlDocRecordType = CrawlDocRecord.class;
 
     /**

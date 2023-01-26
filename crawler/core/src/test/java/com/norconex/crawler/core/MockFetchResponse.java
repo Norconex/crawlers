@@ -15,9 +15,9 @@
 package com.norconex.crawler.core;
 
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.fetch.IFetchResponse;
+import com.norconex.crawler.core.fetch.FetchResponse;
 
-public class MockFetchResponse implements IFetchResponse {
+public class MockFetchResponse implements FetchResponse {
     @Override
     public CrawlDocState getCrawlState() {
         // TODO Auto-generated method stub
