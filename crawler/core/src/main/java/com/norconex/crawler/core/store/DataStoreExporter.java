@@ -63,7 +63,7 @@ public final class DataStoreExporter extends CrawlerException {
                 if (type.isPresent()) {
                     zipOS.putNextEntry(new ZipEntry(
                             FileUtil.toSafeFileName(name) + ".json"));
-                    try (IDataStore<?> store =
+                    try (DataStore<?> store =
                             storeEngine.openStore(name, type.get())) {
                         exportStore(crawler, store, zipOS, type.get());
                     }
@@ -78,7 +78,7 @@ public final class DataStoreExporter extends CrawlerException {
         }
         return outFile;
     }
-    private static void exportStore(Crawler crawler, IDataStore<?> store,
+    private static void exportStore(Crawler crawler, DataStore<?> store,
             OutputStream out, Class<?> type) throws IOException {
 
         var writer = SerialUtil.jsonGenerator(out);

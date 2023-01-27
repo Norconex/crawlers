@@ -67,6 +67,7 @@ Misc. Changes
 * The Operator inner class on DateMetadataFilter and NumericMetadataFilter
   were removed in favor of com.norconex.commons.lang.Operator
 * Renamed DocInfo to DocRecord
+* New SaveDocumentTagger class.
 
 ### Crawler Core
 * Renamed CrawlDocInfo to CrawlDocRecord.
@@ -82,3 +83,7 @@ Misc. Changes
 * MetadataFilter and ReferenceFilter renamed to GenericMetadataFilter and 
   GenericReferenceFilter.
   
+### Crawler Web
+
+* Removed Crawler configuration option "keepDownloads" and corresponding 
+  CrawlerEvent.DOCUMENT_SAVED event in favor of new Importer SaveDocumentTagger.

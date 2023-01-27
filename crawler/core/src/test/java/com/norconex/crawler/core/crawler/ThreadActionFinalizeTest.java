@@ -28,7 +28,7 @@ import com.norconex.crawler.core.crawler.CrawlerThread.ReferenceContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.spoil.ISpoiledReferenceStrategizer;
+import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
 
 class ThreadActionFinalizeTest {
@@ -41,7 +41,7 @@ class ThreadActionFinalizeTest {
         var crawler = Stubber.crawler(tempDir);
         var strategy = new MutableObject<SpoiledReferenceStrategy>(
                 SpoiledReferenceStrategy.IGNORE);
-        ISpoiledReferenceStrategizer spoiledHandler =
+        SpoiledReferenceStrategizer spoiledHandler =
                 (ref, state) -> strategy.getValue();
 
         crawler.getCrawlerConfig().setSpoiledReferenceStrategizer(

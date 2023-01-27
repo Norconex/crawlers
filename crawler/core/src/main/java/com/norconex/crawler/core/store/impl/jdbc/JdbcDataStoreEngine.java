@@ -33,8 +33,8 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.store.DataStoreException;
-import com.norconex.crawler.core.store.IDataStore;
-import com.norconex.crawler.core.store.IDataStoreEngine;
+import com.norconex.crawler.core.store.DataStore;
+import com.norconex.crawler.core.store.DataStoreEngine;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -106,7 +106,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class JdbcDataStoreEngine
-        implements IDataStoreEngine, XMLConfigurable {
+        implements DataStoreEngine, XMLConfigurable {
 
     private static final String STORE_TYPES_NAME = "_storetypes";
 
@@ -208,7 +208,7 @@ public class JdbcDataStoreEngine
     }
 
     @Override
-    public <T> IDataStore<T> openStore(
+    public <T> DataStore<T> openStore(
             String storeName, Class<? extends T> type) {
         storeTypes.save(storeName, type.getName());
         return new JdbcDataStore<>(this, storeName, type);
@@ -241,7 +241,7 @@ public class JdbcDataStoreEngine
     }
 
     @Override
-    public boolean renameStore(IDataStore<?> dataStore, String newStoreName) {
+    public boolean renameStore(DataStore<?> dataStore, String newStoreName) {
         JdbcDataStore<?> jdbcStore = (JdbcDataStore<?>) dataStore;
         var oldStoreName = jdbcStore.getName();
         var existed = ((JdbcDataStore<?>) dataStore).rename(newStoreName);

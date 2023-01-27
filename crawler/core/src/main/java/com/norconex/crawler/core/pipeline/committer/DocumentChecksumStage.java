@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,22 @@
  */
 package com.norconex.crawler.core.pipeline.committer;
 
-import com.norconex.crawler.core.checksum.DocumentChecksummer;
+import java.util.function.Predicate;
+
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.pipeline.ChecksumStageUtil;
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
-import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
  * Common pipeline stage for creating a document checksum.
  *
  */
 public class DocumentChecksumStage
-        implements IPipelineStage<DocumentPipelineContext> {
+        implements Predicate<DocumentPipelineContext> {
 
     @Override
-    public boolean execute(DocumentPipelineContext ctx) {
-        DocumentChecksummer checksummer =
+    public boolean test(DocumentPipelineContext ctx) {
+        var checksummer =
                 ctx.getConfig().getDocumentChecksummer();
 
         // if there are no checksum defined and state is not new/modified,
@@ -42,7 +42,7 @@ public class DocumentChecksumStage
             }
             return true;
         }
-        String newDocChecksum =
+        var newDocChecksum =
                 checksummer.createDocumentChecksum(ctx.getDocument());
         return ChecksumStageUtil.resolveDocumentChecksum(
                 newDocChecksum, ctx, checksummer);

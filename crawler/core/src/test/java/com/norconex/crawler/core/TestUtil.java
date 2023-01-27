@@ -59,8 +59,8 @@ public final class TestUtil {
 
     /**
      * Gets the {@link MemoryCommitter} from first committer of the first
-     * crawler from a crawl session.  This is the default committer
-     * when using a {@link MockCrawlSession}.  If that committer does not
+     * crawler from a crawl session (assuming the first committer is
+     * a {@link MemoryCommitter}).  If that committer does not
      * exists or is not a memory committer, an exception is thrown.
      * @param crawlSession crawl session
      * @return Memory committer
@@ -122,7 +122,6 @@ public final class TestUtil {
     public static Exit testLaunch(
             @NonNull Path workDir, String... cmdArgs) throws IOException {
         return testLaunch(workDir, (List<String>) null, cmdArgs);
-
     }
 
     public static Exit testLaunch(
@@ -172,5 +171,12 @@ public final class TestUtil {
         try (Reader r = new InputStreamReader(xmlStream)) {
             XML.of(r).create().validate();
         }
+    }
+
+    public static void withinInitializedSession(
+            @NonNull Path workDir, @NonNull Consumer<CrawlSession> c) {
+        var session = Stubber.crawlSession(workDir);
+        session.sneakyInitCrawlSession();
+        c.accept(session);
     }
 }

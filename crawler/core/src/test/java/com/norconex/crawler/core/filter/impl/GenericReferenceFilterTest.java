@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.filter.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -70,6 +71,7 @@ class GenericReferenceFilterTest {
         var f = new GenericReferenceFilter();
         f.setValueMatcher(TextMatcher.regex(".*blah.*"));
         f.setOnMatch(OnMatch.EXCLUDE);
-        XML.assertWriteRead(f, "filter");
+        assertThatNoException().isThrownBy(
+                () -> XML.assertWriteRead(f, "filter"));
     }
 }

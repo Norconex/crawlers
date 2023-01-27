@@ -39,6 +39,7 @@ import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
+import com.norconex.crawler.core.fetch.MockFetcher;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 
@@ -151,6 +152,7 @@ public final class Stubber {
 
     //--- CrawlDoc -------------------------------------------------------------
 
+    // Content MD5: b8ab309a6b9a3f448092a136afa8fa25
     public static CrawlDoc crawlDoc(String ref) {
         return crawlDoc(ref, "Some content.", new Object[] {});
     }
@@ -186,7 +188,7 @@ public final class Stubber {
         return cfgFile;
     }
 
-    public static CrawlSession crawlSession(
+    public static MockCrawlSession crawlSession(
             @NonNull Path workDir, String... startReferences) {
         return crawlSession(workDir, null, startReferences);
     }
@@ -198,11 +200,13 @@ public final class Stubber {
      * @param startReferences initial queue references
      * @return crawl session.
      */
-    public static CrawlSession crawlSession(
+    public static MockCrawlSession crawlSession(
             @NonNull Path workDir,
             Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
             String... startReferences) {
-        return CrawlSession.builder()
+
+        return new MockCrawlSession(
+                CrawlSession.builder()
                 .crawlerFactory((crawlSess, crawlerCfg) -> Crawler.builder()
                         .crawlSession(crawlSess)
                         .crawlerConfig(crawlerCfg)
@@ -212,7 +216,19 @@ public final class Stubber {
                                 startReferences))
                         .build())
                 .crawlSessionConfig(crawlSessionConfig(workDir))
-                .build();
+        );
+
+//        return CrawlSession.builder()
+//                .crawlerFactory((crawlSess, crawlerCfg) -> Crawler.builder()
+//                        .crawlSession(crawlSess)
+//                        .crawlerConfig(crawlerCfg)
+//                        .crawlerImpl(crawlerImpl(
+//                                crawlerCfg,
+//                                crawlerImplBuilderModifier,
+//                                startReferences))
+//                        .build())
+//                .crawlSessionConfig(crawlSessionConfig(workDir))
+//                .build();
     }
 
     public static CrawlerImpl crawlerImpl(

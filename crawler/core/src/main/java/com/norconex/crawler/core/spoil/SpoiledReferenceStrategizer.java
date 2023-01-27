@@ -37,7 +37,7 @@ import com.norconex.crawler.core.doc.CrawlDocState;
  * to this class.
  * </p>
  */
-public interface ISpoiledReferenceStrategizer {
+public interface SpoiledReferenceStrategizer {
 
     /**
      * Establish which spoiled reference strategy to adopt.

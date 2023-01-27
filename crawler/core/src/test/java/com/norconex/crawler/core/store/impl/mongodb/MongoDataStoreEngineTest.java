@@ -22,7 +22,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import com.norconex.crawler.core.store.AbstractDataStoreEngineTest;
-import com.norconex.crawler.core.store.IDataStoreEngine;
+import com.norconex.crawler.core.store.DataStoreEngine;
 
 @Testcontainers(disabledWithoutDocker = true)
 class MongoDataStoreEngineTest extends AbstractDataStoreEngineTest {
@@ -35,7 +35,7 @@ class MongoDataStoreEngineTest extends AbstractDataStoreEngineTest {
             new MongoDBContainer(DockerImageName.parse("mongo:4.2.0"));
 
     @Override
-    protected IDataStoreEngine createEngine() {
+    protected DataStoreEngine createEngine() {
         String connStr = "mongodb://"
                 + mongoDBContainer.getHost() + ":"
                 + mongoDBContainer.getFirstMappedPort();

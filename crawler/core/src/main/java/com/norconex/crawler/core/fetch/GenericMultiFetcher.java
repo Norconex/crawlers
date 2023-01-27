@@ -1,4 +1,4 @@
-/* Copyright 2022-2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,19 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.ListOrderedMap;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.commons.lang.Sleeper;
 
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,30 +39,30 @@ public class GenericMultiFetcher
         <T extends FetchRequest, R extends FetchResponse>
             implements MultiFetcher<T, R> {
 
-    private final List<Fetcher<T, R>> fetchers =
-            new ArrayList<>();
-    private final IMultiResponseAdaptor<T, R> multiResponseAdaptor;
-    private final IUnsuccessfulResponseAdaptor<R> unsuccessfulResponseAdaptor;
+    private final List<? extends Fetcher<T, R>> fetchers;
+    private final MultiResponseAdaptor<T, R> multiResponseAdaptor;
+    private final UnsuccessfulResponseAdaptor<R> unsuccessfulResponseAdaptor;
 
     private final int maxRetries;
     private final long retryDelay;
 
     @FunctionalInterface
-    public interface IMultiResponseAdaptor
+    public interface MultiResponseAdaptor
             <T extends FetchRequest, R extends FetchResponse> {
-        //TODO Document responses are ordered from first to last
+        //TODO Document that responses are ordered from first to last
         MultiFetchResponse<R> adapt(Map<R, Fetcher<T, R>> responses);
     }
 
     @FunctionalInterface
-    public interface IUnsuccessfulResponseAdaptor<R extends FetchResponse> {
+    public interface UnsuccessfulResponseAdaptor<R extends FetchResponse> {
         R adapt(CrawlDocState crawlState, String message, Exception e);
     }
 
+    @Builder
     public GenericMultiFetcher(
-            List<? extends Fetcher<T, R>> fetchers,
-            @NonNull IMultiResponseAdaptor<T, R> multiResponseAdaptor,
-            @NonNull IUnsuccessfulResponseAdaptor<R> unsuccessfulResponseAdaptor,
+            @NonNull List<? extends Fetcher<T, R>> fetchers,
+            @NonNull MultiResponseAdaptor<T, R> multiResponseAdaptor,
+            @NonNull UnsuccessfulResponseAdaptor<R> unsuccessfulResponseAdaptor,
             int maxRetries,
             long retryDelay) {
         if (CollectionUtils.isEmpty(fetchers)) {
@@ -69,7 +70,7 @@ public class GenericMultiFetcher
         }
         this.multiResponseAdaptor = multiResponseAdaptor;
         this.unsuccessfulResponseAdaptor = unsuccessfulResponseAdaptor;
-        this.fetchers.addAll(fetchers);
+        this.fetchers = Collections.unmodifiableList(fetchers);
         this.maxRetries = maxRetries;
         this.retryDelay = retryDelay;
     }
@@ -87,10 +88,10 @@ public class GenericMultiFetcher
     @Override
     public MultiFetchResponse<R> fetch(T fetchRequest) {
 
-        CrawlDoc doc = (CrawlDoc) fetchRequest.getDoc();
+        var doc = (CrawlDoc) fetchRequest.getDoc();
 
         Map<R, Fetcher<T, R>> allResponses = new ListOrderedMap<>();
-        boolean accepted = false;
+        var accepted = false;
         for (Fetcher<T, R> fetcher : fetchers) {
             if (!fetcher.accept(fetchRequest)) {
                 continue;
@@ -100,8 +101,8 @@ public class GenericMultiFetcher
                         fetcher.getClass().getSimpleName(), doc.getReference());
             }
             accepted = true;
-            for (int retryCount = 0; retryCount <= maxRetries; retryCount++) {
-                R fetchResponse = doFetch(fetcher, fetchRequest, retryCount);
+            for (var retryCount = 0; retryCount <= maxRetries; retryCount++) {
+                var fetchResponse = doFetch(fetcher, fetchRequest, retryCount);
 
                 allResponses.put(fetchResponse, fetcher);
 
@@ -112,20 +113,25 @@ public class GenericMultiFetcher
                         && fetchResponse.getCrawlState().isGoodState()) {
                     return multiResponseAdaptor.adapt(allResponses);
                 }
+                LOG.debug("Fetcher {} response returned a bad crawl "
+                        + "state: {}",
+                        fetcher.getClass().getSimpleName(),
+                        fetchResponse.getCrawlState());
             }
         }
         if (!accepted) {
             allResponses.put(unsuccessfulResponseAdaptor.adapt(
                     CrawlDocState.UNSUPPORTED,
-                    "No HTTP fetcher defined accepting URL '"
+                    "No fetcher defined accepting URL '"
                             + doc.getReference() + "' for fetch request: "
                             + fetchRequest,
                     null), null);
-            LOG.debug("No HTTP Fetcher accepted to fetch this "
-                    + "reference: \"{}\". "
-                    + "For generic URL filtering it is highly recommended you "
-                    + "use a regular URL filtering options, such as reference "
-                    + "filters.", doc.getReference());
+            LOG.debug("""
+                No HTTP Fetcher accepted to fetch this\s\
+                reference: "{}".\s\
+                For generic URL filtering it is highly recommended you\s\
+                use a regular URL filtering options, such as reference\s\
+                filters.""", doc.getReference());
         }
         return multiResponseAdaptor.adapt(allResponses);
     }
@@ -135,7 +141,7 @@ public class GenericMultiFetcher
 
         if (retryCount > 0) {
             Sleeper.sleepMillis(retryDelay);
-            LOG.debug("Retry attempt #{} to fetch '{}' using fetcher '{}'.",
+            LOG.debug("Retry attempt #{} to fetch '{}' using '{}'.",
                     retryCount,
                     fetchRequest.getDoc().getReference(),
                     fetcher.getClass().getSimpleName());

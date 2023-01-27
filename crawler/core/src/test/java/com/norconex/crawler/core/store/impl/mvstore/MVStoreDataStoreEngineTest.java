@@ -15,12 +15,12 @@
 package com.norconex.crawler.core.store.impl.mvstore;
 
 import com.norconex.crawler.core.store.AbstractDataStoreEngineTest;
-import com.norconex.crawler.core.store.IDataStoreEngine;
+import com.norconex.crawler.core.store.DataStoreEngine;
 
 class MVStoreDataStoreEngineTest extends AbstractDataStoreEngineTest {
 
     @Override
-    protected IDataStoreEngine createEngine() {
+    protected DataStoreEngine createEngine() {
         return new MVStoreDataStoreEngine();
     }
 

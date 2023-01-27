@@ -19,12 +19,12 @@ import java.util.Set;
 
 import com.norconex.crawler.core.crawler.Crawler;
 
-public class MockDataStoreEngine implements IDataStoreEngine {
+public class MockDataStoreEngine implements DataStoreEngine {
 
 
-    private IDataStore<?> dataStore = new MockDataStore<>();
+    private DataStore<?> dataStore = new MockDataStore<>();
     public MockDataStoreEngine() {}
-    public MockDataStoreEngine(IDataStore<?> dataStore) {
+    public MockDataStoreEngine(DataStore<?> dataStore) {
         this.dataStore = dataStore;
     }
 
@@ -39,15 +39,15 @@ public class MockDataStoreEngine implements IDataStoreEngine {
     public void close() {
     }
     @Override
-    public <T> IDataStore<T> openStore(String name, Class<? extends T> type) {
-        return (IDataStore<T>) dataStore;
+    public <T> DataStore<T> openStore(String name, Class<? extends T> type) {
+        return (DataStore<T>) dataStore;
     }
     @Override
     public boolean dropStore(String name) {
         return false;
     }
     @Override
-    public boolean renameStore(IDataStore<?> dataStore, String newName) {
+    public boolean renameStore(DataStore<?> dataStore, String newName) {
         return false;
     }
     @Override

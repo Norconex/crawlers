@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,17 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core;
+package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.crawler.core.Stubber;
 import com.norconex.importer.doc.Doc;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MockFetchRequest implements FetchRequest {
+
+    private String ref;
 
     @Override
     public Doc getDoc() {
-        // TODO Auto-generated method stub
-        return null;
+        return Stubber.crawlDoc(ref);
     }
-
 }

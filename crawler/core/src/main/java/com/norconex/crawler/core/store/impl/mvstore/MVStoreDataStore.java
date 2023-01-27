@@ -23,11 +23,11 @@ import java.util.function.BiPredicate;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 
-import com.norconex.crawler.core.store.IDataStore;
+import com.norconex.crawler.core.store.DataStore;
 
 import lombok.NonNull;
 
-public class MVStoreDataStore<T> implements IDataStore<T> {
+public class MVStoreDataStore<T> implements DataStore<T> {
 
     private final MVMap<String, T> map;
     private String name;

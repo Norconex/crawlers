@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.Event;
@@ -29,6 +30,7 @@ import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionEvent;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.filter.FilterGroupResolver;
 
 import lombok.EqualsAndHashCode;
@@ -138,7 +140,7 @@ public abstract class AbstractFetcher
 
     @Override
     public final void accept(Event event) {
-    	// Here we rely on collector startup instead of
+    	// Here we rely on session startup instead of
     	// crawler startup to avoid being invoked multiple
     	// times (once for each crawler)
     	if (event.is(CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN)) {
@@ -194,8 +196,10 @@ public abstract class AbstractFetcher
     }
 
 
-    private boolean isAcceptedByReferenceFilters(T fetchRequest) {
-        var ref = fetchRequest.getDoc().getReference();
+    private boolean isAcceptedByReferenceFilters(@NonNull T fetchRequest) {
+        var ref = Optional.ofNullable(fetchRequest.getDoc())
+                .map(Doc::getReference)
+                .orElse(null);
         return FilterGroupResolver.<ReferenceFilter>builder()
             .filterResolver(f -> f.acceptReference(ref))
             .onAccepted(f -> LOG.debug(

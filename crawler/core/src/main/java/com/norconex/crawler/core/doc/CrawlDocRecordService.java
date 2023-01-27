@@ -27,7 +27,7 @@ import com.norconex.commons.lang.PercentFormatter;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocRecord.Stage;
-import com.norconex.crawler.core.store.IDataStore;
+import com.norconex.crawler.core.store.DataStore;
 
 public class CrawlDocRecordService implements Closeable {
 
@@ -57,11 +57,11 @@ public class CrawlDocRecordService implements Closeable {
 //    private static final String PROP_STAGE = "processingStage";
 
     // new ones
-    private IDataStore<CrawlDocRecord> queue;
-    private IDataStore<CrawlDocRecord> active;
+    private DataStore<CrawlDocRecord> queue;
+    private DataStore<CrawlDocRecord> active;
     //TODO split into rejected/accepted?
-    private IDataStore<CrawlDocRecord> processed;
-    private IDataStore<CrawlDocRecord> cached;
+    private DataStore<CrawlDocRecord> processed;
+    private DataStore<CrawlDocRecord> cached;
     private Class<? extends CrawlDocRecord> type;
 
     private final Crawler crawler;

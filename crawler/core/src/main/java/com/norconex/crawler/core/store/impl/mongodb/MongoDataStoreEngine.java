@@ -42,8 +42,8 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.store.DataStoreException;
-import com.norconex.crawler.core.store.IDataStore;
-import com.norconex.crawler.core.store.IDataStoreEngine;
+import com.norconex.crawler.core.store.DataStore;
+import com.norconex.crawler.core.store.DataStoreEngine;
 
 /**
  * <p>
@@ -58,7 +58,7 @@ import com.norconex.crawler.core.store.IDataStoreEngine;
  *
  */
 public class MongoDataStoreEngine
-        implements IDataStoreEngine, XMLConfigurable {
+        implements DataStoreEngine, XMLConfigurable {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(MongoDataStoreEngine.class);
@@ -126,7 +126,7 @@ public class MongoDataStoreEngine
     }
 
     @Override
-    public <T> IDataStore<T> openStore(String name, Class<? extends T> type) {
+    public <T> DataStore<T> openStore(String name, Class<? extends T> type) {
         storeTypes.replaceOne(idFilter(name), new Document().append(
                 "id", name).append("type", type.getName()));
         return new MongoDataStore<>(database, name, type);
@@ -143,7 +143,7 @@ public class MongoDataStoreEngine
     }
 
     @Override
-    public boolean renameStore(IDataStore<?> dataStore, String newName) {
+    public boolean renameStore(DataStore<?> dataStore, String newName) {
         var targetExists = colExists(newName);
         MongoDataStore<?> mongoStore = (MongoDataStore<?>) dataStore;
         var oldName = mongoStore.rename(database.getName(), newName);

@@ -35,11 +35,11 @@ import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.store.DataStoreException;
-import com.norconex.crawler.core.store.IDataStore;
-import com.norconex.crawler.core.store.IDataStoreEngine;
+import com.norconex.crawler.core.store.DataStore;
+import com.norconex.crawler.core.store.DataStoreEngine;
 
 public class MVStoreDataStoreEngine
-        implements IDataStoreEngine, XMLConfigurable {
+        implements DataStoreEngine, XMLConfigurable {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(MVStoreDataStoreEngine.class);
@@ -153,7 +153,7 @@ public class MVStoreDataStoreEngine
         LOG.info("Data store engine closed.");
     }
     @Override
-    public synchronized <T> IDataStore<T> openStore(
+    public synchronized <T> DataStore<T> openStore(
             String name, Class<? extends T> type) {
         storeTypes.put(name, type);
         return new MVStoreDataStore<>(mvstore,  name);
@@ -173,7 +173,7 @@ public class MVStoreDataStoreEngine
     }
 
     @Override
-    public boolean renameStore(IDataStore<?> store, String newName) {
+    public boolean renameStore(DataStore<?> store, String newName) {
         MVStoreDataStore<?> mvDateStore = (MVStoreDataStore<?>) store;
         var hadMap = false;
         if (mvstore.hasMap(newName)) {

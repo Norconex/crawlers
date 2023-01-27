@@ -27,7 +27,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.MockQueueInitializer;
 import com.norconex.crawler.core.TestUtil;
-import com.norconex.crawler.core.store.IDataStore;
+import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.MockDataStore;
 import com.norconex.crawler.core.store.MockDataStoreEngine;
 import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
@@ -55,7 +55,7 @@ class CrawlerThreadTest {
                     cfg.setNumThreads(2);
                     cfg.setDataStoreEngine(new MVStoreDataStoreEngine() {
                         @Override
-                        public <T> IDataStore<T> openStore(
+                        public <T> DataStore<T> openStore(
                                 String storeName, Class<? extends T> type) {
                             return new MockDataStore<>() {
                                 @Override

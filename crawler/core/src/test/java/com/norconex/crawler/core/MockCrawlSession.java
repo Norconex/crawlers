@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,14 @@ package com.norconex.crawler.core;
 
 import com.norconex.crawler.core.session.CrawlSession;
 
-//TODO maybe move to main/java to provide test classes for collector impls?
-class MockCrawlSession extends CrawlSession {
+//Mainly exists to provide access to internal methods/properties
+public class MockCrawlSession extends CrawlSession {
 
     protected MockCrawlSession(CrawlSessionBuilder builder) {
         super(builder);
-        // TODO Auto-generated constructor stub
     }
 
-//    MockCrawlSession(String id, Path workdir) {
-//        super()
-//        super(new MockCollectorConfig());
-//        getCollectorConfig().setId(id);
-//        getCollectorConfig().setWorkDir(workdir);
-//    }
-//    MockCrawlSession(CollectorConfig collectorConfig) {
-//        super(Objects.requireNonNull(collectorConfig));
-//    }
-//
-//    @Override
-//    protected Crawler createCrawler(CrawlerConfig crawlerConfig) {
-//        return null;//new MockCrawler(crawlerConfig, this);
-//    }
-//
-//    CrawlerConfig getFirstCrawlerConfig() {
-//        return getCollectorConfig().getCrawlerConfigs().get(0);
-//    }
+    public void sneakyInitCrawlSession() {
+        initCrawlSession();
+    }
 }

@@ -164,10 +164,10 @@ public class CrawlerEvent extends Event {
      */
     public static final String DOCUMENT_PROCESSED = "DOCUMENT_PROCESSED";
 
-    /**
-     * A document was saved.
-     */
-    public static final String DOCUMENT_SAVED = "DOCUMENT_SAVED";
+//    /**
+//     * A document was saved.
+//     */
+//    public static final String DOCUMENT_SAVED = "DOCUMENT_SAVED";
 
 
     private final CrawlDocRecord crawlDocRecord;

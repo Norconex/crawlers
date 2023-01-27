@@ -56,7 +56,8 @@ public class CrawlerImpl {
      */
     @SuppressWarnings("javadoc")
     @NonNull
-    Function<Crawler, Fetcher<FetchRequest, FetchResponse>> fetcherProvider;
+    Function<Crawler, Fetcher<? extends FetchRequest, ? extends FetchResponse>>
+            fetcherProvider;
 
     /**
      * The exact type of {@link CrawlDocRecord} if your crawler is subclassing

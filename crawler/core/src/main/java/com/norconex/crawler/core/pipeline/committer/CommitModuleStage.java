@@ -14,22 +14,20 @@
  */
 package com.norconex.crawler.core.pipeline.committer;
 
-import com.norconex.commons.lang.pipeline.IPipelineStage;
+import java.util.function.Predicate;
+
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 
 /**
  * Common pipeline stage for committing documents.
  */
-public class CommitModuleStage
-        implements IPipelineStage<DocumentPipelineContext> {
+public class CommitModuleStage implements Predicate<DocumentPipelineContext> {
     @Override
-    public boolean execute(DocumentPipelineContext ctx) {
-
+    public boolean test(DocumentPipelineContext ctx) {
         // Event triggered by service
         ctx.getCommitterService().upsert(ctx.getDocument());
 
-
-        //TODO rewend was done in CrawlerCommitterService when it was in this
+        //TODO rewind was done in CrawlerCommitterService when it was in this
         // core project. Now here... best place?
         ctx.getDocument().getInputStream().rewind();
 

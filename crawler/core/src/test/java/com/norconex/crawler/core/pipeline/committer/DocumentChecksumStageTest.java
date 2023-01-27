@@ -14,9 +14,16 @@
  */
 package com.norconex.crawler.core.pipeline.committer;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 
 
 class DocumentChecksumStageTest {
@@ -24,24 +31,31 @@ class DocumentChecksumStageTest {
     @TempDir
     Path tempDir;
 
-//    @Test
-//    void testDocumentChecksumStage() {
-//        CrawlDoc doc = new CrawlDoc(
-//                new CrawlDocRecord("http://test.com"),
-//                CachedInputStream.cache(toInputStream("test content", UTF_8)));
-//
-//        MockCrawler crawler = new MockCrawler("id", tempDir);
-//        crawler.getCrawlerConfig().loadFromXML(new XML(
-//                "<crawler id=\"id\">"
-//              +   "<documentChecksummer />"
-//              + "</crawler>"
-//        ));
-//
-//        DocumentPipelineContext ctx = new DocumentPipelineContext(
-//                crawler, doc);
-//        DocumentChecksumStage stage = new DocumentChecksumStage();
-//        stage.execute(ctx);
-//
-//        Assertions.assertNull(doc.getDocInfo().getContentChecksum());
-//    }
+    @Test
+    void testDocumentChecksumStage() {
+
+        var doc = Stubber.crawlDoc("ref");
+        var ctx = new DocumentPipelineContext(Stubber.crawler(tempDir), doc);
+        var stage = new DocumentChecksumStage();
+        stage.test(ctx);
+
+        assertThat(doc.getDocRecord().getContentChecksum()).isEqualTo(
+                "b8ab309a6b9a3f448092a136afa8fa25");
+    }
+    @Test
+    void testNoDocumentChecksummer() {
+
+        var doc = Stubber.crawlDoc("ref");
+        var crawler = Stubber.crawler(tempDir);
+        crawler.getCrawlerConfig().loadFromXML(new XML("""
+                <crawler id="id">\
+                <documentChecksummer />\
+                </crawler>"""
+                ));
+        var ctx = new DocumentPipelineContext(crawler, doc);
+        var stage = new DocumentChecksumStage();
+        stage.test(ctx);
+
+        assertThat(doc.getDocRecord().getContentChecksum()).isNull();
+    }
 }

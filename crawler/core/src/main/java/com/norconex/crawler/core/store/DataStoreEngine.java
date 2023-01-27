@@ -20,18 +20,18 @@ import java.util.Set;
 
 import com.norconex.crawler.core.crawler.Crawler;
 
-public interface IDataStoreEngine extends Closeable {
+public interface DataStoreEngine extends Closeable {
 
     void init(Crawler crawler);
     boolean clean();
     @Override
     void close();
 
-    <T> IDataStore<T> openStore(String name, Class<? extends T> type);
+    <T> DataStore<T> openStore(String name, Class<? extends T> type);
     boolean dropStore(String name);
 
     // returns true if target was deleted
-    boolean renameStore(IDataStore<?> dataStore, String newName);
+    boolean renameStore(DataStore<?> dataStore, String newName);
 
     Set<String> getStoreNames();
     Optional<Class<?>> getStoreType(String name);

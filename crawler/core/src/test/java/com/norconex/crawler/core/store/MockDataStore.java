@@ -17,7 +17,7 @@ package com.norconex.crawler.core.store;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
-public class MockDataStore<T> implements IDataStore<T> {
+public class MockDataStore<T> implements DataStore<T> {
     @Override
     public String getName() {
         return null;

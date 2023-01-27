@@ -1,4 +1,4 @@
-/* Copyright 2016-2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,25 +12,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core;
+package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.session.CrawlSessionConfig;
+public class MockFetchResponse
+        extends GenericMultiFetchResponse<MockFetchResponse>
+        implements FetchResponse {
 
-class DELETE_MockCollectorConfig extends CrawlSessionConfig {
-
-//    MockCollectorConfig() {
-//        super(MockCrawlerConfig.class);
-//        setId("Mock Collector");
-//    }
 
 //    @Override
-//    protected void loadCollectorConfigFromXML(XML xml) {
+//    public CrawlDocState getCrawlState() {
 //        // TODO Auto-generated method stub
-//
+//        return null;
 //    }
 //    @Override
-//    protected void saveCollectorConfigToXML(XML xml) {
+//    public Exception getException() {
 //        // TODO Auto-generated method stub
-//
+//        return null;
+//    }
+//    @Override
+//    public String getReasonPhrase() {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//    @Override
+//    public int getStatusCode() {
+//        // TODO Auto-generated method stub
+//        return 0;
 //    }
 }

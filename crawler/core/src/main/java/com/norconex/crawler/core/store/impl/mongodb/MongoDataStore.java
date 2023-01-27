@@ -33,10 +33,10 @@ import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.RenameCollectionOptions;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.Sorts;
-import com.norconex.crawler.core.store.IDataStore;
+import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.impl.SerialUtil;
 
-public class MongoDataStore<T> implements IDataStore<T> {
+public class MongoDataStore<T> implements DataStore<T> {
 
     private static final String SORT_TIME_FIELD = "timestamp";
 

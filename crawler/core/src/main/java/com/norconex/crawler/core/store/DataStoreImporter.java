@@ -99,7 +99,7 @@ public final class DataStoreImporter extends CrawlerException {
 
                 LOG.info("Importing \"{}\".", storeName);
                 var storeEngine = crawler.getDataStoreEngine();
-                IDataStore<Object> store =
+                DataStore<Object> store =
                         storeEngine.openStore(storeName, type);
 
                 var cnt = 0L;

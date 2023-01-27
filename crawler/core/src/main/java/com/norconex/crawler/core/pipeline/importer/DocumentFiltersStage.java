@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,23 @@
  */
 package com.norconex.crawler.core.pipeline.importer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.function.Predicate;
 
-import com.norconex.commons.lang.pipeline.IPipelineStage;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.OnMatchFilter;
 
-/**
- *
- */
-public class DocumentFiltersStage
-        implements IPipelineStage<ImporterPipelineContext> {
+import lombok.extern.slf4j.Slf4j;
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DocumentFiltersStage.class);
+@Slf4j
+public class DocumentFiltersStage
+        implements Predicate<ImporterPipelineContext> {
 
     @Override
-    public boolean execute(ImporterPipelineContext ctx) {
+    public boolean test(ImporterPipelineContext ctx) {
         var filters = ctx.getConfig().getDocumentFilters();
-        if (filters == null) {
-            return true;
-        }
 
         var hasIncludes = false;
         var atLeastOneIncludeMatch = false;

@@ -59,7 +59,7 @@ public abstract class AbstractDataStoreEngineTest {
         });
     }
 
-    protected abstract IDataStoreEngine createEngine();
+    protected abstract DataStoreEngine createEngine();
 
     @Test
     void testFind() {
@@ -218,8 +218,8 @@ public abstract class AbstractDataStoreEngineTest {
         });
     }
 
-    private void inNewStoreSession(Consumer<IDataStore<TestObject>> c) {
-//        IDataStoreEngine engine = createEngine();
+    private void inNewStoreSession(Consumer<DataStore<TestObject>> c) {
+//        DataStoreEngine engine = createEngine();
 //        MockCollectorConfig collConfig = new MockCollectorConfig();
 //        collConfig.setWorkDir(tempFolder.resolve("storeEngine"));
 //        MockCrawlSession coll = new MockCrawlSession(collConfig);
@@ -229,7 +229,7 @@ public abstract class AbstractDataStoreEngineTest {
 //        try {
 //            crawler.initMockCrawler();
 //            LOG.debug("Start data store test...");
-//            try (IDataStore<TestObject> store =
+//            try (DataStore<TestObject> store =
 //                    engine.openStore(TEST_STORE_NAME, TestObject.class)) {
 //                c.accept(store);
 //            }

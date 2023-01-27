@@ -27,10 +27,10 @@ import java.util.Optional;
 import java.util.function.BiPredicate;
 
 import com.norconex.crawler.core.store.DataStoreException;
-import com.norconex.crawler.core.store.IDataStore;
+import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.impl.SerialUtil;
 
-public class JdbcDataStore<T> implements IDataStore<T> {
+public class JdbcDataStore<T> implements DataStore<T> {
 
     private static final PreparedStatementConsumer NO_ARGS = stmt -> {};
 

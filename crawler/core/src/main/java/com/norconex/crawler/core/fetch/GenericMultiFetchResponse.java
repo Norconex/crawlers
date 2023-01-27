@@ -32,6 +32,7 @@ import lombok.Setter;
 /**
  * Hold response information obtained from fetching a document
  * using a fetch client.
+ * @param <R> fetch response type
  */
 @Data
 public class GenericMultiFetchResponse<R extends FetchResponse>
@@ -39,7 +40,7 @@ public class GenericMultiFetchResponse<R extends FetchResponse>
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private final List<Pair<R, Fetcher<?, R>>> fetchResponses =
+    private final List<Pair<R, ? extends Fetcher<?, R>>> fetchResponses =
             new ArrayList<>();
 
     @Override
@@ -103,13 +104,13 @@ public class GenericMultiFetchResponse<R extends FetchResponse>
 
     @Override
     public String toString() {
-        Optional<R> op = getLastFetchResponse();
+        var op = getLastFetchResponse();
         if (!op.isPresent()) {
             return "[No fetch responses.]";
         }
 
-        R r = op.get();
-        StringBuilder b = new StringBuilder(
+        var r = op.get();
+        var b = new StringBuilder(
                 r.getStatusCode()  + " " + r.getReasonPhrase());
         lastFetcher().ifPresent(f -> b.append(
                 " - " + f.getClass().getSimpleName()));

@@ -55,10 +55,10 @@ import com.norconex.crawler.core.pipeline.importer.ImporterPipeline;
 import com.norconex.crawler.core.pipeline.queue.QueuePipeline;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionException;
+import com.norconex.crawler.core.store.DataStore;
+import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreExporter;
 import com.norconex.crawler.core.store.DataStoreImporter;
-import com.norconex.crawler.core.store.IDataStore;
-import com.norconex.crawler.core.store.IDataStoreEngine;
 import com.norconex.importer.Importer;
 
 import lombok.AccessLevel;
@@ -131,7 +131,7 @@ public class Crawler {
     //--- Properties set on Init -----------------------------------------------
 
     @Getter
-    private IDataStoreEngine dataStoreEngine;
+    private DataStoreEngine dataStoreEngine;
 
     @Getter
     private CrawlDocRecordService docRecordService;
@@ -153,13 +153,13 @@ public class Crawler {
     private CrawlProgressLogger progressLogger;
 
     @Getter
-    private Fetcher<FetchRequest, FetchResponse> fetcher;
+    private Fetcher<? extends FetchRequest, ? extends FetchResponse> fetcher;
 
     @Getter
-    private IDataStore<String> dedupMetadataStore;
+    private DataStore<String> dedupMetadataStore;
 
     @Getter
-    private IDataStore<String> dedupDocumentStore;
+    private DataStore<String> dedupDocumentStore;
 
     private MutableBoolean queueInitialized;
 
@@ -167,10 +167,6 @@ public class Crawler {
     //--- Properties set on Stop -----------------------------------------------
 
     private boolean stopped;
-
-
-    // -------------
-//    private Path downloadDir;
 
     @Builder()
     private Crawler(
@@ -201,7 +197,6 @@ public class Crawler {
         workDir = crawlSession.getWorkDir().resolve(
                 FileUtil.toSafeFileName(getId()));
         tempDir = workDir.resolve("temp");
-//        downloadDir = workDir.resolve("downloads");
     }
 
     //--- Set at construction --------------------------------------------------
@@ -242,11 +237,6 @@ public class Crawler {
         }
     }
 
-//    public Path getDownloadDir() {
-//        return downloadDir;
-//    }
-
-
     // invoked as the first thing for every commands.
     protected boolean initCrawler() {
         // Ensure clean slate by either replacing or clearing and adding back
@@ -257,7 +247,6 @@ public class Crawler {
         //--- Directories ---
         createDirectory(workDir);
         createDirectory(tempDir);
-//        downloadDir = getWorkDir().resolve("downloads");
 
         fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
 
@@ -370,18 +359,6 @@ public class Crawler {
             for (var i = 0; i < numThreads; i++) {
                 final var threadIndex = i + 1;
                 LOG.debug("Crawler thread #{} starting...", threadIndex);
-
-
-                //TODO execute ReferenceProcessor here instead,
-                // passing context instead of flags
-                // and renaming it to CrawlThread or something like that.
-//                launchCrawlerThread(execService, latch, CrawlerThread.builder()
-//                        .crawler(this)
-//                        .threadIndex(threadIndex)
-//                        .deleting(flags.delete)
-//                        .orphan(flags.orphan)
-//                        .build());
-
                 execService.execute(CrawlerThread.builder()
                     .crawler(this)
                     .latch(latch)
@@ -389,12 +366,6 @@ public class Crawler {
                     .deleting(flags.delete)
                     .orphan(flags.orphan)
                     .build());
-
-
-
-
-//                execService.execute(new CrawlerRefsProcessor(
-//                        Crawler.this, latch, flags, threadIndex));
             }
             latch.await();
         } catch (InterruptedException e) {
@@ -412,19 +383,6 @@ public class Crawler {
             }
         }
     }
-
-//    private void launchCrawlerThread(
-//            ExecutorService execService,
-//            CountDownLatch latch,
-//            CrawlerThread thread) {
-//        try {
-//            execService.execute(thread);
-//        } catch (Exception e) {
-//            LOG.error("Problem in thread execution.", e);
-//        } finally {
-//            latch.countDown();
-//        }
-//    }
 
     /**
      * Whether the crawler job was stopped.
@@ -534,8 +492,7 @@ public class Crawler {
         var maxDocs = crawlerConfig.getMaxDocuments();
         //TODO replace check for "processedCount" vs "maxDocuments"
         // with event counts vs max committed, max processed, max etc...
-        return maxDocs > -1
-                && getMonitor().getProcessedCount() >= maxDocs;
+        return maxDocs > -1 && getMonitor().getProcessedCount() >= maxDocs;
     }
 
     public void importDataStore(Path inFile) {
@@ -562,7 +519,7 @@ public class Crawler {
     protected void destroyCrawler() {
         ofNullable(docRecordService).ifPresent(
                 CrawlDocRecordService::close);
-        ofNullable(dataStoreEngine).ifPresent(IDataStoreEngine::close);
+        ofNullable(dataStoreEngine).ifPresent(DataStoreEngine::close);
 
         //TODO shall we clear crawler listeners, or leave to collector impl
         // to clean all?
@@ -571,7 +528,7 @@ public class Crawler {
     }
 
     // store made of: checksum -> ref
-    private IDataStore<String> resolveMetaDedupStore() {
+    private DataStore<String> resolveMetaDedupStore() {
         if (crawlerConfig.isMetadataDeduplicate()
                 && crawlerConfig.getMetadataChecksummer() != null) {
             return getDataStoreEngine().openStore(
@@ -580,7 +537,7 @@ public class Crawler {
         return null;
     }
     // store made of: checksum -> ref
-    private IDataStore<String> resolveDocumentDedupStore() {
+    private DataStore<String> resolveDocumentDedupStore() {
         if (crawlerConfig.isDocumentDeduplicate()
                 && crawlerConfig.getDocumentChecksummer() != null) {
             return getDataStoreEngine().openStore(

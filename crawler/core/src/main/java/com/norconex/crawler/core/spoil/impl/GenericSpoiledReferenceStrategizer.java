@@ -25,14 +25,14 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.spoil.ISpoiledReferenceStrategizer;
+import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>
- * Generic implementation of {@link ISpoiledReferenceStrategizer} that
+ * Generic implementation of {@link SpoiledReferenceStrategizer} that
  * offers a simple mapping between the crawl state of references that have
  * turned "bad" and the strategy to adopt for each.
  * Whenever a crawl state does not have a strategy associated, the fall-back
@@ -73,7 +73,7 @@ import com.norconex.commons.lang.xml.XML;
  *
  */
 public class GenericSpoiledReferenceStrategizer implements
-        ISpoiledReferenceStrategizer, XMLConfigurable {
+        SpoiledReferenceStrategizer, XMLConfigurable {
 
     public static final SpoiledReferenceStrategy DEFAULT_FALLBACK_STRATEGY =
             SpoiledReferenceStrategy.DELETE;

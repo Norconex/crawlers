@@ -27,7 +27,7 @@ import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
-import com.norconex.crawler.core.store.IDataStore;
+import com.norconex.crawler.core.store.DataStore;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -104,7 +104,7 @@ public class DeleteRejectedEventListener
     private final TextMatcher eventMatcher = TextMatcher.regex("REJECTED_.*");
 
     // key=reference; value=whether deletion request was already sent
-    private IDataStore<Boolean> refStore;
+    private DataStore<Boolean> refStore;
     private boolean doneCrawling;
 
     /**

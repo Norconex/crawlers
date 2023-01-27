@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.store.AbstractDataStoreEngineTest;
-import com.norconex.crawler.core.store.IDataStoreEngine;
+import com.norconex.crawler.core.store.DataStoreEngine;
 
 class JdbcDataStoreEngineTest extends AbstractDataStoreEngineTest {
 
@@ -26,7 +26,7 @@ class JdbcDataStoreEngineTest extends AbstractDataStoreEngineTest {
             LoggerFactory.getLogger(JdbcDataStoreEngineTest.class);
 
     @Override
-    protected IDataStoreEngine createEngine() {
+    protected DataStoreEngine createEngine() {
 //        return Assertions.assertDoesNotThrow(() -> {
 //            String connStr = "jdbc:h2:file:" + StringUtils.removeStart(
 //                    tempFolder.toUri().toURL() + "test", "file:/");

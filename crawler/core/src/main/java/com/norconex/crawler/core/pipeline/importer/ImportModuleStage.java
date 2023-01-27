@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,24 @@
  */
 package com.norconex.crawler.core.pipeline.importer;
 
-import com.norconex.commons.lang.pipeline.IPipelineStage;
-import com.norconex.importer.Importer;
+import java.util.function.Predicate;
+
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.response.ImporterResponse;
 
 /**
  * Common pipeline stage for importing documents.
  */
-public class ImportModuleStage
-            implements IPipelineStage<ImporterPipelineContext> {
+public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
 
     @Override
-    public boolean execute(ImporterPipelineContext ctx) {
-        Importer importer = ctx.getCrawler().getImporter();
+    public boolean test(ImporterPipelineContext ctx) {
+        var importer = ctx.getCrawler().getImporter();
 
         Doc doc = ctx.getDocument();
 
-        boolean isContentTypeSet = doc.getDocRecord().getContentType() != null;
+        var isContentTypeSet = doc.getDocRecord().getContentType() != null;
 
-        ImporterResponse response = importer.importDocument(doc);
+        var response = importer.importDocument(doc);
         ctx.setImporterResponse(response);
 
         //TODO is it possible for content type not to be set here??

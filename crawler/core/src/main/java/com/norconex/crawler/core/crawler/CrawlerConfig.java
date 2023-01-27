@@ -32,9 +32,9 @@ import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
-import com.norconex.crawler.core.spoil.ISpoiledReferenceStrategizer;
+import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
-import com.norconex.crawler.core.store.IDataStoreEngine;
+import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
 import com.norconex.importer.ImporterConfig;
 
@@ -227,18 +227,6 @@ public class CrawlerConfig implements XMLConfigurable {
     @SuppressWarnings("javadoc")
     private Duration minProgressLoggingInterval;
 
-//    /**
-//     * The maximum amount of time to wait before forcing the crawler to
-//     * shut down due to the crawler reference queue taking too long to
-//     * initialize.
-//     * {@value #DEFAULT_QUEUE_INIT_TIMEOUT}. A <code>null</code>
-//     * value means no timeouts.
-//     * @param queueInitTimeout time to wait for queue to initialize
-//     * @return time to wait for queue to initialize
-//     */
-//    @SuppressWarnings("javadoc")
-//    private Duration queueInitTimeout;
-
     /**
      * <p>The strategy to adopt when there are orphans.  Orphans are
      * references that were processed in a previous run, but were not in the
@@ -274,7 +262,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * @return crawl data store factory.
      */
     @SuppressWarnings("javadoc")
-    private IDataStoreEngine dataStoreEngine = new MVStoreDataStoreEngine();
+    private DataStoreEngine dataStoreEngine = new MVStoreDataStoreEngine();
 
     private final List<ReferenceFilter> referenceFilters = new ArrayList<>();
     private final List<MetadataFilter> metadataFilters = new ArrayList<>();
@@ -337,7 +325,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * @return spoiled state strategy resolver
      */
     @SuppressWarnings("javadoc")
-    private ISpoiledReferenceStrategizer spoiledReferenceStrategizer =
+    private SpoiledReferenceStrategizer spoiledReferenceStrategizer =
             new GenericSpoiledReferenceStrategizer();
 
     private final List<EventListener<?>> eventListeners = new ArrayList<>();
@@ -492,7 +480,6 @@ public class CrawlerConfig implements XMLConfigurable {
         xml.addElement(Fields.idleTimeout, idleTimeout);
         xml.addElement(Fields.minProgressLoggingInterval,
                 minProgressLoggingInterval);
-//        xml.addElement(Fields.queueInitTimeout, queueInitTimeout);
         xml.addElementList(
                 Fields.stopOnExceptions, "exception", stopOnExceptions);
         xml.addElement(Fields.orphansStrategy, orphansStrategy);
@@ -527,8 +514,6 @@ public class CrawlerConfig implements XMLConfigurable {
         setIdleTimeout(xml.getDuration(Fields.idleTimeout, idleTimeout));
         setMinProgressLoggingInterval(xml.getDuration(
                 Fields.minProgressLoggingInterval, minProgressLoggingInterval));
-//        setQueueInitTimeout(xml.getDuration(
-//                Fields.queueInitTimeout, queueInitTimeout));
         setStopOnExceptions(xml.getClassList(
                 "stopOnExceptions/exception", stopOnExceptions));
         setReferenceFilters(xml.getObjectListImpl(GenericReferenceFilter.class,
@@ -549,7 +534,7 @@ public class CrawlerConfig implements XMLConfigurable {
         }
 
         setDataStoreEngine(xml.getObjectImpl(
-                IDataStoreEngine.class, "dataStoreEngine", dataStoreEngine));
+                DataStoreEngine.class, "dataStoreEngine", dataStoreEngine));
         setCommitters(xml.getObjectListImpl(Committer.class,
                 "committers/committer", committers));
         setMetadataChecksummer(xml.getObjectImpl(MetadataChecksummer.class,
@@ -561,7 +546,7 @@ public class CrawlerConfig implements XMLConfigurable {
         setDocumentDeduplicate(xml.getBoolean("documentDeduplicate",
                 documentDeduplicate));
         setSpoiledReferenceStrategizer(xml.getObjectImpl(
-                ISpoiledReferenceStrategizer.class,
+                SpoiledReferenceStrategizer.class,
                 Fields.spoiledReferenceStrategizer,
                 spoiledReferenceStrategizer));
 

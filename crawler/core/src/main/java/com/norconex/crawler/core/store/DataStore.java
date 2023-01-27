@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.function.BiPredicate;
 
 // Stores anything for fast retreival.
-public interface IDataStore<T> extends Closeable {
+public interface DataStore<T> extends Closeable {
 
     String getName();
 
