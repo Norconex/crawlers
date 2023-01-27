@@ -95,7 +95,7 @@ import lombok.ToString;
  * </handler>
  * }
  * <p>
- * The following example replaces occurrences of "apple" to "orange"
+ * The above example replaces occurrences of "apple" to "orange"
  * in the "fruit" field.
  * </p>
  */
