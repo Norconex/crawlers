@@ -35,6 +35,7 @@ import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
+import com.norconex.crawler.core.crawler.MockCrawler;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 
@@ -173,10 +174,17 @@ public final class TestUtil {
         }
     }
 
-    public static void withinInitializedSession(
+    public static void withInitializedSession(
             @NonNull Path workDir, @NonNull Consumer<CrawlSession> c) {
         var session = Stubber.crawlSession(workDir);
         session.sneakyInitCrawlSession();
         c.accept(session);
+    }
+    public static void withInitializedCrawler(
+            @NonNull Path workDir, @NonNull Consumer<Crawler> c) {
+        var crawler = Stubber.crawler(workDir);
+        crawler.getCrawlSession().sneakyInitCrawlSession();
+        crawler.sneakyInitCrawler();
+        c.accept(crawler);
     }
 }

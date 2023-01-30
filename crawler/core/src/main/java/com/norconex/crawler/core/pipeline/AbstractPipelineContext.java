@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@ package com.norconex.crawler.core.pipeline;
 
 import com.norconex.committer.core.service.CommitterService;
 import com.norconex.commons.lang.event.EventManager;
-import com.norconex.commons.lang.pipeline.IPipelineStage;
-import com.norconex.commons.lang.pipeline.Pipeline;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
@@ -28,7 +26,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
- * Base {@link IPipelineStage} context for collector {@link Pipeline}s.
+ * Base context object for a crawler pipelines.
  */
 @EqualsAndHashCode
 @ToString
@@ -52,7 +50,7 @@ public abstract class AbstractPipelineContext {
         return crawler.getCrawlerConfig();
     }
 
-    public CrawlDocRecordService getDocInfoService() {
+    public CrawlDocRecordService getDocRecordService() {
         return crawler.getDocRecordService();
     }
 
@@ -67,15 +65,15 @@ public abstract class AbstractPipelineContext {
     public void fire(CrawlerEvent event) {
         getEventManager().fire(event);
     }
-    /**
-     * Fires a crawler event with the current crawler as source.
-     * @param eventName the event name
-     */
-    //TODO used?
-    public void fire(String eventName) {
-        fire(CrawlerEvent.builder()
-                .name(eventName)
-                .source(crawler)
-                .build());
-    }
+//    /**
+//     * Fires a crawler event with the current crawler as source.
+//     * @param eventName the event name
+//     */
+//    //TODO used?
+//    protected void fire(String eventName) {
+//        fire(CrawlerEvent.builder()
+//                .name(eventName)
+//                .source(crawler)
+//                .build());
+//    }
 }

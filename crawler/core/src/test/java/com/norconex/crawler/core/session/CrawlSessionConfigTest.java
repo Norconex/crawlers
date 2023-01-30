@@ -19,58 +19,52 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.file.Path;
 
-import org.jeasy.random.EasyRandom;
-import org.jeasy.random.EasyRandomParameters;
-import org.jeasy.random.ObjectCreationException;
-import org.jeasy.random.api.ObjectFactory;
-import org.jeasy.random.api.RandomizerContext;
-import org.jeasy.random.randomizers.number.LongRandomizer;
-import org.jeasy.random.randomizers.text.StringRandomizer;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.Stubber;
 
 class CrawlSessionConfigTest {
 
-    private EasyRandom easyRandom = new EasyRandom(new EasyRandomParameters()
-            .seed(System.currentTimeMillis())
-            .collectionSizeRange(1, 5)
-            .randomizationDepth(5)
-            .scanClasspathForConcreteTypes(true)
-            .overrideDefaultInitialization(true)
-            .randomize(Path.class,
-                    () -> Path.of(new StringRandomizer(100).getRandomValue()))
-            .randomize(Long.class,
-                    () -> Math.abs(new LongRandomizer().getRandomValue()))
-            .objectFactory(new ObjectFactory() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public <T> T createInstance(
-                        Class<T> type, RandomizerContext context)
-                                throws ObjectCreationException {
-                    if (type.isAssignableFrom(CrawlSessionConfig.class)) {
-                        return (T) new CrawlSessionConfig(CrawlerConfig.class);
-                    }
-                    try {
-                        return type.getDeclaredConstructor().newInstance();
-                    } catch (Exception e) {
-                        throw new ObjectCreationException(
-                                "Unable to create a new instance of " + type,
-                                e);
-                    }
-                }
-            })
-    );
+//    private EasyRandom easyRandom = new EasyRandom(new EasyRandomParameters()
+//            .seed(System.currentTimeMillis())
+//            .collectionSizeRange(1, 5)
+//            .randomizationDepth(5)
+//            .scanClasspathForConcreteTypes(true)
+//            .overrideDefaultInitialization(true)
+//            .randomize(Path.class,
+//                    () -> Path.of(new StringRandomizer(100).getRandomValue()))
+//            .randomize(Long.class,
+//                    () -> Math.abs(new LongRandomizer().getRandomValue()))
+//            .randomize(DataStoreEngine.class, MockDataStoreEngine::new)
+//            .randomize(DataStore.class, MockDataStore::new)
+//            .objectFactory(new ObjectFactory() {
+//                @SuppressWarnings("unchecked")
+//                @Override
+//                public <T> T createInstance(
+//                        Class<T> type, RandomizerContext context)
+//                                throws ObjectCreationException {
+//                    if (type.isAssignableFrom(CrawlSessionConfig.class)) {
+//                        return (T) new CrawlSessionConfig(CrawlerConfig.class);
+//                    }
+//                    try {
+//                        return type.getDeclaredConstructor().newInstance();
+//                    } catch (Exception e) {
+//                        throw new ObjectCreationException(
+//                                "Unable to create a new instance of " + type,
+//                                e);
+//                    }
+//                }
+//            })
+//    );
 
     @Test
     void testCrawlSessionConfig() {
-        var cfg =
-                easyRandom.nextObject(CrawlSessionConfig.class);
+        var cfg = Stubber.randomize(CrawlSessionConfig.class);
+//                easyRandom.nextObject(CrawlSessionConfig.class);
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(cfg, "config"));
+                () -> XML.assertWriteRead(cfg, "crawlSession"));
     }
 
     @Test

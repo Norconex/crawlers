@@ -34,7 +34,7 @@ import lombok.Data;
 class DocumentFiltersStageTest {
 
     @TempDir
-    Path tempDir;
+    private Path tempDir;
 
     @Test
     void testDocumentFiltersStage() {

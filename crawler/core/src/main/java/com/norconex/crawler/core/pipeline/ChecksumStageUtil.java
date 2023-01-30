@@ -17,24 +17,19 @@ package com.norconex.crawler.core.pipeline;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.doc.CrawlDocState;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Checksum stage utility methods.
  */
+@Slf4j
 public final class ChecksumStageUtil {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ChecksumStageUtil.class);
-
-    private ChecksumStageUtil() {
-    }
-
+    private ChecksumStageUtil() {}
 
     public static boolean resolveMetaChecksum(
             String newChecksum, DocumentPipelineContext ctx, Object subject) {
@@ -44,7 +39,6 @@ public final class ChecksumStageUtil {
             String newChecksum, DocumentPipelineContext ctx, Object subject) {
         return resolveChecksum(false, newChecksum, ctx, subject);
     }
-
 
     // return false if checksum is rejected/unmodified
     private static boolean resolveChecksum(boolean isMeta, String newChecksum,
@@ -71,8 +65,8 @@ public final class ChecksumStageUtil {
             LOG.debug("ACCEPTED {} checkum (new): Reference={}",
                     type, docInfo.getReference());
 
-            // Prevent not having status when finalizing document on embedded docs
-            // (which otherwise do not have a status.
+            // Prevent not having status when finalizing document on embedded
+            // docs (which otherwise do not have a status.
             // But if already has a status, keep it.
             if (docInfo.getState() == null) {
                 docInfo.setState(CrawlDocState.NEW);

@@ -41,7 +41,7 @@ class CrawlProgressLoggerTest {
                 implBuilder -> {
                     var mqi = new MockQueueInitializer("ref1", "ref2", "ref3");
                     mqi.setAsync(true);
-                    mqi.setDelay(500);
+                    mqi.setDelay(1000);
                     implBuilder.queueInitializer(mqi);
                 });
         assertThat(mem.getUpsertCount()).isEqualTo(3);

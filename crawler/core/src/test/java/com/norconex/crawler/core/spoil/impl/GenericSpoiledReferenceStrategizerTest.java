@@ -16,18 +16,16 @@ package com.norconex.crawler.core.spoil.impl;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
-import com.norconex.commons.lang.xml.XML;
 
 
 class GenericSpoiledReferenceStrategizerTest  {
 
-
     @Test
     void testWriteRead() {
-        GenericSpoiledReferenceStrategizer s =
-                new GenericSpoiledReferenceStrategizer();
+        var s = new GenericSpoiledReferenceStrategizer();
         s.setFallbackStrategy(SpoiledReferenceStrategy.GRACE_ONCE);
         s.addMapping(CrawlDocState.MODIFIED, SpoiledReferenceStrategy.IGNORE);
         s.addMapping(CrawlDocState.BAD_STATUS, SpoiledReferenceStrategy.DELETE);

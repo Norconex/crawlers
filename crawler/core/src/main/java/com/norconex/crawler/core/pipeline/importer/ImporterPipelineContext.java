@@ -22,7 +22,7 @@ import com.norconex.importer.response.ImporterResponse;
 import lombok.Data;
 
 /**
- * A context object for crawl session pipelines dealing
+ * A context object for crawler pipelines dealing
  * with {@link ImporterResponse}.
  */
 @Data

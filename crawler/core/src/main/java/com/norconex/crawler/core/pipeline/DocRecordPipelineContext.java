@@ -38,6 +38,4 @@ public class DocRecordPipelineContext extends AbstractPipelineContext {
     public CrawlDocRecord getDocRecord() {
         return docRecord;
     }
-
-
 }

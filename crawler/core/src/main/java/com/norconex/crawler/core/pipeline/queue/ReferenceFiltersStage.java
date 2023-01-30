@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  */
 package com.norconex.crawler.core.pipeline.queue;
 
+import java.util.function.Predicate;
+
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.commons.lang.pipeline.IPipelineStage;
 
 /**
  * Common pipeline stage for filtering references.
  */
 public class ReferenceFiltersStage
-        implements IPipelineStage<DocRecordPipelineContext> {
+        implements Predicate<DocRecordPipelineContext> {
 
     private final String type;
 
@@ -30,12 +31,11 @@ public class ReferenceFiltersStage
         this(null);
     }
     public ReferenceFiltersStage(String type) {
-        super();
         this.type = type;
     }
 
     @Override
-    public boolean execute(DocRecordPipelineContext ctx) {
+    public boolean test(DocRecordPipelineContext ctx) {
         if (ReferenceFiltersStageUtil.resolveReferenceFilters(
                 ctx.getConfig().getReferenceFilters(), ctx, type)) {
             ctx.getDocRecord().setState(CrawlDocState.REJECTED);

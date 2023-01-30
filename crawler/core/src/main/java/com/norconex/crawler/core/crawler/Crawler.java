@@ -168,8 +168,8 @@ public class Crawler {
 
     private boolean stopped;
 
-    @Builder()
-    private Crawler(
+    @Builder
+    protected Crawler(
             @NonNull CrawlSession crawlSession,
             @NonNull CrawlerConfig crawlerConfig,
             @NonNull CrawlerImpl crawlerImpl) {

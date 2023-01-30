@@ -17,6 +17,11 @@ package com.norconex.crawler.core.store;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@EqualsAndHashCode
+@ToString
 public class MockDataStore<T> implements DataStore<T> {
     @Override
     public String getName() {

@@ -19,16 +19,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * <p>
@@ -70,8 +69,9 @@ import com.norconex.commons.lang.xml.XML;
  * documents, and send a deletion request if they are not found or have
  * resulted in a bad status.
  * </p>
- *
  */
+@EqualsAndHashCode
+@ToString
 public class GenericSpoiledReferenceStrategizer implements
         SpoiledReferenceStrategizer, XMLConfigurable {
 
@@ -84,7 +84,6 @@ public class GenericSpoiledReferenceStrategizer implements
             DEFAULT_FALLBACK_STRATEGY;
 
     public GenericSpoiledReferenceStrategizer() {
-        super();
         // store default mappings
         mappings.put(CrawlDocState.NOT_FOUND, SpoiledReferenceStrategy.DELETE);
         mappings.put(CrawlDocState.BAD_STATUS,
@@ -96,7 +95,7 @@ public class GenericSpoiledReferenceStrategizer implements
     public SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
             String reference, CrawlDocState state) {
 
-        SpoiledReferenceStrategy strategy = mappings.get(state);
+        var strategy = mappings.get(state);
         if (strategy == null) {
             strategy = getFallbackStrategy();
         }
@@ -120,7 +119,7 @@ public class GenericSpoiledReferenceStrategizer implements
 
     @Override
     public void loadFromXML(XML xml) {
-        SpoiledReferenceStrategy fallback = xml.getEnum(
+        var fallback = xml.getEnum(
                 "@fallbackStrategy",
                 SpoiledReferenceStrategy.class, fallbackStrategy);
         if (fallback != null) {
@@ -128,13 +127,13 @@ public class GenericSpoiledReferenceStrategizer implements
         }
 
         for (XML node : xml.getXMLList("mapping")) {
-            String attribState = node.getString("@state", null);
-            SpoiledReferenceStrategy strategy = node.getEnum(
+            var attribState = node.getString("@state", null);
+            var strategy = node.getEnum(
                     "@strategy", SpoiledReferenceStrategy.class);
             if (StringUtils.isBlank(attribState) || strategy == null) {
                 continue;
             }
-            CrawlDocState state = CrawlDocState.valueOf(attribState);
+            var state = CrawlDocState.valueOf(attribState);
             addMapping(state, strategy);
         }
     }
@@ -148,35 +147,5 @@ public class GenericSpoiledReferenceStrategizer implements
                     .setAttribute("state", entry.getKey())
                     .setAttribute("strategy", entry.getValue());
         }
-    }
-
-
-    @Override
-    public boolean equals(final Object other) {
-        if (!(other instanceof GenericSpoiledReferenceStrategizer)) {
-            return false;
-        }
-        GenericSpoiledReferenceStrategizer castOther =
-                (GenericSpoiledReferenceStrategizer) other;
-        return new EqualsBuilder()
-                .append(fallbackStrategy, castOther.fallbackStrategy)
-                .append(mappings, castOther.mappings)
-                .isEquals();
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder()
-                .append(fallbackStrategy)
-                .append(mappings)
-                .toHashCode();
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("fallbackStrategy", fallbackStrategy)
-                .append("mappings", mappings)
-                .toString();
     }
 }

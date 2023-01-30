@@ -27,10 +27,10 @@ public class MockQueuePipeline implements QueuePipeline {
         for (ReferenceFilter f : ctx.getConfig().getReferenceFilters()) {
             if (!f.acceptReference(ctx.getDocRecord().getReference())) {
                 ctx.getDocRecord().setState(CrawlDocState.REJECTED);
-                ctx.fire(CrawlerEvent.REJECTED_FILTER);
+                ctx.getCrawler().fire(CrawlerEvent.REJECTED_FILTER);
                 return;
             }
         }
-        ctx.getDocInfoService().queue(ctx.getDocRecord());
+        ctx.getDocRecordService().queue(ctx.getDocRecord());
     }
 }

@@ -31,7 +31,6 @@ import com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.crawler.core.filter.ReferenceFilter;
-import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStoreEngine;
@@ -516,7 +515,7 @@ public class CrawlerConfig implements XMLConfigurable {
                 Fields.minProgressLoggingInterval, minProgressLoggingInterval));
         setStopOnExceptions(xml.getClassList(
                 "stopOnExceptions/exception", stopOnExceptions));
-        setReferenceFilters(xml.getObjectListImpl(GenericReferenceFilter.class,
+        setReferenceFilters(xml.getObjectListImpl(ReferenceFilter.class,
                 "referenceFilters/filter", referenceFilters));
         setMetadataFilters(xml.getObjectListImpl(MetadataFilter.class,
                 "metadataFilters/filter", metadataFilters));

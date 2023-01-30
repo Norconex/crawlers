@@ -41,7 +41,7 @@ class CrawlerEventTest {
 
         assertThat(event.isCrawlerShutdown()).isFalse();
         assertThat(event.getSubject()).hasToString("somesubject");
-        assertThat(event.getSource()).hasToString("Crawler[test-crawler]");
+        assertThat(event.getSource()).hasToString("MockCrawler[test-crawler]");
         assertThat(
                 event.getCrawlDocRecord().getReference()).isEqualTo("someref");
         assertThat(event).hasToString("someref - somemessage");
@@ -53,7 +53,7 @@ class CrawlerEventTest {
         assertThat(event).hasToString("someref - somesubject");
 
         event = event(b -> b.message(null).subject(null));
-        assertThat(event).hasToString("someref - Crawler[test-crawler]");
+        assertThat(event).hasToString("someref - MockCrawler[test-crawler]");
     }
 
     private CrawlerEvent event(Consumer<CrawlerEventBuilder<?, ?>>  c) {

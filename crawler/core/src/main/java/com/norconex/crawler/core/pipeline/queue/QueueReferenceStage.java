@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,39 +14,31 @@
  */
 package com.norconex.crawler.core.pipeline.queue;
 
+import java.util.function.Predicate;
+
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.doc.CrawlDocRecord.Stage;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.commons.lang.pipeline.IPipelineStage;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Common pipeline stage for queuing documents.
  */
+@Slf4j
 public class QueueReferenceStage
-        implements IPipelineStage<DocRecordPipelineContext> {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(QueueReferenceStage.class);
-
-    /**
-     * Constructor.
-     */
-    public QueueReferenceStage() {
-        super();
-    }
+        implements Predicate<DocRecordPipelineContext> {
 
     @Override
-    public boolean execute(DocRecordPipelineContext ctx) {
+    public boolean test(DocRecordPipelineContext ctx) {
         //TODO document and make sure it cannot be blank and remove this check?
         String ref = ctx.getDocRecord().getReference();
         if (StringUtils.isBlank(ref)) {
             return true;
         }
 
-        Stage stage = ctx.getDocInfoService().getProcessingStage(ref);
+        var stage = ctx.getDocRecordService().getProcessingStage(ref);
 
         //TODO make this a reusable method somewhere, or part of the
         //CrawlDocRecordService?
@@ -57,7 +49,7 @@ public class QueueReferenceStage
         } else if (Stage.PROCESSED.is(stage)) {
             debug("Already processed: %s", ref);
         } else {
-            ctx.getDocInfoService().queue(ctx.getDocRecord());
+            ctx.getDocRecordService().queue(ctx.getDocRecord());
             debug("Queued for processing: %s", ref);
         }
         return true;

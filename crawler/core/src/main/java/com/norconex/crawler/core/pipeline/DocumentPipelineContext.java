@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,19 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 /**
  * Pipeline context for document processing.
  */
+@EqualsAndHashCode
+@ToString
 public class DocumentPipelineContext extends AbstractPipelineContext {
 
     private CrawlDoc document;
@@ -68,19 +68,5 @@ public class DocumentPipelineContext extends AbstractPipelineContext {
     public Reader getContentReader() {
         return new InputStreamReader(
                 getDocument().getInputStream(), StandardCharsets.UTF_8);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

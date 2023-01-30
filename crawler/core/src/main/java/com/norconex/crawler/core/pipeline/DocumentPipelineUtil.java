@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  */
 package com.norconex.crawler.core.pipeline;
 
-import java.util.List;
-
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.importer.handler.filter.OnMatch;
@@ -44,8 +41,8 @@ public final class DocumentPipelineUtil {
         for (MetadataFilter filter : filters) {
             var accepted = filter.acceptMetadata(
                     ctx.getDocRecord().getReference(), metadata);
-            var isInclude = filter instanceof OnMatchFilter
-                   && OnMatch.INCLUDE == ((OnMatchFilter) filter).getOnMatch();
+            var isInclude = filter instanceof OnMatchFilter onMatchFilter
+                   && OnMatch.INCLUDE == onMatchFilter.getOnMatch();
             if (isInclude) {
                 hasIncludes = true;
                 if (accepted) {

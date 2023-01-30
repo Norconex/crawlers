@@ -19,8 +19,6 @@ import static com.norconex.crawler.core.crawler.CrawlerEvent.REJECTED_FILTER;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.filter.ReferenceFilter;
@@ -28,24 +26,21 @@ import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.OnMatchFilter;
 
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Reference-filtering stage utility methods.
  */
+@Slf4j
 public final class ReferenceFiltersStageUtil {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ReferenceFiltersStageUtil.class);
-
-    private ReferenceFiltersStageUtil() {
-    }
+    private ReferenceFiltersStageUtil() {}
 
     // return true if reference is rejected
     public static boolean resolveReferenceFilters(
-            List<ReferenceFilter> filters,
+            @NonNull List<ReferenceFilter> filters,
             DocRecordPipelineContext ctx, String type) {
-        if (filters == null) {
-            return false;
-        }
         var msg = StringUtils.trimToEmpty(type);
         if (StringUtils.isNotBlank(msg)) {
             msg = " (" + msg + ")";

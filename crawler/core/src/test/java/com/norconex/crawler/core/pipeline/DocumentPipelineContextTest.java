@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.pipeline.importer;
+package com.norconex.crawler.core.pipeline;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,25 +26,22 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.Stubber;
 
-class ImportModuleStageTest {
+class DocumentPipelineContextTest {
 
     @TempDir
     private Path tempDir;
 
     @Test
-    void testImportModuleStage() throws IOException {
-        var doc = Stubber.crawlDoc("ref", "tomato");
+    void testDocumentPipelineContext() throws IOException {
         var crawler = Stubber.crawler(tempDir);
-        crawler.getCrawlerConfig().getImporterConfig().setPreParseConsumer(
-                hctx -> hctx.getDoc().setInputStream(
-                        IOUtils.toInputStream("potato", UTF_8)));
-        crawler.start();
-        var ctx = new ImporterPipelineContext(crawler, doc);
-        var stage = new ImportModuleStage();
-        stage.test(ctx);
-
-        // no filters is equal to a match
+        var doc = Stubber.crawlDocWithCache("ref", "content");
+        var ctx = new DocumentPipelineContext(crawler, doc);
+        assertThat(ctx.getDocRecord().getReference()).isEqualTo("ref");
+        assertThat(ctx.getDocument()).isEqualTo(doc);
+        assertThat(ctx.getCachedDocRecord()).isEqualTo(
+                doc.getCachedDocRecord());
+        assertThat(ctx.getContent()).asString(UTF_8).isEqualTo("content");
         assertThat(IOUtils.toString(
-                ctx.getContent(), UTF_8).trim()).isEqualTo("potato");
+                ctx.getContentReader())).isEqualTo("content");
     }
 }

@@ -19,8 +19,12 @@ import java.util.Set;
 
 import com.norconex.crawler.core.crawler.Crawler;
 
-public class MockDataStoreEngine implements DataStoreEngine {
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+@EqualsAndHashCode
+@ToString
+public class MockDataStoreEngine implements DataStoreEngine {
 
     private DataStore<?> dataStore = new MockDataStore<>();
     public MockDataStoreEngine() {}
@@ -38,6 +42,7 @@ public class MockDataStoreEngine implements DataStoreEngine {
     @Override
     public void close() {
     }
+    @SuppressWarnings("unchecked")
     @Override
     public <T> DataStore<T> openStore(String name, Class<? extends T> type) {
         return (DataStore<T>) dataStore;
