@@ -22,8 +22,8 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.MockQueueInitializer;
 import com.norconex.crawler.core.TestUtil;
+import com.norconex.crawler.core.pipeline.queue.MockQueueInitializer;
 
 class CrawlProgressLoggerTest {
 

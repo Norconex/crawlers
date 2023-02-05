@@ -106,7 +106,6 @@ public class CrawlSession {
     @Data
     @Accessors(fluent = true)
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-//    @Getter(value = AccessLevel.NONE)
     public static class CrawlSessionBuilder {
         private BiFunction<CrawlSession, CrawlerConfig, Crawler> crawlerFactory;
         private CrawlSessionConfig crawlSessionConfig;
@@ -118,7 +117,6 @@ public class CrawlSession {
 
     protected CrawlSession(CrawlSessionBuilder builder) {
         //TODO clone config so modifications no longer apply?
-
         crawlSessionConfig = Objects.requireNonNull(builder.crawlSessionConfig,
                 "'crawlSessionConfig' must not be null.");
         eventManager = new EventManager(builder.eventManager);
@@ -196,20 +194,6 @@ public class CrawlSession {
 
     protected void initCrawlSession() {
         // Ensure clean slate by either replacing or clearing and adding back
-
-//        //--- Session Directories ---
-//        var cfgWorkDir = Optional
-//                .ofNullable(crawlSessionConfig.getWorkDir())
-//                .orElseGet(() -> CrawlSessionConfig.DEFAULT_WORK_DIR);
-//        workDir = cfgWorkDir.resolve(FileUtil.toSafeFileName(getId()));
-//        tempDir = workDir.resolve("temp");
-//        try {
-//            Files.createDirectories(tempDir);
-//                // will also create workdir parent
-//        } catch (IOException e) {
-//            throw new CrawlSessionException(
-//                    "Could not create directory: " + workDir, e);
-//        }
 
         //--- (Re)create crawlers
         crawlers.clear();
@@ -479,12 +463,6 @@ public class CrawlSession {
         }
     }
 
-
-//
-//    public String getVersion() {
-//        return VersionUtil.getVersion(getClass(), "Undefined");
-//    }
-//
     //TODO rename sessionInfo()??
     //TODO used in a few palces... Move to generic/util class
     public static String getReleaseInfo(CrawlSessionConfig crawlSessionConfig) {
@@ -495,7 +473,6 @@ public class CrawlSession {
             .append(CrawlSessionUtil.getReleaseInfo(crawlSessionConfig))
             .toString();
     }
-
 
     protected synchronized void lock() {
         LOG.debug("Locking CrawlSession execution...");
@@ -513,6 +490,7 @@ public class CrawlSession {
         }
         LOG.debug("CrawlSession execution locked");
     }
+
     protected synchronized void unlock() {
         try {
             if (lock != null) {

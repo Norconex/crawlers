@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2017-2020 Norconex Inc.
+   Copyright 2017-2023 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 <!-- This is a config file with as many configuration options being set
      as possible, to test validation as much we can.
      -->
-<config id="Test Overwrite crawlerDefaults">
+<crawlSession id="Test Overwrite crawlerDefaults">
 
   <crawlerDefaults>
     <numThreads>1</numThreads>
@@ -72,4 +72,4 @@
     </crawler>
 
   </crawlers>
-</config>
+</crawlSession>

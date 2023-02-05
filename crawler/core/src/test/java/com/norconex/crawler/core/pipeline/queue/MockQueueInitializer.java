@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core;
+package com.norconex.crawler.core.pipeline.queue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,9 @@ import com.norconex.crawler.core.crawler.CrawlerImpl.QueueInitContext;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Data
 public class MockQueueInitializer
         implements Function<QueueInitContext, MutableBoolean> {
@@ -50,10 +52,14 @@ public class MockQueueInitializer
     }
 
     private void queueAll(QueueInitContext ctx) {
-        startReferences.forEach(ref -> {
+        for (String ref : startReferences) {
+            if (ctx.getCrawler().isStopped()) {
+                LOG.info("Crawler stop requested, no longer queuing.");
+                break;
+            }
             Sleeper.sleepMillis(getDelay());
             ctx.queue(new CrawlDocRecord(ref));
-        });
+        }
         done.setTrue();
     }
 }

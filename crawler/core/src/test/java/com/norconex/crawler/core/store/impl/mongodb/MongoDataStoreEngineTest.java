@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.store.impl.mongodb;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -24,11 +22,11 @@ import org.testcontainers.utility.DockerImageName;
 import com.norconex.crawler.core.store.AbstractDataStoreEngineTest;
 import com.norconex.crawler.core.store.DataStoreEngine;
 
-@Testcontainers(disabledWithoutDocker = true)
-class MongoDataStoreEngineTest extends AbstractDataStoreEngineTest {
+import lombok.extern.slf4j.Slf4j;
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(MongoDataStoreEngineTest.class);
+@Testcontainers(disabledWithoutDocker = true)
+@Slf4j
+class MongoDataStoreEngineTest extends AbstractDataStoreEngineTest {
 
     @Container
     static MongoDBContainer mongoDBContainer =
@@ -36,12 +34,12 @@ class MongoDataStoreEngineTest extends AbstractDataStoreEngineTest {
 
     @Override
     protected DataStoreEngine createEngine() {
-        String connStr = "mongodb://"
+        var connStr = "mongodb://"
                 + mongoDBContainer.getHost() + ":"
                 + mongoDBContainer.getFirstMappedPort();
 
         LOG.info("Creating new Mongo data store engine using: {}", connStr);
-        MongoDataStoreEngine engine = new MongoDataStoreEngine();
+        var engine = new MongoDataStoreEngine();
         engine.setConnectionString(connStr);
         return engine;
     }

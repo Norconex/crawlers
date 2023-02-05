@@ -70,7 +70,7 @@ class AbstractFetcherTest {
                 methodsCalled.add("fetcherThreadEnd");
             }
         };
-        TestUtil.withInitializedSession(tempDir, session -> {
+        TestUtil.withinInitializedSession(tempDir, session -> {
             f.accept(CrawlSessionEvent.builder()
                     .name(CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN)
                     .source(session)

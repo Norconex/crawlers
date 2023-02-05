@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.crawler;
 
-import com.norconex.crawler.core.MockCrawlSession;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.MockCrawlSession;
 
 import lombok.NonNull;
 
@@ -31,6 +31,9 @@ public class MockCrawler extends Crawler {
 
     public void sneakyInitCrawler() {
         initCrawler();
+    }
+    public void sneakyDestroyCrawler() {
+        destroyCrawler();
     }
 
     @Override

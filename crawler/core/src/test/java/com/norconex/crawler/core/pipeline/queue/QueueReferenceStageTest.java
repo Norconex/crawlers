@@ -33,7 +33,7 @@ class QueueReferenceStageTest {
 
     @Test
     void testQueueReferenceStage() {
-        TestUtil.withInitializedCrawler(tempDir, crawler -> {
+        TestUtil.withinInitializedCrawler(tempDir, crawler -> {
             var docRecord = Stubber.crawlDocRecord("ref");
             var stage = new QueueReferenceStage();
 

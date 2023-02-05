@@ -35,7 +35,6 @@ import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
-import com.norconex.crawler.core.crawler.MockCrawler;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 
@@ -84,6 +83,10 @@ public final class TestUtil {
         }
         return null;
     }
+//    public static MockCrawler getFirstMockCrawler(
+//            @NonNull CrawlSession crawlSession) {
+//        return (MockCrawler) getFirstCrawler(crawlSession);
+//    }
     public static CrawlerConfig getFirstCrawlerConfig(
             @NonNull CrawlSession crawlSession) {
         return crawlSession.getCrawlSessionConfig().getCrawlerConfigs().get(0);
@@ -174,17 +177,29 @@ public final class TestUtil {
         }
     }
 
-    public static void withInitializedSession(
+    public static void withinInitializedSession(
             @NonNull Path workDir, @NonNull Consumer<CrawlSession> c) {
         var session = Stubber.crawlSession(workDir);
         session.sneakyInitCrawlSession();
         c.accept(session);
+        session.sneakyDestroyCrawlSession();
     }
-    public static void withInitializedCrawler(
+    public static void withinInitializedCrawler(
             @NonNull Path workDir, @NonNull Consumer<Crawler> c) {
+        withinInitializedCrawler(workDir, c, null);
+    }
+    public static void withinInitializedCrawler(
+            @NonNull Path workDir,
+            @NonNull Consumer<Crawler> c,
+            Consumer<CrawlerConfig> configModifier) {
         var crawler = Stubber.crawler(workDir);
+        if (configModifier != null) {
+            configModifier.accept(crawler.getCrawlerConfig());
+        }
         crawler.getCrawlSession().sneakyInitCrawlSession();
         crawler.sneakyInitCrawler();
         c.accept(crawler);
+        crawler.sneakyDestroyCrawler();
+        crawler.getCrawlSession().sneakyDestroyCrawlSession();
     }
 }

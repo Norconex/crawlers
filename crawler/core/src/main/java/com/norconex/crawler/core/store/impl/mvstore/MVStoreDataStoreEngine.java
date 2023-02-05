@@ -20,10 +20,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
@@ -34,10 +30,15 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerException;
-import com.norconex.crawler.core.store.DataStoreException;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
+import com.norconex.crawler.core.store.DataStoreException;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@EqualsAndHashCode
+@ToString
 public class MVStoreDataStoreEngine
         implements DataStoreEngine, XMLConfigurable {
 
@@ -131,7 +132,6 @@ public class MVStoreDataStoreEngine
         }
         dropStore(STORE_TYPES_KEY);
         var dirToDelete = engineDir.toFile();
-        close();
         try {
             FileUtils.deleteDirectory(dirToDelete);
         } catch (IOException e) {
@@ -221,19 +221,4 @@ public class MVStoreDataStoreEngine
         xml.addElement("autoCommitBufferSize", cfg.getAutoCommitBufferSize());
         xml.addElement("autoCommitDelay", cfg.getAutoCommitDelay());
     }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
-    }
-
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   Copyright 2021-2022 Norconex Inc.
+   Copyright 2021-2023 Norconex Inc.
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -34,6 +34,31 @@
           </xs:complexType>
         </xs:element>
         <xs:element name="tablePrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="dataTypes" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+            
+              <xs:element name="varchar" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+	              <xs:attribute name="use" type="xs:string"/>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element name="timestamp" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                  <xs:attribute name="use" type="xs:string"/>
+                </xs:complexType>
+              </xs:element>
+
+              <xs:element name="text" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                  <xs:attribute name="use" type="xs:string"/>
+                </xs:complexType>
+              </xs:element>
+              
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
     </xs:complexType>

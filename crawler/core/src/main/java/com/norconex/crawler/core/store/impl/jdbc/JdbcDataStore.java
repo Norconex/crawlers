@@ -26,8 +26,8 @@ import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
-import com.norconex.crawler.core.store.DataStoreException;
 import com.norconex.crawler.core.store.DataStore;
+import com.norconex.crawler.core.store.DataStoreException;
 import com.norconex.crawler.core.store.impl.SerialUtil;
 
 public class JdbcDataStore<T> implements DataStore<T> {
@@ -187,12 +187,12 @@ public class JdbcDataStore<T> implements DataStore<T> {
         try (var conn = engine.getConnection()) {
             try (var stmt = conn.createStatement()) {
                 stmt.executeUpdate("""
-                        CREATE TABLE %s ("
-                          id %s NOT NULL, "
-                          modified %s, "
-                          json %s, "
-                          PRIMARY KEY (id) "
-                        )"
+                        CREATE TABLE %s (
+                          id %s NOT NULL,
+                          modified %s,
+                          json %s,
+                          PRIMARY KEY (id)
+                        )
                         """.formatted(
                                 tableName,
                                 adapter.idType(),

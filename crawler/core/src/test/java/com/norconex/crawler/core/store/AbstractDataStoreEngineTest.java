@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.core.store;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -22,25 +25,30 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.crawler.core.TestUtil;
+
+import lombok.extern.slf4j.Slf4j;
 
 // Uses inheritance instead of parameterized test because we need to
 // disable some store engine in some environments and report them as skipped.
+@Slf4j
 public abstract class AbstractDataStoreEngineTest {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AbstractDataStoreEngineTest.class);
 
     protected static final String TEST_STORE_NAME = "testStore";
 
     @TempDir
-    Path tempFolder;
+    private Path tempDir;
 
     private TestObject obj;
+
+    public Path getTempDir() {
+        return tempDir;
+    }
 
     @BeforeEach
     protected void beforeEach() throws IOException {
@@ -57,12 +65,15 @@ public abstract class AbstractDataStoreEngineTest {
         inNewStoreSession(store -> {
             store.clear();
         });
+        inNewStoreEngineSession(engine -> {
+            engine.clean();
+        });
     }
 
     protected abstract DataStoreEngine createEngine();
 
     @Test
-    void testFind() {
+    void testStoreFind() {
         savePojo(obj);
         inNewStoreSession(store -> {
             var newPojo = store.find("areference").get();
@@ -71,7 +82,7 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     @Test
-    void testFindFirst() {
+    void testStoreFindFirst() {
         savePojo(obj);
         var obj2 = new TestObject("breference", 67, "blah", "ipsum");
         savePojo(obj2);
@@ -82,7 +93,7 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     @Test
-    void testForEach() {
+    void testStoreForEach() {
         // Saving two entries, make sure they are retreived
         savePojo(obj);
         var obj2 = new TestObject("breference", 67, "blah", "ipsum");
@@ -96,7 +107,7 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     @Test
-    void testExists() {
+    void testStoreExists() {
         savePojo(obj);
         inNewStoreSession(store -> {
             Assertions.assertTrue(store.exists("areference"));
@@ -105,7 +116,7 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     @Test
-    void testCount() {
+    void testStoreCount() {
         savePojo(obj);
         // each test start with 1
         inNewStoreSession(store -> {
@@ -120,7 +131,7 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     @Test
-    void testDelete() {
+    void testStoreDelete() {
         savePojo(obj);
         inNewStoreSession(store -> {
             Assertions.assertEquals(1, store.count());
@@ -132,7 +143,7 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     @Test
-    void testDeleteFirst() {
+    void testStoreDeleteFirst() {
         savePojo(obj);
 
         inNewStoreSession(store -> {
@@ -145,7 +156,17 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     @Test
-    void testModify() {
+    void testEngineRenameStore() {
+        inNewStoreEngineSession(engine -> {
+            DataStore<TestObject> store =
+                    engine.openStore(TEST_STORE_NAME, TestObject.class);
+            engine.renameStore(store, "blah");
+            assertThat(store.getName()).isEqualTo("blah");
+        });
+    }
+
+    @Test
+    void testStoreModify() {
         // 1st save:
         savePojo(obj);
         // 2nd save:
@@ -167,7 +188,7 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     @Test
-    void testInstanceModifyId() {
+    void testStoreInstanceModifyId() {
         // 1st save:
         savePojo(obj);
         // 2nd save:
@@ -195,7 +216,7 @@ public abstract class AbstractDataStoreEngineTest {
     }
 
     @Test
-    void testClear() {
+    void testStoreClear() {
         savePojo(obj);
 
         // add 2nd:
@@ -212,30 +233,64 @@ public abstract class AbstractDataStoreEngineTest {
         });
     }
 
+    @Test
+    void testEngineClean() {
+        savePojo(obj);
+        inNewStoreEngineSession(engine -> {
+            engine.openStore("storeA", TestObject.class);
+            engine.openStore("storeB", TestObject.class);
+            assertThat(engine.getStoreNames())
+                .map(String::toUpperCase)
+                .containsExactlyInAnyOrder(
+                        "ACTIVE",
+                        "QUEUED",
+                        "TESTSTORE",
+                        "STOREB",
+                        "STOREA",
+                        "PROCESSED",
+                        "CACHED");
+            engine.clean();
+            assertThat(engine.getStoreNames()).isEmpty();
+        });
+    }
+
+    @Test
+    void testEngineWriteRead() {
+        var engine = createEngine();
+        assertThatNoException().isThrownBy(() ->
+                XML.assertWriteRead((XMLConfigurable) engine,
+                        "dataStoreEngine"));
+    }
+
     private void savePojo(TestObject testPojo) {
         inNewStoreSession(store -> {
             store.save(testPojo.getReference(), testPojo);
         });
     }
 
+    private void inNewStoreEngineSession(Consumer<DataStoreEngine> c) {
+        TestUtil.withinInitializedCrawler(
+                tempDir,
+                crawler -> {
+                    LOG.debug("Start data store engine test...");
+                    c.accept(crawler.getDataStoreEngine());
+                    LOG.debug("Data store test engine done.");
+                },
+                cfg -> cfg.setDataStoreEngine(createEngine()));
+    }
+
     private void inNewStoreSession(Consumer<DataStore<TestObject>> c) {
-//        DataStoreEngine engine = createEngine();
-//        MockCollectorConfig collConfig = new MockCollectorConfig();
-//        collConfig.setWorkDir(tempFolder.resolve("storeEngine"));
-//        MockCrawlSession coll = new MockCrawlSession(collConfig);
-//        MockCrawlerConfig crawlConfig = new MockCrawlerConfig();
-//        crawlConfig.setDataStoreEngine(engine);
-//        MockCrawler crawler = new MockCrawler(crawlConfig, coll);
-//        try {
-//            crawler.initMockCrawler();
-//            LOG.debug("Start data store test...");
-//            try (DataStore<TestObject> store =
-//                    engine.openStore(TEST_STORE_NAME, TestObject.class)) {
-//                c.accept(store);
-//            }
-//            LOG.debug("Data store test done.");
-//        } finally {
-//            crawler.destroyMockCrawler();
-//        }
+        TestUtil.withinInitializedCrawler(
+                tempDir,
+                crawler -> {
+                    LOG.debug("Start data store test...");
+                    try (DataStore<TestObject> store =
+                            crawler.getDataStoreEngine().openStore(
+                                    TEST_STORE_NAME, TestObject.class)) {
+                        c.accept(store);
+                    }
+                    LOG.debug("Data store test done.");
+                },
+                cfg -> cfg.setDataStoreEngine(createEngine()));
     }
 }

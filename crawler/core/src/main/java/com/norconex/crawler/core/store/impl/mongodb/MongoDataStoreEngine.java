@@ -41,9 +41,12 @@ import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.store.DataStoreException;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
+import com.norconex.crawler.core.store.DataStoreException;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * <p>
@@ -57,6 +60,8 @@ import com.norconex.crawler.core.store.DataStoreEngine;
  * }
  *
  */
+@EqualsAndHashCode
+@ToString
 public class MongoDataStoreEngine
         implements DataStoreEngine, XMLConfigurable {
 

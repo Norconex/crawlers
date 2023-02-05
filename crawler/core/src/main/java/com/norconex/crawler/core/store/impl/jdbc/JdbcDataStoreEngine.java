@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.store.impl.jdbc;
 
-import static org.apache.commons.lang3.StringUtils.removeStart;
+import static org.apache.commons.lang3.StringUtils.removeStartIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 
 import java.sql.Connection;
@@ -32,12 +32,14 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.store.DataStoreException;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
+import com.norconex.crawler.core.store.DataStoreException;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -105,6 +107,8 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  */
 @Slf4j
+@EqualsAndHashCode
+@ToString
 public class JdbcDataStoreEngine
         implements DataStoreEngine, XMLConfigurable {
 
@@ -159,8 +163,8 @@ public class JdbcDataStoreEngine
         // create a clean table name prefix to avoid collisions in case
         // multiple crawlers use the same DB.
         if (tablePrefix == null) {
-            tablePrefix = crawler.getCrawlSession().getId()
-                    + "_" + crawler.getId() + "_";
+            tablePrefix = tablePrefix(crawler.getCrawlSession().getId()
+                    + "_" + crawler.getId() + "_");
         }
 
         // create data source
@@ -191,7 +195,6 @@ public class JdbcDataStoreEngine
             names.stream().forEach(this::dropStore);
         }
         dropStore(STORE_TYPES_NAME);
-        close();
         return hasStores;
     }
 
@@ -260,7 +263,8 @@ public class JdbcDataStoreEngine
                     var tableName = rs.getString(3);
                     if (startsWithIgnoreCase(tableName, tablePrefix)) {
                         // only add if not the table holding store types
-                        var storeName = removeStart(tableName, tablePrefix);
+                        var storeName =
+                                removeStartIgnoreCase(tableName, tablePrefix);
                         if (!STORE_TYPES_NAME.equalsIgnoreCase(storeName)) {
                             names.add(storeName);
                         }
@@ -337,9 +341,13 @@ public class JdbcDataStoreEngine
                     "Could not get database connection.", e);
         }
     }
+    String tablePrefix(String prefix) {
+        var n = prefix.trim();
+        n = n.replaceFirst("(?i)^[^a-z]", "x");
+        return n.replaceAll("\\W+", "_");
+    }
     String tableName(String storeName) {
         var n = tablePrefix + storeName.trim();
-        n = n.replaceFirst("(?i)^[^a-z]", "x");
         return n.replaceAll("\\W+", "_");
     }
 

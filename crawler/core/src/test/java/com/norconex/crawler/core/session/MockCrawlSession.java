@@ -12,18 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core;
-
-import com.norconex.crawler.core.session.CrawlSession;
+package com.norconex.crawler.core.session;
 
 //Mainly exists to provide access to internal methods/properties
 public class MockCrawlSession extends CrawlSession {
 
-    protected MockCrawlSession(CrawlSessionBuilder builder) {
+    public MockCrawlSession(CrawlSessionBuilder builder) {
         super(builder);
     }
 
     public void sneakyInitCrawlSession() {
         initCrawlSession();
+    }
+    public void sneakyDestroyCrawlSession() {
+        destroyCrawlSession();
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2022-2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,54 +15,29 @@
 package com.norconex.crawler.core.session;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.committer.core.fs.impl.JSONFileCommitter;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter;
+import com.norconex.importer.handler.HandlerConsumer;
+import com.norconex.importer.handler.transformer.impl.ReplaceTransformer;
 
 class CrawlSessionConfigTest {
-
-//    private EasyRandom easyRandom = new EasyRandom(new EasyRandomParameters()
-//            .seed(System.currentTimeMillis())
-//            .collectionSizeRange(1, 5)
-//            .randomizationDepth(5)
-//            .scanClasspathForConcreteTypes(true)
-//            .overrideDefaultInitialization(true)
-//            .randomize(Path.class,
-//                    () -> Path.of(new StringRandomizer(100).getRandomValue()))
-//            .randomize(Long.class,
-//                    () -> Math.abs(new LongRandomizer().getRandomValue()))
-//            .randomize(DataStoreEngine.class, MockDataStoreEngine::new)
-//            .randomize(DataStore.class, MockDataStore::new)
-//            .objectFactory(new ObjectFactory() {
-//                @SuppressWarnings("unchecked")
-//                @Override
-//                public <T> T createInstance(
-//                        Class<T> type, RandomizerContext context)
-//                                throws ObjectCreationException {
-//                    if (type.isAssignableFrom(CrawlSessionConfig.class)) {
-//                        return (T) new CrawlSessionConfig(CrawlerConfig.class);
-//                    }
-//                    try {
-//                        return type.getDeclaredConstructor().newInstance();
-//                    } catch (Exception e) {
-//                        throw new ObjectCreationException(
-//                                "Unable to create a new instance of " + type,
-//                                e);
-//                    }
-//                }
-//            })
-//    );
 
     @Test
     void testCrawlSessionConfig() {
         var cfg = Stubber.randomize(CrawlSessionConfig.class);
-//                easyRandom.nextObject(CrawlSessionConfig.class);
         assertThatNoException().isThrownBy(
                 () -> XML.assertWriteRead(cfg, "crawlSession"));
     }
@@ -76,39 +51,40 @@ class CrawlSessionConfigTest {
         }
 
         var crawlA = cfg.getCrawlerConfigs().get(0);
-//TODO when CrawlerConfig has been migrated
-//        assertEquals(22, crawlA.getNumThreads(),
-//                "crawlA");
-//        assertEquals("crawlAFilter", ((ExtensionReferenceFilter)
-//                crawlA.getReferenceFilters().get(0))
-//                        .getExtensions().iterator().next(), "crawlA");
-//        assertEquals("F", ((ReplaceTransformer)
-//                crawlA.getImporterConfig().getPreParseHandlers().get(0))
-//                        .getReplacements().get(0).getToValue(),
-//                "crawlA");
-//        assertTrue(CollectionUtils.isEmpty(
-//                crawlA.getImporterConfig().getPostParseHandlers()),
-//                "crawlA");
-//        assertEquals("crawlACommitter", ((JSONFileCommitter)
-//                crawlA.getCommitters().get(0)).getDirectory().toString(),
-//                "crawlA");
-//
-//        MockCrawlerConfig crawlB =
-//                (MockCrawlerConfig) cfg.getCrawlerConfigs().get(1);
-//        assertEquals(1, crawlB.getNumThreads(), "crawlB");
-//        assertEquals("defaultFilter", ((ExtensionReferenceFilter)
-//                crawlB.getReferenceFilters().get(0)).getExtensions()
-//                        .iterator().next(), "crawlB");
-//        assertEquals("B", ((ReplaceTransformer)
-//                crawlB.getImporterConfig().getPreParseHandlers().get(0))
-//                        .getReplacements().get(0).getToValue(),
-//                "crawlB");
-//        assertEquals("D", ((ReplaceTransformer)
-//                crawlB.getImporterConfig().getPostParseHandlers().get(0))
-//                        .getReplacements().get(0).getToValue(),
-//                "crawlB");
-//        assertEquals("defaultCommitter", ((JSONFileCommitter)
-//                crawlB.getCommitters().get(0)).getDirectory().toString(),
-//                "crawlB");
+        assertEquals(22, crawlA.getNumThreads(),
+                "crawlA");
+        assertEquals("crawlAFilter", ((ExtensionReferenceFilter)
+                crawlA.getReferenceFilters().get(0))
+                        .getExtensions().iterator().next(), "crawlA");
+        assertEquals("F", ((ReplaceTransformer)
+                ((HandlerConsumer) crawlA.getImporterConfig()
+                        .getPreParseConsumer()).getHandler())
+                        .getReplacements().get(0).getToValue(),
+                "crawlA");
+        assertTrue(CollectionUtils.isEmpty(
+                (List<?>) crawlA.getImporterConfig().getPostParseConsumer()),
+                "crawlA");
+        assertEquals("crawlACommitter", ((JSONFileCommitter)
+                crawlA.getCommitters().get(0)).getDirectory().toString(),
+                "crawlA");
+
+        var crawlB = cfg.getCrawlerConfigs().get(1);
+        assertEquals(1, crawlB.getNumThreads(), "crawlB");
+        assertEquals("defaultFilter", ((ExtensionReferenceFilter)
+                crawlB.getReferenceFilters().get(0)).getExtensions()
+                        .iterator().next(), "crawlB");
+        assertEquals("B", ((ReplaceTransformer)
+                ((HandlerConsumer) crawlB.getImporterConfig()
+                        .getPreParseConsumer()).getHandler())
+                        .getReplacements().get(0).getToValue(),
+                "crawlB");
+        assertEquals("D", ((ReplaceTransformer)
+                ((HandlerConsumer) crawlB.getImporterConfig()
+                        .getPostParseConsumer()).getHandler())
+                        .getReplacements().get(0).getToValue(),
+                "crawlB");
+        assertEquals("defaultCommitter", ((JSONFileCommitter)
+                crawlB.getCommitters().get(0)).getDirectory().toString(),
+                "crawlB");
     }
 }

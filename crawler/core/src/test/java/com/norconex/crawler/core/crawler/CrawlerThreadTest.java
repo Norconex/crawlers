@@ -25,8 +25,8 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.MockQueueInitializer;
 import com.norconex.crawler.core.TestUtil;
+import com.norconex.crawler.core.pipeline.queue.MockQueueInitializer;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.MockDataStore;
 import com.norconex.crawler.core.store.MockDataStoreEngine;

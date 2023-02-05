@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,16 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.norconex.commons.lang.PercentFormatter;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocRecord.Stage;
 import com.norconex.crawler.core.store.DataStore;
 
-public class CrawlDocRecordService implements Closeable {
+import lombok.extern.slf4j.Slf4j;
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(CrawlDocRecordService.class);
+@Slf4j
+public class CrawlDocRecordService implements Closeable {
 
 //    * The few stages a reference should have in most implementations are:</p>
 //    * <ul>

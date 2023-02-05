@@ -1,4 +1,4 @@
-/* Copyright 2022-2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@ class CrawlSessionEventTest {
 
     @Test
     void testCrawlSessionEvent() {
+        var sessConfig = new CrawlSessionConfig();
+        sessConfig.setId("test-crawl-session");
 
         var crawlSession = CrawlSession.builder()
                 .crawlerFactory((sess, cfg) -> Crawler.builder().build())
-                .crawlSessionConfig(new CrawlSessionConfig())
+                .crawlSessionConfig(sessConfig)
 //                .eventManager(null)
                 .build();
 
@@ -93,6 +95,6 @@ class CrawlSessionEventTest {
                 .build())).isTrue();
         assertThat(evt.is((Event) null)).isFalse();
         assertThat(evt.toString()).contains("CRAWLSESSION_RUN_BEGIN - "
-                + "com.norconex.crawler.core.session.CrawlSession");
+                + "test-crawl-session");
     }
 }

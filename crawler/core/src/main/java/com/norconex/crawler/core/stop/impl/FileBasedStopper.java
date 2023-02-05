@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.monitor.MdcUtil;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stop.CrawlSessionStopper;
@@ -38,15 +38,12 @@ public class FileBasedStopper implements CrawlSessionStopper {
 
     public static final String STOP_FILE_NAME = ".crawlsession-stop";
     private Path monitoredStopFile;
-//    private CrawlSession startedCollector;
     private boolean monitoring;
 
     @Override
     public void listenForStopRequest(CrawlSession startedSession)
             throws CrawlSessionStopperException {
         monitoredStopFile = stopFile(startedSession);
-//        startedCollector = startedSession;
-//        final var stopFile = stopFile(startedSession);
 
         // If there is already a stop file and the crawl session is not running,
         // delete it
@@ -60,25 +57,20 @@ public class FileBasedStopper implements CrawlSessionStopper {
             }
         }
 
-        var execService = Executors.newSingleThreadExecutor();
-        try {
-            execService.submit(() -> {
-                MdcUtil.setCrawlSessionId(startedSession.getId());
-                Thread.currentThread().setName("Collector stop file monitor");
-                monitoring = true;
-                while(monitoring) {
-                    if (Files.exists(monitoredStopFile)) {
-                        stopMonitoring();
-                        LOG.info("STOP request received.");
-                        startedSession.stop();
-                    }
-                    Sleeper.sleepMillis(100);
-                }
-                return null;
-            });
-        } finally {
-            execService.shutdownNow();
-        }
+        var scheduler =
+                Executors.newScheduledThreadPool(1);
+        monitoring = true;
+        scheduler.scheduleAtFixedRate(() -> {
+            MdcUtil.setCrawlSessionId(startedSession.getId());
+            Thread.currentThread().setName(
+                    startedSession.getId() + "-stop-file-monitor");
+            if (monitoring && Files.exists(monitoredStopFile)) {
+                stopMonitoring();
+                LOG.info("STOP request received.");
+                startedSession.stop();
+                scheduler.shutdownNow();
+            }
+        }, 1000, 100, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -125,7 +117,6 @@ public class FileBasedStopper implements CrawlSessionStopper {
         }
         return true;
     }
-
 
     private static Path stopFile(CrawlSession crawlSession) {
         return crawlSession.getWorkDir().resolve(STOP_FILE_NAME);
