@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<!-- 
+   Copyright 2017-2020 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<!-- This is a config file with as many configuration options being set
+     as possible, to test validation as much we can.
+     -->
+<collector id="Test Collector Core Config">
+
+  <workDir>/wordir</workDir>
+
+  <maxConcurrentCrawlers>50</maxConcurrentCrawlers>
+ 
+  <eventListeners>
+    <listener class="com.norconex.crawler.core.MockCollectorEventListener">
+      <sample sample="sample">sample</sample>
+    </listener>
+    <listener class="com.norconex.crawler.core.crawler.MockCrawlerEventListener">
+      <sample sample="sample">sample</sample>
+    </listener>
+  </eventListeners>
+
+  <crawlerDefaults>
+    <numThreads>1</numThreads>
+    <maxDocuments>111</maxDocuments>
+    <orphansStrategy>PROCESS</orphansStrategy>
+    <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine" />
+    <referenceFilters>
+      <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
+          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+      <filter class="com.norconex.crawler.core.filter.impl.RegexReferenceFilter"
+          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+    </referenceFilters>
+    <metadataFilters>
+      <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
+          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+      <filter class="com.norconex.crawler.core.filter.impl.RegexReferenceFilter"
+          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+      <filter class="com.norconex.crawler.core.filter.impl.RegexMetadataFilter"
+          onMatch="include" caseSensitive="false" field="title">Blah.*</filter>
+    </metadataFilters>
+    <documentFilters>
+      <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
+          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+      <filter class="com.norconex.crawler.core.filter.impl.RegexReferenceFilter"
+          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+      <filter class="com.norconex.crawler.core.filter.impl.RegexMetadataFilter"
+          onMatch="include" caseSensitive="false" field="title">Blah.*</filter>
+    </documentFilters>
+    <!-- DEPRECATED: 
+    <crawlerListeners>
+      <listener class="com.norconex.crawler.core.crawler.MockCrawlerEventListener">
+        <sample sample="sample">sample</sample>
+      </listener>
+    </crawlerListeners>
+     -->
+    <eventListeners>
+      <listener class="com.norconex.crawler.core.MockCollectorEventListener">
+        <sample sample="sample">sample</sample>
+      </listener>
+      <listener class="com.norconex.crawler.core.crawler.MockCrawlerEventListener">
+        <sample sample="sample">sample</sample>
+      </listener>
+      <listener class="DeleteRejectedEventListener">
+        <eventMatcher method="csv">REJECTED_NOTFOUND,REJECTED_FILTER</eventMatcher>
+      </listener>
+      <listener class="StopCrawlerOnMaxEventListener" maximum="100" onMultiple="sum">
+        <eventMatcher method="csv">DOCUMENT_COMMITTED_UPSERT,DOCUMENT_COMMITTED_DELETE</eventMatcher>
+      </listener>
+    </eventListeners>
+
+    <!-- Importer is purposely slim since the full config is tested in
+         Importer project. -->
+    <importer>
+      <preParseHandlers>
+        <handler class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
+          <replace><valueMatcher>A</valueMatcher><toValue>B</toValue></replace>
+        </handler>  
+      </preParseHandlers>
+      <postParseHandlers>
+        <handler class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer">
+          <replace><valueMatcher>C</valueMatcher><toValue>D</toValue></replace>
+        </handler>  
+      </postParseHandlers>    
+    </importer>
+
+    <committers>
+      <committer class="com.norconex.committer.core3.fs.impl.JSONFileCommitter">
+        <directory>/tmp/somepath</directory>
+      </committer>
+    </committers>
+
+    <documentChecksummer 
+        class="com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer"
+        combineFieldsAndContent="true"
+        disabled="false" keep="true" targetField="afield"
+        onSet="replace">
+      <sourceFields>field1,field2</sourceFields>
+      <sourceFieldsRegex>field.*</sourceFieldsRegex>
+    </documentChecksummer>
+    <spoiledReferenceStrategizer 
+        class="com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer"
+        fallbackStrategy="DELETE">
+      <mapping state="NOT_FOUND" strategy="DELETE" />
+      <mapping state="BAD_STATUS" strategy="DELETE" />
+      <mapping state="ERROR" strategy="IGNORE" />
+    </spoiledReferenceStrategizer>
+  </crawlerDefaults>
+  <crawlers>
+    <crawler id="myCrawler1">
+      <numThreads>2</numThreads>
+      <maxDocuments>222</maxDocuments>
+      <orphansStrategy>DELETE</orphansStrategy>
+    </crawler>
+    <crawler id="myCrawler2">
+      <numThreads>3</numThreads>
+      <maxDocuments>333</maxDocuments>
+      <orphansStrategy>IGNORE</orphansStrategy>
+    </crawler>
+  </crawlers>
+
+</collector>

@@ -1,0 +1,190 @@
+TODO:
+==============
+
+- Whall we merge import and commit pipelines? likely not if we want
+  to split them one day (e.g. micro-services).
+
+
+- Remove all the @since ...?   As we change the package structure, they are all
+  considered "new". 
+
+//        var exitCode = cmdLine.execute(args);
+//        if (exitCode != 0) {
+//            throw new CrawlSessionException("Execution process returned "
+//                    + "a invalid (non-zero) exit code: " + exitCode);
+//            //TODO Have exit here or throw exception, or leave it to caller?
+//            //System.exit(exitCode);
+//        }
+
+
+- Some crawl store implementation sort the queued URLs so they
+  are not processed in order inserted. Do we want to ensure they are?
+  Do we want to allow for different strategies for establishing
+  priorities? 
+
+Maybe:
+
+- When no args on command line, make it interactive (but first show how to
+  get help) and when done, run but also print the command for automation after.
+
+   CrawlerRunner (runs the crawler, and main keeper of most states and events,
+                  could add extra feature such as scheduling? or be the one to 
+                  distribute on a cluster?) 
+                  What about crawler vs collector then?
+                     Rename the concepts?
+                     
+         from:
+         
+            collector
+              - crawlerDefaults
+              - crawlers
+                  - crawler
+                  - crawler
+                  - ...
+                  
+          to:
+          
+            crawler       (would accept a standalone launcher or cluster)
+              - defaults  ? really needed? we have variables and fragments
+              - instances (find better name... but basically, a grouping of 
+                           sites/startURLs sharing the same settings)
+                  - instance (maybe each instance could them be spawn across a cluster, X number of times? 
+                  - instance
+                  - ...
+
+          alternate naming:
+          
+            crawler        or crawler-config, crawler-cluster, etc.
+              - defaults
+              - cluster   (or nodes)
+                  - node 
+                  - node
+                  - ...
+
+          alternate naming:
+          
+            crawlers
+              - crawler    no defaults, we have vars, overwritable var blocks, fragments, etc.
+              - crawler
+              - ...
+
+          alternate naming, with multiple crawler impl:
+          
+            crawlers
+              - web-crawler  can register new crawler name via java Jar services/modules
+              - web-crawler 
+              - db-crawler
+              - fs-crawler
+              - ...
+
+          alternate naming, defaulting to standalone, unless we add cluster
+
+            config
+              - cluster   generic cluster info?? or should it just be flag 
+                          "cluster: true/false" and specify cluster settings
+                          under each crawler?
+              - crawlers
+                  - web-crawler  
+                  - web-crawler 
+                  - db-crawler
+                  - fs-crawler
+                  - ...
+
+
+maybe, use Yaml/Json instead, or as an alternative to XML?
+
+             maybe we could mixe crawler types as well
+
+            introducing the concept of cluster/nodes means
+            1 massing config (i.e. deployment descriptor)
+            could be used for very complex clusters,
+            with ways to stop/start/schedule individual runs.
+                  
+     |- Crawler  (provide functionality only, created from @Builder)
+
+  Make the whole thing fluent-style?
+  
+       Crawler.builder()
+           .instance.builder()
+               .httpFetcher(SomeImpl)
+                   .connectionTimeout(int)
+                   .trustAllCerts(true)
+                   .and()
+               .sitemapResolver(SomeImpl)
+               .create()
+           .instance.builder()
+               .httpFetcher(SomeImpl)
+               ....
+               .create()
+           .create();
+                   
+
+- MAYBE: remove the concept of "crawlerDefaults" in favor of fragment reuse?
+
+- Force crawler to stop after X amount of time of no progress.
+
+- Performance: 
+  - Keep tack of counts by having counters in memory instead of querying
+    for count.  And have maxXXX for different types instead of just
+    "maxDocuments" which can be ambiguous.
+    - Have options for tracking progress:
+      - Do not track
+      - Track only %
+      - Track detailed (what is now)
+      - Track full/verbose (adding counts for each states) 
+
+- Have Collector add these new default fields:
+    - Collector start date
+    - Crawler start date
+    - Document fetch date
+    - Collector Id
+    - Crawler Id
+
+- Document that, datastore database should be dedicated to a collector. 
+
+- Have new command line option for producing useful stats out of the crawl
+  store.  Like the # of documents per each crawl state found in the store.
+
+- Put back previous data store tests that now applies to CrawlReferenceService.
+
+- Re-introduce CommitCommand? Or is it no longer applicable? 
+
+- Rename CrawlReference* to shorter CrawlObject (preferred), or CrawlItem.
+
+- Create a MemoryDataStore for testing only
+
+- Consider Lucene as a data store.
+
+- Add ability to have multiple crawlers talk to the same crawl store
+  for managing their queue (maybe Kafka would be best?).
+
+- AbstractCrawlerConfig.xsd has the anyComplexRequiredClassType "class" being
+  optional. See if we can make it required, except for self-closing tags.
+
+- Similar to above, maybe create a FileResource object and provide a way to 
+  "register" it when classes need to write files, labeling them as "backup", 
+  "delete", "keep" when crawler is done/starts.  And have that managed 
+  automatically by crawler/collector.  Also have a flag on that object to 
+  mention its scope, to say if it can be shared between threads, crawler,
+  all or else (multiple collectors??).
+
+- Rename RegexReferenceFilter to avoid confusion with class of the same name
+  in Importer.
+
+- In Allow crawler to "expire" after configurable delay if 
+  activeCount in AbstractCrawler#processNextReference is equal or less
+  than number of thread and the crawler has been running idle for too long.
+
+- Refactor the whole approach of passing if new or modified to simplify it.
+
+- Introduce full/incremental flag as part of collector framework
+
+- Have document default value other than NEW (e.g. UNKNOWN, UNPROCESSED, etc) 
+
+- Consider using Hibernate for the JDBC data store, for both embedded and
+  client-server databases.  Ship with no drivers
+  except maybe for testing (or 1 for convenience, like H2).
+
+- Consider a way to merge documents by temporarily storing mergeable
+  docs in a queue until all mergable siblings are encountered.
+  Maybe this should be made a wrapping committer instead?

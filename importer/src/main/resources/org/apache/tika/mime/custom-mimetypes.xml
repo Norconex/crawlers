@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<!-- 
+   Copyright 2014-2017 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<!-- 
+  This file is an extension of org.apache.tika.mime.tika-mimetypes.xml
+  found in "tica-core" dependency.
+  -->
+<mime-info>
+
+  <!-- XFDL ====================================================================
+    -->
+  <!-- Submitted pull-request to to Apache:
+     https://issues.apache.org/jira/browse/TIKA-2222
+    -->
+  <mime-type type="application/vnd.xfdl">
+    <acronym>XFDL</acronym>
+    <_comment>PureEdge - Extensible Forms Description Language</_comment>
+    <tika:link>http://en.wikipedia.org/wiki/Extensible_Forms_Description_Language</tika:link>
+    <tika:uti>public.xml</tika:uti>
+    <root-XML localName="xfdl" />
+    <magic priority="90">
+      <match value="application/vnd.xfdl;content-encoding=&quot;base64-gzip&quot;" type="string" offset="0"></match>
+      <match value="&lt;XFDL xmlns" type="string" offset="0:100"></match>
+    </magic>
+    <!-- Glob could also be .frm, but that's already taken -->
+   	<glob pattern="*.xfdl" />
+   	<glob pattern="*.xfd" />
+    <sub-class-of type="application/xml"/>
+  </mime-type>  
+
+</mime-info>

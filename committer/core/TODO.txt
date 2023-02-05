@@ -1,0 +1,20 @@
+Change duration in millis to Duration everywhere.
+
+- Redo AbstractFSCommitter to favor composition.  In fact, see if we 
+  can redo most to avoid that much inheritance.
+
+- Create README.txt in delete directory to explain
+  how files can be copied back if wanting to resume them.
+
+- Do a memory committer queue and test swapping one for the other behaving
+  just fine.
+
+- Ensure no workDir collision (either in this project or caller).  Append
+  committer index in case of multiple committers (or always)?
+
+- Have installer for other committer?
+
+- Committer server (and a committer "client" that can round-robin between 
+  committer servers?)
+
+- Add chainable committers??

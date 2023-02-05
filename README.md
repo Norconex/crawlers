@@ -5,21 +5,25 @@ then we'll make it public, merging it with existing project.
 
 ## Structure
 
+All projects in this repository share the same Maven group id:
+
+    com.norconex.crawler
+
 As much as it makes sense, the directory structure matches our Maven
-module names and their group and artifact IDs:
+module names and their artifact IDs:
 
 ```
-Folder             groupId[:artifactId]
+Folder             artifactId
 ------------------------------------------------------
-crawler/           com.norconex.crawler
-  core/            com.norconex.crawler   : nx-crawler-core
-  web/             com.norconex.crawler   : nx-crawler-web
-  filesystem/      com.norconex.crawler   : nx-crawler-filesystem
-importer/          com.norconex.importer  : nx-importer
-committer/         com.norconex.committer
-  core/            com.norconex.committer : nx-committer-core
-  solr/            com.norconex.committer : nx-committer-solr
-  idol/            com.norconex.committer : nx-committer-idol
+crawler/
+  core/            nx-crawler-core
+  web/             nx-crawler-web
+  filesystem/      nx-crawler-filesystem
+importer/          nx-importer
+committer/
+  core/            nx-committer-core
+  solr/            nx-committer-solr
+  idol/            nx-committer-idol
   ...
   
 # Not sure about this one:
@@ -33,7 +37,4 @@ kafka-connector/   com.norconex.???       : nx-crawler-web-kafka???
 * Kafka directory location/group/artifact.
 * Introducing the `nx-*` prefix.  I think it is easier to group/identify our 
   artifacts/jar that way.  Used to be `norconex-` but `nx-` makes it shorter.
-* Shall all our artifacts share the same group id since it is all the same
-  "project"?  Importer can really live on its own though... bit deal
-  if its group id would be `com.norconex.crawler`?
 

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2019 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="../AbstractDocumentTransformer.xsd"></xs:include>
+  
+  <xs:element name="handler">
+    <xs:complexType>
+      <xs:complexContent> 
+        <xs:extension base="AbstractDocumentTransformer">
+          <xs:all>
+            <xs:element name="scale" minOccurs="1" maxOccurs="1">
+              <xs:complexType>
+                <xs:attribute name="dimension" type="xs:string"/>
+                <xs:attribute name="factor" type="xs:double"/>
+                <xs:attribute name="stretch" type="xs:boolean"/>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="rotate" minOccurs="1" maxOccurs="1">
+              <xs:complexType>
+                <xs:attribute name="degrees" type="xs:double"/>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="crop" minOccurs="1" maxOccurs="1">
+              <xs:complexType>
+                <xs:attribute name="x" type="xs:int"/>
+                <xs:attribute name="y" type="xs:int"/>
+                <xs:attribute name="dimension" type="xs:string"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:all>
+          <xs:attribute name="targetFormat" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

@@ -1,0 +1,156 @@
+TODO:
+==============
+
+- Deprecate "restrictTo" in favor of XML Flow conditions?
+- Deprecate "filters" in favor of XML Flow conditions?
+
+- Instead of naming handlers with "Metadata" "Content", made/recommended for 
+  Pre or Post, or what type does it support out of the box vs recommended...
+  Use custom annotations that would generate appropriate javadoc.
+
+- For XMLFlow, in addition of <reject/>, maybe have <abort/> (more risky): 
+  abort the execution flow but consider the doc valid
+  
+- Replace DOMDeleteTransformer with DOMTransformer that gives the option
+  to only keep what is matching, deleting the rest, or delete what is matching.
+
+- Consider merging tagger and transformer and detecting if content has changed,
+  and offer in most case to do operation on either field or content (or both).
+
+- Add a TrimTagger/TrimTransformer
+- Add a more convinient way to collapse on white spaces.
+
+- Modify ImporterEvent so that Importer is the source, as it should (as opposed to the doc).
+
+- Remove all the @since x.x.x referencing versions before 3.0.0 
+
+- Have a .misc package for handlers for those not falling into any of the 4 
+  types (like DebugTagger and FieldReportTagger).
+
+- Add Tagger for creating document summary.
+
+- Add ability to grab content from fields for splitters (DOMSplitter, 
+  CSVSplitter, etc).
+
+- Have a Prefix tagger to prefix all metadata with something.
+
+- Add to scripts "-Dnashorn.args=--no-deprecation-warning" to silence
+  deprecation warning on some JVM.
+
+- Document that a few classes can now apply on content in addition
+  to metadata.
+
+- Add RemoveDuplicateValuesTagger and SortValuesTagger (for lists/multi-value)
+
+- Add ReduceConsecutiveTagger.
+
+- Move GenericDocumentParserFactory to .impl (for consistency) or do not make 
+  it a factory?
+
+- Maybe: have a @taglet for if it can be used as pre-post or both? 
+
+- CountValueTagger (one to count mattching patterns, one to count number of multi-value entries)
+- DOMTransformer, JSON*(handlers)
+- EmptyTagger or CompactTagger (eliminate empty list values and/or duplicate values.  
+
+- Have a StripAccentsTagger and Transformer. See: StringUtils.stripAccents(str)
+
+- Add ability to convert binary content into hex/base64 into a text field, or 
+  to replace body.
+
+- Consider making the MS .docs memory fix permanent:
+  https://github.com/Norconex/collector-filesystem/issues/39#issuecomment-419327401
+
+- Maybe: rename references to "metadata" to be references to "fields" ?
+- In load/save XML reference local fields instead of getters/setters.
+
+- Convert all arrays to final List for consistency (with unmodifiable getters).
+
+- Consider using updated Tika RecursiveParser instead of custom one.
+
+- Have a handler that stores the file in its current state in a location
+  of your choice.
+
+- Use init() / destroy() interface where appropriate.
+
+- Remove references to deprecated elements.
+
+- Fix external  links in Javadoc (all projects).
+
+- Consider having a flag for text handlers that detect if text or binary
+  and by default will handle only text unless forced otherwise.
+
+- Have a DOMTRansformer and a tagger that splits multivalue in individual fields
+  giving a each index position a specific name.
+
+- See if we can return an empty output stream in IDocumentSplitter to 
+  eliminate parent document.
+
+- Have option to parse content as XML instead of plain text.  Should
+  it be a parser hint?
+
+- Have a copy of importer launch scripts with collectors.
+
+- Have the option for the importer to ignore suplied content-type/charset and
+  always perform detection (with option to fall back to supplied ones if could 
+  not detect).
+
+- When content type is provided to importer, but is wrong, catch any exception
+  and try again after auto-detecting if the detected type is different.
+
+- Add support for SentimentParser and other Tika recent features.
+
+- Once Norconex Commons Lang upgrades to Velocity 2.0 add Velocity as a 
+  scripting language option where applicable (e.g. ScriptTagger).
+
+- Consider adding a "mergeElements" to DOMTagger for the number of elements to 
+  merge, to accomodate for senarios where key/values are repeated, without a 
+  parent wrapping tag, as in: https://github.com/Norconex/importer/issues/54
+
+- Maybe have default "text-only" flag for each handlers?? 
+
+- Have a tagger that looks up metadata in a relational database?
+
+- Have new taggers: 
+    - ExtensionTagger, given a URL, tries to get extension from content type 
+      if not found in reference.
+    - Add overwrite=true|false to ReplaceTagger? 
+
+- To remove/adjust when released in Apache Tika:
+
+    - Remove XFDL from 
+      GenericDocumentParserFactory as well as from custom-mimetypes.xml.
+      https://issues.apache.org/jira/browse/TIKA-1946
+      https://issues.apache.org/jira/browse/TIKA-2228
+      https://issues.apache.org/jira/browse/TIKA-2222
+      
+- Consider adding LIRE support (image info extraction for image search).
+  http://www.lire-project.net/
+
+- Allow to specify data unit for DocumentLengthTagger (with locale and decimal
+  precision).
+
+- Find out if we can reduce metadata extraction on images to avoid 
+  OOMException on some images with massive amount of metadata.
+
+- Investigate Tika Named Entity Parser: 
+  https://wiki.apache.org/tika/TikaAndNER
+
+- Investigate Tika Natural Language Toolkit: 
+  https://wiki.apache.org/tika/TikaAndNLTK
+
+- Maybe ship with a default tika-config on a given path so it can easily be
+  modified: https://tika.apache.org/1.12/configuring.html
+
+- Add better defined Geospatial Data Abstraction Library (GDAL) support, 
+  leveraging Tika GDAL support (requires external app install, like
+  Tesserac OCR feature).
+
+- Have a maximum recursivity setting somewhere in GenericDocumentParserFactory?
+  Alternatively, consider moving to using RecursiveParserWrapper which 
+  already supports that.
+
+- MAYBE: Consider interactive shell script invoking the importer.
+
+- MABYE: Have a base handler class that takes a functional interface for the 
+  different types?

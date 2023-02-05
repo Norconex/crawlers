@@ -1,0 +1,300 @@
+<!-- 
+   Copyright 2013-2022 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.norconex.crawler</groupId>
+    <artifactId>nx-crawler-parent</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+    <relativePath>../..</relativePath>    
+  </parent>  
+  <artifactId>nx-crawler-web</artifactId>
+  <name>Norconex Web Crawler</name>
+
+  <properties>
+    <bc.version>1.69</bc.version>
+    <browsermob.version>2.1.5</browsermob.version>
+    <guava.version>31.0.1-jre</guava.version>
+    <imgscalr.version>4.2</imgscalr.version>
+    <netty.version>4.1.72.Final</netty.version>
+    <selenium.version>3.141.59</selenium.version>
+    <okhttp.version>3.14.9</okhttp.version>
+    
+    <commons-compress.version>1.21</commons-compress.version>
+    <cxf.version>3.4.5</cxf.version>
+    <h2.version>2.0.204</h2.version>
+    <hikaricp.version>4.0.3</hikaricp.version>
+    <jdom2.version>2.0.6.1</jdom2.version>
+    <jsoup.version>1.14.3</jsoup.version>
+  </properties>
+
+  <inceptionYear>2009</inceptionYear>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>${commons-compress.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-rs-client</artifactId>
+        <version>${cxf.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+        <version>${cxf.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jdom</groupId>
+        <artifactId>jdom2</artifactId>
+        <version>${jdom2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jsoup</groupId>
+        <artifactId>jsoup</artifactId>
+        <version>${jsoup.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk15on</artifactId>
+        <version>${bc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcpkix-jdk15on</artifactId>
+        <version>${bc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <version>${netty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>okhttp</artifactId>
+        <version>${okhttp.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+  
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-crawler-core</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.imgscalr</groupId>
+      <artifactId>imgscalr-lib</artifactId>
+      <version>${imgscalr.version}</version>
+    </dependency>  
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-proxy</artifactId>
+    </dependency>
+    
+    <!-- About Web Driver Dependencies:
+         You could download drivers separately instead, with
+         just the "selenimum-support" artifact if you are not using many 
+         drivers or do not want to package them all.
+         You could also use the "selenium-server" instead for grid
+         support and running server embedded.
+         https://www.seleniumhq.org/download/maven.jsp
+          -->
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+
+    <!-- For capturing http headers: -->
+    <dependency>
+      <groupId>net.lightbody.bmp</groupId>
+      <artifactId>browsermob-core</artifactId>
+      <version>${browsermob.version}</version>
+    </dependency>
+
+    <!-- Logging dependencies: -->
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+    </dependency>
+
+    <!-- Test + provided dependencies: -->
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-netty</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-client-java</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>com.norconex.commons</groupId>
+        <artifactId>norconex-commons-lang</artifactId>
+        <classifier>resources</classifier>
+        <type>zip</type>
+        <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <!-- We are referencing doc from other projects with @nx.include so
+               we need to include those dependencies here to avoid
+               getting a ClassNotFoundException. -->
+<!-- Uncomment when importer V4 exists
+          <tagletArtifacts combine.children="append">
+            <tagletArtifact>
+              <groupId>com.norconex.collectors</groupId>
+              <artifactId>norconex-importer</artifactId>
+              <version>${norconex-importer.version}</version>
+            </tagletArtifact>
+            <tagletArtifact>
+              <groupId>com.norconex.collectors</groupId>
+              <artifactId>norconex-collector-core</artifactId>
+              <version>${norconex-collector-core.version}</version>
+            </tagletArtifact>
+          </tagletArtifacts>
+ -->
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+    
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
+      
+      <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-shared-resources</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <classifier>resources</classifier>
+              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
+              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
+              <includeGroupIds>com.norconex.commons</includeGroupIds>
+              <excludeTransitive>true</excludeTransitive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+  
+  <!-- Only used to publish javadoc with "site:deploy", 
+       after they were generated -->
+  <distributionManagement>
+    <site>
+      <id>norconex-site-deployment</id>
+      <url>${site.baseurl}/crawlers/web/v4</url>
+    </site>
+  </distributionManagement>
+
+  <url>https://opensource.norconex.com/crawlers/web</url>
+  <description>Norconex HTTP Collector is a web spider, or crawler that aims to be very flexible, easy to extend, and portable</description>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/Norconex/collector-http/issues</url>
+  </issueManagement>
+  <scm>
+    <url>https://github.com/Norconex/collector-http</url>
+    <connection>scm:git:git@github.com:Norconex/collector-http.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/collector-http.git</developerConnection>
+  </scm>
+</project>
