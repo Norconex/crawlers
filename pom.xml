@@ -117,12 +117,12 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.norconex.importer</groupId>
+        <groupId>com.norconex.crawler</groupId>
         <artifactId>nx-importer</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.norconex.committer</groupId>
+        <groupId>com.norconex.crawler</groupId>
         <artifactId>nx-committer-core</artifactId>
         <version>${project.version}</version>
       </dependency>

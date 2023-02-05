@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2014-2021 Norconex Inc.
+   Copyright 2014-2023 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
     <artifactId>nx-crawler-parent</artifactId>
     <version>4.0.0-SNAPSHOT</version>
     <relativePath>../..</relativePath>
-  </parent>  
-  <groupId>com.norconex.committer</groupId>
+  </parent>
   <artifactId>nx-committer-core</artifactId>
   <name>Norconex Committer Core</name>
 

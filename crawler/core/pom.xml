@@ -1,5 +1,5 @@
 <!--
-   Copyright 2014-2022 Norconex Inc.
+   Copyright 2014-2023 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@
   <dependencies>
 
     <dependency>
-      <groupId>com.norconex.importer</groupId>
+      <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-importer</artifactId>
       <exclusions>
         <exclusion>
@@ -80,7 +80,7 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.norconex.committer</groupId>
+      <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-committer-core</artifactId>
     </dependency>
 

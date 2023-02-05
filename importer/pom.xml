@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2010-2022 Norconex Inc.
+   Copyright 2010-2023 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@
     <version>4.0.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>  
-  <groupId>com.norconex.importer</groupId>
   <artifactId>nx-importer</artifactId>
   <name>Norconex Importer</name>  
   
