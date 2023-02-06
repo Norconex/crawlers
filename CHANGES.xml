@@ -12,6 +12,9 @@
         Fixed GenericSitemapResolver NPE when the sitemap content-type
         could not be detected.
       </action>
+      <action dev="essiembre" type="update">
+        Maven dependency updates: norconex-commons-maven-parent 1.0.2-SNAPSHOT.
+      </action>
     </release>
 
     <release version="3.0.1" date="2022-08-30" description="Maintenance release">
