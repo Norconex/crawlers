@@ -33,6 +33,7 @@ import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreException;
+import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreConfig.Fields;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -61,15 +62,6 @@ public class MVStoreDataStoreEngine
 
     @Override
     public void init(Crawler crawler) {
-
-        engineDir = crawler.getWorkDir().resolve("datastore");
-        try {
-            FileUtils.forceMkdir(engineDir.toFile());
-        } catch (IOException e) {
-            throw new DataStoreException(
-                    "Cannot create data store engine directory: "
-                            + engineDir, e);
-        }
 
         var builder = new MVStore.Builder();
         if (cfg.getPageSplitSize() != null) {
@@ -101,8 +93,21 @@ public class MVStoreDataStoreEngine
         if (Long.valueOf(0).equals(cfg.getAutoCommitDelay())) {
             builder.autoCommitDisabled();
         }
-        builder.fileName(
-                engineDir.resolve("mvstore").toAbsolutePath().toString());
+
+        if (cfg.isEphemeral()) {
+            builder.fileName(null);
+        } else {
+            engineDir = crawler.getWorkDir().resolve("datastore");
+            try {
+                FileUtils.forceMkdir(engineDir.toFile());
+            } catch (IOException e) {
+                throw new DataStoreException(
+                        "Cannot create data store engine directory: "
+                                + engineDir, e);
+            }
+            builder.fileName(
+                    engineDir.resolve("mvstore").toAbsolutePath().toString());
+        }
 
         mvstore = builder.open();
 
@@ -198,27 +203,29 @@ public class MVStoreDataStoreEngine
     @Override
     public void loadFromXML(XML xml) {
         cfg.setPageSplitSize(
-                xml.getDataSize("pageSplitSize", cfg.getPageSplitSize()));
-        cfg.setCompress(xml.getInteger("compress", cfg.getCompress()));
+                xml.getDataSize(Fields.pageSplitSize, cfg.getPageSplitSize()));
+        cfg.setCompress(xml.getInteger(Fields.compress, cfg.getCompress()));
         cfg.setCacheConcurrency(xml.getInteger(
-                "cacheConcurrency", cfg.getCacheConcurrency()));
-        cfg.setCacheSize(xml.getDataSize("cacheSize", cfg.getCacheSize()));
+                Fields.cacheConcurrency, cfg.getCacheConcurrency()));
+        cfg.setCacheSize(xml.getDataSize(Fields.cacheSize, cfg.getCacheSize()));
         cfg.setAutoCompactFillRate(xml.getInteger(
-                "autoCompactFillRate", cfg.getAutoCompactFillRate()));
+                Fields.autoCompactFillRate, cfg.getAutoCompactFillRate()));
         cfg.setAutoCommitBufferSize(xml.getDataSize(
-                "autoCommitBufferSize", cfg.getAutoCommitBufferSize()));
+                Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize()));
         cfg.setAutoCommitDelay(xml.getDurationMillis(
-                "autoCommitDelay", cfg.getAutoCommitDelay()));
+                Fields.autoCommitDelay, cfg.getAutoCommitDelay()));
+        cfg.setEphemeral(xml.getBoolean(Fields.ephemeral, cfg.isEphemeral()));
     }
 
     @Override
     public void saveToXML(XML xml) {
-        xml.addElement("pageSplitSize", cfg.getPageSplitSize());
-        xml.addElement("compress", cfg.getCompress());
-        xml.addElement("cacheConcurrency", cfg.getCacheConcurrency());
-        xml.addElement("cacheSize", cfg.getCacheSize());
-        xml.addElement("autoCompactFillRate", cfg.getAutoCompactFillRate());
-        xml.addElement("autoCommitBufferSize", cfg.getAutoCommitBufferSize());
-        xml.addElement("autoCommitDelay", cfg.getAutoCommitDelay());
+        xml.addElement(Fields.pageSplitSize, cfg.getPageSplitSize());
+        xml.addElement(Fields.compress, cfg.getCompress());
+        xml.addElement(Fields.cacheConcurrency, cfg.getCacheConcurrency());
+        xml.addElement(Fields.cacheSize, cfg.getCacheSize());
+        xml.addElement(Fields.autoCompactFillRate, cfg.getAutoCompactFillRate());
+        xml.addElement(Fields.autoCommitBufferSize, cfg.getAutoCommitBufferSize());
+        xml.addElement(Fields.autoCommitDelay, cfg.getAutoCommitDelay());
+        xml.addElement(Fields.ephemeral, cfg.isEphemeral());
     }
 }

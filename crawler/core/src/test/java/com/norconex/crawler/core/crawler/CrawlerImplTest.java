@@ -61,16 +61,16 @@ class CrawlerImplTest {
 
     @Test
     void testErrors() {
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-            CrawlerImpl.builder()
+        assertThatExceptionOfType(NullPointerException.class)
+            .isThrownBy(() -> CrawlerImpl.builder() //NOSONAR
                 .committerPipeline(null)
                 .fetcherProvider(req -> null)
                 .importerPipeline(ctx -> null)
                 .queuePipeline(ctx -> {})
                 .build()
         );
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-            CrawlerImpl.builder()
+        assertThatExceptionOfType(NullPointerException.class)
+            .isThrownBy(() -> CrawlerImpl.builder()  //NOSONAR
                 .committerPipeline(ctx -> {})
                 .fetcherProvider(null)
                 .importerPipeline(ctx -> null)

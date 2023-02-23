@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.crawler.core.crawler.CrawlerThread.ReferenceContext;
+import com.norconex.crawler.core.crawler.CrawlerThread.ThreadActionContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategy;
@@ -38,7 +38,7 @@ final class ThreadActionFinalize {
 
     private ThreadActionFinalize() {}
 
-    static void execute(ReferenceContext ctx) {
+    static void execute(ThreadActionContext ctx) {
 
         // only finalize a record if not already finalized and if
         // there id a doc record (meaning a reference was loaded).
@@ -68,7 +68,8 @@ final class ThreadActionFinalize {
 
             // important to call this before copying properties further down
 //TODO revisit all the before/after on crawlerImpl
-            ofNullable(ctx.crawler().getCrawlerImpl().beforeDocumentFinalizing())
+            ofNullable(ctx.crawler().getCrawlerImpl()
+                    .beforeDocumentFinalizing())
                 .ifPresent(bdf -> bdf.accept(ctx.crawler(), doc));
 
             //--- If doc crawl was incomplete, set missing info from cache -----
@@ -103,6 +104,9 @@ final class ThreadActionFinalize {
         } catch (Exception e) {
             LOG.error("Could not mark reference as processed: {} ({})",
                     docRecord.getReference(), e.getMessage(), e);
+        } finally {
+            ofNullable(ctx.crawler().getCrawlerImpl().afterDocumentFinalizing())
+                .ifPresent(adf -> adf.accept(ctx.crawler(), doc));
         }
 
         try {
@@ -114,7 +118,7 @@ final class ThreadActionFinalize {
 
     // passing CrawlDoc here because sometimes it can be null in context
     // and we do not want to set one on context.
-    private static void dealWithBadState(ReferenceContext ctx) {
+    private static void dealWithBadState(ThreadActionContext ctx) {
         var doc = ctx.doc();
         var docRecord = ctx.docRecord();
         var cachedDocRecord = ofNullable(doc.getCachedDocRecord()).orElse(null);
@@ -176,7 +180,7 @@ final class ThreadActionFinalize {
     }
 
     private static void markReferenceVariationsAsProcessed(
-            ReferenceContext ctx) {
+            ThreadActionContext ctx) {
         // Mark original URL as processed
         var originalRef = ctx.docRecord().getOriginalReference();
         var finalRef = ctx.docRecord().getReference();

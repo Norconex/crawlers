@@ -16,13 +16,15 @@ package com.norconex.crawler.core.fetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import com.norconex.crawler.core.doc.CrawlDocState;
 
 import lombok.Data;
 
-class GenericMultiFetchResponseTest {
+class MultiFetchResponseTest {
 
     @Data
     static class TestResponse implements FetchResponse {
@@ -40,42 +42,41 @@ class GenericMultiFetchResponseTest {
             return new IllegalArgumentException("TEST");
         }
         @Override
-        public CrawlDocState getCrawlState() {
+        public CrawlDocState getCrawlDocState() {
             return CrawlDocState.MODIFIED;
         }
     }
 
-    @Data
-    static class TestFetcher
-            implements Fetcher<MockFetchRequest, TestResponse> {
-        private final String salt;
-        @Override
-        public boolean accept(MockFetchRequest fetchRequest) {
-            return true;
-        }
-        @Override
-        public TestResponse fetch(MockFetchRequest fetchRequest)
-                throws FetchException {
-            return null;
-        }
-    }
+//    @Data
+//    static class TestFetcher
+//            implements Fetcher<MockFetchRequest, TestResponse> {
+//        private final String salt;
+//        @Override
+//        public boolean accept(MockFetchRequest fetchRequest) {
+//            return true;
+//        }
+//        @Override
+//        public TestResponse fetch(MockFetchRequest fetchRequest)
+//                throws FetchException {
+//            return null;
+//        }
+//    }
 
     @Test
     void testGenericMultiFetchResponse() {
-        var gmfr = new GenericMultiFetchResponse<TestResponse>();
-
         var resp1 = new TestResponse("resp1");
-        gmfr.addFetchResponse(resp1, new TestFetcher("fetcher1"));
         var resp2 = new TestResponse("resp2");
-        gmfr.addFetchResponse(resp2, new TestFetcher("fetcher2"));
+
+        var gmfr = new MultiFetchResponse<TestResponse>(List.of(
+                resp1, resp2));
 
         assertThat(gmfr.getStatusCode()).isEqualTo(123);
         assertThat(gmfr.getReasonPhrase()).isEqualTo("Just because.");
         assertThat(gmfr.getException().getMessage()).isEqualTo("TEST");
-        assertThat(gmfr.getCrawlState()).isSameAs(CrawlDocState.MODIFIED);
+        assertThat(gmfr.getCrawlDocState()).isSameAs(CrawlDocState.MODIFIED);
         assertThat(gmfr.getFetchResponses()).containsExactlyInAnyOrder(
                 resp1, resp2);
         assertThat(gmfr.getLastFetchResponse()).containsSame(resp2);
-        assertThat(gmfr).hasToString("123 Just because. - TestFetcher");
+        assertThat(gmfr).hasToString("123 Just because.");
     }
 }

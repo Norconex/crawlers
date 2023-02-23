@@ -14,20 +14,96 @@
  */
 package com.norconex.crawler.core.fetch;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.norconex.crawler.core.doc.CrawlDocState;
+
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 /**
- *
- * @param <R> type of fetch responses this multi response holds
+ * Holds all responses obtained from fetching a document
+ * using one or multiple fetchers.
+ * @param <T> fetch response type
  */
-public interface MultiFetchResponse<R extends FetchResponse>
-        extends FetchResponse {
+@Data
+@RequiredArgsConstructor
+public class MultiFetchResponse<T extends FetchResponse>
+        implements FetchResponse {
 
-    List<R> getFetchResponses();
-    void addFetchResponse(R fetchResponse, Fetcher<?, R> fetcher);
-    Optional<R> getLastFetchResponse();
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
+    private final List<T> fetchResponses;
 
-//    Optional<Fetcher<?, ?>> lastFetcher();
+    @Override
+    public CrawlDocState getCrawlDocState() {
+        return getLastFetchResponse().map(
+                FetchResponse::getCrawlDocState).orElse(null);
+    }
 
+    @Override
+    public int getStatusCode() {
+        return getLastFetchResponse().map(
+                FetchResponse::getStatusCode).orElse(0);
+    }
+
+    @Override
+    public String getReasonPhrase() {
+        return getLastFetchResponse().map(
+                FetchResponse::getReasonPhrase).orElse(null);
+    }
+//    @Override
+//    public String getUserAgent() {
+//        return lastResponse().map(
+//                FetchResponse::getUserAgent).orElse(null);
+//    }
+//    @Override
+    @Override
+    public Exception getException() {
+        return getLastFetchResponse().map(
+                FetchResponse::getException).orElse(null);
+    }
+//    @Override
+//    public String getRedirectTarget() {
+//        return lastResponse().map(
+//                FetchResponse::getRedirectTarget).orElse(null);
+//    }
+
+    public List<T> getFetchResponses() {
+        return Collections.unmodifiableList(fetchResponses);
+    }
+
+//    @Override
+//    public void addFetchResponse(T resp, Fetcher<?, R> fetcher) {
+//        fetchResponses.add(0, new ImmutablePair<>(resp, fetcher));
+//    }
+
+    protected Optional<T> getLastFetchResponse() {
+        if (fetchResponses.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(
+                fetchResponses.get(fetchResponses.size() -1));
+    }
+
+    @Override
+    public String toString() {
+        var op = getLastFetchResponse();
+        if (!op.isPresent()) {
+            return "[No fetch responses.]";
+        }
+
+        var r = op.get();
+        var b = new StringBuilder(
+                r.getStatusCode()  + " " + r.getReasonPhrase());
+//        lastFetcher().ifPresent(f -> b.append(
+//                " - " + f.getClass().getSimpleName()));
+        return b.toString();
+    }
 }

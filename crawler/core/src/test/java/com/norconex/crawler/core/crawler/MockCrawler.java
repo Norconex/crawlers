@@ -20,6 +20,9 @@ import com.norconex.crawler.core.session.MockCrawlSession;
 import lombok.NonNull;
 
 //Mainly exists to provide access to internal methods/properties
+
+
+//TODO delete if annotation works
 public class MockCrawler extends Crawler {
 
     public MockCrawler(
@@ -30,7 +33,7 @@ public class MockCrawler extends Crawler {
     }
 
     public void sneakyInitCrawler() {
-        initCrawler();
+        initCrawler(null);
     }
     public void sneakyDestroyCrawler() {
         destroyCrawler();

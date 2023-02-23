@@ -32,7 +32,7 @@ public class MVStoreDataStore<T> implements DataStore<T> {
     private final MVMap<String, T> map;
     private String name;
 
-    MVStoreDataStore(MVStore mvstore, String name) {
+    protected MVStoreDataStore(MVStore mvstore, String name) {
         requireNonNull(mvstore, "'mvstore' must not be null.");
         this.name = requireNonNull(name, "'name' must not be null.");
         map = mvstore.openMap(name);

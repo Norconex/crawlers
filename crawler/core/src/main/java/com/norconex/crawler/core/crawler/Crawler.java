@@ -41,6 +41,7 @@ import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.crawler.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.doc.CrawlDocRecordFactory;
 import com.norconex.crawler.core.doc.CrawlDocRecordService;
 import com.norconex.crawler.core.fetch.FetchRequest;
@@ -50,9 +51,8 @@ import com.norconex.crawler.core.monitor.CrawlerMonitor;
 import com.norconex.crawler.core.monitor.CrawlerMonitorJMX;
 import com.norconex.crawler.core.monitor.MdcUtil;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.crawler.core.pipeline.committer.CommitterPipeline;
-import com.norconex.crawler.core.pipeline.importer.ImporterPipeline;
-import com.norconex.crawler.core.pipeline.queue.QueuePipeline;
+import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionException;
 import com.norconex.crawler.core.store.DataStore;
@@ -60,6 +60,7 @@ import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.core.store.DataStoreExporter;
 import com.norconex.crawler.core.store.DataStoreImporter;
 import com.norconex.importer.Importer;
+import com.norconex.importer.response.ImporterResponse;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -216,14 +217,32 @@ public class Crawler {
         return crawlSession.getStreamFactory();
     }
 
-    public QueuePipeline getQueuePipeline() {
-        return crawlerImpl.queuePipeline();
+    //TODO do we need these pipeline methods since we have direct methods
+    // to execute them, which are simpler to use?  If so, uncomment
+//    public QueuePipeline getQueuePipeline() {
+//        return crawlerImpl.queuePipeline();
+//    }
+//    public ImporterPipeline getImporterPipeline() {
+//        return crawlerImpl.importerPipeline();
+//    }
+//    public CommitterPipeline getCommitterPipeline() {
+//        return crawlerImpl.committerPipeline();
+//    }
+
+    public void queueDocRecord(CrawlDocRecord rec) {
+        crawlerImpl.queuePipeline().accept(
+                new DocRecordPipelineContext(this, rec));
     }
-    public ImporterPipeline getImporterPipeline() {
-        return crawlerImpl.importerPipeline();
+    //TODO Keep this one or always force to pass context?
+    public ImporterResponse importDoc(CrawlDoc doc) {
+        return importDoc(new ImporterPipelineContext(this, doc));
     }
-    public CommitterPipeline getCommitterPipeline() {
-        return crawlerImpl.committerPipeline();
+    public ImporterResponse importDoc(ImporterPipelineContext ctx) {
+        return crawlerImpl.importerPipeline().apply(ctx);
+    }
+    public void commitDoc(CrawlDoc doc) {
+        crawlerImpl.committerPipeline().accept(
+                new DocumentPipelineContext(this, doc));
     }
 
     CrawlDocRecordFactory getDocRecordFactory() {
@@ -238,7 +257,7 @@ public class Crawler {
     }
 
     // invoked as the first thing for every commands.
-    protected boolean initCrawler() {
+    boolean initCrawler(Runnable initAction) {
         // Ensure clean slate by either replacing or clearing and adding back
 
         Thread.currentThread().setName(getId());
@@ -267,8 +286,12 @@ public class Crawler {
         committerService.init(committerContext);
 
         var resuming = docRecordService.open();
-        fire(CrawlerEvent.CRAWLER_INIT_END);
 
+        if (initAction != null) {
+            initAction.run();
+        }
+
+        fire(CrawlerEvent.CRAWLER_INIT_END);
         return resuming;
     }
 
@@ -276,44 +299,45 @@ public class Crawler {
      * Starts crawling.
      */
     public void start() {
-        initCrawler();
-        var resume = docRecordService.prepareForCrawlerStart();
-        importer = new Importer(
-                getCrawlerConfig().getImporterConfig(),
-                getEventManager());
-        monitor = new CrawlerMonitor(this);
-        //TODO make general logging messages verbosity configurable
-        progressLogger = new CrawlProgressLogger(monitor,
-                getCrawlerConfig().getMinProgressLoggingInterval());
-        progressLogger.startTracking();
-
-        if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
-            CrawlerMonitorJMX.register(this);
-        }
-
         try {
+            initCrawler(() -> {
+                var resume = docRecordService.prepareForCrawlerStart();
+                importer = new Importer(
+                        getCrawlerConfig().getImporterConfig(),
+                        getEventManager());
+                monitor = new CrawlerMonitor(this);
+                //TODO make general logging messages verbosity configurable
+                progressLogger = new CrawlProgressLogger(monitor,
+                        getCrawlerConfig().getMinProgressLoggingInterval());
+                progressLogger.startTracking();
+
+                if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
+                    CrawlerMonitorJMX.register(this);
+                }
+
+                logContextInfo();
+
+                fetcher = crawlerImpl.fetcherProvider().apply(this);
+                dedupMetadataStore = resolveMetaDedupStore();
+                dedupDocumentStore = resolveDocumentDedupStore();
+
+                Optional.ofNullable(crawlerImpl.beforeCrawlerExecution)
+                        .ifPresent(c -> c.accept(this, resume));
+
+                //--- Queue initial references ---------------------------------
+                LOG.info("Queueing initial references...");
+                queueInitialized = ofNullable(crawlerImpl.queueInitializer())
+                    .map(qizer -> qizer.apply(new CrawlerImpl.QueueInitContext(
+                            Crawler.this, resume, rec ->
+                                    crawlerImpl.queuePipeline().accept(
+                                            new DocRecordPipelineContext(
+                                                    Crawler.this, rec)))))
+                    .orElse(new MutableBoolean(true));
+            });
+
+            //--- Process start/queued references ------------------------------
             fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
-            logContextInfo();
 
-            fetcher = crawlerImpl.fetcherProvider().apply(this);
-            dedupMetadataStore = resolveMetaDedupStore();
-            dedupDocumentStore = resolveDocumentDedupStore();
-
-            Optional.ofNullable(crawlerImpl.beforeCrawlerExecution)
-                    .ifPresent(c -> c.accept(this, resume));
-
-            //--- Queue initial references -------------------------------------
-            LOG.info("Queueing initial references...");
-            queueInitialized = ofNullable(crawlerImpl.queueInitializer())
-                .map(qizer -> qizer.apply(new CrawlerImpl.QueueInitContext(
-                        Crawler.this, resume, rec ->
-                                crawlerImpl.queuePipeline().accept(
-                                        new DocRecordPipelineContext(
-                                                Crawler.this, rec)))))
-                .orElse(new MutableBoolean(true));
-
-
-            //--- Process start/queued references ----------------------------------
             LOG.info("Crawling references...");
             processReferences(new ProcessFlags());
 
@@ -321,13 +345,6 @@ public class Crawler {
                 handleOrphans();
             }
 
-//            LOG.debug("Removing empty directories");
-//            try {
-//                FileUtil.deleteEmptyDirs(getDownloadDir().toFile());
-//            } catch (IOException e) {
-//                // TODO Auto-generated catch block
-//                e.printStackTrace();
-//            }
             fire((isStopped()
                     ? CrawlerEvent.CRAWLER_STOP_END
                     : CrawlerEvent.CRAWLER_RUN_END));
@@ -351,7 +368,7 @@ public class Crawler {
         }
     }
 
-    protected void processReferences(final ProcessFlags flags) {
+    void processReferences(final ProcessFlags flags) {
         var numThreads = getCrawlerConfig().getNumThreads();
         final var latch = new CountDownLatch(numThreads);
         var execService = Executors.newFixedThreadPool(numThreads);
@@ -406,7 +423,7 @@ public class Crawler {
      * being as if the crawler was run for the first time.
      */
     public void clean() {
-        initCrawler();
+        initCrawler(null);
         getEventManager().fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CLEAN_BEGIN)
                 .source(this)
@@ -428,7 +445,7 @@ public class Crawler {
         }
     }
 
-    protected void handleOrphans() {
+    void handleOrphans() {
 
         var strategy = crawlerConfig.getOrphansStrategy();
         if (strategy == null) {
@@ -450,7 +467,7 @@ public class Crawler {
         //TODO log how many where ignored (cache count)
     }
 
-    protected void reprocessCacheOrphans() {
+    void reprocessCacheOrphans() {
         if (isMaxDocuments()) {
             LOG.info("Max documents reached. "
                     + "Not reprocessing orphans (if any).");
@@ -472,7 +489,7 @@ public class Crawler {
         LOG.info("Reprocessed {} cached/orphan references.", count);
     }
 
-    protected void deleteCacheOrphans() {
+    void deleteCacheOrphans() {
         LOG.info("Deleting orphan references (if any)...");
 
         var count = new MutableLong();
@@ -496,7 +513,7 @@ public class Crawler {
     }
 
     public void importDataStore(Path inFile) {
-        initCrawler();
+        initCrawler(null);
         try {
             DataStoreImporter.importDataStore(this, inFile);
         } catch (IOException e) {
@@ -506,7 +523,7 @@ public class Crawler {
         }
     }
     public Path exportDataStore(Path dir) {
-        initCrawler();
+        initCrawler(null);
         try {
             return DataStoreExporter.exportDataStore(this, dir);
         } catch (IOException e) {
@@ -516,7 +533,7 @@ public class Crawler {
         }
     }
 
-    protected void destroyCrawler() {
+    void destroyCrawler() {
         ofNullable(docRecordService).ifPresent(
                 CrawlDocRecordService::close);
         ofNullable(dataStoreEngine).ifPresent(DataStoreEngine::close);

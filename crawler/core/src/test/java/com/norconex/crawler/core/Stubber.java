@@ -294,8 +294,7 @@ public final class Stubber {
                 .fetcherProvider(crawler -> new MockFetcher())
                 .committerPipeline(new MockCommitterPipeline())
                 .importerPipeline(new MockImporterPipeline())
-                .queueInitializer(
-                        new MockQueueInitializer(startReferences))
+                .queueInitializer(new MockQueueInitializer(startReferences))
                 .queuePipeline(new MockQueuePipeline());
         if (crawlerImplBuilderModifier != null) {
             crawlerImplBuilderModifier.accept(crawlerImplBuilder);

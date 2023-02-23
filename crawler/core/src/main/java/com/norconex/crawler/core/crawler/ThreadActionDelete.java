@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.crawler;
 
-import com.norconex.crawler.core.crawler.CrawlerThread.ReferenceContext;
+import com.norconex.crawler.core.crawler.CrawlerThread.ThreadActionContext;
 import com.norconex.crawler.core.doc.CrawlDocState;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ final class ThreadActionDelete {
 
     private ThreadActionDelete() {}
 
-    static void execute(ReferenceContext ctx) {
+    static void execute(ThreadActionContext ctx) {
         LOG.debug("Deleting reference: {}", ctx.doc().getReference());
         ctx.doc().getDocRecord().setState(CrawlDocState.DELETED);
         // Event triggered by service

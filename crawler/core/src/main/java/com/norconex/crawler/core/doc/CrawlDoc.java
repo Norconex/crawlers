@@ -30,8 +30,22 @@ import lombok.ToString;
 public class CrawlDoc extends Doc {
 
     private final CrawlDocRecord cachedDocRecord;
+
+    // maybe move this to context or create new QueueDocType
+    // (regular, orphans_delete, orphans_reprocess)?
     private final boolean orphan;
 
+    //TODO try with this?
+//    private boolean deleted;
+
+    /**
+     * Creates a new crawl document with an empty input stream.
+     * @param docRecord document record
+     * @since 4.0.0
+     */
+    public CrawlDoc(DocRecord docRecord) {
+        this(docRecord, null, CachedInputStream.nullInputStream(), false);
+    }
     public CrawlDoc(DocRecord docRecord, CachedInputStream content) {
         this(docRecord, null, content, false);
     }
@@ -44,7 +58,8 @@ public class CrawlDoc extends Doc {
     public CrawlDoc(
             DocRecord docRecord,
             CrawlDocRecord cachedDocInfo,
-            CachedInputStream content, boolean orphan) {
+            CachedInputStream content,
+            boolean orphan) {
         super(docRecord, content, null);
         cachedDocRecord = cachedDocInfo;
         this.orphan = orphan;

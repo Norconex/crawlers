@@ -84,14 +84,7 @@ class CrawlerTest {
             // ref1 is last because orphans are processed last
             .containsExactly("mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5",
                     "mock:ref1");
-
-        // The following must be set:
-        var crawler = TestUtil.getFirstCrawler(crawlSession);
-        assertThat(crawler.getQueuePipeline()).isNotNull();
-        assertThat(crawler.getImporterPipeline()).isNotNull();
-        assertThat(crawler.getCommitterPipeline()).isNotNull();
     }
-
 
     @Test
     void testErrors() {

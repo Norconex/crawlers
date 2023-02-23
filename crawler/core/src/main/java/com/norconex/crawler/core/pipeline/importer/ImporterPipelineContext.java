@@ -30,6 +30,13 @@ public class ImporterPipelineContext extends DocumentPipelineContext {
 
     private ImporterResponse importerResponse;
 
+    //TODO see if we can work with this instead of "flags"
+    private boolean delete;
+
+    //TODO needed? The orphan flag is stored in the document itself
+    // Shall we store the deletion flag in the document as well??
+    //private boolean orphan;
+
     /**
      * Constructor.
      * @param crawler the crawler

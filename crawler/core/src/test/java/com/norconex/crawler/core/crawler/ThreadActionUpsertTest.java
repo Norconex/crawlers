@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.Stubber;
-import com.norconex.crawler.core.crawler.CrawlerThread.ReferenceContext;
+import com.norconex.crawler.core.crawler.CrawlerThread.ThreadActionContext;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterStatus;
 
@@ -49,7 +49,7 @@ class ThreadActionUpsertTest {
 
 
         var doc = Stubber.crawlDoc("ref");
-        var ctx = new ReferenceContext();
+        var ctx = new ThreadActionContext();
         ctx.finalized(false);
         ctx.crawler(crawler);
         ctx.doc(doc);
