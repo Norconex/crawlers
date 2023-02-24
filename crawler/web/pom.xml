@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2013-2022 Norconex Inc.
+   Copyright 2013-2023 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -27,6 +27,10 @@
   <name>Norconex Web Crawler</name>
 
   <properties>
+    <mockserver.version>5.15.0</mockserver.version>      
+      
+    <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
+      
     <bc.version>1.69</bc.version>
     <browsermob.version>2.1.5</browsermob.version>
     <guava.version>31.0.1-jre</guava.version>
@@ -47,6 +51,9 @@
 
   <dependencyManagement>
     <dependencies>
+
+      <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
+        
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
@@ -101,12 +108,29 @@
   </dependencyManagement>
 
   <dependencies>
-  
+
     <dependency>
       <groupId>com.norconex.commons</groupId>
       <artifactId>norconex-commons-lang</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-crawler-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-junit-jupiter-no-dependencies</artifactId>
+      <version>${mockserver.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+
+    <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
+
+
+  
+<!--    <dependency>
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-crawler-core</artifactId>
       <exclusions>
@@ -115,7 +139,7 @@
           <artifactId>commons-logging</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
+    </dependency>-->
 
     <dependency>
       <groupId>org.imgscalr</groupId>
@@ -185,13 +209,24 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.jeasy</groupId>
+      <artifactId>easy-random-core</artifactId>
+      <scope>test</scope>
+    </dependency>    
+    
+
+<!--
+    <dependency>
       <groupId>org.mock-server</groupId>
       <artifactId>mockserver-netty</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mock-server</groupId>
       <artifactId>mockserver-client-java</artifactId>
+      <scope>test</scope>
     </dependency>
+    -->
     <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
@@ -287,7 +322,7 @@
   </distributionManagement>
 
   <url>https://opensource.norconex.com/crawlers/web</url>
-  <description>Norconex HTTP Collector is a web spider, or crawler that aims to be very flexible, easy to extend, and portable</description>
+  <description>Norconex Web Crawler is a web spider, or crawler that aims to be very flexible, easy to extend, and portable</description>
   <issueManagement>
     <system>GitHub</system>
     <url>https://github.com/Norconex/collector-http/issues</url>

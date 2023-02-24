@@ -82,8 +82,13 @@ Misc. Changes
 * New crawler "minProgressLoggingInterval" configuration option.
 * MetadataFilter and ReferenceFilter renamed to GenericMetadataFilter and 
   GenericReferenceFilter.
+* Renamed CollectorCommandLcuncher to CliLauncher.
+* New MVStoreDataStoreConfig#ephemeral property for in-memory storage.
   
 ### Crawler Web
 
+* `com.norconex.collector.http` → `com.norconex.crawler.web`
 * Removed Crawler configuration option "keepDownloads" and corresponding 
   CrawlerEvent.DOCUMENT_SAVED event in favor of new Importer SaveDocumentTagger.
+* References to HttpCollector or Collector changed to WebCrawlSession 
+  and CrawlSession, respectively.

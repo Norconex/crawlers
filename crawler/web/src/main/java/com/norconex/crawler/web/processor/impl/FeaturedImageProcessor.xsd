@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2017-2023 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="processor">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="pageContentTypePattern" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="domSelector" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="minDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="largest" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="imageCacheSize" type="xs:int" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="imageCacheDir" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="storage" minOccurs="0" maxOccurs="1">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="((\s*,\s*){0,1}(url|inline|disk|URL|INLINE|DISK)){0,3}" />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name="scaleDimensions" type="dimension" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="scaleStretch" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="scaleQuality" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute name="structure">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value=""/>
+                      <xs:enumeration value="auto"/>
+                      <xs:enumeration value="low"/>
+                      <xs:enumeration value="medium"/>
+                      <xs:enumeration value="high"/>
+                      <xs:enumeration value="max"/>
+                      <xs:enumeration value="AUTO"/>
+                      <xs:enumeration value="LOW"/>
+                      <xs:enumeration value="MEDIUM"/>
+                      <xs:enumeration value="HIGH"/>
+                      <xs:enumeration value="MAX"/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:attribute>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="imageFormat" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="storageDiskDir" minOccurs="0" maxOccurs="1">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute name="structure">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:enumeration value=""/>
+                      <xs:enumeration value="url2path"/>
+                      <xs:enumeration value="date"/>
+                      <xs:enumeration value="datetime"/>
+                      <xs:enumeration value="URL2PATH"/>
+                      <xs:enumeration value="DATE"/>
+                      <xs:enumeration value="DATETIME"/>
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:attribute>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="storageDiskField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="storageInlineField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="storageUrlField" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      </xs:all>
+      <xs:attribute name="class" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="dimension">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="((\d+)|(\d+[xX]\d+)){0,1}" />      
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>
