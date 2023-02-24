@@ -27,10 +27,11 @@
   <xs:element name="restrictTo">
     <xs:complexType>
       <xs:all>
+        <!-- minOccurs can be zero to mean "match all" -->
         <xs:element name="fieldMatcher" 
-            type="TextMatcherType" minOccurs="1" maxOccurs="1" />
+            type="TextMatcherType" minOccurs="0" maxOccurs="1" />
         <xs:element name="valueMatcher" 
-            type="TextMatcherType" minOccurs="1" maxOccurs="1" />
+            type="TextMatcherType" minOccurs="0" maxOccurs="1" />
       </xs:all>
     </xs:complexType>
   </xs:element>
