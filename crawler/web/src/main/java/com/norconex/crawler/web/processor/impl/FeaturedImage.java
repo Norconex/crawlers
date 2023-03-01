@@ -24,11 +24,11 @@ import javax.imageio.ImageIO;
 
 //TODO move as part of importer along with utility methods, and create
 //handler(s) to convert images
-public class ScaledImage {
+public class FeaturedImage {
     private String url;
     private final Dimension originalSize;
     private final BufferedImage image;
-    public ScaledImage(
+    public FeaturedImage(
             String url, Dimension originalSize, BufferedImage image) {
         this.url = url;
         this.originalSize = originalSize;
@@ -44,7 +44,7 @@ public class ScaledImage {
         return url;
     }
 
-    public boolean contains(ScaledImage img) {
+    public boolean contains(FeaturedImage img) {
         if (img == null) {
             return false;
         }
@@ -60,7 +60,7 @@ public class ScaledImage {
         return width <= originalSize.getWidth()
                 && height <= originalSize.getHeight();
     }
-    public boolean fits(ScaledImage img) {
+    public boolean fits(FeaturedImage img) {
         if (img == null) {
             return false;
         }
@@ -82,7 +82,6 @@ public class ScaledImage {
     public String toHTMLInlineString(String format) throws IOException {
         var baos = new ByteArrayOutputStream();
         ImageIO.write(image, format, baos);
-//TODO use MutableImage
         return "data:image/" + format + ";base64,"
                 + Base64.getMimeEncoder().encodeToString(baos.toByteArray());
     }

@@ -14,11 +14,13 @@
  */
 package com.norconex.crawler.web.processor.impl;
 
+import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -39,16 +41,18 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
+import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.fetch.FetchResponse;
@@ -60,6 +64,9 @@ import com.norconex.crawler.web.processor.HttpDocumentProcessor;
 import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -203,11 +210,12 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class FeaturedImageProcessor
+@Slf4j
+public class FeaturedImageProcessor extends CrawlerLifeCycleListener
         implements HttpDocumentProcessor, XMLConfigurable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            FeaturedImageProcessor.class);
+    //TODO add ability to extract from popular HTML <meta> for
+    // featured image
 
     public static final String COLLECTOR_FEATURED_IMAGE_URL =
             CrawlDocMetadata.PREFIX + "featured-image-url";
@@ -220,17 +228,18 @@ public class FeaturedImageProcessor
             "text/html|application/(xhtml\\+xml|vnd\\.wap.xhtml\\+xml|x-asp)";
     public static final int DEFAULT_IMAGE_CACHE_SIZE = 1000;
 
-
-    //TODO THESE two default should be removed to default to subdirs in
-    // crawler "workDir" instead.  At least the cache one.  For the image
-    // storage, default could be current directory... but not ideal.
-    // Could also throw an error by making it mandatory if
-    // storage DISK is selected
+    /**
+     * Default image cache directory, relative to the crawler working
+     * directory.
+     */
     public static final String DEFAULT_IMAGE_CACHE_DIR =
-            "./featuredImageCache";
+            "featuredImageCache";
+    /**
+     * Default featured image directory, relative to the crawler working
+     * directory.
+     */
     public static final String DEFAULT_STORAGE_DISK_DIR =
-            "./featuredImages";
-
+            "featuredImages";
 
     public static final String DEFAULT_IMAGE_FORMAT = "png";
     public static final Dimension DEFAULT_MIN_SIZE = new Dimension(400, 400);
@@ -264,14 +273,12 @@ public class FeaturedImageProcessor
     private String imageFormat = DEFAULT_IMAGE_FORMAT;
     private int imageCacheSize = DEFAULT_IMAGE_CACHE_SIZE;
 
-    //TODO default to crawler workDir
-    private Path imageCacheDir = Paths.get(DEFAULT_IMAGE_CACHE_DIR);
+    private Path imageCacheDir;
     private boolean largest;
     private final List<Storage> storage =
             new ArrayList<>(Arrays.asList(DEFAULT_STORAGE));
 
-    //TODO make a Path object instead of String, and default to crawler workDir
-    private String storageDiskDir = DEFAULT_STORAGE_DISK_DIR;
+    private Path storageDiskDir;
     private StorageDiskStructure storageDiskStructure;
     private Quality scaleQuality = Quality.AUTO;
 
@@ -280,7 +287,9 @@ public class FeaturedImageProcessor
     private String storageUrlField = COLLECTOR_FEATURED_IMAGE_URL;
 
     private static final Map<Path, ImageCache> IMG_CACHES = new HashMap<>();
-    private boolean initialized;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ImageCache cache;
 
     //TODO add option to process embedded images (base 64)
@@ -301,14 +310,54 @@ public class FeaturedImageProcessor
         CollectionUtil.setAll(this.storage, storage);
     }
 
+    //--- Init. ----------------------------------------------------------------
+
+    @Override
+    protected void onCrawlerRunBegin(CrawlerEvent event) {
+        var workDir = event.getSource().getWorkDir();
+
+        // Initialize image cache directory
+        if (imageCacheSize > 0) {
+            if (imageCacheDir == null) {
+                imageCacheDir = workDir.resolve(DEFAULT_IMAGE_CACHE_DIR);
+            }
+            try {
+                Files.createDirectories(imageCacheDir);
+                LOG.info("Featured image cache directory: {}", imageCacheDir);
+            } catch (IOException e) {
+                throw new CrawlerException(
+                        "Could not create featured image cache directory.", e);
+            }
+            cache = IMG_CACHES.computeIfAbsent(imageCacheDir, dir ->
+                    new ImageCache(imageCacheSize, imageCacheDir));
+        }
+
+        // Initialize image directory
+        if (storage.contains(Storage.DISK)) {
+            if (storageDiskDir == null) {
+                storageDiskDir = workDir.resolve(DEFAULT_STORAGE_DISK_DIR);
+            }
+            try {
+                Files.createDirectories(storageDiskDir);
+                LOG.info("Featured image storage directory: {}",
+                        storageDiskDir);
+            } catch (IOException e) {
+                throw new CrawlerException(
+                        "Could not create featured image storage directory.",
+                        e);
+            }
+        }
+    }
+
+    //--- Process Document -----------------------------------------------------
+
     @Override
     public void processDocument(HttpFetcher fetcher, Doc doc) {
-        ensureInit();
 
         // Return if not valid content type
         if (StringUtils.isNotBlank(pageContentTypePattern)
-                && !Objects.toString(doc.getDocRecord().getContentType()).matches(
-                        pageContentTypePattern)) {
+                && !Objects.toString(doc.getDocRecord().getContentType())
+                        .matches(pageContentTypePattern)) {
             return;
         }
 
@@ -328,12 +377,12 @@ public class FeaturedImageProcessor
                         doc.getReference());
             }
         } catch (IOException e) {
-            LOG.error("Could not extract main image from document: {}",
+            LOG.error("Could not extract featured image from document: {}",
                     doc.getReference(), e);
         }
     }
 
-    private void storeImage(ScaledImage img, Doc doc)
+    private void storeImage(FeaturedImage img, Doc doc)
             throws IOException {
         if (storage.contains(Storage.URL)) {
             doc.getMetadata().add(Objects.toString(storageUrlField,
@@ -345,25 +394,39 @@ public class FeaturedImageProcessor
                     img.toHTMLInlineString(imageFormat));
         }
         if (storage.contains(Storage.DISK)) {
-            var diskDir = new File(storageDiskDir);
-            File imageFile = null;
+            Path imageFile = null;
             if (storageDiskStructure == StorageDiskStructure.DATE) {
                 var fileId = Long.toString(TimeIdGenerator.next());
-                imageFile = new File(FileUtil.createDateDirs(
-                        diskDir), fileId + "." + imageFormat);
+                imageFile = FileUtil.createDateDirs(storageDiskDir.toFile())
+                    .toPath()
+                    .resolve(fileId + "." + imageFormat);
             } else if (storageDiskStructure == StorageDiskStructure.DATETIME) {
                 var fileId = Long.toString(TimeIdGenerator.next());
-                imageFile = new File(FileUtil.createDateTimeDirs(
-                        diskDir), fileId + "." + imageFormat);
+                imageFile = FileUtil.createDateTimeDirs(storageDiskDir.toFile())
+                        .toPath()
+                        .resolve(fileId + "." + imageFormat);
             } else {
-                imageFile = new File(FileUtil.createURLDirs(
-                        diskDir, img.getUrl(), true).getAbsolutePath()
-                        + "." + imageFormat);
+                String filePath = null;
+                if (StringUtils.startsWith(img.getUrl(), "data:")) {
+                    filePath = FileUtil.createURLDirs(
+                            storageDiskDir.toFile(),
+                            doc.getReference() + "/base64-"
+                                    + Math.abs(img.getUrl().hashCode()), true)
+                                            .getAbsolutePath();
+                } else {
+                    filePath = FileUtil.createURLDirs(
+                            storageDiskDir.toFile(), img.getUrl(), true)
+                                    .getAbsolutePath();
+                }
+                if (!endsWithIgnoreCase(filePath, "." + imageFormat)) {
+                    filePath += "." + imageFormat;
+                }
+                imageFile = Paths.get(filePath);
             }
-            ImageIO.write(img.getImage(), imageFormat, imageFile);
+            ImageIO.write(img.getImage(), imageFormat, imageFile.toFile());
             doc.getMetadata().add(Objects.toString(
                     storageDiskField, COLLECTOR_FEATURED_IMAGE_PATH),
-                    imageFile.getAbsolutePath());
+                    imageFile.toFile().getAbsolutePath());
         }
     }
 
@@ -372,7 +435,7 @@ public class FeaturedImageProcessor
                 || storage.contains(Storage.DISK);
     }
 
-    private ScaledImage findFeaturedImage(
+    private FeaturedImage findFeaturedImage(
             Document dom, HttpFetcher fetcher, boolean largest) {
         Elements els;
         if (StringUtils.isNotBlank(domSelector)) {
@@ -380,10 +443,10 @@ public class FeaturedImageProcessor
         } else {
             els = dom.getElementsByTag("img");
         }
-        ScaledImage largestImg = null;
+        FeaturedImage largestImg = null;
         for (Element el : els) {
             var imgURL = el.absUrl("src");
-            ScaledImage img = null;
+            FeaturedImage img = null;
             if (StringUtils.isNotBlank(imgURL)) {
                 img = getImage(fetcher, imgURL);
             }
@@ -403,36 +466,30 @@ public class FeaturedImageProcessor
         return largestImg;
     }
 
-    private synchronized void ensureInit() {
-        if (initialized) {
-            return;
-        }
-        if (imageCacheSize != 0) {
-            var imgCache = IMG_CACHES.get(imageCacheDir);
-            if (imgCache == null) {
-                imgCache = new ImageCache(imageCacheSize, imageCacheDir);
-                IMG_CACHES.put(imageCacheDir, imgCache);
-            }
-            cache = imgCache;
-        }
-        initialized = true;
-    }
-
-    private ScaledImage getImage(HttpFetcher fetcher, String url) {
+    private FeaturedImage getImage(HttpFetcher fetcher, String url) {
         try {
-            ScaledImage img = null;
+            FeaturedImage img = null;
             if (cache != null) {
                 img = cache.getImage(url);
             }
             if (img == null) {
-                var bi = fetchImage(fetcher, url);
-                if (bi == null) {
-                    return null;
-                }
-                var dim = new Dimension(bi.getWidth(), bi.getHeight());
-                bi = scale(bi);
+                if (url.matches("(?i)^data:image/.*?;base64,.*$")) {
+                    var mutableImg = MutableImage.fromBase64String(url);
+                    if (mutableImg == null) {
+                        return null;
+                    }
+                    img = new FeaturedImage(url, mutableImg.getDimension(),
+                            mutableImg.toImage());
+                } else  {
+                    var bi = fetchImage(fetcher, url);
+                    if (bi == null) {
+                        return null;
+                    }
+                    var dim = new Dimension(bi.getWidth(), bi.getHeight());
+                    bi = scale(bi);
 
-                img = new ScaledImage(url, dim, bi);
+                    img = new FeaturedImage(url, dim, bi);
+                }
                 if (cache != null) {
                     cache.setImage(img);
                 }
@@ -474,9 +531,9 @@ public class FeaturedImageProcessor
         if (scaleQuality != null) {
             method = scaleQuality.scalrMethod;
         }
+
         var newImg =
                 Scalr.resize(origImg, method, mode, scaledWidth, scaledHeight);
-
         // Remove alpha layer for formats not supporting it. This prevents
         // some files from having a colored background (instead of transparency)
         // or to not be saved properly (e.g. png to bmp).
@@ -535,7 +592,7 @@ public class FeaturedImageProcessor
         setScaleQuality(xml.getEnum(
                 "scaleQuality", Quality.class, scaleQuality));
         setStorage(xml.getDelimitedEnumList("storage", Storage.class, storage));
-        setStorageDiskDir(xml.getString("storageDiskDir", storageDiskDir));
+        setStorageDiskDir(xml.getPath("storageDiskDir", storageDiskDir));
         setStorageDiskStructure(
                 xml.getEnum("storageDiskDir/@structure",
                         StorageDiskStructure.class, storageDiskStructure));

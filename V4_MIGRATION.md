@@ -68,6 +68,7 @@ Misc. Changes
   were removed in favor of com.norconex.commons.lang.Operator
 * Renamed DocInfo to DocRecord
 * New SaveDocumentTagger class.
+* CommonMatchers pattern constants are now Collections instead of arrays.
 
 ### Crawler Core
 * Renamed CrawlDocInfo to CrawlDocRecord.

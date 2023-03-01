@@ -81,7 +81,7 @@ import lombok.ToString;
  * </p>
  * <p>
  * By default this condition only applies to documents matching
- * the content types listed in {@link CommonMatchers#domContentTypes}.
+ * the content types listed in {@link CommonMatchers#DOM_CONTENT_TYPES}.
  * Other content types always make this condition <code>false</code>.
  * </p>
  * <p>

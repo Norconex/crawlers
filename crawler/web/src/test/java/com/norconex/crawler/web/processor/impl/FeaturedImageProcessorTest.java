@@ -17,6 +17,7 @@ package com.norconex.crawler.web.processor.impl;
 import static com.norconex.crawler.web.TestResource.IMG_160X120_PNG;
 import static com.norconex.crawler.web.TestResource.IMG_320X240_PNG;
 import static com.norconex.crawler.web.TestResource.IMG_640X480_PNG;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.awt.Dimension;
@@ -25,7 +26,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
@@ -33,8 +33,11 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.MockWebCrawlSession;
 import com.norconex.crawler.web.Stubber;
 import com.norconex.crawler.web.WebsiteMock;
@@ -54,31 +57,62 @@ class FeaturedImageProcessorTest {
             ClientAndServer client, Crawler crawler)
             throws IOException {
         WebsiteMock.whenImagePng(client, "/640x480.png", IMG_640X480_PNG);
-        WebsiteMock.whenImagePng(client, "/320x240.png", IMG_320X240_PNG);
-        WebsiteMock.whenImagePng(client, "/160x120.png", IMG_160X120_PNG);
+        WebsiteMock.whenImagePng(client, "/page/320x240.png", IMG_320X240_PNG);
+        WebsiteMock.whenImagePng(client, "160x120.png", IMG_160X120_PNG);
+
+        var baseUrl = "http://localhost:" + client.getLocalPort();
+        var docUrl = baseUrl + "/page/test.html";
 
         var fetcher = crawler.getFetcher();
 
         var fip = new FeaturedImageProcessor();
         fip.setStorage(List.of(Storage.INLINE, Storage.URL, Storage.DISK));
-        fip.setStorageDiskDir(tempDir.resolve("imageStorage").toString());
+        fip.setStorageDiskDir(tempDir.resolve("imageStorage"));
         fip.setImageCacheDir(tempDir.resolve("imageCache"));
         fip.setStorageInlineField("image-inline");
         fip.setStorageUrlField("image-url");
+        fip.setStorageDiskField("image-path");
         fip.setLargest(true);
+        fip.setImageCacheSize(0);
+        fip.setScaleDimensions(null);
+        fip.onCrawlerRunBegin(CrawlerEvent.builder()
+                .name("test")
+                .source(crawler)
+                .build());
 
-        var doc = Stubber.crawlDoc(
-                "http://localhost:" + client.getLocalPort() + "/test.html",
-                ContentType.HTML, ResourceLoader.getHtmlStream(getClass()));
-
+        // biggest
+        var doc = newDoc(docUrl);
         fip.processDocument((HttpFetcher) fetcher, doc);
+        var img = new MutableImage(
+                Paths.get(doc.getMetadata().getString("image-path")));
+        assertThat(doc.getMetadata().getString("image-url")).isEqualTo(
+                baseUrl + "/640x480.png");
+        assertThat(img.getDimension()).isEqualTo(new Dimension(640, 480));
 
-        System.out.println("FILE: " + doc.getMetadata().getString("image-url"));
-    }
+        // first over 200x200, scaled 50% down
+        doc = newDoc(docUrl);
+        fip.setLargest(false);
+        fip.setMinDimensions(new Dimension(200, 200));
+        fip.setScaleDimensions(new Dimension(160, 160));
+        fip.processDocument((HttpFetcher) fetcher, doc);
+        assertThat(doc.getMetadata().getString("image-url")).isEqualTo(
+                baseUrl + "/page/320x240.png");
+        img = new MutableImage(
+                Paths.get(doc.getMetadata().getString("image-path")));
+        assertThat(img.getDimension()).isEqualTo(new Dimension(160, 120));
 
-    private byte[] image(String fileName) throws IOException {
-        return IOUtils.toByteArray(getClass().getClassLoader()
-                .getResourceAsStream(fileName));
+        // Can fail due to cache... set to memory when testing
+
+        // first over 1x1 (base 64)
+        doc = newDoc(docUrl);
+        doc.getMetadata().remove("image-url");
+        fip.setLargest(false);
+        fip.setMinDimensions(new Dimension(1, 1));
+        fip.setScaleDimensions(null);
+        fip.processDocument((HttpFetcher) fetcher, doc);
+        img = new MutableImage(
+                Paths.get(doc.getMetadata().getString("image-path")));
+        assertThat(img.getDimension()).isEqualTo(new Dimension(5, 5));
     }
 
     @Test
@@ -97,7 +131,7 @@ class FeaturedImageProcessorTest {
         p.setScaleDimensions(new Dimension(50, 50));
         p.setScaleStretch(true);
         p.setStorage(List.of(Storage.URL, Storage.INLINE, Storage.DISK));
-        p.setStorageDiskDir("c:\\someotherdir");
+        p.setStorageDiskDir(Paths.get("c:\\someotherdir"));
         p.setStorageDiskStructure(StorageDiskStructure.DATETIME);
         p.setStorageDiskField("diskField");
         p.setStorageInlineField("inlineField");
@@ -126,5 +160,11 @@ class FeaturedImageProcessorTest {
 
         assertThatNoException().isThrownBy(() ->
                 XML.assertWriteRead(p, "processor"));
+    }
+
+    private CrawlDoc newDoc(String docUrl) {
+        return Stubber.crawlDoc(
+                docUrl,
+                ContentType.HTML, ResourceLoader.getHtmlStream(getClass()));
     }
 }

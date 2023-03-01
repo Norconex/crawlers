@@ -54,7 +54,7 @@ import lombok.ToString;
  * one of these content types:
  * </p>
  *
- * {@nx.include com.norconex.importer.handler.CommonRestrictions#xmlFeedContentTypes}
+ * {@nx.include com.norconex.importer.handler.CommonMatchers#xmlFeedContentTypes}
  *
  * <h3>Referrer data</h3>
  * <p>

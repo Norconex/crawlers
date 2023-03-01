@@ -148,7 +148,7 @@ import lombok.Setter;
  * By default, this extractor only will be applied on documents matching
  * one of these content types:
  * </p>
- * {@nx.include com.norconex.importer.handler.CommonRestrictions#domContentTypes}
+ * {@nx.include com.norconex.importer.handler.CommonMatchers#domContentTypes}
  *
  * <h3>"nofollow"</h3>
  * <p>

@@ -29,28 +29,27 @@ import javax.imageio.ImageIO;
 import org.apache.commons.collections4.map.LRUMap;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.store.DataStoreException;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Caches images. This class should not be instantiated more than once
  * for the same path. It is best to share the instance.
  * @since 2.8.0
  */
-//TODO consider using DataStorageEngine instead.
+//TODO consider using DataStorageEngine instead (give it as an option?).
+@Slf4j
 public class ImageCache {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ImageCache.class);
 
     private final MVStore store;
     private final Map<String, String> lru;
     private final Path cacheDir;
-    private MVMap<String, MVImage> imgCache;
+    MVMap<String, MVImage> imgCache;
 
     public ImageCache(int maxSize, Path dir) {
-        this.cacheDir = dir;
+        cacheDir = dir;
         try {
             Files.createDirectories(dir);
             LOG.debug("Image cache directory: {}", dir);
@@ -60,12 +59,12 @@ public class ImageCache {
                             + dir.toAbsolutePath(), e);
         }
 
-        this.store = MVStore.open(
+        store = MVStore.open(
                 dir.resolve("images").toAbsolutePath().toString());
-        this.imgCache = store.openMap("imgCache");
-        this.imgCache.clear();
+        imgCache = store.openMap("imgCache");
+        imgCache.clear();
 
-        this.lru = Collections.synchronizedMap(
+        lru = Collections.synchronizedMap(
                 new LRUMap<String, String>(maxSize){
             private static final long serialVersionUID = 1L;
             @Override
@@ -77,26 +76,26 @@ public class ImageCache {
                 return super.removeLRU(entry);
             }
         });
-        this.store.commit();
+        store.commit();
     }
 
     public Path getCacheDirectory() {
         return cacheDir;
     }
 
-    public ScaledImage getImage(String ref) throws IOException {
-        lru.put(ref, null);
-        MVImage img = imgCache.get(ref);
+    public FeaturedImage getImage(String ref) throws IOException {
+        var img = imgCache.get(ref);
         if (img == null) {
             return null;
         }
-        return new ScaledImage(ref, img.getOriginalDimension(),
+        lru.put(ref, null);
+        return new FeaturedImage(ref, img.getOriginalDimension(),
                 ImageIO.read(new ByteArrayInputStream(img.getImage())));
     }
-    public void setImage(ScaledImage scaledImage)
+    public void setImage(FeaturedImage scaledImage)
             throws IOException {
         lru.put(scaledImage.getUrl(), null);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        var baos = new ByteArrayOutputStream();
         ImageIO.write(scaledImage.getImage(), "png", baos);
         imgCache.put(scaledImage.getUrl(), new MVImage(
                 scaledImage.getOriginalSize(), baos.toByteArray()));
@@ -108,7 +107,6 @@ public class ImageCache {
         private final Dimension originalDimension;
         private final byte[] image;
         public MVImage(Dimension originalDimension, byte[] image) {
-            super();
             this.originalDimension = originalDimension;
             this.image = image;
         }

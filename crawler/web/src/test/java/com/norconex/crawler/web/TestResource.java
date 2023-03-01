@@ -16,11 +16,18 @@ package com.norconex.crawler.web;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 
+import javax.imageio.ImageIO;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.norconex.crawler.web.processor.impl.FeaturedImage;
 
 public class TestResource {
 
@@ -49,5 +56,31 @@ public class TestResource {
     }
     public InputStream asInputStream() {
         return TestResource.class.getClassLoader().getResourceAsStream(path);
+    }
+
+    public String relativePath() {
+        return path;
+    }
+    public String absolutePath(String baseUrl) {
+        return StringUtils.appendIfMissing(baseUrl, "/") + path;
+    }
+
+    public BufferedImage asImage() {
+        if (!path.startsWith("img/")) {
+            throw new UnsupportedOperationException(
+                    "Path indicates this not an image: " + path);
+        }
+        try {
+            return ImageIO.read(asInputStream());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+    public FeaturedImage asFeaturedImage(String baseUrl) {
+        var img = asImage();
+        return new FeaturedImage(
+                absolutePath(baseUrl),
+                new Dimension(img.getWidth(), img.getHeight()),
+                img);
     }
 }
