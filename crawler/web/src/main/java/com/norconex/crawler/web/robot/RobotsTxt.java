@@ -18,85 +18,60 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.collections4.ListUtils;
 
-import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.importer.handler.filter.OnMatch;
 
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Singular;
+import lombok.ToString;
+
+/**
+ * Immutable holder of robots.txt rules.
+ */
+@ToString
+@EqualsAndHashCode
 public class RobotsTxt {
 
     public static final float UNSPECIFIED_CRAWL_DELAY = -1;
 
-    //TODO delete this variable that contains all of them?
-    private final List<RobotsTxtFilter> filters = new ArrayList<>();
-    private final List<RobotsTxtFilter> disallowFilters = new ArrayList<>();
-    private final List<RobotsTxtFilter> allowFilters = new ArrayList<>();
+    private final List<RobotsTxtFilter> disallowFilters;
+    private final List<RobotsTxtFilter> allowFilters;
     private final float crawlDelay;
-    private final List<String> sitemapLocations = new ArrayList<>();
+    private final List<String> sitemapLocations;
 
-    /**
-     * Creates a new robot txt object with the supplied filters.
-     * @param filters filters
-     */
-    public RobotsTxt(RobotsTxtFilter... filters) {
-        this(CollectionUtil.asListOrEmpty(filters), UNSPECIFIED_CRAWL_DELAY);
-    }
-    /**
-     * Creates a new robot txt object with the supplied filters.
-     * @param filters filters
-     * @since 3.0.0
-     */
-    public RobotsTxt(List<RobotsTxtFilter> filters) {
-        this(filters, UNSPECIFIED_CRAWL_DELAY);
-    }
-    public RobotsTxt(List<RobotsTxtFilter> filters, float crawlDelay) {
-        this(filters, null, crawlDelay);
-    }
-    public RobotsTxt(
-            List<RobotsTxtFilter> filters, List<String> sitemapLocations) {
-        this(filters, sitemapLocations, UNSPECIFIED_CRAWL_DELAY);
-    }
-    public RobotsTxt(List<RobotsTxtFilter> filters,
-            List<String> sitemapLocations, float crawlDelay) {
-        super();
-
-        CollectionUtil.setAll(this.filters, filters);
-        CollectionUtil.setAll(this.sitemapLocations, sitemapLocations);
+    @Builder
+    RobotsTxt(
+            @Singular
+            List<RobotsTxtFilter> filters,
+            @Singular
+            List<String> sitemapLocations,
+            float crawlDelay) {
+        this.sitemapLocations = Collections.unmodifiableList(
+                ListUtils.emptyIfNull(sitemapLocations));
         this.crawlDelay = crawlDelay;
 
-        if (!this.filters.isEmpty()) {
-            List<RobotsTxtFilter> disallows = new ArrayList<>();
-            List<RobotsTxtFilter> allows = new ArrayList<>();
-            for (RobotsTxtFilter filter : this.filters) {
-                if (filter.getOnMatch() == OnMatch.EXCLUDE) {
-                    disallows.add(filter);
-                } else {
-                    allows.add(filter);
-                }
+        List<RobotsTxtFilter> disallows = new ArrayList<>();
+        List<RobotsTxtFilter> allows = new ArrayList<>();
+        for (RobotsTxtFilter filter : ListUtils.emptyIfNull(filters)) {
+            if (filter.getOnMatch() == OnMatch.EXCLUDE) {
+                disallows.add(filter);
+            } else {
+                allows.add(filter);
             }
-            CollectionUtil.setAll(this.disallowFilters, disallows);
-            CollectionUtil.setAll(this.allowFilters, allows);
         }
+        disallowFilters = Collections.unmodifiableList(disallows);
+        allowFilters = Collections.unmodifiableList(allows);
     }
 
-    //TODO deprecate?
-    /**
-     * Gets all filters.
-     * @return filters (never <code>null</code>)
-     */
-    public List<RobotsTxtFilter> getFilters() {
-        return Collections.unmodifiableList(filters);
-    }
     /**
      * Gets "Disallow" filters.
      * @return disallow filters (never <code>null</code>)
      * @since 2.4.0
      */
     public List<RobotsTxtFilter> getDisallowFilters() {
-        return Collections.unmodifiableList(disallowFilters);
+        return disallowFilters;
     }
     /**
      * Gets "Allow" filters.
@@ -104,26 +79,12 @@ public class RobotsTxt {
      * @since 2.4.0
      */
     public List<RobotsTxtFilter> getAllowFilters() {
-        return Collections.unmodifiableList(allowFilters);
+        return allowFilters;
     }
     public List<String> getSitemapLocations() {
-        return Collections.unmodifiableList(sitemapLocations);
+        return sitemapLocations;
     }
     public float getCrawlDelay() {
         return crawlDelay;
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

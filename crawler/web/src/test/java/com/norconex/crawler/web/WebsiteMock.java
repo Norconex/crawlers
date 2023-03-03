@@ -19,6 +19,7 @@ import static org.mockserver.model.HttpResponse.response;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.mock.Expectation;
 import org.mockserver.model.BinaryBody;
@@ -27,6 +28,12 @@ import org.mockserver.model.MediaType;
 public final class WebsiteMock {
 
     private WebsiteMock() {}
+
+    public static String serverUrl(ClientAndServer client, String urlPath) {
+        return "http://localhost:%s%s".formatted(
+                client.getLocalPort(),
+                StringUtils.prependIfMissing(urlPath, "/"));
+    }
 
     public static Expectation[] whenHtml(
             ClientAndServer client, String urlPath, TestResource resource)

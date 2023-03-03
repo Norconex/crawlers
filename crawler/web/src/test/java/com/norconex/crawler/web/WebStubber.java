@@ -65,6 +65,11 @@ import com.norconex.crawler.web.sitemap.SitemapResolver;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.DocMetadata;
 
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
 public final class WebStubber {
 
     public static final String MOCK_CRAWLER_ID = "test-crawler";
@@ -161,223 +166,31 @@ public final class WebStubber {
         return doc;
     }
 
-//    public static HttpDocRecord docRecord(String ref, ContentType ct) {
-//        var docRecord = new HttpDocRecord(ref);
-//        docRecord.setContentType(ct);
-//        return docRecord;
-//    }
-//
-//
-//    //--- Crawler Config -------------------------------------------------------
-//
-//    /**
-//     * <p>Crawler config stub:</p>
-//     * <ul>
-//     *   <li>Crawler id: {@value #MOCK_CRAWLER_ID}.</li>
-//     *   <li>Single-threaded</li>
-//     *   <li>1 Memory Committer</li>
-//     *   <li>Default values for everything else.</li>
-//     * </ul>
-//     * @return crawler config
-//     */
-//    public static CrawlerConfig crawlerConfig() {
-//        var crawlerConfig = new CrawlerConfig();
-//        crawlerConfig.setId(MOCK_CRAWLER_ID);
-//        crawlerConfig.setNumThreads(1);
-//        crawlerConfig.setCommitters(List.of(new MemoryCommitter()));
-//        return crawlerConfig;
-//    }
-//
-//    //--- Crawl Session Config -------------------------------------------------
-//
-//    /**
-//     * <p>Crawl session config stub:</p>
-//     * <ul>
-//     *   <li>Crawl session id: {@value #MOCK_CRAWL_SESSION_ID}.</li>
-//     *   <li>1 crawler from {@link #crawlerConfig()}.</li>
-//     *   <li>Default values for everything else.</li>
-//     * </ul>
-//     * @param workDir where to store generated files (including crawl store)
-//     * @return crawl session config
-//     */
-//    public static CrawlSessionConfig crawlSessionConfig(@NonNull Path workDir) {
-//        var sessionConfig = new CrawlSessionConfig();
-//        sessionConfig.setWorkDir(workDir);
-//        sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
-//        sessionConfig.setCrawlerConfigs(List.of(crawlerConfig()));
-//        return sessionConfig;
-//    }
-//    /**
-//     * <p>Random crawl session config stub:</p>
-//     * <ul>
-//     *   <li>1 crawler from {@link #crawlerConfigRandom()}.</li>
-//     *   <li>Default values for everything else.</li>
-//     * </ul>
-//     *
-//     * @param workDir where to store generated files (including crawl store)
-//     * @return random crawl session config
-//     */
-//    public static CrawlSessionConfig crawlSessionConfigRandom(
-//            @NonNull Path workDir) {
-//        var sessionConfig = easyRandom.nextObject(CrawlSessionConfig.class);
-//        sessionConfig.setWorkDir(workDir);
-//        sessionConfig.setCrawlerConfigs(List.of(crawlerConfigRandom()));
-//        return sessionConfig;
-//    }
-//
-//    //--- CrawlDocRecord -------------------------------------------------------
-//
-//    public static CrawlDocRecord crawlDocRecord(String ref) {
-//        return new CrawlDocRecord(ref);
-//    }
-//    public static CrawlDocRecord crawlDocRecordRandom() {
-//        return easyRandom.nextObject(CrawlDocRecord.class);
-//    }
-//
-//    //--- CrawlDoc -------------------------------------------------------------
-//
-//    // Content MD5: b8ab309a6b9a3f448092a136afa8fa25
-//    public static CrawlDoc crawlDoc(String ref) {
-//        return crawlDoc(ref, "Some content.", new Object[] {});
-//    }
-//    public static CrawlDoc crawlDoc(String ref, String content) {
-//        return crawlDoc(ref, content, new Object[] {});
-//    }
-//    public static CrawlDoc crawlDoc(
-//            String ref, String content, Object... metaKeyValues) {
-//        var doc = new CrawlDoc(
-//                new CrawlDocRecord(ref),
-//                new CachedStreamFactory().newInputStream(
-//                        IOUtils.toInputStream(content, UTF_8)));
-//        if (ArrayUtils.isNotEmpty(metaKeyValues)) {
-//            doc.getMetadata().loadFromMap(MapUtil.toMap(metaKeyValues));
-//        }
-//        return doc;
-//    }
-//    public static CrawlDoc crawlDocWithCache(
-//            String ref, String content, Object... metaKeyValues) {
-//        var doc = new CrawlDoc(
-//                new CrawlDocRecord(ref),
-//                new CrawlDocRecord(ref),
-//                new CachedStreamFactory().newInputStream(
-//                        IOUtils.toInputStream(content, UTF_8)));
-//        if (ArrayUtils.isNotEmpty(metaKeyValues)) {
-//            doc.getMetadata().loadFromMap(MapUtil.toMap(metaKeyValues));
-//        }
-//        return doc;
-//    }
-//
-//    //--- Crawl Session --------------------------------------------------------
-//
-//    public static MockCrawlSession crawlSession(
-//            @NonNull Path workDir, String... startReferences) {
-//        return crawlSession(workDir, null, startReferences);
-//    }
-//
-//    /**
-//     * A crawl session that has 1 crawler and 0 documents in queue.
-//     * @param workDir where to store generated files (including crawl store)
-//     * @param crawlerImplBuilderModifier gives a chance to modify CrawlerImpl
-//     * @param startReferences initial queue references
-//     * @return crawl session.
-//     */
-//    public static MockCrawlSession crawlSession(
-//            @NonNull Path workDir,
-//            Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
-//            String... startReferences) {
-//
-//        return new MockCrawlSession(
-//                CrawlSession.builder()
-//                .crawlerFactory((crawlSess, crawlerCfg) -> Crawler.builder()
-//                        .crawlSession(crawlSess)
-//                        .crawlerConfig(crawlerCfg)
-//                        .crawlerImpl(crawlerImpl(
-//                                crawlerCfg,
-//                                crawlerImplBuilderModifier,
-//                                startReferences))
-//                        .build())
-//                .crawlSessionConfig(crawlSessionConfig(workDir))
-//        );
-//    }
-//
-//    //--- CrawlerImpl ----------------------------------------------------------
-//
-//    public static CrawlerImpl crawlerImpl(
-//            CrawlerConfig crawlerConfig, String... startReferences) {
-//        return crawlerImpl(crawlerConfig, null, startReferences);
-//    }
-//    public static CrawlerImpl crawlerImpl(
-//            CrawlerConfig crawlerConfig,
-//            Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
-//            String... startReferences) {
-//
-//        var crawlerImplBuilder = CrawlerImpl.builder()
-//                .fetcherProvider(crawler -> new MockFetcher())
-//                .committerPipeline(new MockCommitterPipeline())
-//                .importerPipeline(new MockImporterPipeline())
-//                .queueInitializer(new MockQueueInitializer(startReferences))
-//                .queuePipeline(new MockQueuePipeline());
-//        if (crawlerImplBuilderModifier != null) {
-//            crawlerImplBuilderModifier.accept(crawlerImplBuilder);
-//        }
-//        return crawlerImplBuilder.build();
-//    }
-//
-//    //--- Crawler --------------------------------------------------------------
-//
-//    public static MockCrawler crawler(
-//            @NonNull Path workDir, String... startReferences) {
-//        return crawler(workDir, null, startReferences);
-//    }
-//    public static MockCrawler crawler(
-//            @NonNull Path workDir,
-//            Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
-//            String... startReferences) {
-//        var cfg = crawlerConfig();
-//        var crawlerImplBuilder = CrawlerImpl.builder()
-//                .fetcherProvider(crawler -> new MockFetcher())
-//                .committerPipeline(new MockCommitterPipeline())
-//                .importerPipeline(new MockImporterPipeline())
-//                .queueInitializer(
-//                        new MockQueueInitializer(startReferences))
-//                .queuePipeline(new MockQueuePipeline());
-//        if (crawlerImplBuilderModifier != null) {
-//            crawlerImplBuilderModifier.accept(crawlerImplBuilder);
-//        }
-//        return new MockCrawler(
-//                crawlSession(workDir),
-//                cfg,
-//                crawlerImplBuilder.build());
-////        return Crawler.builder()
-////                .crawlerConfig(cfg)
-////                .crawlSession(crawlSession(workDir))
-////                .crawlerImpl(crawlerImplBuilder.build())
-////                .build();
-//    }
-//
-//
-//    //--- Misc. ----------------------------------------------------------------
-//
-//    public static Path writeSampleConfigToDir(Path dir) {
-//
-//        // if config file does not exist, assume we want to use the
-//        // stubber default.
-//        var cfgFile = dir.resolve("CoreStubber.xml");
-//        if (!Files.exists(cfgFile)) {
-//            try {
-//                Files.writeString(cfgFile, getXmlString(CoreStubber.class));
-//            } catch (IOException e) {
-//                throw new UncheckedIOException(e);
-//            }
-//        }
-//        return cfgFile;
-//    }
-//
-//    private static class MockDataStore<T> extends MVStoreDataStore<T> {
-//        public MockDataStore() {
-//            super(null, "someName");
-//        }
-//    }
+    public static HtmlPage htmlPage() {
+        return new HtmlPage();
+    }
 
-
+    @Data
+    @Accessors(fluent = true)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class HtmlPage {
+        String title = "Mock HTML Page";
+        //TODO if needed, replace with collections, of scripts, css, etc.
+        String head = "";
+        String body = "Mock HTML page content.";
+        public String build() {
+            return """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <title>%s</title>
+                  %s
+                </head>
+                <body>
+                %s
+                </body>
+                </html>
+                """.formatted(title, head, body);
+        }
+    }
 }

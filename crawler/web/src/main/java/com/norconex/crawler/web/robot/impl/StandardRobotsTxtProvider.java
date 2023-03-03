@@ -28,14 +28,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
@@ -51,7 +45,10 @@ import com.norconex.crawler.web.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
 import com.norconex.importer.handler.filter.OnMatch;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -71,16 +68,14 @@ import lombok.EqualsAndHashCode;
  * <p>
  * The above example ignores "robots.txt" files present on web sites.
  * </p>
- *
  */
+@Slf4j
+@Data
 public class StandardRobotsTxtProvider implements RobotsTxtProvider {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            StandardRobotsTxtProvider.class);
-
-    private final Map<String, RobotsTxt> robotsTxtCache =
-            new HashMap<>();
-
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private final Map<String, RobotsTxt> robotsTxtCache = new HashMap<>();
 
     @Override
     public synchronized RobotsTxt getRobotsTxt(
@@ -121,11 +116,11 @@ public class StandardRobotsTxtProvider implements RobotsTxtProvider {
             } else {
                 LOG.info("No robots.txt found for {}. ({} - {})", robotsURL,
                         response.getStatusCode(), response.getReasonPhrase());
-                robotsTxt = new RobotsTxt();
+                robotsTxt = RobotsTxt.builder().build();
             }
         } catch (Exception e) {
             LOG.warn("Not able to obtain robots.txt at: {}", robotsURL, e);
-            robotsTxt = new RobotsTxt();
+            robotsTxt = RobotsTxt.builder().build();
         }
         robotsTxtCache.put(baseURL, robotsTxt);
         return robotsTxt;
@@ -228,21 +223,6 @@ public class StandardRobotsTxtProvider implements RobotsTxtProvider {
         return baseURL;
     }
 
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other, "robotsTxtCache");
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this, "robotsTxtCache");
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE)
-                .setExcludeFieldNames("robotsTxtCache").toString();
-    }
-
     private static class RobotData {
         private enum Precision {
             NOMATCH, WILD, PARTIAL, EXACT;
@@ -274,7 +254,12 @@ public class StandardRobotsTxtProvider implements RobotsTxtProvider {
             }
             var delay = NumberUtils.toFloat(
                     crawlDelay, RobotsTxt.UNSPECIFIED_CRAWL_DELAY);
-            return new RobotsTxt(filters, sitemaps, delay);
+            return RobotsTxt
+                    .builder()
+                    .filters(filters)
+                    .sitemapLocations(sitemaps)
+                    .crawlDelay(delay)
+                    .build();
         }
         private RobotsTxtFilter buildURLFilter(
                 String baseURL, final String path, final OnMatch onMatch) {

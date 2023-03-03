@@ -95,3 +95,4 @@ Misc. Changes
   and CrawlSession, respectively.
 * GenericRecrawlableResolver minimum frequencies now expect TextMatcher 
   instead of regular expressions.
+* RobotsTxt now instantiated  via builder factory method.

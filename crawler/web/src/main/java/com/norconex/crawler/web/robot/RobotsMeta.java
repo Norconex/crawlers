@@ -14,36 +14,10 @@
  */
 package com.norconex.crawler.web.robot;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
+import lombok.Data;
 
+@Data
 public class RobotsMeta {
     private final boolean nofollow;
     private final boolean noindex;
-    public RobotsMeta(boolean nofollow, boolean noindex) {
-        super();
-        this.nofollow = nofollow;
-        this.noindex = noindex;
-    }
-    public boolean isNofollow() {
-        return nofollow;
-    }
-    public boolean isNoindex() {
-        return noindex;
-    }
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
-    }
 }

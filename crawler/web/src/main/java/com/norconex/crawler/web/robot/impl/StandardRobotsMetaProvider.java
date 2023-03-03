@@ -16,16 +16,9 @@ package com.norconex.crawler.web.robot.impl;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
@@ -34,6 +27,9 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.robot.RobotsMeta;
 import com.norconex.crawler.web.robot.RobotsMetaProvider;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>Implementation of {@link RobotsMetaProvider} as per X-Robots-Tag
@@ -67,19 +63,18 @@ import com.norconex.crawler.web.robot.RobotsMetaProvider;
  * <p>
  * The above example ignores robot meta information.
  * </p>
- *
  */
+@Slf4j
+@Data
 public class StandardRobotsMetaProvider
         implements RobotsMetaProvider, XMLConfigurable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            StandardRobotsMetaProvider.class);
     private static final Pattern META_ROBOTS_PATTERN = Pattern.compile(
-            "<\\s*META[^>]*?NAME\\s*=\\s*[\"']{0,1}\\s*robots"
-                    + "\\s*[\"']{0,1}\\s*[^>]*?>",
+            "<\\s*META[^>]*?NAME\\s*=\\s*[\"']?\\s*robots"
+                    + "\\s*[\"']?\\s*[^>]*?>",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern META_CONTENT_PATTERN = Pattern.compile(
-            "\\s*CONTENT\\s*=\\s*[\"']{0,1}([\\s\\w,]+)[\"']{0,1}\\s*[^>]*?>",
+            "\\s*CONTENT\\s*=\\s*[\"']?([\\s\\w,]+)[\"']?\\s*[^>]*?>",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern HEAD_PATTERN = Pattern.compile(
             "<\\s*/\\s*HEAD\\s*>",
@@ -128,13 +123,6 @@ public class StandardRobotsMetaProvider
         }
 
         return robotsMeta;
-    }
-
-    public String getHeadersPrefix() {
-        return headersPrefix;
-    }
-    public void setHeadersPrefix(String headersPrefix) {
-        this.headersPrefix = headersPrefix;
     }
 
     private boolean isMetaSupportingContentType(ContentType contentType) {
@@ -202,19 +190,5 @@ public class StandardRobotsMetaProvider
     @Override
     public void saveToXML(XML xml) {
         xml.addElement("headersPrefix", headersPrefix);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }
