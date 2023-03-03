@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.web.Stubber;
+import com.norconex.crawler.web.WebStubber;
 
 @Disabled
 class HttpCrawlerConfigTest {
@@ -28,7 +28,7 @@ class HttpCrawlerConfigTest {
     @Test
     void testHttpCrawlerConfig() {
         assertThatNoException().isThrownBy(() ->
-                XML.assertWriteRead(Stubber.crawlerConfigRandom(), "crawler"));
+                XML.assertWriteRead(WebStubber.crawlerConfigRandom(), "crawler"));
     }
 
 }

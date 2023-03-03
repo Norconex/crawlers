@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterRequest;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.crawler.CrawlerConfig.OrphansStrategy;
 
@@ -37,7 +37,7 @@ class CrawlerTest {
     @Test
     void testLifeCycle() {
 
-        var crawlSession = Stubber.crawlSession(tempDir,
+        var crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:ref1", "mock:ref2", "mock:ref3", "mock:ref4");
 
         // Start
@@ -62,7 +62,7 @@ class CrawlerTest {
         crawlSession.importDataStore(List.of(exportFile));
 
         // New session with 1 new 2 modified, and 1 orphan
-        crawlSession = Stubber.crawlSession(tempDir,
+        crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5");
 
         // Start
@@ -88,7 +88,7 @@ class CrawlerTest {
 
     @Test
     void testErrors() {
-        var sess = Stubber.crawlSession(tempDir);
+        var sess = CoreStubber.crawlSession(tempDir);
         TestUtil.getFirstCrawlerConfig(sess).setId(null);
         assertThatExceptionOfType(CrawlerException.class).isThrownBy(() ->
             sess.start());
@@ -97,12 +97,12 @@ class CrawlerTest {
     @Test
     void testOrphanDeletion() {
 
-        var crawlSession = Stubber.crawlSession(tempDir,
+        var crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:ref1", "mock:ref2", "mock:ref3", "mock:ref4");
         crawlSession.start();
 
         // New session with 1 new 2 modified, and 1 orphan
-        crawlSession = Stubber.crawlSession(tempDir,
+        crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5");
         TestUtil.getFirstCrawlerConfig(
                 crawlSession).setOrphansStrategy(OrphansStrategy.DELETE);

@@ -22,7 +22,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.filter.OnMatch;
@@ -38,8 +38,8 @@ class DocumentFiltersStageTest {
 
     @Test
     void testDocumentFiltersStage() {
-        var doc = Stubber.crawlDoc("ref");
-        var crawler = Stubber.crawler(tempDir);
+        var doc = CoreStubber.crawlDoc("ref");
+        var crawler = CoreStubber.crawler(tempDir);
         var ctx = new ImporterPipelineContext(crawler, doc);
         var stage = new DocumentFiltersStage();
 

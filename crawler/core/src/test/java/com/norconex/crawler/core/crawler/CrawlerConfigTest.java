@@ -19,14 +19,14 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 
 class CrawlerConfigTest {
 
     @Test
     void testCrawlerConfig() {
         assertThatNoException().isThrownBy(() ->
-                XML.assertWriteRead(Stubber.crawlerConfigRandom(), "crawler"));
+                XML.assertWriteRead(CoreStubber.crawlerConfigRandom(), "crawler"));
     }
 
 }

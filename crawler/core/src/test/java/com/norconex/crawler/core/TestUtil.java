@@ -98,7 +98,7 @@ public final class TestUtil {
             Consumer<CrawlerConfig> c,
             String... startReferences) {
 
-        var sess = Stubber.crawlSession(workDir, startReferences);
+        var sess = CoreStubber.crawlSession(workDir, startReferences);
         var cfg = TestUtil.getFirstCrawlerConfig(sess);
         if (c != null) {
             c.accept(cfg);
@@ -113,7 +113,7 @@ public final class TestUtil {
             Consumer<CrawlerImpl.CrawlerImplBuilder> crawlerImplBuilderModifier,
             String... startReferences) {
 
-        var sess = Stubber.crawlSession(
+        var sess = CoreStubber.crawlSession(
                 workDir, crawlerImplBuilderModifier, startReferences);
         var cfg = TestUtil.getFirstCrawlerConfig(sess);
         if (c != null) {
@@ -147,7 +147,7 @@ public final class TestUtil {
                         .crawlerFactory((sess, cfg) -> Crawler.builder()
                             .crawlSession(sess)
                             .crawlerConfig(cfg)
-                            .crawlerImpl(Stubber.crawlerImpl(cfg, refs))
+                            .crawlerImpl(CoreStubber.crawlerImpl(cfg, refs))
                             .build())
                         .crawlSessionConfig(crawlSessionConfig),
                     cmdArgs));
@@ -179,7 +179,7 @@ public final class TestUtil {
 
     public static void withinInitializedSession(
             @NonNull Path workDir, @NonNull Consumer<CrawlSession> c) {
-        var session = Stubber.crawlSession(workDir);
+        var session = CoreStubber.crawlSession(workDir);
         session.sneakyInitCrawlSession();
         c.accept(session);
         session.sneakyDestroyCrawlSession();
@@ -192,7 +192,7 @@ public final class TestUtil {
             @NonNull Path workDir,
             @NonNull Consumer<Crawler> c,
             Consumer<CrawlerConfig> configModifier) {
-        var crawler = Stubber.crawler(workDir);
+        var crawler = CoreStubber.crawler(workDir);
         if (configModifier != null) {
             configModifier.accept(crawler.getCrawlerConfig());
         }

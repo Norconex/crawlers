@@ -29,7 +29,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.Stubber;
+import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.doc.HttpDocRecord;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
@@ -60,7 +60,7 @@ class HtmlDomLinkExtractorTest {
         try (var is = getClass().getResourceAsStream(
                 "LinkExtractBetweenTest.html")) {
             links = extractor.extractLinks(
-                    Stubber.crawlDoc(
+                    WebStubber.crawlDoc(
                             baseURL + "LinkExtractBetweenTest.html",
                             ContentType.HTML, is));
         }

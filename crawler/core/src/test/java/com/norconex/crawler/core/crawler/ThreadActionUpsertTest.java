@@ -22,7 +22,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.crawler.CrawlerThread.ThreadActionContext;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterStatus;
@@ -34,13 +34,13 @@ class ThreadActionUpsertTest {
 
     @Test
     void testThreadActionUpsert() {
-        var crawler = Stubber.crawler(tempDir);
+        var crawler = CoreStubber.crawler(tempDir);
         crawler.getCrawlerConfig().getImporterConfig().setResponseProcessors(
                 List.of(resp -> {
                     resp.addNestedResponse(new ImporterResponse(
-                            Stubber.crawlDoc("childResponse1")));
+                            CoreStubber.crawlDoc("childResponse1")));
                     resp.addNestedResponse(new ImporterResponse(
-                            Stubber.crawlDoc("childResponse2")));
+                            CoreStubber.crawlDoc("childResponse2")));
                     return new ImporterStatus();
                 }));
         // start just so we have the crawler setup properly to run our
@@ -48,7 +48,7 @@ class ThreadActionUpsertTest {
         crawler.start();
 
 
-        var doc = Stubber.crawlDoc("ref");
+        var doc = CoreStubber.crawlDoc("ref");
         var ctx = new ThreadActionContext();
         ctx.finalized(false);
         ctx.crawler(crawler);

@@ -24,7 +24,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 
 class DocumentPipelineContextTest {
 
@@ -33,8 +33,8 @@ class DocumentPipelineContextTest {
 
     @Test
     void testDocumentPipelineContext() throws IOException {
-        var crawler = Stubber.crawler(tempDir);
-        var doc = Stubber.crawlDocWithCache("ref", "content");
+        var crawler = CoreStubber.crawler(tempDir);
+        var doc = CoreStubber.crawlDocWithCache("ref", "content");
         var ctx = new DocumentPipelineContext(crawler, doc);
         assertThat(ctx.getDocRecord().getReference()).isEqualTo("ref");
         assertThat(ctx.getDocument()).isEqualTo(doc);

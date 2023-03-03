@@ -34,7 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.crawler.web.Stubber;
+import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
 
@@ -121,7 +121,7 @@ class HtmlDomTikaLinkExtractorTest {
                 "LinkExtractorTest.html");
 
         var links = extractor.extractLinks(
-                Stubber.crawlDoc(docURL, ContentType.HTML, is));
+                WebStubber.crawlDoc(docURL, ContentType.HTML, is));
         is.close();
 
         var actualUrls = links.stream().map(Link::getUrl).toList();
@@ -148,7 +148,7 @@ class HtmlDomTikaLinkExtractorTest {
 
         var is = getClass().getResourceAsStream("LinkBaseHrefTest.html");
         var links = extractor.extractLinks(
-                Stubber.crawlDoc(docURL, ContentType.HTML, is));
+                WebStubber.crawlDoc(docURL, ContentType.HTML, is));
         is.close();
 
         var actualUrls = links.stream().map(Link::getUrl).toList();
@@ -180,7 +180,7 @@ class HtmlDomTikaLinkExtractorTest {
         var is = getClass().getResourceAsStream(
                 "LinkRelativeBaseHrefTest.html");
         var links = extractor.extractLinks(
-                Stubber.crawlDoc(docURL, ContentType.HTML, is));
+                WebStubber.crawlDoc(docURL, ContentType.HTML, is));
         is.close();
 
         var actualUrls = links.stream().map(Link::getUrl).toList();
@@ -206,7 +206,7 @@ class HtmlDomTikaLinkExtractorTest {
         var is = getClass().getResourceAsStream(
                 "LinkKeepReferrerTest.html");
         var links = extractor.extractLinks(
-                Stubber.crawlDoc("http://www.site.com/parent.html",
+                WebStubber.crawlDoc("http://www.site.com/parent.html",
                         ContentType.HTML, is));
         is.close();
 
@@ -215,7 +215,7 @@ class HtmlDomTikaLinkExtractorTest {
 
     @LinkExtractorsTest
     void testWriteRead(LinkExtractor extractor) {
-        LinkExtractor randomEx = Stubber.randomize(extractor.getClass());
+        LinkExtractor randomEx = WebStubber.randomize(extractor.getClass());
         assertThatNoException().isThrownBy(
                 () -> XML.assertWriteRead(
                         (XMLConfigurable) randomEx, "extractor"));

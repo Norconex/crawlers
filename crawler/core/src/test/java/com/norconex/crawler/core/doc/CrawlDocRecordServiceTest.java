@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.doc.CrawlDocRecord.Stage;
 
@@ -50,7 +50,7 @@ class CrawlDocRecordServiceTest {
         TestUtil.withinInitializedCrawler(tempDir, crawler -> {
             var service = crawler.getDocRecordService();
             service.prepareForCrawlerStart();
-            service.processed(Stubber.crawlDocRecord("ref1"));
+            service.processed(CoreStubber.crawlDocRecord("ref1"));
             service.close();
 
             service.open();
@@ -69,8 +69,8 @@ class CrawlDocRecordServiceTest {
         TestUtil.withinInitializedCrawler(tempDir, crawler -> {
             var service = crawler.getDocRecordService();
             service.prepareForCrawlerStart();
-            service.queue(Stubber.crawlDocRecord("q-ref"));
-            service.processed(Stubber.crawlDocRecord("p-ref"));
+            service.queue(CoreStubber.crawlDocRecord("q-ref"));
+            service.processed(CoreStubber.crawlDocRecord("p-ref"));
             service.close();
 
             service.open();

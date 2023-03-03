@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterRequest;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
@@ -67,8 +67,8 @@ class CrawlSessionTest {
 
     @Test
     void testConcurrentCrawlers() throws IOException {
-        var sess = Stubber.crawlSession(tempDir);
-        var crawlerConfig2 = Stubber.crawlerConfig();
+        var sess = CoreStubber.crawlSession(tempDir);
+        var crawlerConfig2 = CoreStubber.crawlerConfig();
         crawlerConfig2.setId("crawler2");
         sess.getCrawlSessionConfig().setCrawlerConfigs(List.of(
                 TestUtil.getFirstCrawlerConfig(sess),
@@ -88,7 +88,7 @@ class CrawlSessionTest {
     @Test
     void testLifeCycle() throws IOException {
 
-        var crawlSession = Stubber.crawlSession(tempDir,
+        var crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:ref1", "mock:ref2", "mock:ref3", "mock:ref4");
 
         // Start
@@ -113,7 +113,7 @@ class CrawlSessionTest {
         crawlSession.importDataStore(List.of(exportFile));
 
         // New session with 1 new 2 modified, and 1 orphan
-        crawlSession = Stubber.crawlSession(tempDir,
+        crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:ref2", "mock:ref3", "mock:ref4", "mock:ref5");
 
         // Start
@@ -140,7 +140,7 @@ class CrawlSessionTest {
     @Test
     void testReleaseInfo() {
         var rel = CrawlSession.getReleaseInfo(
-                Stubber.crawlSessionConfig(tempDir));
+                CoreStubber.crawlSessionConfig(tempDir));
         assertThat(rel).contains("Crawler and main components:");
     }
 }

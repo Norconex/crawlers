@@ -29,7 +29,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListener.OnMultiple;
 import com.norconex.importer.handler.HandlerConsumer;
@@ -62,7 +62,7 @@ class StopCrawlerOnMaxEventListenerTest {
             int expectedUpserts) {
         // prefixing with number to ensure they are retreived in same order
         //MAYBE: ensure crawl store behave like a FIFO queue?
-        var crawlSession = Stubber.crawlSession(tempDir,
+        var crawlSession = CoreStubber.crawlSession(tempDir,
                 "1-mock:reject-1",
                 "2-mock:upsert-1",
                 "3-mock:reject-2",

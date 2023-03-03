@@ -16,31 +16,32 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:include schemaLocation="/com/norconex/commons/lang/text/TextMatcher.xsd"></xs:include>
+
   <xs:element name="recrawlableResolver">
     <xs:complexType>
       <xs:all>
         <xs:element name="minFrequency" minOccurs="0" maxOccurs="unbounded">
           <xs:complexType>
-            <xs:simpleContent>
-              <xs:extension base="nonEmptyString">
-                <xs:attribute name="applyTo">
-                  <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                      <xs:enumeration value="reference"/>
-                      <xs:enumeration value="contentType"/>
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:attribute>
-                <xs:attribute name="caseSensitive" type="xs:boolean" />
-                <xs:attribute name="value">
-                  <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                      <xs:pattern value="always|hourly|daily|weekly|monthly|yearly|never|.*\d+.*" />
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:attribute>
-              </xs:extension>
-            </xs:simpleContent>
+            <xs:all>
+              <xs:element name="matcher" 
+                  type="TextMatcherType" minOccurs="1" maxOccurs="1" />            
+            </xs:all>      
+            <xs:attribute name="applyTo">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="reference"/>
+                  <xs:enumeration value="contentType"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="value">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:pattern value="always|hourly|daily|weekly|monthly|yearly|never|.*\d+.*" />
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
           </xs:complexType>
         </xs:element>
       </xs:all>
@@ -59,11 +60,5 @@
       </xs:attribute>
     </xs:complexType>
   </xs:element>
-
-  <xs:simpleType name="nonEmptyString">
-    <xs:restriction base="xs:string">
-      <xs:minLength value="1"/>
-    </xs:restriction>
-  </xs:simpleType>
 
 </xs:schema>

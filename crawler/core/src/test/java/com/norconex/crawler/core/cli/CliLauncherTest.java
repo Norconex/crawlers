@@ -28,7 +28,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.SystemUtil;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
@@ -49,7 +49,7 @@ class CliLauncherTest {
 
     @BeforeEach
     private void beforeEach() {
-        configFile = Stubber.writeSampleConfigToDir(tempDir);
+        configFile = CoreStubber.writeSampleConfigToDir(tempDir);
     }
 
     @Test

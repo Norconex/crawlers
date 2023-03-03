@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 
 
@@ -34,8 +34,8 @@ class DocumentChecksumStageTest {
     @Test
     void testDocumentChecksumStage() {
 
-        var doc = Stubber.crawlDoc("ref");
-        var ctx = new DocumentPipelineContext(Stubber.crawler(tempDir), doc);
+        var doc = CoreStubber.crawlDoc("ref");
+        var ctx = new DocumentPipelineContext(CoreStubber.crawler(tempDir), doc);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
@@ -45,8 +45,8 @@ class DocumentChecksumStageTest {
     @Test
     void testNoDocumentChecksummer() {
 
-        var doc = Stubber.crawlDoc("ref");
-        var crawler = Stubber.crawler(tempDir);
+        var doc = CoreStubber.crawlDoc("ref");
+        var crawler = CoreStubber.crawler(tempDir);
         crawler.getCrawlerConfig().loadFromXML(new XML("""
                 <crawler id="id">\
                 <documentChecksummer />\

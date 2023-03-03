@@ -66,7 +66,7 @@ import com.norconex.importer.ImporterConfig;
 
 import lombok.NonNull;
 
-public final class Stubber {
+public final class CoreStubber {
 
     public static final String MOCK_CRAWLER_ID = "test-crawler";
     public static final String MOCK_CRAWL_SESSION_ID = "test-session";
@@ -103,7 +103,7 @@ public final class Stubber {
                     new BooleanRandomizer().getRandomValue()))
     );
 
-    private Stubber() {}
+    private CoreStubber() {}
 
     public static <T> T randomize(Class<T> cls) {
         return easyRandom.nextObject(cls);
@@ -317,10 +317,10 @@ public final class Stubber {
 
         // if config file does not exist, assume we want to use the
         // stubber default.
-        var cfgFile = dir.resolve("Stubber.xml");
+        var cfgFile = dir.resolve("CoreStubber.xml");
         if (!Files.exists(cfgFile)) {
             try {
-                Files.writeString(cfgFile, getXmlString(Stubber.class));
+                Files.writeString(cfgFile, getXmlString(CoreStubber.class));
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

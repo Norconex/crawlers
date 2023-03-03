@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.importer.handler.filter.OnMatch;
 
 class ExtensionReferenceFilterTest {
@@ -98,7 +98,7 @@ class ExtensionReferenceFilterTest {
     void testDocumentAndMetadata() {
         var f = new ExtensionReferenceFilter("pdf");
         assertThat(f.acceptDocument(
-                Stubber.crawlDoc("http://example.com/test.pdf"))).isTrue();
+                CoreStubber.crawlDoc("http://example.com/test.pdf"))).isTrue();
         assertThat(f.acceptMetadata(
                 "http://example.com/test.pdf", new Properties())).isTrue();
     }

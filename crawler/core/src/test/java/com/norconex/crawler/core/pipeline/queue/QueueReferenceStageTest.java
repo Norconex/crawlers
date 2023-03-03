@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
@@ -34,7 +34,7 @@ class QueueReferenceStageTest {
     @Test
     void testQueueReferenceStage() {
         TestUtil.withinInitializedCrawler(tempDir, crawler -> {
-            var docRecord = Stubber.crawlDocRecord("ref");
+            var docRecord = CoreStubber.crawlDocRecord("ref");
             var stage = new QueueReferenceStage();
 
             var ctx1 = new DocRecordPipelineContext(crawler, docRecord);

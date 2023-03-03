@@ -93,3 +93,5 @@ Misc. Changes
   CrawlerEvent.DOCUMENT_SAVED event in favor of new Importer SaveDocumentTagger.
 * References to HttpCollector or Collector changed to WebCrawlSession 
   and CrawlSession, respectively.
+* GenericRecrawlableResolver minimum frequencies now expect TextMatcher 
+  instead of regular expressions.

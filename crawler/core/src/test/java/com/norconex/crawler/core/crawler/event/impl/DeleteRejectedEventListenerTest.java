@@ -25,7 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.importer.handler.HandlerConsumer;
 import com.norconex.importer.handler.filter.OnMatch;
@@ -38,7 +38,7 @@ class DeleteRejectedEventListenerTest {
     @Test
     void testDeleteRejectedEventListener() {
 
-        var crawlSession = Stubber.crawlSession(tempDir,
+        var crawlSession = CoreStubber.crawlSession(tempDir,
                 "mock:delete1", "mock:keep2", "mock:delete3", "mock:delete4");
         var crawlerCfg = TestUtil.getFirstCrawlerConfig(crawlSession);
         crawlerCfg.addEventListener(new DeleteRejectedEventListener());

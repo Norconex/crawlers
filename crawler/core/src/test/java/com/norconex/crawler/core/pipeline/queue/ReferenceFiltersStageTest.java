@@ -23,7 +23,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.importer.handler.filter.OnMatch;
@@ -35,8 +35,8 @@ class ReferenceFiltersStageTest {
 
     @Test
     void testReferenceFiltersStage() {
-        var crawler = Stubber.crawler(tempDir);
-        var docRecord = Stubber.crawlDocRecord("ref");
+        var crawler = CoreStubber.crawler(tempDir);
+        var docRecord = CoreStubber.crawlDocRecord("ref");
         var stage = new ReferenceFiltersStage();
 
         // match - include

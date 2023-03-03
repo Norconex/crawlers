@@ -22,26 +22,23 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.commons.lang.time.DurationFormatter;
+import com.norconex.commons.lang.time.DurationParser;
+import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.doc.HttpDocRecord;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.sitemap.SitemapChangeFrequency;
-import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.time.DurationFormatter;
-import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>Relies on both sitemap directives and custom instructions for
@@ -65,7 +62,7 @@ import com.norconex.commons.lang.xml.XML;
  * <p>
  * You can chose to have some of your crawled documents be re-crawled less
  * frequently than others by specifying custom minimum frequencies
- * ({@link #setMinFrequencies(MinFrequency...)}). Minimum frequencies are
+ * ({@link #setMinFrequencies(Collection)}). Minimum frequencies are
  * processed in the order specified and must each have to following:
  * </p>
  * <ul>
@@ -87,9 +84,11 @@ import com.norconex.commons.lang.xml.XML;
  *     class="com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver"
  *     sitemapSupport="[first|last|never]" >
  *
- *   <minFrequency applyTo="[reference|contentType]" caseSensitive="[false|true]"
+ *   <minFrequency applyTo="[reference|contentType]"
  *       value="([always|hourly|daily|weekly|monthly|yearly|never] or milliseconds)">
- *     (regex pattern)
+ *     <matcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
+ *       (Matcher for the reference or content type.)
+ *     </matcher>
  *   </minFrequency>
  *   (... repeat frequency tag as needed ...)
  * </recrawlableResolver>
@@ -99,8 +98,12 @@ import com.norconex.commons.lang.xml.XML;
  * <recrawlableResolver
  *     class="com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver"
  *     sitemapSupport="last" >
- *   <minFrequency applyTo="contentType" value="monthly">application/pdf</minFrequency>
- *   <minFrequency applyTo="reference" value="1800000">.*latest-news.*\.html</minFrequency>
+ *   <minFrequency applyTo="contentType" value="monthly">
+ *     <matcher>application/pdf</matcher>
+ *   </minFrequency>
+ *   <minFrequency applyTo="reference" value="1800000">
+ *     <matcher method="regex">.*latest-news.*\.html</matcher>
+ *   </minFrequency>
  * </recrawlableResolver>
  * }
  * <p>
@@ -111,11 +114,11 @@ import com.norconex.commons.lang.xml.XML;
  *
  * @since 2.5.0
  */
+@SuppressWarnings("javadoc")
+@Slf4j
+@Data
 public class GenericRecrawlableResolver
         implements RecrawlableResolver, XMLConfigurable{
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(GenericRecrawlableResolver.class);
 
     public enum SitemapSupport {
         FIRST, LAST, NEVER;
@@ -162,13 +165,6 @@ public class GenericRecrawlableResolver
     /**
      * Sets minimum frequencies.
      * @param minFrequencies minimum frequencies
-     */
-    public void setMinFrequencies(MinFrequency... minFrequencies) {
-        CollectionUtil.setAll(this.minFrequencies, minFrequencies);
-    }
-    /**
-     * Sets minimum frequencies.
-     * @param minFrequencies minimum frequencies
      * @since 3.0.0
      */
     public void setMinFrequencies(Collection<MinFrequency> minFrequencies) {
@@ -183,11 +179,11 @@ public class GenericRecrawlableResolver
             return true;
         }
 
-        SitemapSupport ss = sitemapSupport;
+        var ss = sitemapSupport;
         if (ss == null) {
             ss = SitemapSupport.FIRST;
         }
-        boolean hasSitemapInstructions =
+        var hasSitemapInstructions =
                 hasSitemapFrequency(prevData)
                         || hasSitemapLastModified(prevData);
 
@@ -195,7 +191,7 @@ public class GenericRecrawlableResolver
             return isRecrawlableFromSitemap(prevData);
         }
 
-        MinFrequency f = getMatchingMinFrequency(prevData);
+        var f = getMatchingMinFrequency(prevData);
         if (f != null) {
             return isRecrawlableFromMinFrequencies(f, prevData);
         }
@@ -210,45 +206,36 @@ public class GenericRecrawlableResolver
 
     private MinFrequency getMatchingMinFrequency(HttpDocRecord prevData) {
         for (MinFrequency f : minFrequencies) {
-            if (f.pattern == null || f.value == null) {
-                LOG.warn("Value or pattern missing in minimum frequency.");
-                continue;
-            }
-            String applyTo = f.getApplyTo();
+            var applyTo = f.getApplyTo();
             if (StringUtils.isBlank(applyTo)) {
                 applyTo = "reference";
             }
-            if ("reference".equalsIgnoreCase(applyTo)
-                    && f.getCachedPattern().matcher(
-                            prevData.getReference()).matches()) {
-                return f;
-            }
-            if ("contentType".equalsIgnoreCase(applyTo)
-                    && f.getCachedPattern().matcher(
-                            prevData.getContentType().toString()).matches()) {
+            if (("reference".equalsIgnoreCase(applyTo)
+                    && f.getMatcher().matches(prevData.getReference())
+                    || ("contentType".equalsIgnoreCase(applyTo)
+                            && f.getMatcher().matches(
+                                    prevData.getContentType().toString())))) {
                 return f;
             }
         }
         return null;
     }
 
-
     private boolean hasSitemapFrequency(HttpDocRecord prevData) {
         return StringUtils.isNotBlank(prevData.getSitemapChangeFreq());
     }
     private boolean hasSitemapLastModified(HttpDocRecord prevData) {
         return prevData.getSitemapLastMod() != null;
-//                && prevData.getSitemapLastMod() > 0;
     }
 
     private boolean isRecrawlableFromMinFrequencies(
             MinFrequency f, HttpDocRecord prevData) {
-        String value = f.getValue();
+        var value = f.getValue();
         if (StringUtils.isBlank(value)) {
             return true;
         }
 
-        SitemapChangeFrequency cf =
+        var cf =
                 SitemapChangeFrequency.getChangeFrequency(value);
         if (cf != null) {
             return isRecrawlableFromFrequency(cf, prevData, "custom");
@@ -260,15 +247,16 @@ public class GenericRecrawlableResolver
         } else {
             millis = new DurationParser().parse(value).toMillis();
         }
-        ZonedDateTime lastCrawlDate = prevData.getCrawlDate();
-        ZonedDateTime minCrawlDate = lastCrawlDate.plus(
+        var lastCrawlDate = prevData.getCrawlDate();
+        var minCrawlDate = lastCrawlDate.plus(
                 millis, ChronoField.MILLI_OF_DAY.getBaseUnit());
-        ZonedDateTime now = ZonedDateTime.now();
+        var now = ZonedDateTime.now();
         if (minCrawlDate.isBefore(now)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Recrawlable according to custom directive "
-                      + "(required elasped time '{}' "
-                      + "< actual elasped time '{}' since '{}'): {}",
+                LOG.debug("""
+                    Recrawlable according to custom directive\s\
+                    (required elasped time '{}'\s\
+                    < actual elasped time '{}' since '{}'): {}""",
                       formatDuration(millis),
                       formatDuration(lastCrawlDate, now),
                       lastCrawlDate,
@@ -277,10 +265,11 @@ public class GenericRecrawlableResolver
             return true;
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Not recrawlable according to custom directive "
-                  + "(required elasped time '{}' "
-                  + ">= actual elasped time '{}' "
-                  + "since '{}'): {}",
+            LOG.debug("""
+                Not recrawlable according to custom directive\s\
+                (required elasped time '{}'\s\
+                >= actual elasped time '{}'\s\
+                since '{}'): {}""",
                   formatDuration(millis),
                   formatDuration(lastCrawlDate, now),
                   lastCrawlDate,
@@ -294,8 +283,8 @@ public class GenericRecrawlableResolver
         // If sitemap specifies a last modified date and it is more recent
         // than the the document last crawl date, recrawl it (otherwise don't).
         if (hasSitemapLastModified(prevData)) {
-            ZonedDateTime lastModified = prevData.getSitemapLastMod();
-            ZonedDateTime lastCrawled = prevData.getCrawlDate();
+            var lastModified = prevData.getSitemapLastMod();
+            var lastCrawled = prevData.getCrawlDate();
             LOG.debug("Sitemap last modified date is {} for: {}",
                     lastModified, prevData.getReference());
             if (lastModified.isAfter(lastCrawled)) {
@@ -316,7 +305,7 @@ public class GenericRecrawlableResolver
 
         // If sitemap specifies a change frequency, check if we are past
         // it and recrawl if so (otherwise don't).
-        SitemapChangeFrequency cf = SitemapChangeFrequency.getChangeFrequency(
+        var cf = SitemapChangeFrequency.getChangeFrequency(
                 prevData.getSitemapChangeFreq());
 
         return isRecrawlableFromFrequency(cf, prevData, "Sitemap");
@@ -341,8 +330,8 @@ public class GenericRecrawlableResolver
             return false;
         }
 
-        ZonedDateTime lastCrawlDate = prevData.getCrawlDate();
-        ZonedDateTime minCrawlDate = prevData.getCrawlDate();
+        var lastCrawlDate = prevData.getCrawlDate();
+        var minCrawlDate = prevData.getCrawlDate();
         switch (cf) {
         case HOURLY:
             minCrawlDate = minCrawlDate.plusHours(1);
@@ -363,31 +352,31 @@ public class GenericRecrawlableResolver
             break;
         }
 
-        ZonedDateTime now = ZonedDateTime.now();
+        var now = ZonedDateTime.now();
         if (minCrawlDate.isBefore(now)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format(
-                        "Recrawlable according to %s directive "
-                      + "(required elasped time '%s' "
-                      + "< actual elasped time '%s' since '%s'): %s",
-                      context,
-                      formatDuration(lastCrawlDate, minCrawlDate),
-                      formatDuration(lastCrawlDate, now),
-                      lastCrawlDate,
-                      prevData.getReference()));
+                LOG.debug("""
+                    Recrawlable according to {} directive\s\
+                    (required elasped time '{}'\s\
+                    < actual elasped time '{}' since '{}'): {}""",
+                        context,
+                        formatDuration(lastCrawlDate, minCrawlDate),
+                        formatDuration(lastCrawlDate, now),
+                        lastCrawlDate,
+                        prevData.getReference());
             }
             return true;
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format(
-                    "Not recrawlable according to %s directive "
-                  + "(required elasped time '%s' "
-                  + ">= actual elasped time '%s' since '%s'): %s",
-                  context,
-                  formatDuration(lastCrawlDate, minCrawlDate),
-                  formatDuration(lastCrawlDate, now),
-                  lastCrawlDate,
-                  prevData.getReference()));
+            LOG.debug(String.format("""
+                Not recrawlable according to {} directive\s\
+                (required elapsed time '{}'\s\
+                >= actual elapsed time '{}' since '{}'): {}""",
+                    context,
+                    formatDuration(lastCrawlDate, minCrawlDate),
+                    formatDuration(lastCrawlDate, now),
+                    lastCrawlDate,
+                    prevData.getReference()));
         }
         return false;
     }
@@ -404,105 +393,27 @@ public class GenericRecrawlableResolver
                 .format(millis);
     }
 
+    @Data
+    @NoArgsConstructor
     public static class MinFrequency {
         private String applyTo;
         private String value;
-        private String pattern;
-        private Pattern cachedPattern;
-        private boolean caseSensitive;
-        public MinFrequency() {
-            super();
-        }
-        public MinFrequency(String applyTo, String value, String pattern) {
-            super();
+        private final TextMatcher matcher = new TextMatcher();
+        public MinFrequency(String applyTo, String value, TextMatcher matcher) {
             this.applyTo = applyTo;
             this.value = value;
-            setPattern(pattern);
+            this.matcher.copyFrom(matcher);
         }
-        public String getApplyTo() {
-            return applyTo;
-        }
-        public void setApplyTo(String applyTo) {
-            this.applyTo = applyTo;
-        }
-        public String getValue() {
-            return value;
-        }
-        public void setValue(String value) {
-            this.value = value;
-        }
-        public String getPattern() {
-            return pattern;
-        }
-        public void setPattern(String pattern) {
-            this.pattern = pattern;
-            cachedPattern = null;
-        }
-        public boolean isCaseSensitive() {
-            return caseSensitive;
-        }
-        public void setCaseSensitive(boolean caseSensitive) {
-            this.caseSensitive = caseSensitive;
-            cachedPattern = null;
-        }
-
-        private synchronized Pattern getCachedPattern() {
-            if (cachedPattern != null) {
-                return cachedPattern;
-            }
-            Pattern p;
-            if (pattern == null) {
-                p = null;
-            } else {
-                int flags = Pattern.DOTALL;
-                if (!caseSensitive) {
-                    flags = flags | Pattern.CASE_INSENSITIVE
-                            | Pattern.UNICODE_CASE;
-                }
-                p = Pattern.compile(pattern, flags);
-            }
-            cachedPattern = p;
-            return p;
-        }
-
-        @Override
-        public String toString() {
-            return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                    .append("applyTo", applyTo)
-                    .append("value", value)
-                    .append("pattern", pattern)
-                    .append("caseSensitive", caseSensitive)
-                    .toString();
-        }
-        @Override
-        public boolean equals(final Object other) {
-            if (!(other instanceof MinFrequency)) {
-                return false;
-            }
-            MinFrequency castOther = (MinFrequency) other;
-            return new EqualsBuilder()
-                    .append(applyTo, castOther.applyTo)
-                    .append(value, castOther.value)
-                    .append(pattern, castOther.pattern)
-                    .append(caseSensitive, castOther.caseSensitive)
-                    .isEquals();
-        }
-        @Override
-        public int hashCode() {
-            return new HashCodeBuilder()
-                        .append(applyTo)
-                        .append(value)
-                        .append(pattern)
-                        .append(caseSensitive)
-                        .toHashCode();
+        public void setMatcher(TextMatcher matcher) {
+            this.matcher.copyFrom(matcher);
         }
     }
 
     @Override
     public void loadFromXML(XML xml) {
-        String smsXml = xml.getString("@sitemapSupport");
+        var smsXml = xml.getString("@sitemapSupport");
         if (StringUtils.isNotBlank(smsXml)) {
-            SitemapSupport sms = SitemapSupport.getSitemapSupport(smsXml);
+            var sms = SitemapSupport.getSitemapSupport(smsXml);
             if (sms == null) {
                 LOG.warn("Unsupported sitemap support value: \"{}\". "
                         + "Will use default.", smsXml);
@@ -511,39 +422,23 @@ public class GenericRecrawlableResolver
         }
 
         List<MinFrequency> frequencies = new ArrayList<>();
-        for (XML x : xml.getXMLList("minFrequency")) {
-            MinFrequency f = new MinFrequency();
-            f.setApplyTo(x.getString("@applyTo"));
-            f.setCaseSensitive(x.getBoolean("@caseSensitive", false));
-            f.setValue(x.getString("@value"));
-            f.setPattern(x.getString("."));
+        for (XML minFreqXml : xml.getXMLList("minFrequency")) {
+            var f = new MinFrequency();
+            f.setApplyTo(minFreqXml.getString("@applyTo"));
+            f.setValue(minFreqXml.getString("@value"));
+            f.matcher.loadFromXML(minFreqXml.getXML("matcher"));
             frequencies.add(f);
         }
-
         setMinFrequencies(frequencies);
     }
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("sitemapSupport", sitemapSupport);
         for (MinFrequency mf : minFrequencies) {
-            xml.addElement("minFrequency", mf.pattern)
+            var minFreqXml = xml.addElement("minFrequency")
                     .setAttribute("applyTo", mf.applyTo)
-                    .setAttribute("value", mf.value)
-                    .setAttribute("caseSensitive", mf.caseSensitive);
+                    .setAttribute("value", mf.value);
+            mf.matcher.saveToXML(minFreqXml.addElement("matcher"));
         }
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

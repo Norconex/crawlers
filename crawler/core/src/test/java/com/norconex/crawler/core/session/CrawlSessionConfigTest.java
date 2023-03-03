@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.fs.impl.JSONFileCommitter;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter;
 import com.norconex.importer.handler.HandlerConsumer;
 import com.norconex.importer.handler.transformer.impl.ReplaceTransformer;
@@ -37,7 +37,7 @@ class CrawlSessionConfigTest {
 
     @Test
     void testCrawlSessionConfig() {
-        var cfg = Stubber.randomize(CrawlSessionConfig.class);
+        var cfg = CoreStubber.randomize(CrawlSessionConfig.class);
         assertThatNoException().isThrownBy(
                 () -> XML.assertWriteRead(cfg, "crawlSession"));
     }

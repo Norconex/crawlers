@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.web.Stubber;
+import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
 
@@ -47,7 +47,7 @@ class HtmlExtractorTest {
         var docURL = "http://db-artmag.com/index_en.html";
         LinkExtractor extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                Stubber.crawlDoc(docURL, ContentType.HTML,
+                WebStubber.crawlDoc(docURL, ContentType.HTML,
                         new ByteArrayInputStream(html.getBytes())));
 
         Assertions.assertEquals( 1, links.size(),
@@ -65,7 +65,7 @@ class HtmlExtractorTest {
         var extractor = new HtmlLinkExtractor();
         extractor.setFieldMatcher(TextMatcher.basic("patate"));
 
-        var doc = Stubber.crawlDoc(docURL, ContentType.HTML,
+        var doc = WebStubber.crawlDoc(docURL, ContentType.HTML,
                 InputStream.nullInputStream());
         doc.getMetadata().add("patate", html);
         var links = extractor.extractLinks(doc);
@@ -89,7 +89,7 @@ class HtmlExtractorTest {
         var input = new ByteArrayInputStream(html.getBytes());
         var extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                Stubber.crawlDoc(ref, ContentType.HTML, input));
+                WebStubber.crawlDoc(ref, ContentType.HTML, input));
         input.close();
         assertThat(urlList(links)).containsExactly(url);
     }
@@ -104,7 +104,7 @@ class HtmlExtractorTest {
         var extractor = new HtmlLinkExtractor();
         extractor.setSchemes(List.of("javascript"));
         var links = extractor.extractLinks(
-                Stubber.crawlDoc("N/A", ContentType.HTML, input));
+                WebStubber.crawlDoc("N/A", ContentType.HTML, input));
         input.close();
         assertThat(urlList(links)).containsExactly(url);
     }
@@ -121,7 +121,7 @@ class HtmlExtractorTest {
         var input = new ByteArrayInputStream(html.getBytes());
         var extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                Stubber.crawlDoc(ref, ContentType.HTML, input));
+                WebStubber.crawlDoc(ref, ContentType.HTML, input));
         input.close();
         assertThat(urlList(links)).containsExactly(url);
     }
@@ -140,7 +140,7 @@ class HtmlExtractorTest {
         var input = new ByteArrayInputStream(html.getBytes());
         var extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                Stubber.crawlDoc(ref, ContentType.HTML, input));
+                WebStubber.crawlDoc(ref, ContentType.HTML, input));
         input.close();
         assertThat(urlList(links)).containsExactlyInAnyOrder(url1, url2);
     }
@@ -159,7 +159,7 @@ class HtmlExtractorTest {
         var input = new ByteArrayInputStream(html.getBytes());
         var extractor = new HtmlLinkExtractor();
         var links = extractor.extractLinks(
-                Stubber.crawlDoc(ref, ContentType.HTML, input));
+                WebStubber.crawlDoc(ref, ContentType.HTML, input));
         input.close();
         assertThat(urlList(links)).containsExactlyInAnyOrder(url1, url2, url3);
     }

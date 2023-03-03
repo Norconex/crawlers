@@ -65,7 +65,7 @@ import com.norconex.crawler.web.sitemap.SitemapResolver;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.DocMetadata;
 
-public final class Stubber {
+public final class WebStubber {
 
     public static final String MOCK_CRAWLER_ID = "test-crawler";
     public static final String MOCK_CRAWL_SESSION_ID = "test-session";
@@ -130,7 +130,7 @@ public final class Stubber {
             })
     );
 
-    private Stubber() {}
+    private WebStubber() {}
 
     public static <T> T randomize(Class<T> cls) {
         return easyRandom.nextObject(cls);
@@ -161,7 +161,13 @@ public final class Stubber {
         return doc;
     }
 
-
+//    public static HttpDocRecord docRecord(String ref, ContentType ct) {
+//        var docRecord = new HttpDocRecord(ref);
+//        docRecord.setContentType(ct);
+//        return docRecord;
+//    }
+//
+//
 //    //--- Crawler Config -------------------------------------------------------
 //
 //    /**
@@ -356,10 +362,10 @@ public final class Stubber {
 //
 //        // if config file does not exist, assume we want to use the
 //        // stubber default.
-//        var cfgFile = dir.resolve("Stubber.xml");
+//        var cfgFile = dir.resolve("CoreStubber.xml");
 //        if (!Files.exists(cfgFile)) {
 //            try {
-//                Files.writeString(cfgFile, getXmlString(Stubber.class));
+//                Files.writeString(cfgFile, getXmlString(CoreStubber.class));
 //            } catch (IOException e) {
 //                throw new UncheckedIOException(e);
 //            }

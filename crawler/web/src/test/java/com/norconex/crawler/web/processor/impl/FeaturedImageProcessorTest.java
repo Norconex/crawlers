@@ -39,7 +39,7 @@ import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.MockWebCrawlSession;
-import com.norconex.crawler.web.Stubber;
+import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor.Quality;
@@ -163,7 +163,7 @@ class FeaturedImageProcessorTest {
     }
 
     private CrawlDoc newDoc(String docUrl) {
-        return Stubber.crawlDoc(
+        return WebStubber.crawlDoc(
                 docUrl,
                 ContentType.HTML, ResourceLoader.getHtmlStream(getClass()));
     }
