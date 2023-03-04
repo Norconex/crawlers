@@ -15,28 +15,26 @@
 package com.norconex.crawler.web.url.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.commons.lang3.reflect.MethodUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.url.URLNormalizer;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
-import com.norconex.crawler.web.url.URLNormalizer;
+import com.norconex.crawler.web.url.WebURLNormalizer;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * <p>
- * Generic implementation of {@link URLNormalizer} that should satisfy
+ * Generic implementation of {@link WebURLNormalizer} that should satisfy
  * most URL normalization needs.  This implementation relies on
  * {@link URLNormalizer}.  Please refer to it for complete documentation and
  * examples.
@@ -61,11 +59,11 @@ import com.norconex.crawler.web.url.URLNormalizer;
  * </ul>
  * <p>
  * To overwrite this default, you have to specify a new list of normalizations
- * to apply, via the {@link #setNormalizations(Normalization...)} method,
+ * to apply, via the {@link #setNormalizations(List)} method,
  * or via XML configuration.  Each
  * normalizations is identified by a code name.  The following is the
  * complete code name list for supported normalizations.  Click on any code
- * name to get a full description from {@link URLNormalizer}:
+ * name to get a full description from {@link WebURLNormalizer}:
  * </p>
  * <ul>
  *   <li>{@link URLNormalizer#addDirectoryTrailingSlash() addDirectoryTrailingSlash} (since 2.6.0)</li>
@@ -151,42 +149,48 @@ import com.norconex.crawler.web.url.URLNormalizer;
  * as well as replace "&amp;type=summary" with "&amp;type=full".
  * </p>
  */
-public class GenericURLNormalizer implements URLNormalizer, XMLConfigurable {
+@EqualsAndHashCode
+@ToString
+public class GenericURLNormalizer implements WebURLNormalizer, XMLConfigurable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            GenericURLNormalizer.class);
-
-    //TODO Make upper case, with EnumConverter stripping nonAlphanum
     public enum Normalization {
-        addDirectoryTrailingSlash,
-        addDomainTrailingSlash,
-        addWWW,
-        decodeUnreservedCharacters,
-        encodeNonURICharacters,
-        encodeSpaces,
-        lowerCase,
-        lowerCasePath,
-        lowerCaseQuery,
-        lowerCaseQueryParameterNames,
-        lowerCaseQueryParameterValues,
-        lowerCaseSchemeHost,
-        removeDefaultPort,
-        removeDirectoryIndex,
-        removeDotSegments,
-        removeDuplicateSlashes,
-        removeEmptyParameters,
-        removeFragment,
-        removeQueryString,
-        removeSessionIds,
-        removeTrailingQuestionMark,
-        removeTrailingSlash,
-        removeTrailingHash,
-        removeWWW,
-        replaceIPWithDomainName,
-        secureScheme,
-        sortQueryParameters,
-        unsecureScheme,
-        upperCaseEscapeSequence,
+        ADD_DIRECTORY_TRAILING_SLASH(URLNormalizer::addDirectoryTrailingSlash),
+        ADD_DOMAIN_TRAILING_SLASH(URLNormalizer::addDomainTrailingSlash),
+        ADD_WWW(URLNormalizer::addWWW),
+        DECODE_UNRESERVED_CHARACTERS(URLNormalizer::decodeUnreservedCharacters),
+        ENCODE_NON_URI_CHARACTERS(URLNormalizer::encodeNonURICharacters),
+        ENCODE_SPACES(URLNormalizer::encodeSpaces),
+        LOWERCASE(URLNormalizer::lowerCase),
+        LOWERCASE_PATH(URLNormalizer::lowerCasePath),
+        LOWERCASE_QUERY(URLNormalizer::lowerCaseQuery),
+        LOWERCASE_QUERY_PARAMETER_NAMES(
+                URLNormalizer::lowerCaseQueryParameterNames),
+        LOWERCASE_QUERY_PARAMETER_VALUES(
+                URLNormalizer::lowerCaseQueryParameterValues),
+        LOWERCASE_SCHEME_HOST(URLNormalizer::lowerCaseSchemeHost),
+        REMOVE_DEFAULT_PORT(URLNormalizer::removeDefaultPort),
+        REMOVE_DIRECTORY_INDEX(URLNormalizer::removeDirectoryIndex),
+        REMOVE_DOT_SEGMENTS(URLNormalizer::removeDotSegments),
+        REMOVE_DUPLICATE_SLASHES(URLNormalizer::removeDuplicateSlashes),
+        REMOVE_EMPTY_PARAMETERS(URLNormalizer::removeEmptyParameters),
+        REMOVE_FRAGMENT(URLNormalizer::removeFragment),
+        REMOVE_QUERY_STRING(URLNormalizer::removeQueryString),
+        REMOVE_SESSION_IDS(URLNormalizer::removeSessionIds),
+        REMOVE_TRAILING_QUESTION_MARK(
+                URLNormalizer::removeTrailingQuestionMark),
+        REMOVE_TRAILING_SLASH(URLNormalizer::removeTrailingSlash),
+        REMOVE_TRAILING_HASH(URLNormalizer::removeTrailingHash),
+        REMOVE_WWW(URLNormalizer::removeWWW),
+        REPLACE_IP_WITH_DOMAIN_NAME(URLNormalizer::replaceIPWithDomainName),
+        SECURE_SCHEME(URLNormalizer::secureScheme),
+        SORT_QUERY_PARAMETERS(URLNormalizer::sortQueryParameters),
+        UNSECURE_SCHEME(URLNormalizer::unsecureScheme),
+        UPPERCASE_ESCAPESEQUENCE(URLNormalizer::upperCaseEscapeSequence),
+        ;
+        private final Consumer<URLNormalizer> c;
+        Normalization(Consumer<URLNormalizer> c) {
+            this.c = c;
+        }
     }
 
     private final List<Normalization> normalizations = new ArrayList<>();
@@ -194,13 +198,13 @@ public class GenericURLNormalizer implements URLNormalizer, XMLConfigurable {
     private boolean disabled;
 
     public GenericURLNormalizer() {
-        setNormalizations(
-                Normalization.removeFragment,
-                Normalization.lowerCaseSchemeHost,
-                Normalization.upperCaseEscapeSequence,
-                Normalization.decodeUnreservedCharacters,
-                Normalization.removeDefaultPort,
-                Normalization.encodeNonURICharacters);
+        setNormalizations(List.of(
+                Normalization.REMOVE_FRAGMENT,
+                Normalization.LOWERCASE_SCHEME_HOST,
+                Normalization.UPPERCASE_ESCAPESEQUENCE,
+                Normalization.DECODE_UNRESERVED_CHARACTERS,
+                Normalization.REMOVE_DEFAULT_PORT,
+                Normalization.ENCODE_NON_URI_CHARACTERS));
     }
 
     @Override
@@ -209,15 +213,9 @@ public class GenericURLNormalizer implements URLNormalizer, XMLConfigurable {
             return url;
         }
 
-        var normalizer =
-                new com.norconex.commons.lang.url.URLNormalizer(url);
+        var normalizer = new URLNormalizer(url);
         for (Normalization n : normalizations) {
-            try {
-                MethodUtils.invokeExactMethod(
-                        normalizer, n.toString(), (Object[]) null);
-            } catch (Exception e) {
-                LOG.error("Could not apply normalization \"{}\".", n, e);
-            }
+            n.c.accept(normalizer);
         }
         var normedURL = normalizer.toString();
         for (Replace replace : replaces) {
@@ -236,18 +234,12 @@ public class GenericURLNormalizer implements URLNormalizer, XMLConfigurable {
     public List<Normalization> getNormalizations() {
         return Collections.unmodifiableList(normalizations);
     }
-    public void setNormalizations(Normalization... normalizations) {
-        setNormalizations(Arrays.asList(normalizations));
-    }
     public void setNormalizations(List<Normalization> normalizations) {
         CollectionUtil.setAll(this.normalizations, normalizations);
     }
 
     public List<Replace> getReplaces() {
         return Collections.unmodifiableList(replaces);
-    }
-    public void setReplaces(Replace... replaces) {
-        setReplaces(Arrays.asList(replaces));
     }
     public void setReplaces(List<Replace> replaces) {
         CollectionUtil.setAll(this.replaces, replaces);
@@ -273,19 +265,8 @@ public class GenericURLNormalizer implements URLNormalizer, XMLConfigurable {
     @Override
     public void loadFromXML(XML xml) {
         setDisabled(xml.getBoolean("@disabled", disabled));
-
-        //TODO be consistant how to clear defaults... similar issue as with
-        //GenericSitemapResolver
-        var norms = xml.getStringList("normalizations");
-        if (norms.size() == 1 && "".equals(norms.get(0))) {
-            CollectionUtil.setAll(
-                    normalizations, (List<Normalization>) null);
-        } else if (!norms.isEmpty()) {
-            CollectionUtil.setAll(normalizations, CollectionUtil.toTypeList(
-                    xml.getDelimitedStringList("normalizations"),
-                            s -> Normalization.valueOf(s.trim())));
-        }
-
+        setNormalizations(xml.getDelimitedEnumList(
+                "normalizations", Normalization.class, normalizations));
         var xmlReplaces = xml.getXMLList("replacements/replace");
         if (!xmlReplaces.isEmpty()) {
             replaces.clear();
@@ -311,20 +292,7 @@ public class GenericURLNormalizer implements URLNormalizer, XMLConfigurable {
         }
     }
 
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
-    }
-
+    @Data
     public static class Replace {
         private final String match;
         private final String replacement;
@@ -335,25 +303,6 @@ public class GenericURLNormalizer implements URLNormalizer, XMLConfigurable {
         public Replace(String match, String replacement) {
             this.match = match;
             this.replacement = replacement;
-        }
-        public String getMatch() {
-            return match;
-        }
-        public String getReplacement() {
-            return replacement;
-        }
-        @Override
-        public boolean equals(final Object other) {
-            return EqualsBuilder.reflectionEquals(this, other);
-        }
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-        @Override
-        public String toString() {
-            return new ReflectionToStringBuilder(this,
-                    ToStringStyle.SHORT_PREFIX_STYLE).toString();
         }
     }
 }

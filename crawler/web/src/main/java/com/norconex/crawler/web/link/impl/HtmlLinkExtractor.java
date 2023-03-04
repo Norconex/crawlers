@@ -41,7 +41,7 @@ import com.norconex.crawler.web.doc.HttpDocMetadata;
 import com.norconex.crawler.web.link.AbstractTextLinkExtractor;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
-import com.norconex.crawler.web.url.URLNormalizer;
+import com.norconex.crawler.web.url.WebURLNormalizer;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
@@ -141,7 +141,7 @@ import lombok.extern.slf4j.Slf4j;
  * <h3>URL Fragments</h3>
  * <p><b>Since 2.3.0</b>, this extractor preserves hashtag characters (#) found
  * in URLs and every characters after it. It relies on the implementation
- * of {@link URLNormalizer} to strip it if need be.
+ * of {@link WebURLNormalizer} to strip it if need be.
  * {@link GenericURLNormalizer} is now always invoked by default, and the
  * default set of rules defined for it will remove fragments.
  * </p>

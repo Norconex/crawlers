@@ -51,7 +51,7 @@ import com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider;
 import com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.crawler.web.sitemap.SitemapResolver;
 import com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver;
-import com.norconex.crawler.web.url.URLNormalizer;
+import com.norconex.crawler.web.url.WebURLNormalizer;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
 import com.norconex.importer.ImporterConfig;
 
@@ -564,7 +564,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
             new URLCrawlScopeStrategy();
 
 
-    private URLNormalizer urlNormalizer = new GenericURLNormalizer();
+    private WebURLNormalizer urlNormalizer = new GenericURLNormalizer();
 
     private DelayResolver delayResolver = new GenericDelayResolver();
 
@@ -944,10 +944,10 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         this.robotsTxtProvider = robotsTxtProvider;
     }
 
-    public URLNormalizer getUrlNormalizer() {
+    public WebURLNormalizer getUrlNormalizer() {
         return urlNormalizer;
     }
-    public void setUrlNormalizer(URLNormalizer urlNormalizer) {
+    public void setUrlNormalizer(WebURLNormalizer urlNormalizer) {
         this.urlNormalizer = urlNormalizer;
     }
 
@@ -1318,7 +1318,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
         xml.checkDeprecated("keepOutOfScopeLinks", "keepReferencedLinks", true);
 
         setUrlNormalizer(xml.getObjectImpl(
-                URLNormalizer.class, "urlNormalizer", urlNormalizer));
+                WebURLNormalizer.class, "urlNormalizer", urlNormalizer));
         setDelayResolver(xml.getObjectImpl(
                 DelayResolver.class, "delay", delayResolver));
         setMaxDepth(xml.getInteger("maxDepth", maxDepth));

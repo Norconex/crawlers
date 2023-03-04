@@ -97,3 +97,7 @@ Misc. Changes
   instead of regular expressions.
 * RobotsTxt now instantiated via builder factory method.
 * SitemapChangeFrequency#getSitemapChangeFrequency renamed to #of.
+* URLNormalizer was renamed WebURLNormalizer to distinguish from 
+  com.norconex.commons.lang.url.URLNormalizer.
+* GenericURLNormalizer enum constants are now uppercase.
+  

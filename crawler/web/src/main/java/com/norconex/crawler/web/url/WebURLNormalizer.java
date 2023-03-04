@@ -23,15 +23,16 @@ import com.norconex.crawler.core.filter.ReferenceFilter;
  * that points to the same content (e.g. URL carrying temporary session
  * information).  This action takes place right after URLs are extracted
  * from a document, before each of these URLs is even considered
- * for further processing.  Returning null will effectively tells the crawler
- * to not even consider it for processing (it won't go through the regular
- * document processing flow).  You may want to consider {@link ReferenceFilter}
+ * for further processing.  Returning <code>null</code> will effectively
+ * tell the crawler to not even consider it for processing
+ * (it won't go through the regular document processing flow).  You may want
+ * to consider {@link ReferenceFilter}
  * to exclude URLs as part has the regular document processing flow
  * (may create a trace in the logs and gives you more options).
  * Implementors also implementing XMLConfigurable must name their XML tag
  * <code>urlNormalizer</code> to ensure it gets loaded properly.
  */
-public interface URLNormalizer {
+public interface WebURLNormalizer {
 
     /**
      * Normalize the given URL.
@@ -39,5 +40,4 @@ public interface URLNormalizer {
      * @return the normalized URL
      */
     String normalizeURL(String url);
-
 }
