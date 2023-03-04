@@ -38,7 +38,7 @@ public enum SitemapChangeFrequency {
      * @param frequency change frequency
      * @return the matching sitemap change frequency, or <code>null</code>
      */
-    public static SitemapChangeFrequency getChangeFrequency(String frequency) {
+    public static SitemapChangeFrequency of(String frequency) {
         if (StringUtils.isBlank(frequency)) {
             return null;
         }

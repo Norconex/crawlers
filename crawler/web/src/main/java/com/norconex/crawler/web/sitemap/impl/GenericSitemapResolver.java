@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -29,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -44,15 +44,16 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.http.HttpStatus;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.commons.lang.xml.XMLCursor;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
 import com.norconex.crawler.web.doc.HttpDocRecord;
@@ -63,8 +64,10 @@ import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.sitemap.SitemapResolutionContext;
 import com.norconex.crawler.web.sitemap.SitemapResolver;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -194,6 +197,7 @@ public class GenericSitemapResolver
 
     // Configurable:
     /** The directory where temporary Sitemap files are written. */
+    @Setter(value = AccessLevel.NONE)
     private Path tempDir;
     private boolean lenient;
     private final List<String> sitemapPaths =
@@ -215,14 +219,6 @@ public class GenericSitemapResolver
      * locate and resolve sitemaps.
      * @param sitemapPaths sitemap paths.
      */
-    public void setSitemapPaths(String... sitemapPaths) {
-        CollectionUtil.setAll(this.sitemapPaths, sitemapPaths);
-    }
-    /**
-     * Sets the URL paths, relative to the URL root, from which to try
-     * locate and resolve sitemaps.
-     * @param sitemapPaths sitemap paths.
-     */
     public void setSitemapPaths(List<String> sitemapPaths) {
         CollectionUtil.setAll(this.sitemapPaths, sitemapPaths);
     }
@@ -236,8 +232,14 @@ public class GenericSitemapResolver
     @Override
     protected void onCrawlerRunBegin(CrawlerEvent event) {
         streamFactory = event.getSource().getStreamFactory();
-        tempDir = Optional.ofNullable(tempDir).orElseGet(
-                () -> event.getSource().getTempDir());
+        tempDir = event.getSource().getTempDir().resolve("sitemaps");
+        try {
+            Files.createDirectories(tempDir);
+        } catch (IOException e) {
+            throw new CrawlerException(
+                    "Could not create sitemap temporary directory: "
+                            + tempDir, e);
+        }
         resolvedURLRoots = Optional.ofNullable(resolvedURLRoots).orElseGet(
                 () -> event.getSource().getDataStoreEngine().openStore(
                         "generic-sitemap", Boolean.class));
@@ -329,9 +331,13 @@ public class GenericSitemapResolver
             var statusCode = response.getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 InputStream is = doc.getValue().getInputStream();
-                var contentType =
-                        doc.getValue().getMetadata().getString("Content-Type");
-                if (contentType.endsWith("gzip") || location.endsWith(".gz")) {
+                Optional<String> contentType = Optional
+                    .ofNullable(doc.getValue().getDocRecord())
+                    .map(CrawlDocRecord::getContentType)
+                    .map(ContentType::toString);
+                if (contentType.isPresent() && (
+                        contentType.get().endsWith("gzip")
+                            || location.endsWith(".gz"))) {
                     is = new GZIPInputStream(is);
                 }
                 var sitemapFile = inputStreamToTempFile(is);
@@ -343,17 +349,17 @@ public class GenericSitemapResolver
                 LOG.debug("Sitemap not found : {}", location);
             } else {
                 LOG.error("""
-                	Could not obtain sitemap: {}.\s\
-                	Expected status code {},\s\
-                	but got {}.""",
+                    Could not obtain sitemap: {}.\s\
+                    Expected status code {},\s\
+                    but got {}.""",
                         location, HttpStatus.SC_OK, statusCode);
             }
         } catch (XMLStreamException e) {
                 LOG.error("""
-                	Cannot fetch sitemap: {} -- Likely an invalid\s\
-                	sitemap XML format causing\s\
-                	a parsing error (actual error:\s\
-                	{}).""", location, e.getMessage());
+                    Cannot fetch sitemap: {} -- Likely an invalid\s\
+                    sitemap XML format causing\s\
+                    a parsing error (actual error:\s\
+                    {}).""", location, e.getMessage());
         } catch (Exception e) {
             LOG.error("Cannot fetch sitemap: {} ({})",
                     location, e.getMessage(), e);
@@ -389,11 +395,6 @@ public class GenericSitemapResolver
         var response = fetcher.fetch(
                 new HttpFetchRequest(doc.getValue(), HttpMethod.GET));
 
-
-//        String redirectURL = IHttpFetchResponse.ifInstanceGet(
-//                response.getLastFetchResponse(),
-//                IHttpFetchResponse::getRedirectTarget)
-//            .orElse(null);
         var redirectURL = response.getRedirectTarget();
         if (StringUtils.isNotBlank(redirectURL)
                 && !redirectURL.equalsIgnoreCase(location)) {
@@ -414,18 +415,13 @@ public class GenericSitemapResolver
      * as reported in github #150.
      */
     private File inputStreamToTempFile(InputStream is) throws IOException {
-        var safeTempDir = getTempDir() == null ? null : getTempDir().toFile();
-        if (safeTempDir == null) {
-            safeTempDir = FileUtils.getTempDirectory();
-        }
-        safeTempDir.mkdirs();
-        var tempFile = File.createTempFile("sitemap-", ".xml", safeTempDir);
+        var tempFile = File.createTempFile(
+                "sitemap-", ".xml", tempDir.toFile());
         LOG.debug("Temporarily saving sitemap at: {}",
                 tempFile.getAbsolutePath());
         FileUtils.copyInputStreamToFile(is, tempFile);
         return tempFile;
     }
-
 
     private void parseSitemap(File sitemapFile, HttpFetcher fetcher,
             Consumer<HttpDocRecord> sitemapURLConsumer,
@@ -443,31 +439,31 @@ public class GenericSitemapResolver
             Set<String> resolvedLocations,
             String sitemapLocation) throws XMLStreamException, IOException {
 
-        Iterator<XMLCursor> it = XML.iterator(is);
         var sitemapLocationDir = substringBeforeLast(sitemapLocation, "/");
-        while (it.hasNext()) {
-            XMLCursor c = it.next();
-
-            if (stopping) {
-                LOG.debug("Sitemap not entirely parsed due to "
-                        + "crawler being stopped.");
-                break;
-            }
-
-            if ("sitemap".equalsIgnoreCase(c.getLocalName())) {
-                //TODO handle lastmod to speed up re-crawling even further?
-                var url = c.readAsXML().getString("loc");
-                if (StringUtils.isNotBlank(url)) {
-                    resolveSitemap(url, fetcher,
-                            sitemapURLConsumer, resolvedLocations);
+        XML.stream(is)
+            .takeWhile(c -> {
+                if (stopping) {
+                    LOG.debug("Sitemap not entirely parsed due to "
+                            + "crawler being stopped.");
+                    return false;
                 }
-            } else if ("url".equalsIgnoreCase(c.getLocalName())) {
-                var doc = toDocRecord(c.readAsXML(), sitemapLocationDir);
-                if (doc != null) {
-                    sitemapURLConsumer.accept(doc);
+                return true;
+            })
+            .forEachOrdered(c -> {
+                if ("sitemap".equalsIgnoreCase(c.getLocalName())) {
+                    //TODO handle lastmod to speed up re-crawling even further?
+                    var url = c.readAsXML().getString("loc");
+                    if (StringUtils.isNotBlank(url)) {
+                        resolveSitemap(url, fetcher,
+                                sitemapURLConsumer, resolvedLocations);
+                    }
+                } else if ("url".equalsIgnoreCase(c.getLocalName())) {
+                    var doc = toDocRecord(c.readAsXML(), sitemapLocationDir);
+                    if (doc != null) {
+                        sitemapURLConsumer.accept(doc);
+                    }
                 }
-            }
-        }
+            });
     }
 
     private HttpDocRecord toDocRecord(XML xml, String sitemapLocationDir) {
@@ -548,14 +544,12 @@ public class GenericSitemapResolver
         xml.checkDeprecated("path", "paths/path", true);
 
         setLenient(xml.getBoolean("@lenient", lenient));
-        setTempDir(xml.getPath("tempDir", tempDir));
         setSitemapPaths(xml.getStringList("paths/path", getSitemapPaths()));
     }
 
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("lenient", lenient);
-        xml.addElement("tempDir", getTempDir());
         xml.addElement("paths").addElementList("path", getSitemapPaths());
     }
 }

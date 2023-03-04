@@ -236,7 +236,7 @@ public class GenericRecrawlableResolver
         }
 
         var cf =
-                SitemapChangeFrequency.getChangeFrequency(value);
+                SitemapChangeFrequency.of(value);
         if (cf != null) {
             return isRecrawlableFromFrequency(cf, prevData, "custom");
         }
@@ -305,7 +305,7 @@ public class GenericRecrawlableResolver
 
         // If sitemap specifies a change frequency, check if we are past
         // it and recrawl if so (otherwise don't).
-        var cf = SitemapChangeFrequency.getChangeFrequency(
+        var cf = SitemapChangeFrequency.of(
                 prevData.getSitemapChangeFreq());
 
         return isRecrawlableFromFrequency(cf, prevData, "Sitemap");

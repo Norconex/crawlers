@@ -27,13 +27,6 @@
               </xs:all>
             </xs:complexType>
         </xs:element>
-        <xs:element name="tempDir" 
-            type="xs:string" minOccurs="0" maxOccurs="1"/>
-
-        <!-- Deprecated: -->
-        <xs:element name="path"  
-            type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
       <xs:attribute name="ignore" type="xs:boolean"/>
