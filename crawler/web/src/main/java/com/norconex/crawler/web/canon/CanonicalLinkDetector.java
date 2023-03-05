@@ -19,7 +19,7 @@ import java.io.InputStream;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 
 /**
  * <p>Detects and return any canonical URL found in documents, whether from
@@ -27,7 +27,7 @@ import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
  * Documents having a canonical URL reference in them are rejected in favor
  * of the document represented by the canonical URL.</p>
  *
- * <p>When a {@link HttpCrawlerConfig#getFetchHttpHead()} is enabled,
+ * <p>When a {@link WebCrawlerConfig#getFetchHttpHead()} is enabled,
  * a page won't be downloaded if a canonical link is found in the HTTP headers
  * (saving bandwidth and
  * processing). If not used, or if no canonical link was found, an attempt

@@ -89,6 +89,7 @@ Misc. Changes
 ### Crawler Web
 
 * `com.norconex.collector.http` → `com.norconex.crawler.web`
+* `*.Http*` → `*.Web*`
 * Removed Crawler configuration option "keepDownloads" and corresponding 
   CrawlerEvent.DOCUMENT_SAVED event in favor of new Importer SaveDocumentTagger.
 * References to HttpCollector or Collector changed to WebCrawlSession 

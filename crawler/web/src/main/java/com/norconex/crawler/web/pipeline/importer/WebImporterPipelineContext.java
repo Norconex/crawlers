@@ -18,16 +18,16 @@ import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig.HttpMethodSupport;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig.HttpMethodSupport;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.robot.RobotsMeta;
 
 import lombok.Data;
 
 @Data
-public class HttpImporterPipelineContext extends ImporterPipelineContext {
+public class WebImporterPipelineContext extends ImporterPipelineContext {
 
     private RobotsMeta robotsMeta;
 
@@ -36,12 +36,12 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
      * @param ipc the item to be copied
      * @since 2.8.0
      */
-    public HttpImporterPipelineContext(ImporterPipelineContext ipc) {
+    public WebImporterPipelineContext(ImporterPipelineContext ipc) {
         super(ipc.getCrawler(), ipc.getDocument());
         BeanUtil.copyProperties(this, ipc);
     }
 
-    public HttpImporterPipelineContext(Crawler crawler, CrawlDoc doc) {
+    public WebImporterPipelineContext(Crawler crawler, CrawlDoc doc) {
         super(crawler, doc);
     }
 
@@ -51,18 +51,18 @@ public class HttpImporterPipelineContext extends ImporterPipelineContext {
 //    }
 //
     @Override
-    public HttpCrawlerConfig getConfig() {
-        return (HttpCrawlerConfig) getCrawler().getCrawlerConfig();
+    public WebCrawlerConfig getConfig() {
+        return (WebCrawlerConfig) getCrawler().getCrawlerConfig();
     }
 
     @Override
-    public HttpDocRecord getDocRecord() {
-        return (HttpDocRecord) super.getDocRecord();
+    public WebDocRecord getDocRecord() {
+        return (WebDocRecord) super.getDocRecord();
     }
 
     @Override
-    public HttpDocRecord getCachedDocRecord() {
-        return (HttpDocRecord) super.getCachedDocRecord();
+    public WebDocRecord getCachedDocRecord() {
+        return (WebDocRecord) super.getCachedDocRecord();
     }
 
     /**

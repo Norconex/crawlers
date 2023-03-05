@@ -24,10 +24,10 @@ import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig.ReferencedLinkType;
-import com.norconex.crawler.web.crawler.HttpCrawlerEvent;
-import com.norconex.crawler.web.doc.HttpDocMetadata;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig.ReferencedLinkType;
+import com.norconex.crawler.web.crawler.WebCrawlerEvent;
+import com.norconex.crawler.web.doc.WebDocMetadata;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
 
@@ -40,9 +40,9 @@ import lombok.extern.slf4j.Slf4j;
  * be considered.
  */
 @Slf4j
-class LinkExtractorStage extends AbstractHttpImporterStage {
+class LinkExtractorStage extends AbstractWebImporterStage {
     @Override
-    boolean executeStage(HttpImporterPipelineContext ctx) { //NOSONAR
+    boolean executeStage(WebImporterPipelineContext ctx) { //NOSONAR
 
         var linkTypes =
                 ctx.getConfig().getKeepReferencedLinks();
@@ -72,7 +72,7 @@ class LinkExtractorStage extends AbstractHttpImporterStage {
             var inScopeUrls = docLinks.inScope.toArray(EMPTY_STRING_ARRAY);
             if (linkTypes.contains(ReferencedLinkType.INSCOPE)) {
                 ctx.getDocument().getMetadata().add(
-                        HttpDocMetadata.REFERENCED_URLS, inScopeUrls);
+                        WebDocMetadata.REFERENCED_URLS, inScopeUrls);
             }
             ctx.getDocRecord().setReferencedUrls(Arrays.asList(inScopeUrls));
         }
@@ -80,12 +80,12 @@ class LinkExtractorStage extends AbstractHttpImporterStage {
         LOG.debug("outScope count: {}.", docLinks.outScope.size());
         if (!docLinks.outScope.isEmpty()) {
             ctx.getDocument().getMetadata().add(
-                   HttpDocMetadata.REFERENCED_URLS_OUT_OF_SCOPE,
+                   WebDocMetadata.REFERENCED_URLS_OUT_OF_SCOPE,
                    docLinks.outScope.toArray(EMPTY_STRING_ARRAY));
         }
 
         ctx.fire(CrawlerEvent.builder()
-                .name(HttpCrawlerEvent.URLS_EXTRACTED)
+                .name(WebCrawlerEvent.URLS_EXTRACTED)
                 .source(ctx.getCrawler())
                 .subject(ctx.getDocument().getReference())
                 .crawlDocRecord(ctx.getDocRecord())
@@ -94,7 +94,7 @@ class LinkExtractorStage extends AbstractHttpImporterStage {
         return true;
     }
 
-    private void handleExtractedLink(HttpImporterPipelineContext ctx,
+    private void handleExtractedLink(WebImporterPipelineContext ctx,
             UniqueDocLinks docLinks, Link link) {
 
         var linkTypes =
@@ -128,7 +128,7 @@ class LinkExtractorStage extends AbstractHttpImporterStage {
         }
     }
 
-    private Set<Link> extractLinks(HttpImporterPipelineContext ctx) {
+    private Set<Link> extractLinks(WebImporterPipelineContext ctx) {
         String reference = ctx.getDocRecord().getReference();
         var extractors = ctx.getConfig().getLinkExtractors();
         if (extractors.isEmpty()) {
@@ -164,16 +164,16 @@ class LinkExtractorStage extends AbstractHttpImporterStage {
         return links;
     }
 
-    // Executes HttpQueuePipeline if URL not already processed in that page
+    // Executes WebQueuePipeline if URL not already processed in that page
     // Returns a URL that was not already processed
     private String queueURL(Link link,
-            HttpImporterPipelineContext ctx, Set<String> uniqueExtractedURLs) {
+            WebImporterPipelineContext ctx, Set<String> uniqueExtractedURLs) {
 
         //TODO do we want to add all URLs in a page, or just the valid ones?
         // i.e., those properly formatted.  If we do so, can it prevent
         // weird/custom URLs that some link extractors may find valid?
         if (uniqueExtractedURLs.add(link.getUrl())) {
-            var newURL = new HttpDocRecord(
+            var newURL = new WebDocRecord(
                     link.getUrl(), ctx.getDocRecord().getDepth() + 1);
             newURL.setReferrerReference(link.getReferrer());
             if (!link.getMetadata().isEmpty()) {

@@ -94,7 +94,7 @@ import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -351,7 +351,7 @@ public class GenericHttpFetcher
             //--- HSTS Policy --------------------------------------------------
             if (!cfg.isDisableHSTS()) {
                 HstsResolver.resolve(
-                        httpClient, (HttpDocRecord) doc.getDocRecord());
+                        httpClient, (WebDocRecord) doc.getDocRecord());
             }
 
             //--- Prepare the request ------------------------------------------

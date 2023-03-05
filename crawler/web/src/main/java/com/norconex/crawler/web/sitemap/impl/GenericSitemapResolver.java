@@ -55,8 +55,8 @@ import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.store.DataStore;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -99,7 +99,7 @@ import lombok.extern.slf4j.Slf4j;
  * defined in "robots.txt", you can disable "robots.txt" support
  * on your crawler configuration.
  * To disable Sitemap support entirely, you can set
- * {@link HttpCrawlerConfig#setSitemapResolver(SitemapResolver)} to
+ * {@link WebCrawlerConfig#setSitemapResolver(SitemapResolver)} to
  * <code>null</code>.  Keep in mind doing so will prevent you to define
  * Sitemap URLs as part of your crawler start URLs.
  * </p>
@@ -310,7 +310,7 @@ public class GenericSitemapResolver
     private void resolveSitemap(
             String location,
             HttpFetcher fetcher,
-            Consumer<HttpDocRecord> sitemapURLConsumer,
+            Consumer<WebDocRecord> sitemapURLConsumer,
             Set<String> resolvedLocations) {
 
         if (resolvedLocations.contains(location)) {
@@ -390,7 +390,7 @@ public class GenericSitemapResolver
             MutableObject<CrawlDoc> doc,
             int loop) throws IOException {
 
-        doc.setValue(new CrawlDoc(new HttpDocRecord(location),
+        doc.setValue(new CrawlDoc(new WebDocRecord(location),
                 streamFactory.newInputStream()));
         var response = fetcher.fetch(
                 new HttpFetchRequest(doc.getValue(), HttpMethod.GET));
@@ -424,7 +424,7 @@ public class GenericSitemapResolver
     }
 
     private void parseSitemap(File sitemapFile, HttpFetcher fetcher,
-            Consumer<HttpDocRecord> sitemapURLConsumer,
+            Consumer<WebDocRecord> sitemapURLConsumer,
             Set<String> resolvedLocations,
             String location) throws XMLStreamException, IOException {
         try (var fis = new FileInputStream(sitemapFile)) {
@@ -435,7 +435,7 @@ public class GenericSitemapResolver
     }
 
     void parseSitemap(InputStream is, HttpFetcher fetcher,
-            Consumer<HttpDocRecord> sitemapURLConsumer,
+            Consumer<WebDocRecord> sitemapURLConsumer,
             Set<String> resolvedLocations,
             String sitemapLocation) throws XMLStreamException, IOException {
 
@@ -466,7 +466,7 @@ public class GenericSitemapResolver
             });
     }
 
-    private HttpDocRecord toDocRecord(XML xml, String sitemapLocationDir) {
+    private WebDocRecord toDocRecord(XML xml, String sitemapLocationDir) {
         var url = xml.getString("loc");
 
         // Is URL valid?
@@ -478,7 +478,7 @@ public class GenericSitemapResolver
             return null;
         }
 
-        var doc = new HttpDocRecord(url);
+        var doc = new WebDocRecord(url);
         doc.setSitemapLastMod(toDateTime(xml.getString("lastmod")));
         doc.setSitemapChangeFreq(xml.getString("changefreq"));
         var priority = xml.getString("priority");

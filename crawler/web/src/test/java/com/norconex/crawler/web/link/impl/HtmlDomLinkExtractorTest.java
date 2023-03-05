@@ -30,7 +30,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.WebStubber;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
 import com.norconex.importer.doc.DocMetadata;
@@ -125,7 +125,7 @@ class HtmlDomLinkExtractorTest {
         Set<Link> links;
         try (var is = getClass().getResourceAsStream(
                 "LinkAttributesExtractorTest.html")) {
-            var docRecord = new HttpDocRecord();
+            var docRecord = new WebDocRecord();
             docRecord.setReference(baseURL + "LinkAttributesExtractorTest.html");
             docRecord.setContentType(ContentType.HTML);
             var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));

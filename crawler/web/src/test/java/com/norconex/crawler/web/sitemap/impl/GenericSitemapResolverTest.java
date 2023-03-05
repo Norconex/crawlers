@@ -39,8 +39,8 @@ import org.mockserver.model.MediaType;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.web.MockWebCrawlSession;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.sitemap.SitemapResolutionContext;
 
@@ -94,7 +94,7 @@ class GenericSitemapResolverTest {
         List<String> urls = new ArrayList<>();
 
 
-        var resolver = ((HttpCrawlerConfig)
+        var resolver = ((WebCrawlerConfig)
                 crawler.getCrawlerConfig()).getSitemapResolver();
         resolver.resolveSitemaps(SitemapResolutionContext
                 .builder()
@@ -143,7 +143,7 @@ class GenericSitemapResolverTest {
     void testSitemapResolverParsing()
             throws IOException, XMLStreamException {
 
-        List<HttpDocRecord> extractedLinks = new ArrayList<>();
+        List<WebDocRecord> extractedLinks = new ArrayList<>();
         var r = new GenericSitemapResolver();
         try (var is = getClass().getResourceAsStream("sitemap.xml")) {
             r.parseSitemap(is, null, d -> {
@@ -159,7 +159,7 @@ class GenericSitemapResolverTest {
                         "https://example.com/linkC",
                         "https://example.com/linkD"),
                 extractedLinks.stream()
-                        .map(HttpDocRecord::getReference)
+                        .map(WebDocRecord::getReference)
                         .collect(Collectors.toList()));
 
         // test second one:

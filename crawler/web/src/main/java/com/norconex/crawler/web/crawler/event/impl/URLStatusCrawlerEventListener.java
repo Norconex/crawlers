@@ -52,7 +52,7 @@ import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionEvent;
 import com.norconex.crawler.core.session.CrawlSessionException;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.link.impl.TikaLinkExtractor;
@@ -280,7 +280,7 @@ public class URLStatusCrawlerEventListener
             var csv = csvPrinters.get(combined
                     ? null : ce.getSource().getId());
             if (csv != null) {
-                var crawlRef = (HttpDocRecord) ce.getCrawlDocRecord();
+                var crawlRef = (WebDocRecord) ce.getCrawlDocRecord();
                 Object[] record = {
                         trimToEmpty(crawlRef.getReferrerReference()),
                         trimToEmpty(crawlRef.getReference()),

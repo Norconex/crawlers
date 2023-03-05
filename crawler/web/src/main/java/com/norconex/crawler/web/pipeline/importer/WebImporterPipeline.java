@@ -28,7 +28,7 @@ import com.norconex.importer.response.ImporterResponse;
  * All execution steps of a document processing from the moment it is
  * obtained from queue up to importing it.
  */
-public class HttpImporterPipeline implements ImporterPipeline {
+public class WebImporterPipeline implements ImporterPipeline {
 
 
     private final Predicates<ImporterPipelineContext> STAGES =

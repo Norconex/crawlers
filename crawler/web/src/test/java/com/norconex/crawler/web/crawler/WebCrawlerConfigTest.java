@@ -23,7 +23,7 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.web.WebStubber;
 
 @Disabled
-class HttpCrawlerConfigTest {
+class WebCrawlerConfigTest {
 
     @Test
     void testHttpCrawlerConfig() {

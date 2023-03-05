@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.sitemap.SitemapResolutionContext;
 import com.norconex.crawler.web.util.Web;
@@ -32,9 +32,9 @@ class SitemapResolutionStage implements Predicate<DocRecordPipelineContext> {
                 || cfg.getSitemapResolver() == null) {
             return true;
         }
-        var urlRoot =  ((HttpDocRecord) ctx.getDocRecord()).getUrlRoot();
+        var urlRoot =  ((WebDocRecord) ctx.getDocRecord()).getUrlRoot();
         List<String> robotsTxtLocations = new ArrayList<>();
-        var robotsTxt = HttpQueuePipeline.getRobotsTxt(ctx);
+        var robotsTxt = WebQueuePipeline.getRobotsTxt(ctx);
         if (robotsTxt != null) {
             robotsTxtLocations.addAll(robotsTxt.getSitemapLocations());
         }

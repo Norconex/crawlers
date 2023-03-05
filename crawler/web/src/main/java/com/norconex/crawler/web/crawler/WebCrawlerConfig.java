@@ -35,14 +35,14 @@ import com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector;
 import com.norconex.crawler.web.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.crawler.web.delay.DelayResolver;
 import com.norconex.crawler.web.delay.impl.GenericDelayResolver;
-import com.norconex.crawler.web.doc.HttpDocMetadata;
+import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher;
 import com.norconex.crawler.web.link.LinkExtractor;
 import com.norconex.crawler.web.link.impl.HtmlLinkExtractor;
-import com.norconex.crawler.web.processor.HttpDocumentProcessor;
+import com.norconex.crawler.web.processor.WebDocumentProcessor;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver;
 import com.norconex.crawler.web.robot.RobotsMetaProvider;
@@ -137,9 +137,9 @@ import lombok.ToString;
  * </p>
  * <ul>
  *   <li><b>INSCOPE:</b> Default. Store "in-scope" links as
- *       {@link HttpDocMetadata#REFERENCED_URLS}.</li>
+ *       {@link WebDocMetadata#REFERENCED_URLS}.</li>
  *   <li><b>OUTSCOPE:</b> Store "out-of-scope" links as
- *       {@link HttpDocMetadata#REFERENCED_URLS_OUT_OF_SCOPE}.</li>
+ *       {@link WebDocMetadata#REFERENCED_URLS_OUT_OF_SCOPE}.</li>
  *   <li><b>MAXDEPTH:</b> Also store links extracted on pages at max depth.
  *       Must be used with at least one other option to have any effect.</li>
  * </ul>
@@ -496,7 +496,7 @@ import lombok.ToString;
  *
  *   <preImportProcessors>
  *     <!-- Repeatable -->
- *     <processor class="(HttpDocumentProcessor implementation)"></processor>
+ *     <processor class="(WebDocumentProcessor implementation)"></processor>
  *   </preImportProcessors>
  *
  *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#import}
@@ -505,7 +505,7 @@ import lombok.ToString;
  *
  *   <postImportProcessors>
  *     <!-- Repeatable -->
- *     <processor class="(HttpDocumentProcessor implementation)"></processor>
+ *     <processor class="(WebDocumentProcessor implementation)"></processor>
  *   </postImportProcessors>
  *
  *   <postImportLinks keep="[false|true]">
@@ -520,7 +520,7 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class HttpCrawlerConfig extends CrawlerConfig {
+public class WebCrawlerConfig extends CrawlerConfig {
 
     // By default do not include URLs on docs at max depth
     // (and do not extract them).  Include MAXDEPTH for this.
@@ -589,15 +589,15 @@ public class HttpCrawlerConfig extends CrawlerConfig {
             new StandardRobotsMetaProvider();
     private SitemapResolver sitemapResolver = new GenericSitemapResolver();
 
-    private final List<HttpDocumentProcessor> preImportProcessors =
+    private final List<WebDocumentProcessor> preImportProcessors =
             new ArrayList<>();
-    private final List<HttpDocumentProcessor> postImportProcessors =
+    private final List<WebDocumentProcessor> postImportProcessors =
             new ArrayList<>();
 
     private RecrawlableResolver recrawlableResolver =
             new GenericRecrawlableResolver();
 
-    public HttpCrawlerConfig() {
+    public WebCrawlerConfig() {
         setMetadataChecksummer(new LastModifiedMetadataChecksummer());
     }
 
@@ -800,7 +800,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * <code>true</code>, the crawler will start processing URLs in the queue
      * even if start URLs are still being loaded. While this may speed up
      * crawling, it may have an unexpected effect on accuracy of
-     * {@link HttpDocMetadata#DEPTH}.  Use of this option is only
+     * {@link WebDocMetadata#DEPTH}.  Use of this option is only
      * recommended when start URLs takes a significant time to load (e.g.,
      * large sitemaps).
      * @return <code>true</code> if async.
@@ -814,7 +814,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * <code>true</code>, the crawler will start processing URLs in the queue
      * even if start URLs are still being loaded. While this may speed up
      * crawling, it may have an unexpected effect on accuracy of
-     * {@link HttpDocMetadata#DEPTH}.  Use of this option is only
+     * {@link WebDocMetadata#DEPTH}.  Use of this option is only
      * recommended when start URLs takes a significant time to load (e.g.,
      * large sitemaps).
      * @param asyncStartURLs <code>true</code> if async.
@@ -962,7 +962,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * Gets pre-import processors.
      * @return pre-import processors
      */
-    public List<HttpDocumentProcessor> getPreImportProcessors() {
+    public List<WebDocumentProcessor> getPreImportProcessors() {
         return Collections.unmodifiableList(preImportProcessors);
     }
     /**
@@ -970,7 +970,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * @param preImportProcessors pre-import processors
      */
     public void setPreImportProcessors(
-            HttpDocumentProcessor... preImportProcessors) {
+            WebDocumentProcessor... preImportProcessors) {
         setPreImportProcessors(Arrays.asList(preImportProcessors));
     }
     /**
@@ -979,7 +979,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public void setPreImportProcessors(
-            List<HttpDocumentProcessor> preImportProcessors) {
+            List<WebDocumentProcessor> preImportProcessors) {
         CollectionUtil.setAll(this.preImportProcessors, preImportProcessors);
     }
 
@@ -987,7 +987,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * Gets post-import processors.
      * @return post-import processors
      */
-    public List<HttpDocumentProcessor> getPostImportProcessors() {
+    public List<WebDocumentProcessor> getPostImportProcessors() {
         return Collections.unmodifiableList(postImportProcessors);
     }
     /**
@@ -995,7 +995,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * @param postImportProcessors post-import processors
      */
     public void setPostImportProcessors(
-            HttpDocumentProcessor... postImportProcessors) {
+            WebDocumentProcessor... postImportProcessors) {
         setPostImportProcessors(Arrays.asList(postImportProcessors));
     }
     /**
@@ -1004,7 +1004,7 @@ public class HttpCrawlerConfig extends CrawlerConfig {
      * @since 3.0.0
      */
     public void setPostImportProcessors(
-            List<HttpDocumentProcessor> postImportProcessors) {
+            List<WebDocumentProcessor> postImportProcessors) {
         CollectionUtil.setAll(this.postImportProcessors, postImportProcessors);
     }
 
@@ -1285,12 +1285,12 @@ public class HttpCrawlerConfig extends CrawlerConfig {
 
         // HTTP Pre-Processors
         setPreImportProcessors(xml.getObjectListImpl(
-                HttpDocumentProcessor.class,
+                WebDocumentProcessor.class,
                 "preImportProcessors/processor", preImportProcessors));
 
         // HTTP Post-Processors
         setPostImportProcessors(xml.getObjectListImpl(
-                HttpDocumentProcessor.class,
+                WebDocumentProcessor.class,
                 "postImportProcessors/processor", postImportProcessors));
 
         postImportLinks.loadFromXML(xml.getXML("postImportLinks/fieldMatcher"));

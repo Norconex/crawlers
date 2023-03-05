@@ -18,15 +18,15 @@ import java.io.IOException;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerException;
-import com.norconex.crawler.web.crawler.HttpCrawlerEvent;
+import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 
 /**
  * Robots meata creation.
  */
-class RobotsMetaCreateStage extends AbstractHttpImporterStage {
+class RobotsMetaCreateStage extends AbstractWebImporterStage {
 
     @Override
-    boolean executeStage(HttpImporterPipelineContext ctx) { //NOSONAR
+    boolean executeStage(WebImporterPipelineContext ctx) { //NOSONAR
         if (ctx.getConfig().isIgnoreRobotsMeta()) {
             return true;
         }
@@ -40,7 +40,7 @@ class RobotsMetaCreateStage extends AbstractHttpImporterStage {
                             ctx.getDocument().getMetadata()));
             reader.close();
             ctx.fire(CrawlerEvent.builder()
-                    .name(HttpCrawlerEvent.CREATED_ROBOTS_META)
+                    .name(WebCrawlerEvent.CREATED_ROBOTS_META)
                     .source(ctx.getCrawler())
                     .subject(ctx.getRobotsMeta())
                     .crawlDocRecord(ctx.getDocRecord())

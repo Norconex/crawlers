@@ -46,7 +46,7 @@ import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.HttpCrawlDocState;
+import com.norconex.crawler.web.doc.WebCrawlDocState;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -253,7 +253,7 @@ public class WebDriverHttpFetcher
         }
 
         return GenericHttpFetchResponse.builder()
-                .crawlDocState(HttpCrawlDocState.NEW)
+                .crawlDocState(WebCrawlDocState.NEW)
                 .statusCode(200)
                 .reasonPhrase("No exception thrown, but real status code "
                         + "unknown. Capture headers for real status code.")

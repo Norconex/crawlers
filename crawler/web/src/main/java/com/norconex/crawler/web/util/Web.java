@@ -17,26 +17,26 @@ package com.norconex.crawler.web.util;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.pipeline.AbstractPipelineContext;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
-import com.norconex.crawler.web.pipeline.importer.HttpImporterPipelineContext;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.web.pipeline.importer.WebImporterPipelineContext;
 
 public final class Web {
 
     private Web() {}
 
-    public static HttpCrawlerConfig config(CrawlerConfig cfg) {
-        return (HttpCrawlerConfig) cfg;
+    public static WebCrawlerConfig config(CrawlerConfig cfg) {
+        return (WebCrawlerConfig) cfg;
     }
-    public static HttpCrawlerConfig config(AbstractPipelineContext ctx) {
-        return (HttpCrawlerConfig) ctx.getConfig();
+    public static WebCrawlerConfig config(AbstractPipelineContext ctx) {
+        return (WebCrawlerConfig) ctx.getConfig();
     }
-    public static HttpCrawlerConfig config(Crawler crawler) {
-        return (HttpCrawlerConfig) crawler.getCrawlerConfig();
+    public static WebCrawlerConfig config(Crawler crawler) {
+        return (WebCrawlerConfig) crawler.getCrawlerConfig();
     }
 
-    public static HttpImporterPipelineContext context(
+    public static WebImporterPipelineContext context(
             AbstractPipelineContext ctx) {
-        return (HttpImporterPipelineContext) ctx;
+        return (WebImporterPipelineContext) ctx;
     }
 
 //    public static HttpFetchResponse fetchResponse(FetchResponse response) {

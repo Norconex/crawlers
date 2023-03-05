@@ -45,7 +45,7 @@ import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.MockWebCrawlSession.NoopConfigConsumer;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -199,11 +199,10 @@ public class MockWebCrawlSessionExtension implements
     }
 
     private void doAfter(ExtensionContext ctx) throws IOException {
-        currentTestConfig.readyToGo = false;
         if (crawlSession != null) {
             crawlSession = null;
             FileUtil.delete(currentTestConfig.tempDir.toFile());
-            currentTestConfig.readyToGo = true;
+            currentTestConfig.readyToGo = false;
             currentTestConfig = null;
         }
         if (latch != null) {
@@ -274,8 +273,8 @@ public class MockWebCrawlSessionExtension implements
             .build();
     }
 
-    private static HttpCrawlerConfig crawlerConfig(int index) {
-        var crawlerConfig = new HttpCrawlerConfig();
+    private static WebCrawlerConfig crawlerConfig(int index) {
+        var crawlerConfig = new WebCrawlerConfig();
         crawlerConfig.setId(MOCK_CRAWLER_ID + index);
         crawlerConfig.setNumThreads(1);
         crawlerConfig.setCommitters(List.of(new MemoryCommitter()));

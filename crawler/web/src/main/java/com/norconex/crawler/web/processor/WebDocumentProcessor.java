@@ -23,7 +23,7 @@ import com.norconex.importer.doc.Doc;
  * @since 2.8.0 (moved from "com.norconex.crawler.web.doc" package)
  */
 @FunctionalInterface
-public interface HttpDocumentProcessor {
+public interface WebDocumentProcessor {
 
 	/**
 	 * Processes a document.

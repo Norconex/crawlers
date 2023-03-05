@@ -25,7 +25,7 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.url.URLNormalizer;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.url.WebURLNormalizer;
 
 import lombok.Data;
@@ -42,7 +42,7 @@ import lombok.ToString;
  * <p>
  * This class is in effect by default. To skip its usage, you
  * can explicitly set the URL Normalizer to <code>null</code> in the
- * {@link HttpCrawlerConfig}, or you can disable it using
+ * {@link WebCrawlerConfig}, or you can disable it using
  * {@link #setDisabled(boolean)}.
  * </p>
  * <p>

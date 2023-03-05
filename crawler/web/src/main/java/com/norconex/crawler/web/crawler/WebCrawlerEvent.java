@@ -18,7 +18,7 @@ package com.norconex.crawler.web.crawler;
  * HTTP Crawler event names. Those are in addition to event names from
  * dependant libraries.
  */
-public final class HttpCrawlerEvent {
+public final class WebCrawlerEvent {
 
     public static final String REJECTED_ROBOTS_TXT =
             "REJECTED_ROBOTS_TXT";
@@ -36,7 +36,7 @@ public final class HttpCrawlerEvent {
     public static final String URLS_POST_IMPORTED =
             "URLS_POST_IMPORTED";
 
-    private HttpCrawlerEvent() {
+    private WebCrawlerEvent() {
         super();
     }
 }

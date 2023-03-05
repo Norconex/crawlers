@@ -31,7 +31,7 @@ import com.norconex.crawler.web.util.Web;
  * document or document header is downloaded.
  * Instances are only valid for the scope of a single URL.
  */
-public final class HttpQueuePipeline implements QueuePipeline {
+public final class WebQueuePipeline implements QueuePipeline {
 
     private static final Predicates<DocRecordPipelineContext> STAGES =
             new Predicates<>(List.of(

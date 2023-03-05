@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.web.doc.HttpDocMetadata;
+import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.link.AbstractTextLinkExtractor;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.importer.handler.HandlerDoc;
@@ -68,7 +68,7 @@ import lombok.Setter;
  * <ul>
  *   <li><b>Referrer reference:</b> The reference (URL) of the page where the
  *   link to a document was found.  Metadata value is
- *   {@link HttpDocMetadata#REFERRER_REFERENCE}.</li>
+ *   {@link WebDocMetadata#REFERRER_REFERENCE}.</li>
  * </ul>
  *
  * <h3>Character encoding</h3>

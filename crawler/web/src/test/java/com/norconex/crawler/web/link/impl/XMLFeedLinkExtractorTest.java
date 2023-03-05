@@ -31,7 +31,7 @@ import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.DocMetadata;
@@ -127,7 +127,7 @@ class XMLFeedLinkExtractorTest {
     }
 
     private CrawlDoc toCrawlDoc(String ref, ContentType ct, InputStream is) {
-        var docRecord = new HttpDocRecord(ref);
+        var docRecord = new WebDocRecord(ref);
         docRecord.setContentType(ct);
         var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));
         doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ct);

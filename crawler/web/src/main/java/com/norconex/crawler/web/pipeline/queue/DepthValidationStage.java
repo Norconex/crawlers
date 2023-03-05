@@ -20,8 +20,8 @@ import java.util.function.Predicate;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.crawler.web.crawler.HttpCrawlerEvent;
-import com.norconex.crawler.web.doc.HttpCrawlDocState;
+import com.norconex.crawler.web.crawler.WebCrawlerEvent;
+import com.norconex.crawler.web.doc.WebCrawlDocState;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,9 +38,9 @@ class DepthValidationStage implements Predicate<DocRecordPipelineContext> {
             LOG.debug("URL too deep to process ({}): {}",
                     ctx.getDocRecord().getDepth(),
                     ctx.getDocRecord().getReference());
-            ctx.getDocRecord().setState(HttpCrawlDocState.TOO_DEEP);
+            ctx.getDocRecord().setState(WebCrawlDocState.TOO_DEEP);
             ctx.fire(CrawlerEvent.builder()
-                    .name(HttpCrawlerEvent.REJECTED_TOO_DEEP)
+                    .name(WebCrawlerEvent.REJECTED_TOO_DEEP)
                     .source(ctx.getCrawler())
                     .subject(ctx.getDocRecord().getDepth())
                     .crawlDocRecord(ctx.getDocRecord())

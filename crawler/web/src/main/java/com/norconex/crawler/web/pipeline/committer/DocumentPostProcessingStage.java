@@ -18,15 +18,15 @@ import java.util.function.Predicate;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.processor.HttpDocumentProcessor;
+import com.norconex.crawler.web.processor.WebDocumentProcessor;
 
 class DocumentPostProcessingStage
         implements Predicate<DocumentPipelineContext> {
     @Override
     public boolean test(DocumentPipelineContext ctx) {
-        for (HttpDocumentProcessor postProc : ((HttpCrawlerConfig)
+        for (WebDocumentProcessor postProc : ((WebCrawlerConfig)
                 ctx.getConfig()).getPostImportProcessors()) {
             postProc.processDocument(
                     (HttpFetcher) ctx.getCrawler().getFetcher(),

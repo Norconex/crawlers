@@ -20,9 +20,9 @@ import com.norconex.crawler.web.util.Web;
 /**
  * Wait for configured or default delay to expire.
  */
-class DelayResolverStage extends AbstractHttpImporterStage {
+class DelayResolverStage extends AbstractWebImporterStage {
     @Override
-    boolean executeStage(HttpImporterPipelineContext ctx) {
+    boolean executeStage(WebImporterPipelineContext ctx) {
         var delayResolver = Web.config(ctx).getDelayResolver();
         if (delayResolver != null) {
             if (!Web.config(ctx).isIgnoreRobotsTxt()) {

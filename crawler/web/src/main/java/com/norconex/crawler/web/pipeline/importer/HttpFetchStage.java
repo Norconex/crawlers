@@ -22,8 +22,8 @@ import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig.HttpMethodSupport;
-import com.norconex.crawler.web.doc.HttpDocMetadata;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig.HttpMethodSupport;
+import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -37,7 +37,7 @@ import lombok.NonNull;
  * (HTTP response headers) depending on supplied {@link HttpMethod}.</p>
  * @since 3.0.0 (Merge of former metadata and document fetcher stages).
  */
-class HttpFetchStage extends AbstractHttpImporterStage {
+class HttpFetchStage extends AbstractWebImporterStage {
 
     public HttpFetchStage(@NonNull HttpMethod method) {
         super(method);
@@ -51,7 +51,7 @@ class HttpFetchStage extends AbstractHttpImporterStage {
      * @return <code>true</code> if we continue processing.
      */
     @Override
-    boolean executeStage(HttpImporterPipelineContext ctx) {
+    boolean executeStage(WebImporterPipelineContext ctx) {
         // If stage is for a method that was disabled, skip
         if (!ctx.isHttpMethodEnabled(getHttpMethod())) {
             return true;
@@ -75,14 +75,14 @@ class HttpFetchStage extends AbstractHttpImporterStage {
         var meta = ctx.getDocument().getMetadata();
         meta.set(DocMetadata.CONTENT_TYPE, docRecord.getContentType());
         meta.set(DocMetadata.CONTENT_ENCODING, docRecord.getContentEncoding());
-        meta.set(HttpDocMetadata.ORIGINAL_REFERENCE,
+        meta.set(WebDocMetadata.ORIGINAL_REFERENCE,
                 docRecord.getOriginalReference());
 
         //-- Deal with redirects ---
         var redirectURL = response.getRedirectTarget();
 
         if (StringUtils.isNotBlank(redirectURL)) {
-            HttpImporterPipelineUtil.queueRedirectURL(
+            WebImporterPipelineUtil.queueRedirectURL(
                     ctx, response, redirectURL);
             return false;
         }
@@ -130,7 +130,7 @@ class HttpFetchStage extends AbstractHttpImporterStage {
     }
 
     private boolean continueOnBadState(
-            HttpImporterPipelineContext ctx,
+            WebImporterPipelineContext ctx,
             HttpMethod method,
             CrawlDocState originalCrawlDocState) {
         // Note: a disabled method will never get here,
@@ -173,7 +173,7 @@ class HttpFetchStage extends AbstractHttpImporterStage {
      * @param ctx pipeline context
      * @return <code>true</code> if method is GET and HTTP HEAD was performed
      */
-    protected boolean wasHttpHeadPerformed(HttpImporterPipelineContext ctx) {
+    protected boolean wasHttpHeadPerformed(WebImporterPipelineContext ctx) {
         // If GET and fetching HEAD was requested, we ran filters already, skip.
         return getHttpMethod() == HttpMethod.GET
                 &&  HttpMethodSupport.isEnabled(

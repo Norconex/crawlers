@@ -23,8 +23,8 @@ import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.web.canon.CanonicalLinkDetector;
-import com.norconex.crawler.web.crawler.HttpCrawlerEvent;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.crawler.WebCrawlerEvent;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpMethod;
 
 import lombok.NonNull;
@@ -37,14 +37,14 @@ import lombok.extern.log4j.Log4j2;
  * @since 3.0.0 (Merge of former separate canonical stages).
  */
 @Log4j2
-class CanonicalStage extends AbstractHttpImporterStage {
+class CanonicalStage extends AbstractWebImporterStage {
 
     public CanonicalStage(@NonNull HttpMethod method) {
         super(method);
     }
 
     @Override
-    boolean executeStage(HttpImporterPipelineContext ctx) {
+    boolean executeStage(WebImporterPipelineContext ctx) {
 
         var detector = ctx.getConfig().getCanonicalLinkDetector();
 
@@ -66,7 +66,7 @@ class CanonicalStage extends AbstractHttpImporterStage {
 
     // Resolves metadata (HTTP headers) canonical link detection
     private boolean resolveFromHeaders(
-            HttpImporterPipelineContext ctx, CanonicalLinkDetector detector) {
+            WebImporterPipelineContext ctx, CanonicalLinkDetector detector) {
         return resolveCanonical(ctx, detector.detectFromMetadata(
                 ctx.getDocument().getReference(),
                 ctx.getDocument().getMetadata()));
@@ -74,7 +74,7 @@ class CanonicalStage extends AbstractHttpImporterStage {
 
     // Proceed with document (<meta>) canonical link detection
     private boolean resolveFromContent(
-            HttpImporterPipelineContext ctx, CanonicalLinkDetector detector) {
+            WebImporterPipelineContext ctx, CanonicalLinkDetector detector) {
         try {
             return resolveCanonical(ctx, detector.detectFromContent(
                     ctx.getDocument().getReference(),
@@ -90,7 +90,7 @@ class CanonicalStage extends AbstractHttpImporterStage {
     // return true if we process this doc, false if we don't because we
     // will use a canonical URL instead
     private boolean resolveCanonical(
-            HttpImporterPipelineContext ctx, String canURL) {
+            WebImporterPipelineContext ctx, String canURL) {
 
         if (StringUtils.isBlank(canURL)) {
             return true;
@@ -139,7 +139,7 @@ class CanonicalStage extends AbstractHttpImporterStage {
             return true;
         }
 
-        var newRecord = new HttpDocRecord(crawlRef);
+        var newRecord = new WebDocRecord(crawlRef);
         newRecord.setReference(canURL);
         newRecord.setReferrerReference(reference);
 
@@ -168,7 +168,7 @@ class CanonicalStage extends AbstractHttpImporterStage {
 
         crawlRef.setState(CrawlDocState.REJECTED);
         ctx.fire(CrawlerEvent.builder()
-                .name(HttpCrawlerEvent.REJECTED_NONCANONICAL)
+                .name(WebCrawlerEvent.REJECTED_NONCANONICAL)
                 .source(ctx.getCrawler())
                 .subject(detector)
                 .crawlDocRecord(crawlRef)

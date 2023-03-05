@@ -28,14 +28,14 @@ import lombok.extern.slf4j.Slf4j;
  * the vast majority of duplicates.
  */
 @Slf4j
-class MetadataDedupStage extends AbstractHttpImporterStage {
+class MetadataDedupStage extends AbstractWebImporterStage {
 
     public MetadataDedupStage(@NonNull HttpMethod method) {
         super(method);
     }
 
     @Override
-    boolean executeStage(HttpImporterPipelineContext ctx) {
+    boolean executeStage(WebImporterPipelineContext ctx) {
 
         if (ctx.wasHttpHeadPerformed(getHttpMethod())) {
             return true;

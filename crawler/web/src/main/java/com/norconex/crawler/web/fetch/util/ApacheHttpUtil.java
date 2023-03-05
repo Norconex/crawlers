@@ -63,7 +63,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
@@ -119,7 +119,7 @@ public final class ApacheHttpUtil {
      * <p>
      * Applies the HTTP response headers to a document. This method will
      * do its best to derive relevant information from the HTTP headers
-     * that can be set on the document {@link HttpDocRecord}:
+     * that can be set on the document {@link WebDocRecord}:
      * </p>
      * <ul>
      *   <li>Content type</li>
@@ -136,7 +136,7 @@ public final class ApacheHttpUtil {
      */
     public static void applyResponseHeaders(
             HttpResponse response, String prefix, CrawlDoc doc) {
-        HttpDocRecord docRecord = (HttpDocRecord) doc.getDocRecord();
+        WebDocRecord docRecord = (WebDocRecord) doc.getDocRecord();
         HeaderIterator it = response.headerIterator();
         while (it.hasNext()) {
             Header header = (Header) it.next();
@@ -225,7 +225,7 @@ public final class ApacheHttpUtil {
     public static void setRequestIfNoneMatch(
             HttpRequest request, CrawlDoc doc) {
         if (doc.hasCache()) {
-            HttpDocRecord docRecord = (HttpDocRecord) doc.getCachedDocRecord();
+            WebDocRecord docRecord = (WebDocRecord) doc.getCachedDocRecord();
             if (docRecord.getEtag() != null) {
                 request.addHeader(HttpHeaders.IF_NONE_MATCH, docRecord.getEtag());
             }

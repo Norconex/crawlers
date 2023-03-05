@@ -21,7 +21,7 @@ import java.util.function.Predicate;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.crawler.web.crawler.HttpCrawlerEvent;
+import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 import com.norconex.crawler.web.robot.RobotsTxtFilter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +50,7 @@ class RobotsTxtFiltersStage implements Predicate<DocRecordPipelineContext> {
             if (filter != null) {
                 ctx.getDocRecord().setState(CrawlDocState.REJECTED);
                 ctx.fire(CrawlerEvent.builder()
-                        .name(HttpCrawlerEvent.REJECTED_ROBOTS_TXT)
+                        .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
                         .source(ctx.getCrawler())
                         .subject(filter)
                         .crawlDocRecord(ctx.getDocRecord())
@@ -73,7 +73,7 @@ class RobotsTxtFiltersStage implements Predicate<DocRecordPipelineContext> {
     private RobotsTxtFilter findRejectingRobotsFilter(
             DocRecordPipelineContext ctx) {
 
-        var robotsTxt = HttpQueuePipeline.getRobotsTxt(ctx);
+        var robotsTxt = WebQueuePipeline.getRobotsTxt(ctx);
         if (robotsTxt == null) {
             return null;
         }

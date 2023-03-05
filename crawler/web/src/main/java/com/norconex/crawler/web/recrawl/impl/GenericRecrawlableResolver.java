@@ -32,7 +32,7 @@ import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.sitemap.SitemapChangeFrequency;
 
@@ -172,7 +172,7 @@ public class GenericRecrawlableResolver
     }
 
     @Override
-    public boolean isRecrawlable(HttpDocRecord prevData) {
+    public boolean isRecrawlable(WebDocRecord prevData) {
 
         // if never crawled: yes, crawl it
         if (prevData.getCrawlDate() == null) {
@@ -204,7 +204,7 @@ public class GenericRecrawlableResolver
         return true;
     }
 
-    private MinFrequency getMatchingMinFrequency(HttpDocRecord prevData) {
+    private MinFrequency getMatchingMinFrequency(WebDocRecord prevData) {
         for (MinFrequency f : minFrequencies) {
             var applyTo = f.getApplyTo();
             if (StringUtils.isBlank(applyTo)) {
@@ -221,15 +221,15 @@ public class GenericRecrawlableResolver
         return null;
     }
 
-    private boolean hasSitemapFrequency(HttpDocRecord prevData) {
+    private boolean hasSitemapFrequency(WebDocRecord prevData) {
         return StringUtils.isNotBlank(prevData.getSitemapChangeFreq());
     }
-    private boolean hasSitemapLastModified(HttpDocRecord prevData) {
+    private boolean hasSitemapLastModified(WebDocRecord prevData) {
         return prevData.getSitemapLastMod() != null;
     }
 
     private boolean isRecrawlableFromMinFrequencies(
-            MinFrequency f, HttpDocRecord prevData) {
+            MinFrequency f, WebDocRecord prevData) {
         var value = f.getValue();
         if (StringUtils.isBlank(value)) {
             return true;
@@ -278,7 +278,7 @@ public class GenericRecrawlableResolver
         return false;
     }
 
-    private boolean isRecrawlableFromSitemap(HttpDocRecord prevData) {
+    private boolean isRecrawlableFromSitemap(WebDocRecord prevData) {
 
         // If sitemap specifies a last modified date and it is more recent
         // than the the document last crawl date, recrawl it (otherwise don't).
@@ -313,7 +313,7 @@ public class GenericRecrawlableResolver
 
 
     private boolean isRecrawlableFromFrequency(
-            SitemapChangeFrequency cf, HttpDocRecord prevData,
+            SitemapChangeFrequency cf, WebDocRecord prevData,
             String context) {
         if (cf == null) {
             return true;

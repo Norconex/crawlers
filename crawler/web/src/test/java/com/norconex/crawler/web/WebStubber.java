@@ -44,15 +44,15 @@ import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.crawler.StartURLsProvider;
 import com.norconex.crawler.web.delay.DelayResolver;
 import com.norconex.crawler.web.delay.impl.GenericDelayResolver;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.link.impl.DOMLinkExtractor;
-import com.norconex.crawler.web.processor.HttpDocumentProcessor;
+import com.norconex.crawler.web.processor.WebDocumentProcessor;
 import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
@@ -108,7 +108,7 @@ public final class WebStubber {
             .excludeType(DataStore.class::equals)
             .excludeType(SitemapResolver.class::equals)
             .excludeType(FeaturedImageProcessor.class::equals)
-            .excludeType(HttpDocumentProcessor.class::equals)
+            .excludeType(WebDocumentProcessor.class::equals)
             .excludeType(RecrawlableResolver.class::equals)
             .randomize(StartURLsProvider.class, () -> null) // <-- TODO mock this
             .randomize(Charset.class, () -> StandardCharsets.UTF_8)
@@ -150,8 +150,8 @@ public final class WebStubber {
      * </ul>
      * @return random crawler config
      */
-    public static HttpCrawlerConfig crawlerConfigRandom() {
-        var cfg = easyRandom.nextObject(HttpCrawlerConfig.class);
+    public static WebCrawlerConfig crawlerConfigRandom() {
+        var cfg = easyRandom.nextObject(WebCrawlerConfig.class);
         cfg.setNumThreads(1);
         cfg.setCommitters(List.of(new MemoryCommitter()));
         return cfg;
@@ -159,7 +159,7 @@ public final class WebStubber {
 
     public static CrawlDoc crawlDoc(
             String ref, ContentType ct, InputStream is) {
-        var docRecord = new HttpDocRecord(ref);
+        var docRecord = new WebDocRecord(ref);
         docRecord.setContentType(ct);
         var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));
         doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ct);

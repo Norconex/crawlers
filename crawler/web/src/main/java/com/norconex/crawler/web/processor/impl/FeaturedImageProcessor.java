@@ -56,11 +56,11 @@ import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.fetch.FetchResponse;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.HttpMethod;
-import com.norconex.crawler.web.processor.HttpDocumentProcessor;
+import com.norconex.crawler.web.processor.WebDocumentProcessor;
 import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
@@ -212,7 +212,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class FeaturedImageProcessor extends CrawlerLifeCycleListener
-        implements HttpDocumentProcessor, XMLConfigurable {
+        implements WebDocumentProcessor, XMLConfigurable {
 
     //TODO add ability to extract from popular HTML <meta> for
     // featured image
@@ -552,7 +552,7 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
     private BufferedImage fetchImage(HttpFetcher fetcher, String url) {
         try {
             var uri = HttpURL.toURI(url);
-            var doc = new CrawlDoc(new HttpDocRecord(uri.toString()));
+            var doc = new CrawlDoc(new WebDocRecord(uri.toString()));
 
             FetchResponse resp = fetcher.fetch(
                     new HttpFetchRequest(doc, HttpMethod.GET));

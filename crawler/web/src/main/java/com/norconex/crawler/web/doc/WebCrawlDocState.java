@@ -20,20 +20,20 @@ import com.norconex.crawler.core.doc.CrawlDocState;
  * Represents a URL crawling status.
  * @see CrawlDocState
  */
-public class HttpCrawlDocState extends CrawlDocState {
+public class WebCrawlDocState extends CrawlDocState {
 
     private static final long serialVersionUID = 1L;
 
-    public static final HttpCrawlDocState TOO_DEEP =
-            new HttpCrawlDocState("TOO_DEEP");
+    public static final WebCrawlDocState TOO_DEEP =
+            new WebCrawlDocState("TOO_DEEP");
 
     /**
      * @since 2.3.0
      */
-    public static final HttpCrawlDocState REDIRECT =
-            new HttpCrawlDocState("REDIRECT");
+    public static final WebCrawlDocState REDIRECT =
+            new WebCrawlDocState("REDIRECT");
 
-    protected HttpCrawlDocState(String state) {
+    protected WebCrawlDocState(String state) {
         super(state);
     }
 }

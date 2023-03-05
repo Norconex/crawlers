@@ -24,7 +24,7 @@ import com.norconex.importer.doc.DocMetadata;
  * names typically set by the Web Crawler crawler.
  * @see DocMetadata
  */
-public final class HttpDocMetadata {
+public final class WebDocMetadata {
 
     public static final String DEPTH = PREFIX + "depth";
     public static final String SM_LASTMOD = PREFIX + "sitemap-lastmod";
@@ -51,6 +51,6 @@ public final class HttpDocMetadata {
     public static final String HTTP_FETCHER =
             PREFIX + "http-fetcher";
 
-    private HttpDocMetadata() {
+    private WebDocMetadata() {
     }
 }

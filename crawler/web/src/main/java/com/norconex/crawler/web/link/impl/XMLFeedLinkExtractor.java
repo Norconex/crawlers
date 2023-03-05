@@ -27,7 +27,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLUtil;
 import com.norconex.crawler.core.crawler.CrawlerException;
-import com.norconex.crawler.web.doc.HttpDocMetadata;
+import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.link.AbstractTextLinkExtractor;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
@@ -64,7 +64,7 @@ import lombok.ToString;
  * <ul>
  *   <li><b>Referrer reference:</b> The reference (URL) of the page where the
  *   link to a document was found.  Metadata value is
- *   {@link HttpDocMetadata#REFERRER_REFERENCE}.</li>
+ *   {@link WebDocMetadata#REFERRER_REFERENCE}.</li>
  * </ul>
  *
  * {@nx.xml.usage

@@ -17,22 +17,22 @@ package com.norconex.crawler.web.pipeline.importer;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocRecord.Stage;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.web.crawler.HttpCrawlerEvent;
-import com.norconex.crawler.web.doc.HttpCrawlDocState;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.crawler.WebCrawlerEvent;
+import com.norconex.crawler.web.doc.WebCrawlDocState;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetchResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-final class HttpImporterPipelineUtil {
+final class WebImporterPipelineUtil {
 
-    private HttpImporterPipelineUtil() {}
+    private WebImporterPipelineUtil() {}
 
     // Synchronized to avoid redirect dups.
     public static synchronized void queueRedirectURL(
-            HttpImporterPipelineContext ctx,
+            WebImporterPipelineContext ctx,
             HttpFetchResponse response,
             String redirectURL) {
         var crawlRef = ctx.getDocRecord();
@@ -43,10 +43,10 @@ final class HttpImporterPipelineUtil {
         var requeue = false;
 
         //-- Fired rejected redirected event ---
-        crawlRef.setState(HttpCrawlDocState.REDIRECT);
+        crawlRef.setState(WebCrawlDocState.REDIRECT);
 
         var newResponse = GenericHttpFetchResponse.builder()
-                .crawlDocState(HttpCrawlDocState.REDIRECT)
+                .crawlDocState(WebCrawlDocState.REDIRECT)
                 .reasonPhrase(response.getReasonPhrase()
                         + " (target: " + redirectURL + ")")
                 //TODO are these method calls below needed?
@@ -56,7 +56,7 @@ final class HttpImporterPipelineUtil {
                 .build();
 
         ctx.fire(CrawlerEvent.builder()
-                .name(HttpCrawlerEvent.REJECTED_REDIRECTED)
+                .name(WebCrawlerEvent.REJECTED_REDIRECTED)
                 .source(ctx.getCrawler())
                 .subject(newResponse)
                 .crawlDocRecord(crawlRef)
@@ -116,7 +116,7 @@ final class HttpImporterPipelineUtil {
         }
 
         //--- Fresh URL, queue it! ---
-        var newRec = new HttpDocRecord(
+        var newRec = new WebDocRecord(
                 redirectURL, crawlRef.getDepth());
         newRec.setReferrerReference(crawlRef.getReferrerReference());
         newRec.setReferrerLinkMetadata(crawlRef.getReferrerLinkMetadata());

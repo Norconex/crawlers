@@ -27,7 +27,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver.MinFrequency;
 import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver.SitemapSupport;
 
@@ -60,7 +60,7 @@ class GenericRecrawlableResolverTest {
 
         var prevCrawlDate = ZonedDateTime.now().minusDays(10);
 
-        var prevCrawl = new HttpDocRecord();
+        var prevCrawl = new WebDocRecord();
         prevCrawl.setContentType(ContentType.HTML);
         prevCrawl.setReference("http://example.com");
         prevCrawl.setCrawlDate(prevCrawlDate);
@@ -90,7 +90,7 @@ class GenericRecrawlableResolverTest {
         var r = new GenericRecrawlableResolver();
         new XML(xml).populate(r);
         var prevCrawlDate = ZonedDateTime.now().minusDays(10);
-        var prevCrawl = new HttpDocRecord();
+        var prevCrawl = new WebDocRecord();
         prevCrawl.setContentType(ContentType.HTML);
         prevCrawl.setReference("http://example.com");
         prevCrawl.setCrawlDate(prevCrawlDate);
@@ -132,10 +132,10 @@ class GenericRecrawlableResolverTest {
             String minFreqApplyTo,
             String minFreqValue,
             boolean expected) {
-        HttpDocRecord prevRec;
+        WebDocRecord prevRec;
         var url = "http://test.com/yes.html";
         var resolver = new GenericRecrawlableResolver();
-        prevRec = new HttpDocRecord(url);
+        prevRec = new WebDocRecord(url);
         prevRec.setContentType(ContentType.HTML);
         prevRec.setCrawlDate(ZonedDateTime.now().minusDays(3));
         prevRec.setSitemapChangeFreq(sitemapChangeFreq);
@@ -162,6 +162,6 @@ class GenericRecrawlableResolverTest {
 
         // no last crawl date
         assertThat(new GenericRecrawlableResolver().isRecrawlable(
-                new HttpDocRecord("http://blah.com"))).isTrue();
+                new WebDocRecord("http://blah.com"))).isTrue();
     }
 }

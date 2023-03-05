@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.net.InternetDomainName;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer.Normalization;
 
 /**
@@ -62,7 +62,7 @@ public final class HstsResolver {
 
     private HstsResolver() { }
 
-    public static void resolve(HttpClient httpClient, HttpDocRecord docRecord) {
+    public static void resolve(HttpClient httpClient, WebDocRecord docRecord) {
 
         // The idea: "public" suffixes are "effective" top-level domains
         // under which new domains can be registered. When considering a root
@@ -101,7 +101,7 @@ public final class HstsResolver {
     }
 
     private static synchronized void applyHstsSupport(
-            HttpDocRecord docRecord, String domain, boolean isSubdomain) {
+            WebDocRecord docRecord, String domain, boolean isSubdomain) {
         HstsSupport support = DOMAIN_HSTS.getOrDefault(domain, HstsSupport.NO);
         if (support == HstsSupport.INCLUDE_SUBDOMAINS
                 || (support == HstsSupport.DOMAIN_ONLY && !isSubdomain)) {

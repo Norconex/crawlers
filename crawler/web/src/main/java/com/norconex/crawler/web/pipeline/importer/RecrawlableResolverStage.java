@@ -26,10 +26,10 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2.5.0
  */
 @Slf4j
-class RecrawlableResolverStage extends AbstractHttpImporterStage {
+class RecrawlableResolverStage extends AbstractWebImporterStage {
 
     @Override
-    boolean executeStage(HttpImporterPipelineContext ctx) {
+    boolean executeStage(WebImporterPipelineContext ctx) {
         // skip if doc is an orphan
         if (ctx.getDocument().isOrphan()) {
 //        if (ctx.isOrphan()) {

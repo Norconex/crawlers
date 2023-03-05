@@ -39,7 +39,7 @@ import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.crawler.CrawlerImpl.QueueInitContext;
 import com.norconex.crawler.core.monitor.MdcUtil;
 import com.norconex.crawler.web.crawler.StartURLsProvider;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.sitemap.SitemapResolutionContext;
 
@@ -125,7 +125,7 @@ public class WebQueueInitializer
         }
 
         final var urlCount = new MutableInt();
-        Consumer<HttpDocRecord> urlConsumer = rec -> {
+        Consumer<WebDocRecord> urlConsumer = rec -> {
             ctx.queue(rec);
             urlCount.increment();
         };
@@ -158,7 +158,7 @@ public class WebQueueInitializer
         var startURLs = cfg.getStartURLs();
         for (String startURL : startURLs) {
             if (StringUtils.isNotBlank(startURL)) {
-                ctx.queue(new HttpDocRecord(startURL, 0));
+                ctx.queue(new WebDocRecord(startURL, 0));
             } else {
                 LOG.debug("Blank start URL encountered, ignoring it.");
             }
@@ -178,7 +178,7 @@ public class WebQueueInitializer
                 while (it.hasNext()) {
                     var startURL = StringUtils.trimToNull(it.nextLine());
                     if (startURL != null && !startURL.startsWith("#")) {
-                        ctx.queue(new HttpDocRecord(startURL, 0));
+                        ctx.queue(new WebDocRecord(startURL, 0));
                         urlCount++;
                     }
                 }
@@ -206,7 +206,7 @@ public class WebQueueInitializer
             }
             var it = provider.provideStartURLs();
             while (it.hasNext()) {
-                ctx.queue(new HttpDocRecord(it.next(), 0));
+                ctx.queue(new WebDocRecord(it.next(), 0));
                 count++;
             }
         }

@@ -36,7 +36,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.HttpMethod;
@@ -90,7 +90,7 @@ public class StandardRobotsTxtProvider implements RobotsTxtProvider {
         var robotsURL = baseURL + "/robots.txt";
         try {
             // Try once
-            var doc = new CrawlDoc(new HttpDocRecord(robotsURL),
+            var doc = new CrawlDoc(new WebDocRecord(robotsURL),
                     CachedInputStream.nullInputStream());
             var response = fetcher.fetch(
                     new HttpFetchRequest(doc, HttpMethod.GET));
@@ -103,7 +103,7 @@ public class StandardRobotsTxtProvider implements RobotsTxtProvider {
             if (StringUtils.isNotBlank(redirURL)) {
                 LOG.debug("Fetching 'robots.txt' from redirect URL: {}",
                         redirURL);
-                doc = new CrawlDoc(new HttpDocRecord(redirURL),
+                doc = new CrawlDoc(new WebDocRecord(redirURL),
                         CachedInputStream.nullInputStream());
                 response = fetcher.fetch(
                         new HttpFetchRequest(doc, HttpMethod.GET));

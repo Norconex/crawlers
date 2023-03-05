@@ -31,14 +31,14 @@ import lombok.NonNull;
  *
  * @since 3.0.0 (merge of former metadata HEAD and GET filter stages)
  */
-class MetadataFiltersStage extends AbstractHttpImporterStage {
+class MetadataFiltersStage extends AbstractWebImporterStage {
 
     public MetadataFiltersStage(@NonNull HttpMethod method) {
         super(method);
     }
 
     @Override
-    boolean executeStage(HttpImporterPipelineContext ctx) {
+    boolean executeStage(WebImporterPipelineContext ctx) {
         if (ctx.wasHttpHeadPerformed(getHttpMethod())) {
             return true;
         }

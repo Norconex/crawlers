@@ -31,7 +31,7 @@ import lombok.ToString;
  * A URL being crawled holding relevant crawl information.
  */
 @Data
-public class HttpDocRecord extends CrawlDocRecord {
+public class WebDocRecord extends CrawlDocRecord {
 
     private static final long serialVersionUID = 1L;
 
@@ -77,10 +77,10 @@ public class HttpDocRecord extends CrawlDocRecord {
     private final List<String> referencedUrls = new ArrayList<>();
     private final List<String> redirectTrail = new ArrayList<>();
 
-    public HttpDocRecord() {
+    public WebDocRecord() {
     }
 
-    public HttpDocRecord(String reference) {
+    public WebDocRecord(String reference) {
         super(reference);
     }
 
@@ -89,7 +89,7 @@ public class HttpDocRecord extends CrawlDocRecord {
      * @param url URL being crawled
      * @param depth URL depth
      */
-    public HttpDocRecord(String url, int depth) {
+    public WebDocRecord(String url, int depth) {
         super(url);
         setDepth(depth);
     }
@@ -97,7 +97,7 @@ public class HttpDocRecord extends CrawlDocRecord {
      * Copy constructor.
      * @param docDetails document details to copy
      */
-    public HttpDocRecord(DocRecord docDetails) {
+    public WebDocRecord(DocRecord docDetails) {
         super(docDetails);
     }
 

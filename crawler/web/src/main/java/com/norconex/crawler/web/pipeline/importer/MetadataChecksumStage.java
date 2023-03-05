@@ -20,14 +20,14 @@ import com.norconex.crawler.web.fetch.HttpMethod;
 
 import lombok.NonNull;
 
-class MetadataChecksumStage extends AbstractHttpImporterStage {
+class MetadataChecksumStage extends AbstractWebImporterStage {
 
     public MetadataChecksumStage(@NonNull HttpMethod method) {
         super(method);
     }
 
     @Override
-    boolean executeStage(HttpImporterPipelineContext ctx) {
+    boolean executeStage(WebImporterPipelineContext ctx) {
         //TODO only if an INCREMENTAL run... else skip.
         if (ctx.wasHttpHeadPerformed(getHttpMethod())) {
             return true;

@@ -16,7 +16,7 @@ package com.norconex.crawler.web.sitemap;
 
 import java.util.List;
 
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
 
 
@@ -29,7 +29,7 @@ import com.norconex.crawler.web.robot.RobotsTxtProvider;
  * <p>
  * Unless configured to do otherwise, the crawler will use the Sitemap resolver
  * to load and parse any Sitemaps defined as crawler start URLs (see
- * {@link HttpCrawlerConfig#setStartSitemapURLs(List)} or defined
+ * {@link WebCrawlerConfig#setStartSitemapURLs(List)} or defined
  * within a web site
  * <a href="http://www.robotstxt.org/robotstxt.html">robots.txt</a> file
  * (see {@link RobotsTxtProvider}.

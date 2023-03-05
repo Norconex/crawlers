@@ -26,12 +26,12 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
-import com.norconex.crawler.web.doc.HttpDocMetadata;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.doc.WebDocMetadata;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
-import com.norconex.crawler.web.pipeline.committer.HttpCommitterPipeline;
-import com.norconex.crawler.web.pipeline.importer.HttpImporterPipeline;
-import com.norconex.crawler.web.pipeline.queue.HttpQueuePipeline;
+import com.norconex.crawler.web.pipeline.committer.WebCommitterPipeline;
+import com.norconex.crawler.web.pipeline.importer.WebImporterPipeline;
+import com.norconex.crawler.web.pipeline.queue.WebQueuePipeline;
 import com.norconex.crawler.web.pipeline.queue.WebQueueInitializer;
 import com.norconex.crawler.web.util.Web;
 
@@ -78,15 +78,15 @@ public class WebCrawlSessionLauncher {
             .beforeCrawlerExecution(
                     WebCrawlSessionLauncher::logCrawlerInformation)
             .queueInitializer(new WebQueueInitializer())
-            .queuePipeline(new HttpQueuePipeline())
-            .importerPipeline(new HttpImporterPipeline())
-            .committerPipeline(new HttpCommitterPipeline())
+            .queuePipeline(new WebQueuePipeline())
+            .importerPipeline(new WebImporterPipeline())
+            .committerPipeline(new WebCommitterPipeline())
             .beforeDocumentProcessing(WebCrawlSessionLauncher::initCrawlDoc)
             .beforeDocumentFinalizing(WebCrawlSessionLauncher::preDocFinalizing)
 
             // Needed??
-            .crawlDocRecordType(HttpDocRecord.class)
-            .docRecordFactory(ctx -> new HttpDocRecord(
+            .crawlDocRecordType(WebDocRecord.class)
+            .docRecordFactory(ctx -> new WebDocRecord(
                     ctx.reference()
                     //TODO What about depth, cached doc, etc? It should be
                     // set here unless this is really used just for queue
@@ -98,19 +98,19 @@ public class WebCrawlSessionLauncher {
     }
 
     private static void initCrawlDoc(Crawler crawler, CrawlDoc doc) {
-        var docRecord = (HttpDocRecord) doc.getDocRecord();
-        var cachedDocRecord = (HttpDocRecord) doc.getCachedDocRecord();
+        var docRecord = (WebDocRecord) doc.getDocRecord();
+        var cachedDocRecord = (WebDocRecord) doc.getCachedDocRecord();
         var metadata = doc.getMetadata();
 
         //TODO consider moving metadata setting elsewhere
         // (and use reflextion?)
 
         //TODO should DEPTH be set here now that is is in Core?
-        metadata.add(HttpDocMetadata.DEPTH, docRecord.getDepth());
-        metadata.add(HttpDocMetadata.SM_CHANGE_FREQ,
+        metadata.add(WebDocMetadata.DEPTH, docRecord.getDepth());
+        metadata.add(WebDocMetadata.SM_CHANGE_FREQ,
                 docRecord.getSitemapChangeFreq());
-        metadata.add(HttpDocMetadata.SM_LASTMOD, docRecord.getSitemapLastMod());
-        metadata.add(HttpDocMetadata.SM_PRORITY,
+        metadata.add(WebDocMetadata.SM_LASTMOD, docRecord.getSitemapLastMod());
+        metadata.add(WebDocMetadata.SM_PRORITY,
                 docRecord.getSitemapPriority());
 
         // In case the crawl data supplied is from a URL that was pulled
@@ -134,13 +134,13 @@ public class WebCrawlSessionLauncher {
 
         // Add referrer data to metadata
         //TODO move elsewhere, like .core?
-        metadata.add(HttpDocMetadata.REFERRER_REFERENCE,
+        metadata.add(WebDocMetadata.REFERRER_REFERENCE,
                 docRecord.getReferrerReference());
         if (docRecord.getReferrerLinkMetadata() != null) {
             var linkMeta = new Properties();
             linkMeta.fromString(docRecord.getReferrerLinkMetadata());
             for (Entry<String, List<String>> en : linkMeta.entrySet()) {
-                var key = HttpDocMetadata.REFERRER_LINK_PREFIX + en.getKey();
+                var key = WebDocMetadata.REFERRER_LINK_PREFIX + en.getKey();
                 for (String value : en.getValue()) {
                     if (value != null) {
                         metadata.add(key, value);
@@ -151,7 +151,7 @@ public class WebCrawlSessionLauncher {
 
         // Add possible redirect trail
         if (!docRecord.getRedirectTrail().isEmpty()) {
-            metadata.setList(HttpDocMetadata.REDIRECT_TRAIL,
+            metadata.setList(WebDocMetadata.REDIRECT_TRAIL,
                     docRecord.getRedirectTrail());
         }
     }
@@ -167,8 +167,8 @@ public class WebCrawlSessionLauncher {
         // See: https://github.com/Norconex/collector-http/issues/278
 
 
-        var httpData = (HttpDocRecord) doc.getDocRecord();
-        var httpCachedData = (HttpDocRecord) doc.getCachedDocRecord();
+        var httpData = (WebDocRecord) doc.getDocRecord();
+        var httpCachedData = (WebDocRecord) doc.getCachedDocRecord();
 
         // If never crawled before, URLs were extracted already, or cached
         // version has no extracted, URLs, abort now.
@@ -197,7 +197,7 @@ public class WebCrawlSessionLauncher {
         var referencedUrls = httpCachedData.getReferencedUrls();
         for (String url : referencedUrls) {
 
-            var childData = new HttpDocRecord(url, childDepth);
+            var childData = new WebDocRecord(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Queueing skipped document's child: {}",

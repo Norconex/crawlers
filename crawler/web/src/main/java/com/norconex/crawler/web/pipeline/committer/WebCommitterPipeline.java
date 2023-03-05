@@ -22,7 +22,7 @@ import com.norconex.crawler.core.pipeline.committer.CommitModuleStage;
 import com.norconex.crawler.core.pipeline.committer.CommitterPipeline;
 import com.norconex.crawler.core.pipeline.committer.DocumentChecksumStage;
 
-public class HttpCommitterPipeline implements CommitterPipeline {
+public class WebCommitterPipeline implements CommitterPipeline {
 
     private static final Predicates<DocumentPipelineContext> STAGES =
             new Predicates<>(List.of(

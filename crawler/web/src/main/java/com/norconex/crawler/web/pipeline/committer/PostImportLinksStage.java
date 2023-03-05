@@ -25,9 +25,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
-import com.norconex.crawler.web.crawler.HttpCrawlerEvent;
-import com.norconex.crawler.web.doc.HttpDocRecord;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerEvent;
+import com.norconex.crawler.web.doc.WebDocRecord;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +40,7 @@ class PostImportLinksStage implements Predicate<DocumentPipelineContext> {
 
     @Override
     public boolean test(DocumentPipelineContext ctx) { //NOSONAR
-        var cfg = (HttpCrawlerConfig) ctx.getConfig();
+        var cfg = (WebCrawlerConfig) ctx.getConfig();
 
         var fieldMatcher = cfg.getPostImportLinks();
         if (StringUtils.isBlank(fieldMatcher.getPattern())) {
@@ -53,7 +53,7 @@ class PostImportLinksStage implements Predicate<DocumentPipelineContext> {
             return true;
         }
 
-        var docRecord = (HttpDocRecord) ctx.getDocRecord();
+        var docRecord = (WebDocRecord) ctx.getDocRecord();
 
         // Previously extracted URLs.
         Set<String> extractedURLs = new HashSet<>(docRecord.getReferencedUrls());
@@ -77,7 +77,7 @@ class PostImportLinksStage implements Predicate<DocumentPipelineContext> {
         docRecord.setReferencedUrls(new ArrayList<>(extractedURLs));
 
         ctx.fire(CrawlerEvent.builder()
-                .name(HttpCrawlerEvent.URLS_POST_IMPORTED)
+                .name(WebCrawlerEvent.URLS_POST_IMPORTED)
                 .source(ctx.getCrawler())
                 .subject(inScopeUrls)
                 .crawlDocRecord(ctx.getDocRecord())
@@ -90,7 +90,7 @@ class PostImportLinksStage implements Predicate<DocumentPipelineContext> {
 
         var cfg = config(ctx);
         var doc = ctx.getDocument();
-        var docRecord = (HttpDocRecord) ctx.getDocRecord();
+        var docRecord = (WebDocRecord) ctx.getDocRecord();
 
         try {
             if (cfg.getURLCrawlScopeStrategy().isInScope(
@@ -98,7 +98,7 @@ class PostImportLinksStage implements Predicate<DocumentPipelineContext> {
                 LOG.trace("Post-import URL in crawl scope: {}", url);
                 // only queue if not queued already for this doc
                 if (inScopeUrls.add(url)) {
-                    var newDocRec = new HttpDocRecord(
+                    var newDocRec = new WebDocRecord(
                             url, docRecord.getDepth() + 1);
                     newDocRec.setReferrerReference(doc.getReference());
                     ctx.getCrawler().queueDocRecord(docRecord);

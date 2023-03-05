@@ -37,7 +37,7 @@ import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.web.doc.HttpDocMetadata;
+import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.link.AbstractTextLinkExtractor;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
@@ -115,7 +115,7 @@ import lombok.extern.slf4j.Slf4j;
  * Some "referrer" information is derived from the each link and stored as
  * metadata in the document they point to.
  * These may vary for each link, but they are normally prefixed with
- * {@link HttpDocMetadata#REFERRER_LINK_PREFIX}.
+ * {@link WebDocMetadata#REFERRER_LINK_PREFIX}.
  * </p>
  * <p>
  * <b>Since 2.6.0</b>, the referrer data is always stored (was optional before).

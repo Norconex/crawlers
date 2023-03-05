@@ -17,7 +17,7 @@ package com.norconex.crawler.web.fetch;
 import java.util.function.Function;
 
 import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.web.crawler.HttpCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetchResponse;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 
@@ -28,7 +28,7 @@ public class HttpFetcherProvider
     @Override
     public HttpMultiFetcher apply(Crawler crawler) {
 
-        var cfg = (HttpCrawlerConfig) crawler.getCrawlerConfig();
+        var cfg = (WebCrawlerConfig) crawler.getCrawlerConfig();
 
         var fetchers = cfg.getHttpFetchers();
         if (fetchers.isEmpty()) {

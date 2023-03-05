@@ -26,14 +26,14 @@ import com.norconex.crawler.web.util.Web;
  * Base implementation for Web pipeline stages, offering typed-arguments
  * and optional HTTP method for when a stage supports more than one.
  */
-abstract class AbstractHttpImporterStage
+abstract class AbstractWebImporterStage
         implements Predicate<ImporterPipelineContext> {
 
     private final HttpMethod method;
-    protected AbstractHttpImporterStage() {
+    protected AbstractWebImporterStage() {
         method = null;
     }
-    protected AbstractHttpImporterStage(HttpMethod method) {
+    protected AbstractWebImporterStage(HttpMethod method) {
         this.method = Objects.requireNonNull(
                 method, "'method' must not be null.");
         if (EqualsUtil.equalsNone(method, HttpMethod.HEAD, HttpMethod.GET)) {
@@ -47,11 +47,11 @@ abstract class AbstractHttpImporterStage
 
     @Override
     public final boolean test(ImporterPipelineContext ctx) {
-        if (!(ctx instanceof HttpImporterPipelineContext)) {
+        if (!(ctx instanceof WebImporterPipelineContext)) {
             throw new AssertionError("Unexpected type: " + ctx.getClass());
         }
         return executeStage(Web.context(ctx));
     }
 
-    abstract boolean executeStage(HttpImporterPipelineContext ctx);
+    abstract boolean executeStage(WebImporterPipelineContext ctx);
 }
