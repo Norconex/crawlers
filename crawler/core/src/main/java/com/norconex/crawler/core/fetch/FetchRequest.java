@@ -14,13 +14,13 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.importer.doc.Doc;
+import com.norconex.crawler.core.doc.CrawlDoc;
 
 /**
  * Fetch request.
  */
 public interface FetchRequest {
 
-    Doc getDoc();
+    CrawlDoc getDoc();
 
 }

@@ -94,8 +94,7 @@ public class CrawlSession {
     private Path tempDir;
     private FileLocker lock;
 
-    //TODO make configurable
-    private final CrawlSessionStopper stopper = new FileBasedStopper();
+    private final CrawlSessionStopper stopper;
 
 
     public static CrawlSessionBuilder builder() {
@@ -110,6 +109,8 @@ public class CrawlSession {
         private BiFunction<CrawlSession, CrawlerConfig, Crawler> crawlerFactory;
         private CrawlSessionConfig crawlSessionConfig;
         private EventManager eventManager;
+        //TODO consider making this part of session config?
+        private CrawlSessionStopper crawlSessionStopper;
         public CrawlSession build() {
             return new CrawlSession(this);
         }
@@ -122,6 +123,8 @@ public class CrawlSession {
         eventManager = new EventManager(builder.eventManager);
         crawlerFactory = Objects.requireNonNull(builder.crawlerFactory,
                 "'crawlerFactory' must not be null.");
+        stopper = Optional.ofNullable(builder.crawlSessionStopper)
+                .orElseGet(FileBasedStopper::new);
 
         //TODO create crawlers from configs, same place it was done before (in initCrawlSession)
 

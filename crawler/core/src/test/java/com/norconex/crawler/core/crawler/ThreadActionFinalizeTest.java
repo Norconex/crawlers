@@ -23,8 +23,8 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
-import com.norconex.crawler.core.crawler.CrawlerThread.ReferenceContext;
+import com.norconex.crawler.core.CoreStubber;
+import com.norconex.crawler.core.crawler.CrawlerThread.ThreadActionContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.doc.CrawlDocState;
@@ -38,7 +38,7 @@ class ThreadActionFinalizeTest {
 
     @Test
     void testThreadActionFinalize() {
-        var crawler = Stubber.crawler(tempDir);
+        var crawler = CoreStubber.crawler(tempDir);
         var strategy = new MutableObject<SpoiledReferenceStrategy>(
                 SpoiledReferenceStrategy.IGNORE);
         SpoiledReferenceStrategizer spoiledHandler =
@@ -46,8 +46,8 @@ class ThreadActionFinalizeTest {
 
         crawler.getCrawlerConfig().setSpoiledReferenceStrategizer(
                 spoiledHandler);
-        crawler.initCrawler();
-        var ctx = new ReferenceContext();
+        crawler.initCrawler(null);
+        var ctx = new ThreadActionContext();
 
         // no doc record set, exits right away
         ThreadActionFinalize.execute(ctx);
@@ -56,7 +56,7 @@ class ThreadActionFinalizeTest {
         // no doc set and no status set: one should be created and bad status
         ctx.finalized(false);
         ctx.crawler(crawler);
-        ctx.docRecord(Stubber.crawlDocRecord("ref"));
+        ctx.docRecord(CoreStubber.crawlDocRecord("ref"));
         ThreadActionFinalize.execute(ctx);
         assertThat(ctx.doc()).isNotNull();
         assertThat(ctx.docRecord().getState()).isSameAs(

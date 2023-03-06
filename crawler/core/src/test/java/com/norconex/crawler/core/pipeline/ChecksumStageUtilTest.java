@@ -25,7 +25,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.doc.CrawlDocState;
 
 class ChecksumStageUtilTest {
@@ -37,8 +37,8 @@ class ChecksumStageUtilTest {
     void testResolveMetaChecksum() {
         // true is new/modified
 
-        var crawler = Stubber.crawler(tempDir);
-        var doc = Stubber.crawlDoc("ref");
+        var crawler = CoreStubber.crawler(tempDir);
+        var doc = CoreStubber.crawlDoc("ref");
         var ctx = new DocumentPipelineContext(crawler, doc);
 
         //--- NO CACHE ---
@@ -52,7 +52,7 @@ class ChecksumStageUtilTest {
         assertThat(ctx.getDocRecord().getState()).isSameAs(CrawlDocState.NEW);
 
         //--- WITH CACHE ---
-        doc = Stubber.crawlDocWithCache("ref", "content");
+        doc = CoreStubber.crawlDocWithCache("ref", "content");
         ctx = new DocumentPipelineContext(crawler, doc);
 
         // no checksum - cache with no checksum
@@ -86,8 +86,8 @@ class ChecksumStageUtilTest {
     void testResolveDocumentChecksum() {
         // true is new/modified
 
-        var crawler = Stubber.crawler(tempDir);
-        var doc = Stubber.crawlDoc("ref");
+        var crawler = CoreStubber.crawler(tempDir);
+        var doc = CoreStubber.crawlDoc("ref");
         var ctx = new DocumentPipelineContext(crawler, doc);
 
         //--- NO CACHE ---
@@ -101,7 +101,7 @@ class ChecksumStageUtilTest {
         assertThat(ctx.getDocRecord().getState()).isSameAs(CrawlDocState.NEW);
 
         //--- WITH CACHE ---
-        doc = Stubber.crawlDocWithCache("ref", "content");
+        doc = CoreStubber.crawlDocWithCache("ref", "content");
         ctx = new DocumentPipelineContext(crawler, doc);
 
         // no checksum - cache with no checksum

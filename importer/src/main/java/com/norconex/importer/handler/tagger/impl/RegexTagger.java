@@ -197,6 +197,7 @@ public class RegexTagger
 
     @Override
     protected void loadStringTaggerFromXML(XML xml) {
+        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
         var nodes = xml.getXMLList("pattern");
         for (XML node : nodes) {
             node.checkDeprecated("@caseSensitive", "ignoreCase", true);
@@ -208,6 +209,7 @@ public class RegexTagger
 
     @Override
     protected void saveStringTaggerToXML(XML xml) {
+        xml.addElement("fieldMatcher", fieldMatcher);
         for (RegexFieldValueExtractor rfe : patterns) {
             rfe.saveToXML(xml.addElement("pattern"));
         }

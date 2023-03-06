@@ -24,7 +24,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.TestUtil;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.pipeline.queue.MockQueueInitializer;
@@ -36,7 +36,7 @@ class FileBasedStopperTest {
 
     @Test
     void testListenForStopRequest() throws InterruptedException {
-        var sess = Stubber.crawlSession(
+        var sess = CoreStubber.crawlSession(
                 tempDir,
                 implBuilder -> {
                     var mqi = new MockQueueInitializer(

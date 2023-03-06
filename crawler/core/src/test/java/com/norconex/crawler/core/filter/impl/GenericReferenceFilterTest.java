@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.importer.handler.filter.OnMatch;
 
 class GenericReferenceFilterTest {
@@ -34,12 +34,12 @@ class GenericReferenceFilterTest {
         assertThat(
                 f.getValueMatcher()).isEqualTo(TextMatcher.regex(".*blah.*"));
 
-        var doc1 = Stubber.crawlDoc("http://blah.com", "content");
+        var doc1 = CoreStubber.crawlDoc("http://blah.com", "content");
         assertThat(f.acceptDocument(doc1)).isTrue();
         assertThat(f.acceptMetadata(
                 doc1.getReference(), doc1.getMetadata())).isTrue();
 
-        var doc2 = Stubber.crawlDoc("http://asdf.com", "content");
+        var doc2 = CoreStubber.crawlDoc("http://asdf.com", "content");
         assertThat(f.acceptDocument(doc2)).isFalse();
         assertThat(f.acceptMetadata(
                 doc2.getReference(), doc2.getMetadata())).isFalse();

@@ -25,7 +25,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 
@@ -36,8 +36,8 @@ class DocumentPipelineUtilTest {
 
     @Test
     void testDocumentPipelineUtil() throws IOException {
-        var crawler = Stubber.crawler(tempDir);
-        var doc = Stubber.crawlDocWithCache("ref", "content");
+        var crawler = CoreStubber.crawler(tempDir);
+        var doc = CoreStubber.crawlDocWithCache("ref", "content");
 
         // match - include
         crawler.getCrawlerConfig().setMetadataFilters(List.of(

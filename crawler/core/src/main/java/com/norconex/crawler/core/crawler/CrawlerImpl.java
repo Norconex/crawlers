@@ -50,14 +50,16 @@ public class CrawlerImpl {
 
     /**
      * Provides a required fetcher implementation, responsible for obtaining
-     * resources being crawled.
-     * @param fetcherProvider fetcher provider function
+     * resources being crawled using one or more different fetcher
+     * implementations.
+     * @param multiFetcherProvider fetcher provider function
      * @return a function returning a fetcher to associate with a given crawler.
      */
     @SuppressWarnings("javadoc")
     @NonNull
-    Function<Crawler, Fetcher<? extends FetchRequest, ? extends FetchResponse>>
-            fetcherProvider;
+    Function<Crawler, ? extends Fetcher<
+            ? extends FetchRequest,
+            ? extends FetchResponse>> fetcherProvider;
 
     /**
      * The exact type of {@link CrawlDocRecord} if your crawler is subclassing
@@ -208,6 +210,7 @@ public class CrawlerImpl {
     BiConsumer<Crawler, CrawlDoc> afterDocumentFinalizing;
 
 
+//    Consumer<Crawler> beforeCrawlerRunBegins;
 
 
 

@@ -16,10 +16,13 @@ package com.norconex.crawler.core.crawler;
 
 import com.norconex.commons.lang.event.EventListener;
 
+import lombok.Data;
+
 /**
  * Listener adapter for crawler life-cycle events (e.g., start,
  * init, stop, clean).
  */
+@Data
 public abstract class CrawlerLifeCycleListener
         implements EventListener<CrawlerEvent> {
 

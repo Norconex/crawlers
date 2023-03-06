@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.importer.handler.filter.OnMatch;
 
 class GenericMetadataFilterTest {
@@ -32,12 +32,12 @@ class GenericMetadataFilterTest {
                 TextMatcher.basic("field1"), TextMatcher.basic("value1"));
         f.setOnMatch(OnMatch.INCLUDE);
 
-        var doc1 = Stubber.crawlDoc("ref", "blah", "field1", "value1");
+        var doc1 = CoreStubber.crawlDoc("ref", "blah", "field1", "value1");
         assertThat(f.acceptDocument(doc1)).isTrue();
         assertThat(f.acceptMetadata(
                 doc1.getReference(), doc1.getMetadata())).isTrue();
 
-        var doc2 = Stubber.crawlDoc("ref", "blah", "field2", "value2");
+        var doc2 = CoreStubber.crawlDoc("ref", "blah", "field2", "value2");
         assertThat(f.acceptDocument(doc2)).isFalse();
         assertThat(f.acceptMetadata(
                 doc2.getReference(), doc2.getMetadata())).isFalse();

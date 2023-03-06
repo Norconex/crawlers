@@ -1,0 +1,37 @@
+To run the test, go to the root directory where you uncompressed the 
+distribution zip and run the following in a command-line console.
+
+Windows:
+========
+
+Minimal test:
+
+collector-http.bat start -config=examples\minimum\minimum-config.xml
+
+
+Complex test:
+
+collector-http.bat start -config=examples\complex\complex-config.xml
+
+
+Unix/Linux:
+===========
+
+Minimal test:
+
+collector-http.sh start -config=examples/minimum/minimum-config.xml
+
+
+Complex test:
+
+collector-http.sh start -config=examples/complex/complex-config.xml
+
+
+-----------
+
+Look for a directory called "examples-output".  You will
+find sub-directories matching the test you ran.  In them, you will find
+a directory called "crawledFiles" containing the collected data.
+
+You need Internet access to run the examples.  Modify the example files
+if you wish to run them on a private network.

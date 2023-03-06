@@ -68,6 +68,7 @@ Misc. Changes
   were removed in favor of com.norconex.commons.lang.Operator
 * Renamed DocInfo to DocRecord
 * New SaveDocumentTagger class.
+* CommonMatchers pattern constants are now Collections instead of arrays.
 
 ### Crawler Core
 * Renamed CrawlDocInfo to CrawlDocRecord.
@@ -82,8 +83,22 @@ Misc. Changes
 * New crawler "minProgressLoggingInterval" configuration option.
 * MetadataFilter and ReferenceFilter renamed to GenericMetadataFilter and 
   GenericReferenceFilter.
+* Renamed CollectorCommandLcuncher to CliLauncher.
+* New MVStoreDataStoreConfig#ephemeral property for in-memory storage.
   
 ### Crawler Web
 
+* `com.norconex.collector.http` → `com.norconex.crawler.web`
+* `*.Http*` → `*.Web*`
 * Removed Crawler configuration option "keepDownloads" and corresponding 
   CrawlerEvent.DOCUMENT_SAVED event in favor of new Importer SaveDocumentTagger.
+* References to HttpCollector or Collector changed to WebCrawlSession 
+  and CrawlSession, respectively.
+* GenericRecrawlableResolver minimum frequencies now expect TextMatcher 
+  instead of regular expressions.
+* RobotsTxt now instantiated via builder factory method.
+* SitemapChangeFrequency#getSitemapChangeFrequency renamed to #of.
+* URLNormalizer was renamed WebURLNormalizer to distinguish from 
+  com.norconex.commons.lang.url.URLNormalizer.
+* GenericURLNormalizer enum constants are now uppercase.
+  

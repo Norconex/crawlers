@@ -62,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
  *    Defaults to -1, unlimited.)
  * </maxConcurrentCrawlers>
  * <crawlersStartInterval>
- *   (Millisecond interval between each crawlers start. Defaut starts them
+ *   (Millisecond interval between each crawlers start. Default starts them
  *    all at once.)
  * </crawlersStartInterval>
  * <maxMemoryPool>

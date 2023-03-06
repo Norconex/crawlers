@@ -1,0 +1,13 @@
+* Remove all "restrictTo" across the board in favor of XML flow (if/else, etc).
+  At a minimum, if we keep it, wrap in "restrictions" to improve null handling.
+  (e.g., blanking a default list)
+
+* Add this https://www.mojohaus.org/versions/versions-maven-plugin/examples/display-plugin-updates.html
+
+* Remove all @since prior V4 since the package change
+  makes all classes "new" anyway?
+  
+* Remove all @author tags in favor of Git commit author?
+  
+* V3 to V4 config converter? or add a flag to support V3
+  config as argument?

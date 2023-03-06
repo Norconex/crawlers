@@ -25,7 +25,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.crawler.CrawlerImpl.CrawlerImplBuilder;
 import com.norconex.crawler.core.crawler.CrawlerImpl.QueueInitContext;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
@@ -37,14 +37,14 @@ class CrawlerImplTest {
 
     @Test
     void testQueueInitContext() {
-        var docRec1 = Stubber.crawlDocRecord("ref1");
-        var docRec2 = Stubber.crawlDocRecordRandom();
+        var docRec1 = CoreStubber.crawlDocRecord("ref1");
+        var docRec2 = CoreStubber.crawlDocRecordRandom();
 
         CrawlDocRecord[] expected = {docRec1, docRec2};
 
         List<CrawlDocRecord> actual = new ArrayList<>();
         var qic = new QueueInitContext(
-                Stubber.crawler(tempDir),
+                CoreStubber.crawler(tempDir),
                 false,
                 docRec -> actual.add(docRec));
 
@@ -61,16 +61,16 @@ class CrawlerImplTest {
 
     @Test
     void testErrors() {
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-            CrawlerImpl.builder()
+        assertThatExceptionOfType(NullPointerException.class)
+            .isThrownBy(() -> CrawlerImpl.builder() //NOSONAR
                 .committerPipeline(null)
                 .fetcherProvider(req -> null)
                 .importerPipeline(ctx -> null)
                 .queuePipeline(ctx -> {})
                 .build()
         );
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-            CrawlerImpl.builder()
+        assertThatExceptionOfType(NullPointerException.class)
+            .isThrownBy(() -> CrawlerImpl.builder()  //NOSONAR
                 .committerPipeline(ctx -> {})
                 .fetcherProvider(null)
                 .importerPipeline(ctx -> null)

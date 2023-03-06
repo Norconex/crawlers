@@ -65,15 +65,4 @@ public abstract class AbstractPipelineContext {
     public void fire(CrawlerEvent event) {
         getEventManager().fire(event);
     }
-//    /**
-//     * Fires a crawler event with the current crawler as source.
-//     * @param eventName the event name
-//     */
-//    //TODO used?
-//    protected void fire(String eventName) {
-//        fire(CrawlerEvent.builder()
-//                .name(eventName)
-//                .source(crawler)
-//                .build());
-//    }
 }

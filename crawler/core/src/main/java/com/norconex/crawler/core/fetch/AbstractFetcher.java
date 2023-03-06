@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.fetch;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -95,13 +94,13 @@ public abstract class AbstractFetcher
     public List<ReferenceFilter> getReferenceFilters() {
         return Collections.unmodifiableList(referenceFilters);
     }
-    /**
-     * Sets reference filters.
-     * @param referenceFilters reference filters to set
-     */
-    public void setReferenceFilters(ReferenceFilter... referenceFilters) {
-        setReferenceFilters(Arrays.asList(referenceFilters));
-    }
+//    /**
+//     * Sets reference filters.
+//     * @param referenceFilters reference filters to set
+//     */
+//    public void setReferenceFilters(ReferenceFilter... referenceFilters) {
+//        setReferenceFilters(Arrays.asList(referenceFilters));
+//    }
     /**
      * Sets reference filters.
      * @param referenceFilters the referenceFilters to set

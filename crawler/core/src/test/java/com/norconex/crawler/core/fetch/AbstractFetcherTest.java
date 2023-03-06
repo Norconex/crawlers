@@ -41,8 +41,8 @@ class AbstractFetcherTest {
     @Test
     void testAbstractFetcher() {
         var f = new MockFetcher();
-        f.setReferenceFilters(
-                new GenericReferenceFilter(TextMatcher.basic("ref")));
+        f.setReferenceFilters(List.of(
+                new GenericReferenceFilter(TextMatcher.basic("ref"))));
         assertThat(f.accept(new MockFetchRequest("ref"))).isTrue();
         assertThat(f.accept(new MockFetchRequest("potato"))).isFalse();
         assertThat(f.acceptRequest(new MockFetchRequest("potato"))).isTrue();

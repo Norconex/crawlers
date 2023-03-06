@@ -24,7 +24,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 
 class ImportModuleStageTest {
 
@@ -33,8 +33,8 @@ class ImportModuleStageTest {
 
     @Test
     void testImportModuleStage() throws IOException {
-        var doc = Stubber.crawlDoc("ref", "tomato");
-        var crawler = Stubber.crawler(tempDir);
+        var doc = CoreStubber.crawlDoc("ref", "tomato");
+        var crawler = CoreStubber.crawler(tempDir);
         crawler.getCrawlerConfig().getImporterConfig().setPreParseConsumer(
                 hctx -> hctx.getDoc().setInputStream(
                         IOUtils.toInputStream("potato", UTF_8)));

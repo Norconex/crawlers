@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,9 @@ import lombok.experimental.FieldNameConstants;
  *   <numThreads>(maximum number of threads)</numThreads>
  *   <maxDocuments>(maximum number of documents to crawl)</maxDocuments>
  *   <idleTimeout>(thread inactivity timeout)</idleTimeout>
+ *   <minProgressLoggingInterval>
+ *     (minimum frequency at which progress is logged)
+ *   </minProgressLoggingInterval>
  *   <orphansStrategy>[PROCESS|IGNORE|DELETE]</orphansStrategy>
  *
  *   <stopOnExceptions>
@@ -498,10 +501,7 @@ public class CrawlerConfig implements XMLConfigurable {
                 spoiledReferenceStrategizer);
 
         xml.addElementList(Fields.eventListeners, "listener", eventListeners);
-
-//        saveCrawlerConfigToXML(xml);
     }
-//    protected abstract void saveCrawlerConfigToXML(XML xml);
 
     @Override
     public void loadFromXML(XML xml) {
@@ -527,7 +527,7 @@ public class CrawlerConfig implements XMLConfigurable {
             var cfg = new ImporterConfig();
             importerXML.populate(cfg);
             setImporterConfig(cfg);
-            //TODO handle ignore errors
+            //MAYBE handle ignore errors
         } else if (getImporterConfig() == null) {
             setImporterConfig(new ImporterConfig());
         }
@@ -551,9 +551,5 @@ public class CrawlerConfig implements XMLConfigurable {
 
         setEventListeners(xml.getObjectListImpl(EventListener.class,
                 "eventListeners/listener", eventListeners));
-
-//        loadCrawlerConfigFromXML(xml);
     }
-//    protected abstract void loadCrawlerConfigFromXML(XML xml);
-
 }

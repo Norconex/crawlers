@@ -14,29 +14,16 @@
  */
 package com.norconex.crawler.core.fetch;
 
-public class MockFetchResponse
-        extends GenericMultiFetchResponse<MockFetchResponse>
-        implements FetchResponse {
+import com.norconex.crawler.core.doc.CrawlDocState;
 
+public interface MockFetchResponse extends FetchResponse {
 
-//    @Override
-//    public CrawlDocState getCrawlState() {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//    @Override
-//    public Exception getException() {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//    @Override
-//    public String getReasonPhrase() {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-//    @Override
-//    public int getStatusCode() {
-//        // TODO Auto-generated method stub
-//        return 0;
-//    }
+    @Override
+    CrawlDocState getCrawlDocState();
+    @Override
+    Exception getException();
+    @Override
+    String getReasonPhrase();
+    @Override
+    int getStatusCode();
 }

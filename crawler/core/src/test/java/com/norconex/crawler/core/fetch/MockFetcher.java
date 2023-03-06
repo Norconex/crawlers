@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.fetch;
 
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.core.doc.CrawlDocState;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -26,12 +27,15 @@ public class MockFetcher
     extends AbstractFetcher<MockFetchRequest, MockFetchResponse> {
 
     private Boolean denyRequest;
+    private boolean returnBadStatus;
 
     @Override
     public MockFetchResponse fetch(MockFetchRequest fetchRequest)
             throws FetchException {
-        // TODO Auto-generated method stub
-        return new MockFetchResponse();
+        var resp = new MockFetchResponseImpl();
+        resp.setCrawlDocState(
+                returnBadStatus ? CrawlDocState.BAD_STATUS : CrawlDocState.NEW);
+        return resp;
     }
 
     @Override

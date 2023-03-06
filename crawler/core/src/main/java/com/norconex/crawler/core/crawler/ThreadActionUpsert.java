@@ -18,11 +18,9 @@ import org.apache.commons.io.input.NullInputStream;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.crawler.CrawlerImpl.DocRecordFactoryContext;
-import com.norconex.crawler.core.crawler.CrawlerThread.ReferenceContext;
+import com.norconex.crawler.core.crawler.CrawlerThread.ThreadActionContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
-import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,24 +30,21 @@ final class ThreadActionUpsert {
 
     private ThreadActionUpsert() {}
 
-    static void execute(ReferenceContext ctx) {
+    static void execute(ThreadActionContext ctx) {
         if (importDocument(ctx)) {
             processImportResponse(ctx);
         }
     }
 
-    private static boolean importDocument(ReferenceContext ctx) {
+    private static boolean importDocument(ThreadActionContext ctx) {
         // The importer pipeline also takes care of fetching
         //TODO shall fetching be handled by core, and we just pass
         // fetched doc to importer pipeline?
         var docRecord = ctx.doc().getDocRecord();
 
         LOG.debug("Processing reference: {}", ctx.doc().getReference());
-        var importContext = new ImporterPipelineContext(
-                ctx.crawler(), ctx.doc());
 
-        var response =
-                ctx.crawler().getImporterPipeline().apply(importContext);
+        var response = ctx.crawler().importDoc(ctx.doc());
         ctx.importerResponse(response);
 
         // no response means rejected even if it should not be the
@@ -67,7 +62,7 @@ final class ThreadActionUpsert {
 
 
     // commit is upsert this method is recursively invoked for children
-    private static void processImportResponse(ReferenceContext ctx) {
+    private static void processImportResponse(ThreadActionContext ctx) {
 
         if (!commitOrRejectDocument(ctx)) {
             ThreadActionFinalize.execute(ctx);
@@ -105,7 +100,7 @@ final class ThreadActionUpsert {
                         childResponseDoc.getMetadata());
             }
 
-            var childCtx = new ReferenceContext()
+            var childCtx = new ThreadActionContext()
                     .crawler(ctx.crawler())
                     .orphan(ctx.orphan())
                     .doc(childCrawlDoc)
@@ -117,7 +112,7 @@ final class ThreadActionUpsert {
     }
 
 
-    private static boolean commitOrRejectDocument(ReferenceContext ctx) {
+    private static boolean commitOrRejectDocument(ThreadActionContext ctx) {
         var docRecord = ctx.doc().getDocRecord();
         var response = ctx.importerResponse();
 
@@ -136,8 +131,7 @@ final class ThreadActionUpsert {
                     .subject(response)
                     .message(msg)
                     .build());
-            ctx.crawler().getCommitterPipeline().accept(
-                    new DocumentPipelineContext(ctx.crawler(), ctx.doc()));
+            ctx.crawler().commitDoc(ctx.doc());
             return true;
         }
 

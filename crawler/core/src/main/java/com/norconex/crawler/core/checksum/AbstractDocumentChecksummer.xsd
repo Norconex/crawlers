@@ -35,9 +35,6 @@
       </xs:simpleType>
     </xs:attribute>
     
-    <!-- Deprecated: -->
-    <xs:attribute name="targetField" type="xs:string" />
-    
   </xs:complexType>
 
 </xs:schema>

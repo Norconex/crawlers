@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.Stubber;
-import com.norconex.importer.doc.Doc;
+import com.norconex.crawler.core.CoreStubber;
+import com.norconex.crawler.core.doc.CrawlDoc;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +29,7 @@ public class MockFetchRequest implements FetchRequest {
     private String ref;
 
     @Override
-    public Doc getDoc() {
-        return Stubber.crawlDoc(ref);
+    public CrawlDoc getDoc() {
+        return CoreStubber.crawlDoc(ref);
     }
 }

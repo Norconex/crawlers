@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.crawler.CrawlerEvent.CrawlerEventBuilder;
 
 class CrawlerEventTest {
@@ -32,7 +32,7 @@ class CrawlerEventTest {
 
     @BeforeAll
     private static void beforeAll(@TempDir Path tempDir) {
-        crawler = Stubber.crawler(tempDir);
+        crawler = CoreStubber.crawler(tempDir);
     }
 
     @Test
@@ -58,7 +58,7 @@ class CrawlerEventTest {
 
     private CrawlerEvent event(Consumer<CrawlerEventBuilder<?, ?>>  c) {
         CrawlerEventBuilder<?, ?> b = CrawlerEvent.builder()
-            .crawlDocRecord(Stubber.crawlDocRecord("someref"))
+            .crawlDocRecord(CoreStubber.crawlDocRecord("someref"))
             .exception(new CrawlerException("someexception"))
             .message("somemessage")
             .name(CrawlerEvent.CRAWLER_RUN_BEGIN)

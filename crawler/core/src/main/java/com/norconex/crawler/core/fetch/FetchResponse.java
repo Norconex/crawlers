@@ -22,7 +22,7 @@ import com.norconex.crawler.core.doc.CrawlDocState;
  */
 public interface FetchResponse{ //<T> {
 
-    CrawlDocState getCrawlState();
+    CrawlDocState getCrawlDocState();
 
     int getStatusCode();
 

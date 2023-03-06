@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 
 class CommitModuleStageTest {
@@ -29,7 +29,7 @@ class CommitModuleStageTest {
     @Test
     void testCommitModuleStage(@TempDir Path tempDir) {
         var ctx = new DocumentPipelineContext(
-                Stubber.crawler(tempDir), Stubber.crawlDoc("ref"));
+                CoreStubber.crawler(tempDir), CoreStubber.crawlDoc("ref"));
         assertThatNoException().isThrownBy(
                 () -> new CommitModuleStage().test(ctx));
     }

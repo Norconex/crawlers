@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2017-2023 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="/com/norconex/crawler/core/fetch/AbstractFetcher.xsd"></xs:include>
+  <xs:include schemaLocation="HttpAuthConfig.xsd"></xs:include>
+  <xs:include schemaLocation="/com/norconex/commons/lang/net/ProxySettings.xsd"></xs:include>
+
+  <xs:element name="fetcher">
+    <xs:complexType>
+      <xs:complexContent> 
+        <xs:extension base="AbstractFetcher">  
+          <xs:all>
+            <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="notFoundStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="forceContentTypeDetection" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="forceCharsetDetection" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="headersPrefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="detectContentType" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="detectCharset" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="redirectURLProvider" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="cookieSpec" minOccurs="0" maxOccurs="1">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="default"/>
+                  <xs:enumeration value="ignoreCookies"/>
+                  <xs:enumeration value="netscape"/>
+                  <xs:enumeration value="standard"/>
+                  <xs:enumeration value="standard-strict"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="authentication" type="HttpAuthConfigType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="connectionTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="socketTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="connectionRequestTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="connectionCharset" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="expectContinueEnabled" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="maxRedirects" type="xs:int" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="localAddress" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="maxConnections" type="xs:int" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="maxConnectionsPerRoute" type="xs:int" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="maxConnectionIdleTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="maxConnectionInactiveTime" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="trustAllSSLCertificates" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="disableSNI" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="disableHSTS" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="sslProtocols" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="proxySettings" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="disableIfModifiedSince" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="disableETag" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="headers" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:all>
+                  <xs:element name="header" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                          <xs:attribute name="name" type="xs:string" use="required" />
+                        </xs:extension>
+                      </xs:simpleContent>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:all>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="httpMethods"  type="xs:string" minOccurs="0" maxOccurs="1"/>
+          </xs:all>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:complexType name="anyComplexOptionalClassType" mixed="true">
+    <xs:all>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:all>
+    <xs:attribute name="class" type="xs:string" use="optional"/>
+    <xs:anyAttribute processContents="lax"/>
+  </xs:complexType>  
+</xs:schema>

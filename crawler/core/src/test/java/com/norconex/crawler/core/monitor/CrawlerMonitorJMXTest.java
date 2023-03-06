@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.Stubber;
+import com.norconex.crawler.core.CoreStubber;
 
 class CrawlerMonitorJMXTest {
 
@@ -31,7 +31,7 @@ class CrawlerMonitorJMXTest {
     @Test
     void testCrawlerMonitorJMX() {
         assertThatNoException().isThrownBy(() -> {
-            var crawler = Stubber.crawler(tempDir);
+            var crawler = CoreStubber.crawler(tempDir);
             crawler.start();
             CrawlerMonitorJMX.register(crawler);
             CrawlerMonitorJMX.unregister(crawler);

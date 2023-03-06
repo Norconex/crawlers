@@ -18,6 +18,7 @@ import static com.norconex.crawler.core.crawler.CrawlerEvent.CRAWLER_RUN_THREAD_
 import static com.norconex.crawler.core.crawler.CrawlerEvent.CRAWLER_RUN_THREAD_END;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,7 +48,7 @@ class CrawlerThread implements Runnable {
 
     @Data
     @Accessors(fluent = true)
-    static class ReferenceContext {
+    static class ThreadActionContext {
         private Crawler crawler;
         private CrawlDocRecord docRecord;
         private CrawlDoc doc;
@@ -87,7 +88,7 @@ class CrawlerThread implements Runnable {
 
     // return true to continue and false to abort/break
     private boolean processNextReference() {
-        var ctx = new ReferenceContext()
+        var ctx = new ThreadActionContext()
                 .crawler(crawler)
                 .orphan(orphan);
         try {
@@ -105,11 +106,20 @@ class CrawlerThread implements Runnable {
 
             ctx.doc(createDocWithDocRecordFromCache(ctx.docRecord()));
 
+            // Before document processing
+            Optional.ofNullable(ctx.crawler().getCrawlerImpl()
+                    .beforeDocumentProcessing()).ifPresent(bdp -> bdp.accept(
+                            crawler, ctx.doc()));
             if (deleting) {
                 ThreadActionDelete.execute(ctx);
             } else {
                 ThreadActionUpsert.execute(ctx);
             }
+
+            // After document processing
+            Optional.ofNullable(ctx.crawler().getCrawlerImpl()
+                    .afterDocumentProcessing()).ifPresent(adp -> adp.accept(
+                            crawler, ctx.doc()));
         } catch (RuntimeException e) {
             if (handleExceptionAndCheckIfStopCrawler(ctx, e)) {
                 crawler.stop();
@@ -207,6 +217,7 @@ class CrawlerThread implements Runnable {
 //                    .toString();
         var cachedDocRec = crawler.getDocRecordService()
                 .getCached(docRec.getReference()).orElse(null);
+
         var doc = new CrawlDoc(
                 docRec,
                 cachedDocRec,
@@ -222,7 +233,7 @@ class CrawlerThread implements Runnable {
 
     // true to stop crawler
     private boolean handleExceptionAndCheckIfStopCrawler(
-            ReferenceContext ctx, RuntimeException e) {
+            ThreadActionContext ctx, RuntimeException e) {
         var stopTheCrawler = true;
 
         // if an exception was thrown and there is no CrawlDocRecord we
