@@ -24,21 +24,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.transformer.impl.ImageTransformer;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -65,10 +61,9 @@ import com.norconex.importer.handler.transformer.impl.ImageTransformer;
  * </p>
  * @since 3.0.0
  */
+@Slf4j
+@Data
 public class DocImageHandler implements XMLConfigurable {
-
-    private static final Logger LOG = LoggerFactory.getLogger(
-            DocImageHandler.class);
 
     public enum Target { METADATA, DIRECTORY }
     public enum DirStructure { URL2PATH, DATE, DATETIME }
@@ -91,59 +86,18 @@ public class DocImageHandler implements XMLConfigurable {
             Path defaultDir,
             String defaultDirField,
             String defaultMetaField) {
-        super();
-        this.targetDir = defaultDir;
-        this.targetDirField = defaultDirField;
-        this.targetMetaField = defaultMetaField;
+        targetDir = defaultDir;
+        targetDirField = defaultDirField;
+        targetMetaField = defaultMetaField;
     }
 
-    public DocImageHandler() {
-        super();
-    }
-
-    public Path getTargetDir() {
-        return targetDir;
-    }
-    public void setTargetDir(Path diskDir) {
-        this.targetDir = diskDir;
-    }
-
-    public String getTargetDirField() {
-        return targetDirField;
-    }
-    public void setTargetDirField(String diskField) {
-        this.targetDirField = diskField;
-    }
-
-    public DirStructure getTargetDirStructure() {
-        return targetDirStructure;
-    }
-    public void setTargetDirStructure(DirStructure dirStructure) {
-        this.targetDirStructure = dirStructure;
-    }
-
-    public String getTargetMetaField() {
-        return targetMetaField;
-    }
-    public void setTargetMetaField(String metadataField) {
-        this.targetMetaField = metadataField;
-    }
+    public DocImageHandler() {}
 
     public List<Target> getTargets() {
         return Collections.unmodifiableList(targets);
     }
-    public void setTargets(Target... targets) {
-        setTargets(Arrays.asList(targets));
-    }
     public void setTargets(List<Target> targets) {
         CollectionUtil.setAll(this.targets, targets);
-    }
-
-    public String getImageFormat() {
-        return imageFormat;
-    }
-    public void setImageFormat(String imageFormat) {
-        this.imageFormat = imageFormat;
     }
 
     public void handleImage(InputStream imageStream, Doc doc) {
@@ -152,9 +106,9 @@ public class DocImageHandler implements XMLConfigurable {
         //  1. apply defaults?  2, log error?  3. throw error?
 
         try {
-            String format = Optional.ofNullable(
+            var format = Optional.ofNullable(
                     imageFormat).orElse(DEFAULT_IMAGE_FORMAT);
-            MutableImage img = new MutableImage(imageStream);
+            var img = new MutableImage(imageStream);
             imgTransformer.transformImage(img);
 
             if (targets.contains(Target.METADATA)) {
@@ -168,9 +122,9 @@ public class DocImageHandler implements XMLConfigurable {
                         targetDirField, "'targetDirField'' must not be null");
                 Objects.requireNonNull(
                         targetDir, "'targetDir'' must not be null");
-                File dir = targetDir.toFile();
-                String ref = doc.getReference();
-                String ext = "." + format;
+                var dir = targetDir.toFile();
+                var ref = doc.getReference();
+                var ext = "." + format;
                 File imageFile = null;
                 if (targetDirStructure == DirStructure.URL2PATH) {
                     imageFile = new File(FileUtil.createURLDirs(
@@ -190,20 +144,6 @@ public class DocImageHandler implements XMLConfigurable {
             LOG.error("Could not take screenshot of: {}",
                     doc.getReference(), e);
         }
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 
     @Override

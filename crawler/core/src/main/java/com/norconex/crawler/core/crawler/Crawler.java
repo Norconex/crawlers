@@ -299,9 +299,10 @@ public class Crawler {
      * Starts crawling.
      */
     public void start() {
+        var resume = new MutableBoolean();
         try {
             initCrawler(() -> {
-                var resume = docRecordService.prepareForCrawlerStart();
+                resume.setValue(docRecordService.prepareForCrawlerStart());
                 importer = new Importer(
                         getCrawlerConfig().getImporterConfig(),
                         getEventManager());
@@ -322,21 +323,22 @@ public class Crawler {
                 dedupDocumentStore = resolveDocumentDedupStore();
 
                 Optional.ofNullable(crawlerImpl.beforeCrawlerExecution)
-                        .ifPresent(c -> c.accept(this, resume));
-
-                //--- Queue initial references ---------------------------------
-                LOG.info("Queueing initial references...");
-                queueInitialized = ofNullable(crawlerImpl.queueInitializer())
-                    .map(qizer -> qizer.apply(new CrawlerImpl.QueueInitContext(
-                            Crawler.this, resume, rec ->
-                                    crawlerImpl.queuePipeline().accept(
-                                            new DocRecordPipelineContext(
-                                                    Crawler.this, rec)))))
-                    .orElse(new MutableBoolean(true));
+                        .ifPresent(c -> c.accept(this, resume.getValue()));
             });
 
-            //--- Process start/queued references ------------------------------
             fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
+
+            //--- Queue initial references ---------------------------------
+            LOG.info("Queueing initial references...");
+            queueInitialized = ofNullable(crawlerImpl.queueInitializer())
+                .map(qizer -> qizer.apply(new CrawlerImpl.QueueInitContext(
+                        Crawler.this, resume.getValue(), rec ->
+                                crawlerImpl.queuePipeline().accept(
+                                        new DocRecordPipelineContext(
+                                                Crawler.this, rec)))))
+                .orElse(new MutableBoolean(true));
+
+            //--- Process start/queued references ------------------------------
 
             LOG.info("Crawling references...");
             processReferences(new ProcessFlags());

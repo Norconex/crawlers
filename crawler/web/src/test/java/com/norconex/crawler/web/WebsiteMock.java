@@ -36,6 +36,20 @@ public final class WebsiteMock {
     }
 
     public static Expectation[] whenHtml(
+            ClientAndServer client, String urlPath, String body) {
+        return client.when(
+            request()
+                .withPath(urlPath)
+        )
+        .respond(
+            response()
+                .withBody(
+                        WebStubber.htmlPage().body(body).build(),
+                        MediaType.HTML_UTF_8)
+        );
+    }
+
+    public static Expectation[] whenHtml(
             ClientAndServer client, String urlPath, TestResource resource)
                     throws IOException {
         return client.when(

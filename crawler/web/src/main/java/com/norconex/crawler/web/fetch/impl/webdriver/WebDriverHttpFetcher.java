@@ -149,7 +149,7 @@ import lombok.NonNull;
  *     options do not work.)
  *   </threadWait>
  *
- *   {@nx.include com.norconex.crawler.web.fetch.AbstractHttpFetcher#referenceFilters}
+ *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
  *
  *   <!-- Optionally setup an HTTP proxy that allows to set and capture
  *        HTTP headers. For advanced use only. Not recommended

@@ -98,8 +98,8 @@ class CanonicalStage extends AbstractWebImporterStage {
 
         var detector =
                 ctx.getConfig().getCanonicalLinkDetector();
-        var crawlRef = ctx.getDocRecord();
-        String reference = crawlRef.getReference();
+        var docRec = ctx.getDocRecord();
+        String reference = docRec.getReference();
 
         // Since the current/containing page URL has already been
         // normalized, make sure we normalize this one for the purpose
@@ -128,23 +128,23 @@ class CanonicalStage extends AbstractWebImporterStage {
 
         // if circling back here again, we are in a loop, process
         // it regardless
-        if (crawlRef.getRedirectTrail().contains(normalizedCanURL)) {
+        if (docRec.getRedirectTrail().contains(normalizedCanURL)) {
             if (LOG.isWarnEnabled()) {
                 LOG.warn("""
                     Circular reference between redirect and canonical\s\
                     URL detected. Will ignore canonical directive and\s\
                     process URL: "{}". Redirect trail: {}""", reference,
-                    Arrays.toString(crawlRef.getRedirectTrail().toArray()));
+                    Arrays.toString(docRec.getRedirectTrail().toArray()));
             }
             return true;
         }
 
-        var newRecord = new WebDocRecord(crawlRef);
+        var newRecord = new WebDocRecord(docRec);
         newRecord.setReference(canURL);
         newRecord.setReferrerReference(reference);
 
         if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
-                crawlRef.getReference(), canURL)) {
+                docRec.getReference(), canURL)) {
             // Call Queue pipeline on Canonical URL
             LOG.debug("""
                 Canonical URL detected is different than\s\
@@ -166,12 +166,12 @@ class CanonicalStage extends AbstractWebImporterStage {
                     .build());
         }
 
-        crawlRef.setState(CrawlDocState.REJECTED);
+        docRec.setState(CrawlDocState.REJECTED);
         ctx.fire(CrawlerEvent.builder()
                 .name(WebCrawlerEvent.REJECTED_NONCANONICAL)
                 .source(ctx.getCrawler())
                 .subject(detector)
-                .crawlDocRecord(crawlRef)
+                .crawlDocRecord(docRec)
                 .message(detector.getClass().getSimpleName()
                         + "[canonical=" + canURL + "]")
                 .build());

@@ -16,14 +16,14 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:include schemaLocation="../AbstractHttpFetcher.xsd"></xs:include>
+  <xs:include schemaLocation="/com/norconex/crawler/core/fetch/AbstractFetcher.xsd"></xs:include>
   <xs:include schemaLocation="HttpAuthConfig.xsd"></xs:include>
   <xs:include schemaLocation="/com/norconex/commons/lang/net/ProxySettings.xsd"></xs:include>
 
   <xs:element name="fetcher">
     <xs:complexType>
       <xs:complexContent> 
-        <xs:extension base="AbstractHttpFetcher">  
+        <xs:extension base="AbstractFetcher">  
           <xs:all>
             <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="validStatusCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -39,6 +39,7 @@
                 <xs:restriction base="xs:string">
                   <xs:enumeration value="default"/>
                   <xs:enumeration value="ignoreCookies"/>
+                  <xs:enumeration value="netscape"/>
                   <xs:enumeration value="standard"/>
                   <xs:enumeration value="standard-strict"/>
                 </xs:restriction>

@@ -22,19 +22,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
-import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestInstantiationException;
 import org.junit.platform.commons.support.AnnotationSupport;
+import org.junit.platform.commons.support.SearchOption;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.Sleeper;
@@ -44,7 +41,7 @@ import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
-import com.norconex.crawler.web.MockWebCrawlSession.NoopConfigConsumer;
+import com.norconex.crawler.web.MockWebCrawlSession.NoopConfigurer;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 
 import lombok.AccessLevel;
@@ -60,11 +57,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MockWebCrawlSessionExtension implements
             ParameterResolver,
-            BeforeAllCallback,
-            AfterAllCallback,
             BeforeEachCallback,
-            AfterEachCallback,
-            InvocationInterceptor {
+            AfterEachCallback {
 
     public static final String MOCK_CRAWLER_ID = "test-webcrawler-";
     public static final String MOCK_CRAWL_SESSION_ID = "test-webcrawlsession";
@@ -76,15 +70,13 @@ public class MockWebCrawlSessionExtension implements
 
     private CrawlSession crawlSession;
 
-    private boolean typeAnnotated;
-
     public MockWebCrawlSessionExtension() {
         defaultTestConfig = new TestConfig();
     }
     public MockWebCrawlSessionExtension(
             int numOfCrawlers,
             long timeout,
-            Consumer<CrawlSessionConfig> configConsumer) {
+            MockWebCrawlSessionConfigurer configConsumer) {
 
         defaultTestConfig = new TestConfig();
         defaultTestConfig.numOfCrawlers = numOfCrawlers;
@@ -93,17 +85,51 @@ public class MockWebCrawlSessionExtension implements
     }
 
     @Override
-    public void beforeAll(ExtensionContext ctx) throws Exception {
-        typeAnnotated = true;
-        doBefore(ctx);
-    }
-    @Override
-    public void afterAll(ExtensionContext ctx) throws Exception {
-        doAfter(ctx);
-    }
-    @Override
     public void beforeEach(ExtensionContext ctx) throws Exception {
-        doBefore(ctx);
+        currentTestConfig = new TestConfig(defaultTestConfig);
+        currentTestConfig.tempDir = Files.createTempDirectory("nx-mock-");
+
+        Optional<MockWebCrawlSession> annot = AnnotationSupport.findAnnotation(
+                ctx.getElement(), MockWebCrawlSession.class);
+        if (annot.isEmpty()) {
+            annot = AnnotationSupport.findAnnotation(
+                    ctx.getRequiredTestClass(),
+                    MockWebCrawlSession.class,
+                    SearchOption.INCLUDE_ENCLOSING_CLASSES);
+        }
+        if (annot.isPresent()) {
+            currentTestConfig.numOfCrawlers = annot.get().numOfCrawlers();
+            currentTestConfig.configConsumer = annot.get().configurer()
+                    .getDeclaredConstructor().newInstance();
+            currentTestConfig.timeout = annot.get().timeout();
+        }
+
+        crawlSession = createCrawlSession(currentTestConfig, ctx);
+        if (crawlSession.getCrawlSessionConfig()
+                .getCrawlerConfigs().isEmpty()) {
+            throw new IllegalStateException("No crawler configured.");
+        }
+
+        latch = new CountDownLatch(1);
+        crawlSession.getCrawlSessionConfig().addEventListener(event -> {
+            if (CrawlerEvent.CRAWLER_RUN_BEGIN.equals(event.getName())) {
+                try {
+                    currentTestConfig.readyToGo = true;
+                    if (currentTestConfig.timeout > -1) {
+                        latch.await(10_000, TimeUnit.MILLISECONDS);
+                    } else {
+                        latch.await();
+                    }
+                } catch (InterruptedException e) {
+                    throw new IllegalStateException(
+                            "Could not wait for crawl session test to end.", e);
+                }
+            }
+        });
+
+        new Thread(() -> {
+            crawlSession.start();
+        }).start();
     }
     @Override
     public void afterEach(ExtensionContext ctx) throws Exception {
@@ -151,53 +177,6 @@ public class MockWebCrawlSessionExtension implements
         return null;
     }
 
-    private void doBefore(ExtensionContext ctx) throws Exception {
-        if (!typeAnnotated && crawlSession != null) {
-            throw new IllegalStateException("""
-                    Crawl session already initialized. Have you added\s\
-                    the MockWebCrawlSession annotation or extension to\s\
-                    both a type and methods?""");
-        }
-
-        currentTestConfig = new TestConfig(defaultTestConfig);
-        currentTestConfig.tempDir = Files.createTempDirectory("nx-mock-");
-        Optional<MockWebCrawlSession> annot = AnnotationSupport.findAnnotation(
-                ctx.getElement(), MockWebCrawlSession.class);
-        if (annot.isPresent()) {
-            currentTestConfig.numOfCrawlers = annot.get().numOfCrawlers();
-            currentTestConfig.configConsumer = annot.get().configConsumer()
-                    .getDeclaredConstructor().newInstance();
-            currentTestConfig.timeout = annot.get().timeout();
-        }
-
-        crawlSession = createCrawlSession(currentTestConfig);
-        if (crawlSession.getCrawlSessionConfig()
-                .getCrawlerConfigs().isEmpty()) {
-            throw new IllegalStateException("No crawler configured.");
-        }
-
-        latch = new CountDownLatch(1);
-        crawlSession.getCrawlSessionConfig().addEventListener(event -> {
-            if (CrawlerEvent.CRAWLER_RUN_BEGIN.equals(event.getName())) {
-                try {
-                    currentTestConfig.readyToGo = true;
-                    if (currentTestConfig.timeout > -1) {
-                        latch.await(10_000, TimeUnit.MILLISECONDS);
-                    } else {
-                        latch.await();
-                    }
-                } catch (InterruptedException e) {
-                    throw new IllegalStateException(
-                            "Could not wait for crawl session test to end.", e);
-                }
-            }
-        });
-
-        new Thread(() -> {
-            crawlSession.start();
-        }).start();
-    }
-
     private void doAfter(ExtensionContext ctx) throws IOException {
         if (crawlSession != null) {
             crawlSession = null;
@@ -230,8 +209,8 @@ public class MockWebCrawlSessionExtension implements
         private Path tempDir;
         private long timeout = 60_000;
         private int numOfCrawlers = 1;
-        private Consumer<CrawlSessionConfig> configConsumer =
-                new NoopConfigConsumer();
+        private MockWebCrawlSessionConfigurer configConsumer =
+                new NoopConfigurer();
         @Setter(value = AccessLevel.NONE)
         @Getter(value = AccessLevel.NONE)
         private long startTime = System.currentTimeMillis();
@@ -245,7 +224,9 @@ public class MockWebCrawlSessionExtension implements
         }
     }
 
-    static CrawlSession createCrawlSession(TestConfig testCfg) {
+    static CrawlSession createCrawlSession(
+            TestConfig testCfg, ExtensionContext ctx) {
+
         List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
         for (var i = 0; i < testCfg.numOfCrawlers; i++) {
             crawlerConfigs.add(crawlerConfig(i));
@@ -257,7 +238,9 @@ public class MockWebCrawlSessionExtension implements
         sessionConfig.setCrawlerConfigs(crawlerConfigs);
 
         if (testCfg.configConsumer != null) {
-            testCfg.configConsumer.accept(sessionConfig);
+            testCfg.configConsumer.configure(
+                    ctx.getRequiredTestInstance(),
+                    sessionConfig);
         }
 
         return CrawlSession.builder()

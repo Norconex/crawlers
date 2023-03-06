@@ -16,7 +16,6 @@ package com.norconex.crawler.web.pipeline.queue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
@@ -26,6 +25,7 @@ import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.MockWebCrawlSession;
+import com.norconex.crawler.web.MockWebCrawlSessionConfigurer;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -34,9 +34,9 @@ import com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider;
 
 class RobotsTxtFiltersStageTest {
 
-    public static class Configurer implements Consumer<CrawlSessionConfig> {
+    public static class Configurer implements MockWebCrawlSessionConfigurer {
         @Override
-        public void accept(CrawlSessionConfig cfg) {
+        public void configure(Object testInstance, CrawlSessionConfig cfg) {
             StandardRobotsTxtProvider provider =
                     new StandardRobotsTxtProvider() {
                 @Override
@@ -60,7 +60,7 @@ class RobotsTxtFiltersStageTest {
         }
     }
 
-    @MockWebCrawlSession(configConsumer = Configurer.class)
+    @MockWebCrawlSession(configurer = Configurer.class)
     @Test
     void testAllow(Crawler crawler) {
         // An allow for a robot rule should now be rejecting all non-allowing.

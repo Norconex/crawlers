@@ -68,7 +68,9 @@ public class WebImporterPipeline implements ImporterPipeline {
 
     @Override
     public ImporterResponse apply(ImporterPipelineContext ctx) {
-        STAGES.test(ctx);
-        return ctx.getImporterResponse();
+        var webCtx = ctx instanceof WebImporterPipelineContext wipc
+                ? wipc : new WebImporterPipelineContext(ctx);
+        STAGES.test(webCtx);
+        return webCtx.getImporterResponse();
     }
 }

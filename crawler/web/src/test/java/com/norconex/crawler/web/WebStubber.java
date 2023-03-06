@@ -19,14 +19,17 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.randomizers.misc.BooleanRandomizer;
+import org.jeasy.random.randomizers.number.IntegerRandomizer;
 import org.jeasy.random.randomizers.number.LongRandomizer;
 import org.jeasy.random.randomizers.number.NumberRandomizer;
 import org.jeasy.random.randomizers.text.StringRandomizer;
@@ -39,18 +42,23 @@ import com.norconex.commons.lang.CircularRange;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.crawler.StartURLsProvider;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.delay.DelayResolver;
 import com.norconex.crawler.web.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
 import com.norconex.crawler.web.link.impl.DOMLinkExtractor;
 import com.norconex.crawler.web.processor.WebDocumentProcessor;
 import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor;
@@ -88,6 +96,8 @@ public final class WebStubber {
                     () -> Path.of(new StringRandomizer(100).getRandomValue()))
             .randomize(Long.class,
                     () -> Math.abs(new LongRandomizer().getRandomValue()))
+            .randomize(Integer.class,
+                    () -> Math.abs(new IntegerRandomizer().getRandomValue()))
             .randomize(ImporterConfig.class, ImporterConfig::new)
             .randomize(UpsertRequest.class,
                     () -> new UpsertRequest(
@@ -110,6 +120,7 @@ public final class WebStubber {
             .excludeType(FeaturedImageProcessor.class::equals)
             .excludeType(WebDocumentProcessor.class::equals)
             .excludeType(RecrawlableResolver.class::equals)
+            .excludeType(HttpAuthConfig.class::equals)
             .randomize(StartURLsProvider.class, () -> null) // <-- TODO mock this
             .randomize(Charset.class, () -> StandardCharsets.UTF_8)
             .randomize(CircularRange.class, () -> {
@@ -133,6 +144,7 @@ public final class WebStubber {
                 extractor.addLinkSelector("text");
                 return extractor;
             })
+            .randomize(f -> "cookieSpec".equals(f.getName()), () -> "default")
     );
 
     private WebStubber() {}
@@ -165,6 +177,60 @@ public final class WebStubber {
         doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ct);
         return doc;
     }
+
+    //--- Crawl Session --------------------------------------------------------
+
+    public static CrawlSession crawlSession(
+            Path workDir, String... startUrls) {
+        var sessionConfig = crawlSessionConfig(workDir);
+        if (ArrayUtils.isNotEmpty(startUrls)) {
+            WebTestUtil.getFirstCrawlerConfig(
+                    sessionConfig).setStartURLs(startUrls);
+        }
+        return CrawlSession.builder()
+            .crawlerFactory((crawlSess, crawlerCfg) ->
+                Crawler.builder()
+                    .crawlerConfig(crawlerCfg)
+                    .crawlSession(crawlSess)
+                    .crawlerImpl(WebCrawlSessionLauncher
+                            .crawlerImplBuilder().build())
+                    .build()
+            )
+            .crawlSessionConfig(sessionConfig)
+            .build();
+    }
+
+
+    /**
+     * <p>Crawl session config stub:</p>
+     * <ul>
+     *   <li>Crawl session id: {@value #MOCK_CRAWL_SESSION_ID}.</li>
+     *   <li>1 crawler from {@link #crawlerConfig()}.</li>
+     *   <li>Default values for everything else.</li>
+     * </ul>
+     * @param workDir where to store generated files (including crawl store)
+     * @return crawl session config
+     */
+    public static CrawlSessionConfig crawlSessionConfig(Path workDir) {
+        List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
+        crawlerConfigs.add(crawlerConfig());
+        var sessionConfig = new CrawlSessionConfig();
+        sessionConfig.setWorkDir(workDir);
+        sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
+        sessionConfig.setCrawlerConfigs(crawlerConfigs);
+        return sessionConfig;
+    }
+
+    public static WebCrawlerConfig crawlerConfig() {
+        var crawlerConfig = new WebCrawlerConfig();
+        crawlerConfig.setId(MOCK_CRAWLER_ID);
+        crawlerConfig.setNumThreads(1);
+        ((GenericDelayResolver) crawlerConfig
+                .getDelayResolver()).setDefaultDelay(0);
+        crawlerConfig.setCommitters(List.of(new MemoryCommitter()));
+        return crawlerConfig;
+    }
+
 
     public static HtmlPage htmlPage() {
         return new HtmlPage();

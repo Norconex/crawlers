@@ -32,7 +32,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -44,12 +43,6 @@ import javax.net.ssl.SSLSocket;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.http.Consts;
 import org.apache.http.Header;
@@ -83,8 +76,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.Args;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.time.DurationParser;
@@ -107,7 +98,10 @@ import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.util.CharsetUtil;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -251,7 +245,7 @@ import lombok.NonNull;
  *   <forceContentTypeDetection>[false|true]</forceContentTypeDetection>
  *   <forceCharsetDetection>[false|true]</forceCharsetDetection>
  *
- *   {@nx.include com.norconex.crawler.web.fetch.AbstractHttpFetcher#referenceFilters}
+ *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
  *
  *   <!-- Comma-separated list of supported HTTP methods. -->
  *   <httpMethods>(defaults to: GET, HEAD)</httpMethods>
@@ -283,12 +277,12 @@ import lombok.NonNull;
  *        GenericHttpClientFactory)
  */
 @SuppressWarnings("javadoc")
+@Slf4j
+@EqualsAndHashCode
+@ToString
 public class GenericHttpFetcher
         extends AbstractFetcher<HttpFetchRequest, HttpFetchResponse>
         implements HttpFetcher {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(GenericHttpFetcher.class);
 
     /** Form-based authentication method. */
     public static final String AUTH_METHOD_FORM = "form";
@@ -320,17 +314,16 @@ public class GenericHttpFetcher
 
     private final GenericHttpFetcherConfig cfg;
     private HttpClient httpClient;
-    @HashCodeExclude
-    @EqualsExclude
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private final AuthCache authCache = new BasicAuthCache();
     private Object userToken;
 
     public GenericHttpFetcher() {
         this(new GenericHttpFetcherConfig());
     }
-    public GenericHttpFetcher(GenericHttpFetcherConfig httpFetcherConfig) {
-        Objects.requireNonNull(
-                httpFetcherConfig, "'httpFetcherConfig' must not be null.");
+    public GenericHttpFetcher(
+            @NonNull GenericHttpFetcherConfig httpFetcherConfig) {
         cfg = httpFetcherConfig;
     }
 
@@ -388,15 +381,6 @@ public class GenericHttpFetcher
             LOG.debug("Fetch status for: \"{}\": {} - {}",
                     doc.getReference(), statusCode, reason);
 
-
-
-//            HttpFetchResponseBuilder responseBuilder =
-//                    new HttpFetchResponseBuilder()
-//                .setStatusCode(statusCode)
-//                .setReasonPhrase(reason)
-//                .setUserAgent(cfg.getUserAgent())
-//                .setRedirectTarget(
-//                        ApacheRedirectCaptureStrategy.getRedirectTarget(ctx));
             var responseBuilder =
                     GenericHttpFetchResponse.builder()
                 .statusCode(statusCode)
@@ -505,7 +489,6 @@ public class GenericHttpFetcher
         }
     }
 
-//    @Override
     public String getUserAgent() {
         return cfg.getUserAgent();
     }
@@ -580,10 +563,9 @@ public class GenericHttpFetcher
         try {
             var connManager =
                     FieldUtils.readField(httpClient, "connManager", true);
-            if (connManager instanceof PoolingHttpClientConnectionManager) {
-                ((PoolingHttpClientConnectionManager) connManager)
-                        .setValidateAfterInactivity(
-                                cfg.getMaxConnectionInactiveTime());
+            if (connManager instanceof PoolingHttpClientConnectionManager pm) {
+                pm.setValidateAfterInactivity(
+                        cfg.getMaxConnectionInactiveTime());
             } else {
                 LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
                         + "internal connection manager does not support it.");
@@ -884,19 +866,4 @@ public class GenericHttpFetcher
     protected void saveFetcherToXML(XML xml) {
         cfg.saveToXML(xml);
     }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
-    }
-
 }

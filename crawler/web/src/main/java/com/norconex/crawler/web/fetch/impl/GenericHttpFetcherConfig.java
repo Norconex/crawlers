@@ -23,29 +23,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 
+import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.net.ProxySettings;
+import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.GenericRedirectURLProvider;
 import com.norconex.crawler.web.fetch.util.RedirectURLProvider;
-import com.norconex.commons.lang.EqualsUtil;
-import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.commons.lang.net.ProxySettings;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.commons.lang.xml.XML;
+
+import lombok.Data;
 
 /**
  * Generic HTTP Fetcher configuration.
  * @since 3.0.0 (adapted from GenericHttpClientFactory and
  *        GenericDocumentFetcher from version 2.x)
  */
+@SuppressWarnings("javadoc")
+@Data
 public class GenericHttpFetcherConfig implements XMLConfigurable {
 
     public static final int DEFAULT_TIMEOUT = 30 * 1000;
@@ -61,58 +59,226 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
 
     private final List<Integer> validStatusCodes =
             new ArrayList<>(DEFAULT_VALID_STATUS_CODES);
+
     private final List<Integer> notFoundStatusCodes =
             new ArrayList<>(DEFAULT_NOT_FOUND_STATUS_CODES);
+    /**
+     * Optional prefix prepended to captured HTTP response fields.
+     * @param headersPrefix optional prefix
+     * @return prefix or <code>null</code>
+     */
     private String headersPrefix;
+
+    /**
+     * Whether content type is detected instead of relying on
+     * returned <code>Content-Type</code> HTTP response header.
+     * @param forceContentTypeDetection <code>true</code> to enable detection
+     * @return <code>true</code> to enable detection
+     */
     private boolean forceContentTypeDetection;
+
+    /**
+     * Whether character encoding is detected instead of relying on
+     * the charset sometimes found in the <code>Content-Type</code> HTTP
+     * response header.
+     * @param forceCharsetDetection <code>true</code> to enable detection
+     * @return <code>true</code> to enable detection
+     */
     private boolean forceCharsetDetection;
 
+    /**
+     * Authentication configuration for sites requiring it. Default
+     * is <code>null</code>.
+     * @param authConfig authentication configuration
+     * @return authentication configuration
+     */
     private HttpAuthConfig authConfig;
 
+    /**
+     * Cookie specification to use when fetching documents, as per
+     * {@link CookieSpecs}. Defaults to {@link CookieSpecs#STANDARD}.
+     * @param cookieSpec the cookieSpec to use as defined in {@link CookieSpecs}
+     * @return the cookieSpec to use as defined in {@link CookieSpecs}
+     */
     private String cookieSpec = CookieSpecs.STANDARD;
+
     private final ProxySettings proxySettings = new ProxySettings();
+
+    /**
+     * The connection timeout for a connection to be established,
+     * in milliseconds. Default is {@link #DEFAULT_TIMEOUT}.
+     * @param connectionTimeout connection timeout
+     * @return connection timeout
+     */
     private int connectionTimeout = DEFAULT_TIMEOUT;
+
+    /**
+     * Gets the maximum period of inactivity between two consecutive data
+     * packets, in milliseconds.
+     * Default is {@link #DEFAULT_TIMEOUT}.
+     * @param socketTimeout socket timeout
+     * @return socket timeout
+     */
     private int socketTimeout = DEFAULT_TIMEOUT;
+
+    /**
+     * Gets the timeout when requesting a connection, in milliseconds.
+     * Default is {@link #DEFAULT_TIMEOUT}.
+     * @param connectionRequestTimeout connection request timeout
+     * @return connection request timeout
+     */
     private int connectionRequestTimeout = DEFAULT_TIMEOUT;
+
+    /**
+     * The connection character set. The HTTP protocol specification
+     * mandates the use of ASCII for HTTP message headers.  Sites do not always
+     * respect this and it may be necessary to force a non-standard character
+     * set.
+     * @param connectionCharset connection character set
+     * @return connection character set
+     */
     private Charset connectionCharset;
+
+    /**
+     * The local address, which may be useful when working with multiple
+     * network interfaces.
+     * @param localAddress locale address
+     * @return local address
+     */
     private String localAddress;
+
+    /**
+     * Whether 'Expect: 100-continue' handshake is enabled.
+     * See {@link RequestConfig#isExpectContinueEnabled()}
+     * @param expectContinueEnabled <code>true</code> if enabled
+     * @return <code>true</code> if enabled
+     */
     private boolean expectContinueEnabled;
+
+    /**
+     * The maximum number of redirects to be followed.  This can help
+     * prevent infinite loops.  A value of zero effectively disables
+     * redirects.  Default is {@link #DEFAULT_MAX_REDIRECT}.
+     * @param maxRedirects maximum number of redirects to be followed
+     * @return maximum number of redirects to be followed
+     */
     private int maxRedirects = DEFAULT_MAX_REDIRECT;
+
+    /**
+     * The maximum number of connections that can be created.  Typically,
+     * you would have at least the same amount as threads.
+     * Default is {@link #DEFAULT_MAX_CONNECTIONS}.
+     * @param maxConnections maximum number of connections
+     * @return number of connections
+     */
     private int maxConnections = DEFAULT_MAX_CONNECTIONS;
+
+    /**
+     * The maximum number of connections that can be used per route.
+     * Default is {@link #DEFAULT_MAX_CONNECTIONS_PER_ROUTE}.
+     * @param maxConnectionsPerRoute maximum number of connections per route
+     * @return number of connections per route
+     */
     private int maxConnectionsPerRoute = DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
+
+    /**
+     * Sets the period of time in milliseconds after which to evict idle
+     * connections from the connection pool.
+     * Default is {@link #DEFAULT_MAX_IDLE_TIME}.
+     * @param maxConnectionIdleTime amount of time after which to evict idle
+     *         connections
+     * @return amount of time after which to evict idle connections
+     */
     private int maxConnectionIdleTime = DEFAULT_MAX_IDLE_TIME;
+
+    /**
+     * Sets the period of time in milliseconds a connection must be inactive
+     * to be checked in case it became stalled. Default is 0 (not proactively
+     * checked).
+     * @param maxConnectionInactiveTime period of time in milliseconds
+     * @return period of time in milliseconds
+     */
     private int maxConnectionInactiveTime;
+
     private final Map<String, String> requestHeaders = new HashMap<>();
+
+    /**
+     * Whether adding the <code>If-Modified-Since</code> HTTP request
+     * header is disabled.
+     * Servers supporting this header will only return the requested document
+     * if it was last modified since the supplied date.
+     * @param disableIfModifiedSince <code>true</code> if disabled
+     * @return <code>true</code> if disabled
+     */
     private boolean disableIfModifiedSince;
+
+    /**
+     * Whether adding "ETag" <code>If-None-Match</code>
+     * HTTP request header is disabled.
+     * Servers supporting this header will only return the requested document
+     * if the ETag value has changed, indicating a more recent version is
+     * available.
+     * @param disableETag <code>true</code> if disabled
+     * @return <code>true</code> if disabled
+     */
     private boolean disableETag;
+
+    /**
+     * The user-agent used when identifying the crawler to targeted web sites.
+     * <b>It is highly recommended to always identify yourself.</b>
+     * @param userAgent user agent
+     * @return user agent
+     */
     private String userAgent;
+
+    /**
+     * The redirect URL provider.
+     * Defaults to {@link GenericRedirectURLProvider}.
+     * @param redirectURLProvider redirect URL provider
+     * @return the redirect URL provider
+     */
     private RedirectURLProvider redirectURLProvider =
             new GenericRedirectURLProvider();
+
     private final List<HttpMethod> httpMethods = new ArrayList<>(Arrays.asList(
             HttpMethod.GET, HttpMethod.HEAD));
 
     // Security settings
+
+    /**
+     * Sets whether to trust all SSL certificate (affects only "https"
+     * connections).  This is typically a bad
+     * idea (favors man-in-the-middle attacks). Try to install a SSL
+     * certificate locally to ensure a proper certificate exchange instead.
+     * @since 1.3.0
+     * @param trustAllSSLCertificates <code>true</code> if trusting all SSL
+     *            certificates
+     * @return <code>true</code> if trusting all SSL certificates
+     */
     private boolean trustAllSSLCertificates;
+
+    /**
+     * Sets whether Server Name Indication (SNI) is disabled.
+     * @param disableSNI <code>true</code> if disabled
+     * @return <code>true</code> if disabled
+     */
     private boolean disableSNI;
+
     private final List<String> sslProtocols = new ArrayList<>();
+
+    /**
+     * Gets whether the forcing of non secure URLs to secure ones is disabled,
+     * according to the URL domain <code>Strict-Transport-Security</code> policy
+     * (obtained from HTTP response header).
+     * @param disableHSTS <code>true</code> if disabled
+     * @return <code>true</code> if disabled
+     */
     private boolean disableHSTS;
 
     /**
-     * Gets the redirect URL provider.
-     * @return the redirect URL provider
+     * Sets valid HTTP response status codes.
+     * @return valid status codes
      */
-    public RedirectURLProvider getRedirectURLProvider() {
-        return redirectURLProvider;
-    }
-    /**
-     * Sets the redirect URL provider
-     * @param redirectURLProvider redirect URL provider
-     */
-    public void setRedirectURLProvider(
-            RedirectURLProvider redirectURLProvider) {
-        this.redirectURLProvider = redirectURLProvider;
-    }
-
     public List<Integer> getValidStatusCodes() {
         return Collections.unmodifiableList(validStatusCodes);
     }
@@ -122,14 +288,6 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      */
     public void setValidStatusCodes(List<Integer> validStatusCodes) {
         CollectionUtil.setAll(this.validStatusCodes, validStatusCodes);
-    }
-    /**
-     * Gets valid HTTP response status codes.
-     * @param validStatusCodes valid status codes
-     */
-    public void setValidStatusCodes(int... validStatusCodes) {
-        CollectionUtil.setAll(this.validStatusCodes,
-                ArrayUtils.toObject(validStatusCodes));
     }
 
     /**
@@ -144,66 +302,9 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * Sets HTTP status codes to be considered as "Not found" state.
      * @param notFoundStatusCodes "Not found" codes
      */
-    public final void setNotFoundStatusCodes(int... notFoundStatusCodes) {
-        CollectionUtil.setAll(this.notFoundStatusCodes,
-                ArrayUtils.toObject(notFoundStatusCodes));
-    }
-    /**
-     * Sets HTTP status codes to be considered as "Not found" state.
-     * @param notFoundStatusCodes "Not found" codes
-     */
     public final void setNotFoundStatusCodes(
             List<Integer> notFoundStatusCodes) {
         CollectionUtil.setAll(this.notFoundStatusCodes, notFoundStatusCodes);
-    }
-
-    public String getHeadersPrefix() {
-        return headersPrefix;
-    }
-    public void setHeadersPrefix(String headersPrefix) {
-        this.headersPrefix = headersPrefix;
-    }
-
-    /**
-     * Gets whether content type is detected instead of relying on
-     * HTTP response header.
-     * @return <code>true</code> to enable detection
-     */
-    public boolean isForceContentTypeDetection() {
-        return forceContentTypeDetection;
-    }
-    /**
-     * Sets whether content type is detected instead of relying on
-     * HTTP response header.
-     * @param forceContentTypeDetection <code>true</code> to enable detection
-     */
-    public void setForceContentTypeDetection(
-            boolean forceContentTypeDetection) {
-        this.forceContentTypeDetection = forceContentTypeDetection;
-    }
-    /**
-     * Gets whether character encoding is detected instead of relying on
-     * HTTP response header.
-     * @return <code>true</code> to enable detection
-     */
-    public boolean isForceCharsetDetection() {
-        return forceCharsetDetection;
-    }
-    /**
-     * Sets whether character encoding is detected instead of relying on
-     * HTTP response header.
-     * @param forceCharsetDetection <code>true</code> to enable detection
-     */
-    public void setForceCharsetDetection(boolean forceCharsetDetection) {
-        this.forceCharsetDetection = forceCharsetDetection;
-    }
-
-
-    public String getUserAgent() {
-        return userAgent;
-    }
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
     }
 
     /**
@@ -256,247 +357,11 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
         return requestHeaders.remove(name);
     }
 
-    /**
-     * @return the cookieSpec to use as defined in {@link CookieSpecs}
-     */
-    public String getCookieSpec() {
-        return cookieSpec;
-    }
-    /**
-     * @param cookieSpec the cookieSpec to use as defined in {@link CookieSpecs}
-     */
-    public void setCookieSpec(String cookieSpec) {
-        this.cookieSpec = cookieSpec;
-    }
-
     public ProxySettings getProxySettings() {
         return proxySettings;
     }
     public void setProxySettings(ProxySettings proxy) {
-        this.proxySettings.copyFrom(proxy);
-    }
-
-    /**
-     * Gets the connection timeout until a connection is established,
-     * in milliseconds.
-     * @return connection timeout
-     */
-    public int getConnectionTimeout() {
-        return connectionTimeout;
-    }
-    /**
-     * Sets the connection timeout until a connection is established,
-     * in milliseconds. Default is {@link #DEFAULT_TIMEOUT}.
-     * @param connectionTimeout connection timeout
-     */
-    public void setConnectionTimeout(int connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
-    }
-
-    /**
-     * Gets the maximum period of inactivity between two consecutive data
-     * packets, in milliseconds.
-     * @return connection timeout
-     */
-    public int getSocketTimeout() {
-        return socketTimeout;
-    }
-    /**
-     * Sets the maximum period of inactivity between two consecutive data
-     * packets, in milliseconds. Default is {@link #DEFAULT_TIMEOUT}.
-     * @param socketTimeout socket timeout
-     */
-    public void setSocketTimeout(int socketTimeout) {
-        this.socketTimeout = socketTimeout;
-    }
-
-    /**
-     * Gets the timeout when requesting a connection, in milliseconds
-     * @return connection timeout
-     */
-    public int getConnectionRequestTimeout() {
-        return connectionRequestTimeout;
-    }
-    /**
-     * Sets the timeout when requesting a connection, in milliseconds.
-     * Default is {@link #DEFAULT_TIMEOUT}.
-     * @param connectionRequestTimeout connection request timeout
-     */
-    public void setConnectionRequestTimeout(int connectionRequestTimeout) {
-        this.connectionRequestTimeout = connectionRequestTimeout;
-    }
-
-    /**
-     * Gets the connection character set.
-     * @return connection character set
-     */
-    public Charset getConnectionCharset() {
-        return connectionCharset;
-    }
-    /**
-     * Sets the connection character set.  The HTTP protocol specification
-     * mandates the use of ASCII for HTTP message headers.  Sites do not always
-     * respect this and it may be necessary to force a non-standard character
-     * set.
-     * @param connectionCharset connection character set
-     */
-    public void setConnectionCharset(Charset connectionCharset) {
-        this.connectionCharset = connectionCharset;
-    }
-
-    /**
-     * Whether 'Expect: 100-continue' handshake is enabled.
-     * @return <code>true</code> if enabled
-     */
-    public boolean isExpectContinueEnabled() {
-        return expectContinueEnabled;
-    }
-    /**
-     * Sets whether 'Expect: 100-continue' handshake is enabled.
-     * See {@link RequestConfig#isExpectContinueEnabled()}
-     * @param expectContinueEnabled <code>true</code> if enabled
-     */
-    public void setExpectContinueEnabled(boolean expectContinueEnabled) {
-        this.expectContinueEnabled = expectContinueEnabled;
-    }
-
-    /**
-     * Gets the maximum number of redirects to be followed.
-     * @return maximum number of redirects to be followed
-     */
-    public int getMaxRedirects() {
-        return maxRedirects;
-    }
-    /**
-     * Sets the maximum number of redirects to be followed.  This can help
-     * prevent infinite loops.  A value of zero effectively disables
-     * redirects.  Default is {@link #DEFAULT_MAX_REDIRECT}.
-     * @param maxRedirects maximum number of redirects to be followed
-     */
-    public void setMaxRedirects(int maxRedirects) {
-        this.maxRedirects = maxRedirects;
-    }
-
-    /**
-     * Gets the local address (IP or hostname).
-     * @return local address
-     */
-    public String getLocalAddress() {
-        return localAddress;
-    }
-    /**
-     * Sets the local address, which may be useful when working with multiple
-     * network interfaces.
-     * @param localAddress locale address
-     */
-    public void setLocalAddress(String localAddress) {
-        this.localAddress = localAddress;
-    }
-
-
-    /**
-     * Gets the maximum number of connections that can be created.
-     * @return number of connections
-     */
-    public int getMaxConnections() {
-        return maxConnections;
-    }
-    /**
-     * Sets maximum number of connections that can be created.  Typically,
-     * you would have at least the same amount as threads.
-     * Default is {@link #DEFAULT_MAX_CONNECTIONS}.
-     * @param maxConnections maximum number of connections
-     */
-    public void setMaxConnections(int maxConnections) {
-        this.maxConnections = maxConnections;
-    }
-
-    /**
-     * Gets the maximum number of connections that can be used per route.
-     * @return number of connections per route
-     */
-    public int getMaxConnectionsPerRoute() {
-        return maxConnectionsPerRoute;
-    }
-    /**
-     * Sets the maximum number of connections that can be used per route.
-     * Default is {@link #DEFAULT_MAX_CONNECTIONS_PER_ROUTE}.
-     * @param maxConnectionsPerRoute maximum number of connections per route
-     */
-    public void setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
-        this.maxConnectionsPerRoute = maxConnectionsPerRoute;
-    }
-
-    /**
-     * Gets the period of time in milliseconds after which to evict idle
-     * connections from the connection pool.
-     * @return amount of time after which to evict idle connections
-     */
-    public int getMaxConnectionIdleTime() {
-        return maxConnectionIdleTime;
-    }
-    /**
-     * Sets the period of time in milliseconds after which to evict idle
-     * connections from the connection pool.
-     * Default is {@link #DEFAULT_MAX_IDLE_TIME}.
-     * @param maxConnectionIdleTime amount of time after which to evict idle
-     *         connections
-     */
-    public void setMaxConnectionIdleTime(int maxConnectionIdleTime) {
-        this.maxConnectionIdleTime = maxConnectionIdleTime;
-    }
-
-    /**
-     * Gets the period of time in milliseconds a connection must be inactive
-     * to be checked in case it became stalled.
-     * @return period of time in milliseconds
-     */
-    public int getMaxConnectionInactiveTime() {
-        return maxConnectionInactiveTime;
-    }
-    /**
-     * Sets the period of time in milliseconds a connection must be inactive
-     * to be checked in case it became stalled. Default is 0 (not proactively
-     * checked).
-     * @param maxConnectionInactiveTime period of time in milliseconds
-     */
-    public void setMaxConnectionInactiveTime(int maxConnectionInactiveTime) {
-        this.maxConnectionInactiveTime = maxConnectionInactiveTime;
-    }
-
-    /**
-     * Whether to trust all SSL certificates (affects only "https" connections).
-     * @since 1.3.0
-     * @return <code>true</code> if trusting all SSL certificates
-     */
-    public boolean isTrustAllSSLCertificates() {
-        return trustAllSSLCertificates;
-    }
-    /**
-     * Sets whether to trust all SSL certificate.  This is typically a bad
-     * idea (favors man-in-the-middle attacks) . Try to install a SSL
-     * certificate locally to ensure a proper certificate exchange instead.
-     * @since 1.3.0
-     * @param trustAllSSLCertificates <code>true</code> if trusting all SSL
-     *            certificates
-     */
-    public void setTrustAllSSLCertificates(boolean trustAllSSLCertificates) {
-        this.trustAllSSLCertificates = trustAllSSLCertificates;
-    }
-
-    /**
-     * Gets whether Server Name Indication (SNI) is disabled.
-     * @return <code>true</code> if disabled
-     */
-    public boolean isDisableSNI() {
-        return disableSNI;
-    }
-    /**
-     * Sets whether Server Name Indication (SNI) is disabled.
-     * @param disableSNI <code>true</code> if disabled
-     */
-    public void setDisableSNI(boolean disableSNI) {
-        this.disableSNI = disableSNI;
+        proxySettings.copyFrom(proxy);
     }
 
     /**
@@ -516,76 +381,6 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      */
     public void setSSLProtocols(List<String> sslProtocols) {
         CollectionUtil.setAll(this.sslProtocols, sslProtocols);
-    }
-
-    /**
-     * Gets whether adding the <code>If-Modified-Since</code> HTTP request
-     * header is disabled.
-     * Servers supporting this header will only return the requested document
-     * if it was last modified since the supplied date.
-     * @return <code>true</code> if disabled
-     */
-    public boolean isDisableIfModifiedSince() {
-        return disableIfModifiedSince;
-    }
-    /**
-     * Sets whether adding the <code>If-Modified-Since</code> HTTP request
-     * header is disabled.
-     * Servers supporting this header will only return the requested document
-     * if it was last modified since the supplied date.
-     * @param disableIfModifiedSince <code>true</code> if disabled
-     */
-    public void setDisableIfModifiedSince(boolean disableIfModifiedSince) {
-        this.disableIfModifiedSince = disableIfModifiedSince;
-    }
-
-    /**
-     * Gets whether adding "ETag" <code>If-None-Match</code>
-     * HTTP request header is disabled.
-     * Servers supporting this header will only return the requested document
-     * if the ETag value has changed, indicating a more recent version is
-     * available.
-     * @return <code>true</code> if disabled
-     */
-    public boolean isDisableETag() {
-        return disableETag;
-    }
-    /**
-     * Sets whether whether adding "ETag" <code>If-None-Match</code>
-     * HTTP request header is disabled.
-     * Servers supporting this header will only return the requested document
-     * if the ETag value has changed, indicating a more recent version is
-     * available.
-     * @param disableETag <code>true</code> if disabled
-     */
-    public void setDisableETag(boolean disableETag) {
-        this.disableETag = disableETag;
-    }
-
-    /**
-     * Gets whether the forcing of non secure URLs to secure ones is disabled,
-     * according to the URL domain <code>Strict-Transport-Security</code> policy
-     * (obtained from HTTP response header).
-     * @return <code>true</code> if disabled
-     */
-    public boolean isDisableHSTS() {
-        return disableHSTS;
-    }
-    /**
-     * Sets whether the forcing of non secure URLs to secure ones is disabled,
-     * according to the URL domain <code>Strict-Transport-Security</code> policy
-     * (obtained from HTTP response header).
-     * @param disableHSTS <code>true</code> if disabled
-     */
-    public void setDisableHSTS( boolean disableHSTS) {
-        this.disableHSTS = disableHSTS;
-    }
-
-    public HttpAuthConfig getAuthConfig() {
-        return authConfig;
-    }
-    public void setAuthConfig(HttpAuthConfig authConfig) {
-        this.authConfig = authConfig;
     }
 
     /**
@@ -620,7 +415,7 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
         cookieSpec = xml.getString("cookieSpec", cookieSpec);
 
         xml.ifXML("authentication", x -> {
-            HttpAuthConfig acfg = new HttpAuthConfig();
+            var acfg = new HttpAuthConfig();
             acfg.loadFromXML(x);
             setAuthConfig(acfg);
         });
@@ -692,7 +487,7 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
         xml.addElement("maxConnectionIdleTime", maxConnectionIdleTime);
         xml.addElement("maxConnectionInactiveTime", maxConnectionInactiveTime);
 
-        XML xmlHeaders = xml.addXML("headers");
+        var xmlHeaders = xml.addXML("headers");
         for (Entry<String, String> entry : requestHeaders.entrySet()) {
             xmlHeaders.addXML("header").setAttribute(
                     "name", entry.getKey()).setTextContent(entry.getValue());
@@ -705,27 +500,7 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
         xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
         xml.addElement("disableSNI", disableSNI);
         xml.addElement("disableHSTS", disableHSTS);
-        xml.setDelimitedAttributeList("sslProtocols", sslProtocols);
+        xml.addDelimitedElementList("sslProtocols", sslProtocols);
         xml.addDelimitedElementList("httpMethods", httpMethods);
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (!(obj instanceof GenericHttpFetcherConfig)) {
-            return false;
-        }
-        GenericHttpFetcherConfig other = (GenericHttpFetcherConfig) obj;
-        return EqualsBuilder.reflectionEquals(
-                this, other, "requestHeaders")
-                && EqualsUtil.equalsMap(requestHeaders, other.requestHeaders);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

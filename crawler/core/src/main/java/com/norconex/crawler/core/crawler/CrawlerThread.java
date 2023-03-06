@@ -18,6 +18,7 @@ import static com.norconex.crawler.core.crawler.CrawlerEvent.CRAWLER_RUN_THREAD_
 import static com.norconex.crawler.core.crawler.CrawlerEvent.CRAWLER_RUN_THREAD_END;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -105,11 +106,20 @@ class CrawlerThread implements Runnable {
 
             ctx.doc(createDocWithDocRecordFromCache(ctx.docRecord()));
 
+            // Before document processing
+            Optional.ofNullable(ctx.crawler().getCrawlerImpl()
+                    .beforeDocumentProcessing()).ifPresent(bdp -> bdp.accept(
+                            crawler, ctx.doc()));
             if (deleting) {
                 ThreadActionDelete.execute(ctx);
             } else {
                 ThreadActionUpsert.execute(ctx);
             }
+
+            // After document processing
+            Optional.ofNullable(ctx.crawler().getCrawlerImpl()
+                    .afterDocumentProcessing()).ifPresent(adp -> adp.accept(
+                            crawler, ctx.doc()));
         } catch (RuntimeException e) {
             if (handleExceptionAndCheckIfStopCrawler(ctx, e)) {
                 crawler.stop();
@@ -207,6 +217,7 @@ class CrawlerThread implements Runnable {
 //                    .toString();
         var cachedDocRec = crawler.getDocRecordService()
                 .getCached(docRec.getReference()).orElse(null);
+
         var doc = new CrawlDoc(
                 docRec,
                 cachedDocRec,

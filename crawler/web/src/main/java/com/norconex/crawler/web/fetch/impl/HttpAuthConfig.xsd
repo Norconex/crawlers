@@ -16,7 +16,6 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:include schemaLocation="../AbstractHttpFetcher.xsd"></xs:include>
   <xs:include schemaLocation="/com/norconex/commons/lang/security/Credentials.xsd"></xs:include>
   <xs:include schemaLocation="/com/norconex/commons/lang/net/Host.xsd"></xs:include>
 

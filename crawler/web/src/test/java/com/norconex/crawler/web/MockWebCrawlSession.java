@@ -19,7 +19,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.function.Consumer;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -54,13 +53,25 @@ public @interface MockWebCrawlSession {
      * a crawl session gets initialized.
      * @return session configuration consumer
      */
-    Class<? extends Consumer<CrawlSessionConfig>> configConsumer()
-            default NoopConfigConsumer.class;
+    Class<? extends MockWebCrawlSessionConfigurer> configurer()
+            default NoopConfigurer.class;
 
-    class NoopConfigConsumer implements Consumer<CrawlSessionConfig> {
+    class NoopConfigurer implements MockWebCrawlSessionConfigurer {
         @Override
-        public void accept(CrawlSessionConfig cfg) {
+        public void configure(Object testInstance, CrawlSessionConfig cfg) {
             // NOOP
         }
     }
+
+//    Class<? extends Consumer<CrawlSessionConfig>> configurer()
+//            default NoopConfigurer.class;
+//
+//    class NoopConfigurer implements Consumer<CrawlSessionConfig> {
+//        @Override
+//        public void accept(CrawlSessionConfig cfg) {
+//            // NOOP
+//        }
+//    }
+
+
 }
