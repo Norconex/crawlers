@@ -61,10 +61,12 @@ public final class WebTestUtil {
     }
 
     public static void ignoreAllIgnorables(CrawlSession crawlSession) {
-        var cfg = getFirstCrawlerConfig(crawlSession);
-        cfg.setIgnoreCanonicalLinks(true);
-        cfg.setIgnoreRobotsMeta(true);
-        cfg.setIgnoreRobotsTxt(true);
-        cfg.setIgnoreSitemap(true);
+        crawlSession.getCrawlSessionConfig().getCrawlerConfigs().forEach(c -> {
+            var cfg = (WebCrawlerConfig) c;
+            cfg.setIgnoreCanonicalLinks(true);
+            cfg.setIgnoreRobotsMeta(true);
+            cfg.setIgnoreRobotsTxt(true);
+            cfg.setIgnoreSitemap(true);
+        });
     }
 }

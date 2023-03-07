@@ -31,8 +31,8 @@ import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
 import com.norconex.crawler.web.pipeline.committer.WebCommitterPipeline;
 import com.norconex.crawler.web.pipeline.importer.WebImporterPipeline;
-import com.norconex.crawler.web.pipeline.queue.WebQueuePipeline;
 import com.norconex.crawler.web.pipeline.queue.WebQueueInitializer;
+import com.norconex.crawler.web.pipeline.queue.WebQueuePipeline;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -213,5 +213,11 @@ public class WebCrawlSessionLauncher {
         LOG.info("RobotsMeta support: {}", !cfg.isIgnoreRobotsMeta());
         LOG.info("Sitemap support: {}", !cfg.isIgnoreSitemap());
         LOG.info("Canonical links support: {}", !cfg.isIgnoreCanonicalLinks());
+        LOG.info("Metadata deduplication support: {}",
+                cfg.isMetadataDeduplicate()
+                        && cfg.getMetadataChecksummer() != null);
+        LOG.info("Document deduplication support: {}",
+                cfg.isDocumentDeduplicate()
+                        && cfg.getDocumentChecksummer() != null);
     }
 }

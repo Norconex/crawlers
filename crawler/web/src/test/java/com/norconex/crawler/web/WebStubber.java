@@ -73,11 +73,6 @@ import com.norconex.crawler.web.sitemap.SitemapResolver;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.DocMetadata;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-
 public final class WebStubber {
 
     public static final String MOCK_CRAWLER_ID = "test-crawler";
@@ -229,34 +224,5 @@ public final class WebStubber {
                 .getDelayResolver()).setDefaultDelay(0);
         crawlerConfig.setCommitters(List.of(new MemoryCommitter()));
         return crawlerConfig;
-    }
-
-
-    public static HtmlPage htmlPage() {
-        return new HtmlPage();
-    }
-
-    @Data
-    @Accessors(fluent = true)
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class HtmlPage {
-        String title = "Mock HTML Page";
-        //TODO if needed, replace with collections, of scripts, css, etc.
-        String head = "";
-        String body = "Mock HTML page content.";
-        public String build() {
-            return """
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                  <title>%s</title>
-                  %s
-                </head>
-                <body>
-                %s
-                </body>
-                </html>
-                """.formatted(title, head, body);
-        }
     }
 }
