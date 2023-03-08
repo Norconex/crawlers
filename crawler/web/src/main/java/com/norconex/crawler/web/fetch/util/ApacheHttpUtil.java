@@ -62,15 +62,15 @@ import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.WebDocRecord;
-import com.norconex.crawler.web.fetch.HttpMethod;
-import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.web.doc.WebDocRecord;
+import com.norconex.crawler.web.fetch.HttpMethod;
+import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
 import com.norconex.importer.doc.DocRecord;
 
 /**
@@ -98,13 +98,13 @@ public final class ApacheHttpUtil {
     public static boolean applyResponseContent(
             HttpResponse response, CrawlDoc doc) throws IOException {
 
-        HttpEntity entity = response.getEntity();
+        var entity = response.getEntity();
         if (entity == null) {
             // just in case...
             EntityUtils.consumeQuietly(entity);
             return false;
         }
-        try (CachedInputStream content =
+        try (var content =
                 doc.getStreamFactory().newInputStream(entity.getContent())) {
             content.enforceFullCaching();
             doc.setInputStream(content);
@@ -136,12 +136,12 @@ public final class ApacheHttpUtil {
      */
     public static void applyResponseHeaders(
             HttpResponse response, String prefix, CrawlDoc doc) {
-        WebDocRecord docRecord = (WebDocRecord) doc.getDocRecord();
-        HeaderIterator it = response.headerIterator();
+        var docRecord = (WebDocRecord) doc.getDocRecord();
+        var it = response.headerIterator();
         while (it.hasNext()) {
-            Header header = (Header) it.next();
-            String name = header.getName();
-            String value = header.getValue();
+            var header = (Header) it.next();
+            var name = header.getName();
+            var value = header.getValue();
 
             if (StringUtils.isBlank(value)) {
                 continue;
@@ -184,15 +184,15 @@ public final class ApacheHttpUtil {
         }
         // delegate parsing of content-type honoring various forms
         // https://tools.ietf.org/html/rfc7231#section-3.1.1
-        org.apache.http.entity.ContentType apacheCT =
+        var apacheCT =
                 org.apache.http.entity.ContentType.parse(value);
 
         // only overwrite object properties if not null
-        ContentType ct = ContentType.valueOf(apacheCT.getMimeType());
+        var ct = ContentType.valueOf(apacheCT.getMimeType());
         if (ct != null) {
             docRecord.setContentType(ct);
         }
-        Charset charset = apacheCT.getCharset();
+        var charset = apacheCT.getCharset();
         if (charset != null) {
             docRecord.setContentEncoding(charset.toString());
         }
@@ -208,7 +208,7 @@ public final class ApacheHttpUtil {
     public static void setRequestIfModifiedSince(
             HttpRequest request, CrawlDoc doc) {
         if (doc.hasCache()) {
-            ZonedDateTime zdt = doc.getCachedDocRecord().getCrawlDate();
+            var zdt = doc.getCachedDocRecord().getCrawlDate();
             if (zdt != null) {
                 request.addHeader(HttpHeaders.IF_MODIFIED_SINCE,
                         zdt.format(DateTimeFormatter.RFC_1123_DATE_TIME));
@@ -225,9 +225,10 @@ public final class ApacheHttpUtil {
     public static void setRequestIfNoneMatch(
             HttpRequest request, CrawlDoc doc) {
         if (doc.hasCache()) {
-            WebDocRecord docRecord = (WebDocRecord) doc.getCachedDocRecord();
+            var docRecord = (WebDocRecord) doc.getCachedDocRecord();
             if (docRecord.getEtag() != null) {
-                request.addHeader(HttpHeaders.IF_NONE_MATCH, docRecord.getEtag());
+                request.addHeader(
+                        HttpHeaders.IF_NONE_MATCH, docRecord.getEtag());
             }
         }
     }
@@ -239,7 +240,7 @@ public final class ApacheHttpUtil {
      * @return Apache HTTP request
      */
     public static HttpRequestBase createUriRequest(String url, String method) {
-        String m = firstNonBlank(method, "GET");
+        var m = firstNonBlank(method, "GET");
         return createUriRequest(url, HttpMethod.valueOf(m.toUpperCase()));
     }
     /**
@@ -250,16 +251,13 @@ public final class ApacheHttpUtil {
      */
     public static HttpRequestBase createUriRequest(
             String url, HttpMethod method) {
-        URI uri = HttpURL.toURI(url);
+        var uri = HttpURL.toURI(url);
         LOG.debug("Encoded URI: {}", uri);
-        switch (method) {
-        case HEAD:
-            return new HttpHead(uri);
-        case POST:
-            return new HttpPost(uri);
-        default:
-            return new HttpGet(uri);
-        }
+        return switch (method) {
+        case HEAD -> new HttpHead(uri);
+        case POST -> new HttpPost(uri);
+        default -> new HttpGet(uri);
+        };
     }
 
     public static void authenticateUsingForm(
@@ -282,7 +280,7 @@ public final class ApacheHttpUtil {
     private static void authFormAction(
             HttpClient httpClient, HttpAuthConfig cfg)
                     throws IOException {
-        HttpPost post = new HttpPost(cfg.getUrl());
+        var post = new HttpPost(cfg.getUrl());
 
         List<NameValuePair> formparams = new ArrayList<>();
         formparams.add(new BasicNameValuePair(
@@ -301,10 +299,10 @@ public final class ApacheHttpUtil {
                 + "assword=*****)", cfg.getUrl(),
                 cfg.getCredentials().getUsername());
         try {
-            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
+            var entity = new UrlEncodedFormEntity(
                     formparams, cfg.getFormCharset());
             post.setEntity(entity);
-            HttpResponse response =
+            var response =
                     httpClient.execute(post, (HttpContext) null);
             LOG.info("Authentication status: {}.", response.getStatusLine());
 
@@ -322,31 +320,32 @@ public final class ApacheHttpUtil {
             HttpClient httpClient, HttpAuthConfig cfg)
                     throws IOException, URISyntaxException {
 
-        LOG.info("Parsing, filing, and submitting login FORM at \"{}\" "
-                + "(username={}; p"
-                + "assword=*****)", cfg.getUrl(),
+        LOG.info("""
+        	Parsing, filing, and submitting login FORM at "{}" \
+        	(username={}; p\
+        	assword=*****)""", cfg.getUrl(),
                 cfg.getCredentials().getUsername());
-        HttpGet get = new HttpGet(cfg.getUrl());
+        var get = new HttpGet(cfg.getUrl());
         try {
-            HttpResponse formReadResponse =
+            var formReadResponse =
                     httpClient.execute(get, (HttpContext) null);
-            HttpEntity entity = formReadResponse.getEntity();
+            var entity = formReadResponse.getEntity();
             if (entity == null) {
                 LOG.error("Authentication URL returned no content. "
                         + "Status: {}.", formReadResponse.getStatusLine());
                 return;
             }
-            Document doc = Jsoup.parse(
+            var doc = Jsoup.parse(
                     entity.getContent(),
                     entity.getContentEncoding() != null
                             ? entity.getContentEncoding().getValue()
                             : null,
                     cfg.getUrl());
-            HttpRequestBase authReq = formToRequest(doc, cfg);
+            var authReq = formToRequest(doc, cfg);
             if (authReq != null) {
                 try {
                     // execute auth request
-                    HttpResponse formSubmitResponse =
+                    var formSubmitResponse =
                             httpClient.execute(authReq);
                     LOG.info("Authentication status: {}.",
                             formSubmitResponse.getStatusLine());
@@ -373,7 +372,7 @@ public final class ApacheHttpUtil {
     private static HttpRequestBase formToRequest(
             Document doc, HttpAuthConfig cfg) throws URISyntaxException {
 
-        Element form = doc.selectFirst(cfg.getFormSelector());
+        var form = doc.selectFirst(cfg.getFormSelector());
         if (form == null) {
             LOG.error("Page has no login form: {}", cfg.getUrl());
             return null;
@@ -385,8 +384,8 @@ public final class ApacheHttpUtil {
         // Loop through each input and fill/overwrite matching
         // ones, else take as is.
         for (Element el: form.select("[name]")) {
-            String name = el.attr("name");
-            String value = el.val();
+            var name = el.attr("name");
+            var value = el.val();
             if (StringUtils.isBlank(value)) {
                 value = el.wholeText();
             }
@@ -408,30 +407,30 @@ public final class ApacheHttpUtil {
         //--- Form params to HTTP request ---
 
         // If no "action", we assume self.
-        String actionURL =
+        var actionURL =
                 firstNonBlank(form.attr("abs:action"), cfg.getUrl());
         // If no "method", we assume "GET".
-        HttpRequestBase httpRequest =
+        var httpRequest =
                 createUriRequest(actionURL, form.attr("method"));
 
         // Only for POST. https://www.w3schools.com/tags/att_form_enctype.asp
         if (httpRequest instanceof HttpPost) {
             HttpEntity entity;
-            String enctype = form.attr("enctype");
-            Charset charset = ObjectUtils.firstNonNull(
+            var enctype = form.attr("enctype");
+            var charset = ObjectUtils.firstNonNull(
                     cfg.getFormCharset(),
                     isNotBlank(form.attr("accept-charset"))
                             ? Charset.forName(form.attr("accept-charset"))
                             : UTF_8);
             if ("multipart/form-data".equalsIgnoreCase(enctype)) {
-                FormBodyPartBuilder fb = FormBodyPartBuilder.create();
+                var fb = FormBodyPartBuilder.create();
                 for (Entry<String, String> en : params.entrySet()) {
                     fb.addField(en.getKey(), en.getValue());
                 }
                 entity = MultipartEntityBuilder.create().addPart(
                         fb.build()).build();
             } else if ("text/plain".equalsIgnoreCase(enctype)) {
-                StringBuilder b = new StringBuilder();
+                var b = new StringBuilder();
                 for (Entry<String, String> en : params.entrySet()) {
                     b.append(replaceChars(en.getKey(), ' ', '+'));
                     b.append('=');
@@ -445,8 +444,7 @@ public final class ApacheHttpUtil {
                         toNameValuePairs(params), charset);
             }
             ((HttpPost) httpRequest).setEntity(entity);
-        } else if (httpRequest instanceof HttpGet) {
-            HttpGet get = (HttpGet) httpRequest;
+        } else if (httpRequest instanceof HttpGet get) {
             get.setURI(new URIBuilder(get.getURI())
                     .setParameters(toNameValuePairs(params))
                     .build());

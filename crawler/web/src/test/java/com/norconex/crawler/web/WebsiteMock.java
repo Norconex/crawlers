@@ -25,6 +25,11 @@ import org.mockserver.mock.Expectation;
 import org.mockserver.model.BinaryBody;
 import org.mockserver.model.MediaType;
 
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
 public final class WebsiteMock {
 
     private WebsiteMock() {}
@@ -44,7 +49,7 @@ public final class WebsiteMock {
         .respond(
             response()
                 .withBody(
-                        WebStubber.htmlPage().body(body).build(),
+                        WebsiteMock.htmlPage().body(body).build(),
                         MediaType.HTML_UTF_8)
         );
     }
@@ -73,5 +78,33 @@ public final class WebsiteMock {
             response()
             .withBody(BinaryBody.binary(resource.asBytes(), MediaType.PNG))
         );
+    }
+
+    @Data
+    @Accessors(fluent = true)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class HtmlPage {
+        String title = "Mock HTML Page";
+        //TODO if needed, replace with collections, of scripts, css, etc.
+        String head = "";
+        String body = "Mock HTML page content.";
+        public String build() {
+            return """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <title>%s</title>
+                  %s
+                </head>
+                <body>
+                %s
+                </body>
+                </html>
+                """.formatted(title, head, body);
+        }
+    }
+
+    public static HtmlPage htmlPage() {
+        return new HtmlPage();
     }
 }

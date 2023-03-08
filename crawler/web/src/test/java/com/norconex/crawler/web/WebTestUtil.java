@@ -19,6 +19,7 @@ import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 
 import lombok.NonNull;
 
@@ -59,12 +60,19 @@ public final class WebTestUtil {
             @NonNull CrawlSessionConfig crawlSessionConfig) {
         return (WebCrawlerConfig) crawlSessionConfig.getCrawlerConfigs().get(0);
     }
+    public static GenericHttpFetcher getFirstHttpFetcher(
+            @NonNull CrawlSession crawlSession) {
+        return (GenericHttpFetcher) getFirstCrawlerConfig(
+                crawlSession.getCrawlSessionConfig()).getHttpFetchers().get(0);
+    }
 
     public static void ignoreAllIgnorables(CrawlSession crawlSession) {
-        var cfg = getFirstCrawlerConfig(crawlSession);
-        cfg.setIgnoreCanonicalLinks(true);
-        cfg.setIgnoreRobotsMeta(true);
-        cfg.setIgnoreRobotsTxt(true);
-        cfg.setIgnoreSitemap(true);
+        crawlSession.getCrawlSessionConfig().getCrawlerConfigs().forEach(c -> {
+            var cfg = (WebCrawlerConfig) c;
+            cfg.setIgnoreCanonicalLinks(true);
+            cfg.setIgnoreRobotsMeta(true);
+            cfg.setIgnoreRobotsTxt(true);
+            cfg.setIgnoreSitemap(true);
+        });
     }
 }

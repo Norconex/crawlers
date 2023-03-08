@@ -240,13 +240,16 @@
     <Logger name="com.norconex.commons.lang" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.commons.lang.xml" level="TRACE" additivity="false">
+    <Logger name="com.norconex.commons.lang.xml" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.apache" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.mockserver" level="TRACE" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
 

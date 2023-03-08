@@ -70,7 +70,7 @@ class CanonicalLinkTest {
             .respond(response()
                 .withHeader("Link", "<%s>; rel=\"canonical\""
                         .formatted(canonicalUrl))
-                .withBody(WebStubber
+                .withBody(WebsiteMock
                     .htmlPage()
                     .body("<p>Canonical URL in HTTP header.</p>" + commonBody)
                     .build(),
@@ -80,7 +80,7 @@ class CanonicalLinkTest {
             .when(request()
                 .withPath(linkRelPath))
             .respond(response()
-                .withBody(WebStubber
+                .withBody(WebsiteMock
                     .htmlPage()
                     .head("<link rel=\"canonical\" href=\"%s\" />"
                             .formatted(canonicalUrl))

@@ -31,8 +31,8 @@ import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
 import com.norconex.crawler.web.pipeline.committer.WebCommitterPipeline;
 import com.norconex.crawler.web.pipeline.importer.WebImporterPipeline;
-import com.norconex.crawler.web.pipeline.queue.WebQueuePipeline;
 import com.norconex.crawler.web.pipeline.queue.WebQueueInitializer;
+import com.norconex.crawler.web.pipeline.queue.WebQueuePipeline;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -209,9 +209,33 @@ public class WebCrawlSessionLauncher {
 
     private static void logCrawlerInformation(Crawler crawler, boolean resume) {
         var cfg = Web.config(crawler);
-        LOG.info("RobotsTxt support: {}", !cfg.isIgnoreRobotsTxt());
-        LOG.info("RobotsMeta support: {}", !cfg.isIgnoreRobotsMeta());
-        LOG.info("Sitemap support: {}", !cfg.isIgnoreSitemap());
-        LOG.info("Canonical links support: {}", !cfg.isIgnoreCanonicalLinks());
+        LOG.info("""
+            Enabled features:
+
+            RobotsTxt:        %s
+            RobotsMeta:       %s
+            Sitemap:          %s
+            Canonical links:  %s
+            Metadata:
+              Checksummer:    %s
+              Deduplication:  %s
+            Document:
+              Checksummer:    %s
+              Deduplication:  %s
+            """.formatted(
+                    yn(!cfg.isIgnoreRobotsTxt()),
+                    yn(!cfg.isIgnoreRobotsMeta()),
+                    yn(!cfg.isIgnoreSitemap()),
+                    yn(!cfg.isIgnoreCanonicalLinks()),
+                    yn(cfg.getMetadataChecksummer() != null),
+                    yn(cfg.isMetadataDeduplicate()
+                            && cfg.getMetadataChecksummer() != null),
+                    yn(cfg.getDocumentChecksummer() != null),
+                    yn(cfg.isDocumentDeduplicate()
+                            && cfg.getDocumentChecksummer() != null)
+            ));
+    }
+    private static String yn(boolean value) {
+        return value ? "Yes" : "No";
     }
 }
