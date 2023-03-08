@@ -209,15 +209,33 @@ public class WebCrawlSessionLauncher {
 
     private static void logCrawlerInformation(Crawler crawler, boolean resume) {
         var cfg = Web.config(crawler);
-        LOG.info("RobotsTxt support: {}", !cfg.isIgnoreRobotsTxt());
-        LOG.info("RobotsMeta support: {}", !cfg.isIgnoreRobotsMeta());
-        LOG.info("Sitemap support: {}", !cfg.isIgnoreSitemap());
-        LOG.info("Canonical links support: {}", !cfg.isIgnoreCanonicalLinks());
-        LOG.info("Metadata deduplication support: {}",
-                cfg.isMetadataDeduplicate()
-                        && cfg.getMetadataChecksummer() != null);
-        LOG.info("Document deduplication support: {}",
-                cfg.isDocumentDeduplicate()
-                        && cfg.getDocumentChecksummer() != null);
+        LOG.info("""
+            Enabled features:
+
+            RobotsTxt:        %s
+            RobotsMeta:       %s
+            Sitemap:          %s
+            Canonical links:  %s
+            Metadata:
+              Checksummer:    %s
+              Deduplication:  %s
+            Document:
+              Checksummer:    %s
+              Deduplication:  %s
+            """.formatted(
+                    yn(!cfg.isIgnoreRobotsTxt()),
+                    yn(!cfg.isIgnoreRobotsMeta()),
+                    yn(!cfg.isIgnoreSitemap()),
+                    yn(!cfg.isIgnoreCanonicalLinks()),
+                    yn(cfg.getMetadataChecksummer() != null),
+                    yn(cfg.isMetadataDeduplicate()
+                            && cfg.getMetadataChecksummer() != null),
+                    yn(cfg.getDocumentChecksummer() != null),
+                    yn(cfg.isDocumentDeduplicate()
+                            && cfg.getDocumentChecksummer() != null)
+            ));
+    }
+    private static String yn(boolean value) {
+        return value ? "Yes" : "No";
     }
 }

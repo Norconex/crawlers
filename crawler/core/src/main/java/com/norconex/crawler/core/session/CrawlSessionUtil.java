@@ -83,43 +83,4 @@ final class CrawlSessionUtil {
                         committer -> classes.add(committer.getClass())));
         return classes;
     }
-
-////
-////    protected synchronized void lock() {
-////        LOG.debug("Locking CrawlSession execution...");
-////        lock = new FileLocker(getWorkDir().resolve(".CrawlSession-lock"));
-////        try {
-////            lock.lock();
-////        } catch (FileAlreadyLockedException e) {
-////            throw new CrawlSessionException(
-////                    "The CrawlSession you are attempting to run is already "
-////                  + "running or executing a command. Wait for "
-////                  + "it to complete or stop it and try again.");
-////        } catch (IOException e) {
-////            throw new CrawlSessionException(
-////                    "Could not create a CrawlSession execution lock.", e);
-////        }
-////        LOG.debug("CrawlSession execution locked");
-////    }
-//    protected synchronized void unlock() {
-//        try {
-//            if (lock != null) {
-//                lock.unlock();
-//            }
-//        } catch (IOException e) {
-//            throw new CrawlSessionException(
-//                    "Cannot unlock CrawlSession execution.", e);
-//        }
-//        lock = null;
-//        LOG.debug("CrawlSession execution unlocked");
-//    }
-//
-//    public boolean isRunning() {
-//        return lock != null && lock.isLocked();
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return getId();
-//    }
 }

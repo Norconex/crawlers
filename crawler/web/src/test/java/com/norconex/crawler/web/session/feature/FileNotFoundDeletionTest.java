@@ -71,7 +71,7 @@ class FileNotFoundDeletionTest {
         assertThat(mem.getDeleteCount()).isOne();
         mem.clean();
 
-        // Third run: 1 new doc (1 unmodified + 1 found again) and zero delete
+        // Third run: 1 new doc (1 unmodified + 1 resurrected) and zero delete
         whenPageFound(client);
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
