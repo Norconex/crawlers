@@ -71,6 +71,11 @@ public final class WebsiteMock {
                 client.getLocalPort(),
                 StringUtils.prependIfMissing(urlPath, "/"));
     }
+    public static String serverUrl(HttpRequest request, String urlPath) {
+        return "http://localhost:%s%s".formatted(
+                StringUtils.substringAfterLast(request.getLocalAddress(), ":"),
+                StringUtils.prependIfMissing(urlPath, "/"));
+    }
 
     public static Expectation[] whenHtml(
             ClientAndServer client, String urlPath, String body) {
