@@ -59,8 +59,8 @@ class IfModifiedSinceTest {
 
     private String path = "/ifModifiedSince";
 
-    private static final ZonedDateTime fiveDaysAgo = dateDaysFromNow(5);
-    private static final ZonedDateTime today = dateDaysFromNow(0);
+    private static final ZonedDateTime fiveDaysAgo = WebTestUtil.daysAgo(5);
+    private static final ZonedDateTime today = WebTestUtil.daysAgo(0);
 
     private static ZonedDateTime serverDate = fiveDaysAgo;
 
@@ -115,7 +115,7 @@ class IfModifiedSinceTest {
         public HttpResponse handle(HttpRequest req) {
             var response = response().withHeader(
                     HttpHeaders.LAST_MODIFIED,
-                    serverDate.format(DateTimeFormatter.RFC_1123_DATE_TIME));
+                    WebTestUtil.rfcFormat(serverDate));
             var dateStr = req.getFirstHeader(HttpHeaders.IF_MODIFIED_SINCE);
             if (StringUtils.isNotBlank(dateStr)) {
                 var reqDate = ZonedDateTime.parse(
@@ -127,11 +127,5 @@ class IfModifiedSinceTest {
             }
             return response.withBody("Doc modified.");
         }
-    }
-
-    private static ZonedDateTime dateDaysFromNow(int days) {
-        return ZonedDateTime.now()
-                .minusDays(days)
-                .withNano(0);
     }
 }

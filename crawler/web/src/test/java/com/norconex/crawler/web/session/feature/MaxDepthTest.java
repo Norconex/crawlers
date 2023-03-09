@@ -37,7 +37,7 @@ class MaxDepthTest {
     private static final String PATH = "/maxDepth";
 
     @Test
-    void testMaxConcurrentCrawlers(ClientAndServer client) throws IOException {
+    void testMaxDepth(ClientAndServer client) throws IOException {
         client
             .when(request()) // match any path
             .respond(HttpClassCallback.callback(Callback.class));

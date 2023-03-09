@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.web;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -74,5 +77,15 @@ public final class WebTestUtil {
             cfg.setIgnoreRobotsTxt(true);
             cfg.setIgnoreSitemap(true);
         });
+    }
+
+    public static ZonedDateTime daysAgo(int days) {
+        return ZonedDateTime.now().minusDays(days).withNano(0);
+    }
+    public static String daysAgoRFC(int days) {
+        return rfcFormat(daysAgo(days));
+    }
+    public static String rfcFormat(ZonedDateTime dateTime) {
+        return dateTime.format(DateTimeFormatter.RFC_1123_DATE_TIME);
     }
 }

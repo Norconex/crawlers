@@ -37,7 +37,7 @@ class MaxDocumentsTest {
     private static final String PATH = "/maxDocuments";
 
     @Test
-    void testMaxConcurrentCrawlers(ClientAndServer client) throws IOException {
+    void testMaxDocuments(ClientAndServer client) throws IOException {
         client
             .when(request()) // match any path
             .respond(HttpClassCallback.callback(Callback.class));
