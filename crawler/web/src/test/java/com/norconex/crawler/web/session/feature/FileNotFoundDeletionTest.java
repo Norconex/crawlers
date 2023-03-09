@@ -52,8 +52,7 @@ class FileNotFoundDeletionTest {
                     """.formatted(TOGGLE_PATH), HTML_UTF_8));
 
         var crawlSession = TestWebCrawlSession
-                .prepare()
-                .startUrls(serverUrl(client, HOME_PATH))
+                .forStartUrls(serverUrl(client, HOME_PATH))
                 .crawlSession();
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
 

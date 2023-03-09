@@ -35,7 +35,7 @@ import com.norconex.crawler.web.WebsiteMock;
 class JavaScriptProtocolURLTest {
 
     @Test
-    void testJavaScriptURL(ClientAndServer client) {
+    void testJavaScriptProtocolURL(ClientAndServer client) {
         var firstPath = "/jsUrl";
         var secondPath = "/jsUrl/target";
 
@@ -57,8 +57,7 @@ class JavaScriptProtocolURLTest {
             """);
 
         var crawlSession = TestWebCrawlSession
-                .prepare()
-                .startUrls(serverUrl(client, firstPath))
+                .forStartUrls(serverUrl(client, firstPath))
                 .crawlSession();
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
         assertThatNoException().isThrownBy(() -> {
