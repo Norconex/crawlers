@@ -216,6 +216,16 @@ public final class WebStubber {
         return sessionConfig;
     }
 
+    /**
+     * <p>Web crawler config stub:</p>
+     * <ul>
+     *   <li>Crawler id: {@value #MOCK_CRAWLER_ID}.</li>
+     *   <li>1 thread.</li>
+     *   <li>0 delay.</li>
+     *   <li>1 MemoryCommitter.</li>
+     * </ul>
+     * @return crawler config
+     */
     public static WebCrawlerConfig crawlerConfig() {
         var crawlerConfig = new WebCrawlerConfig();
         crawlerConfig.setId(MOCK_CRAWLER_ID);

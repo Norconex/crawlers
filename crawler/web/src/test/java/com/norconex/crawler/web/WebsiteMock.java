@@ -20,9 +20,13 @@ import static org.mockserver.model.HttpResponse.response;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.mock.Expectation;
+import org.mockserver.mock.action.ExpectationResponseCallback;
 import org.mockserver.model.BinaryBody;
+import org.mockserver.model.HttpRequest;
+import org.mockserver.model.HttpResponse;
 import org.mockserver.model.MediaType;
 
 import lombok.AccessLevel;
@@ -31,6 +35,34 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 public final class WebsiteMock {
+
+    public static abstract class InfinitDepthCallback
+            implements ExpectationResponseCallback {
+        private final String basePath;
+        protected InfinitDepthCallback(String basePath) {
+            this.basePath = StringUtils.appendIfMissing(basePath, "/");
+        }
+        @Override
+        public HttpResponse handle(HttpRequest req) {
+            var reqPath = req.getPath().toString();
+            var numStr = StringUtils.substringAfterLast(reqPath, "/");
+            var currentDepth = 0;
+            if (NumberUtils.isDigits(numStr)) {
+                currentDepth = Integer.parseInt(numStr);
+            }
+            var prevLink = "";
+            if (currentDepth > 0) {
+                prevLink = "<a href=\"%s\">Previous</a> | "
+                        .formatted(basePath + (currentDepth - 1));
+            }
+            var nextLink = " | <a href=\"%s\">Next</a>"
+                    .formatted(basePath + (currentDepth + 1));
+            return response().withBody("""
+                <h1>%s test page</h1>
+                %s Current page depth: %s %s
+                """.formatted(reqPath, prevLink, currentDepth, nextLink));
+        }
+    }
 
     private WebsiteMock() {}
 
