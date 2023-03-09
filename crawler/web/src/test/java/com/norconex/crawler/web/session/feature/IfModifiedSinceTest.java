@@ -24,11 +24,9 @@ import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.mockserver.matchers.Times;
 import org.mockserver.mock.action.ExpectationResponseCallback;
 import org.mockserver.model.HttpClassCallback;
 import org.mockserver.model.HttpRequest;
@@ -55,8 +53,7 @@ import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
  * On the first and third attempt only shall we get documents committed.
  * Other attempts should be unmodified.
  */
-//Test for https://github.com/Norconex/collector-http/issues/637
-@Disabled
+//Related issue: https://github.com/Norconex/collector-http/issues/637
 @MockServerSettings
 class IfModifiedSinceTest {
 
@@ -68,10 +65,10 @@ class IfModifiedSinceTest {
     private static ZonedDateTime serverDate = fiveDaysAgo;
 
     @Test
-    void testIfNoneMatch(ClientAndServer client) throws CommitterException {
+    void testIfModifiedSince(ClientAndServer client) throws CommitterException {
 
         client
-            .when(request().withPath(path), Times.once())
+            .when(request().withPath(path))
             .respond(HttpClassCallback.callback(Callback.class));
 
 
@@ -90,70 +87,29 @@ class IfModifiedSinceTest {
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
 
         // First run is new
-//        whenLastModified(client, serverLastModified);
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Second run got the same date, so not modified
-//        whenLastModified(client, serverLastModified);
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // Third run got different date, so modified
         serverDate = today;
-//        serverLastModified = dateDaysFromNow(0);
-//        whenLastModified(client, serverLastModified);
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Fourth run got same date, but we disable If-Modified-Since support,
         // so modified
-//        whenLastModified(client, serverLastModified);
         WebTestUtil.getFirstHttpFetcher(crawlSession)
                 .getConfig().setDisableIfModifiedSince(true);
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
     }
-
-//    private void whenLastModified(
-//            ClientAndServer client, ZonedDateTime lastModified) {
-////        client.reset();
-////        client
-////            .when(request().withPath(path), Times.once())
-////            .respond(HttpClassCallback.callback(Callback.class));
-//
-//
-////
-////
-////        // client cache date is greater than server date
-////        client
-////            .when(
-////                request()
-////                    .withPath(path)
-////                    .withHeader(HttpHeaders.IF_MODIFIED_SINCE, lastModified),
-////                Times.once())
-////            .respond(response()
-////                .withHeader(HttpHeaders.LAST_MODIFIED, lastModified)
-//                .withStatusCode(HttpStatusCode.NOT_MODIFIED_304.code())
-////            );
-////
-////        // client cache date is missing or lower/equal than server date
-////        client
-////            .when(request()
-////                .withPath(path)
-//                .withHeader(optionalHeader(
-//                        HttpHeaders.IF_MODIFIED_SINCE,
-//                        NottableString.not(lastModified).toString())),
-////                Times.once())
-////            .respond(response()
-////                .withHeader(HttpHeaders.LAST_MODIFIED, lastModified)
-////                .withBody("Doc modified.")
-////            );
-//    }
 
     public static class Callback implements ExpectationResponseCallback {
         @Override
@@ -163,8 +119,9 @@ class IfModifiedSinceTest {
                     serverDate.format(DateTimeFormatter.RFC_1123_DATE_TIME));
             var dateStr = req.getFirstHeader(HttpHeaders.IF_MODIFIED_SINCE);
             if (StringUtils.isNotBlank(dateStr)) {
-                var reqDate = ZonedDateTime.parse(dateStr);
-                if (serverDate.isAfter(reqDate)) {
+                var reqDate = ZonedDateTime.parse(
+                        dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
+                if (!reqDate.isBefore(serverDate)) {
                     return response.withStatusCode(
                             HttpStatusCode.NOT_MODIFIED_304.code());
                 }
@@ -173,16 +130,9 @@ class IfModifiedSinceTest {
         }
     }
 
-
     private static ZonedDateTime dateDaysFromNow(int days) {
         return ZonedDateTime.now()
-                .minusDays(days).withNano(0);
-//                .format(DateTimeFormatter.ofPattern(
-//                        "EEE, dd MMM yyyy HH:mm:ss xx", Locale.ENGLISH));
+                .minusDays(days)
+                .withNano(0);
     }
-//    http client: [ "Wed, 8 Mar 2023 02:29:14 -0500" ]
-//    expectation: [ "Fri, 3 Mar 2023 07:29:12 GMT" ]
-//    private static class ServerModificationGreater extends RequestDefinition {
-//
-//    }
 }

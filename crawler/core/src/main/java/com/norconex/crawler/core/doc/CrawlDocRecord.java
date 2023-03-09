@@ -16,9 +16,7 @@ package com.norconex.crawler.core.doc;
 
 import java.time.ZonedDateTime;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.importer.doc.DocRecord;
@@ -60,6 +58,7 @@ public class CrawlDocRecord extends DocRecord {
     private String contentChecksum;
     @ToStringExclude
     private ZonedDateTime crawlDate;
+    private ZonedDateTime lastModified;
 
     public CrawlDocRecord() {}
 
@@ -95,7 +94,6 @@ public class CrawlDocRecord extends DocRecord {
     public final void setDepth(int depth) {
         this.depth = depth;
     }
-
 
     public String getOriginalReference() {
         return originalReference;
@@ -157,12 +155,10 @@ public class CrawlDocRecord extends DocRecord {
         this.crawlDate = crawlDate;
     }
 
-    @Override
-    public String toString() {
-        var b = new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE);
-        b.setExcludeNullValues(true);
-        return b.toString();
-
+    public ZonedDateTime getLastModified() {
+        return lastModified;
+    }
+    public void setLastModified(ZonedDateTime lastModified) {
+        this.lastModified = lastModified;
     }
 }

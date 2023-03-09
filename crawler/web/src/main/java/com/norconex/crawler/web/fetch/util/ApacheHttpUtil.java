@@ -20,12 +20,12 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.replaceChars;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +37,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
@@ -64,7 +63,6 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.doc.CrawlDoc;
@@ -158,6 +156,18 @@ public final class ApacheHttpUtil {
                 docRecord.setEtag(value);
             }
 
+            // Last Modified
+            if (HttpHeaders.LAST_MODIFIED.equalsIgnoreCase(name)
+                    && StringUtils.isNotBlank(value)) {
+                try {
+                    docRecord.setLastModified(ZonedDateTime.parse(
+                            value, DateTimeFormatter.RFC_1123_DATE_TIME));
+                } catch (DateTimeParseException e) {
+                    LOG.debug("Could not parse HTTP response Last-Modified "
+                            + "header.", e);
+                }
+            }
+
             if (StringUtils.isNotBlank(prefix)) {
                 name = prefix + name;
             }
@@ -208,7 +218,12 @@ public final class ApacheHttpUtil {
     public static void setRequestIfModifiedSince(
             HttpRequest request, CrawlDoc doc) {
         if (doc.hasCache()) {
-            var zdt = doc.getCachedDocRecord().getCrawlDate();
+            // In case the server did not previously return the last modified
+            // date but supports "If-Modified-Since" (odd), we try
+            // with last crawl date if last modified is null.
+            var zdt = ObjectUtils.firstNonNull(
+                doc.getCachedDocRecord().getLastModified(),
+                doc.getCachedDocRecord().getCrawlDate());
             if (zdt != null) {
                 request.addHeader(HttpHeaders.IF_MODIFIED_SINCE,
                         zdt.format(DateTimeFormatter.RFC_1123_DATE_TIME));
