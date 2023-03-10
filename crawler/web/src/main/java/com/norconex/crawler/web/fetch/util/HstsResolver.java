@@ -22,15 +22,14 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpHead;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.net.InternetDomainName;
+import com.norconex.commons.lang.url.URLNormalizer;
 import com.norconex.crawler.web.doc.WebDocRecord;
-import com.norconex.crawler.web.url.impl.GenericURLNormalizer.Normalization;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -43,15 +42,13 @@ import com.norconex.crawler.web.url.impl.GenericURLNormalizer.Normalization;
  * </p>
  * <p>
  * To always convert "http" to "https" regardless of a site support for HSTS,
- * you should rely on {@link Normalization#secureScheme}
+ * you should rely on {@link URLNormalizer#secureScheme}
  * instead.
  * </p>
  * @since 3.0.0
  */
+@Slf4j
 public final class HstsResolver {
-
-    private static final Logger LOG = LoggerFactory.getLogger(
-            HstsResolver.class);
 
     private static final String HSTS_HEADER = "Strict-Transport-Security";
 
@@ -61,6 +58,10 @@ public final class HstsResolver {
             new HashMap<>();
 
     private HstsResolver() { }
+
+    public synchronized static void clearCache() {
+        DOMAIN_HSTS.clear();
+    }
 
     public static void resolve(HttpClient httpClient, WebDocRecord docRecord) {
 
@@ -73,11 +74,11 @@ public final class HstsResolver {
         // We only perform the public suffix resolution if a valid domain.
         // See: https://github.com/Norconex/collector-http/issues/785
 
-        String rootDomain = docRecord.getReference().replaceFirst(
+        var rootDomain = docRecord.getReference().replaceFirst(
                 "(?i)^https?://([^/\\?#]+).*", "$1");
-        boolean isSubdomain = false;
+        var isSubdomain = false;
         if (InternetDomainName.isValid(rootDomain)) {
-            InternetDomainName dn = InternetDomainName.from(rootDomain);
+            var dn = InternetDomainName.from(rootDomain);
 
             if (dn.isTopPrivateDomain()) {
                 dn = dn.topPrivateDomain();
@@ -102,12 +103,14 @@ public final class HstsResolver {
 
     private static synchronized void applyHstsSupport(
             WebDocRecord docRecord, String domain, boolean isSubdomain) {
-        HstsSupport support = DOMAIN_HSTS.getOrDefault(domain, HstsSupport.NO);
+        var support = DOMAIN_HSTS.getOrDefault(domain, HstsSupport.NO);
         if (support == HstsSupport.INCLUDE_SUBDOMAINS
                 || (support == HstsSupport.DOMAIN_ONLY && !isSubdomain)) {
-            LOG.debug("Converting protocol to https according to "
-                    + "domain Strict-Transport-Security (HSTS) settings "
-                    + "for effective top-level domain: {}", domain);
+            LOG.debug("""
+                Converting protocol to https according to\s\
+                domain Strict-Transport-Security (HSTS) settings\s\
+                for effective top-level domain: {}
+                """, domain);
             docRecord.setOriginalReference(docRecord.getReference());
             docRecord.setReference(docRecord.getReference().replaceFirst(
                     "(?i)^http://", "https://"));
@@ -117,11 +120,18 @@ public final class HstsResolver {
     private static synchronized void resolveHstsSupport(
             HttpClient httpClient, String domain) {
 
+        var exceptionMsg = """
+            Attempt to verify if the site supports\s\
+            Strict-Transport-Security (HSTS) failed for domain\s\
+            "%s". We'll assumume HSTS is not supported for\s\
+            all URLs on that domain
+            """.formatted(domain);
+
         DOMAIN_HSTS.computeIfAbsent(domain, d -> {
-            HttpHead req = new HttpHead("https://" + d);
+            var req = new HttpHead("https://" + d);
             try {
                 // case-insensitive look-up
-                Header header = Stream.of(
+                var header = Stream.of(
                         httpClient.execute(req).getAllHeaders())
                     .filter(h -> HSTS_HEADER.equalsIgnoreCase(h.getName()))
                     .findAny()
@@ -143,11 +153,7 @@ public final class HstsResolver {
                         domain);
                 return HstsSupport.DOMAIN_ONLY;
             } catch (IOException e) {
-                LOG.warn("Attempt to verify if the site supports "
-                        + "Strict-Transport-Security (HSTS) failed for domain "
-                        + "\"{}\". We'll assumume HSTS is not supported for "
-                        + "all URLs on that domain.",
-                        domain, e);
+                LOG.warn(exceptionMsg, e);
                 return HstsSupport.NO;
             }
         });

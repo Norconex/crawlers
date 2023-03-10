@@ -67,6 +67,10 @@ public final class WebsiteMock {
 
     private WebsiteMock() {}
 
+    public static String secureServerUrl(
+            ClientAndServer client, String urlPath) {
+        return serverUrl(client, urlPath).replace("http://", "https://");
+    }
     public static String serverUrl(ClientAndServer client, String urlPath) {
         return "http://localhost:%s%s".formatted(
                 client.getLocalPort(),

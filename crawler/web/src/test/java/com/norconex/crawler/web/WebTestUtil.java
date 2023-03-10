@@ -27,10 +27,12 @@ import org.apache.commons.io.IOUtils;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
 import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;
@@ -76,6 +78,11 @@ public final class WebTestUtil {
             @NonNull CrawlSession crawlSession) {
         return (GenericHttpFetcher) getFirstCrawlerConfig(
                 crawlSession.getCrawlSessionConfig()).getHttpFetchers().get(0);
+    }
+    public static GenericHttpFetcherConfig getFirstHttpFetcherConfig(
+            @NonNull CrawlerConfig crawlerConfig) {
+        return ((GenericHttpFetcher) ((WebCrawlerConfig) crawlerConfig)
+                .getHttpFetchers().get(0)).getConfig();
     }
 
     public static void ignoreAllIgnorables(CrawlSession crawlSession) {
