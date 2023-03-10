@@ -14,15 +14,24 @@
  */
 package com.norconex.crawler.web;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.apache.commons.io.IOUtils;
+
+import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
+import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;
 
@@ -87,5 +96,19 @@ public final class WebTestUtil {
     }
     public static String rfcFormat(ZonedDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.RFC_1123_DATE_TIME);
+    }
+
+    public static String docText(Doc doc) {
+        return toString(doc.getInputStream());
+    }
+    public static String docText(UpsertRequest doc) {
+        return toString(doc.getContent());
+    }
+    public static String toString(InputStream is) {
+        try {
+            return IOUtils.toString(is, UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
