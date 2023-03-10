@@ -37,7 +37,7 @@ import com.norconex.crawler.web.link.impl.HtmlLinkExtractor;
 class ScriptTagsTest {
 
     @Test
-    void testScriptTagsTest(ClientAndServer client) throws CommitterException {
+    void testScriptTags(ClientAndServer client) throws CommitterException {
 
         var homePath = "/scriptTags/index.html";
         var scriptPath = "/scriptTags/script.js";

@@ -255,6 +255,7 @@ public class GenericSitemapResolver
             c.close();
         });
         deleteTemp();
+        resolvedURLRoots = null;
     }
     private void deleteTemp() {
         Optional.ofNullable(tempDir).ifPresent(dir -> {
