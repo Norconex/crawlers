@@ -56,9 +56,9 @@ class FeaturedImageProcessorTest {
     void testProcessFeaturedImage(
             ClientAndServer client, Crawler crawler)
             throws IOException {
-        WebsiteMock.whenImagePng(client, "/640x480.png", IMG_640X480_PNG);
-        WebsiteMock.whenImagePng(client, "/page/320x240.png", IMG_320X240_PNG);
-        WebsiteMock.whenImagePng(client, "160x120.png", IMG_160X120_PNG);
+        WebsiteMock.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
+        WebsiteMock.whenPNG(client, "/page/320x240.png", IMG_320X240_PNG);
+        WebsiteMock.whenPNG(client, "160x120.png", IMG_160X120_PNG);
 
         var baseUrl = "http://localhost:" + client.getLocalPort();
         var docUrl = baseUrl + "/page/test.html";

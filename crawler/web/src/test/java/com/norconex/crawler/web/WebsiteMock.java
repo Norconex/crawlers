@@ -16,6 +16,7 @@ package com.norconex.crawler.web;
 
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
+import static org.mockserver.model.MediaType.HTML_UTF_8;
 
 import java.io.IOException;
 
@@ -79,43 +80,40 @@ public final class WebsiteMock {
 
     public static Expectation[] whenHtml(
             ClientAndServer client, String urlPath, String body) {
-        return client.when(
-            request()
-                .withPath(urlPath)
-        )
-        .respond(
-            response()
-                .withBody(
-                        WebsiteMock.htmlPage().body(body).build(),
-                        MediaType.HTML_UTF_8)
-        );
+        return client
+            .when(request().withPath(urlPath))
+            .respond(response().withBody(
+                    WebsiteMock.htmlPage().body(body).build(), HTML_UTF_8));
     }
 
     public static Expectation[] whenHtml(
             ClientAndServer client, String urlPath, TestResource resource)
                     throws IOException {
-        return client.when(
-            request()
-                .withPath(urlPath)
-        )
-        .respond(
-            response()
-              .withBody(resource.asString(), MediaType.HTML_UTF_8)
+        return client
+            .when(request().withPath(urlPath))
+            .respond(response().withBody(resource.asString(), HTML_UTF_8));
+    }
+
+    public static Expectation[] whenPNG(
+            ClientAndServer client, String urlPath, TestResource resource)
+                    throws IOException {
+        return client
+            .when(request().withPath(urlPath))
+            .respond(response().withBody(
+                    BinaryBody.binary(resource.asBytes(), MediaType.PNG))
         );
     }
 
-    public static Expectation[] whenImagePng(
+    public static Expectation[] whenPDF(
             ClientAndServer client, String urlPath, TestResource resource)
                     throws IOException {
-        return client.when(
-            request()
-                .withPath(urlPath)
-        )
-        .respond(
-            response()
-            .withBody(BinaryBody.binary(resource.asBytes(), MediaType.PNG))
+        return client
+            .when(request().withPath(urlPath))
+            .respond(response().withBody(
+                    BinaryBody.binary(resource.asBytes(), MediaType.PDF))
         );
     }
+
 
     @Data
     @Accessors(fluent = true)

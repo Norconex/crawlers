@@ -95,26 +95,26 @@ class HttpFetcherAcceptTest {
         whenHttpMethod(client, HttpMethod.GET);
 
         var mem = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, HOME_PATH))
-                .crawlerSetup(cfg -> {
+            .forStartUrls(serverUrl(client, HOME_PATH))
+            .crawlerSetup(cfg -> {
 
-                    // Configure 2 fetches, one doing HEAD, the other doing GET
+                // Configure 2 fetches, one doing HEAD, the other doing GET
 
-                    cfg.setFetchHttpHead(headSupport);
-                    var headFetcher = createFetcher(HttpMethod.HEAD);
-                    if (metaFiltered) {
-                        headFetcher.setReferenceFilters(List.of(ref -> false));
-                    }
+                cfg.setFetchHttpHead(headSupport);
+                var headFetcher = createFetcher(HttpMethod.HEAD);
+                if (metaFiltered) {
+                    headFetcher.setReferenceFilters(List.of(ref -> false));
+                }
 
-                    cfg.setFetchHttpGet(getSupport);
-                    var getFetcher = createFetcher(HttpMethod.GET);
-                    if (docFiltered) {
-                        getFetcher.setReferenceFilters(List.of(ref -> false));
-                    }
+                cfg.setFetchHttpGet(getSupport);
+                var getFetcher = createFetcher(HttpMethod.GET);
+                if (docFiltered) {
+                    getFetcher.setReferenceFilters(List.of(ref -> false));
+                }
 
-                    cfg.setHttpFetchers(headFetcher, getFetcher);
-                })
-                .crawl();
+                cfg.setHttpFetchers(headFetcher, getFetcher);
+            })
+            .crawl();
 
         assertThat(mem.getUpsertCount()).isEqualTo(expectedUpsertCount);
         if (expectedUpsertCount > 0) {

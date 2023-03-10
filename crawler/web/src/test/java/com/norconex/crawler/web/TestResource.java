@@ -37,7 +37,8 @@ public class TestResource {
             new TestResource("img/320x240.png");
     public static final TestResource IMG_640X480_PNG =
             new TestResource("img/640x480.png");
-
+    public static final TestResource PDF_WITH_LINKS =
+            new TestResource("pdf/pdf-with-links.pdf");
     private final String path;
 
     public TestResource(String path) {
