@@ -61,7 +61,8 @@ public final class WebsiteMock {
             return response().withBody("""
                 <h1>%s test page</h1>
                 %s Current page depth: %s %s
-                """.formatted(reqPath, prevLink, currentDepth, nextLink));
+                """.formatted(reqPath, prevLink, currentDepth, nextLink),
+                HTML_UTF_8);
         }
     }
 
