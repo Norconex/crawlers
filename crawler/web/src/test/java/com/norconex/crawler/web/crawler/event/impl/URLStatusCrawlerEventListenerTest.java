@@ -14,102 +14,87 @@
  */
 package com.norconex.crawler.web.crawler.event.impl;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static com.norconex.crawler.web.WebsiteMock.serverUrl;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
-import org.junit.jupiter.api.Disabled;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.junit.jupiter.MockServerSettings;
+import org.mockserver.model.HttpResponse;
+import org.mockserver.model.HttpStatusCode;
 
-@Disabled
+import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.web.TestWebCrawlSession;
+import com.norconex.crawler.web.WebsiteMock;
+
+@MockServerSettings
 class URLStatusCrawlerEventListenerTest {
 
     @Test
-    void testHashCode() {
-        fail("Not yet implemented");
-    }
+    void testURLStatusCrawlerEventListener(
+            ClientAndServer client, @TempDir Path tempDir) throws IOException {
 
-    @Test
-    void testGetStatusCodes() {
-        fail("Not yet implemented");
-    }
+        var urlStatusListener = new URLStatusCrawlerEventListener();
+        urlStatusListener.setCombined(true);
+        urlStatusListener.setTimestamped(true);
+        urlStatusListener.setStatusCodes("200-299, 400-499, 500");
+        urlStatusListener.setFileNamePrefix("super-");
+        urlStatusListener.setOutputDir(tempDir.resolve("statuses"));
 
-    @Test
-    void testSetStatusCodes() {
-        fail("Not yet implemented");
-    }
 
-    @Test
-    void testGetOutputDir() {
-        fail("Not yet implemented");
-    }
+        var ok1Path = "/ok1.html";
+        var ok2Path = "/ok2.html";
+        var notFoundPath = "/notFound.html";
+        var errorPath = "/error.html";
 
-    @Test
-    void testSetOutputDir() {
-        fail("Not yet implemented");
-    }
+        WebsiteMock.whenHtml(client, ok1Path, "This page is OK.");
+        WebsiteMock.whenHtml(client, ok1Path, "This page is OK.");
 
-    @Test
-    void testGetFileNamePrefix() {
-        fail("Not yet implemented");
-    }
+        client
+            .when(request(notFoundPath))
+            .respond(HttpResponse.notFoundResponse());
 
-    @Test
-    void testSetFileNamePrefix() {
-        fail("Not yet implemented");
-    }
+        client
+            .when(request(errorPath))
+            .respond(response()
+                .withStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500.code())
+                .withReasonPhrase("Kaput!"));
 
-    @Test
-    void testIsTimestamped() {
-        fail("Not yet implemented");
-    }
+        TestWebCrawlSession
+            .forStartUrls(
+                    serverUrl(client, ok1Path),
+                    serverUrl(client, notFoundPath),
+                    serverUrl(client, ok2Path),
+                    serverUrl(client, errorPath))
+            .crawlerSetup(cfg -> cfg.addEventListener(urlStatusListener))
+            .crawl();
 
-    @Test
-    void testSetTimestamped() {
-        fail("Not yet implemented");
-    }
+        var file = FileUtils.listFiles(
+                tempDir.resolve("statuses").toFile(), null, false)
+                    .stream()
+                    .findFirst()
+                    .orElseThrow();
 
-    @Test
-    void testIsCombined() {
-        fail("Not yet implemented");
-    }
+        var csvLines = FileUtils.readLines(file, UTF_8);
+        var baseUrl = serverUrl(client, "");
+        assertThat(csvLines).containsExactlyInAnyOrder(
+            "Referrer,URL,Status,Reason",
+            "\"\",%serror.html,500,Kaput!".formatted(baseUrl),
+            "\"\",%snotFound.html,404,Not Found".formatted(baseUrl),
+            "\"\",%sok1.html,200,OK".formatted(baseUrl),
+            "\"\",%sok2.html,404,Not Found".formatted(baseUrl));
 
-    @Test
-    void testSetCombined() {
-        fail("Not yet implemented");
+        assertThatNoException().isThrownBy(() -> {
+            XML.assertWriteRead(urlStatusListener, "listener");
+        });
     }
-
-    @Test
-    void testGetCrawlerIds() {
-        fail("Not yet implemented");
-    }
-
-    @Test
-    void testSetCrawlerIds() {
-        fail("Not yet implemented");
-    }
-
-    @Test
-    void testAccept() {
-        fail("Not yet implemented");
-    }
-
-    @Test
-    void testLoadFromXML() {
-        fail("Not yet implemented");
-    }
-
-    @Test
-    void testSaveToXML() {
-        fail("Not yet implemented");
-    }
-
-    @Test
-    void testEqualsObject() {
-        fail("Not yet implemented");
-    }
-
-    @Test
-    void testToString() {
-        fail("Not yet implemented");
-    }
-
 }

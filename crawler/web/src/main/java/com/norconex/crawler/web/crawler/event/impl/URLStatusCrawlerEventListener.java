@@ -31,13 +31,6 @@ import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +49,9 @@ import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
 import com.norconex.crawler.web.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.link.impl.TikaLinkExtractor;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * <p>
@@ -146,6 +142,8 @@ import com.norconex.crawler.web.link.impl.TikaLinkExtractor;
  *
  * @since 2.2.0
  */
+@EqualsAndHashCode
+@ToString
 public class URLStatusCrawlerEventListener
         implements EventListener<Event>, XMLConfigurable {
 
@@ -162,15 +160,12 @@ public class URLStatusCrawlerEventListener
     private boolean timestamped;
 
     // variables set when crawler starts/resumes
-    @EqualsExclude
-    @HashCodeExclude
-    @ToStringExclude
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private final List<Integer> parsedCodes = new ArrayList<>();
-    @EqualsExclude
-    @HashCodeExclude
-    @ToStringExclude
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private final Map<String, CSVPrinter> csvPrinters = new HashMap<>();
-
 
     /**
      * Gets the status codes to listen for. Default is <code>null</code>
@@ -281,22 +276,23 @@ public class URLStatusCrawlerEventListener
                     ? null : ce.getSource().getId());
             if (csv != null) {
                 var crawlRef = (WebDocRecord) ce.getCrawlDocRecord();
-                Object[] record = {
+                Object[] csvRecord = {
                         trimToEmpty(crawlRef.getReferrerReference()),
                         trimToEmpty(crawlRef.getReference()),
                         response.getStatusCode(),
                         response.getReasonPhrase()
                 };
-                printCSVRecord(csv, record);
+                printCSVRecord(csv, csvRecord);
             }
         }
     }
 
-    private synchronized void printCSVRecord(CSVPrinter csv, Object[] record) {
+    private synchronized void printCSVRecord(
+            CSVPrinter csv, Object[] csvRecord) {
         try {
-            csv.printRecord(record);
+            csv.printRecord(csvRecord);
         } catch (IOException e) {
-            LOG.error("Could not write record: {}", record, e);
+            LOG.error("Could not write CSV record: {}", csvRecord, e);
         }
     }
 
@@ -410,19 +406,5 @@ public class URLStatusCrawlerEventListener
         xml.addElementList("crawlerIds", "id", crawlerIds);
         xml.addElement("combined", combined);
         xml.addElement("timestamped", timestamped);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }
