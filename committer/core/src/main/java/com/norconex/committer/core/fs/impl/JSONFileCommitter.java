@@ -147,6 +147,7 @@ public class JSONFileCommitter extends AbstractFSCommitter<Writer> {
             writer.write(upsertObj.toString());
         }
 
+        writer.flush();
         first = false;
     }
 
@@ -171,6 +172,7 @@ public class JSONFileCommitter extends AbstractFSCommitter<Writer> {
             writer.write(deleteObj.toString());
         }
 
+        writer.flush();
         first = false;
     }
 
