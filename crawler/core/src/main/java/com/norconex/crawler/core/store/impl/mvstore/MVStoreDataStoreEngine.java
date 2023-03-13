@@ -22,6 +22,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +110,19 @@ public class MVStoreDataStoreEngine
                     engineDir.resolve("mvstore").toAbsolutePath().toString());
         }
 
-        mvstore = builder.open();
+        try {
+            mvstore = builder.open();
+        } catch (MVStoreException e) {
+            LOG.warn("""
+                An exception occurred while trying to open the store engine.\s\
+                This could happen due to an abnormal shutdown on a previous\s\
+                execution of the crawler. An attempt will be made to recover.\s\
+                It is advised to back-up the store engine if you want to\s\
+                preserve the crawl history.""", e);
+            builder.recoveryMode();
+            mvstore = builder.open();
+            LOG.warn("Store engine recovery appears to be successful.");
+        }
 
         if (cfg.getAutoCommitDelay() != null) {
             //MVStore expects it as milliseconds
@@ -150,6 +163,7 @@ public class MVStoreDataStoreEngine
         LOG.info("Closing data store engine...");
         if (mvstore != null && !mvstore.isClosed()) {
             LOG.info("Compacting data store...");
+            mvstore.commit();
             mvstore.compactMoveChunks();
             mvstore.close();
         }

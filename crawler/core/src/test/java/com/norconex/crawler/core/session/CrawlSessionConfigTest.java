@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.committer.core.fs.impl.JSONFileCommitter;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.CoreStubber;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter;
 import com.norconex.importer.handler.HandlerConsumer;
 import com.norconex.importer.handler.transformer.impl.ReplaceTransformer;
@@ -44,7 +45,7 @@ class CrawlSessionConfigTest {
 
     @Test
     void testOverwriteCrawlerDefaults() throws IOException {
-        var cfg = new CrawlSessionConfig();
+        var cfg = new CrawlSessionConfig(CrawlerConfig.class);
         try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
                 "overwrite-crawlerDefaults.xml"))) {
             XML.of(r).create().populate(cfg);

@@ -32,8 +32,10 @@ import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.importer.ImporterConfig;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
 
@@ -177,7 +179,10 @@ public class CrawlSessionConfig implements XMLConfigurable {
     //TODO check if there is a way to not have to do this?
     // Replace with CrawlConfigFactory? Or set it at CrawlSession
     // creation time via CrawlSessionBuilderMaybe?
-    private final Class<? extends CrawlerConfig> crawlerConfigClass;
+    @Setter(value = AccessLevel.NONE)
+    private Class<? extends CrawlerConfig> crawlerConfigClass;
+    // Need empty constructor so it is recognized as a "bean" whenever it
+    // matters (like when EventManager scans for listeners).
     public CrawlSessionConfig() {
         this(CrawlerConfig.class);
     }
@@ -238,6 +243,15 @@ public class CrawlSessionConfig implements XMLConfigurable {
         eventListeners.add(eventListener);
     }
     /**
+     * Removes a single event listener from the list of registered listeners
+     * if present.
+     * @param eventListener event listener
+     * @return <code>true</code> if the entity listener existed
+     */
+    public boolean removeEventListener(EventListener<?> eventListener) {
+        return eventListeners.remove(eventListener);
+    }
+    /**
      * Clears all event listeners. The automatically
      * detected configuration objects implementing {@link EventListener}
      * are not cleared.
@@ -249,6 +263,10 @@ public class CrawlSessionConfig implements XMLConfigurable {
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute(Fields.id, getId());
+        // we convert to string here or it will think it is a configurable
+        // class and will add a "class" attribute.
+        xml.addElement(Fields.crawlerConfigClass,
+                getCrawlerConfigClass().getName());
         xml.addElement(Fields.workDir, getWorkDir());
         xml.addElement(
                 Fields.maxConcurrentCrawlers, getMaxConcurrentCrawlers());
@@ -269,6 +287,8 @@ public class CrawlSessionConfig implements XMLConfigurable {
                     "Crawl session id attribute is mandatory.");
         }
         setId(crawlSessionId);
+        crawlerConfigClass = xml.getClass(
+                Fields.crawlerConfigClass, getCrawlerConfigClass());
         setWorkDir(xml.getPath(Fields.workDir, getWorkDir()));
         setEventListeners(xml.getObjectListImpl(EventListener.class,
                 Fields.eventListeners + "/listener", eventListeners));
@@ -297,6 +317,8 @@ public class CrawlSessionConfig implements XMLConfigurable {
             for (XML crawlerXML : crawlersXML) {
                 CrawlerConfig config = crawlerConfigClass
                         .getDeclaredConstructor().newInstance();
+                LOG.debug("Loading crawler config for type: {}",
+                        config.getClass());
                 if (crawlerDefaultsXML != null) {
                     populateCrawlerConfig(config, crawlerDefaultsXML);
                     LOG.debug("Crawler defaults loaded for new crawler.");
