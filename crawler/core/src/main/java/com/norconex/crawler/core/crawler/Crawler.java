@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -164,6 +165,8 @@ public class Crawler {
 
     private MutableBoolean queueInitialized;
 
+    @Getter(value = AccessLevel.PACKAGE)
+    private final AtomicLong processedInSession = new AtomicLong();
 
     //--- Properties set on Stop -----------------------------------------------
 
@@ -216,18 +219,6 @@ public class Crawler {
     public CachedStreamFactory getStreamFactory() {
         return crawlSession.getStreamFactory();
     }
-
-    //TODO do we need these pipeline methods since we have direct methods
-    // to execute them, which are simpler to use?  If so, uncomment
-//    public QueuePipeline getQueuePipeline() {
-//        return crawlerImpl.queuePipeline();
-//    }
-//    public ImporterPipeline getImporterPipeline() {
-//        return crawlerImpl.importerPipeline();
-//    }
-//    public CommitterPipeline getCommitterPipeline() {
-//        return crawlerImpl.committerPipeline();
-//    }
 
     public void queueDocRecord(CrawlDocRecord rec) {
         crawlerImpl.queuePipeline().accept(
@@ -311,7 +302,6 @@ public class Crawler {
                 progressLogger = new CrawlProgressLogger(monitor,
                         getCrawlerConfig().getMinProgressLoggingInterval());
                 progressLogger.startTracking();
-
                 if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
                     CrawlerMonitorJMX.register(this);
                 }
@@ -324,6 +314,8 @@ public class Crawler {
 
                 Optional.ofNullable(crawlerImpl.beforeCrawlerExecution)
                         .ifPresent(c -> c.accept(this, resume.getValue()));
+
+                processedInSession.set(0);
             });
 
             fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
@@ -356,12 +348,14 @@ public class Crawler {
                 Optional.ofNullable(crawlerImpl.afterCrawlerExecution)
                         .ifPresent(c -> c.accept(this));
             } finally {
-                progressLogger.stopTracking();
-                try {
-                    LOG.info("Execution Summary:{}",
-                            progressLogger.getExecutionSummary());
-                } finally {
-                    destroyCrawler();
+                if (progressLogger != null) {
+                    progressLogger.stopTracking();
+                    try {
+                        LOG.info("Execution Summary:{}",
+                                progressLogger.getExecutionSummary());
+                    } finally {
+                        destroyCrawler();
+                    }
                 }
             }
             if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
@@ -511,7 +505,7 @@ public class Crawler {
         var maxDocs = crawlerConfig.getMaxDocuments();
         //TODO replace check for "processedCount" vs "maxDocuments"
         // with event counts vs max committed, max processed, max etc...
-        return maxDocs > -1 && getMonitor().getProcessedCount() >= maxDocs;
+        return maxDocs > -1 && processedInSession.get() >= maxDocs;
     }
 
     public void importDataStore(Path inFile) {

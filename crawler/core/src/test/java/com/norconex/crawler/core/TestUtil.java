@@ -133,7 +133,7 @@ public final class TestUtil {
             List<String> startReferences,
             String... cmdArgs) throws IOException {
         var exit = new Exit();
-        var crawlSessionConfig = new CrawlSessionConfig();
+        var crawlSessionConfig = new CrawlSessionConfig(CrawlerConfig.class);
         crawlSessionConfig.setWorkDir(workDir);
         crawlSessionConfig.addEventListener(
                 event -> exit.getEvents().add(event.getName()));

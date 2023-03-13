@@ -36,8 +36,8 @@ import com.norconex.crawler.web.doc.WebDocMetadata;
 
 /**
  * The tail of redirects should be kept as metadata so implementors
- * can know where documents came from. This test starts with
- * a canonical redirect.
+ * can know where documents came from. This test runs twice. First starts with
+ * with canonical to redirect, then redirect to canonical.
  */
 @MockServerSettings
 class CanonicalRedirectLoopTest {
@@ -102,5 +102,7 @@ class CanonicalRedirectLoopTest {
 
         assertThat(doc.getMetadata().getStrings(WebDocMetadata.REDIRECT_TRAIL))
                 .containsExactly(serverUrl(client, REDIRECT_PATH));
+
+        crawlSession.clean();
     }
 }

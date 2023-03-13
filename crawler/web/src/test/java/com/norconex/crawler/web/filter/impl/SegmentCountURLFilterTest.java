@@ -16,6 +16,8 @@ package com.norconex.crawler.web.filter.impl;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.util.regex.Pattern;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -63,15 +65,15 @@ class SegmentCountURLFilterTest {
         //--- Test custom separator (query string ---
         url = "http://www.example.com/one/two_three|four-five/page.html";
         f = new SegmentCountURLFilter(5, OnMatch.EXCLUDE);
-        f.setSeparator("[/_|-]");
+        f.setSeparator(Pattern.compile("[/_|-]"));
         Assertions.assertFalse(f.acceptReference(url),
                 "URL wrongfully rejected.");
         f = new SegmentCountURLFilter(6, OnMatch.EXCLUDE);
-        f.setSeparator("[/_|-]");
+        f.setSeparator(Pattern.compile("[/_|-]"));
         Assertions.assertFalse(f.acceptReference(url),
                 "URL wrongfully accepted.");
         f = new SegmentCountURLFilter(7, OnMatch.EXCLUDE);
-        f.setSeparator("[/_|-]");
+        f.setSeparator(Pattern.compile("[/_|-]"));
         Assertions.assertTrue(f.acceptReference(url),
                 "URL wrongfully rejected.");
     }
@@ -82,7 +84,7 @@ class SegmentCountURLFilterTest {
         f.setCount(5);
         f.setDuplicate(true);
         f.setOnMatch(OnMatch.EXCLUDE);
-        f.setSeparator("[/&]");
+        f.setSeparator(Pattern.compile("[/&]"));
         assertThatNoException().isThrownBy(
                 () -> XML.assertWriteRead(f, "filter"));
     }

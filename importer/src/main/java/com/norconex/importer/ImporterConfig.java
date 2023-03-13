@@ -161,6 +161,7 @@ public class ImporterConfig implements XMLConfigurable {
     public void setResponseProcessors(
             List<ImporterResponseProcessor> responseProcessors) {
         CollectionUtil.setAll(this.responseProcessors, responseProcessors);
+        CollectionUtil.removeNulls(this.responseProcessors);
     }
 
     /**

@@ -54,8 +54,7 @@ class IfNoneMatchTest {
     void testIfNoneMatch(ClientAndServer client) throws CommitterException {
 
         var crawlSession = TestWebCrawlSession
-                .prepare()
-                .startUrls(serverUrl(client, path))
+                .forStartUrls(serverUrl(client, path))
                 .crawlerSetup(cfg -> {
                     // disable checksums so they do not influence tests
                     cfg.setDocumentChecksummer(null);
@@ -89,6 +88,8 @@ class IfNoneMatchTest {
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
+
+        crawlSession.clean();
     }
 
     private void whenETag(ClientAndServer client, String serverEtag) {

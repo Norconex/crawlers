@@ -17,228 +17,121 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:include schemaLocation="/com/norconex/importer/Importer.xsd"></xs:include>
+
 <!-- 
   <xs:include schemaLocation="/com/norconex/crawler/core/crawler/CrawlerConfig.xsd"></xs:include>
   <xs:element name="crawlerDefaults" type="HttpCrawlerConfigType"/>
   <xs:element name="crawler" type="HttpCrawlerConfigType"/>
  -->
  
-<xs:redefine schemaLocation="/com/norconex/crawler/core/crawler/CrawlerConfig.xsd">
-  <xs:complexType name="CrawlerConfigType">
-    <xs:complexContent>
-      <xs:extension base="CrawlerConfigType">
-        <xs:all>
-          <xs:element name="startURLs" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element ref="startURLChoice" minOccurs="1" maxOccurs="unbounded"/>
-              </xs:all>
-              <xs:attribute name="stayOnDomain" type="xs:boolean"/>
-              <xs:attribute name="includeSubdomains" type="xs:boolean"/>
-              <xs:attribute name="stayOnPort" type="xs:boolean"/>
-              <xs:attribute name="stayOnProtocol" type="xs:boolean"/>
-              <xs:attribute name="async" type="xs:boolean"/>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="keepReferencedLinks" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="fetchHttpHead" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="fetchHttpGet" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="httpFetchers" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="fetcher" 
-                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-              </xs:all>
-              <xs:attribute name="maxRetries" type="xs:int"/>
-              <xs:attribute name="retryDelay" type="xs:string"/>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="robotsTxt" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:complexContent> 
-                <xs:extension base="anyComplexOptionalClassType"> 
-                  <xs:attribute name="ignore" type="xs:boolean"/>              
-                </xs:extension> 
-              </xs:complexContent>   
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="sitemapResolver" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:complexContent> 
-                <xs:extension base="anyComplexOptionalClassType"> 
-                  <xs:attribute name="ignore" type="xs:boolean"/>              
-                </xs:extension> 
-              </xs:complexContent>   
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="recrawlableResolver" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="canonicalLinkDetector" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:complexContent> 
-                <xs:extension base="anyComplexOptionalClassType"> 
-                  <xs:attribute name="ignore" type="xs:boolean"/>              
-                </xs:extension> 
-              </xs:complexContent>   
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="robotsMeta" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:complexContent> 
-                <xs:extension base="anyComplexOptionalClassType"> 
-                  <xs:attribute name="ignore" type="xs:boolean"/>              
-                </xs:extension> 
-              </xs:complexContent>   
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="linkExtractors" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="extractor" 
-                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-              </xs:all>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="preImportProcessors" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="processor" 
-                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-              </xs:all>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="postImportProcessors" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="processor" 
-                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-              </xs:all>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="postImportLinks" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="fieldMatcher" type="TextMatcherType" minOccurs="0" maxOccurs="1" />  
-              </xs:all>
-              <xs:attribute name="keep" type="xs:boolean"/>
-            </xs:complexType>
-          </xs:element>          
-        </xs:all>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-</xs:redefine>
+  <xs:redefine schemaLocation="/com/norconex/crawler/core/crawler/CrawlerConfig.xsd">
+    <xs:complexType name="CrawlerConfigType">
+      <xs:complexContent>
+        <xs:extension base="CrawlerConfigType">
+          <xs:all>
+            <xs:element name="startURLs" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:all>
+                  <xs:element ref="startURLChoice" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:all>
+                <xs:attribute name="stayOnDomain" type="xs:boolean"/>
+                <xs:attribute name="includeSubdomains" type="xs:boolean"/>
+                <xs:attribute name="stayOnPort" type="xs:boolean"/>
+                <xs:attribute name="stayOnProtocol" type="xs:boolean"/>
+                <xs:attribute name="async" type="xs:boolean"/>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="keepReferencedLinks" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="fetchHttpHead" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="fetchHttpGet" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="httpFetchers" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:all>
+                  <xs:element name="fetcher" 
+                      type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:all>
+                <xs:attribute name="maxRetries" type="xs:int"/>
+                <xs:attribute name="retryDelay" type="xs:string"/>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="robotsTxt" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:complexContent> 
+                  <xs:extension base="anyComplexOptionalClassType"> 
+                    <xs:attribute name="ignore" type="xs:boolean"/>              
+                  </xs:extension> 
+                </xs:complexContent>   
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="sitemapResolver" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:complexContent> 
+                  <xs:extension base="anyComplexOptionalClassType"> 
+                    <xs:attribute name="ignore" type="xs:boolean"/>              
+                  </xs:extension> 
+                </xs:complexContent>   
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="recrawlableResolver" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="canonicalLinkDetector" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:complexContent> 
+                  <xs:extension base="anyComplexOptionalClassType"> 
+                    <xs:attribute name="ignore" type="xs:boolean"/>              
+                  </xs:extension> 
+                </xs:complexContent>   
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="robotsMeta" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:complexContent> 
+                  <xs:extension base="anyComplexOptionalClassType"> 
+                    <xs:attribute name="ignore" type="xs:boolean"/>              
+                  </xs:extension> 
+                </xs:complexContent>   
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="linkExtractors" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:all>
+                  <xs:element name="extractor" 
+                      type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:all>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="preImportProcessors" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:all>
+                  <xs:element name="processor" 
+                      type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:all>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="postImportProcessors" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:all>
+                  <xs:element name="processor" 
+                      type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:all>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="postImportLinks" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:all>
+                  <xs:element name="fieldMatcher" type="TextMatcherType" minOccurs="0" maxOccurs="1" />  
+                </xs:all>
+                <xs:attribute name="keep" type="xs:boolean"/>
+              </xs:complexType>
+            </xs:element>          
+          </xs:all>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:redefine>
 
-
-<!--
-  <xs:complexType name="HttpCrawlerConfigType">
-    <xs:complexContent> 
-      <xs:extension base="CrawlerConfigType">
-        <xs:all>
-          <xs:element name="startURLs" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element ref="startURLChoice" minOccurs="1" maxOccurs="unbounded"/>
-              </xs:all>
-              <xs:attribute name="stayOnDomain" type="xs:boolean"/>
-              <xs:attribute name="includeSubdomains" type="xs:boolean"/>
-              <xs:attribute name="stayOnPort" type="xs:boolean"/>
-              <xs:attribute name="stayOnProtocol" type="xs:boolean"/>
-              <xs:attribute name="async" type="xs:boolean"/>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="keepReferencedLinks" type="xs:string" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="fetchHttpHead" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="fetchHttpGet" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="httpFetchers" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="fetcher" 
-                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-              </xs:all>
-              <xs:attribute name="maxRetries" type="xs:int"/>
-              <xs:attribute name="retryDelay" type="xs:string"/>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="robotsTxt" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:complexContent> 
-                <xs:extension base="anyComplexOptionalClassType"> 
-                  <xs:attribute name="ignore" type="xs:boolean"/>              
-                </xs:extension> 
-              </xs:complexContent>   
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="sitemapResolver" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:complexContent> 
-                <xs:extension base="anyComplexOptionalClassType"> 
-                  <xs:attribute name="ignore" type="xs:boolean"/>              
-                </xs:extension> 
-              </xs:complexContent>   
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="recrawlableResolver" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-          <xs:element name="canonicalLinkDetector" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:complexContent> 
-                <xs:extension base="anyComplexOptionalClassType"> 
-                  <xs:attribute name="ignore" type="xs:boolean"/>              
-                </xs:extension> 
-              </xs:complexContent>   
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="robotsMeta" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:complexContent> 
-                <xs:extension base="anyComplexOptionalClassType"> 
-                  <xs:attribute name="ignore" type="xs:boolean"/>              
-                </xs:extension> 
-              </xs:complexContent>   
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="linkExtractors" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="extractor" 
-                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-              </xs:all>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="preImportProcessors" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="processor" 
-                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-              </xs:all>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="postImportProcessors" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="processor" 
-                    type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-              </xs:all>
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="postImportLinks" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element name="fieldMatcher" type="TextMatcherType" minOccurs="0" maxOccurs="1" />  
-              </xs:all>
-              <xs:attribute name="keep" type="xs:boolean"/>
-            </xs:complexType>
-          </xs:element>          
-        </xs:all>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
--->
 
   <xs:element name="startURLChoice" abstract="true"/>
   <xs:element name="url" substitutionGroup="startURLChoice" type="xs:string"/>

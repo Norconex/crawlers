@@ -232,7 +232,7 @@ public class MockWebCrawlSessionExtension implements
             crawlerConfigs.add(crawlerConfig(i));
         }
 
-        var sessionConfig = new CrawlSessionConfig();
+        var sessionConfig = new CrawlSessionConfig(WebCrawlerConfig.class);
         sessionConfig.setWorkDir(testCfg.tempDir);
         sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
         sessionConfig.setCrawlerConfigs(crawlerConfigs);

@@ -55,7 +55,10 @@ import lombok.experimental.FieldNameConstants;
  * {@nx.xml #init
  *
  *   <numThreads>(maximum number of threads)</numThreads>
- *   <maxDocuments>(maximum number of documents to crawl)</maxDocuments>
+ *   <maxDocuments>
+ *     (maximum number of documents to crawl per session, resuming on next
+ *      sessions where it last ended, if crawling was not complete)
+ *   </maxDocuments>
  *   <idleTimeout>(thread inactivity timeout)</idleTimeout>
  *   <minProgressLoggingInterval>
  *     (minimum frequency at which progress is logged)

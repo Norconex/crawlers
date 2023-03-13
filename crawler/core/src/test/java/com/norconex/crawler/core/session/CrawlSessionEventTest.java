@@ -22,18 +22,18 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 
 class CrawlSessionEventTest {
 
     @Test
     void testCrawlSessionEvent() {
-        var sessConfig = new CrawlSessionConfig();
+        var sessConfig = new CrawlSessionConfig(CrawlerConfig.class);
         sessConfig.setId("test-crawl-session");
 
         var crawlSession = CrawlSession.builder()
                 .crawlerFactory((sess, cfg) -> Crawler.builder().build())
                 .crawlSessionConfig(sessConfig)
-//                .eventManager(null)
                 .build();
 
         // crawl session events that are shutdown events

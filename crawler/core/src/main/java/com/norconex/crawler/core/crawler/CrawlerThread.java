@@ -123,8 +123,8 @@ class CrawlerThread implements Runnable {
         } catch (RuntimeException e) {
             if (handleExceptionAndCheckIfStopCrawler(ctx, e)) {
                 crawler.stop();
+                return false;
             }
-            return false;
         } finally {
             ThreadActionFinalize.execute(ctx);
         }
@@ -146,9 +146,8 @@ class CrawlerThread implements Runnable {
             return false;
         }
         var maxDocs = crawler.getCrawlerConfig().getMaxDocuments();
-        if (maxDocs > -1
-                && crawler.getMonitor().getProcessedCount() >= maxDocs) {
-            LOG.info("Maximum documents reached: {}", maxDocs);
+        if (maxDocs > -1 && crawler.getProcessedInSession().get() >= maxDocs) {
+            LOG.info("Maximum documents reached for this session: {}", maxDocs);
             return true;
         }
         return false;
@@ -235,7 +234,6 @@ class CrawlerThread implements Runnable {
     private boolean handleExceptionAndCheckIfStopCrawler(
             ThreadActionContext ctx, RuntimeException e) {
         var stopTheCrawler = true;
-
         // if an exception was thrown and there is no CrawlDocRecord we
         // stop the crawler since it means we can't no longer read for the
         // queue, and we can no longer fetch a next document, possibly leading
@@ -283,6 +281,11 @@ class CrawlerThread implements Runnable {
                 }
             }
         }
+        LOG.error("""
+            Encountered the following crawler exception and attempting\s\
+            to ignore it. To force the crawler to stop upon encountering\
+            this exception, use the "stopOnExceptions" feature\s\
+            of your crawler config.""", e);
         return !stopTheCrawler;
     }
 

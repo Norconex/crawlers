@@ -47,6 +47,7 @@ final class ThreadActionFinalize {
         }
 
         ctx.finalized(true);
+        ctx.crawler().getProcessedInSession().incrementAndGet();
 
         var docRecord = ctx.docRecord();
         if (ctx.doc() == null) {

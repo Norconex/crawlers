@@ -227,6 +227,7 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
             csv.print(StringUtils.trimToEmpty(value));
         }
         csv.println();
+        csv.flush();
     }
 
     @Override
@@ -250,6 +251,7 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
             csv.print(StringUtils.trimToEmpty(value));
         }
         csv.println();
+        csv.flush();
     }
 
     private String truncate(String value, int colTruncateAt) {

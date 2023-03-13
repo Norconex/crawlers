@@ -89,8 +89,7 @@ class DeduplicationTest {
         //    - LastModifiedMetadataChecksummer
         //    - MD5DocumentChecksummer
         var mem = TestWebCrawlSession
-                .prepare()
-                .startUrls(serverUrl(client, homePath))
+                .forStartUrls(serverUrl(client, homePath))
                 .crawlerSetup(cfg -> {
                     cfg.setMetadataDeduplicate(true);
                     cfg.setDocumentDeduplicate(true);

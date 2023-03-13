@@ -14,15 +14,22 @@
  */
 package com.norconex.crawler.web;
 
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.apache.commons.lang3.StringUtils.leftPad;
+import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
+import static org.mockserver.model.MediaType.HTML_UTF_8;
 
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.mock.Expectation;
+import org.mockserver.mock.action.ExpectationResponseCallback;
 import org.mockserver.model.BinaryBody;
+import org.mockserver.model.HttpRequest;
 import org.mockserver.model.MediaType;
 
 import lombok.AccessLevel;
@@ -34,51 +41,99 @@ public final class WebsiteMock {
 
     private WebsiteMock() {}
 
+    public static void whenInfinitDepth(ClientAndServer client) {
+        client
+            .when(request())
+            .respond(WebsiteMock.responseWithInfiniteDepth());
+    }
+
+    /**
+     * Returns a page containing a link backward (if not the first page)
+     * and a link forward, based on the appended number.
+     * The number is zero-padded up to 4 characters (to facilitate sorting).
+     * @return page
+     */
+    public static ExpectationResponseCallback responseWithInfiniteDepth() {
+        return req -> {
+            var reqPath = req.getPath().toString();
+            var numStr = StringUtils.substringAfterLast(reqPath, "/");
+            var basePath = appendIfMissing(
+                    substringBeforeLast(reqPath, "/"), "/");
+            var curDepth = 0;
+            if (NumberUtils.isDigits(numStr)) {
+                curDepth = Integer.parseInt(numStr);
+            }
+
+            var prevLink = "";
+            if (curDepth > 0) {
+                var beforeNum = leftPad(Integer.toString(curDepth - 1), 4, '0');
+                prevLink = "<a href=\"%s\">Previous</a> | "
+                        .formatted(basePath + beforeNum);
+            }
+            var afterNum = leftPad(Integer.toString(curDepth + 1), 4, '0');
+            var nextLink = " | <a href=\"%s\">Next</a>"
+                    .formatted(basePath + afterNum);
+            return response().withBody(WebsiteMock.htmlPage().body(
+                """
+                <h1>%s test page</h1>
+                %s Current page depth: %s %s
+                """
+                .formatted(reqPath, prevLink, curDepth, nextLink))
+                .build(), HTML_UTF_8);
+        };
+    }
+
+    public static String secureServerUrl(
+            ClientAndServer client, String urlPath) {
+        return serverUrl(client, urlPath).replace("http://", "https://");
+    }
     public static String serverUrl(ClientAndServer client, String urlPath) {
         return "http://localhost:%s%s".formatted(
                 client.getLocalPort(),
                 StringUtils.prependIfMissing(urlPath, "/"));
     }
+    public static String serverUrl(HttpRequest request, String urlPath) {
+        return "http://localhost:%s%s".formatted(
+                StringUtils.substringAfterLast(request.getLocalAddress(), ":"),
+                StringUtils.prependIfMissing(urlPath, "/"));
+    }
 
     public static Expectation[] whenHtml(
             ClientAndServer client, String urlPath, String body) {
-        return client.when(
-            request()
-                .withPath(urlPath)
-        )
-        .respond(
-            response()
-                .withBody(
-                        WebsiteMock.htmlPage().body(body).build(),
-                        MediaType.HTML_UTF_8)
-        );
+        return client
+            .when(request().withPath(urlPath))
+            .respond(response().withBody(
+                    WebsiteMock.htmlPage().body(body).build(), HTML_UTF_8));
     }
 
     public static Expectation[] whenHtml(
             ClientAndServer client, String urlPath, TestResource resource)
                     throws IOException {
-        return client.when(
-            request()
-                .withPath(urlPath)
-        )
-        .respond(
-            response()
-              .withBody(resource.asString(), MediaType.HTML_UTF_8)
+        return client
+            .when(request().withPath(urlPath))
+            .respond(response().withBody(resource.asString(), HTML_UTF_8));
+    }
+
+    public static Expectation[] whenPNG(
+            ClientAndServer client, String urlPath, TestResource resource)
+                    throws IOException {
+        return client
+            .when(request().withPath(urlPath))
+            .respond(response().withBody(
+                    BinaryBody.binary(resource.asBytes(), MediaType.PNG))
         );
     }
 
-    public static Expectation[] whenImagePng(
+    public static Expectation[] whenPDF(
             ClientAndServer client, String urlPath, TestResource resource)
                     throws IOException {
-        return client.when(
-            request()
-                .withPath(urlPath)
-        )
-        .respond(
-            response()
-            .withBody(BinaryBody.binary(resource.asBytes(), MediaType.PNG))
+        return client
+            .when(request().withPath(urlPath))
+            .respond(response().withBody(
+                    BinaryBody.binary(resource.asBytes(), MediaType.PDF))
         );
     }
+
 
     @Data
     @Accessors(fluent = true)

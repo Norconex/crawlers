@@ -35,7 +35,6 @@ import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
@@ -56,16 +55,22 @@ import lombok.experimental.Accessors;
 @Data
 @Getter(value = AccessLevel.NONE)
 @Accessors(fluent = true)
-@NoArgsConstructor(staticName = "prepare")
 public class TestWebCrawlSession {
 
     private Consumer<CrawlSessionConfig> crawlSessionSetup;
     private Consumer<WebCrawlerConfig> crawlerSetup;
     private final List<String> startUrls = new ArrayList<>();
 
-    public TestWebCrawlSession startUrls(String... startUrls) {
-        CollectionUtil.setAll(this.startUrls, startUrls);
-        return this;
+    private TestWebCrawlSession() {}
+
+    public static TestWebCrawlSession forStartUrls(String... startUrls) {
+        var sess = new TestWebCrawlSession();
+        CollectionUtil.setAll(sess.startUrls, startUrls);
+        return sess;
+    }
+
+    public CrawlSessionConfig crawlSessionConfig() {
+        return crawlSession().getCrawlSessionConfig();
     }
 
     public CrawlSession crawlSession() {

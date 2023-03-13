@@ -35,7 +35,6 @@ import com.norconex.importer.handler.filter.OnMatchFilter;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 /**
  * <p>
  * Filters URL based based on the number of URL segments. A URL with
@@ -57,8 +56,9 @@ import lombok.ToString;
  *  <filter class="com.norconex.crawler.web.filter.impl.SegmentCountURLFilter"
  *      onMatch="[include|exclude]"
  *      count="(numeric value)"
- *      duplicate="[false|true]"
- *      separator="(a regex identifying segment separator)" />
+ *      duplicate="[false|true]">
+ *    <separator>(a regex identifying segment separator)</separator>
+ *  </filter>
  * }
  *
  * {@nx.xml.example
@@ -77,16 +77,15 @@ public class SegmentCountURLFilter implements OnMatchFilter,
         ReferenceFilter, DocumentFilter, MetadataFilter, XMLConfigurable{
 
     /** Default segment separator pattern. */
-    public static final String DEFAULT_SEGMENT_SEPARATOR_PATTERN = "/";
+    public static final Pattern DEFAULT_SEGMENT_SEPARATOR_PATTERN =
+            Pattern.compile("/");
     /** Default segment count. */
     public static final int DEFAULT_SEGMENT_COUNT = 10;
 
-    private String separator = DEFAULT_SEGMENT_SEPARATOR_PATTERN;
     private int count = DEFAULT_SEGMENT_COUNT;
     private boolean duplicate;
     @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private Pattern separatorPattern;
+    private Pattern separator = DEFAULT_SEGMENT_SEPARATOR_PATTERN;
     private OnMatch onMatch;
 
     /**
@@ -125,21 +124,9 @@ public class SegmentCountURLFilter implements OnMatchFilter,
         setSeparator(DEFAULT_SEGMENT_SEPARATOR_PATTERN);
     }
 
-    /**
-     * Gets the segment separator pattern
-     * @return the pattern
-     */
-    public String getSeparator() {
-        return separator;
-    }
-    public final void setSeparator(String separator) {
-        this.separator = separator;
-        if (StringUtils.isNotBlank(separator)) {
-            separatorPattern = Pattern.compile(separator);
-        } else {
-            separatorPattern = Pattern.compile(
-                    DEFAULT_SEGMENT_SEPARATOR_PATTERN);
-        }
+    @EqualsAndHashCode.Include(replaces = "separator")
+    String getSeparatorAsString() {
+        return separator == null ? null : separator.toString();
     }
 
     @Override
@@ -153,7 +140,7 @@ public class SegmentCountURLFilter implements OnMatchFilter,
     @Override
     public boolean acceptReference(String url) {
         var isInclude = getOnMatch() == OnMatch.INCLUDE;
-        if (StringUtils.isBlank(separator)) {
+        if (separator == null) {
             return isInclude;
         }
 
@@ -183,7 +170,7 @@ public class SegmentCountURLFilter implements OnMatchFilter,
 
     private List<String> getCleanSegments(String url) {
         var path = new HttpURL(url).getPath();
-        var allSegments = separatorPattern.split(path);
+        var allSegments = separator.split(path);
         // remove empty/nulls
         List<String> cleanSegments = new ArrayList<>();
         for (String segment : allSegments) {
@@ -196,18 +183,16 @@ public class SegmentCountURLFilter implements OnMatchFilter,
 
     @Override
     public void loadFromXML(XML xml) {
-        setSeparator(xml.getString("."));
+        setSeparator(xml.getPattern("separator", getSeparator()));
         setCount(xml.getInteger("@count", DEFAULT_SEGMENT_COUNT));
         setDuplicate(xml.getBoolean("@duplicate", false));
-        setSeparator(xml.getString(
-                "@separator", DEFAULT_SEGMENT_SEPARATOR_PATTERN));
         setOnMatch(xml.getEnum("@onMatch", OnMatch.class, onMatch));
     }
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("count", count);
         xml.setAttribute("duplicate", duplicate);
-        xml.setAttribute("separator", separator);
         xml.setAttribute("onMatch", onMatch);
+        xml.addElement("separator", separator);
     }
 }

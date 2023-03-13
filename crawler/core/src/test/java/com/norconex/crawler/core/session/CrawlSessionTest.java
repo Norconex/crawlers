@@ -40,7 +40,7 @@ class CrawlSessionTest {
 
     @Test
     void testCrawlSession() {
-        var sesCfg = new CrawlSessionConfig();
+        var sesCfg = new CrawlSessionConfig(CrawlerConfig.class);
         sesCfg.setId("sessionId");
         sesCfg.setWorkDir(Path.of("/tmp"));
 

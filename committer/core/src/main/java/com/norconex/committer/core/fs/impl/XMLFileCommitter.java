@@ -148,6 +148,7 @@ public class XMLFileCommitter
                 upsertRequest.getContent(), StandardCharsets.UTF_8).trim());
 
         xml.writeEndElement();  // </upsert>
+        xml.flush();
     }
     @Override
     protected void writeDelete(EnhancedXMLStreamWriter xml,
@@ -170,6 +171,7 @@ public class XMLFileCommitter
         xml.writeEndElement(); // </metadata>
 
         xml.writeEndElement(); // </delete>
+        xml.flush();
     }
     @Override
     protected void closeDocWriter(EnhancedXMLStreamWriter xml)
