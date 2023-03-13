@@ -108,6 +108,8 @@ class IfModifiedSinceTest {
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
+
+        crawlSession.clean();
     }
 
     public static class Callback implements ExpectationResponseCallback {

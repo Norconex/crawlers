@@ -16,8 +16,6 @@ package com.norconex.crawler.web.session.feature;
 
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockserver.model.HttpClassCallback.callback;
-import static org.mockserver.model.HttpRequest.request;
 
 import java.util.List;
 
@@ -33,7 +31,7 @@ import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListene
 import com.norconex.crawler.core.crawler.event.impl.StopCrawlerOnMaxEventListener.OnMultiple;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.TestWebCrawlSession;
-import com.norconex.crawler.web.WebsiteMock.InfinitDepthCallback;
+import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.importer.handler.filter.OnMatch;
 
 /**
@@ -44,16 +42,12 @@ import com.norconex.importer.handler.filter.OnMatch;
 @MockServerSettings
 class StopCrawlerOnMaxEventTest {
 
-    private static final String PATH = "/stopCrawlerOnMaxEvent";
-
     @Test
     void testStopCrawlerOnMaxEvent(ClientAndServer client) {
-        client
-            .when(request()) // match any path
-            .respond(callback(Callback.class));
+        WebsiteMock.whenInfinitDepth(client);
 
         var mem = TestWebCrawlSession
-            .forStartUrls(serverUrl(client, "blah"))
+            .forStartUrls(serverUrl(client, "/stopCrawlerOnMaxEvent"))
             .crawlerSetup(cfg -> {
                 var lis = new StopCrawlerOnMaxEventListener();
                 lis.setEventMatcher(TextMatcher.csv(
@@ -74,11 +68,5 @@ class StopCrawlerOnMaxEventTest {
         // Expected: 6 upserts, 0 deletes
         assertThat(mem.getUpsertCount()).isEqualTo(6);
         assertThat(mem.getDeleteCount()).isZero();
-    }
-
-    public static class Callback extends InfinitDepthCallback {
-        public Callback() {
-            super(PATH);
-        }
     }
 }

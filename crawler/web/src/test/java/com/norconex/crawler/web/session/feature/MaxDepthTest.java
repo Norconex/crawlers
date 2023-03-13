@@ -16,17 +16,15 @@ package com.norconex.crawler.web.session.feature;
 
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockserver.model.HttpRequest.request;
 
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.mockserver.model.HttpClassCallback;
 
 import com.norconex.crawler.web.TestWebCrawlSession;
-import com.norconex.crawler.web.WebsiteMock.InfinitDepthCallback;
+import com.norconex.crawler.web.WebsiteMock;
 
 /**
  * Test that MaxDepth setting is respected.
@@ -34,16 +32,12 @@ import com.norconex.crawler.web.WebsiteMock.InfinitDepthCallback;
 @MockServerSettings
 class MaxDepthTest {
 
-    private static final String PATH = "/maxDepth";
-
     @Test
     void testMaxDepth(ClientAndServer client) throws IOException {
-        client
-            .when(request()) // match any path
-            .respond(HttpClassCallback.callback(Callback.class));
+        WebsiteMock.whenInfinitDepth(client);
 
         var mem = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, PATH + "/0"))
+                .forStartUrls(serverUrl(client, "/maxDepth/0000"))
                 .crawlerSetup(cfg -> {
                     cfg.setMaxDepth(10);
                 })
@@ -51,11 +45,5 @@ class MaxDepthTest {
 
         // 0-depth + 10 others == 11 expected files
         assertThat(mem.getRequestCount()).isEqualTo(11);
-    }
-
-    public static class Callback extends InfinitDepthCallback {
-        public Callback() {
-            super(PATH);
-        }
     }
 }

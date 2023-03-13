@@ -21,9 +21,14 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 
+import com.norconex.committer.core.CommitterRequest;
+import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.crawler.Crawler;
@@ -83,6 +88,37 @@ public final class WebTestUtil {
             @NonNull CrawlerConfig crawlerConfig) {
         return ((GenericHttpFetcher) ((WebCrawlerConfig) crawlerConfig)
                 .getHttpFetchers().get(0)).getConfig();
+    }
+
+    public static Set<String> sortedRequestReferences(MemoryCommitter c) {
+        return c.getAllRequests().stream()
+                .map(CommitterRequest::getReference)
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+    public static Set<String> sortedUpsertReferences(MemoryCommitter c) {
+        return c.getUpsertRequests().stream()
+                .map(UpsertRequest::getReference)
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+    public static Set<String> sortedDeleteReferences(MemoryCommitter c) {
+        return c.getDeleteRequests().stream()
+                .map(DeleteRequest::getReference)
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+    public static String lastSortedRequestReference(MemoryCommitter c) {
+        return sortedRequestReferences(c).stream()
+            .reduce((first, second) -> second)
+            .orElse(null);
+    }
+    public static String lastSortedUpsertReference(MemoryCommitter c) {
+        return sortedUpsertReferences(c).stream()
+                .reduce((first, second) -> second)
+                .orElse(null);
+    }
+    public static String lastSortedDeleteReference(MemoryCommitter c) {
+        return sortedDeleteReferences(c).stream()
+                .reduce((first, second) -> second)
+                .orElse(null);
     }
 
     public static void ignoreAllIgnorables(CrawlSession crawlSession) {

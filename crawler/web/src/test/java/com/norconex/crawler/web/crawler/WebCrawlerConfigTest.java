@@ -27,8 +27,8 @@ class WebCrawlerConfigTest {
 
     @Test
     void testHttpCrawlerConfig() {
-        assertThatNoException().isThrownBy(() ->
-                XML.assertWriteRead(WebStubber.crawlerConfigRandom(), "crawler"));
+        assertThatNoException().isThrownBy(() -> XML.assertWriteRead(
+                WebStubber.crawlerConfigRandom(), "crawler"));
     }
 
 }

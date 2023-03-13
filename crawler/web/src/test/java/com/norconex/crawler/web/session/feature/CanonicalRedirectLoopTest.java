@@ -102,5 +102,7 @@ class CanonicalRedirectLoopTest {
 
         assertThat(doc.getMetadata().getStrings(WebDocMetadata.REDIRECT_TRAIL))
                 .containsExactly(serverUrl(client, REDIRECT_PATH));
+
+        crawlSession.clean();
     }
 }

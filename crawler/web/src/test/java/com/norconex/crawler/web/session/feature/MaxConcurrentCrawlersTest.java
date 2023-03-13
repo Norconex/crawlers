@@ -16,7 +16,6 @@ package com.norconex.crawler.web.session.feature;
 
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockserver.model.HttpRequest.request;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,7 +25,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.mockserver.model.HttpClassCallback;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
@@ -34,7 +32,7 @@ import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.web.TestWebCrawlSession;
 import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.WebsiteMock.InfinitDepthCallback;
+import com.norconex.crawler.web.WebsiteMock;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,8 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 @MockServerSettings
 @Slf4j
 class MaxConcurrentCrawlersTest {
-
-    private static final String BASE_PATH = "/maxConcurrent/";
 
     @ParameterizedTest
     // max concurrent crawlers, total crawlers
@@ -63,12 +59,12 @@ class MaxConcurrentCrawlersTest {
             int maxConcurrentCrawlers, int totalCrawlers,
             ClientAndServer client) throws IOException {
 
-        client.reset();
-        client
-            .when(request())
-            .respond(HttpClassCallback.callback(Callback.class));
+        var basePath = "/maxConcurrent/";
 
-        var startPath = BASE_PATH + "0";
+        client.reset();
+        WebsiteMock.whenInfinitDepth(client);
+
+        var startPath = basePath + "0";
         var totalRunning = new AtomicInteger();
         var maxDetectedAtOnce = new AtomicInteger();
         var maxDocs = 5;
@@ -135,11 +131,7 @@ class MaxConcurrentCrawlersTest {
             var mem = WebTestUtil.getFirstMemoryCommitter(crawler);
             assertThat(mem.getRequestCount()).isEqualTo(maxDocs);
         }
-    }
 
-    public static class Callback extends InfinitDepthCallback {
-        public Callback() {
-            super(BASE_PATH);
-        }
+        crawlSession.clean();
     }
 }

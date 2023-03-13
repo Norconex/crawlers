@@ -69,5 +69,7 @@ class JavaScriptProtocolURLTest {
             .containsExactlyInAnyOrder(
                     serverUrl(client, firstPath),
                     serverUrl(client, secondPath));
+
+        crawlSession.clean();
     }
 }

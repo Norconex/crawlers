@@ -69,6 +69,10 @@ public class TestWebCrawlSession {
         return sess;
     }
 
+    public CrawlSessionConfig crawlSessionConfig() {
+        return crawlSession().getCrawlSessionConfig();
+    }
+
     public CrawlSession crawlSession() {
         var workDir = Files.newTemporaryFolder();
         var crawlSession = WebStubber.crawlSession(

@@ -103,5 +103,7 @@ class CanonicalLinkTest {
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
         assertThat(mem.getUpsertRequests()).hasSize(1);
         assertThat(canCount.intValue()).isEqualTo(2);
+
+        crawlSession.clean();
     }
 }

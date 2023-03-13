@@ -85,6 +85,9 @@ Misc. Changes
   GenericReferenceFilter.
 * Renamed CollectorCommandLcuncher to CliLauncher.
 * New MVStoreDataStoreConfig#ephemeral property for in-memory storage.
+* The "maxDocuments" feature now represents the number of document processed
+  within a crawling session. If the crawler did not reach completion, 
+  the next session will resume where it last ended.
   
 ### Crawler Web
 

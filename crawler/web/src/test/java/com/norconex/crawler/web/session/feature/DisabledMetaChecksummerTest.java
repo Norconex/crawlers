@@ -69,6 +69,8 @@ class DisabledMetaChecksummerTest {
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
+
+        crawlSession.clean();
     }
 
     private void whenMetaChanges(

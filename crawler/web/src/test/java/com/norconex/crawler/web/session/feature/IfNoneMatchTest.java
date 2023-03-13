@@ -88,6 +88,8 @@ class IfNoneMatchTest {
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
+
+        crawlSession.clean();
     }
 
     private void whenETag(ClientAndServer client, String serverEtag) {

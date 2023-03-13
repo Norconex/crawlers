@@ -76,6 +76,8 @@ class TimeoutTest {
                     serverUrl(client, basePath + "/child1.html"),
                     serverUrl(client, basePath + "/child2.html"));
         mem.clean();
+
+        crawlSession.clean();
     }
 
     private void whenDelayed(ClientAndServer client, long delay) {

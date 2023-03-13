@@ -81,6 +81,8 @@ class ModifiedFileDetectionTest {
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isEqualTo(1);
         mem.clean();
+
+        crawlSession.clean();
     }
 
     private void whenLastModified(

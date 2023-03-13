@@ -26,6 +26,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
@@ -51,10 +52,13 @@ public class WebCrawlSessionLauncher {
      * @param args command-line options
      */
     public static void main(String[] args) {
-        launch(args);
-//        new CollectorCommandLauncher().launch(new HttpCollector(), args);
+        try {
+            System.exit(launch(args));
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            System.exit(1);
+        }
     }
-
 
     public static int launch(String... args) {
         return CliLauncher.launch(
@@ -66,7 +70,8 @@ public class WebCrawlSessionLauncher {
                         .crawlerImpl(crawlerImplBuilder().build())
                         .build()
                 )
-                .crawlSessionConfig(new CrawlSessionConfig()),
+                .crawlSessionConfig(
+                        new CrawlSessionConfig(WebCrawlerConfig.class)),
             args
         );
     }

@@ -76,6 +76,8 @@ class FileNotFoundDeletionTest {
         assertThat(mem.getUpsertCount()).isOne();
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
+
+        crawlSession.clean();
     }
 
     private void whenPageFound(ClientAndServer client) {

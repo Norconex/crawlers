@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.web;
 
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.apache.commons.lang3.StringUtils.leftPad;
+import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
@@ -27,7 +30,6 @@ import org.mockserver.mock.Expectation;
 import org.mockserver.mock.action.ExpectationResponseCallback;
 import org.mockserver.model.BinaryBody;
 import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
 import org.mockserver.model.MediaType;
 
 import lombok.AccessLevel;
@@ -37,36 +39,49 @@ import lombok.experimental.Accessors;
 
 public final class WebsiteMock {
 
-    public static abstract class InfinitDepthCallback
-            implements ExpectationResponseCallback {
-        private final String basePath;
-        protected InfinitDepthCallback(String basePath) {
-            this.basePath = StringUtils.appendIfMissing(basePath, "/");
-        }
-        @Override
-        public HttpResponse handle(HttpRequest req) {
-            var reqPath = req.getPath().toString();
-            var numStr = StringUtils.substringAfterLast(reqPath, "/");
-            var currentDepth = 0;
-            if (NumberUtils.isDigits(numStr)) {
-                currentDepth = Integer.parseInt(numStr);
-            }
-            var prevLink = "";
-            if (currentDepth > 0) {
-                prevLink = "<a href=\"%s\">Previous</a> | "
-                        .formatted(basePath + (currentDepth - 1));
-            }
-            var nextLink = " | <a href=\"%s\">Next</a>"
-                    .formatted(basePath + (currentDepth + 1));
-            return response().withBody("""
-                <h1>%s test page</h1>
-                %s Current page depth: %s %s
-                """.formatted(reqPath, prevLink, currentDepth, nextLink),
-                HTML_UTF_8);
-        }
+    private WebsiteMock() {}
+
+    public static void whenInfinitDepth(ClientAndServer client) {
+        client
+            .when(request())
+            .respond(WebsiteMock.responseWithInfiniteDepth());
     }
 
-    private WebsiteMock() {}
+    /**
+     * Returns a page containing a link backward (if not the first page)
+     * and a link forward, based on the appended number.
+     * The number is zero-padded up to 4 characters (to facilitate sorting).
+     * @return page
+     */
+    public static ExpectationResponseCallback responseWithInfiniteDepth() {
+        return req -> {
+            var reqPath = req.getPath().toString();
+            var numStr = StringUtils.substringAfterLast(reqPath, "/");
+            var basePath = appendIfMissing(
+                    substringBeforeLast(reqPath, "/"), "/");
+            var curDepth = 0;
+            if (NumberUtils.isDigits(numStr)) {
+                curDepth = Integer.parseInt(numStr);
+            }
+
+            var prevLink = "";
+            if (curDepth > 0) {
+                var beforeNum = leftPad(Integer.toString(curDepth - 1), 4, '0');
+                prevLink = "<a href=\"%s\">Previous</a> | "
+                        .formatted(basePath + beforeNum);
+            }
+            var afterNum = leftPad(Integer.toString(curDepth + 1), 4, '0');
+            var nextLink = " | <a href=\"%s\">Next</a>"
+                    .formatted(basePath + afterNum);
+            return response().withBody(WebsiteMock.htmlPage().body(
+                """
+                <h1>%s test page</h1>
+                %s Current page depth: %s %s
+                """
+                .formatted(reqPath, prevLink, curDepth, nextLink))
+                .build(), HTML_UTF_8);
+        };
+    }
 
     public static String secureServerUrl(
             ClientAndServer client, String urlPath) {

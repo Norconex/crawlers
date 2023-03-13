@@ -110,6 +110,8 @@ class SitemapURLDeletionTest {
             .containsExactlyInAnyOrder(
                     serverUrl(client, page3Path));
         mem.clean();
+
+        crawlSession.clean();
     }
 
     private void whenSitemap(ClientAndServer client, boolean firstTime) {

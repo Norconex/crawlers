@@ -16,7 +16,6 @@ package com.norconex.crawler.web.session.feature;
 
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockserver.model.HttpRequest.request;
 
 import java.nio.charset.StandardCharsets;
 
@@ -24,11 +23,10 @@ import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.mockserver.model.HttpClassCallback;
 
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.TestWebCrawlSession;
-import com.norconex.crawler.web.WebsiteMock.InfinitDepthCallback;
+import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.importer.doc.DocMetadata;
 
 /**
@@ -37,16 +35,12 @@ import com.norconex.importer.doc.DocMetadata;
 @MockServerSettings
 class ValidMetadataTest {
 
-    private static final String PATH = "/validMetadata";
-
     @Test
     void testValidMetadata(ClientAndServer client) {
-        client
-            .when(request())
-            .respond(HttpClassCallback.callback(Callback.class));
+        WebsiteMock.whenInfinitDepth(client);
 
         var mem = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, PATH + "/0"))
+                .forStartUrls(serverUrl(client, "/validMetadata/0000"))
                 .crawlerSetup(cfg -> {
                     cfg.setMaxDepth(10);
                 })
@@ -63,12 +57,6 @@ class ValidMetadataTest {
                 .containsExactly("text/html");
             assertThat(meta.getStrings(DocMetadata.CONTENT_ENCODING))
                 .containsExactly(StandardCharsets.UTF_8.toString());
-        }
-    }
-
-    public static class Callback extends InfinitDepthCallback {
-        public Callback() {
-            super(PATH);
         }
     }
 }
