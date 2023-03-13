@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.session.crash;
+package com.norconex.crawler.web.session.recovery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.session.crash;
+package com.norconex.crawler.web.session.recovery;
 
 import static java.lang.String.join;
 
@@ -183,16 +183,15 @@ public class ExternalCrawlSessionLauncher {
     public static class TestCommitter implements Committer, XMLConfigurable {
         private Path dir;
         public TestCommitter() {}
-        @SneakyThrows
         public TestCommitter(Path dir) {
             this.dir = dir;
-            Files.createDirectories(dir);
         }
 
         @Override
+        @SneakyThrows
         public void init(CommitterContext committerContext)
                 throws CommitterException {
-            //NOOP
+            Files.createDirectories(dir);
         }
         @Override
         @SneakyThrows

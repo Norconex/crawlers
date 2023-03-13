@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.session.crash;
+package com.norconex.crawler.web.session.recovery;
 
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +24,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
 import com.norconex.crawler.web.TestWebCrawlSession;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.WebsiteMock;
@@ -37,16 +36,15 @@ import lombok.extern.slf4j.Slf4j;
  */
 @MockServerSettings
 @Slf4j
-class ResumeAfterJvmCrashTest {
+class ResumeAfterStopTest {
 
     @Test
-    void testStartAfterJvmCrash(
-            ClientAndServer client, @TempDir Path tempDir) {
-        var path = "/startAfterJvmCrash";
+    void testResumeAfterStop(ClientAndServer client, @TempDir Path tempDir) {
+        var path = "/resumeAfterStop";
 
         WebsiteMock.whenInfinitDepth(client);
 
-        var crasher = new JVMCrasher();
+        var stopper = new CrawlSessionStopper();
 
         var crawlSessionConfig = TestWebCrawlSession
                 .forStartUrls(serverUrl(client, path + "/0000"))
@@ -57,26 +55,24 @@ class ResumeAfterJvmCrashTest {
                     cfg.setMaxDocuments(10);
                     cfg.setMetadataChecksummer(null);
                     cfg.setDocumentChecksummer(null);
-                    var storeCfg = ((MVStoreDataStoreEngine)
-                            cfg.getDataStoreEngine()).getConfiguration();
-                    storeCfg.setAutoCommitDelay(1L);
                 })
                 .crawlSessionConfig();
-        // First run should crash with 6 commits only
-        crawlSessionConfig.addEventListener(crasher);
+
+        // First run should stop with 7 commits only (0-6)
+        crawlSessionConfig.addEventListener(stopper);
         var outcome = ExternalCrawlSessionLauncher.start(crawlSessionConfig);
         LOG.debug(outcome.getStdErr());
         LOG.debug(outcome.getStdOut());
-        assertThat(outcome.getReturnValue()).isEqualTo(13);
+        assertThat(outcome.getReturnValue()).isZero();
         assertThat(outcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(6);
+                .getUpsertCount()).isEqualTo(7);
         assertThat(WebTestUtil.lastSortedRequestReference(
                 outcome.getCommitterAfterLaunch())).isEqualTo(
-                        WebsiteMock.serverUrl(client, path + "/0005"));
+                        WebsiteMock.serverUrl(client, path + "/0006"));
 
         // Second run, it should resume and finish normally, crawling
         // 10 docs in this session.
-        crawlSessionConfig.removeEventListener(crasher);
+        crawlSessionConfig.removeEventListener(stopper);
         outcome = ExternalCrawlSessionLauncher.start(crawlSessionConfig);
         LOG.debug(outcome.getStdErr());
         LOG.debug(outcome.getStdOut());
@@ -84,10 +80,10 @@ class ResumeAfterJvmCrashTest {
         assertThat(outcome.getCommitterAfterLaunch()
                 .getUpsertCount()).isEqualTo(10);
         assertThat(outcome.getCommitterCombininedLaunches()
-                .getUpsertCount()).isEqualTo(16);
+                .getUpsertCount()).isEqualTo(17);
         assertThat(WebTestUtil.lastSortedRequestReference(
                 outcome.getCommitterAfterLaunch())).isEqualTo(
-                        WebsiteMock.serverUrl(client, path + "/0015"));
+                        WebsiteMock.serverUrl(client, path + "/0016"));
 
         // Recrawl fresh without crash. Since we do not check for duplicates,
         // it should find 10 "new", added to previous 10.
@@ -98,9 +94,9 @@ class ResumeAfterJvmCrashTest {
         assertThat(outcome.getCommitterAfterLaunch()
                 .getUpsertCount()).isEqualTo(10);
         assertThat(outcome.getCommitterCombininedLaunches()
-                .getUpsertCount()).isEqualTo(26);
+                .getUpsertCount()).isEqualTo(27);
         assertThat(WebTestUtil.lastSortedRequestReference(
                 outcome.getCommitterAfterLaunch())).isEqualTo(
-                        WebsiteMock.serverUrl(client, path + "/0025"));
+                        WebsiteMock.serverUrl(client, path + "/0026"));
     }
 }
