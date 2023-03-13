@@ -793,6 +793,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public void setStartURLsProviders(
             List<StartURLsProvider> startURLsProviders) {
         CollectionUtil.setAll(this.startURLsProviders, startURLsProviders);
+        CollectionUtil.removeNulls(this.startURLsProviders);
     }
 
     /**
@@ -981,6 +982,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public void setPreImportProcessors(
             List<WebDocumentProcessor> preImportProcessors) {
         CollectionUtil.setAll(this.preImportProcessors, preImportProcessors);
+        CollectionUtil.removeNulls(this.preImportProcessors);
     }
 
     /**
@@ -1006,6 +1008,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public void setPostImportProcessors(
             List<WebDocumentProcessor> postImportProcessors) {
         CollectionUtil.setAll(this.postImportProcessors, postImportProcessors);
+        CollectionUtil.removeNulls(this.postImportProcessors);
     }
 
     public boolean isIgnoreRobotsTxt() {
@@ -1214,7 +1217,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
                 .setAttribute("ignore", ignoreRobotsTxt);
         xml.addElement("sitemapResolver",
                 sitemapResolver).setAttribute("ignore", ignoreSitemap);
-        xml.addElement("canonicalLinkDetector", canonicalLinkDetector);
+        xml.addElement("canonicalLinkDetector", canonicalLinkDetector)
+                .setAttribute("ignore", ignoreCanonicalLinks);
         xml.addElement("recrawlableResolver", recrawlableResolver);
 
         xml.addElement("httpFetchers")
@@ -1330,8 +1334,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
         setKeepReferencedLinks(new HashSet<>(xml.getDelimitedEnumList(
                 "keepReferencedLinks", ReferencedLinkType.class,
                         new ArrayList<>(keepReferencedLinks))));
-        setIgnoreCanonicalLinks(xml.getBoolean(
-                "ignoreCanonicalLinks", ignoreCanonicalLinks));
         urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
                 "startURLs/@stayOnProtocol",
                 urlCrawlScopeStrategy.isStayOnProtocol()));
@@ -1349,7 +1351,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
                 xml.getPathList("startURLs/urlsFile", startURLsFiles));
         setStartSitemapURLs(
                 xml.getStringList("startURLs/sitemap", startSitemapURLs));
-        setStartURLsProviders(xml.getObjectListImpl(StartURLsProvider.class,
+        setStartURLsProviders(
+                xml.getObjectListImpl(StartURLsProvider.class,
                 "startURLs/provider", startURLsProviders));
         setStartURLsAsync(xml.getBoolean("startURLs/@async", startURLsAsync));
     }

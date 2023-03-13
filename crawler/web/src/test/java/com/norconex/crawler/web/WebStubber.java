@@ -59,6 +59,7 @@ import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
+import com.norconex.crawler.web.link.LinkExtractor;
 import com.norconex.crawler.web.link.impl.DOMLinkExtractor;
 import com.norconex.crawler.web.processor.WebDocumentProcessor;
 import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor;
@@ -116,7 +117,8 @@ public final class WebStubber {
             .excludeType(WebDocumentProcessor.class::equals)
             .excludeType(RecrawlableResolver.class::equals)
             .excludeType(HttpAuthConfig.class::equals)
-            .randomize(StartURLsProvider.class, () -> null) // <-- TODO mock this
+            .excludeType(StartURLsProvider.class::equals)
+
             .randomize(Charset.class, () -> StandardCharsets.UTF_8)
             .randomize(CircularRange.class, () -> {
                 int a = new NumberRandomizer().getRandomValue();
@@ -134,7 +136,7 @@ public final class WebStubber {
                 resolv.setScope("crawler");
                 return resolv;
             })
-            .randomize(DOMLinkExtractor.class, () -> {
+            .randomize(LinkExtractor.class, () -> {
                 var extractor = new DOMLinkExtractor();
                 extractor.addLinkSelector("text");
                 return extractor;
