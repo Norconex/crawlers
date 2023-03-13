@@ -225,7 +225,7 @@
 
     <!-- Others -->
 
-    <Logger name="com.norconex.crawler.web" level="DEBUG" additivity="false">
+    <Logger name="com.norconex.crawler.web" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.crawler.core" level="WARN" additivity="false">
@@ -240,7 +240,7 @@
     <Logger name="com.norconex.commons.lang" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.commons.lang.xml" level="DEBUG" additivity="false">
+    <Logger name="com.norconex.commons.lang.xml" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.apache" level="WARN" additivity="false">
@@ -249,7 +249,7 @@
     <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.mockserver" level="INFO" additivity="false">
+    <Logger name="org.mockserver" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
 

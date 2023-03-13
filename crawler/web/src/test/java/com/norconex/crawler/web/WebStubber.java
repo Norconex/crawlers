@@ -136,6 +136,11 @@ public final class WebStubber {
                 resolv.setScope("crawler");
                 return resolv;
             })
+            .randomize(DOMLinkExtractor.class, () -> {
+                var extractor = new DOMLinkExtractor();
+                extractor.addLinkSelector("text");
+                return extractor;
+            })
             .randomize(LinkExtractor.class, () -> {
                 var extractor = new DOMLinkExtractor();
                 extractor.addLinkSelector("text");
