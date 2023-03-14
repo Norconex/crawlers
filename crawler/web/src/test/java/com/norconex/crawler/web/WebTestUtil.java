@@ -154,4 +154,7 @@ public final class WebTestUtil {
             throw new UncheckedIOException(e);
         }
     }
+    public static String resourceAsString(String resourcePath) {
+        return toString(WebTestUtil.class.getResourceAsStream(resourcePath));
+    }
 }

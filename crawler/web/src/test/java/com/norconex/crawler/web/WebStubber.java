@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.web;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jeasy.random.EasyRandom;
@@ -171,6 +174,13 @@ public final class WebStubber {
         return cfg;
     }
 
+    public static CrawlDoc crawlDocHtml(String ref) {
+        return crawlDocHtml(ref, "Sample HTML content.");
+    }
+    public static CrawlDoc crawlDocHtml(String ref, String content) {
+        return crawlDoc(ref, ContentType.HTML,
+                IOUtils.toInputStream(content, UTF_8));
+    }
     public static CrawlDoc crawlDoc(
             String ref, ContentType ct, InputStream is) {
         var docRecord = new WebDocRecord(ref);

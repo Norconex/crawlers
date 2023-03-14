@@ -14,20 +14,15 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-import java.util.logging.Level;
-
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.logging.LogType;
-import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.support.ThreadGuard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.web.fetch.impl.webdriver.Browser.WebDriverSupplier;
-import com.norconex.commons.lang.SLF4JUtil;
 
 /**
  * <p>
@@ -54,8 +49,8 @@ class WebDriverHolder {
                         cfg.getBrowserPath(),
                         cfg.getRemoteURL()),
                 o -> {
-                    configureWebDriverLogging(o);
-                    o.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
+//                    configureWebDriverLogging(o);
+//                    o.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
                     o.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
                     o.merge(cfg.getCapabilities());
                     options.setValue(o);
@@ -68,7 +63,7 @@ class WebDriverHolder {
     }
 
     public WebDriver getDriver() {
-       WebDriver driver = DRIVER.get();
+       var driver = DRIVER.get();
        if (driver == null) {
            DRIVER.set(ThreadGuard.protect(driverSupplier.get()));
        }
@@ -77,23 +72,23 @@ class WebDriverHolder {
 
     public void releaseDriver() {
         options.setValue(null);
-        WebDriver driver = DRIVER.get();
+        var driver = DRIVER.get();
         if (driver != null) {
             driver.quit();
             DRIVER.remove();
         }
     }
 
-    private static void configureWebDriverLogging(
-            MutableCapabilities capabilities) {
-        LoggingPreferences logPrefs = new LoggingPreferences();
-        Level level = SLF4JUtil.toJavaLevel(SLF4JUtil.getLevel(LOG));
-        logPrefs.enable(LogType.PERFORMANCE, level);
-        logPrefs.enable(LogType.PROFILER, level);
-        logPrefs.enable(LogType.BROWSER, level);
-        logPrefs.enable(LogType.CLIENT, level);
-        logPrefs.enable(LogType.DRIVER, level);
-        logPrefs.enable(LogType.SERVER, level);
-        capabilities.setCapability(CapabilityType.LOGGING_PREFS, logPrefs);
-    }
+//    private static void configureWebDriverLogging(
+//            MutableCapabilities capabilities) {
+//        var logPrefs = new LoggingPreferences();
+//        var level = SLF4JUtil.toJavaLevel(SLF4JUtil.getLevel(LOG));
+//        logPrefs.enable(LogType.PERFORMANCE, level);
+//        logPrefs.enable(LogType.PROFILER, level);
+//        logPrefs.enable(LogType.BROWSER, level);
+//        logPrefs.enable(LogType.CLIENT, level);
+//        logPrefs.enable(LogType.DRIVER, level);
+//        logPrefs.enable(LogType.SERVER, level);
+//        capabilities.setCapability(CapabilityType.LOGGING_PREFS, logPrefs);
+//    }
 }

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Vegetables Page</title>
+  <script>
+    function w(markup) {
+        document.write(markup);
+    }
+    function tagOpen(tagName) {
+        w('<' + tagName + '>');
+    }
+    function tagClose(tagName) {
+        w('</' + tagName + '>\n');
+    }
+    function link(path, label) {
+        w('<');w('a hr');w('ef');w('="');
+        w(path);w('">');w(label);w('</');w('a><br>');
+    }
+    function renderMe() {
+        tagOpen('h1');w('Vegetables');tagClose('h1');
+        tagOpen('ul');
+        tagOpen('li');link('apple.h' + 'tml', 'Apple');tagClose('li');
+        tagOpen('li');link('orange.h' + 'tml', 'Orange');tagClose('li');
+        tagClose('ul');
+        tagOpen('div');
+        w('Fruits footer.');
+        tagClose('div');
+    }
+  </script>
+</head>
+<body onload="renderMe();">
+
+  <p>
+    Vegetables: if you get this sentence only, you did not get 
+    JavaScript-rendered content.
+  </p>
+
+</body>
+</html>

@@ -16,6 +16,8 @@ package com.norconex.crawler.web;
 
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.leftPad;
+import static org.apache.commons.lang3.StringUtils.prependIfMissing;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -45,6 +47,53 @@ public final class WebsiteMock {
         client
             .when(request())
             .respond(WebsiteMock.responseWithInfiniteDepth());
+    }
+
+    public static void whenJsRenderedWebsite(ClientAndServer client) {
+        whenResourceWebSite(client, "website/js-rendered")
+            .whenHtml("/apple.html")
+            .whenHtml("/carrot.html")
+            .whenHtml("/celery.html")
+            .whenHtml("/fruits.html")
+            .whenHtml("/index.html")
+            .whenHtml("/orange.html")
+            .whenHtml("/vegetables.html")
+            .whenJPG("/apple.jpg")
+            .whenPDF("/tiny.pdf")
+            ;
+    }
+
+    public static ResourceWebSite whenResourceWebSite(
+            ClientAndServer client, String resourceBasePath) {
+        return new ResourceWebSite(client, resourceBasePath);
+    }
+
+    public static class ResourceWebSite {
+        private final String resourceBasePath;
+        private final ClientAndServer client;
+        private ResourceWebSite(
+                ClientAndServer client, String resourceBasePath) {
+            this.client = client;
+            this.resourceBasePath = removeEnd(resourceBasePath, "/");
+        }
+        public ResourceWebSite whenHtml(String path) {
+            var p = prependIfMissing(path, "/");
+            WebsiteMock.whenHtml(client, p,
+                    new TestResource(resourceBasePath + p).asString());
+            return this;
+        }
+        public ResourceWebSite whenPDF(String path) {
+            var p = prependIfMissing(path, "/");
+            WebsiteMock.whenPDF(client, p,
+                    new TestResource(resourceBasePath + p));
+            return this;
+        }
+        public ResourceWebSite whenJPG(String path) {
+            var p = prependIfMissing(path, "/");
+            WebsiteMock.whenJPG(client, p,
+                    new TestResource(resourceBasePath + p));
+            return this;
+        }
     }
 
     /**
@@ -124,9 +173,17 @@ public final class WebsiteMock {
         );
     }
 
+    public static Expectation[] whenJPG(
+            ClientAndServer client, String urlPath, TestResource resource) {
+        return client
+            .when(request().withPath(urlPath))
+            .respond(response().withBody(
+                    BinaryBody.binary(resource.asBytes(), MediaType.JPEG))
+        );
+    }
+
     public static Expectation[] whenPDF(
-            ClientAndServer client, String urlPath, TestResource resource)
-                    throws IOException {
+            ClientAndServer client, String urlPath, TestResource resource) {
         return client
             .when(request().withPath(urlPath))
             .respond(response().withBody(

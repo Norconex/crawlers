@@ -18,7 +18,6 @@ import static java.util.Optional.ofNullable;
 import static org.openqa.selenium.chrome.ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY;
 import static org.openqa.selenium.edge.EdgeDriverService.EDGE_DRIVER_EXE_PROPERTY;
 import static org.openqa.selenium.firefox.GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY;
-import static org.openqa.selenium.opera.OperaDriverService.OPERA_DRIVER_EXE_PROPERTY;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -35,8 +34,6 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.opera.OperaDriver;
-import org.openqa.selenium.opera.OperaOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
@@ -94,7 +91,7 @@ public enum Browser {
             profile.setAcceptUntrustedCertificates(true);
             profile.setAssumeUntrustedCertificateIssuer(true);
             profile.setPreference("devtools.console.stdout.content", true);
-            options.setCapability(FirefoxDriver.PROFILE, profile);
+//            options.setCapability(FirefoxDriver.PROFILE, profile);
             optionsConsumer.accept(options);
             return new WebDriverSupplier(new WebDriverBuilder()
                     .driverClass(FirefoxDriver.class)
@@ -131,20 +128,20 @@ public enum Browser {
                     .options(options));
         }
     },
-    OPERA() {
-        @Override
-        WebDriverSupplier driverSupplier(
-                WebDriverLocation location,
-                Consumer<MutableCapabilities> optionsConsumer) {
-            var options = new OperaOptions();
-            optionsConsumer.accept(options);
-            return new WebDriverSupplier(new WebDriverBuilder()
-                    .driverClass(OperaDriver.class)
-                    .driverSystemProperty(OPERA_DRIVER_EXE_PROPERTY)
-                    .location(location)
-                    .options(options));
-        }
-    },
+//    OPERA() {
+//        @Override
+//        WebDriverSupplier driverSupplier(
+//                WebDriverLocation location,
+//                Consumer<MutableCapabilities> optionsConsumer) {
+//            var options = new OperaOptions();
+//            optionsConsumer.accept(options);
+//            return new WebDriverSupplier(new WebDriverBuilder()
+//                    .driverClass(OperaDriver.class)
+//                    .driverSystemProperty(OPERA_DRIVER_EXE_PROPERTY)
+//                    .location(location)
+//                    .options(options));
+//        }
+//    },
     /*
     HTMLUNIT
     PHANTOMJS,

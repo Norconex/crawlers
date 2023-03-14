@@ -14,10 +14,11 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.time.Duration.ofMillis;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,17 +26,11 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.http.HttpHeaders;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
@@ -58,7 +53,10 @@ import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcherConfig.
 import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
 import com.norconex.importer.doc.Doc;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -180,18 +178,12 @@ import lombok.NonNull;
  * @since 3.0.0
  */
 @SuppressWarnings("javadoc")
+@Slf4j
+@EqualsAndHashCode
+@ToString
 public class WebDriverHttpFetcher
         extends AbstractFetcher<HttpFetchRequest, HttpFetchResponse>
-
-
-        // NEEDED?
         implements HttpFetcher {
-
-
-
-
-    private static final Logger LOG = LoggerFactory.getLogger(
-            WebDriverHttpFetcher.class);
 
     private final WebDriverHttpFetcherConfig cfg;
     private CachedStreamFactory streamFactory;
@@ -345,13 +337,13 @@ public class WebDriverHttpFetcher
 
         var timeouts = driver.manage().timeouts();
         if (cfg.getPageLoadTimeout() != 0) {
-            timeouts.pageLoadTimeout(cfg.getPageLoadTimeout(),  MILLISECONDS);
+            timeouts.pageLoadTimeout(ofMillis(cfg.getPageLoadTimeout()));
         }
         if (cfg.getImplicitlyWait() != 0) {
-            timeouts.implicitlyWait(cfg.getImplicitlyWait(), MILLISECONDS);
+            timeouts.implicitlyWait(ofMillis(cfg.getImplicitlyWait()));
         }
         if (cfg.getScriptTimeout() != 0) {
-            timeouts.setScriptTimeout(cfg.getScriptTimeout(), MILLISECONDS);
+            timeouts.scriptTimeout(ofMillis(cfg.getScriptTimeout()));
         }
 
         if (cfg.getWaitForElementTimeout() != 0
@@ -362,7 +354,7 @@ public class WebDriverHttpFetcher
                     cfg.getWaitForElementSelector(), elType, url);
 
             var wait = new WebDriverWait(
-                    driver, cfg.getWaitForElementTimeout() / 1000);
+                    driver, Duration.ofMillis(cfg.getWaitForElementTimeout()));
             wait.until(ExpectedConditions.presenceOfElementLocated(
                     elType.getBy(cfg.getWaitForElementSelector())));
 
@@ -434,19 +426,6 @@ public class WebDriverHttpFetcher
         return response;
     }
 
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
-    }
     @Override
     protected void loadFetcherFromXML(XML xml) {
         xml.populate(cfg);

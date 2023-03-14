@@ -20,15 +20,13 @@ import java.nio.file.Path;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.openqa.selenium.By;
 import org.openqa.selenium.MutableCapabilities;
 
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
+
+import lombok.Data;
 
 /**
  * <p>
@@ -37,6 +35,7 @@ import com.norconex.commons.lang.xml.XML;
  * @see WebDriverHttpFetcher
  * @since 3.0.0
  */
+@Data
 public class WebDriverHttpFetcherConfig implements XMLConfigurable {
 
     public enum WaitElementType {
@@ -58,7 +57,9 @@ public class WebDriverHttpFetcherConfig implements XMLConfigurable {
     }
 
     private Browser browser = Browser.FIREFOX;
+    // Default will try to detect driver installation on OS
     private Path driverPath;
+    // Default will try to detect browser installation on OS
     private Path browserPath;
     private URL remoteURL;
 
@@ -80,123 +81,6 @@ public class WebDriverHttpFetcherConfig implements XMLConfigurable {
     private String waitForElementSelector;
     private long waitForElementTimeout;
 
-    public WebDriverHttpFetcherConfig() {
-        super();
-    }
-
-    public Browser getBrowser() {
-        return browser;
-    }
-    public void setBrowser(Browser driverName) {
-        this.browser = driverName;
-    }
-
-    // Default will try to detect driver installation on OS
-    public Path getDriverPath() {
-        return driverPath;
-    }
-    public void setDriverPath(Path driverPath) {
-        this.driverPath = driverPath;
-    }
-
-    // Default will try to detect browser installation on OS
-    public Path getBrowserPath() {
-        return browserPath;
-    }
-    public void setBrowserPath(Path binaryPath) {
-        this.browserPath = binaryPath;
-    }
-
-    public HttpSnifferConfig getHttpSnifferConfig() {
-        return httpSnifferConfig;
-    }
-
-    public void setHttpSnifferConfig(
-            HttpSnifferConfig httpSnifferConfig) {
-        this.httpSnifferConfig = httpSnifferConfig;
-    }
-
-    public MutableCapabilities getCapabilities() {
-        return capabilities;
-    }
-
-    public Dimension getWindowSize() {
-        return windowSize;
-    }
-    public void setWindowSize(Dimension windowSize) {
-        this.windowSize = windowSize;
-    }
-
-    public String getEarlyPageScript() {
-        return earlyPageScript;
-    }
-    public void setEarlyPageScript(String initScript) {
-        this.earlyPageScript = initScript;
-    }
-
-    public String getLatePageScript() {
-        return latePageScript;
-    }
-    public void setLatePageScript(String pageScript) {
-        this.latePageScript = pageScript;
-    }
-
-    public long getPageLoadTimeout() {
-        return pageLoadTimeout;
-    }
-    public void setPageLoadTimeout(long pageLoadTimeout) {
-        this.pageLoadTimeout = pageLoadTimeout;
-    }
-
-    public long getImplicitlyWait() {
-        return implicitlyWait;
-    }
-    public void setImplicitlyWait(long implicitlyWait) {
-        this.implicitlyWait = implicitlyWait;
-    }
-
-    public long getScriptTimeout() {
-        return scriptTimeout;
-    }
-    public void setScriptTimeout(long scriptTimeout) {
-        this.scriptTimeout = scriptTimeout;
-    }
-
-    public WaitElementType getWaitForElementType() {
-        return waitForElementType;
-    }
-    public void setWaitForElementType(WaitElementType waitForElementType) {
-        this.waitForElementType = waitForElementType;
-    }
-
-    public String getWaitForElementSelector() {
-        return waitForElementSelector;
-    }
-    public void setWaitForElementSelector(String waitForElementSelector) {
-        this.waitForElementSelector = waitForElementSelector;
-    }
-
-    public long getWaitForElementTimeout() {
-        return waitForElementTimeout;
-    }
-    public void setWaitForElementTimeout(long waitForElementTimeout) {
-        this.waitForElementTimeout = waitForElementTimeout;
-    }
-
-    public long getThreadWait() {
-        return threadWait;
-    }
-    public void setThreadWait(long threadWait) {
-        this.threadWait = threadWait;
-    }
-
-    public URL getRemoteURL() {
-        return remoteURL;
-    }
-    public void setRemoteURL(URL remoteURL) {
-        this.remoteURL = remoteURL;
-    }
-
     @Override
     public void loadFromXML(XML xml) {
         setBrowser(xml.getEnum("browser", Browser.class, browser));
@@ -205,7 +89,7 @@ public class WebDriverHttpFetcherConfig implements XMLConfigurable {
         setRemoteURL(xml.getURL("remoteURL", remoteURL));
 
         xml.ifXML("httpSniffer", x -> {
-            HttpSnifferConfig cfg = new HttpSnifferConfig();
+            var cfg = new HttpSnifferConfig();
             cfg.loadFromXML(x);
             //x.populate(cfg);
             setHttpSnifferConfig(cfg);
@@ -244,7 +128,7 @@ public class WebDriverHttpFetcherConfig implements XMLConfigurable {
             httpSnifferConfig.saveToXML(xml.addElement("httpSniffer"));
         }
 
-        XML capabXml = xml.addElement("capabilities");
+        var capabXml = xml.addElement("capabilities");
         for (Entry<String, Object> en : capabilities.asMap().entrySet()) {
             capabXml.addElement("capability",
                     en.getValue()).setAttribute("name", en.getKey());
@@ -260,19 +144,5 @@ public class WebDriverHttpFetcherConfig implements XMLConfigurable {
                 .setAttribute("type", waitForElementType)
                 .setAttribute("selector", waitForElementSelector);
         xml.addElement("threadWait", threadWait);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

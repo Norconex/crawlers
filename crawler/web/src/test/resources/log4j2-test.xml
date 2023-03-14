@@ -252,6 +252,9 @@
     <Logger name="org.mockserver" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="org.testcontainers" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
     <Root level="WARN">
       <AppenderRef ref="Console"/>

@@ -18,15 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
-import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
+
+import lombok.Data;
 
 /**
  * <p>
@@ -34,6 +30,9 @@ import com.norconex.commons.lang.xml.XML;
  * </p>
  *
  * {@nx.xml.usage
+ * <host>
+ *   (Host to access the HTTP Sniffer as a proxy. Default is "localhost")
+ * </host>
  * <port>(default is 0 = random free port)</port>
  * <userAgent>(optionally overwrite browser user agent)</userAgent>
  * <maxBufferSize>
@@ -56,45 +55,27 @@ import com.norconex.commons.lang.xml.XML;
  *
  * @since 3.0.0
  */
+@Data
 public class HttpSnifferConfig implements XMLConfigurable {
 
+    public static final String DEFAULT_HOST = "localhost";
     public static final int DEFAULT_MAX_BUFFER_SIZE =
             DataUnit.MB.toBytes(10).intValue();
 
+    private String host = DEFAULT_HOST;
     private int port;
     private String userAgent;
     private final Map<String, String> requestHeaders = new HashMap<>();
     private int maxBufferSize = DEFAULT_MAX_BUFFER_SIZE;
 
-    public int getPort() {
-        return port;
-    }
-    public void setPort(int port) {
-        this.port = port;
-    }
-    public String getUserAgent() {
-        return userAgent;
-    }
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
-    }
-    public Map<String, String> getRequestHeaders() {
-        return requestHeaders;
-    }
     public void setRequestHeaders(Map<String, String> requestHeaders) {
         this.requestHeaders.clear();
         this.requestHeaders.putAll(requestHeaders);
     }
 
-    public int getMaxBufferSize() {
-        return maxBufferSize;
-    }
-    public void setMaxBufferSize(int maxBufferSize) {
-        this.maxBufferSize = maxBufferSize;
-    }
-
     @Override
     public void loadFromXML(XML xml) {
+        setHost(xml.getString("host", getHost()));
         setPort(xml.getInteger("port", getPort()));
         setUserAgent(xml.getString("userAgent", getUserAgent()));
         setMaxBufferSize(xml.getDataSize(
@@ -104,33 +85,14 @@ public class HttpSnifferConfig implements XMLConfigurable {
     }
     @Override
     public void saveToXML(XML xml) {
+        xml.addElement("host", host);
         xml.addElement("port", port);
         xml.addElement("userAgent", userAgent);
         xml.addElement("maxBufferSize", maxBufferSize);
-        XML xmlHeaders = xml.addXML("headers");
+        var xmlHeaders = xml.addXML("headers");
         for (Entry<String, String> entry : requestHeaders.entrySet()) {
             xmlHeaders.addXML("header").setAttribute(
                     "name", entry.getKey()).setTextContent(entry.getValue());
         }
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (!(obj instanceof HttpSnifferConfig)) {
-            return false;
-        }
-        HttpSnifferConfig other = (HttpSnifferConfig) obj;
-        return EqualsBuilder.reflectionEquals(
-                this, other, "requestHeaders")
-                && EqualsUtil.equalsMap(requestHeaders, other.requestHeaders);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }
