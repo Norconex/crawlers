@@ -15,6 +15,9 @@
 package com.norconex.crawler.web;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.jeasy.random.FieldPredicates.inClass;
+import static org.jeasy.random.FieldPredicates.named;
+import static org.jeasy.random.FieldPredicates.ofType;
 
 import java.io.File;
 import java.io.InputStream;
@@ -23,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
@@ -31,6 +35,7 @@ import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
+import org.jeasy.random.api.Randomizer;
 import org.jeasy.random.randomizers.misc.BooleanRandomizer;
 import org.jeasy.random.randomizers.number.IntegerRandomizer;
 import org.jeasy.random.randomizers.number.LongRandomizer;
@@ -84,72 +89,82 @@ public final class WebStubber {
 
     private static EasyRandom easyRandom = new EasyRandom(
             new EasyRandomParameters()
-            .seed(System.currentTimeMillis())
-            .collectionSizeRange(1, 5)
-            .randomizationDepth(5)
-            .scanClasspathForConcreteTypes(true)
-            .overrideDefaultInitialization(true)
-            .randomize(File.class,
-                    () -> new File(new StringRandomizer(100).getRandomValue()))
-            .randomize(Path.class,
-                    () -> Path.of(new StringRandomizer(100).getRandomValue()))
-            .randomize(Long.class,
-                    () -> Math.abs(new LongRandomizer().getRandomValue()))
-            .randomize(Integer.class,
-                    () -> Math.abs(new IntegerRandomizer().getRandomValue()))
-            .randomize(ImporterConfig.class, ImporterConfig::new)
-            .randomize(UpsertRequest.class,
-                    () -> new UpsertRequest(
-                            new StringRandomizer(100).getRandomValue(),
-                            new Properties(),
-                            new NullInputStream()))
-            .randomize(DeleteRequest.class,
-                    () -> new DeleteRequest(
-                            new StringRandomizer(100).getRandomValue(),
-                            new Properties()))
-            .randomize(Committer.class, MemoryCommitter::new)
-            .randomize(SpoiledReferenceStrategizer.class,
-                    GenericSpoiledReferenceStrategizer::new)
-            .randomize(AtomicBoolean.class, () -> new AtomicBoolean(
-                    new BooleanRandomizer().getRandomValue()))
+        .seed(System.currentTimeMillis())
+        .collectionSizeRange(1, 5)
+        .randomizationDepth(5)
+        .scanClasspathForConcreteTypes(true)
+        .overrideDefaultInitialization(true)
+        .randomize(File.class,
+                () -> new File(new StringRandomizer(100).getRandomValue()))
+        .randomize(Path.class,
+                () -> Path.of(new StringRandomizer(100).getRandomValue()))
+        .randomize(Long.class,
+                () -> Math.abs(new LongRandomizer().getRandomValue()))
+        .randomize(Integer.class,
+                () -> Math.abs(new IntegerRandomizer().getRandomValue()))
+        .randomize(ImporterConfig.class, ImporterConfig::new)
+        .randomize(UpsertRequest.class,
+                () -> new UpsertRequest(
+                        new StringRandomizer(100).getRandomValue(),
+                        new Properties(),
+                        new NullInputStream()))
+        .randomize(DeleteRequest.class,
+                () -> new DeleteRequest(
+                        new StringRandomizer(100).getRandomValue(),
+                        new Properties()))
+        .randomize(Committer.class, MemoryCommitter::new)
+        .randomize(SpoiledReferenceStrategizer.class,
+                GenericSpoiledReferenceStrategizer::new)
+        .randomize(AtomicBoolean.class, () -> new AtomicBoolean(
+                new BooleanRandomizer().getRandomValue()))
 
-            .excludeType(DataStoreEngine.class::equals)
-            .excludeType(DataStore.class::equals)
-            .excludeType(SitemapResolver.class::equals)
-            .excludeType(FeaturedImageProcessor.class::equals)
-            .excludeType(WebDocumentProcessor.class::equals)
-            .excludeType(RecrawlableResolver.class::equals)
-            .excludeType(HttpAuthConfig.class::equals)
-            .excludeType(StartURLsProvider.class::equals)
+        .excludeType(DataStoreEngine.class::equals)
+        .excludeType(DataStore.class::equals)
+        .excludeType(SitemapResolver.class::equals)
+        .excludeType(FeaturedImageProcessor.class::equals)
+        .excludeType(WebDocumentProcessor.class::equals)
+        .excludeType(RecrawlableResolver.class::equals)
+//            .excludeType(HttpAuthConfig.class::equals)
+        .excludeType(StartURLsProvider.class::equals)
 
-            .randomize(Charset.class, () -> StandardCharsets.UTF_8)
-            .randomize(CircularRange.class, () -> {
-                int a = new NumberRandomizer().getRandomValue();
-                int b = new NumberRandomizer().getRandomValue();
-                return CircularRange.between(Math.min(a, b), Math.max(a, b));
-            })
-            .randomize(CachedInputStream.class,
-                    CachedInputStream::nullInputStream)
-            .randomize(HttpFetcher.class, GenericHttpFetcher::new)
-            .randomize(RobotsTxtProvider.class, StandardRobotsTxtProvider::new)
-            .randomize(Pattern.class, () -> Pattern.compile(
-                    new StringRandomizer(20).getRandomValue()))
-            .randomize(DelayResolver.class, () -> {
-                var resolv = new GenericDelayResolver();
-                resolv.setScope("crawler");
-                return resolv;
-            })
-            .randomize(DOMLinkExtractor.class, () -> {
-                var extractor = new DOMLinkExtractor();
-                extractor.addLinkSelector("text");
-                return extractor;
-            })
-            .randomize(LinkExtractor.class, () -> {
-                var extractor = new DOMLinkExtractor();
-                extractor.addLinkSelector("text");
-                return extractor;
-            })
-            .randomize(f -> "cookieSpec".equals(f.getName()), () -> "default")
+        .randomize(Charset.class, () -> StandardCharsets.UTF_8)
+        .randomize(CircularRange.class, () -> {
+            int a = new NumberRandomizer().getRandomValue();
+            int b = new NumberRandomizer().getRandomValue();
+            return CircularRange.between(Math.min(a, b), Math.max(a, b));
+        })
+        .randomize(CachedInputStream.class,
+                CachedInputStream::nullInputStream)
+        .randomize(HttpFetcher.class, GenericHttpFetcher::new)
+        .randomize(RobotsTxtProvider.class, StandardRobotsTxtProvider::new)
+        .randomize(Pattern.class, () -> Pattern.compile(
+                new StringRandomizer(20).getRandomValue()))
+        .randomize(DelayResolver.class, () -> {
+            var resolv = new GenericDelayResolver();
+            resolv.setScope("crawler");
+            return resolv;
+        })
+        .randomize(DOMLinkExtractor.class, () -> {
+            var extractor = new DOMLinkExtractor();
+            extractor.addLinkSelector("text");
+            return extractor;
+        })
+        .randomize(LinkExtractor.class, () -> {
+            var extractor = new DOMLinkExtractor();
+            extractor.addLinkSelector("text");
+            return extractor;
+        })
+        .randomize(f -> "cookieSpec".equals(f.getName()), () -> "default")
+        .randomize(named(HttpAuthConfig.Fields.method)
+                .and(ofType(String.class))
+                .and(inClass(HttpAuthConfig.class)),
+                randomizerOneOf(
+                        HttpAuthConfig.METHOD_FORM,
+                        HttpAuthConfig.METHOD_BASIC,
+                        HttpAuthConfig.METHOD_DIGEST,
+                        HttpAuthConfig.METHOD_NTLM,
+                        HttpAuthConfig.METHOD_SPNEGO,
+                        HttpAuthConfig.METHOD_KERBEROS))
     );
 
     private WebStubber() {}
@@ -157,6 +172,27 @@ public final class WebStubber {
     public static <T> T randomize(Class<T> cls) {
         return easyRandom.nextObject(cls);
     }
+
+    @SafeVarargs
+    public static <T> Randomizer<T> randomizerOneOf(T... values) {
+        return () -> randomOneOf(values);
+    }
+
+    @SafeVarargs
+    public static <T> T randomOneOf(T... values) {
+        if (ArrayUtils.isEmpty(values)) {
+            return null;
+        }
+        return values[new Random().nextInt(values.length -1)];
+    }
+
+//    @SafeVarargs
+//    public static Object randomASDF() {
+//
+//        FieldPredicates.named("").and
+//        return null;
+//    }
+
 
     /**
      * <p>Random crawler config stub:</p>

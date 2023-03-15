@@ -14,25 +14,11 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-import org.openqa.selenium.firefox.FirefoxOptions;
-import org.testcontainers.containers.BrowserWebDriverContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+class FirefoxWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest  {
 
-@Testcontainers(disabledWithoutDocker = true)
-class FirefoxWebDriverHttpFetcherTest
-        extends AbstractWebDriverHttpFetcherTest  {
+    // Tests are in super class
 
-    @Container
-    private final BrowserWebDriverContainer<?> browser =
-            createWebDriverContainer(new FirefoxOptions());
-
-    @Override
-    protected BrowserWebDriverContainer<?> getBrowserDriver() {
-        return browser;
-    }
-    @Override
-    protected Browser getBrowserType() {
-        return Browser.FIREFOX;
+    public FirefoxWebDriverHttpFetcherTest() {
+        super(Browser.FIREFOX);
     }
 }

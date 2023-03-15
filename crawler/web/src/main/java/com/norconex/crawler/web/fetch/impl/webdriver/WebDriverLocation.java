@@ -17,11 +17,11 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import java.net.URL;
 import java.nio.file.Path;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+@EqualsAndHashCode
+@ToString
 class WebDriverLocation {
 
     private final Path driverPath;
@@ -29,7 +29,6 @@ class WebDriverLocation {
     private final URL remoteURL;
 
     WebDriverLocation(Path driverPath, Path browserPath, URL remoteURL) {
-        super();
         this.driverPath = driverPath;
         this.browserPath = browserPath;
         this.remoteURL = remoteURL;
@@ -43,19 +42,5 @@ class WebDriverLocation {
     }
     URL getRemoteURL() {
         return remoteURL;
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

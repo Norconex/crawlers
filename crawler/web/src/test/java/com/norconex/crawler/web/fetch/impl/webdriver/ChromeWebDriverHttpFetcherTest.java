@@ -14,24 +14,11 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.testcontainers.containers.BrowserWebDriverContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-@Testcontainers(disabledWithoutDocker = true)
 class ChromeWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest  {
 
-    @Container
-    private final BrowserWebDriverContainer<?> browser =
-            createWebDriverContainer(new ChromeOptions());
+    // Tests are in super class
 
-    @Override
-    protected BrowserWebDriverContainer<?> getBrowserDriver() {
-        return browser;
-    }
-    @Override
-    protected Browser getBrowserType() {
-        return Browser.CHROME;
+    public ChromeWebDriverHttpFetcherTest() {
+        super(Browser.CHROME);
     }
 }

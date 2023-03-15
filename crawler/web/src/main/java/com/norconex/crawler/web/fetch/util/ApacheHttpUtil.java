@@ -50,7 +50,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.FormBodyPartBuilder;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
@@ -58,8 +57,6 @@ import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
@@ -71,17 +68,16 @@ import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
 import com.norconex.importer.doc.DocRecord;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Utility methods for fetcher implementations using Apache HttpClient.
  * @since 3.0.0
  */
+@Slf4j
 public final class ApacheHttpUtil {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ApacheHttpUtil.class);
-
-    private ApacheHttpUtil() {
-    }
+    private ApacheHttpUtil() {}
 
     /**
      * <p>
@@ -336,9 +332,9 @@ public final class ApacheHttpUtil {
                     throws IOException, URISyntaxException {
 
         LOG.info("""
-        	Parsing, filing, and submitting login FORM at "{}" \
-        	(username={}; p\
-        	assword=*****)""", cfg.getUrl(),
+            Parsing, filing, and submitting login FORM at "{}" \
+            (username={}; p\
+            assword=*****)""", cfg.getUrl(),
                 cfg.getCredentials().getUsername());
         var get = new HttpGet(cfg.getUrl());
         try {
@@ -378,13 +374,9 @@ public final class ApacheHttpUtil {
         } finally {
             get.releaseConnection();
         }
-
-
-
-
     }
 
-    private static HttpRequestBase formToRequest(
+    static HttpRequestBase formToRequest(
             Document doc, HttpAuthConfig cfg) throws URISyntaxException {
 
         var form = doc.selectFirst(cfg.getFormSelector());
@@ -429,7 +421,7 @@ public final class ApacheHttpUtil {
                 createUriRequest(actionURL, form.attr("method"));
 
         // Only for POST. https://www.w3schools.com/tags/att_form_enctype.asp
-        if (httpRequest instanceof HttpPost) {
+        if (httpRequest instanceof HttpPost httpPost) {
             HttpEntity entity;
             var enctype = form.attr("enctype");
             var charset = ObjectUtils.firstNonNull(
@@ -438,12 +430,11 @@ public final class ApacheHttpUtil {
                             ? Charset.forName(form.attr("accept-charset"))
                             : UTF_8);
             if ("multipart/form-data".equalsIgnoreCase(enctype)) {
-                var fb = FormBodyPartBuilder.create();
+                var multiPartBuilder = MultipartEntityBuilder.create();
                 for (Entry<String, String> en : params.entrySet()) {
-                    fb.addField(en.getKey(), en.getValue());
+                    multiPartBuilder.addTextBody(en.getKey(), en.getValue());
                 }
-                entity = MultipartEntityBuilder.create().addPart(
-                        fb.build()).build();
+                entity = multiPartBuilder.build();
             } else if ("text/plain".equalsIgnoreCase(enctype)) {
                 var b = new StringBuilder();
                 for (Entry<String, String> en : params.entrySet()) {
@@ -458,7 +449,7 @@ public final class ApacheHttpUtil {
                 entity = new UrlEncodedFormEntity(
                         toNameValuePairs(params), charset);
             }
-            ((HttpPost) httpRequest).setEntity(entity);
+            httpPost.setEntity(entity);
         } else if (httpRequest instanceof HttpGet get) {
             get.setURI(new URIBuilder(get.getURI())
                     .setParameters(toNameValuePairs(params))

@@ -28,11 +28,21 @@ import java.net.ServerSocket;
 import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.extension.ConditionEvaluationResult;
+import org.junit.jupiter.api.extension.ExecutionCondition;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BrowserWebDriverContainer;
 import org.testcontainers.containers.BrowserWebDriverContainer.VncRecordingMode;
@@ -54,13 +64,55 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @MockServerSettings
-public abstract class AbstractWebDriverHttpFetcherTest  {
+@TestInstance(Lifecycle.PER_CLASS)
+public abstract class AbstractWebDriverHttpFetcherTest
+        implements ExecutionCondition {
 
     private static final int LARGE_CONTENT_MIN_SIZE = 5 * 1024 *1024;
+
+    private final Capabilities capabilities;
+    private BrowserWebDriverContainer<?> browser;
+    private Browser browserType;
+
+    public AbstractWebDriverHttpFetcherTest(Browser browserType) {
+        if (browserType == Browser.CHROME) {
+            capabilities = new ChromeOptions();
+        } else if (browserType == Browser.FIREFOX) {
+            capabilities = new FirefoxOptions();
+        } else {
+            throw new IllegalArgumentException(
+                    "Only Chrome and Firefox are supported for testing.");
+        }
+        this.browserType = browserType;
+    }
+
+    @BeforeAll
+    void beforAll() {
+        browser = createWebDriverContainer(capabilities);
+        browser.start();
+    }
+    @AfterAll
+    void afterAll() {
+        browser.stop();
+    }
 
     @BeforeEach
     void beforeEach(ClientAndServer client) {
         Testcontainers.exposeHostPorts(client.getPort());
+    }
+
+    @Override
+    public ConditionEvaluationResult evaluateExecutionCondition(
+            ExtensionContext ctx) {
+        try {
+            DockerClientFactory.instance().client();
+            return ConditionEvaluationResult.enabled(
+                    "Docker found: WebDriverHttpFetcher tests will run.");
+        } catch (Throwable ex) {
+            return ConditionEvaluationResult.enabled(
+                    "Docker NOT found: WebDriverHttpFetcher tests will be "
+                    + "disabled and will not run.");
+        }
     }
 
     @Test
@@ -251,8 +303,8 @@ public abstract class AbstractWebDriverHttpFetcherTest  {
 
     private WebDriverHttpFetcher createWebDriverHttpFetcher() {
         var wdCfg = new WebDriverHttpFetcherConfig();
-        wdCfg.setRemoteURL(getBrowserDriver().getSeleniumAddress());
-        wdCfg.setBrowser(getBrowserType());
+        wdCfg.setBrowser(browserType);
+        wdCfg.setRemoteURL(browser.getSeleniumAddress());
         return new WebDriverHttpFetcher(wdCfg);
     }
     private String hostUrl(ClientAndServer client, String path) {
@@ -267,9 +319,6 @@ public abstract class AbstractWebDriverHttpFetcherTest  {
             throw new UncheckedIOException(e);
         }
     }
-
-    protected abstract BrowserWebDriverContainer<?> getBrowserDriver();
-    protected abstract Browser getBrowserType();
 
     @SuppressWarnings("resource")
     protected static BrowserWebDriverContainer<?> createWebDriverContainer(

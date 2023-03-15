@@ -299,7 +299,7 @@ public class GenericHttpFetcher
 
     private static final int FTP_PORT = 80;
 
-    private static final SchemePortResolver SCHEME_PORT_RESOLVER = host -> {
+    static final SchemePortResolver SCHEME_PORT_RESOLVER = host -> {
         Args.notNull(host, "HTTP host");
         final var port = host.getPort();
         if (port > 0) {

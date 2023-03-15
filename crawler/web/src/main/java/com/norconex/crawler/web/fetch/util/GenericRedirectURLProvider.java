@@ -18,28 +18,23 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.RequestLine;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.tika.utils.CharsetUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>Provide redirect URLs by grabbing them from the HTTP Response
@@ -105,11 +100,10 @@ import com.norconex.commons.lang.xml.XML;
  *
  * @since 2.4.0
  */
+@Slf4j
+@Data
 public class GenericRedirectURLProvider
         implements RedirectURLProvider, XMLConfigurable {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(GenericRedirectURLProvider.class);
 
     public static final String DEFAULT_FALLBACK_CHARSET =
             StandardCharsets.UTF_8.toString();
@@ -118,38 +112,31 @@ public class GenericRedirectURLProvider
 
     private String fallbackCharset = DEFAULT_FALLBACK_CHARSET;
 
-    public String getFallbackCharset() {
-        return fallbackCharset;
-    }
-    public void setFallbackCharset(String fallbackCharset) {
-        this.fallbackCharset = fallbackCharset;
-    }
-
     @Override
     public String provideRedirectURL(HttpRequest request,
             HttpResponse response, HttpContext context) {
-        HttpRequest currentReq = (HttpRequest) context.getAttribute(
+        var currentReq = (HttpRequest) context.getAttribute(
                 HttpCoreContext.HTTP_REQUEST);
-        HttpHost currentHost = (HttpHost)  context.getAttribute(
+        var currentHost = (HttpHost)  context.getAttribute(
                 HttpCoreContext.HTTP_TARGET_HOST);
 
-        String originalURL = toAbsoluteURI(currentHost, currentReq);
+        var originalURL = toAbsoluteURI(currentHost, currentReq);
 
         //--- Location ---
-        Header hl = response.getLastHeader(HttpHeaders.LOCATION);
+        var hl = response.getLastHeader(HttpHeaders.LOCATION);
         if (hl == null) {
             //TODO should throw exception instead?
             LOG.error("Redirect detected to a null Location for: {}",
                     toAbsoluteURI(currentHost, currentReq));
             return null;
         }
-        String redirectLocation = hl.getValue();
+        var redirectLocation = hl.getValue();
 
         //--- Charset ---
         String charset = null;
-        Header hc = response.getLastHeader("Content-Type");
+        var hc = response.getLastHeader("Content-Type");
         if (hc != null) {
-            String contentType = hc.getValue();
+            var contentType = hc.getValue();
             if (contentType.contains(";")) {
                 charset = StringUtils.substringAfterLast(
                         contentType, "charset=");
@@ -160,7 +147,7 @@ public class GenericRedirectURLProvider
         }
 
         //--- Build/fix redirect URL ---
-        String targetURL = HttpURL.toAbsolute(originalURL, redirectLocation);
+        var targetURL = HttpURL.toAbsolute(originalURL, redirectLocation);
         targetURL = resolveRedirectURL(targetURL, charset);
 
         if (LOG.isDebugEnabled()) {
@@ -170,20 +157,19 @@ public class GenericRedirectURLProvider
     }
 
     private String toAbsoluteURI(HttpHost host, HttpRequest req) {
-        HttpRequest originalReq = req;
+        var originalReq = req;
 
         // Check if we can get full URL from a nested request, to keep
         // the #fragment, if present.
-        if (req instanceof HttpRequestWrapper) {
-            originalReq = ((HttpRequestWrapper) req).getOriginal();
+        if (req instanceof HttpRequestWrapper reqWrapper) {
+            originalReq = reqWrapper.getOriginal();
         }
-        if (originalReq instanceof HttpRequestBase) {
-            return ((HttpRequestBase) originalReq).getURI().toString();
+        if (originalReq instanceof HttpRequestBase reqBase) {
+            return reqBase.getURI().toString();
         }
 
         // Else, built it
-        if (originalReq instanceof HttpUriRequest) {
-            HttpUriRequest httpReq = (HttpUriRequest) originalReq;
+        if (originalReq instanceof HttpUriRequest httpReq) {
             if (httpReq.getURI().isAbsolute()) {
                 return httpReq.getURI().toString();
             }
@@ -191,7 +177,7 @@ public class GenericRedirectURLProvider
         }
 
         // if not a friendly type, doing in a more generic way
-        RequestLine reqLine = originalReq.getRequestLine();
+        var reqLine = originalReq.getRequestLine();
         if (reqLine != null) {
             return reqLine.getUri();
         }
@@ -202,13 +188,13 @@ public class GenericRedirectURLProvider
     private String resolveRedirectURL(
             final String redirectURL, final String nonAsciiCharset) {
 
-        String url = redirectURL;
+        var url = redirectURL;
 
         // Is string containing only ASCII as it should?
-        boolean isAscii = true;
-        final int length = url.length();
-        for (int offset = 0; offset < length; ) {
-           final int codepoint = url.codePointAt(offset);
+        var isAscii = true;
+        final var length = url.length();
+        for (var offset = 0; offset < length; ) {
+           final var codepoint = url.codePointAt(offset);
            if (codepoint > ASCII_MAX_CODEPOINT) {
                isAscii = false;
                break;
@@ -218,17 +204,17 @@ public class GenericRedirectURLProvider
         if (isAscii) {
             return url;
         }
-        LOG.warn("Redirect URI made of 7-bit clean ASCII. "
-                + "It probably is not encoded properly. "
-                + "Will try to fix. Redirect URL: {}", redirectURL);
+        LOG.warn("""
+            Redirect URI made of 7-bit clean ASCII.\s\
+            It probably is not encoded properly.\s\
+            Will try to fix. Redirect URL: {}""", redirectURL);
 
         // try to fix if non ascii charset is non UTF8.
         if (StringUtils.isNotBlank(nonAsciiCharset)) {
-            String charset = CharsetUtils.clean(nonAsciiCharset);
+            var charset = CharsetUtils.clean(nonAsciiCharset);
             if (!StandardCharsets.UTF_8.toString().equals(charset)) {
                 try {
-                    url = new String(url.getBytes(charset));
-                    return url;
+                    return new String(url.getBytes(charset));
                 } catch (UnsupportedEncodingException e) {
                     LOG.warn("Could not fix badly encoded URL with charset "
                             + "\"{}\". Redirect URL: {}",
@@ -237,9 +223,7 @@ public class GenericRedirectURLProvider
             }
         }
 
-        // If all fails, fall back to UTF8
-        url = new String(url.getBytes(StandardCharsets.UTF_8));
-        return url;
+        return new String(url.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
@@ -249,19 +233,5 @@ public class GenericRedirectURLProvider
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("fallbackCharset", fallbackCharset);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

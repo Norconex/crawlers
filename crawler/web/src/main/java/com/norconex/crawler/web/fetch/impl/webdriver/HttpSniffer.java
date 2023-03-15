@@ -200,7 +200,6 @@ class HttpSniffer {
         @Override
         public void filterResponse(HttpResponse response,
                 HttpMessageContents contents, HttpMessageInfo messageInfo) {
-System.err.println("HHHHHHHHHHHHHHHHHEEEERE 1");
             if (url.equals(messageInfo.getOriginalUrl())) {
                 headers.addAll(response.headers().entries());
                 statusCode = response.status().code();

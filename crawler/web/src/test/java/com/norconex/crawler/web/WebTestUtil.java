@@ -89,6 +89,11 @@ public final class WebTestUtil {
         return ((GenericHttpFetcher) ((WebCrawlerConfig) crawlerConfig)
                 .getHttpFetchers().get(0)).getConfig();
     }
+    public static GenericHttpFetcherConfig getFirstHttpFetcherConfig(
+            @NonNull CrawlSessionConfig crawlSessionConfig) {
+        return getFirstHttpFetcherConfig(getFirstCrawlerConfig(
+                crawlSessionConfig));
+    }
 
     public static Set<String> sortedRequestReferences(MemoryCommitter c) {
         return c.getAllRequests().stream()
