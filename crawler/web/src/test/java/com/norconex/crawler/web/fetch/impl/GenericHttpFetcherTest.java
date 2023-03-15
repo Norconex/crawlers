@@ -14,14 +14,18 @@
  */
 package com.norconex.crawler.web.fetch.impl;
 
+import static com.norconex.crawler.web.fetch.impl.GenericHttpFetcher.SCHEME_PORT_RESOLVER;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import org.apache.http.HttpHost;
+import org.apache.http.conn.UnsupportedSchemeException;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.web.WebStubber;
 
-class GenericHttpFetcherTest  {
+class GenericHttpFetcherTest {
 
     @Test
     void testWriteRead() {
@@ -29,5 +33,15 @@ class GenericHttpFetcherTest  {
         var f = new GenericHttpFetcher(cfg);
         assertThatNoException().isThrownBy(
                 () -> XML.assertWriteRead(f, "fetcher"));
+    }
+
+    @Test
+    void testShemePortResolver() throws UnsupportedSchemeException {
+        assertThat(SCHEME_PORT_RESOLVER.resolve(
+                HttpHost.create("http://blah.com"))).isEqualTo(80);
+        assertThat(SCHEME_PORT_RESOLVER.resolve(
+                HttpHost.create("https://blah.com"))).isEqualTo(443);
+        assertThat(SCHEME_PORT_RESOLVER.resolve(
+                HttpHost.create("ftp://blah.com"))).isEqualTo(80);
     }
 }

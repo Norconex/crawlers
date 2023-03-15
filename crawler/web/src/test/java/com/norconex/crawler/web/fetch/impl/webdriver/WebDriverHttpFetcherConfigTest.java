@@ -14,13 +14,14 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.awt.Dimension;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.text.TextMatcher;
@@ -30,36 +31,11 @@ import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcherConfig.
 import com.norconex.crawler.web.fetch.util.DocImageHandler.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandler.Target;
 
-@Disabled
 class WebDriverHttpFetcherConfigTest  {
 
     @Test
     void testWriteReadFetcher() throws MalformedURLException {
-        var f = new WebDriverHttpFetcher();
-        f.setReferenceFilters(List.of(new GenericReferenceFilter(
-                TextMatcher.regex("test.*"))));
 
-        var sh = new ScreenshotHandler();
-        sh.setCssSelector("selector");
-        sh.setImageFormat("gif");
-        sh.setTargetDir(Paths.get("/target/dir"));
-        sh.setTargetDirField("targetField");
-        sh.setTargetDirStructure(DirStructure.DATE);
-        sh.setTargetMetaField("targetMeta");
-        sh.setTargets(List.of(Target.DIRECTORY, Target.METADATA));
-        f.setScreenshotHandler(sh);
-
-        XML.assertWriteRead(createFetcherConfig(), "fetcher");
-    }
-
-
-    @Test
-    void testWriteReadConfig() throws MalformedURLException {
-        XML.assertWriteRead(createFetcherConfig(), "fetcher");
-    }
-
-    private WebDriverHttpFetcherConfig createFetcherConfig()
-            throws MalformedURLException {
         var c = new WebDriverHttpFetcherConfig();
         c.setBrowser(Browser.CHROME);
         c.setBrowserPath(Paths.get("/some/browser/path"));
@@ -84,6 +60,21 @@ class WebDriverHttpFetcherConfigTest  {
         sc.getRequestHeaders().put("rh2", "hrval2");
         c.setHttpSnifferConfig(sc);
 
-        return c;
+        var f = new WebDriverHttpFetcher(c);
+        f.setReferenceFilters(List.of(new GenericReferenceFilter(
+                TextMatcher.regex("test.*"))));
+
+        var sh = new ScreenshotHandler();
+        sh.setCssSelector("selector");
+        sh.setImageFormat("gif");
+        sh.setTargetDir(Paths.get("/target/dir"));
+        sh.setTargetDirField("targetField");
+        sh.setTargetDirStructure(DirStructure.DATE);
+        sh.setTargetMetaField("targetMeta");
+        sh.setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+        f.setScreenshotHandler(sh);
+
+        assertThatNoException().isThrownBy(
+                () -> XML.assertWriteRead(f, "fetcher"));
     }
 }

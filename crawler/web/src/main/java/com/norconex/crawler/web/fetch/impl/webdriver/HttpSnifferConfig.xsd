@@ -18,6 +18,7 @@
 
   <xs:complexType name="HttpSnifferConfigType">
     <xs:all>
+      <xs:element name="host" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="port" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="userAgent" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="maxBufferSize" type="xs:int" minOccurs="0" maxOccurs="1"/>

@@ -24,18 +24,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.littleshoot.proxy.HttpFiltersSource;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.Proxy;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.opera.OperaOptions;
-import org.openqa.selenium.remote.CapabilityType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.netty.handler.codec.http.HttpResponse;
+import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.BrowserMobProxyServer;
-import net.lightbody.bmp.client.ClientUtil;
 import net.lightbody.bmp.filters.ResponseFilter;
 import net.lightbody.bmp.filters.ResponseFilterAdapter;
 import net.lightbody.bmp.util.HttpMessageContents;
@@ -55,12 +51,10 @@ import net.lightbody.bmp.util.HttpMessageInfo;
  *
  * @since 3.0.0
  */
+@Slf4j
 class HttpSniffer {
 
     //TODO If it gets stable enough, move the proxy setting to Browser class.
-
-    private static final Logger LOG = LoggerFactory.getLogger(
-            HttpSniffer.class);
 
     private final ThreadLocal<FilterAndSource> tlocal = new ThreadLocal<>();
     private BrowserMobProxyServer mobProxy;
@@ -70,13 +64,13 @@ class HttpSniffer {
             return;
         }
 
-        FilterAndSource fs = tlocal.get();
+        var fs = tlocal.get();
         if (fs != null) {
             throw new IllegalStateException("A URL is already bound to "
                     + "WebDriverHttpAdapter on this thread: " + fs.filter.url);
         }
 
-        DriverResponseFilter f = new DriverResponseFilter(url);
+        var f = new DriverResponseFilter(url);
         HttpFiltersSource s = new ResponseFilterAdapter.FilterSource(f);
         tlocal.set(new FilterAndSource(f, s));
         mobProxy.addLastHttpFilterFactory(s);
@@ -86,7 +80,7 @@ class HttpSniffer {
         if (mobProxy == null) {
             return null;
         }
-        FilterAndSource fs = tlocal.get();
+        var fs = tlocal.get();
         if (fs == null) {
             return null;
         }
@@ -99,7 +93,7 @@ class HttpSniffer {
             MutableCapabilities options, HttpSnifferConfig config) {
         Objects.requireNonNull("'options' must not be null");
 
-        HttpSnifferConfig cfg = Optional.ofNullable(
+        var cfg = Optional.ofNullable(
                 config).orElseGet(HttpSnifferConfig::new);
 
         mobProxy = new BrowserMobProxyServer();
@@ -130,16 +124,27 @@ class HttpSniffer {
 
         mobProxy.start(cfg.getPort());
 
-        int actualPort = mobProxy.getPort();
+        var actualPort = mobProxy.getPort();
         LOG.info("Proxy started on port {} "
                 + "for HTTP response header capture.", actualPort);
 
+
+
+
+        var proxy = new Proxy();
+        var proxyStr = cfg.getHost() + ":" + actualPort;
+        proxy.setHttpProxy(proxyStr);
+        options.setCapability("proxy", proxy);
+
+        LOG.info("Proxy set on browser as: {}.", proxyStr);
+
+
         // Fix bug with firefox where request/response filters are not
         // triggered properly unless dealing with firefox profile
-        if (options instanceof FirefoxOptions) {
+        if (options instanceof FirefoxOptions foxOptions) {
             //TODO Shall we prevent calls to firefox browser addons?
 
-            FirefoxProfile profile = new FirefoxProfile();
+            var profile = new FirefoxProfile();
             profile.setAcceptUntrustedCertificates(true);
             profile.setAssumeUntrustedCertificateIssuer(true);
             profile.setPreference("network.proxy.http", "localhost");
@@ -153,21 +158,17 @@ class HttpSniffer {
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1535581
             profile.setPreference(
                     "network.proxy.allow_hijacking_localhost", true);
-            options.setCapability(FirefoxDriver.PROFILE, profile);
-        } else if (options instanceof ChromeOptions) {
-            ChromeOptions chromeOptions = (ChromeOptions) options;
+
+            foxOptions.setProfile(profile);
+
+        } else if (options instanceof ChromeOptions chromeOptions) {
             // Required since Chrome v72 to enable a localhost proxy:
             // https://bugs.chromium.org/p/chromium/issues/detail?id=899126#c15
             chromeOptions.addArguments("--proxy-bypass-list=<-loopback>");
             if  (LOG.isDebugEnabled()) {
                 System.setProperty("webdriver.chrome.verboseLogging", "true");
             }
-        } else if (options instanceof OperaOptions) {
-            OperaOptions operaOptions = (OperaOptions) options;
-            operaOptions.addArguments("--proxy-bypass-list=<-loopback>");
         }
-        options.setCapability(CapabilityType.PROXY,
-                ClientUtil.createSeleniumProxy(mobProxy));
     }
 
     void stop() {

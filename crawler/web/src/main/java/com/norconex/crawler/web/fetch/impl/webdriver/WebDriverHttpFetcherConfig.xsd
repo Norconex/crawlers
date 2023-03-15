@@ -23,7 +23,7 @@
   <xs:element name="fetcher">
     <xs:complexType>
       <xs:complexContent> 
-        <xs:extension base="AbstractHttpFetcher">  
+        <xs:extension base="AbstractFetcher">  
           <xs:all>
             <xs:element name="browser" minOccurs="1" maxOccurs="1">
               <xs:simpleType>

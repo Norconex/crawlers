@@ -35,8 +35,8 @@
     <browsermob.version>2.1.5</browsermob.version>
     <guava.version>31.0.1-jre</guava.version>
     <imgscalr.version>4.2</imgscalr.version>
-    <netty.version>4.1.72.Final</netty.version>
-    <selenium.version>3.141.59</selenium.version>
+    <netty.version>4.1.89.Final</netty.version>
+    <selenium.version>4.8.1</selenium.version>
     <okhttp.version>3.14.9</okhttp.version>
     
     <commons-compress.version>1.21</commons-compress.version>
@@ -212,9 +212,17 @@
       <groupId>org.jeasy</groupId>
       <artifactId>easy-random-core</artifactId>
       <scope>test</scope>
-    </dependency>    
-    
-
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>selenium</artifactId>
+      <scope>test</scope>
+    </dependency>
 <!--
     <dependency>
       <groupId>org.mock-server</groupId>

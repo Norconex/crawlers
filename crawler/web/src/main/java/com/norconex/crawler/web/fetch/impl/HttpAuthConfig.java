@@ -23,17 +23,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
-import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 
 /**
  * <p>
@@ -91,6 +89,9 @@ import com.norconex.commons.lang.xml.XML;
  * @since 3.0.0
  */
 @SuppressWarnings("javadoc")
+@EqualsAndHashCode
+@ToString
+@FieldNameConstants
 public class HttpAuthConfig implements XMLConfigurable {
 
     //TODO consider using factory for auth configs and mechanisms.
@@ -192,7 +193,7 @@ public class HttpAuthConfig implements XMLConfigurable {
         return credentials;
     }
     public void setCredentials(Credentials authCredentials) {
-        this.credentials.copyFrom(authCredentials);
+        credentials.copyFrom(authCredentials);
     }
 
     /**
@@ -428,30 +429,10 @@ public class HttpAuthConfig implements XMLConfigurable {
         xml.addElement("preemptive", preemptive);
         xml.addElement("formSelector", formSelector);
 
-        XML xmlAuthFormParams = xml.addXML("formParams");
+        var xmlAuthFormParams = xml.addXML("formParams");
         for (Entry<String, String> entry : formParams.entrySet()) {
             xmlAuthFormParams.addXML("param").setAttribute(
                     "name", entry.getKey()).setTextContent(entry.getValue());
         }
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (!(obj instanceof HttpAuthConfig)) {
-            return false;
-        }
-        HttpAuthConfig other = (HttpAuthConfig) obj;
-        return EqualsBuilder.reflectionEquals(
-                this, other, "formParams")
-                && EqualsUtil.equalsMap(formParams, other.formParams);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

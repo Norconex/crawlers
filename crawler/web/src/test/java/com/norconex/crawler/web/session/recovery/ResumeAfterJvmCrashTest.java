@@ -24,6 +24,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
 import com.norconex.crawler.web.TestWebCrawlSession;
 import com.norconex.crawler.web.WebTestUtil;
@@ -78,6 +79,7 @@ class ResumeAfterJvmCrashTest {
         // 10 docs in this session.
         crawlSessionConfig.removeEventListener(crasher);
         outcome = ExternalCrawlSessionLauncher.start(crawlSessionConfig);
+        Sleeper.sleepMillis(500);  // Give enough time for files to be written
         LOG.debug(outcome.getStdErr());
         LOG.debug(outcome.getStdOut());
         assertThat(outcome.getReturnValue()).isZero();
