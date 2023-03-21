@@ -22,10 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 import com.norconex.crawler.web.doc.WebDocRecord;
-import com.norconex.crawler.web.fetch.HttpMethod;
 
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
@@ -37,14 +39,15 @@ import lombok.extern.log4j.Log4j2;
  * @since 3.0.0 (Merge of former separate canonical stages).
  */
 @Log4j2
-class CanonicalStage extends AbstractWebImporterStage {
+class CanonicalStage extends AbstractImporterStage {
 
-    public CanonicalStage(@NonNull HttpMethod method) {
-        super(method);
+    public CanonicalStage(@NonNull FetchDirective directive) {
+        super(directive);
     }
 
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext context) {
+        var ctx = (WebImporterPipelineContext) context;
 
         var detector = ctx.getConfig().getCanonicalLinkDetector();
 
@@ -54,13 +57,13 @@ class CanonicalStage extends AbstractWebImporterStage {
         }
 
         // Resolve against headers if not done already
-        if (!ctx.wasHttpHeadPerformed(getHttpMethod())
+        if (!ctx.wasMetadataDirectiveExecuted(getFetchDirective())
                 && !resolveFromHeaders(ctx, detector)) {
             return false;
         }
 
         // Resolve against content if in a GET method
-        return getHttpMethod() != HttpMethod.GET
+        return getFetchDirective() != FetchDirective.DOCUMENT
                 || resolveFromContent(ctx, detector);
     }
 

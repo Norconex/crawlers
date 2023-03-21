@@ -243,17 +243,7 @@ public class MockWebCrawlSessionExtension implements
                     sessionConfig);
         }
 
-        return CrawlSession.builder()
-            .crawlerFactory((crawlSess, crawlerCfg) ->
-                Crawler.builder()
-                    .crawlerConfig(crawlerCfg)
-                    .crawlSession(crawlSess)
-                    .crawlerImpl(WebCrawlSessionLauncher
-                            .crawlerImplBuilder().build())
-                    .build()
-            )
-            .crawlSessionConfig(sessionConfig)
-            .build();
+        return WebCrawlSession.createSession(sessionConfig);
     }
 
     private static WebCrawlerConfig crawlerConfig(int index) {

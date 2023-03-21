@@ -12,24 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.pipeline.importer;
+package com.norconex.crawler.core.pipeline.importer;
 
 import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.pipeline.ChecksumStageUtil;
-import com.norconex.crawler.web.fetch.HttpMethod;
 
 import lombok.NonNull;
 
-class MetadataChecksumStage extends AbstractWebImporterStage {
+/**
+ * Creates a checksum based on fetched metadata. Invoked only
+ * once (even if both metadata and document directives are enabled).
+ */
+public class MetadataChecksumStage extends AbstractImporterStage {
 
-    public MetadataChecksumStage(@NonNull HttpMethod method) {
-        super(method);
+    public MetadataChecksumStage(@NonNull FetchDirective fetchDirective) {
+        super(fetchDirective);
     }
 
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext ctx) {
         //TODO only if an INCREMENTAL run... else skip.
-        if (ctx.wasHttpHeadPerformed(getHttpMethod())) {
+        if (ctx.wasMetadataDirectiveExecuted(getFetchDirective())) {
             return true;
         }
 

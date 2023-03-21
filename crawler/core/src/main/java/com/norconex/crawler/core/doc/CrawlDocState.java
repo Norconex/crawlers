@@ -48,13 +48,18 @@ public class CrawlDocState implements Serializable {
     private static final long serialVersionUID = 6542269270632505768L;
 
     public static final CrawlDocState NEW        = new CrawlDocState("NEW");
-    public static final CrawlDocState MODIFIED   = new CrawlDocState("MODIFIED");
-    public static final CrawlDocState UNMODIFIED = new CrawlDocState("UNMODIFIED");
+    public static final CrawlDocState MODIFIED   =
+            new CrawlDocState("MODIFIED");
+    public static final CrawlDocState UNMODIFIED =
+            new CrawlDocState("UNMODIFIED");
     public static final CrawlDocState ERROR      = new CrawlDocState("ERROR");
-    public static final CrawlDocState REJECTED   = new CrawlDocState("REJECTED");
-    public static final CrawlDocState BAD_STATUS = new CrawlDocState("BAD_STATUS");
+    public static final CrawlDocState REJECTED   =
+            new CrawlDocState("REJECTED");
+    public static final CrawlDocState BAD_STATUS =
+            new CrawlDocState("BAD_STATUS");
     public static final CrawlDocState DELETED    = new CrawlDocState("DELETED");
-    public static final CrawlDocState NOT_FOUND  = new CrawlDocState("NOT_FOUND");
+    public static final CrawlDocState NOT_FOUND  =
+            new CrawlDocState("NOT_FOUND");
     /**
      * For collectors that support it, this state indicates a previously
      * crawled document is not yet ready to be re-crawled.  It may or may not
@@ -69,8 +74,10 @@ public class CrawlDocState implements Serializable {
      * not supported by the collector or one of its configured
      * component.
          */
-    public static final CrawlDocState UNSUPPORTED = new CrawlDocState("UNSUPPORTED");
+    public static final CrawlDocState UNSUPPORTED =
+            new CrawlDocState("UNSUPPORTED");
 
+    public static final CrawlDocState TOO_DEEP = new CrawlDocState("TOO_DEEP");
 
     @JsonProperty
     @JsonValue
@@ -100,7 +107,15 @@ public class CrawlDocState implements Serializable {
     public boolean isGoodState() {
         return isOneOf(NEW, MODIFIED, UNMODIFIED, PREMATURE);
     }
-
+    /**
+     * Null-safe version of {@link #isGoodState()}.  A <code>null</code>
+     * state returns <code>false</code>.
+     * @param state the state to test
+     * @return <code>true</code> if status is valid.
+     */
+    public static boolean isGoodState(CrawlDocState state) {
+        return state == null ? false : state.isGoodState();
+    }
     /**
      * Returns whether a state indicates new or modified.
      * @return <code>true</code> if new or modified

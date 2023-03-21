@@ -49,7 +49,7 @@ class CliLauncherTest {
     private Path configFile;
 
     @BeforeEach
-    private void beforeEach() {
+    void beforeEach() {
         configFile = CoreStubber.writeSampleConfigToDir(tempDir);
     }
 

@@ -18,15 +18,18 @@ import java.io.IOException;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerException;
+import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 
 /**
  * Robots meata creation.
  */
-class RobotsMetaCreateStage extends AbstractWebImporterStage {
+class RobotsMetaCreateStage extends AbstractImporterStage {
 
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) { //NOSONAR
+    protected boolean executeStage(ImporterPipelineContext context) { //NOSONAR
+        var ctx = (WebImporterPipelineContext) context;
         if (ctx.getConfig().isIgnoreRobotsMeta()) {
             return true;
         }

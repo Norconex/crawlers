@@ -18,6 +18,7 @@ import java.util.List;
 
 import com.norconex.commons.lang.function.Predicates;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
+import com.norconex.crawler.core.pipeline.queue.DepthValidationStage;
 import com.norconex.crawler.core.pipeline.queue.QueuePipeline;
 import com.norconex.crawler.core.pipeline.queue.QueueReferenceStage;
 import com.norconex.crawler.core.pipeline.queue.ReferenceFiltersStage;

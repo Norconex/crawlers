@@ -17,6 +17,7 @@ package com.norconex.crawler.web.pipeline.importer;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocRecord.Stage;
 import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 import com.norconex.crawler.web.doc.WebCrawlDocState;
 import com.norconex.crawler.web.doc.WebDocRecord;
@@ -32,9 +33,12 @@ final class WebImporterPipelineUtil {
 
     // Synchronized to avoid redirect dups.
     public static synchronized void queueRedirectURL(
-            WebImporterPipelineContext ctx,
+            ImporterPipelineContext context,
             HttpFetchResponse response,
             String redirectURL) {
+
+        var ctx = (WebImporterPipelineContext) context;
+
         var crawlRef = ctx.getDocRecord();
         String sourceURL =  crawlRef.getReference();
         var redirectStage = ctx.getDocRecordService()

@@ -54,6 +54,8 @@ Misc. Changes
 -------------
 
 * Minimum Java version: 17
+* Different features originally found in HTTP Collector and Filesystem Collector
+  were moved to Crawler Core.
 
 ### Committer Core
 
@@ -104,4 +106,7 @@ Misc. Changes
 * URLNormalizer was renamed WebURLNormalizer to distinguish from 
   com.norconex.commons.lang.url.URLNormalizer.
 * GenericURLNormalizer enum constants are now uppercase.
-  
+
+### Crawler File System
+
+* Too many changes. Major refactor to inherit V4-stack features.

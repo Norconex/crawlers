@@ -16,6 +16,8 @@ package com.norconex.crawler.core.pipeline.importer;
 
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 import com.norconex.importer.response.ImporterResponse;
 
@@ -44,5 +46,37 @@ public class ImporterPipelineContext extends DocumentPipelineContext {
      */
     public ImporterPipelineContext(Crawler crawler, CrawlDoc document) {
         super(crawler, document);
+    }
+
+    /**
+     * Whether a metadata fetch request was performed already. Based on whether
+     * metadata fetch support is enabled via configuration
+     * and we are now doing a document fetch request (which suggests
+     * a METADATA request would have had to be performed).
+     * @param currentDirective the current directive
+     * @return <code>true</code> if the metadata directive was executed
+     */
+    public boolean wasMetadataDirectiveExecuted(
+            FetchDirective currentDirective) {
+        // If both DOCUMENT and METADATA fetching were requested and the
+        // current directive is DOCUMENT, then metadata had to be performed.
+        return currentDirective == FetchDirective.DOCUMENT
+                &&  FetchDirectiveSupport.isEnabled(
+                        getConfig().getMetadataFetchSupport());
+    }
+
+    /**
+     * Whether a fetch directive has been enabled according to configuration.
+     * That is, its use is either "required" or "optional".
+     * @param directive fetch directive
+     * @return <code>true</code> if the supplied directive is enabled
+     */
+    public boolean isFetchDirectiveEnabled(FetchDirective directive) {
+        return (directive == FetchDirective.METADATA
+                && FetchDirectiveSupport.isEnabled(
+                        getConfig().getMetadataFetchSupport()))
+                || (directive == FetchDirective.DOCUMENT
+                        && FetchDirectiveSupport.isEnabled(
+                                getConfig().getDocumentFetchSupport()));
     }
 }

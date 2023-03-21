@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,25 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.doc;
-
-import com.norconex.crawler.core.doc.CrawlDocState;
+package com.norconex.crawler.core.fetch;
 
 /**
- * Represents a URL crawling status.
- * @see CrawlDocState
+ * Whether to perform metadata extraction on its own before (or instead)
+ * performing document extraction as a whole (including metadata).
  */
-public class WebCrawlDocState extends CrawlDocState {
-
-    private static final long serialVersionUID = 1L;
-
+public enum FetchDirective{
     /**
-     * @since 2.3.0
+     * A directive to execute a fetch request separate from document fetch.
      */
-    public static final WebCrawlDocState REDIRECT =
-            new WebCrawlDocState("REDIRECT");
+    METADATA,
+    /**
+     * A directive to execute a fetch request for the entire
+     * document, including metadata.
+     */
+    DOCUMENT
+    ;
 
-    protected WebCrawlDocState(String state) {
-        super(state);
+    public boolean is(FetchDirective fetchDirective) {
+        return equals(fetchDirective);
     }
 }

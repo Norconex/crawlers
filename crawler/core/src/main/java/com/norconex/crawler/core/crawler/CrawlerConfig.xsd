@@ -35,8 +35,11 @@
     <xs:all>
       <xs:element name="numThreads" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="maxDocuments" type="xs:int" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="idleTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="minProgressLoggingInterval" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="metadataFetchSupport" type="FetchDirectiveSupportType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="documentFetchSupport" type="FetchDirectiveSupportType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="stopOnExceptions" minOccurs="0" maxOccurs="1">
         <xs:complexType>
           <xs:all>
@@ -124,5 +127,16 @@
     <xs:attribute name="class" type="xs:string" use="optional"/>
     <xs:anyAttribute processContents="lax"/>
   </xs:complexType>
+
+  <xs:simpleType name="FetchDirectiveSupportType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="DISABLED"/>
+      <xs:enumeration value="OPTIONAL"/>
+      <xs:enumeration value="REQUIRED"/>
+      <xs:enumeration value="disabled"/>
+      <xs:enumeration value="optional"/>
+      <xs:enumeration value="required"/>
+    </xs:restriction>
+  </xs:simpleType>
 
 </xs:schema>

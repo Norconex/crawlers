@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.pipeline.importer;
+package com.norconex.crawler.core.pipeline.importer;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.web.fetch.HttpMethod;
+import com.norconex.crawler.core.fetch.FetchDirective;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -25,19 +25,20 @@ import lombok.extern.slf4j.Slf4j;
  * Provided both document checksum and deduplication are enabled,
  * verify there are no other documents with the same metadata checksum.
  * This is not 100% fool-proof due to concurrency but should capture
- * the vast majority of duplicates.
+ * the vast majority of duplicates. Invoked only
+ * once (even if both metadata and document directives are enabled).
  */
 @Slf4j
-class MetadataDedupStage extends AbstractWebImporterStage {
+public class MetadataDedupStage extends AbstractImporterStage {
 
-    public MetadataDedupStage(@NonNull HttpMethod method) {
-        super(method);
+    public MetadataDedupStage(@NonNull FetchDirective fetchDirective) {
+        super(fetchDirective);
     }
 
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext ctx) {
 
-        if (ctx.wasHttpHeadPerformed(getHttpMethod())) {
+        if (ctx.wasMetadataDirectiveExecuted(getFetchDirective())) {
             return true;
         }
 

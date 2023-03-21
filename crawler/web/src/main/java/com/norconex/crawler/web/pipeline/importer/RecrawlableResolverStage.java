@@ -16,6 +16,8 @@ package com.norconex.crawler.web.pipeline.importer;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +28,10 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2.5.0
  */
 @Slf4j
-class RecrawlableResolverStage extends AbstractWebImporterStage {
+class RecrawlableResolverStage extends AbstractImporterStage {
 
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext ctx) {
         // skip if doc is an orphan
         if (ctx.getDocument().isOrphan()) {
 //        if (ctx.isOrphan()) {

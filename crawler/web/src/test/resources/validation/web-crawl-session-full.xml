@@ -44,8 +44,8 @@
     <numThreads>1</numThreads>
     <maxDocuments>111</maxDocuments>
     <orphansStrategy>PROCESS</orphansStrategy>
-    <fetchHttpHead>OPTIONAL</fetchHttpHead>
-    <fetchHttpGet>DISABLED</fetchHttpGet>
+    <metadataFetchSupport>OPTIONAL</metadataFetchSupport>
+    <documentFetchSupport>DISABLED</documentFetchSupport>
     
     <eventListeners>
       <listener class="URLStatusCrawlerEventListener">

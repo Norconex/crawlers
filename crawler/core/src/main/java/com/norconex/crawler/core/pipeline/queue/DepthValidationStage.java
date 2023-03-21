@@ -12,25 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.pipeline.queue;
-
-import static com.norconex.crawler.web.util.Web.config;
+package com.norconex.crawler.core.pipeline.queue;
 
 import java.util.function.Predicate;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.crawler.web.crawler.WebCrawlerEvent;
-import com.norconex.crawler.web.doc.WebCrawlDocState;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class DepthValidationStage implements Predicate<DocRecordPipelineContext> {
+public class DepthValidationStage
+        implements Predicate<DocRecordPipelineContext> {
 
     @Override
     public boolean test(DocRecordPipelineContext ctx) {
-        var cfg = config(ctx);
+        var cfg = ctx.getConfig();
 
         if (cfg.getMaxDepth() != -1
                 && ctx.getDocRecord().getDepth()
@@ -38,9 +36,9 @@ class DepthValidationStage implements Predicate<DocRecordPipelineContext> {
             LOG.debug("URL too deep to process ({}): {}",
                     ctx.getDocRecord().getDepth(),
                     ctx.getDocRecord().getReference());
-            ctx.getDocRecord().setState(WebCrawlDocState.TOO_DEEP);
+            ctx.getDocRecord().setState(CrawlDocState.TOO_DEEP);
             ctx.fire(CrawlerEvent.builder()
-                    .name(WebCrawlerEvent.REJECTED_TOO_DEEP)
+                    .name(CrawlerEvent.REJECTED_TOO_DEEP)
                     .source(ctx.getCrawler())
                     .subject(ctx.getDocRecord().getDepth())
                     .crawlDocRecord(ctx.getDocRecord())

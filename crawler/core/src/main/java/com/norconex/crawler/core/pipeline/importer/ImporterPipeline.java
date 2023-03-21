@@ -20,4 +20,5 @@ import com.norconex.importer.response.ImporterResponse;
 
 @FunctionalInterface
 public interface ImporterPipeline
-        extends Function<ImporterPipelineContext, ImporterResponse> {}
+        extends Function<ImporterPipelineContext, ImporterResponse> {
+}

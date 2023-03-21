@@ -25,6 +25,7 @@ import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.CrawlDocState;
 
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +45,9 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
     private final ResponseListAdapter<R> responseListAdapter;
     private final UnsuccessfulResponseFactory<R> unsuccessfulResponseFactory;
 //
+    @Getter
     private final int maxRetries;
+    @Getter
     private final long retryDelay;
 //
 //    @FunctionalInterface
@@ -148,15 +151,15 @@ public class MultiFetcher <T extends FetchRequest, R extends FetchResponse>
 //            allResponses.put(unsuccessfulResponseAdaptor.create(
             allResponses.add(unsuccessfulResponseFactory.create(
                     CrawlDocState.UNSUPPORTED,
-                    "No fetcher defined accepting URL '"
+                    "No fetcher defined accepting reference '"
                             + doc.getReference() + "' for fetch request: "
                             + fetchRequest,
                     null));
             LOG.debug("""
-                No HTTP Fetcher accepted to fetch this\s\
+                No fetcher accepted to fetch this\s\
                 reference: "{}".\s\
-                For generic URL filtering it is highly recommended you\s\
-                use a regular URL filtering options, such as reference\s\
+                For generic reference filtering it is highly recommended you\s\
+                use a regular reference filtering options, such as reference\s\
                 filters.""", doc.getReference());
         }
         return responseListAdapter.adapt(allResponses);

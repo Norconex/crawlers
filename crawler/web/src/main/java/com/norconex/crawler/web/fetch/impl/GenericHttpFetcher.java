@@ -412,14 +412,14 @@ public class GenericHttpFetcher
                         .build();
             }
 
-            //--- INVALID http response handling -------------------------------
-
             // UNMODIFIED
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
                 return responseBuilder
                         .crawlDocState(CrawlDocState.UNMODIFIED)
                         .build();
             }
+
+            //--- INVALID http response handling -------------------------------
 
             // NOT_FOUND
             if (cfg.getNotFoundStatusCodes().contains(statusCode)) {
@@ -494,14 +494,15 @@ public class GenericHttpFetcher
     }
 
     //TODO remove this method and configuration options: always do it
-    // by framework?  Then how to leverage getting it from client
-    // directly (e.g. http response headers)?  Rely on metadata for that?
+    // by framework?  Could be useful to also do it here to leverage
+    // getting those values from HTTP headers or other fetcher-specific
+    // ways of doing it.
     private void performDetection(Doc doc) {
-        var info = doc.getDocRecord();
+        var docRecord = doc.getDocRecord();
         try {
             if (cfg.isForceContentTypeDetection()
-                    || info.getContentType() == null) {
-                info.setContentType(ContentTypeDetector.detect(
+                    || docRecord.getContentType() == null) {
+                docRecord.setContentType(ContentTypeDetector.detect(
                         doc.getInputStream(), doc.getReference()));
             }
         } catch (IOException e) {
@@ -509,8 +510,8 @@ public class GenericHttpFetcher
         }
         try {
             if (cfg.isForceCharsetDetection()
-                    || StringUtils.isBlank(info.getContentEncoding())) {
-                info.setContentEncoding(CharsetUtil.detectCharset(
+                    || StringUtils.isBlank(docRecord.getContentEncoding())) {
+                docRecord.setContentEncoding(CharsetUtil.detectCharset(
                         doc.getInputStream()));
             }
         } catch (IOException e) {

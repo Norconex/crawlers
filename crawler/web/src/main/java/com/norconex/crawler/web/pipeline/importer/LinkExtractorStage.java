@@ -24,6 +24,8 @@ import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig.ReferencedLinkType;
 import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 import com.norconex.crawler.web.doc.WebDocMetadata;
@@ -40,9 +42,10 @@ import lombok.extern.slf4j.Slf4j;
  * be considered.
  */
 @Slf4j
-class LinkExtractorStage extends AbstractWebImporterStage {
+class LinkExtractorStage extends AbstractImporterStage {
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) { //NOSONAR
+    protected boolean executeStage(ImporterPipelineContext context) { //NOSONAR
+        var ctx = (WebImporterPipelineContext) context;
 
         var linkTypes =
                 ctx.getConfig().getKeepReferencedLinks();

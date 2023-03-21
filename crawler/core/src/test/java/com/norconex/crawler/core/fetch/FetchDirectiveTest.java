@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,25 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.doc;
+package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDocState;
+import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Represents a URL crawling status.
- * @see CrawlDocState
- */
-public class WebCrawlDocState extends CrawlDocState {
+import org.junit.jupiter.api.Test;
 
-    private static final long serialVersionUID = 1L;
+class FetchDirectiveTest {
 
-    /**
-     * @since 2.3.0
-     */
-    public static final WebCrawlDocState REDIRECT =
-            new WebCrawlDocState("REDIRECT");
-
-    protected WebCrawlDocState(String state) {
-        super(state);
+    @Test
+    void testFetchDirective() {
+        assertThat(FetchDirective.DOCUMENT.is(
+                FetchDirective.DOCUMENT)).isTrue();
+        assertThat(FetchDirective.DOCUMENT.is(
+                FetchDirective.METADATA)).isFalse();
     }
 }

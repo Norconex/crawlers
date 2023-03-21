@@ -45,7 +45,7 @@ import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
-import com.norconex.crawler.web.WebCrawlSessionLauncher;
+import com.norconex.crawler.web.WebCrawlSession;
 import com.norconex.crawler.web.WebTestUtil;
 
 import lombok.AccessLevel;
@@ -125,7 +125,7 @@ public class ExternalCrawlSessionLauncher {
             javaTask.setProject(project);
             javaTask.setFork(true);
             javaTask.setFailonerror(true);
-            javaTask.setClassname(WebCrawlSessionLauncher.class.getName());
+            javaTask.setClassname(WebCrawlSession.class.getName());
             javaTask.setClasspath(new org.apache.tools.ant.types.Path(
                     project, SystemUtils.JAVA_CLASS_PATH));
             var args = action + " -config=\"" +

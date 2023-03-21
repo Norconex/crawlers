@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core.session.CrawlSession.CrawlSessionBuilder;
+import com.norconex.crawler.core.session.CrawlSessionBuilder;
 
 import lombok.NonNull;
 import picocli.CommandLine;

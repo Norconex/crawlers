@@ -30,15 +30,9 @@ class CommonRestrictionsTest {
     void testXmlFeedContentTypes() {
         assertThat(test(CommonRestrictions::xmlFeedContentTypes,
                 "application/atom+xml",
-                "application/mathml+xml",
                 "application/rss+xml",
-                "application/vnd.wap.xhtml+xml",
-                "application/x-asp",
-                "application/xhtml+xml",
+                "application/rdf+xml",
                 "application/xml",
-                "application/xslt+xml",
-                "image/svg+xml",
-                "text/html",
                 "text/xml"
         )).isTrue();
 
