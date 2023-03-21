@@ -23,6 +23,9 @@ import com.norconex.importer.doc.DocMetadata;
  */
 public final class CrawlDocMetadata {
 
+    //TODO use the same prefix for both crawler and importer...
+    // all "document." ?
+
     public static final String PREFIX = "collector.";
 
     // Avoid duplicating metadata under Collector when there is an equivalent

@@ -1,4 +1,4 @@
-/* Copyright 2020-2023 Norconex Inc.
+/* Copyright 2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,34 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.pipeline.importer;
+package com.norconex.crawler.core.pipeline.importer;
 
 import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.pipeline.DocumentPipelineUtil;
-import com.norconex.crawler.web.fetch.HttpMethod;
 
 import lombok.NonNull;
 
 /**
- * Perform filtering of documents based on document metadata.
- * The metadata typically consists of HTTP response headers and
- * collector-generated metadata.
- *
- * This stage is only executing filters once, from a HEAD request if
- * configured to perform a separate HEAD request, or otherwise from a GET
- * request.
- *
- * @since 3.0.0 (merge of former metadata HEAD and GET filter stages)
+ * Filters documents based on fetched metadata. These filters are invoked
+ * only once (even if both metadata and document directives are enabled).
  */
-class MetadataFiltersStage extends AbstractWebImporterStage {
+public class MetadataFiltersStage extends AbstractImporterStage {
 
-    public MetadataFiltersStage(@NonNull HttpMethod method) {
-        super(method);
+    public MetadataFiltersStage(@NonNull FetchDirective fetchDirective) {
+        super(fetchDirective);
     }
 
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) {
-        if (ctx.wasHttpHeadPerformed(getHttpMethod())) {
+    protected boolean executeStage(ImporterPipelineContext ctx) {
+        if (ctx.wasMetadataDirectiveExecuted(getFetchDirective())) {
             return true;
         }
 

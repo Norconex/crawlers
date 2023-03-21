@@ -17,11 +17,14 @@ package com.norconex.crawler.web.pipeline.importer;
 import java.util.List;
 
 import com.norconex.commons.lang.function.Predicates;
+import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.pipeline.importer.DocumentFiltersStage;
 import com.norconex.crawler.core.pipeline.importer.ImportModuleStage;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipeline;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.crawler.web.fetch.HttpMethod;
+import com.norconex.crawler.core.pipeline.importer.MetadataChecksumStage;
+import com.norconex.crawler.core.pipeline.importer.MetadataDedupStage;
+import com.norconex.crawler.core.pipeline.importer.MetadataFiltersStage;
 import com.norconex.importer.response.ImporterResponse;
 
 /**
@@ -32,39 +35,39 @@ public class WebImporterPipeline implements ImporterPipeline {
 
 
     private final Predicates<ImporterPipelineContext> STAGES =
-            new Predicates<>(List.of(
-                    // if an orphan is reprocessed, it could be that it is no longer
-                    // referenced because of deletion.  Because of that, we need
-                    // to process it again to find out so we ignore the "is re-crawlable"
-                    // stage.
+        new Predicates<>(List.of(
+            // if an orphan is reprocessed, it could be that it is no longer
+            // referenced because of deletion.  Because of that, we need
+            // to process it again to find out so we ignore the
+            // "is re-crawlable" stage.
 
-                    // TODO have this flag part of context and make this pipeline defined
-                    // statically
-                    new RecrawlableResolverStage(),
+            // TODO have this flag part of context and make this pipeline
+            // defined statically
+            new RecrawlableResolverStage(),
 
-                    //TODO rename DelayResolver to HitInterval ??
-                    new DelayResolverStage(),
+            //TODO rename DelayResolver to HitInterval ??
+            new DelayResolverStage(),
 
-                    // When HTTP headers are fetched (HTTP "HEAD") before document:
-                    new HttpFetchStage(HttpMethod.HEAD),
-                    new MetadataFiltersStage(HttpMethod.HEAD),
-                    new CanonicalStage(HttpMethod.HEAD),
-                    new MetadataChecksumStage(HttpMethod.HEAD),
-                    new MetadataDedupStage(HttpMethod.HEAD),
+            // When HTTP headers are fetched (HTTP "HEAD") before document:
+            new HttpFetchStage(FetchDirective.METADATA),
+            new MetadataFiltersStage(FetchDirective.METADATA),
+            new CanonicalStage(FetchDirective.METADATA),
+            new MetadataChecksumStage(FetchDirective.METADATA),
+            new MetadataDedupStage(FetchDirective.METADATA),
 
-                    // HTTP "GET" and onward:
-                    new HttpFetchStage(HttpMethod.GET),
-                    new CanonicalStage(HttpMethod.GET),
-                    new RobotsMetaCreateStage(),
-                    new LinkExtractorStage(),
-                    new RobotsMetaNoIndexStage(),
-                    new MetadataFiltersStage(HttpMethod.GET),
-                    new MetadataChecksumStage(HttpMethod.GET),
-                    new MetadataDedupStage(HttpMethod.GET),
-                    new DocumentFiltersStage(),
-                    new DocumentPreProcessingStage(),
-                    new ImportModuleStage()
-            ));
+            // HTTP "GET" and onward:
+            new HttpFetchStage(FetchDirective.DOCUMENT),
+            new CanonicalStage(FetchDirective.DOCUMENT),
+            new RobotsMetaCreateStage(),
+            new LinkExtractorStage(),
+            new RobotsMetaNoIndexStage(),
+            new MetadataFiltersStage(FetchDirective.DOCUMENT),
+            new MetadataChecksumStage(FetchDirective.DOCUMENT),
+            new MetadataDedupStage(FetchDirective.DOCUMENT),
+            new DocumentFiltersStage(),
+            new DocumentPreProcessingStage(),
+            new ImportModuleStage()
+        ));
 
     @Override
     public ImporterResponse apply(ImporterPipelineContext ctx) {

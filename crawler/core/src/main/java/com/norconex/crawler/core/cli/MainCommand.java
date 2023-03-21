@@ -17,7 +17,7 @@ package com.norconex.crawler.core.cli;
 import java.util.concurrent.Callable;
 
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlSession.CrawlSessionBuilder;
+import com.norconex.crawler.core.session.CrawlSessionBuilder;
 
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;

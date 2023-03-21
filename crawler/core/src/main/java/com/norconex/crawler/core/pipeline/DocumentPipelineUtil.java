@@ -15,10 +15,14 @@
 package com.norconex.crawler.core.pipeline;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.OnMatchFilter;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -72,6 +76,45 @@ public final class DocumentPipelineUtil {
                     .build());
             return true;
         }
+        return false;
+    }
+
+    public static boolean shouldAbortOnBadStatus(
+            @NonNull DocumentPipelineContext ctx,
+            CrawlDocState originalCrawlDocState,
+            @NonNull FetchDirective fetchDirective) {
+        // Note: a disabled directive should never get here,
+        // and when both are enabled, DOCUMENT always comes after METADATA.
+        var metaSupport = ctx.getConfig().getMetadataFetchSupport();
+        var docSupport = ctx.getConfig().getDocumentFetchSupport();
+
+        //--- HEAD ---
+        if (FetchDirective.METADATA.is(fetchDirective)) {
+            // if directive is required, we end it here.
+            if (FetchDirectiveSupport.REQUIRED.is(metaSupport)) {
+                return false;
+            }
+            // if head is optional and there is a GET, we continue
+            return FetchDirectiveSupport.OPTIONAL.is(metaSupport)
+                    && FetchDirectiveSupport.isEnabled(docSupport);
+
+        //--- GET ---
+        }
+        if (FetchDirective.DOCUMENT.is(fetchDirective)) {
+            // if directive is required, we end it here.
+            if (FetchDirectiveSupport.REQUIRED.is(docSupport)) {
+                return false;
+            }
+            // if directive is optional and HEAD was enabled and successful,
+            // we continue
+            return FetchDirectiveSupport.OPTIONAL.is(docSupport)
+                    && FetchDirectiveSupport.isEnabled(metaSupport)
+                    && CrawlDocState.isGoodState(originalCrawlDocState);
+        }
+
+        // At this point it would imply the directive for which we are asking
+        // is disabled. It should not be possible to get a bad status
+        // if disabled, so something is wrong, and we do not continue.
         return false;
     }
 }

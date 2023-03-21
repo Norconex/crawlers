@@ -46,10 +46,6 @@ import com.norconex.crawler.core.monitor.MdcUtil;
 import com.norconex.crawler.core.stop.CrawlSessionStopper;
 import com.norconex.crawler.core.stop.impl.FileBasedStopper;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -101,20 +97,6 @@ public class CrawlSession {
         return new CrawlSessionBuilder();
     }
 
-
-    @Data
-    @Accessors(fluent = true)
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class CrawlSessionBuilder {
-        private BiFunction<CrawlSession, CrawlerConfig, Crawler> crawlerFactory;
-        private CrawlSessionConfig crawlSessionConfig;
-        private EventManager eventManager;
-        //TODO consider making this part of session config?
-        private CrawlSessionStopper crawlSessionStopper;
-        public CrawlSession build() {
-            return new CrawlSession(this);
-        }
-    }
 
     protected CrawlSession(CrawlSessionBuilder builder) {
         //TODO clone config so modifications no longer apply?

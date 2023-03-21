@@ -115,6 +115,10 @@ public class CrawlerEvent extends Event {
      */
     public static final String REJECTED_BAD_STATUS = "REJECTED_BAD_STATUS";
     /**
+     * A document was rejected because it is located too deep.
+     */
+    public static final String REJECTED_TOO_DEEP = "REJECTED_TOO_DEEP";
+    /**
      * A document was rejected by the Importer module.
      */
     public static final String REJECTED_IMPORT = "REJECTED_IMPORT";

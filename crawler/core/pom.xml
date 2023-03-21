@@ -175,13 +175,11 @@
       <artifactId>easy-random-core</artifactId>
       <scope>test</scope>
     </dependency>
-    <!--
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-    -->
     
     <!-- Included as test due to incompatible license -->
     <dependency>

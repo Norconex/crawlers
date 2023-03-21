@@ -17,7 +17,6 @@ package com.norconex.crawler.core.pipeline;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.crawler.Crawler;
@@ -25,6 +24,7 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.ToString;
 
 /**
@@ -37,11 +37,9 @@ public class DocumentPipelineContext extends AbstractPipelineContext {
     private CrawlDoc document;
 
     public DocumentPipelineContext(
-            Crawler crawler,
-            CrawlDoc document) {
-        super(Objects.requireNonNull(crawler, "'crawler' must not be null."));
-        this.document = Objects.requireNonNull(
-                document, "'document' must not be null.");
+            @NonNull Crawler crawler, @NonNull CrawlDoc document) {
+        super(crawler);
+        this.document = document;
     }
 
     public CrawlDoc getDocument() {
@@ -51,7 +49,6 @@ public class DocumentPipelineContext extends AbstractPipelineContext {
     public CrawlDocRecord getDocRecord() {
         return document.getDocRecord();
     }
-
 
     /**
      * Gets cached crawl data.

@@ -50,7 +50,8 @@ import lombok.extern.slf4j.Slf4j;
  * <metadataChecksummer
  *     class="com.norconex.crawler.web.checksum.impl.LastModifiedMetadataChecksummer"
  *     keep="[false|true]"
- *     toField="(field to store checksum)" />
+ *     toField="(field to store checksum)"
+ *     onSet="[append|prepend|replace|optional]" />
  * }
  *
  * {@nx.xml.example

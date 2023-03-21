@@ -23,11 +23,11 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.web.MockWebCrawlSession;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.WebDocRecord;
-import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.importer.doc.DocMetadata;
 
 @MockWebCrawlSession
@@ -44,7 +44,8 @@ class WebImporterPipelineTest {
                         new ByteArrayInputStream(contentValid.getBytes())),
                                 false);
         var ctx = new WebImporterPipelineContext(crawler, doc);
-        Assertions.assertTrue(new CanonicalStage(HttpMethod.GET).test(ctx));
+        Assertions.assertTrue(new CanonicalStage(
+                FetchDirective.DOCUMENT).test(ctx));
     }
 
     @Test
@@ -54,7 +55,8 @@ class WebImporterPipelineTest {
                 new CachedStreamFactory(1, 1).newInputStream(), false);
         doc.getMetadata().set("Link", "<" + reference + "> rel=\"canonical\"");
         var ctx = new WebImporterPipelineContext(crawler, doc);
-        Assertions.assertTrue(new CanonicalStage(HttpMethod.HEAD).test(ctx));
+        Assertions.assertTrue(new CanonicalStage(
+                FetchDirective.METADATA).test(ctx));
     }
 
     @Test

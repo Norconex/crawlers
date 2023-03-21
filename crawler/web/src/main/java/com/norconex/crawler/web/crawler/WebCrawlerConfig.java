@@ -29,6 +29,7 @@ import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
 import com.norconex.crawler.web.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector;
@@ -57,6 +58,7 @@ import com.norconex.importer.ImporterConfig;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 
 /**
  * <p>
@@ -241,12 +243,12 @@ import lombok.ToString;
  * </p>
  * <p>
  * You can tell the crawler how it should handle HTTP GET and HEAD requests
- * using using {@link #setFetchHttpGet(HttpMethodSupport)} and
- * {@link #setFetchHttpHead(HttpMethodSupport)} respectively.
+ * using using {@link #setDocumentFetchSupport(FetchDirectiveSupport) and
+ * {@link #setMetadataFetchSupport(FetchDirectiveSupport)} respectively.
  * For each, the options are:
  * </p>
  * <ul>
- *   <li><b>DISABLED:</b> No HTTP call willl be made using that method.</li>
+ *   <li><b>DISABLED:</b> No HTTP call will be made using that method.</li>
  *   <li>
  *     <b>OPTIONAL:</b> If the HTTP method is not supported by any fetcher or
  *     the HTTP request for it was not successful, the document can still be
@@ -453,8 +455,8 @@ import lombok.ToString;
  *
  *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#init}
  *
- *   <fetchHttpHead>[DISABLED|REQUIRED|OPTIONAL]</fetchHttpHead>
- *   <fetchHttpGet>[REQUIRED|DISABLED|OPTIONAL]</fetchHttpGet>
+ *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#directive-meta}
+ *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#directive-doc}
  *
  *   <httpFetchers
  *       maxRetries="(number of times to retry a failed fetch attempt)"
@@ -520,6 +522,7 @@ import lombok.ToString;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@FieldNameConstants
 public class WebCrawlerConfig extends CrawlerConfig {
 
     // By default do not include URLs on docs at max depth
@@ -528,21 +531,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
         INSCOPE, OUTSCOPE, MAXDEPTH;
     }
 
-    public enum HttpMethodSupport {
-        DISABLED, OPTIONAL, REQUIRED;
-        public boolean is(HttpMethodSupport methodSupport) {
-            // considers null as disabled.
-            return (this == DISABLED && methodSupport == null)
-                    || (this == methodSupport);
-        }
-        public static boolean isEnabled(HttpMethodSupport methodSupport) {
-            return methodSupport == HttpMethodSupport.OPTIONAL
-                    || methodSupport == HttpMethodSupport.REQUIRED;
-        }
-    }
-
-
-    private int maxDepth = -1;
     private final List<String> startURLs = new ArrayList<>();
     private final List<Path> startURLsFiles = new ArrayList<>();
     private final List<String> startSitemapURLs = new ArrayList<>();
@@ -557,9 +545,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
             new HashSet<>(Arrays.asList(ReferencedLinkType.INSCOPE));
     private boolean startURLsAsync;
 
-    private HttpMethodSupport fetchHttpHead = HttpMethodSupport.DISABLED;
-    private HttpMethodSupport fetchHttpGet = HttpMethodSupport.REQUIRED;
-
     private URLCrawlScopeStrategy urlCrawlScopeStrategy =
             new URLCrawlScopeStrategy();
 
@@ -570,6 +555,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     private final List<HttpFetcher> httpFetchers =
             new ArrayList<>(List.of(new GenericHttpFetcher()));
+
+    //TODO Make retry/delay part of core?
     private int httpFetchersMaxRetries;
     private long httpFetchersRetryDelay;
 
@@ -599,83 +586,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     public WebCrawlerConfig() {
         setMetadataChecksummer(new LastModifiedMetadataChecksummer());
-    }
-
-    /**
-     * <p>
-     * Gets whether to fetch HTTP response headers using an
-     * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4">
-     * HTTP HEAD</a> request.  That HTTP request is performed separately from
-     * a document download request (HTTP "GET"). Useful when you need to filter
-     * documents based on HTTP header values, without downloading them first
-     * (e.g., to save bandwidth).
-     * When dealing with small documents on average, it may be best to
-     * avoid issuing two requests when a single one could do it.
-     * </p>
-     * <p>
-     * {@link HttpMethodSupport#DISABLED} by default.
-     * See class documentation for more details.
-     * <p>
-     * @return HTTP HEAD method support
-     * @since 3.0.0
-     */
-    public HttpMethodSupport getFetchHttpHead() {
-        return fetchHttpHead;
-    }
-    /**
-     * <p>
-     * Sets whether to fetch HTTP response headers using an
-     * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4">
-     * HTTP HEAD</a> request.
-     * </p>
-     * <p>
-     * See class documentation for more details.
-     * <p>
-     * @param fetchHttpHead HTTP HEAD method support
-     * @since 3.0.0
-     */
-    public void setFetchHttpHead(HttpMethodSupport fetchHttpHead) {
-        this.fetchHttpHead = fetchHttpHead;
-    }
-    /**
-     * <p>
-     * Gets whether to fetch HTTP documents using an
-     * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3">
-     * HTTP GET</a> request.
-     * Requests made using the HTTP GET method are usually required
-     * to download a document and have its content extracted and links
-     * discovered. It should never be disabled unless you have an
-     * exceptional use case.
-     * </p>
-     * <p>
-     * {@link HttpMethodSupport#REQUIRED} by default.
-     * See class documentation for more details.
-     * <p>
-     * @return <code>true</code> if fetching HTTP response headers separately
-     * @since 3.0.0
-     */
-    public HttpMethodSupport getFetchHttpGet() {
-        return fetchHttpGet;
-    }
-    /**
-     * <p>
-     * Sets whether to fetch HTTP documents using an
-     * <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3">
-     * HTTP GET</a> request.
-     * Requests made using the HTTP GET method are usually required
-     * to download a document and have its content extracted and links
-     * discovered. It should never be disabled unless you have an
-     * exceptional use case.
-     * </p>
-     * <p>
-     * See class documentation for more details.
-     * <p>
-     * @param fetchHttpGet <code>true</code>
-     *        if fetching HTTP response headers separately
-     * @since 3.0.0
-     */
-    public void setFetchHttpGet(HttpMethodSupport fetchHttpGet) {
-        this.fetchHttpGet = fetchHttpGet;
     }
 
     /**
@@ -823,13 +733,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
      */
     public void setStartURLsAsync(boolean asyncStartURLs) {
         startURLsAsync = asyncStartURLs;
-    }
-
-    public void setMaxDepth(int depth) {
-        maxDepth = depth;
-    }
-    public int getMaxDepth() {
-        return maxDepth;
     }
 
     /**
@@ -1190,11 +1093,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
     @Override
     public void saveToXML(XML xml) {
         super.saveToXML(xml);
-        xml.addElement("maxDepth", maxDepth);
         xml.addDelimitedElementList("keepReferencedLinks",
                 new ArrayList<>(keepReferencedLinks));
-        xml.addElement("fetchHttpHead", fetchHttpHead);
-        xml.addElement("fetchHttpGet", fetchHttpGet);
 
         var startXML = xml.addElement("startURLs")
                 .setAttribute("stayOnProtocol",
@@ -1325,11 +1225,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
                 WebURLNormalizer.class, "urlNormalizer", urlNormalizer));
         setDelayResolver(xml.getObjectImpl(
                 DelayResolver.class, "delay", delayResolver));
-        setMaxDepth(xml.getInteger("maxDepth", maxDepth));
-        setFetchHttpHead(xml.getEnum(
-                "fetchHttpHead", HttpMethodSupport.class, fetchHttpHead));
-        setFetchHttpGet(xml.getEnum(
-                "fetchHttpGet", HttpMethodSupport.class, fetchHttpGet));
 
         setKeepReferencedLinks(new HashSet<>(xml.getDelimitedEnumList(
                 "keepReferencedLinks", ReferencedLinkType.class,

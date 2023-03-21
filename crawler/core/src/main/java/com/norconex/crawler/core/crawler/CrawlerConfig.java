@@ -28,6 +28,7 @@ import com.norconex.commons.lang.xml.XPathUtil;
 import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer;
+import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.crawler.core.filter.ReferenceFilter;
@@ -59,6 +60,7 @@ import lombok.experimental.FieldNameConstants;
  *     (maximum number of documents to crawl per session, resuming on next
  *      sessions where it last ended, if crawling was not complete)
  *   </maxDocuments>
+ *   <maxDepth>(maximum depth the crawler should go)</maxDepth>
  *   <idleTimeout>(thread inactivity timeout)</idleTimeout>
  *   <minProgressLoggingInterval>
  *     (minimum frequency at which progress is logged)
@@ -118,6 +120,13 @@ import lombok.experimental.FieldNameConstants;
  *              class="(ImporterResponseProcessor implementation)" />
  *     </responseProcessors>
  *   </importer>
+ * }
+ *
+ * {@nx.xml #directive-meta
+ *   <metadataFetchSupport>[DISABLED|REQUIRED|OPTIONAL]</metadataFetchSupport>
+ * }
+ * {@nx.xml #directive-doc
+ *   <documentFetchSupport>[REQUIRED|DISABLED|OPTIONAL]</documentFetchSupport>
  * }
  *
  * {@nx.xml #checksum-meta
@@ -188,7 +197,7 @@ public class CrawlerConfig implements XMLConfigurable {
     private String id;
 
     /**
-     * The maximum number of threads a crawler can use.
+     * The maximum number of threads a crawler can use. Default is two.
      * @param numThreads number of threads
      * @return number of threads
      */
@@ -198,12 +207,23 @@ public class CrawlerConfig implements XMLConfigurable {
     /**
      * The maximum number of documents that can be processed.
      * Not all processed documents make it to your Committers
-     * as some can be rejected.
+     * as some can be rejected. Default is -1 (unlimited).
      * @param maxDocuments maximum number of documents that can be processed
      * @return maximum number of documents that can be processed
      */
     @SuppressWarnings("javadoc")
     private int maxDocuments = -1;
+
+    /**
+     * The maximum depth the crawler should go. The exact definition of depth
+     * is crawler-specific. Examples: levels of sub-directories,
+     * number of URL clicks to reach a page, etc. Refer to specific crawler
+     * implementation for details. Default is -1 (unlimited).
+     * @param maxDepth maximum depth or -1 for unlimited depth
+     * @return maximum depth or -1 for unlimited depth
+     */
+    @SuppressWarnings("javadoc")
+    private int maxDepth = -1;
 
     /**
      * The maximum amount of time to wait before shutting down an inactive
@@ -334,6 +354,13 @@ public class CrawlerConfig implements XMLConfigurable {
             new GenericSpoiledReferenceStrategizer();
 
     private final List<EventListener<?>> eventListeners = new ArrayList<>();
+
+
+    private FetchDirectiveSupport metadataFetchSupport =
+            FetchDirectiveSupport.DISABLED;
+    private FetchDirectiveSupport documentFetchSupport =
+            FetchDirectiveSupport.REQUIRED;
+
 
     //--- List Accessors -------------------------------------------------------
 
@@ -482,6 +509,7 @@ public class CrawlerConfig implements XMLConfigurable {
         xml.setAttribute(Fields.id, id);
         xml.addElement(Fields.numThreads, numThreads);
         xml.addElement(Fields.maxDocuments, maxDocuments);
+        xml.addElement(Fields.maxDepth, maxDepth);
         xml.addElement(Fields.idleTimeout, idleTimeout);
         xml.addElement(Fields.minProgressLoggingInterval,
                 minProgressLoggingInterval);
@@ -504,6 +532,9 @@ public class CrawlerConfig implements XMLConfigurable {
                 spoiledReferenceStrategizer);
 
         xml.addElementList(Fields.eventListeners, "listener", eventListeners);
+
+        xml.addElement(Fields.metadataFetchSupport, metadataFetchSupport);
+        xml.addElement(Fields.documentFetchSupport, documentFetchSupport);
     }
 
     @Override
@@ -511,6 +542,7 @@ public class CrawlerConfig implements XMLConfigurable {
         setId(xml.getString(XPathUtil.attr(Fields.id), id));
         setNumThreads(xml.getInteger(Fields.numThreads, numThreads));
         setMaxDocuments(xml.getInteger(Fields.maxDocuments, maxDocuments));
+        setMaxDepth(xml.getInteger(Fields.maxDepth, maxDepth));
         setOrphansStrategy(xml.getEnum(Fields.orphansStrategy,
                 OrphansStrategy.class, orphansStrategy));
         setIdleTimeout(xml.getDuration(Fields.idleTimeout, idleTimeout));
@@ -554,5 +586,14 @@ public class CrawlerConfig implements XMLConfigurable {
 
         setEventListeners(xml.getObjectListImpl(EventListener.class,
                 "eventListeners/listener", eventListeners));
+
+        setMetadataFetchSupport(xml.getEnum(
+                Fields.metadataFetchSupport,
+                FetchDirectiveSupport.class,
+                metadataFetchSupport));
+        setDocumentFetchSupport(xml.getEnum(
+                Fields.documentFetchSupport,
+                FetchDirectiveSupport.class,
+                documentFetchSupport));
     }
 }

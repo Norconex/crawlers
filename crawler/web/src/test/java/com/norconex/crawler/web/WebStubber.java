@@ -50,7 +50,6 @@ import com.norconex.commons.lang.CircularRange;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -186,14 +185,6 @@ public final class WebStubber {
         return values[new Random().nextInt(values.length -1)];
     }
 
-//    @SafeVarargs
-//    public static Object randomASDF() {
-//
-//        FieldPredicates.named("").and
-//        return null;
-//    }
-
-
     /**
      * <p>Random crawler config stub:</p>
      * <ul>
@@ -235,17 +226,7 @@ public final class WebStubber {
             WebTestUtil.getFirstCrawlerConfig(
                     sessionConfig).setStartURLs(startUrls);
         }
-        return CrawlSession.builder()
-            .crawlerFactory((crawlSess, crawlerCfg) ->
-                Crawler.builder()
-                    .crawlerConfig(crawlerCfg)
-                    .crawlSession(crawlSess)
-                    .crawlerImpl(WebCrawlSessionLauncher
-                            .crawlerImplBuilder().build())
-                    .build()
-            )
-            .crawlSessionConfig(sessionConfig)
-            .build();
+        return WebCrawlSession.createSession(sessionConfig);
     }
 
 

@@ -17,6 +17,7 @@ package com.norconex.crawler.web;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.cli.CliLauncher;
@@ -25,6 +26,7 @@ import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSessionBuilder;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.WebDocMetadata;
@@ -39,7 +41,7 @@ import com.norconex.crawler.web.util.Web;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class WebCrawlSessionLauncher {
+public class WebCrawlSession {
 
     //TODO maybe have a WebCrawlerImpl instead, and simply use that one here.
     //TODO maybe rename this class "WebCrawlSession", still having act solely
@@ -55,39 +57,54 @@ public class WebCrawlSessionLauncher {
         try {
             System.exit(launch(args));
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace(System.err); //NOSONAR
             System.exit(1);
         }
     }
 
     public static int launch(String... args) {
         return CliLauncher.launch(
-            CrawlSession.builder()
-                .crawlerFactory(
-                    (sess, cfg) -> Crawler.builder()
-                        .crawlSession(sess)
-                        .crawlerConfig(cfg)
-                        .crawlerImpl(crawlerImplBuilder().build())
-                        .build()
-                )
-                .crawlSessionConfig(
+                initCrawlSessionBuilder(
+                        CrawlSession.builder(),
                         new CrawlSessionConfig(WebCrawlerConfig.class)),
-            args
-        );
+                args);
     }
+
+    public static CrawlSession createSession(CrawlSessionConfig sessionConfig) {
+        return initCrawlSessionBuilder(
+                CrawlSession.builder(),
+                Optional.ofNullable(sessionConfig).orElseGet(() ->
+                        new CrawlSessionConfig(WebCrawlerConfig.class)))
+                .build();
+    }
+
+    // Return same builder, for chaining
+    static CrawlSessionBuilder initCrawlSessionBuilder(
+            CrawlSessionBuilder builder, CrawlSessionConfig sessionConfig) {
+        builder.crawlerFactory(
+                (sess, cfg) -> Crawler.builder()
+                    .crawlSession(sess)
+                    .crawlerConfig(cfg)
+                    .crawlerImpl(crawlerImplBuilder().build())
+                    .build()
+            )
+            .crawlSessionConfig(sessionConfig);
+        return builder;
+    }
+
 
     static CrawlerImpl.CrawlerImplBuilder crawlerImplBuilder() {
         return CrawlerImpl.builder()
             //TODO make fetcher*s* part of crawler-core CONFIG instead?
             .fetcherProvider(new HttpFetcherProvider())
             .beforeCrawlerExecution(
-                    WebCrawlSessionLauncher::logCrawlerInformation)
+                    WebCrawlSession::logCrawlerInformation)
             .queueInitializer(new WebQueueInitializer())
             .queuePipeline(new WebQueuePipeline())
             .importerPipeline(new WebImporterPipeline())
             .committerPipeline(new WebCommitterPipeline())
-            .beforeDocumentProcessing(WebCrawlSessionLauncher::initCrawlDoc)
-            .beforeDocumentFinalizing(WebCrawlSessionLauncher::preDocFinalizing)
+            .beforeDocumentProcessing(WebCrawlSession::initCrawlDoc)
+            .beforeDocumentFinalizing(WebCrawlSession::preDocFinalizing)
 
             // Needed??
             .crawlDocRecordType(WebDocRecord.class)

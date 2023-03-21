@@ -14,15 +14,17 @@
  */
 package com.norconex.crawler.web.pipeline.importer;
 
+import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.util.Web;
 
 /**
  * Wait for configured or default delay to expire.
  */
-class DelayResolverStage extends AbstractWebImporterStage {
+class DelayResolverStage extends AbstractImporterStage {
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext ctx) {
         var delayResolver = Web.config(ctx).getDelayResolver();
         if (delayResolver != null) {
             if (!Web.config(ctx).isIgnoreRobotsTxt()) {

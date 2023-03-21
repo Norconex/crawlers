@@ -30,8 +30,8 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
+import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.web.TestWebCrawlSession;
-import com.norconex.crawler.web.crawler.WebCrawlerConfig.HttpMethodSupport;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
@@ -84,8 +84,8 @@ class HttpFetcherAcceptTest {
         OPTIONAL | false | OPTIONAL | true  | 1   | HEAD | null
         """)
     void testHttpFetcherAccept(
-            HttpMethodSupport headSupport, boolean metaFiltered,
-            HttpMethodSupport getSupport, boolean docFiltered,
+            FetchDirectiveSupport headSupport, boolean metaRejectedByFilter,
+            FetchDirectiveSupport getSupport, boolean docRejectedByFilter,
             int expectedUpsertCount,
             String expectedMetaValue,
             String expectedDocValue,
@@ -100,15 +100,15 @@ class HttpFetcherAcceptTest {
 
                 // Configure 2 fetches, one doing HEAD, the other doing GET
 
-                cfg.setFetchHttpHead(headSupport);
+                cfg.setMetadataFetchSupport(headSupport);
                 var headFetcher = createFetcher(HttpMethod.HEAD);
-                if (metaFiltered) {
+                if (metaRejectedByFilter) {
                     headFetcher.setReferenceFilters(List.of(ref -> false));
                 }
 
-                cfg.setFetchHttpGet(getSupport);
+                cfg.setDocumentFetchSupport(getSupport);
                 var getFetcher = createFetcher(HttpMethod.GET);
-                if (docFiltered) {
+                if (docRejectedByFilter) {
                     getFetcher.setReferenceFilters(List.of(ref -> false));
                 }
 

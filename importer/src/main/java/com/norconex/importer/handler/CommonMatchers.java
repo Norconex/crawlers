@@ -96,6 +96,7 @@ public final class CommonMatchers {
                     XML_FEED_CONTENT_TYPES,
                     "application/xhtml+xml",
                     "application/xslt+xml",
+                    "application/mathml+xml",
                     "image/svg+xml"
             ));
 

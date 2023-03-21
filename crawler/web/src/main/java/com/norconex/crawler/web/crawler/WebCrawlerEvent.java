@@ -25,7 +25,6 @@ public final class WebCrawlerEvent {
     public static final String CREATED_ROBOTS_META = "CREATED_ROBOTS_META";
     public static final String REJECTED_ROBOTS_META_NOINDEX =
             "REJECTED_ROBOTS_META_NOINDEX";
-    public static final String REJECTED_TOO_DEEP = "REJECTED_TOO_DEEP";
     public static final String URLS_EXTRACTED = "URLS_EXTRACTED";
     /** @since 2.8.0 (renamed from REJECTED_CANONICAL) */
     public static final String REJECTED_NONCANONICAL = "REJECTED_NONCANONICAL";
@@ -37,6 +36,5 @@ public final class WebCrawlerEvent {
             "URLS_POST_IMPORTED";
 
     private WebCrawlerEvent() {
-        super();
     }
 }

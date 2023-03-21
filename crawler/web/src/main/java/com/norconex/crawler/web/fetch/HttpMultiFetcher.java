@@ -39,7 +39,10 @@ public class HttpMultiFetcher
             UnsuccessfulResponseFactory
                     <HttpFetchResponse> unsuccessfulResponseAdaptor,
             int maxRetries, long retryDelay) {
-        super(fetchers, multiResponseWrapper, unsuccessfulResponseAdaptor, maxRetries,
+        super(fetchers,
+                multiResponseWrapper,
+                unsuccessfulResponseAdaptor,
+                maxRetries,
                 retryDelay);
     }
 }

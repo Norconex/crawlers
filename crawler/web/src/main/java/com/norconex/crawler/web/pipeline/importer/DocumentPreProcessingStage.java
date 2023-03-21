@@ -15,15 +15,19 @@
 package com.norconex.crawler.web.pipeline.importer;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.processor.WebDocumentProcessor;
+import com.norconex.crawler.web.util.Web;
 
 /**
  * Document pre-processing.
  */
-class DocumentPreProcessingStage extends AbstractWebImporterStage {
+class DocumentPreProcessingStage extends AbstractImporterStage {
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext context) {
+        var ctx = Web.context(context);
         if (ctx.getConfig().getPreImportProcessors() != null) {
             for (WebDocumentProcessor preProc :
                     ctx.getConfig().getPreImportProcessors()) {

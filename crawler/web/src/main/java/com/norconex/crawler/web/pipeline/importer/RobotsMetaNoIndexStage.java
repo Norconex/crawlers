@@ -16,15 +16,19 @@ package com.norconex.crawler.web.pipeline.importer;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.crawler.WebCrawlerEvent;
+import com.norconex.crawler.web.util.Web;
 
 /**
  * Robots Meta NoIndex Check.
  */
-class RobotsMetaNoIndexStage extends AbstractWebImporterStage {
+class RobotsMetaNoIndexStage extends AbstractImporterStage {
 
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext context) {
+        var ctx = Web.context(context);
         var canIndex = ctx.getConfig().isIgnoreRobotsMeta()
                 || ctx.getRobotsMeta() == null
                 || !ctx.getRobotsMeta().isNoindex();

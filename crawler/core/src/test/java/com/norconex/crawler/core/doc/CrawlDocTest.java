@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,22 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.crawler;
+package com.norconex.crawler.core.doc;
 
-import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.core.CoreStubber;
+import com.norconex.commons.lang.io.CachedInputStream;
 
-class CrawlerConfigTest {
+class CrawlDocTest {
 
     @Test
-    void testCrawlerConfig() {
-        assertThatNoException().isThrownBy(() ->
-                XML.assertWriteRead(
-                        CoreStubber.crawlerConfigRandom(), "crawler"));
-    }
+    void testCrawlDoc() {
+        var rec = new CrawlDocRecord("ref");
+        var doc = new CrawlDoc(rec);
+        assertThat(doc.hasCache()).isFalse();
 
+        var cachedRec = new CrawlDocRecord("ref");
+        doc = new CrawlDoc(rec, cachedRec, CachedInputStream.nullInputStream());
+        assertThat(doc.hasCache()).isTrue();
+    }
 }

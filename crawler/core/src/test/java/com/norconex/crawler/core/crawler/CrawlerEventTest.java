@@ -31,7 +31,7 @@ class CrawlerEventTest {
     private static Crawler crawler;
 
     @BeforeAll
-    private static void beforeAll(@TempDir Path tempDir) {
+    static void beforeAll(@TempDir Path tempDir) {
         crawler = CoreStubber.crawler(tempDir);
     }
 

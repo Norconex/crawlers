@@ -28,14 +28,4 @@
     </xs:complexType>
   </xs:element>
 
-<!-- 
-  <xs:element name="metadataChecksummer">
-    <xs:complexType>
-      <xs:attribute name="class" type="xs:string"/>
-      <xs:attribute name="keep" type="xs:boolean"/>
-      <xs:attribute name="toField" type="xs:string"/>
-    </xs:complexType>
-  </xs:element>
- -->
-
 </xs:schema>

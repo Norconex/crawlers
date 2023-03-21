@@ -42,11 +42,8 @@
               </xs:complexType>
             </xs:element>
             <xs:element name="keepReferencedLinks" type="xs:string" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
             <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
             <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="fetchHttpHead" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="fetchHttpGet" type="httpMethodSupportType" minOccurs="0" maxOccurs="1"/>
             <xs:element name="httpFetchers" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:all>
@@ -138,17 +135,5 @@
   <xs:element name="urlsFile" substitutionGroup="startURLChoice" type="xs:string"/>
   <xs:element name="sitemap" substitutionGroup="startURLChoice" type="xs:string"/>
   <xs:element name="provider" substitutionGroup="startURLChoice" type="anyComplexRequiredClassType" />
-
-  <xs:simpleType name="httpMethodSupportType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="DISABLED"/>
-      <xs:enumeration value="OPTIONAL"/>
-      <xs:enumeration value="REQUIRED"/>
-      <xs:enumeration value="disabled"/>
-      <xs:enumeration value="optional"/>
-      <xs:enumeration value="required"/>
-    </xs:restriction>
-  </xs:simpleType>
-
   
 </xs:schema>

@@ -21,8 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocState;
+import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.web.crawler.WebCrawlerConfig.HttpMethodSupport;
+import com.norconex.crawler.core.pipeline.DocumentPipelineUtil;
+import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
+import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetchResponse;
@@ -37,10 +40,10 @@ import lombok.NonNull;
  * (HTTP response headers) depending on supplied {@link HttpMethod}.</p>
  * @since 3.0.0 (Merge of former metadata and document fetcher stages).
  */
-class HttpFetchStage extends AbstractWebImporterStage {
+class HttpFetchStage extends AbstractImporterStage {
 
-    public HttpFetchStage(@NonNull HttpMethod method) {
-        super(method);
+    public HttpFetchStage(@NonNull FetchDirective fetchDirective) {
+        super(fetchDirective);
     }
 
     /**
@@ -51,18 +54,23 @@ class HttpFetchStage extends AbstractWebImporterStage {
      * @return <code>true</code> if we continue processing.
      */
     @Override
-    boolean executeStage(WebImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext ctx) {
         // If stage is for a method that was disabled, skip
-        if (!ctx.isHttpMethodEnabled(getHttpMethod())) {
+        if (!ctx.isFetchDirectiveEnabled(getFetchDirective())) {
             return true;
         }
 
         var docRecord = ctx.getDocRecord();
         var fetcher = (HttpFetcher) ctx.getCrawler().getFetcher();
+
+        var httpMethod = FetchDirective.METADATA.is(getFetchDirective())
+                ? HttpMethod.HEAD : HttpMethod.GET;
+
+
         HttpFetchResponse response;
         try {
             response = fetcher.fetch(
-                    new HttpFetchRequest(ctx.getDocument(), getHttpMethod()));
+                    new HttpFetchRequest(ctx.getDocument(), httpMethod));
         } catch (FetchException e) {
             throw new CrawlerException("Could not fetch URL: "
                     + ctx.getDocRecord().getReference(), e);
@@ -125,58 +133,8 @@ class HttpFetchStage extends AbstractWebImporterStage {
 
         // At this stage, the URL is either unsupported or with a bad status.
         // In either case, whether we break the pipeline or not (returning
-        // false or true) depends on http fetch methods supported.
-        return continueOnBadState(ctx, getHttpMethod(), originalCrawlDocState);
-    }
-
-    private boolean continueOnBadState(
-            WebImporterPipelineContext ctx,
-            HttpMethod method,
-            CrawlDocState originalCrawlDocState) {
-        // Note: a disabled method will never get here,
-        // and when both are enabled, GET always comes after HEAD.
-        var headSupport = ctx.getConfig().getFetchHttpHead();
-        var getSupport = ctx.getConfig().getFetchHttpGet();
-
-        //--- HEAD ---
-        if (HttpMethod.HEAD.is(method)) {
-            // if method is required, we end it here.
-            if (HttpMethodSupport.REQUIRED.is(headSupport)) {
-                return false;
-            }
-            // if head is optional and there is a GET, we continue
-            return HttpMethodSupport.OPTIONAL.is(headSupport)
-                    && HttpMethodSupport.isEnabled(getSupport);
-
-        //--- GET ---
-        }
-        if (HttpMethod.GET.is(method)) {
-            // if method is required, we end it here.
-            if (HttpMethodSupport.REQUIRED.is(getSupport)) {
-                return false;
-            }
-            // if method is optional and HEAD was enabled and successful,
-            // we continue
-            return HttpMethodSupport.OPTIONAL.is(getSupport)
-                    && HttpMethodSupport.isEnabled(headSupport)
-                    && originalCrawlDocState.isGoodState();
-        }
-
-        // If a custom implementation introduces another http method,
-        // we do not know the intent so end here.
-        return false;
-    }
-
-    /**
-     * Whether a separate HTTP HEAD request was requested (configured)
-     * and was performed already.
-     * @param ctx pipeline context
-     * @return <code>true</code> if method is GET and HTTP HEAD was performed
-     */
-    protected boolean wasHttpHeadPerformed(WebImporterPipelineContext ctx) {
-        // If GET and fetching HEAD was requested, we ran filters already, skip.
-        return getHttpMethod() == HttpMethod.GET
-                &&  HttpMethodSupport.isEnabled(
-                        ctx.getConfig().getFetchHttpHead());
+        // false or true) depends on the fetch directives supported.
+        return DocumentPipelineUtil.shouldAbortOnBadStatus(
+                ctx, originalCrawlDocState, getFetchDirective());
     }
 }
