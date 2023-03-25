@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.fs.crawler;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +46,7 @@ public class FsCrawlerConfig extends CrawlerConfig {
 //    }
 
     private final List<String> startPaths = new ArrayList<>();
-    private final List<String> pathsFiles = new ArrayList<>();
+    private final List<Path> pathsFiles = new ArrayList<>();
     private final List<StartPathsProvider> startPathsProviders =
             new ArrayList<>();
 

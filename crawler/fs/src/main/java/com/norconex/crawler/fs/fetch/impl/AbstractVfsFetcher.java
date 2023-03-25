@@ -15,40 +15,82 @@
 package com.norconex.crawler.fs.fetch.impl;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.auth.StaticUserAuthenticator;
+import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
+import org.apache.commons.vfs2.util.EncryptUtil;
 
+import com.norconex.commons.lang.encrypt.EncryptionUtil;
+import com.norconex.commons.lang.security.Credentials;
+import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.fs.doc.FsMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.path.FsPath;
+import com.norconex.importer.doc.DocMetadata;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.ToString;
 
 /**
+ * <p>
  * Base class for fetchers relying on
  * <a href="https://commons.apache.org/proper/commons-vfs/">Apache Commons
  * VFS</a>.
+ * </p>
+ *
+ * <h3>Generic settings</h3>
+ * <p>
+ * The following is available to all implementing classes.
+ * </p>
+ *
+ * {@nx.xml.usage
+ * <!-- Optional authentication details. -->
+ * <authentication>
+ *   {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
+ *   <domain>(If required to authenticate, the user's domain.)</domain>
+ * </authentication>
+ * }
+ *
+ * {@nx.block #doc
+ * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
+ * <p>
+ * You can also have password set on the URL, Apache
+ * Commons VFS offers a way to encrypt it there using their own
+ * {@link EncryptUtil}. More info under the "Naming" section here:
+ * <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">
+ * http://commons.apache.org/proper/commons-vfs/filesystems.html</a>
+ * </p>
+ * }
+ *
  */
+@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
+@XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractVfsFetcher
         extends AbstractFetcher<FileFetchRequest, FileFetchResponse>
         implements FileFetcher {
@@ -60,6 +102,12 @@ public abstract class AbstractVfsFetcher
     // multiple file systems of the same type, configured differently.
     @Getter(value = AccessLevel.PACKAGE)
     private FileSystemOptions fsOptions;
+
+    // Configurable:
+    private final Credentials credentials = new Credentials();
+    @Getter
+    @Setter
+    private String authDomain;
 
     @Override
     protected void fetcherStartup(CrawlSession crawlSession) {
@@ -76,7 +124,16 @@ public abstract class AbstractVfsFetcher
                     "Could not initialize file system manager.", e);
         }
 
-        fsOptions = createFileSystemOptions();
+        fsOptions = new FileSystemOptions();
+        applyDefaultFileSystemOptions(fsOptions);
+        applyFileSystemOptions(fsOptions);
+    }
+
+    @Override
+    protected void fetcherShutdown(CrawlSession collector) {
+        if (fsManager != null) {
+            fsManager.close();
+        }
     }
 
     @Override
@@ -100,7 +157,8 @@ public abstract class AbstractVfsFetcher
 
         var ref = doc.getReference();
         try {
-            var fileObject = fsManager.resolveFile(ref, fsOptions);
+            var fileObject = fsManager.resolveFile(
+                    FileFetchUtil.uriEncodeLocalPath(ref), fsOptions);
 
             if (fileObject == null || !fileObject.exists()) {
                 return GenericFileFetchResponse.builder()
@@ -113,11 +171,9 @@ public abstract class AbstractVfsFetcher
                 fetchContent(doc, fileObject);
             }
 
-            fetchMeta(doc, fileObject);
+            fetchMetadata(doc, fileObject);
 
             //TODO set status if not found or whatever bad state
-
-            //TODO set content type and content encoding
 
             return GenericFileFetchResponse.builder()
                 .crawlDocState(CrawlDocState.NEW)
@@ -136,7 +192,8 @@ public abstract class AbstractVfsFetcher
     public Set<FsPath> fetchChildPaths(String parentPath)
             throws FetchException {
         try {
-            var fileObject = fsManager.resolveFile(parentPath, fsOptions);
+            var fileObject = fsManager.resolveFile(
+                    FileFetchUtil.uriEncodeLocalPath(parentPath), fsOptions);
             Set<FsPath> childPaths = new TreeSet<>();
             for (var childPath : fileObject.getChildren()) {
 
@@ -159,41 +216,45 @@ public abstract class AbstractVfsFetcher
         }
     }
 
+    /**
+     * Applies options that exists in each Commons VFS implementations.
+     * @param opts file system options
+     */
+    protected void applyDefaultFileSystemOptions(FileSystemOptions opts) {
+        var defBuilder = DefaultFileSystemConfigBuilder.getInstance();
+        if (credentials.isSet()) {
+            defBuilder.setUserAuthenticator(opts, new StaticUserAuthenticator(
+                    authDomain,
+                    credentials.getUsername(),
+                    EncryptionUtil.decryptPassword(credentials)));
+        }
+    }
 
-    protected abstract FileSystemOptions createFileSystemOptions();
+    /**
+     * Applies options specific to this Commons VFS implementations.
+     * @param opts file system options
+     */
+    protected abstract void applyFileSystemOptions(FileSystemOptions opts);
 
-    protected void fetchMeta(CrawlDoc doc, @NonNull FileObject fileObject) {
-//        if (!fileObject.exists()) {
-//            return FileCrawlState.NOT_FOUND;
-//        }
-//
-//        IFileSpecificMetaFetcher specificFetcher = FILE_SPECIFICS.get(
-//                fileObject.getClass());
-//        if (specificFetcher != null) {
-//            specificFetcher.fetchFileSpecificMeta(fileObject, metadata);
-//        }
-//
-//        FileContent content = fileObject.getContent();
-//        //--- Enhance Metadata ---
-//        metadata.addLong(
-//                FileMetadata.COLLECTOR_SIZE, content.getSize());
-//        metadata.addLong(FileMetadata.COLLECTOR_LASTMODIFIED,
-//                content.getLastModifiedTime());
-//        FileContentInfo info = content.getContentInfo();
-//        if (info != null) {
-//            metadata.addString(FileMetadata.COLLECTOR_CONTENT_ENCODING,
-//                    info.getContentEncoding());
-//            metadata.addString(FileMetadata.COLLECTOR_CONTENT_TYPE,
-//                    info.getContentType());
-//        }
-//        for (String attrName: content.getAttributeNames()) {
-//            Object obj = content.getAttribute(attrName);
-//            if (obj != null) {
-//                metadata.addString(FileMetadata.COLLECTOR_PREFIX
-//                        + "attribute." + attrName,
-//                                Objects.toString(obj));
-//            }
-//        }
+    protected void fetchMetadata(CrawlDoc doc, @NonNull FileObject fileObject)
+            throws FileSystemException {
+        var content = fileObject.getContent();
+        var meta = doc.getMetadata();
+        //--- Enhance Metadata ---
+        meta.set(FsMetadata.FILE_SIZE, content.getSize());
+        meta.set(FsMetadata.LAST_MODIFIED, content.getLastModifiedTime());
+        var info = content.getContentInfo();
+        if (info != null) {
+            meta.set(DocMetadata.CONTENT_ENCODING, info.getContentEncoding());
+            meta.set(DocMetadata.CONTENT_TYPE, info.getContentType());
+        }
+        for (String attrName: content.getAttributeNames()) {
+            var obj = content.getAttribute(attrName);
+            if (obj != null) {
+                meta.add(CrawlDocMetadata.PREFIX
+                        + "attribute." + attrName, Objects.toString(obj));
+            }
+        }
     }
 
     protected boolean fetchContent(CrawlDoc doc, @NonNull FileObject fileObject)
@@ -209,5 +270,19 @@ public abstract class AbstractVfsFetcher
 
         }
         return true;
+    }
+
+    @Override
+    protected void loadFetcherFromXML(XML xml) {
+        xml.ifXML("authentication", authXml -> {
+            authXml.ifXML("credentials", credentials::loadFromXML);
+            setAuthDomain(authXml.getString("domain", authDomain));
+        });
+    }
+    @Override
+    protected void saveFetcherToXML(XML xml) {
+        var authXml = xml.addElement("authentication");
+        credentials.saveToXML(authXml.addElement("credentials"));
+        authXml.addElement("domain", authDomain);
     }
 }

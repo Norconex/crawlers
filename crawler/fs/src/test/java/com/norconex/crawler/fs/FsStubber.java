@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.api.Randomizer;
@@ -38,10 +40,6 @@ import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
-//import com.norconex.crawler.core.store.DataStore;
-//import com.norconex.crawler.core.store.DataStoreEngine;
-//import com.norconex.crawler.core.store.MockDataStore;
-//import com.norconex.crawler.core.store.MockDataStoreEngine;
 import com.norconex.importer.ImporterConfig;
 
 public final class FsStubber {
@@ -82,6 +80,9 @@ public final class FsStubber {
 
         .excludeType(DataStoreEngine.class::equals)
         .excludeType(DataStore.class::equals)
+        .excludeType(StandardFileSystemManager.class::equals)
+        .excludeType(FileSystemOptions.class::equals)
+
     );
 
     private FsStubber() {}

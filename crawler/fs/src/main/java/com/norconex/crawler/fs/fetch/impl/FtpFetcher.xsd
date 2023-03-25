@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2023 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="/com/norconex/crawler/fs/fetch/impl/AbstractVfsFetcher.xsd"></xs:include>
+  <xs:include schemaLocation="/com/norconex/commons/lang/net/ProxySettings.xsd"></xs:include>
+
+  <xs:element name="fetcher">
+    <xs:complexType>
+      <xs:complexContent> 
+        <xs:extension base="AbstractVfsFetcher">  
+          <xs:all>
+            <xs:element name="autodetectUtf8" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="connectTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="controlEncoding" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="dataTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="defaultDateFormat" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="fileType" minOccurs="0" maxOccurs="1">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="ASCII"/>
+                  <xs:enumeration value="BINARY"/>
+                  <xs:enumeration value="LOCAL"/>
+                  <xs:enumeration value="EBCDIC"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="mdtmLastModifiedTime" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="passiveMode" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="proxySettings" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="recentDateFormat" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="remoteVerification" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="serverLanguageCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="serverTimeZoneId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="shortMonthNames" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="socketTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="controlKeepAliveTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="controlKeepAliveReplyTimeout" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="userDirIsRoot" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="transferAbortedOkReplyCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            
+            <xs:element name="secure" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="connectionMode" minOccurs="0" maxOccurs="1">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="EXPLICIT"/>
+                  <xs:enumeration value="IMPLICIT"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="dataChannelProtectionLevel" minOccurs="0" maxOccurs="1">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="C"/>
+                  <xs:enumeration value="S"/>
+                  <xs:enumeration value="E"/>
+                  <xs:enumeration value="P"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+          </xs:all>
+        </xs:extension>      
+      </xs:complexContent> 
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>
