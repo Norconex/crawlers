@@ -34,7 +34,7 @@ import com.norconex.importer.response.ImporterResponse;
 public class WebImporterPipeline implements ImporterPipeline {
 
 
-    private final Predicates<ImporterPipelineContext> STAGES =
+    private final Predicates<ImporterPipelineContext> stages =
         new Predicates<>(List.of(
             // if an orphan is reprocessed, it could be that it is no longer
             // referenced because of deletion.  Because of that, we need
@@ -43,9 +43,11 @@ public class WebImporterPipeline implements ImporterPipeline {
 
             // TODO have this flag part of context and make this pipeline
             // defined statically
+            // TODO move to Core and add to FS as well?
             new RecrawlableResolverStage(),
 
             //TODO rename DelayResolver to HitInterval ??
+            // TODO move to Core and add to FS as well?
             new DelayResolverStage(),
 
             // When HTTP headers are fetched (HTTP "HEAD") before document:
@@ -73,7 +75,7 @@ public class WebImporterPipeline implements ImporterPipeline {
     public ImporterResponse apply(ImporterPipelineContext ctx) {
         var webCtx = ctx instanceof WebImporterPipelineContext wipc
                 ? wipc : new WebImporterPipelineContext(ctx);
-        STAGES.test(webCtx);
+        stages.test(webCtx);
         return webCtx.getImporterResponse();
     }
 }

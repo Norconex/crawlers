@@ -1,3 +1,10 @@
+* Maybe, have a Configurable interface with set/getConfiguration method
+* which will get autowired with the matching class.
+* or look at autowiring framework as a global addition.
+* Or, have annotation @config that will take the type of the property
+* it decorates, or accepts an optional configuration object as a value.
+* Dagger 2 seems best: well-maintained, lightweight and compile-time
+
 * Remove all "restrictTo" across the board in favor of XML flow (if/else, etc).
   At a minimum, if we keep it, wrap in "restrictions" to improve null handling.
   (e.g., blanking a default list)
@@ -11,3 +18,12 @@
   
 * V3 to V4 config converter? or add a flag to support V3
   config as argument?
+  
+- Consider renaming (and deprecating) classes/methods with 
+  acronyms/abbreviation to use camel-case.  
+  E.g. XmlSomething as opposed to XMLSomething.
+  That includes in Commons Lang
+  
+* For javadoc custom taglets, add a placeholder equivalent to <THIS_CLASS>
+  that is replaced by the fully qualified name of the current class. 
+  

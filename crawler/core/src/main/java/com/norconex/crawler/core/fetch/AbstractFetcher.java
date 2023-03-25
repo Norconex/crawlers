@@ -32,6 +32,8 @@ import com.norconex.crawler.core.session.CrawlSessionEvent;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.filter.FilterGroupResolver;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
@@ -81,6 +83,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @EqualsAndHashCode
 @ToString
+@XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractFetcher
         <T extends FetchRequest, R extends FetchResponse> implements
                 Fetcher<T, R>, XMLConfigurable, EventListener<Event> {

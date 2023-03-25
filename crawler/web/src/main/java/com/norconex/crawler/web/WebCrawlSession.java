@@ -44,8 +44,8 @@ import lombok.extern.slf4j.Slf4j;
 public class WebCrawlSession {
 
     //TODO maybe have a WebCrawlerImpl instead, and simply use that one here.
-    //TODO maybe rename this class "WebCrawlSession", still having act solely
-    // as a launcher.
+    // Consider breaking it even further, maybe in a session.impl and/or
+    // crawler.impl packages.
 
     /**
      * Invokes the Web Crawler from the command line.
