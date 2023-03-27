@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,8 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.ImporterEvent.ImporterEventBuilder;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.parser.DocumentParserException;
@@ -299,6 +299,8 @@ public class Importer {
     private ImporterStatus doImportDocument(
             Doc document, List<Doc> nestedDocs)
                     throws ImporterException, IOException {
+
+        //--- Pre-handlers ---
         var filterStatus = executeHandlers(
                 document,
                 nestedDocs,
@@ -312,6 +314,7 @@ public class Importer {
         //MAYBE: make parse just another handler in the chain?  Eliminating
         //the need for pre and post handlers?
         parseDocument(document, nestedDocs);
+
         //--- Post-handlers ---
         filterStatus = executeHandlers(
                 document,
