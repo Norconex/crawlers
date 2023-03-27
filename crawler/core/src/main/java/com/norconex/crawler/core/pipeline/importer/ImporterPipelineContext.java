@@ -56,7 +56,7 @@ public class ImporterPipelineContext extends DocumentPipelineContext {
      * @param currentDirective the current directive
      * @return <code>true</code> if the metadata directive was executed
      */
-    public boolean wasMetadataDirectiveExecuted(
+    public boolean isMetadataDirectiveExecuted(
             FetchDirective currentDirective) {
         // If both DOCUMENT and METADATA fetching were requested and the
         // current directive is DOCUMENT, then metadata had to be performed.
