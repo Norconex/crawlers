@@ -14,28 +14,22 @@
  */
 package com.norconex.crawler.fs.fetch.impl;
 
-import static org.assertj.core.api.Assertions.assertThatNoException;
-
 import java.io.File;
 import java.io.IOException;
 
 import org.apache.ftpserver.ftplet.FtpException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.fs.FsStubber;
-
-class FtpFetcherTest extends AbstractFileFetcherTest {
+class FtpsFetcherTest extends AbstractFileFetcherTest {
 
     private static MockFtpServer server;
 
     @BeforeAll
     static void beforeAll(@TempDir File tempDir)
             throws FtpException, IOException {
-        server = new MockFtpServer(tempDir, false);
+        server = new MockFtpServer(tempDir, true);
         server.start();
     }
     @AfterAll
@@ -43,18 +37,12 @@ class FtpFetcherTest extends AbstractFileFetcherTest {
         MockFtpServer.stop(server);
     }
 
-    public FtpFetcherTest() {
+    public FtpsFetcherTest() {
         super(MockFtpServer.fetcherClient());
     }
 
     @Override
     String getStartPath() {
         return server.getStartPath();
-    }
-
-    @Test
-    void testFtpFetcher() {
-        assertThatNoException().isThrownBy(() -> XML.assertWriteRead(
-                FsStubber.randomize(FtpFetcher.class), "fetcher"));
     }
 }

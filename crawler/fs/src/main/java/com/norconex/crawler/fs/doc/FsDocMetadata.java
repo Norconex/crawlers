@@ -14,20 +14,18 @@
  */
 package com.norconex.crawler.fs.doc;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.fs.fetch.FileFetcher;
+import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
 
-/**
- * Custom processing (optional) performed on a document.  Can be used
- * just before of after a document has been imported.
- * @author Pascal Essiembre
- */
-public interface FsDocumentProcessor {
+public final class FsDocMetadata {
 
-	/**
-	 * Processes a document.
-	 * @param fileManager file system manager
-	 * @param doc the document
-	 */
-    void processDocument(FileFetcher fetcher,  CrawlDoc doc);
+    public static final String PATH = PREFIX + "path";
+
+    public static final String FILE_SIZE = PREFIX + "file-size";
+
+    //TODO make part of crawler-core?
+    public static final String LAST_MODIFIED = PREFIX + "last-modified";
+
+
+
+    private FsDocMetadata() {}
 }

@@ -20,8 +20,8 @@ public interface FileFetchResponse extends FetchResponse {
 
 //    Iterator<String> childReferences();
 //
-//    // NOTE: on some file systems, it could be possible for an item to be both
-//    // file and folder (a parent file having child files).
-//    boolean isFile();
-//    boolean isFolder();
+    // NOTE: on some file systems, it could be possible for an item to be both
+    // file and folder (a parent file having child files).
+    boolean isFile();
+    boolean isFolder();
 }

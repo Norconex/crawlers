@@ -17,16 +17,15 @@ package com.norconex.crawler.fs.pipeline.importer;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.crawler.fs.doc.FsDocumentProcessor;
+import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 import com.norconex.crawler.fs.fetch.FileFetcher;
-import com.norconex.crawler.fs.util.Fs;
+import com.norconex.crawler.fs.processor.FsDocumentProcessor;
 
 class DocumentPreProcessingStage extends AbstractImporterStage {
     @Override
-    protected boolean executeStage(ImporterPipelineContext context) {
-        var ctx = Fs.context(context);
+    protected boolean executeStage(ImporterPipelineContext ctx) {
         for (FsDocumentProcessor preProc :
-                ctx.getConfig().getPreImportProcessors()) {
+                ((FsCrawlerConfig) ctx.getConfig()).getPreImportProcessors()) {
             preProc.processDocument(
                     (FileFetcher) ctx.getCrawler().getFetcher(),
                     ctx.getDocument());

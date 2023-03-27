@@ -14,10 +14,12 @@
  */
 package com.norconex.crawler.fs.fetch.impl;
 
+import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
+
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -33,13 +35,12 @@ import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.fs.doc.FsMetadata;
+import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 import com.norconex.crawler.fs.fetch.FileFetcher;
@@ -104,6 +105,7 @@ public abstract class AbstractVfsFetcher
     private FileSystemOptions fsOptions;
 
     // Configurable:
+    @Getter
     private final Credentials credentials = new Credentials();
     @Getter
     @Setter
@@ -166,17 +168,21 @@ public abstract class AbstractVfsFetcher
                         .build();
             }
 
-            // Don't fetch body if we do meta only
-            if (FetchDirective.DOCUMENT.is(fetchRequest.getFetchDirective())) {
-                fetchContent(doc, fileObject);
+            if (fileObject.isFile()) {
+                // Don't fetch body if we do meta only
+                if (FetchDirective.DOCUMENT.is(
+                        fetchRequest.getFetchDirective())) {
+                    fetchContent(doc, fileObject);
+                }
+                fetchMetadata(doc, fileObject);
             }
-
-            fetchMetadata(doc, fileObject);
 
             //TODO set status if not found or whatever bad state
 
             return GenericFileFetchResponse.builder()
                 .crawlDocState(CrawlDocState.NEW)
+                .file(fileObject.isFile())
+                .folder(fileObject.isFolder())
                 .build();
 
 
@@ -194,7 +200,7 @@ public abstract class AbstractVfsFetcher
         try {
             var fileObject = fsManager.resolveFile(
                     FileFetchUtil.uriEncodeLocalPath(parentPath), fsOptions);
-            Set<FsPath> childPaths = new TreeSet<>();
+            Set<FsPath> childPaths = new HashSet<>();
             for (var childPath : fileObject.getChildren()) {
 
                 // Special chars such as # can be valid in local
@@ -238,23 +244,28 @@ public abstract class AbstractVfsFetcher
 
     protected void fetchMetadata(CrawlDoc doc, @NonNull FileObject fileObject)
             throws FileSystemException {
+
         var content = fileObject.getContent();
         var meta = doc.getMetadata();
         //--- Enhance Metadata ---
-        meta.set(FsMetadata.FILE_SIZE, content.getSize());
-        meta.set(FsMetadata.LAST_MODIFIED, content.getLastModifiedTime());
+        meta.set(FsDocMetadata.FILE_SIZE, content.getSize());
+        meta.set(FsDocMetadata.LAST_MODIFIED, content.getLastModifiedTime());
         var info = content.getContentInfo();
         if (info != null) {
             meta.set(DocMetadata.CONTENT_ENCODING, info.getContentEncoding());
             meta.set(DocMetadata.CONTENT_TYPE, info.getContentType());
         }
-        for (String attrName: content.getAttributeNames()) {
-            var obj = content.getAttribute(attrName);
-            if (obj != null) {
-                meta.add(CrawlDocMetadata.PREFIX
-                        + "attribute." + attrName, Objects.toString(obj));
+        content.getAttributes().forEach((k, v) -> {
+            if (v != null) {
+                meta.add(PREFIX + "attribute." + k, Objects.toString(v));
             }
-        }
+        });
+
+        meta.set(PREFIX + "executable", fileObject.isExecutable());
+        meta.set(PREFIX + "hidden", fileObject.isHidden());
+        meta.set(PREFIX + "readable", fileObject.isReadable());
+        meta.set(PREFIX + "symbolicLink", fileObject.isSymbolicLink());
+        meta.set(PREFIX + "writable", fileObject.isWriteable());
     }
 
     protected boolean fetchContent(CrawlDoc doc, @NonNull FileObject fileObject)
@@ -267,7 +278,6 @@ public abstract class AbstractVfsFetcher
                 content.getInputStream())) {
             is.enforceFullCaching();
             doc.setInputStream(is);
-
         }
         return true;
     }

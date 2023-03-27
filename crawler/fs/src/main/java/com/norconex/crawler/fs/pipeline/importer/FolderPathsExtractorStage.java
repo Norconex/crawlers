@@ -22,8 +22,8 @@ import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.crawler.fs.doc.FsDocRecord;
-import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.path.FsPath;
+import com.norconex.crawler.fs.util.Fs;
 
 class FolderPathsExtractorStage extends AbstractImporterStage {
 
@@ -34,16 +34,19 @@ class FolderPathsExtractorStage extends AbstractImporterStage {
     @Override
     protected boolean executeStage(ImporterPipelineContext ctx) {
 
-        if (ctx.wasMetadataDirectiveExecuted(getFetchDirective())) {
+        if (!ctx.isFetchDirectiveEnabled(getFetchDirective())
+                || ctx.isMetadataDirectiveExecuted(getFetchDirective())) {
             return true;
         }
+
+        var fetcher = Fs.fetcher(ctx);
 
         var rec = (FsDocRecord) ctx.getDocRecord();
         if (rec.isFolder()) {
             Set<FsPath> paths;
             try {
-                paths = ((FileFetcher) ctx.getCrawler().getFetcher())
-                        .fetchChildPaths(ctx.getDocRecord().getReference());
+                paths = fetcher.fetchChildPaths(
+                        ctx.getDocRecord().getReference());
             } catch (FetchException e) {
                 throw new CrawlerException("Could not fetch child paths of: "
                         + ctx.getDocRecord().getReference(), e);

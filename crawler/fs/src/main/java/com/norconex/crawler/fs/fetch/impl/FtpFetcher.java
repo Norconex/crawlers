@@ -21,9 +21,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
 import org.apache.commons.vfs2.provider.ftp.FtpFileType;
 import org.apache.commons.vfs2.provider.ftps.FtpsDataChannelProtectionLevel;
 import org.apache.commons.vfs2.provider.ftps.FtpsFileSystemConfigBuilder;
@@ -63,7 +63,7 @@ import lombok.experimental.FieldNameConstants;
  *
  *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher@nx.xml.usage}
  *
- *   <!-- FTP and FTPS -->
+ *   <!-- FTP and FTPS: -->
  *
  *   <autodetectUtf8>[false|true]</autodetectUtf8>
  *   <connectTimeout>(milliseconds)</connectTimeout>
@@ -87,8 +87,7 @@ import lombok.experimental.FieldNameConstants;
  *   <userDirIsRoot>[false|true]</userDirIsRoot>
  *   <mdtmLastModifiedTime>[false|true]</mdtmLastModifiedTime>
  *
- *   <!-- FTPS only (applicable only when secure is "true") -->
- *   <secure>[false|true]</secure>
+ *   <!-- FTPS only: -->
  *   <connectionMode>[EXPLICIT|IMPLICIT]</connectionMode>
  *   <dataChannelProtectionLevel>[C|S|E|P]</dataChannelProtectionLevel>
  *
@@ -146,8 +145,7 @@ public class FtpFetcher extends AbstractVfsFetcher {
     @XmlTransient
     private final List<Integer> transferAbortedOkReplyCodes = new ArrayList<>();
 
-    // only when secure is true
-    private boolean secure;
+    // Only apply to FTPS
     private FtpsMode connectionMode;
     private FtpsDataChannelProtectionLevel dataChannelProtectionLevel;
 
@@ -173,16 +171,9 @@ public class FtpFetcher extends AbstractVfsFetcher {
 
     @Override
     protected void applyFileSystemOptions(FileSystemOptions opts) {
-        FtpFileSystemConfigBuilder ftp;
-        if (secure) {
-            var ftps = FtpsFileSystemConfigBuilder.getInstance();
-            ftps.setFtpsMode(opts, connectionMode);
-            ftps.setDataChannelProtectionLevel(
-                    opts, dataChannelProtectionLevel);
-            ftp = ftps;
-        } else {
-            ftp = FtpFileSystemConfigBuilder.getInstance();
-        }
+        var ftp = FtpsFileSystemConfigBuilder.getInstance();
+        ftp.setFtpsMode(opts, connectionMode);
+        ftp.setDataChannelProtectionLevel(opts, dataChannelProtectionLevel);
         ftp.setAutodetectUtf8(opts, autodetectUtf8);
         ftp.setConnectTimeout(opts, connectTimeout);
         ftp.setControlEncoding(opts, controlEncoding);
@@ -190,7 +181,8 @@ public class FtpFetcher extends AbstractVfsFetcher {
         ftp.setDefaultDateFormat(opts, defaultDateFormat);
         ftp.setFileType(opts, fileType);
         ftp.setPassiveMode(opts, passiveMode);
-        ftp.setProxy(opts, proxySettings.toProxy());
+        Optional.ofNullable(proxySettings.toProxy()).ifPresent(
+                p -> ftp.setProxy(opts, p));
         ftp.setRecentDateFormat(opts, recentDateFormat);
         ftp.setRemoteVerification(opts, remoteVerification);
         ftp.setServerLanguageCode(opts, serverLanguageCode);

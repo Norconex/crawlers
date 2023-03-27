@@ -35,4 +35,15 @@ public class FileMultiFetchResponse
     public FileMultiFetchResponse(List<FileFetchResponse> fetchResponses) {
         super(fetchResponses);
     }
+
+    @Override
+    public boolean isFile() {
+        return getLastFetchResponse().map(
+                FileFetchResponse::isFile).orElse(false);
+    }
+    @Override
+    public boolean isFolder() {
+        return getLastFetchResponse().map(
+                FileFetchResponse::isFolder).orElse(false);
+    }
 }

@@ -30,9 +30,10 @@
     <commons-net.version>3.9.0</commons-net.version>
     <commons-vfs.version>2.9.0</commons-vfs.version>
     <opencmis.version>1.1.0</opencmis.version>
+    <ftpserver.version>1.2.0</ftpserver.version>
 
     <!-- BELOW ARE V2.x Dependencies: -->
-    <jetty.version>9.4.34.v20201102</jetty.version>
+<!--    <jetty.version>9.4.34.v20201102</jetty.version>-->
   </properties>
   <inceptionYear>2014</inceptionYear>
 
@@ -80,7 +81,16 @@
       <groupId>org.jeasy</groupId>
       <artifactId>easy-random-core</artifactId>
       <scope>test</scope>
-    </dependency>    
+    </dependency>
+    
+    <!-- https://mvnrepository.com/artifact/org.apache.ftpserver/ftpserver-core -->
+    <dependency>
+      <groupId>org.apache.ftpserver</groupId>
+      <artifactId>ftpserver-core</artifactId>
+      <version>${ftpserver.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
     
     <!-- Dependency for CMIS systems (e.g., Alfresco, Interwoven, Magnolia, 
          SharePoint server, OpenCMS, OpenText Documentum, etc).
@@ -116,12 +126,12 @@
 -->
 
 
-    <dependency>
+<!--    <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-webapp</artifactId>
         <version>${jetty.version}</version>
         <scope>test</scope>
-    </dependency>
+    </dependency>-->
 
     <!-- Unfortunately Maven does not distribute its VFS-Sandbox lib.
          Code has been bundled with this project instead.  When made available

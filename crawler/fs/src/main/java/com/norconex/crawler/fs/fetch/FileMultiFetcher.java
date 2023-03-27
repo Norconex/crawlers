@@ -82,8 +82,8 @@ public class FileMultiFetcher
                 return new Retrier(getMaxRetries()).execute(() ->
                         ((FileFetcher) fetcher).fetchChildPaths(parentPath));
             } catch (RetriableException e) {
-                LOG.debug("Failed to obtain thild paths with fetcher: {}.",
-                        fetcher.getClass().getName());
+                LOG.debug("Failed to obtain child paths with fetcher: {}.",
+                        fetcher.getClass().getName(), e);
             }
         }
         if (!accepted) {

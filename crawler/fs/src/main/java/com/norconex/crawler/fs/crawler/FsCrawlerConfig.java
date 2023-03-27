@@ -21,8 +21,8 @@ import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
-import com.norconex.crawler.fs.doc.FsDocumentProcessor;
 import com.norconex.crawler.fs.fetch.FileFetcher;
+import com.norconex.crawler.fs.processor.FsDocumentProcessor;
 
 import lombok.Data;
 
@@ -76,6 +76,30 @@ public class FsCrawlerConfig extends CrawlerConfig {
             new ArrayList<>();
     private final List<FsDocumentProcessor> postImportProcessors =
             new ArrayList<>();
+
+
+    /**
+     * Gets paths to initiate crawling from.
+     * @return start paths (never <code>null</code>)
+     */
+    public List<String> getStartPaths() {
+        return Collections.unmodifiableList(startPaths);
+    }
+    /**
+     * Sets paths to initiate crawling from.
+     * @param startPaths start paths
+     */
+    public void setStartPaths(List<String> startPaths) {
+        CollectionUtil.setAll(this.startPaths, startPaths);
+    }
+
+    public List<FileFetcher> getFileFetchers() {
+        return Collections.unmodifiableList(fileFetchers);
+    }
+    public void setFileFetchers(List<FileFetcher> fileFetchers) {
+        CollectionUtil.setAll(this.fileFetchers, fileFetchers);
+    }
+
 //
 //    public FSCrawlerConfig() {
 //    }

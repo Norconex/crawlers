@@ -53,7 +53,6 @@
             <xs:element name="userDirIsRoot" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
             <xs:element name="transferAbortedOkReplyCodes" type="xs:string" minOccurs="0" maxOccurs="1"/>
             
-            <xs:element name="secure" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
             <xs:element name="connectionMode" minOccurs="0" maxOccurs="1">
               <xs:simpleType>
                 <xs:restriction base="xs:string">

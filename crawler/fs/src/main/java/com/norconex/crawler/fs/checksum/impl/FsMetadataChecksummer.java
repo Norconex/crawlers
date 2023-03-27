@@ -24,12 +24,12 @@ import com.norconex.crawler.core.checksum.AbstractMetadataChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.fs.doc.FsMetadata;
+import com.norconex.crawler.fs.doc.FsDocMetadata;
 
 /**
  * <p>Default implementation of {@link MetadataChecksummer} which by default
- * returns the combined values of {@link FsMetadata#LAST_MODIFIED}
- * and {@link FsMetadata#FILE_SIZE}, separated with an underscore
+ * returns the combined values of {@link FsDocMetadata#LAST_MODIFIED}
+ * and {@link FsDocMetadata#FILE_SIZE}, separated with an underscore
  * (e.g. "14125443181234_123").
  * </p>
  * <p>
@@ -67,8 +67,9 @@ public class FsMetadataChecksummer extends AbstractMetadataChecksummer {
 
     @Override
     protected String doCreateMetaChecksum(Properties metadata) {
-        var lastMod = trimToEmpty(metadata.getString(FsMetadata.LAST_MODIFIED));
-        var size = trimToEmpty(metadata.getString(FsMetadata.FILE_SIZE));
+        var lastMod = trimToEmpty(
+                metadata.getString(FsDocMetadata.LAST_MODIFIED));
+        var size = trimToEmpty(metadata.getString(FsDocMetadata.FILE_SIZE));
         if (StringUtils.isAllBlank(lastMod, size)) {
             return null;
         }

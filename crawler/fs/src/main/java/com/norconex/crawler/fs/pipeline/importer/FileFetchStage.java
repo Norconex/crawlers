@@ -24,6 +24,7 @@ import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.pipeline.DocumentPipelineUtil;
 import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
+import com.norconex.crawler.fs.doc.FsDocRecord;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 import com.norconex.crawler.fs.fetch.FileFetcher;
@@ -57,7 +58,7 @@ class FileFetchStage extends AbstractImporterStage {
             return true;
         }
 
-        var docRecord = ctx.getDocRecord();
+        var docRecord = (FsDocRecord) ctx.getDocRecord();
         var fetcher = (FileFetcher) ctx.getCrawler().getFetcher();
         FileFetchResponse response;
         try {
@@ -70,6 +71,8 @@ class FileFetchStage extends AbstractImporterStage {
         var originalCrawlDocState = docRecord.getState();
 
         docRecord.setCrawlDate(ZonedDateTime.now());
+        docRecord.setFile(response.isFile());
+        docRecord.setFolder(response.isFolder());
 
         //--- Add collector-specific metadata ---
         var meta = ctx.getDocument().getMetadata();

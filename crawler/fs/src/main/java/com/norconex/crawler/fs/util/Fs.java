@@ -18,7 +18,7 @@ import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.pipeline.AbstractPipelineContext;
 import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
-import com.norconex.crawler.fs.pipeline.importer.FsImporterPipelineContext;
+import com.norconex.crawler.fs.fetch.FileFetcher;
 
 public final class Fs {
 
@@ -34,8 +34,7 @@ public final class Fs {
         return (FsCrawlerConfig) crawler.getCrawlerConfig();
     }
 
-    public static FsImporterPipelineContext context(
-            AbstractPipelineContext ctx) {
-        return (FsImporterPipelineContext) ctx;
+    public static FileFetcher fetcher(AbstractPipelineContext ctx) {
+        return (FileFetcher) ctx.getCrawler().getFetcher();
     }
 }

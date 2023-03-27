@@ -16,6 +16,8 @@ package com.norconex.crawler.fs;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -36,16 +38,25 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
+import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 import com.norconex.importer.ImporterConfig;
 
 public final class FsStubber {
 
     public static final String MOCK_CRAWLER_ID = "test-crawler";
     public static final String MOCK_CRAWL_SESSION_ID = "test-session";
+    public static final String MOCK_KEYSTORE_PATH =
+            "src/test/resources/keystore.jks";
+    public static final String MOCK_FS_PATH =
+            "src/test/resources/mock-fs";
 
     private static EasyRandom easyRandom = new EasyRandom(
             new EasyRandomParameters()
@@ -104,13 +115,6 @@ public final class FsStubber {
         return values[new Random().nextInt(values.length -1)];
     }
 //
-////    @SafeVarargs
-////    public static Object randomASDF() {
-////
-////        FieldPredicates.named("").and
-////        return null;
-////    }
-//
 //
 //    /**
 //     * <p>Random crawler config stub:</p>
@@ -144,66 +148,64 @@ public final class FsStubber {
 //        return doc;
 //    }
 //
-//    //--- Crawl Session --------------------------------------------------------
-//
-//    public static CrawlSession crawlSession(
-//            Path workDir, String... startUrls) {
-//        var sessionConfig = crawlSessionConfig(workDir);
-//        if (ArrayUtils.isNotEmpty(startUrls)) {
-//            WebTestUtil.getFirstCrawlerConfig(
-//                    sessionConfig).setStartURLs(startUrls);
-//        }
-//        return CrawlSession.builder()
-//            .crawlerFactory((crawlSess, crawlerCfg) ->
-//                Crawler.builder()
-//                    .crawlerConfig(crawlerCfg)
-//                    .crawlSession(crawlSess)
-//                    .crawlerImpl(WebCrawlSessionLauncher
-//                            .crawlerImplBuilder().build())
-//                    .build()
-//            )
-//            .crawlSessionConfig(sessionConfig)
-//            .build();
-//    }
-//
-//
-//    /**
-//     * <p>Crawl session config stub:</p>
-//     * <ul>
-//     *   <li>Crawl session id: {@value #MOCK_CRAWL_SESSION_ID}.</li>
-//     *   <li>1 crawler from {@link #crawlerConfig()}.</li>
-//     *   <li>Default values for everything else.</li>
-//     * </ul>
-//     * @param workDir where to store generated files (including crawl store)
-//     * @return crawl session config
-//     */
-//    public static CrawlSessionConfig crawlSessionConfig(Path workDir) {
-//        List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
-//        crawlerConfigs.add(crawlerConfig());
-//        var sessionConfig = new CrawlSessionConfig(WebCrawlerConfig.class);
-//        sessionConfig.setWorkDir(workDir);
-//        sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
-//        sessionConfig.setCrawlerConfigs(crawlerConfigs);
-//        return sessionConfig;
-//    }
-//
-//    /**
-//     * <p>Web crawler config stub:</p>
-//     * <ul>
-//     *   <li>Crawler id: {@value #MOCK_CRAWLER_ID}.</li>
-//     *   <li>1 thread.</li>
-//     *   <li>0 delay.</li>
-//     *   <li>1 MemoryCommitter.</li>
-//     * </ul>
-//     * @return crawler config
-//     */
-//    public static WebCrawlerConfig crawlerConfig() {
-//        var crawlerConfig = new WebCrawlerConfig();
-//        crawlerConfig.setId(MOCK_CRAWLER_ID);
-//        crawlerConfig.setNumThreads(1);
-//        ((GenericDelayResolver) crawlerConfig
-//                .getDelayResolver()).setDefaultDelay(0);
-//        crawlerConfig.setCommitters(List.of(new MemoryCommitter()));
-//        return crawlerConfig;
-//    }
+    //--- Crawl Session --------------------------------------------------------
+
+    public static CrawlSession crawlSession(
+            Path workDir, String... startPaths) {
+        var sessionConfig = crawlSessionConfig(workDir);
+        if (ArrayUtils.isNotEmpty(startPaths)) {
+            FsTestUtil.getFirstCrawlerConfig(
+                    sessionConfig).setStartPaths(List.of(startPaths));
+        }
+        return CrawlSession.builder()
+            .crawlerFactory((crawlSess, crawlerCfg) ->
+                Crawler.builder()
+                    .crawlerConfig(crawlerCfg)
+                    .crawlSession(crawlSess)
+                    .crawlerImpl(FsCrawlSession
+                            .crawlerImplBuilder().build())
+                    .build()
+            )
+            .crawlSessionConfig(sessionConfig)
+            .build();
+    }
+
+
+    /**
+     * <p>Crawl session config stub:</p>
+     * <ul>
+     *   <li>Crawl session id: {@value #MOCK_CRAWL_SESSION_ID}.</li>
+     *   <li>1 crawler from {@link #crawlerConfig()}.</li>
+     *   <li>Default values for everything else.</li>
+     * </ul>
+     * @param workDir where to store generated files (including crawl store)
+     * @return crawl session config
+     */
+    public static CrawlSessionConfig crawlSessionConfig(Path workDir) {
+        List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
+        crawlerConfigs.add(crawlerConfig());
+        var sessionConfig = new CrawlSessionConfig(FsCrawlerConfig.class);
+        sessionConfig.setWorkDir(workDir);
+        sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
+        sessionConfig.setCrawlerConfigs(crawlerConfigs);
+        return sessionConfig;
+    }
+
+    /**
+     * <p>Web crawler config stub:</p>
+     * <ul>
+     *   <li>Crawler id: {@value #MOCK_CRAWLER_ID}.</li>
+     *   <li>1 thread.</li>
+     *   <li>0 delay.</li>
+     *   <li>1 MemoryCommitter.</li>
+     * </ul>
+     * @return crawler config
+     */
+    public static FsCrawlerConfig crawlerConfig() {
+        var crawlerConfig = new FsCrawlerConfig();
+        crawlerConfig.setId(MOCK_CRAWLER_ID);
+        crawlerConfig.setNumThreads(1);
+        crawlerConfig.setCommitters(List.of(new MemoryCommitter()));
+        return crawlerConfig;
+    }
 }

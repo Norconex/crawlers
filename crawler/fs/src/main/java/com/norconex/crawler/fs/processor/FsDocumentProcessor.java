@@ -12,18 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.doc;
+package com.norconex.crawler.fs.processor;
 
-import static com.norconex.crawler.core.doc.CrawlDocMetadata.PREFIX;
+import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.fs.fetch.FileFetcher;
 
-public final class FsMetadata {
+/**
+ * Custom processing (optional) performed on a document.  Can be used
+ * just before of after a document has been imported.
+ * @author Pascal Essiembre
+ */
+public interface FsDocumentProcessor {
 
-    public static final String PATH = PREFIX + "path";
-
-    public static final String FILE_SIZE = PREFIX + "file-size";
-
-    //TODO make part of crawler-core?
-    public static final String LAST_MODIFIED = PREFIX + "last-modified";
-
-    private FsMetadata() {}
+	/**
+	 * Processes a document.
+	 * @param fileManager file system manager
+	 * @param doc the document
+	 */
+    void processDocument(FileFetcher fetcher,  CrawlDoc doc);
 }

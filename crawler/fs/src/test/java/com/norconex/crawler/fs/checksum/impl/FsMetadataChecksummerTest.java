@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.fs.FsStubber;
-import com.norconex.crawler.fs.doc.FsMetadata;
+import com.norconex.crawler.fs.doc.FsDocMetadata;
 
 class FsMetadataChecksummerTest {
 
@@ -33,18 +33,18 @@ class FsMetadataChecksummerTest {
         assertThat(checksummer.createMetadataChecksum(props)).isNull();
 
         // Just size
-        props.add(FsMetadata.FILE_SIZE, 111);
+        props.add(FsDocMetadata.FILE_SIZE, 111);
         assertThat(checksummer.createMetadataChecksum(props)).isEqualTo("_111");
 
         // Just date
         props.clear();
-        props.add(FsMetadata.LAST_MODIFIED, 222);
+        props.add(FsDocMetadata.LAST_MODIFIED, 222);
         assertThat(checksummer.createMetadataChecksum(props)).isEqualTo("222_");
 
         // both size and date
         props.clear();
-        props.add(FsMetadata.FILE_SIZE, 333);
-        props.add(FsMetadata.LAST_MODIFIED, 444);
+        props.add(FsDocMetadata.FILE_SIZE, 333);
+        props.add(FsDocMetadata.LAST_MODIFIED, 444);
         assertThat(checksummer.createMetadataChecksum(props)).isEqualTo(
                 "444_333");
     }

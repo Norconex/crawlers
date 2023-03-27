@@ -14,7 +14,10 @@
  */
 package com.norconex.crawler.fs.pipeline.importer;
 
+import java.io.IOException;
 import java.util.List;
+
+import org.apache.commons.io.IOUtils;
 
 import com.norconex.commons.lang.function.Predicates;
 import com.norconex.crawler.core.fetch.FetchDirective;
