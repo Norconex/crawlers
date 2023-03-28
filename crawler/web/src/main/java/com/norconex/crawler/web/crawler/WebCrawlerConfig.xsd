@@ -99,22 +99,6 @@
                 </xs:all>
               </xs:complexType>
             </xs:element>
-            <xs:element name="preImportProcessors" minOccurs="0" maxOccurs="1">
-              <xs:complexType>
-                <xs:all>
-                  <xs:element name="processor" 
-                      type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-                </xs:all>
-              </xs:complexType>
-            </xs:element>
-            <xs:element name="postImportProcessors" minOccurs="0" maxOccurs="1">
-              <xs:complexType>
-                <xs:all>
-                  <xs:element name="processor" 
-                      type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-                </xs:all>
-              </xs:complexType>
-            </xs:element>
             <xs:element name="postImportLinks" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:all>

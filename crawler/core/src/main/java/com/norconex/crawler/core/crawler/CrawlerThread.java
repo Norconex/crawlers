@@ -146,7 +146,8 @@ class CrawlerThread implements Runnable {
             return false;
         }
         var maxDocs = crawler.getCrawlerConfig().getMaxDocuments();
-        if (maxDocs > -1 && crawler.getProcessedInSession().get() >= maxDocs) {
+        if (maxDocs > -1 
+                && crawler.getMonitor().getProcessedCount() >= maxDocs) {
             LOG.info("Maximum documents reached for this session: {}", maxDocs);
             return true;
         }

@@ -21,6 +21,8 @@ import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 import com.norconex.crawler.core.pipeline.committer.CommitModuleStage;
 import com.norconex.crawler.core.pipeline.committer.CommitterPipeline;
 import com.norconex.crawler.core.pipeline.committer.DocumentChecksumStage;
+import com.norconex.crawler.core.pipeline.committer.DocumentDedupStage;
+import com.norconex.crawler.core.pipeline.committer.DocumentPostProcessingStage;
 
 public class WebCommitterPipeline implements CommitterPipeline {
 

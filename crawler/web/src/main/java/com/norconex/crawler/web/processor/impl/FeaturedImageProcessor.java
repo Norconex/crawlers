@@ -56,11 +56,12 @@ import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.fetch.FetchResponse;
+import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.processor.DocumentProcessor;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.HttpMethod;
-import com.norconex.crawler.web.processor.WebDocumentProcessor;
 import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
@@ -212,7 +213,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class FeaturedImageProcessor extends CrawlerLifeCycleListener
-        implements WebDocumentProcessor, XMLConfigurable {
+        implements DocumentProcessor, XMLConfigurable {
 
     //TODO add ability to extract from popular HTML <meta> for
     // featured image
@@ -352,7 +353,10 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
     //--- Process Document -----------------------------------------------------
 
     @Override
-    public void processDocument(HttpFetcher fetcher, Doc doc) {
+    public void processDocument(Fetcher<?, ?> f, CrawlDoc doc) {
+
+        var fetcher = (HttpFetcher) f;
+
 
         // Return if not valid content type
         if (StringUtils.isNotBlank(pageContentTypePattern)

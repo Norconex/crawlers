@@ -30,7 +30,6 @@ public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
         Doc doc = ctx.getDocument();
 
         var isContentTypeSet = doc.getDocRecord().getContentType() != null;
-
         var response = importer.importDocument(doc);
         ctx.setImporterResponse(response);
 

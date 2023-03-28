@@ -188,7 +188,7 @@ public class WebQueueInitializer
             }
         }
         if (urlCount > 0) {
-            LOG.info("Queued {} URLs from {} seed files.",
+            LOG.info("Queued {} start URLs from {} seed files.",
                     urlCount, urlsFiles.size());
         }
         return urlCount;
@@ -196,9 +196,6 @@ public class WebQueueInitializer
 
     private int queueStartURLsProviders(QueueInitContext ctx) {
         var providers = config(ctx.getCrawler()).getStartURLsProviders();
-        if (providers == null) {
-            return 0;
-        }
         var count = 0;
         for (StartURLsProvider provider : providers) {
             if (provider == null) {

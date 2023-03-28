@@ -57,7 +57,7 @@ class CanonicalStage extends AbstractImporterStage {
         }
 
         // Resolve against headers if not done already
-        if (!ctx.wasMetadataDirectiveExecuted(getFetchDirective())
+        if (!ctx.isMetadataDirectiveExecuted(getFetchDirective())
                 && !resolveFromHeaders(ctx, detector)) {
             return false;
         }

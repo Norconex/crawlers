@@ -52,6 +52,7 @@ import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.processor.DocumentProcessor;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
@@ -68,7 +69,6 @@ import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
 import com.norconex.crawler.web.link.LinkExtractor;
 import com.norconex.crawler.web.link.impl.DOMLinkExtractor;
-import com.norconex.crawler.web.processor.WebDocumentProcessor;
 import com.norconex.crawler.web.processor.impl.FeaturedImageProcessor;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
@@ -121,7 +121,7 @@ public final class WebStubber {
         .excludeType(DataStore.class::equals)
         .excludeType(SitemapResolver.class::equals)
         .excludeType(FeaturedImageProcessor.class::equals)
-        .excludeType(WebDocumentProcessor.class::equals)
+        .excludeType(DocumentProcessor.class::equals)
         .excludeType(RecrawlableResolver.class::equals)
 //            .excludeType(HttpAuthConfig.class::equals)
         .excludeType(StartURLsProvider.class::equals)

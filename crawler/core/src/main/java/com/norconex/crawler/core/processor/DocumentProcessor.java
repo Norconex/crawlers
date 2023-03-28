@@ -12,23 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.processor;
+package com.norconex.crawler.core.processor;
 
-import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.importer.doc.Doc;
+import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.fetch.Fetcher;
 
 /**
  * Custom processing (optional) performed on a document.  Can be used
  * just before of after a document has been imported.
- * @since 2.8.0 (moved from "com.norconex.crawler.web.doc" package)
  */
 @FunctionalInterface
-public interface WebDocumentProcessor {
+public interface DocumentProcessor {
 
 	/**
 	 * Processes a document.
-	 * @param fetchClient HTTP fetch client
-	 * @param doc the document
+	 * @param fetcher document fetcher
+	 * @param doc crawl document
 	 */
-    void processDocument(HttpFetcher fetcher, Doc doc);
+    void processDocument(Fetcher<?, ?> fetcher, CrawlDoc doc);
 }

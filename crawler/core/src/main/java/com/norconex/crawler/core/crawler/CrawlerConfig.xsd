@@ -77,6 +77,22 @@
       <xs:element name="committers" type="committersType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="spoiledReferenceStrategizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="eventListeners" type="listenersType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="preImportProcessors" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="processor" 
+                type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:all>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="postImportProcessors" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="processor" 
+                type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:all>
+        </xs:complexType>
+      </xs:element>
     </xs:all>
     <xs:attribute name="class" type="xs:string"/>
     <xs:attribute name="id" type="xs:string"/>

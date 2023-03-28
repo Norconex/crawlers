@@ -37,8 +37,8 @@ public class MetadataDedupStage extends AbstractImporterStage {
 
     @Override
     protected boolean executeStage(ImporterPipelineContext ctx) {
-
-        if (ctx.wasMetadataDirectiveExecuted(getFetchDirective())) {
+        if (!ctx.isFetchDirectiveEnabled(getFetchDirective())
+                || ctx.isMetadataDirectiveExecuted(getFetchDirective())) {
             return true;
         }
 

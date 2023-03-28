@@ -23,18 +23,15 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.parser.txt.CharsetDetector;
-import org.apache.tika.parser.txt.CharsetMatch;
 import org.apache.tika.utils.CharsetUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.io.ByteArrayOutputStream;
 import com.norconex.commons.lang.io.CachedInputStream;
@@ -42,19 +39,15 @@ import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.parser.ParseState;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Character set utility methods.
  */
+@Slf4j
 public final class CharsetUtil {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(CharsetUtil.class);
-
-    /**
-     * Constructor.
-     */
-    private CharsetUtil() {
-    }
+    private CharsetUtil() {}
 
     /**
      * Converts the character encoding of the supplied input value.
@@ -67,9 +60,9 @@ public final class CharsetUtil {
     public static String convertCharset(
             String input, String inputCharset,
             String outputCharset) throws IOException {
-        try (ByteArrayInputStream is =
+        try (var is =
                 new ByteArrayInputStream(input.getBytes(inputCharset));
-                ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+                var os = new ByteArrayOutputStream()) {
             convertCharset(is, inputCharset, os, outputCharset);
             os.flush();
             return os.toString(outputCharset);
@@ -87,10 +80,10 @@ public final class CharsetUtil {
     public static void convertCharset(
             InputStream input, String inputCharset,
             OutputStream output, String outputCharset) throws IOException {
-        CharsetDecoder decoder = Charset.forName(inputCharset).newDecoder();
+        var decoder = Charset.forName(inputCharset).newDecoder();
         decoder.onMalformedInput(CodingErrorAction.REPLACE);
         decoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
-        CharsetEncoder encoder = Charset.forName(outputCharset).newEncoder();
+        var encoder = Charset.forName(outputCharset).newEncoder();
         encoder.onMalformedInput(CodingErrorAction.REPLACE);
         encoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
         Reader reader = new InputStreamReader(input, decoder);
@@ -105,9 +98,8 @@ public final class CharsetUtil {
      * @param input the input to detect encoding on
      * @return the character encoding official name or <code>null</code>
      *         if the input is null or blank
-     * @throws IOException if there is a problem find the character encoding
      */
-    public static String detectCharset(String input) throws IOException {
+    public static String detectCharset(String input) {
         return detectCharset(input, null);
     }
 
@@ -125,17 +117,13 @@ public final class CharsetUtil {
         if (StringUtils.isBlank(input)) {
             return null;
         }
-        CharsetDetector cd = new CharsetDetector();
+        var cd = new CharsetDetector();
         if (StringUtils.isNotBlank(declaredEncoding)) {
             cd.setDeclaredEncoding(declaredEncoding);
         }
-        String charset = null;
         cd.enableInputFilter(true);
         cd.setText(input.getBytes(StandardCharsets.UTF_8));
-        CharsetMatch match = cd.detect();
-        charset = match.getName();
-        LOG.debug("Detected encoding: {}", charset);
-        return charset;
+        return doDetect(cd);
     }
 
     /**
@@ -174,24 +162,15 @@ public final class CharsetUtil {
             return declaredEncoding;
         }
 
-        CharsetDetector cd = new CharsetDetector();
+        var cd = new CharsetDetector();
         if (StringUtils.isNotBlank(declaredEncoding)) {
             cd.setDeclaredEncoding(declaredEncoding);
         }
-        String charset = null;
         cd.enableInputFilter(true);
         cd.setText(input);
         rewind(input);
-        CharsetMatch match = cd.detect();
-        charset = match.getName();
-        LOG.debug("Detected encoding: {}", charset);
-        return charset;
+        return doDetect(cd);
     }
-
-    //TODO perform calls to these next two methods from Importer class
-    // early on in the process then we always have the charset?
-    // Or can it change often so we do not want to set it for the entire
-    // run?
 
     /**
      * Detects a document character encoding. It first checks if it is defined
@@ -223,15 +202,14 @@ public final class CharsetUtil {
         if (StringUtils.isNotBlank(charset)) {
             return charset;
         }
-        String detectedCharset = doc.getDocRecord().getContentEncoding();
+        var detectedCharset = doc.getDocRecord().getContentEncoding();
         if (StringUtils.isBlank(detectedCharset)) {
-            detectedCharset = CharsetUtil.detectCharset(doc.getInputStream());
+            detectedCharset = detectCharset(doc.getInputStream());
         }
         if (StringUtils.isBlank(detectedCharset)) {
             detectedCharset = StandardCharsets.UTF_8.toString();
         }
-        detectedCharset = CharsetUtils.clean(detectedCharset);
-        return detectedCharset;
+        return CharsetUtils.clean(detectedCharset);
     }
 
     /**
@@ -250,12 +228,11 @@ public final class CharsetUtil {
             return charset;
         }
 
-        String detectedCharset = detectCharset(is);
+        var detectedCharset = detectCharset(is);
         if (StringUtils.isBlank(detectedCharset)) {
             detectedCharset = StandardCharsets.UTF_8.toString();
         }
-        detectedCharset = CharsetUtils.clean(detectedCharset);
-        return detectedCharset;
+        return CharsetUtils.clean(detectedCharset);
     }
 
     /**
@@ -265,7 +242,7 @@ public final class CharsetUtil {
      * @return first non-blank, or UTF-8
          */
     public static String firstNonBlankOrUTF8(String... charsets) {
-        String encoding = StringUtils.firstNonBlank(charsets);
+        var encoding = StringUtils.firstNonBlank(charsets);
         if (StringUtils.isBlank(encoding)) {
             encoding = StandardCharsets.UTF_8.toString();
         }
@@ -288,12 +265,53 @@ public final class CharsetUtil {
         return firstNonBlankOrUTF8(charsets);
     }
 
+    /*
+     * We bias towards UTF-8: If UTF-8 is detected but not the highest, and
+     * the highest is below 50% confidence, we check if there is less than
+     * 20% difference in confidence between the highest and UTF-8 charset
+     * and if so, we return UTF-8 instead.
+     */
+    private static String doDetect(CharsetDetector cd) {
+        var matches = cd.detectAll();
+        if (ArrayUtils.isEmpty(matches)) {
+            return null;
+        }
+
+        String charset = null;
+
+        var utf8 = StandardCharsets.UTF_8.toString();
+
+        var firstMatch = matches[0];
+        if (matches.length == 1
+                || utf8.equalsIgnoreCase(firstMatch.getName())) {
+            charset = firstMatch.getName();
+        }
+
+        if (charset == null || firstMatch.getConfidence() <= 50) {
+            var utf8Match = Stream.of(matches)
+                    .filter(m -> utf8.equalsIgnoreCase(m.getName()))
+                    .findFirst();
+            if (utf8Match.isPresent()
+                    && firstMatch.getConfidence()
+                            - utf8Match.get().getConfidence() <= 20) {
+                charset = utf8;
+            }
+        }
+
+        if (charset == null) {
+            charset = firstMatch.getName();
+        }
+
+        LOG.debug("Detected encoding: {}", charset);
+        return charset;
+    }
+
     private static void rewind(InputStream is) {
         //MAYBE: investigate why regular reset on CachedInputStream has
         //no effect and returns an empty stream when read again. Fix that
         //instead of having this method.
-        if (is instanceof CachedInputStream) {
-            ((CachedInputStream) is).rewind();
+        if (is instanceof CachedInputStream cis) {
+            cis.rewind();
         }
     }
 }

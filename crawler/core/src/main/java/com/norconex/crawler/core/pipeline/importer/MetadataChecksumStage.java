@@ -33,7 +33,8 @@ public class MetadataChecksumStage extends AbstractImporterStage {
     @Override
     protected boolean executeStage(ImporterPipelineContext ctx) {
         //TODO only if an INCREMENTAL run... else skip.
-        if (ctx.wasMetadataDirectiveExecuted(getFetchDirective())) {
+        if (!ctx.isFetchDirectiveEnabled(getFetchDirective())
+                || ctx.isMetadataDirectiveExecuted(getFetchDirective())) {
             return true;
         }
 

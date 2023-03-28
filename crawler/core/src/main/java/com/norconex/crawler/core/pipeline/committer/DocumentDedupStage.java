@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.pipeline.committer;
+package com.norconex.crawler.core.pipeline.committer;
 
 import java.util.function.Predicate;
 
@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  * the vast majority of duplicates.
  */
 @Slf4j
-class DocumentDedupStage implements Predicate<DocumentPipelineContext> {
+public class DocumentDedupStage implements Predicate<DocumentPipelineContext> {
 
     @Override
     public boolean test(DocumentPipelineContext ctx) {

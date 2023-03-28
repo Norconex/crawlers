@@ -12,29 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.pipeline.committer;
-
-import java.util.function.Predicate;
+package com.norconex.crawler.core.pipeline.importer;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
-import com.norconex.crawler.web.crawler.WebCrawlerConfig;
-import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.processor.WebDocumentProcessor;
+import com.norconex.crawler.core.processor.DocumentProcessor;
 
-class DocumentPostProcessingStage
-        implements Predicate<DocumentPipelineContext> {
+public class DocumentPreProcessingStage extends AbstractImporterStage {
     @Override
-    public boolean test(DocumentPipelineContext ctx) {
-        for (WebDocumentProcessor postProc : ((WebCrawlerConfig)
-                ctx.getConfig()).getPostImportProcessors()) {
-            postProc.processDocument(
-                    (HttpFetcher) ctx.getCrawler().getFetcher(),
+    protected boolean executeStage(ImporterPipelineContext ctx) {
+        for (DocumentProcessor preProc :
+                ctx.getConfig().getPreImportProcessors()) {
+            preProc.processDocument(
+                    ctx.getCrawler().getFetcher(),
                     ctx.getDocument());
             ctx.fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.DOCUMENT_POSTIMPORTED)
+                    .name(CrawlerEvent.DOCUMENT_PREIMPORTED)
                     .source(ctx.getCrawler())
-                    .subject(postProc)
+                    .subject(preProc)
                     .crawlDocRecord(ctx.getDocRecord())
                     .build());
         }
