@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Norconex Inc.
+/* Copyright 2013-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,28 +22,14 @@ import java.util.List;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.fs.fetch.FileFetcher;
-import com.norconex.crawler.fs.processor.FsDocumentProcessor;
 
 import lombok.Data;
 
 /**
- * File system Crawler configuration.
+ * File System Crawler configuration.
  */
 @Data
 public class FsCrawlerConfig extends CrawlerConfig {
-
-//    public enum FetchTypeSupport {
-//        DISABLED, OPTIONAL, REQUIRED;
-//        public boolean is(FetchTypeSupport methodSupport) {
-//            // considers null as disabled.
-//            return (this == DISABLED && methodSupport == null)
-//                    || (this == methodSupport);
-//        }
-//        public static boolean isEnabled(FetchTypeSupport methodSupport) {
-//            return methodSupport == FetchTypeSupport.OPTIONAL
-//                    || methodSupport == FetchTypeSupport.REQUIRED;
-//        }
-//    }
 
     private final List<String> startPaths = new ArrayList<>();
     private final List<Path> pathsFiles = new ArrayList<>();
@@ -54,29 +40,6 @@ public class FsCrawlerConfig extends CrawlerConfig {
             new ArrayList<>(/* List.of(new GenericHttpFetcher()) */);
     private int fileFetchersMaxRetries;
     private long fileFetchersRetryDelay;
-
-    //TODO web crawler has the same (HttpMethodSupport). Move to core?
-//    private FetchTypeSupport fetchMetaOnly = FetchTypeSupport.DISABLED;
-//    private FetchTypeSupport fetchMetaAndFile = FetchTypeSupport.REQUIRED;
-
-
-//    private IFilesystemOptionsProvider optionsProvider =
-//            new GenericFilesystemOptionsProvider();
-//
-//    private IFileMetadataFetcher metadataFetcher =
-//            new GenericFileMetadataFetcher();
-//
-//    private IMetadataChecksummer metadataChecksummer =
-//            new FileMetadataChecksummer();
-//
-//    private IFileDocumentFetcher documentFetcher =
-//            new GenericFileDocumentFetcher();
-//
-    private final List<FsDocumentProcessor> preImportProcessors =
-            new ArrayList<>();
-    private final List<FsDocumentProcessor> postImportProcessors =
-            new ArrayList<>();
-
 
     /**
      * Gets paths to initiate crawling from.
@@ -210,22 +173,7 @@ public class FsCrawlerConfig extends CrawlerConfig {
 //        this.documentFetcher = documentFetcher;
 //    }
 //
-    public List<FsDocumentProcessor> getPreImportProcessors() {
-        return Collections.unmodifiableList(preImportProcessors);
-    }
-    public void setPreImportProcessors(
-            List<FsDocumentProcessor> preImportProcessors) {
-        CollectionUtil.setAll(this.preImportProcessors, preImportProcessors);
-        CollectionUtil.removeNulls(this.preImportProcessors);
-    }
-    public List<FsDocumentProcessor> getPostImportProcessors() {
-        return Collections.unmodifiableList(postImportProcessors);
-    }
-    public void setPostImportProcessors(
-            FsDocumentProcessor[] postImportProcessors) {
-        CollectionUtil.setAll(this.postImportProcessors, postImportProcessors);
-        CollectionUtil.removeNulls(this.postImportProcessors);
-    }
+
 //
 //    @Override
 //    protected void saveCrawlerConfigToXML(Writer out) throws IOException {

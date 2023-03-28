@@ -46,7 +46,9 @@ abstract class AbstractFileFetcherTest {
     void testFetchFiles() {
         var basePath = getStartPath();
         var mem = TestFsCrawlSession.forStartPaths(basePath)
-            .crawlerSetup(cfg -> cfg.setFileFetchers(List.of(fetcher)))
+            .crawlerSetup(cfg -> {
+                cfg.setFileFetchers(List.of(fetcher));
+            })
             .crawl();
 
         assertThat(mem.getUpsertCount()).isEqualTo(8);

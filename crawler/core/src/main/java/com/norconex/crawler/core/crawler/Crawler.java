@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -164,9 +163,6 @@ public class Crawler {
     private DataStore<String> dedupDocumentStore;
 
     private MutableBoolean queueInitialized;
-
-    @Getter(value = AccessLevel.PACKAGE)
-    private final AtomicLong processedInSession = new AtomicLong();
 
     //--- Properties set on Stop -----------------------------------------------
 
@@ -315,7 +311,6 @@ public class Crawler {
                 Optional.ofNullable(crawlerImpl.beforeCrawlerExecution)
                         .ifPresent(c -> c.accept(this, resume.getValue()));
 
-                processedInSession.set(0);
             });
 
             fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
@@ -503,9 +498,7 @@ public class Crawler {
     //TODO duplicate method, move to util class
     private boolean isMaxDocuments() {
         var maxDocs = crawlerConfig.getMaxDocuments();
-        //TODO replace check for "processedCount" vs "maxDocuments"
-        // with event counts vs max committed, max processed, max etc...
-        return maxDocs > -1 && processedInSession.get() >= maxDocs;
+        return maxDocs > -1 && monitor.getProcessedCount() >= maxDocs;
     }
 
     public void importDataStore(Path inFile) {

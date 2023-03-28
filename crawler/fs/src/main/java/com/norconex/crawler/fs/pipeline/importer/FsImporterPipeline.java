@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Norconex Inc.
+/* Copyright 2013-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  */
 package com.norconex.crawler.fs.pipeline.importer;
 
-import java.io.IOException;
 import java.util.List;
-
-import org.apache.commons.io.IOUtils;
 
 import com.norconex.commons.lang.function.Predicates;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.pipeline.importer.DocumentFiltersStage;
+import com.norconex.crawler.core.pipeline.importer.DocumentPreProcessingStage;
 import com.norconex.crawler.core.pipeline.importer.ImportModuleStage;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipeline;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
@@ -30,10 +28,6 @@ import com.norconex.crawler.core.pipeline.importer.MetadataDedupStage;
 import com.norconex.crawler.core.pipeline.importer.MetadataFiltersStage;
 import com.norconex.importer.response.ImporterResponse;
 
-/**
- * @author Pascal Essiembre
- *
- */
 public class FsImporterPipeline implements ImporterPipeline {
 
     private final Predicates<ImporterPipelineContext> stages =

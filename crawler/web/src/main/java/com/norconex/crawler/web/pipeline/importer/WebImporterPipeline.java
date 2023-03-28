@@ -19,6 +19,7 @@ import java.util.List;
 import com.norconex.commons.lang.function.Predicates;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.pipeline.importer.DocumentFiltersStage;
+import com.norconex.crawler.core.pipeline.importer.DocumentPreProcessingStage;
 import com.norconex.crawler.core.pipeline.importer.ImportModuleStage;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipeline;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;

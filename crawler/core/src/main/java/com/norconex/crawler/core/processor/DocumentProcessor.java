@@ -1,4 +1,4 @@
-/* Copyright 2013-2014 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,22 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.processor;
+package com.norconex.crawler.core.processor;
 
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.fs.fetch.FileFetcher;
+import com.norconex.crawler.core.fetch.Fetcher;
 
 /**
  * Custom processing (optional) performed on a document.  Can be used
  * just before of after a document has been imported.
- * @author Pascal Essiembre
  */
-public interface FsDocumentProcessor {
+@FunctionalInterface
+public interface DocumentProcessor {
 
 	/**
 	 * Processes a document.
-	 * @param fileManager file system manager
-	 * @param doc the document
+	 * @param fetcher document fetcher
+	 * @param doc crawl document
 	 */
-    void processDocument(FileFetcher fetcher,  CrawlDoc doc);
+    void processDocument(Fetcher<?, ?> fetcher, CrawlDoc doc);
 }

@@ -16,6 +16,7 @@ package com.norconex.crawler.core.crawler;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.crawler.core.filter.ReferenceFilter;
+import com.norconex.crawler.core.processor.DocumentProcessor;
 import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStoreEngine;
@@ -292,6 +294,10 @@ public class CrawlerConfig implements XMLConfigurable {
     private final List<ReferenceFilter> referenceFilters = new ArrayList<>();
     private final List<MetadataFilter> metadataFilters = new ArrayList<>();
     private final List<DocumentFilter> documentFilters = new ArrayList<>();
+    private final List<DocumentProcessor> preImportProcessors =
+            new ArrayList<>();
+    private final List<DocumentProcessor> postImportProcessors =
+            new ArrayList<>();
 
     /**
      * The metadata checksummer.
@@ -502,6 +508,57 @@ public class CrawlerConfig implements XMLConfigurable {
         eventListeners.clear();
     }
 
+    /**
+     * Gets pre-import processors.
+     * @return pre-import processors
+     */
+    public List<DocumentProcessor> getPreImportProcessors() {
+        return Collections.unmodifiableList(preImportProcessors);
+    }
+    /**
+     * Sets pre-import processors.
+     * @param preImportProcessors pre-import processors
+     */
+    public void setPreImportProcessors(
+            DocumentProcessor... preImportProcessors) {
+        setPreImportProcessors(Arrays.asList(preImportProcessors));
+    }
+    /**
+     * Sets pre-import processors.
+     * @param preImportProcessors pre-import processors
+     */
+    public void setPreImportProcessors(
+            List<DocumentProcessor> preImportProcessors) {
+        CollectionUtil.setAll(this.preImportProcessors, preImportProcessors);
+        CollectionUtil.removeNulls(this.preImportProcessors);
+    }
+
+    /**
+     * Gets post-import processors.
+     * @return post-import processors
+     */
+    public List<DocumentProcessor> getPostImportProcessors() {
+        return Collections.unmodifiableList(postImportProcessors);
+    }
+    /**
+     * Sets post-import processors.
+     * @param postImportProcessors post-import processors
+     */
+    public void setPostImportProcessors(
+            DocumentProcessor... postImportProcessors) {
+        setPostImportProcessors(Arrays.asList(postImportProcessors));
+    }
+    /**
+     * Sets post-import processors.
+     * @param postImportProcessors post-import processors
+     */
+    public void setPostImportProcessors(
+            List<DocumentProcessor> postImportProcessors) {
+        CollectionUtil.setAll(this.postImportProcessors, postImportProcessors);
+        CollectionUtil.removeNulls(this.postImportProcessors);
+    }
+
+
     //--- XML Persist ----------------------------------------------------------
 
     @Override
@@ -535,6 +592,11 @@ public class CrawlerConfig implements XMLConfigurable {
 
         xml.addElement(Fields.metadataFetchSupport, metadataFetchSupport);
         xml.addElement(Fields.documentFetchSupport, documentFetchSupport);
+
+        xml.addElementList(
+                Fields.preImportProcessors, "processor", preImportProcessors);
+        xml.addElementList(
+                Fields.postImportProcessors, "processor", postImportProcessors);
     }
 
     @Override
@@ -595,5 +657,10 @@ public class CrawlerConfig implements XMLConfigurable {
                 Fields.documentFetchSupport,
                 FetchDirectiveSupport.class,
                 documentFetchSupport));
+
+        setPreImportProcessors(xml.getObjectListImpl(DocumentProcessor.class,
+                "preImportProcessors/processor", preImportProcessors));
+        setPostImportProcessors(xml.getObjectListImpl(DocumentProcessor.class,
+                "postImportProcessors/processor", postImportProcessors));
     }
 }

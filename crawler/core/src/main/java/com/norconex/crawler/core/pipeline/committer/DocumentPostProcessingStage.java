@@ -12,27 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.pipeline.importer;
+package com.norconex.crawler.core.pipeline.committer;
+
+import java.util.function.Predicate;
 
 import com.norconex.crawler.core.crawler.CrawlerEvent;
-import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
-import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
-import com.norconex.crawler.fs.fetch.FileFetcher;
-import com.norconex.crawler.fs.processor.FsDocumentProcessor;
+import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
+import com.norconex.crawler.core.processor.DocumentProcessor;
 
-class DocumentPreProcessingStage extends AbstractImporterStage {
+public class DocumentPostProcessingStage
+        implements Predicate<DocumentPipelineContext> {
+
     @Override
-    protected boolean executeStage(ImporterPipelineContext ctx) {
-        for (FsDocumentProcessor preProc :
-                ((FsCrawlerConfig) ctx.getConfig()).getPreImportProcessors()) {
-            preProc.processDocument(
-                    (FileFetcher) ctx.getCrawler().getFetcher(),
+    public boolean test(DocumentPipelineContext ctx) {
+        for (DocumentProcessor postProc :
+                ctx.getConfig().getPostImportProcessors()) {
+            postProc.processDocument(
+                    ctx.getCrawler().getFetcher(),
                     ctx.getDocument());
             ctx.fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.DOCUMENT_PREIMPORTED)
+                    .name(CrawlerEvent.DOCUMENT_POSTIMPORTED)
                     .source(ctx.getCrawler())
-                    .subject(preProc)
+                    .subject(postProc)
                     .crawlDocRecord(ctx.getDocRecord())
                     .build());
         }

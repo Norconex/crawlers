@@ -43,7 +43,6 @@ import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher;
 import com.norconex.crawler.web.link.LinkExtractor;
 import com.norconex.crawler.web.link.impl.HtmlLinkExtractor;
-import com.norconex.crawler.web.processor.WebDocumentProcessor;
 import com.norconex.crawler.web.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver;
 import com.norconex.crawler.web.robot.RobotsMetaProvider;
@@ -576,11 +575,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
             new StandardRobotsMetaProvider();
     private SitemapResolver sitemapResolver = new GenericSitemapResolver();
 
-    private final List<WebDocumentProcessor> preImportProcessors =
-            new ArrayList<>();
-    private final List<WebDocumentProcessor> postImportProcessors =
-            new ArrayList<>();
-
     private RecrawlableResolver recrawlableResolver =
             new GenericRecrawlableResolver();
 
@@ -862,58 +856,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
         this.delayResolver = delayResolver;
     }
 
-    /**
-     * Gets pre-import processors.
-     * @return pre-import processors
-     */
-    public List<WebDocumentProcessor> getPreImportProcessors() {
-        return Collections.unmodifiableList(preImportProcessors);
-    }
-    /**
-     * Sets pre-import processors.
-     * @param preImportProcessors pre-import processors
-     */
-    public void setPreImportProcessors(
-            WebDocumentProcessor... preImportProcessors) {
-        setPreImportProcessors(Arrays.asList(preImportProcessors));
-    }
-    /**
-     * Sets pre-import processors.
-     * @param preImportProcessors pre-import processors
-     * @since 3.0.0
-     */
-    public void setPreImportProcessors(
-            List<WebDocumentProcessor> preImportProcessors) {
-        CollectionUtil.setAll(this.preImportProcessors, preImportProcessors);
-        CollectionUtil.removeNulls(this.preImportProcessors);
-    }
-
-    /**
-     * Gets post-import processors.
-     * @return post-import processors
-     */
-    public List<WebDocumentProcessor> getPostImportProcessors() {
-        return Collections.unmodifiableList(postImportProcessors);
-    }
-    /**
-     * Sets post-import processors.
-     * @param postImportProcessors post-import processors
-     */
-    public void setPostImportProcessors(
-            WebDocumentProcessor... postImportProcessors) {
-        setPostImportProcessors(Arrays.asList(postImportProcessors));
-    }
-    /**
-     * Sets post-import processors.
-     * @param postImportProcessors post-import processors
-     * @since 3.0.0
-     */
-    public void setPostImportProcessors(
-            List<WebDocumentProcessor> postImportProcessors) {
-        CollectionUtil.setAll(this.postImportProcessors, postImportProcessors);
-        CollectionUtil.removeNulls(this.postImportProcessors);
-    }
-
     public boolean isIgnoreRobotsTxt() {
         return ignoreRobotsTxt;
     }
@@ -1128,10 +1070,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
         xml.addElement("robotsMeta", robotsMetaProvider)
                 .setAttribute("ignore", ignoreRobotsMeta);
         xml.addElementList("linkExtractors", "extractor", linkExtractors);
-        xml.addElementList(
-                "preImportProcessors", "processor", preImportProcessors);
-        xml.addElementList(
-                "postImportProcessors", "processor", postImportProcessors);
 
         postImportLinks.saveToXML(
                 xml.addElement("postImportLinks")
@@ -1186,16 +1124,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
         // Link Extractors
         setLinkExtractors(xml.getObjectListImpl(LinkExtractor.class,
                 "linkExtractors/extractor", linkExtractors));
-
-        // HTTP Pre-Processors
-        setPreImportProcessors(xml.getObjectListImpl(
-                WebDocumentProcessor.class,
-                "preImportProcessors/processor", preImportProcessors));
-
-        // HTTP Post-Processors
-        setPostImportProcessors(xml.getObjectListImpl(
-                WebDocumentProcessor.class,
-                "postImportProcessors/processor", postImportProcessors));
 
         postImportLinks.loadFromXML(xml.getXML("postImportLinks/fieldMatcher"));
         postImportLinksKeep =
