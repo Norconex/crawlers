@@ -26,6 +26,7 @@ import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 
 class MetadataChecksumStageTest {
 
@@ -34,6 +35,8 @@ class MetadataChecksumStageTest {
         var doc = CoreStubber.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
         var crawler = CoreStubber.crawler(tempDir);
+        crawler.getCrawlerConfig().setMetadataFetchSupport(
+                FetchDirectiveSupport.REQUIRED);
 
         // without a checksummer
         var ctx = new ImporterPipelineContext(crawler, doc);

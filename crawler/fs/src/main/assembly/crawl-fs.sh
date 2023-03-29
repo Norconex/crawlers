@@ -24,4 +24,4 @@ export ROOT_DIR=$(realpath $(dirname $0))
 #     -DenableJMX=true
 
 
-java -Dlog4j2.configurationFile="file:${ROOT_DIR}/log4j2.xml" -Dfile.encoding=UTF8 -cp "./lib/*:./classes" com.norconex.crawler.web.HttpCollector "$@"
+java -Dlog4j2.configurationFile="file:${ROOT_DIR}/log4j2.xml" -Dfile.encoding=UTF8 -cp "./lib/*:./classes" com.norconex.crawler.fs.FsCrawlSession "$@"

@@ -514,13 +514,15 @@
             <reportOutputDirectory>${project.build.directory}/site</reportOutputDirectory>
             <outputDirectory>${project.build.directory}/site/apidocs</outputDirectory>
             <stylesheetfile>${project.build.directory}/site/apidocs/norconex-javadoc.css</stylesheetfile>
+            <!-- TODO build as a module first, then uncomment this.
             <resourcesArtifacts>
               <resourcesArtifact>
                 <groupId>com.norconex.commons</groupId>
                 <artifactId>javadoc-resources</artifactId>
-                <version>${project.parent.version}</version>
+                <version>${norconex-commons-lang.version}</version>
               </resourcesArtifact>
             </resourcesArtifacts>
+            -->
             <additionalJOptions>
               <additionalJOption>&#45;&#45;allow-script-in-comments</additionalJOption>
               <additionalJOption>-J-Dbasedir=${basedir}</additionalJOption>
@@ -866,12 +868,13 @@
 
   <description>Maven parent POM for Norconex crawler-related projects.</description>
   <modules>
-    <module>crawler/core</module>
 <!--     <module>javadoc-resources</module>
  -->
     <module>committer/core</module>
     <module>importer</module>
+    <module>crawler/core</module>
     <module>crawler/web</module>
+    <module>crawler/fs</module>
 <!--     <module>javadoc-resources</module>
     <module>crawler/filesystem</module>
  -->

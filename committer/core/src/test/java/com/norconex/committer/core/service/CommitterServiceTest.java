@@ -81,7 +81,7 @@ class CommitterServiceTest {
     }
 
     @Data
-    private static class TestDoc {
+    static class TestDoc {
         private String ref;
         private final Properties meta = new Properties();
         public TestDoc(String ref) {
@@ -91,7 +91,7 @@ class CommitterServiceTest {
     }
 
     @BeforeEach
-    private void beforeEach() {
+    void beforeEach() {
         // Case 1:
         var acceptOnlyAAA = new MemoryCommitter();
         acceptOnlyAAA.addRestriction(new PropertyMatcher(

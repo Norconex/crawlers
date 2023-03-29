@@ -28,8 +28,10 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.store.DataStore;
 
 @MockitoSettings
@@ -49,6 +51,10 @@ class MetadataDedupStageTest {
         doNothing().when(eventManager).fire(Mockito.any());
         when(crawler.getDedupMetadataStore()).thenReturn(dedupStore);
         when(crawler.getEventManager()).thenReturn(eventManager);
+
+        var cfg = new CrawlerConfig();
+        cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
+        when(crawler.getCrawlerConfig()).thenReturn(cfg);
 
         var doc = CoreStubber.crawlDoc("ref", "content");
         doc.getDocRecord().setMetaChecksum("somechecksum");
