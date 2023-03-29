@@ -26,6 +26,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.CoreStubber;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.filter.impl.GenericMetadataFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 
@@ -36,6 +37,8 @@ class MetadataFiltersStageTest {
         var doc = CoreStubber.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
         var crawler = CoreStubber.crawler(tempDir);
+        crawler.getCrawlerConfig().setMetadataFetchSupport(
+                FetchDirectiveSupport.REQUIRED);
 
         // Filter not matching
         crawler.getCrawlerConfig().setMetadataFilters(List.of(

@@ -120,11 +120,13 @@ public final class WebStubber {
         .excludeType(DataStoreEngine.class::equals)
         .excludeType(DataStore.class::equals)
         .excludeType(SitemapResolver.class::equals)
-        .excludeType(FeaturedImageProcessor.class::equals)
         .excludeType(DocumentProcessor.class::equals)
+        .excludeType(FeaturedImageProcessor.class::equals)
         .excludeType(RecrawlableResolver.class::equals)
 //            .excludeType(HttpAuthConfig.class::equals)
         .excludeType(StartURLsProvider.class::equals)
+//        .excludeField(f -> "preImportProcessor".equals(f.getName()))
+//        .excludeField(f -> "postImportProcessor".equals(f.getName()))
 
         .randomize(Charset.class, () -> StandardCharsets.UTF_8)
         .randomize(CircularRange.class, () -> {

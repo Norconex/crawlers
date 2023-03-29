@@ -1,14 +1,14 @@
-Norconex Web Crawler
+Norconex File System Crawler
 Copyright 2013-2023 Norconex Inc.
 
 General Information:
 ====================
 
-For any inquiries about Norconex Web Crawler, 
+For any inquiries about Norconex File System Crawler, 
 please contact Norconex Inc. at info@norconex.com.
 
 This product website and documentation is located at:
-https://opensource.norconex.com/crawlers/web/
+https://opensource.norconex.com/crawlers/filesystem/
 
 Norconex licenses:
 ==================

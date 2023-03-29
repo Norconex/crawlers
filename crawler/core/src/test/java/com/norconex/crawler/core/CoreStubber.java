@@ -53,6 +53,7 @@ import com.norconex.crawler.core.pipeline.committer.MockCommitterPipeline;
 import com.norconex.crawler.core.pipeline.importer.MockImporterPipeline;
 import com.norconex.crawler.core.pipeline.queue.MockQueueInitializer;
 import com.norconex.crawler.core.pipeline.queue.MockQueuePipeline;
+import com.norconex.crawler.core.processor.DocumentProcessor;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.core.session.MockCrawlSession;
@@ -101,6 +102,8 @@ public final class CoreStubber {
                     GenericSpoiledReferenceStrategizer::new)
             .randomize(AtomicBoolean.class, () -> new AtomicBoolean(
                     new BooleanRandomizer().getRandomValue()))
+            .excludeType(DocumentProcessor.class::equals)
+
     );
 
     private CoreStubber() {}
