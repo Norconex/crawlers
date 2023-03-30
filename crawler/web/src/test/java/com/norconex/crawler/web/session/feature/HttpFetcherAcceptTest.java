@@ -112,7 +112,7 @@ class HttpFetcherAcceptTest {
                     getFetcher.setReferenceFilters(List.of(ref -> false));
                 }
 
-                cfg.setHttpFetchers(headFetcher, getFetcher);
+                cfg.setFetchers(List.of(headFetcher, getFetcher));
             })
             .crawl();
 

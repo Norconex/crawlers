@@ -79,7 +79,7 @@ class IfModifiedSinceTest {
                     // tests
                     cfg.setDocumentChecksummer(null);
                     cfg.setMetadataChecksummer(null);
-                    ((GenericHttpFetcher) cfg.getHttpFetchers().get(0))
+                    ((GenericHttpFetcher) cfg.getFetchers().get(0))
                         .getConfig().setDisableETag(true);
                 })
                 .crawlSession();

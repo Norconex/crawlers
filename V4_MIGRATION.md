@@ -106,6 +106,7 @@ Misc. Changes
 * URLNormalizer was renamed WebURLNormalizer to distinguish from 
   com.norconex.commons.lang.url.URLNormalizer.
 * GenericURLNormalizer enum constants are now uppercase.
+* Moved fetchers to crawler-core: "httpFetchers" now just "fetchers".
 
 ### Crawler File System
 

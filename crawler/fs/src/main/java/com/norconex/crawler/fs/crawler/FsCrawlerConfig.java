@@ -21,7 +21,6 @@ import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
-import com.norconex.crawler.fs.fetch.FileFetcher;
 
 import lombok.Data;
 
@@ -36,11 +35,16 @@ public class FsCrawlerConfig extends CrawlerConfig {
     private final List<StartPathsProvider> startPathsProviders =
             new ArrayList<>();
 
-    private final List<FileFetcher> fileFetchers =
-            new ArrayList<>(/* List.of(new GenericHttpFetcher()) */);
-    private int fileFetchersMaxRetries;
-    private long fileFetchersRetryDelay;
+//    //TODO make move fetchers to core?
+//    private final List<FileFetcher> fileFetchers =
+//            new ArrayList<>(/* List.of(new GenericHttpFetcher()) */);
+//    //TODO Move to core?
+//    private int fileFetchersMaxRetries;
+//    //TODO Move to core?
+//    private long fileFetchersRetryDelay;
 
+
+    //TODO rename getStartPaths... to getStartReferences and move to core?
     /**
      * Gets paths to initiate crawling from.
      * @return start paths (never <code>null</code>)
@@ -56,12 +60,12 @@ public class FsCrawlerConfig extends CrawlerConfig {
         CollectionUtil.setAll(this.startPaths, startPaths);
     }
 
-    public List<FileFetcher> getFileFetchers() {
-        return Collections.unmodifiableList(fileFetchers);
-    }
-    public void setFileFetchers(List<FileFetcher> fileFetchers) {
-        CollectionUtil.setAll(this.fileFetchers, fileFetchers);
-    }
+//    public List<FileFetcher> getFileFetchers() {
+//        return Collections.unmodifiableList(fileFetchers);
+//    }
+//    public void setFileFetchers(List<FileFetcher> fileFetchers) {
+//        CollectionUtil.setAll(this.fileFetchers, fileFetchers);
+//    }
 
 //
 //    public FSCrawlerConfig() {

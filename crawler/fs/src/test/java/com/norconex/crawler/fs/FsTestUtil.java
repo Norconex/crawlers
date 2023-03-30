@@ -84,8 +84,8 @@ public final class FsTestUtil {
     }
     public static FileFetcher getFirstHttpFetcher(
             @NonNull CrawlSession crawlSession) {
-        return getFirstCrawlerConfig(
-                crawlSession.getCrawlSessionConfig()).getFileFetchers().get(0);
+        return (FileFetcher) getFirstCrawlerConfig(
+                crawlSession.getCrawlSessionConfig()).getFetchers().get(0);
     }
 
     public static Optional<UpsertRequest> getUpsertRequest(

@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.committer.core.CommitterContext;
@@ -163,6 +164,13 @@ public class Crawler {
     private DataStore<String> dedupDocumentStore;
 
     private MutableBoolean queueInitialized;
+
+    // Actual maximum number of docs after which to stop, which starts
+    // at initial "processed count" + configured max. On clean runs or
+    // after a session fully completed (whether it was resumed a few times
+    // or not), this value will be the same as the max configured.
+    //
+    private final MutableInt resumableMaxDocuments = new MutableInt();
 
     //--- Properties set on Stop -----------------------------------------------
 
@@ -311,6 +319,19 @@ public class Crawler {
                 Optional.ofNullable(crawlerImpl.beforeCrawlerExecution)
                         .ifPresent(c -> c.accept(this, resume.getValue()));
 
+                // max documents
+                var cfgMaxDocs = getCrawlerConfig().getMaxDocuments();
+                var resumeMaxDocs = cfgMaxDocs;
+                if (cfgMaxDocs > -1 && resume.booleanValue()) {
+                    resumeMaxDocs += monitor.getProcessedCount();
+                    LOG.info("""
+                        Adding configured maximum documents ({})\s\
+                        to this resumed session. The combined maximum\s\
+                        documents for this run before stopping: {}
+                        """,
+                        cfgMaxDocs, resumeMaxDocs);
+                }
+                resumableMaxDocuments.setValue(resumeMaxDocs);
             });
 
             fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
@@ -496,9 +517,18 @@ public class Crawler {
     }
 
     //TODO duplicate method, move to util class
-    private boolean isMaxDocuments() {
-        var maxDocs = crawlerConfig.getMaxDocuments();
-        return maxDocs > -1 && monitor.getProcessedCount() >= maxDocs;
+    boolean isMaxDocuments() {
+        //TODO replace check for "processedCount" vs "maxDocuments"
+        // with event counts vs max committed, max processed, max etc...
+        // Check if we merge with StopCrawlerOnMaxEventListener
+        // or if we remove maxDocument in favor of the listener.
+        // what about clustering?
+        var maxDocs = resumableMaxDocuments.intValue();
+        var isMax = maxDocs > -1 && monitor.getProcessedCount() >= maxDocs;
+        if (isMax) {
+            LOG.info("Maximum documents reached for this session: {}", maxDocs);
+        }
+        return isMax;
     }
 
     public void importDataStore(Path inFile) {

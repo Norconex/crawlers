@@ -66,6 +66,16 @@
         </xs:simpleType>
       </xs:element>
       <xs:element name="referenceFilters" type="filterType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="fetchers" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="fetcher" 
+                type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:all>
+          <xs:attribute name="maxRetries" type="xs:int"/>
+          <xs:attribute name="retryDelay" type="xs:string"/>
+        </xs:complexType>
+      </xs:element>
       <xs:element name="metadataFilters" type="filterType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="metadataChecksummer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="metadataDeduplicate" type="xs:boolean" minOccurs="0" maxOccurs="1"/>

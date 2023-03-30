@@ -47,7 +47,7 @@ abstract class AbstractFileFetcherTest {
         var basePath = getStartPath();
         var mem = TestFsCrawlSession.forStartPaths(basePath)
             .crawlerSetup(cfg -> {
-                cfg.setFileFetchers(List.of(fetcher));
+                cfg.setFetchers(List.of(fetcher));
             })
             .crawl();
 

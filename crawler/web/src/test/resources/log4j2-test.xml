@@ -225,19 +225,22 @@
 
     <!-- Others -->
 
-    <Logger name="com.norconex.crawler.web" level="WARN" additivity="false">
+    <Logger name="com.norconex.crawler.web" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.crawler.core" level="WARN" additivity="false">
+    <Logger name="com.norconex.crawler.web.session.recovery" level="DEBUG" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.importer" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.committer" level="WARN" additivity="false">
+    <Logger name="com.norconex.committer" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.commons.lang" level="WARN" additivity="false">
+    <Logger name="com.norconex.commons.lang" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.commons.lang.xml" level="WARN" additivity="false">

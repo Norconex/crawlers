@@ -37,7 +37,6 @@ import com.norconex.crawler.web.checksum.impl.LastModifiedMetadataChecksummer;
 import com.norconex.crawler.web.delay.DelayResolver;
 import com.norconex.crawler.web.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcher;
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher;
@@ -552,12 +551,12 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     private DelayResolver delayResolver = new GenericDelayResolver();
 
-    private final List<HttpFetcher> httpFetchers =
-            new ArrayList<>(List.of(new GenericHttpFetcher()));
+//    private final List<HttpFetcher> httpFetchers =
+//            new ArrayList<>(List.of(new GenericHttpFetcher()));
 
     //TODO Make retry/delay part of core?
-    private int httpFetchersMaxRetries;
-    private long httpFetchersRetryDelay;
+//    private int httpFetchersMaxRetries;
+//    private long httpFetchersRetryDelay;
 
     private CanonicalLinkDetector canonicalLinkDetector =
             new GenericCanonicalLinkDetector();
@@ -580,6 +579,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     public WebCrawlerConfig() {
         setMetadataChecksummer(new LastModifiedMetadataChecksummer());
+        setFetchers(List.of(new GenericHttpFetcher()));
     }
 
     /**
@@ -729,67 +729,67 @@ public class WebCrawlerConfig extends CrawlerConfig {
         startURLsAsync = asyncStartURLs;
     }
 
-    /**
-     * Gets HTTP fetchers.
-     * @return HTTP fetchers (never <code>null</code>)
-     * @since 3.0.0
-     */
-    public List<HttpFetcher> getHttpFetchers() {
-        return Collections.unmodifiableList(httpFetchers);
-    }
-    /**
-     * Sets HTTP fetchers.
-     * @param httpFetchers list of HTTP fetchers
-     * @since 3.0.0
-     */
-    public void setHttpFetchers(HttpFetcher... httpFetchers) {
-        setHttpFetchers(Arrays.asList(httpFetchers));
-    }
-    /**
-     * Sets HTTP fetchers.
-     * @param httpFetchers list of HTTP fetchers
-     * @since 3.0.0
-     */
-    public void setHttpFetchers(List<HttpFetcher> httpFetchers) {
-        CollectionUtil.setAll(this.httpFetchers, httpFetchers);
-    }
-    /**
-     * Gets the maximum number of times an HTTP fetcher will re-attempt fetching
-     * a resource in case of failures.  Default is zero (won't retry).
-     * @return number of times
-     * @since 3.0.0
-     */
-    public int getHttpFetchersMaxRetries() {
-        return httpFetchersMaxRetries;
-    }
-    /**
-     * Sets the maximum number of times an HTTP fetcher will re-attempt fetching
-     * a resource in case of failures.
-     * @param httpFetchersMaxRetries maximum number of retries
-     * @since 3.0.0
-     */
-    public void setHttpFetchersMaxRetries(int httpFetchersMaxRetries) {
-        this.httpFetchersMaxRetries = httpFetchersMaxRetries;
-    }
-    /**
-     * Gets how long to wait before a failing HTTP fetcher re-attempts fetching
-     * a resource in case of failures (in milliseconds).
-     * Default is zero (no delay).
-     * @return retry delay
-     * @since 3.0.0
-     */
-    public long getHttpFetchersRetryDelay() {
-        return httpFetchersRetryDelay;
-    }
-    /**
-     * Sets how long to wait before a failing HTTP fetcher re-attempts fetching
-     * a resource in case of failures (in milliseconds).
-     * @param httpFetchersRetryDelay retry delay
-     * @since 3.0.0
-     */
-    public void setHttpFetchersRetryDelay(long httpFetchersRetryDelay) {
-        this.httpFetchersRetryDelay = httpFetchersRetryDelay;
-    }
+//    /**
+//     * Gets HTTP fetchers.
+//     * @return HTTP fetchers (never <code>null</code>)
+//     * @since 3.0.0
+//     */
+//    public List<HttpFetcher> getHttpFetchers() {
+//        return Collections.unmodifiableList(httpFetchers);
+//    }
+//    /**
+//     * Sets HTTP fetchers.
+//     * @param httpFetchers list of HTTP fetchers
+//     * @since 3.0.0
+//     */
+//    public void setHttpFetchers(HttpFetcher... httpFetchers) {
+//        setHttpFetchers(Arrays.asList(httpFetchers));
+//    }
+//    /**
+//     * Sets HTTP fetchers.
+//     * @param httpFetchers list of HTTP fetchers
+//     * @since 3.0.0
+//     */
+//    public void setHttpFetchers(List<HttpFetcher> httpFetchers) {
+//        CollectionUtil.setAll(this.httpFetchers, httpFetchers);
+//    }
+//    /**
+//     * Gets the maximum number of times an HTTP fetcher will re-attempt fetching
+//     * a resource in case of failures.  Default is zero (won't retry).
+//     * @return number of times
+//     * @since 3.0.0
+//     */
+//    public int getHttpFetchersMaxRetries() {
+//        return httpFetchersMaxRetries;
+//    }
+//    /**
+//     * Sets the maximum number of times an HTTP fetcher will re-attempt fetching
+//     * a resource in case of failures.
+//     * @param httpFetchersMaxRetries maximum number of retries
+//     * @since 3.0.0
+//     */
+//    public void setHttpFetchersMaxRetries(int httpFetchersMaxRetries) {
+//        this.httpFetchersMaxRetries = httpFetchersMaxRetries;
+//    }
+//    /**
+//     * Gets how long to wait before a failing HTTP fetcher re-attempts fetching
+//     * a resource in case of failures (in milliseconds).
+//     * Default is zero (no delay).
+//     * @return retry delay
+//     * @since 3.0.0
+//     */
+//    public long getHttpFetchersRetryDelay() {
+//        return httpFetchersRetryDelay;
+//    }
+//    /**
+//     * Sets how long to wait before a failing HTTP fetcher re-attempts fetching
+//     * a resource in case of failures (in milliseconds).
+//     * @param httpFetchersRetryDelay retry delay
+//     * @since 3.0.0
+//     */
+//    public void setHttpFetchersRetryDelay(long httpFetchersRetryDelay) {
+//        this.httpFetchersRetryDelay = httpFetchersRetryDelay;
+//    }
 
     /**
      * Gets the canonical link detector.
@@ -1063,10 +1063,10 @@ public class WebCrawlerConfig extends CrawlerConfig {
                 .setAttribute("ignore", ignoreCanonicalLinks);
         xml.addElement("recrawlableResolver", recrawlableResolver);
 
-        xml.addElement("httpFetchers")
-                .setAttribute("maxRetries", httpFetchersMaxRetries)
-                .setAttribute("retryDelay", httpFetchersRetryDelay)
-                .addElementList("fetcher", httpFetchers);
+//        xml.addElement("httpFetchers")
+//                .setAttribute("maxRetries", httpFetchersMaxRetries)
+//                .setAttribute("retryDelay", httpFetchersRetryDelay)
+//                .addElementList("fetcher", httpFetchers);
         xml.addElement("robotsMeta", robotsMetaProvider)
                 .setAttribute("ignore", ignoreRobotsMeta);
         xml.addElementList("linkExtractors", "extractor", linkExtractors);
@@ -1107,13 +1107,13 @@ public class WebCrawlerConfig extends CrawlerConfig {
         setRecrawlableResolver(xml.getObjectImpl(RecrawlableResolver.class,
                 "recrawlableResolver", recrawlableResolver));
 
-        // HTTP Fetchers
-        setHttpFetchers(xml.getObjectListImpl(
-                HttpFetcher.class, "httpFetchers/fetcher", httpFetchers));
-        setHttpFetchersMaxRetries(xml.getInteger(
-                "httpFetchers/@maxRetries", httpFetchersMaxRetries));
-        setHttpFetchersRetryDelay(xml.getDurationMillis(
-                "httpFetchers/@retryDelay", httpFetchersRetryDelay));
+//        // HTTP Fetchers
+//        setHttpFetchers(xml.getObjectListImpl(
+//                HttpFetcher.class, "httpFetchers/fetcher", httpFetchers));
+//        setHttpFetchersMaxRetries(xml.getInteger(
+//                "httpFetchers/@maxRetries", httpFetchersMaxRetries));
+//        setHttpFetchersRetryDelay(xml.getDurationMillis(
+//                "httpFetchers/@retryDelay", httpFetchersRetryDelay));
 
         // RobotsMeta provider
         setRobotsMetaProvider(xml.getObjectImpl(

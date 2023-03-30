@@ -29,6 +29,10 @@ public class HttpMultiFetcher
         extends MultiFetcher<HttpFetchRequest, HttpFetchResponse>
         implements HttpFetcher {
 
+    //TODO now that fetchers are part of core config and is a concept
+    // shared by all crawler impls, shall we try to stick
+    // to core MultiFetcher ?
+
     public HttpMultiFetcher(
             @NonNull
             List<? extends Fetcher

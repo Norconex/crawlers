@@ -44,6 +44,7 @@
             <xs:element name="keepReferencedLinks" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
             <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
+<!--
             <xs:element name="httpFetchers" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:all>
@@ -54,6 +55,7 @@
                 <xs:attribute name="retryDelay" type="xs:string"/>
               </xs:complexType>
             </xs:element>
+ -->
             <xs:element name="robotsTxt" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:complexContent> 
