@@ -122,7 +122,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         var mem = TestWebCrawlSession
             .forStartUrls(hostUrl(client, "/index.html"))
             .crawlerSetup(cfg -> {
-                cfg.setHttpFetchers(createWebDriverHttpFetcher());
+                cfg.setFetchers(List.of(createWebDriverHttpFetcher()));
                 cfg.setMaxDepth(0);
             })
             .crawl();
@@ -147,7 +147,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
                 var f = createWebDriverHttpFetcher();
                 f.setScreenshotHandler(h);
-                cfg.setHttpFetchers(f);
+                cfg.setFetchers(List.of(f));
                 cfg.setMaxDepth(0);
             })
             .crawl();
@@ -196,7 +196,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
                         client.getPort(), snifCfg.getPort());
                 var f = createWebDriverHttpFetcher();
                 f.getConfig().setHttpSnifferConfig(snifCfg);
-                cfg.setHttpFetchers(f);
+                cfg.setFetchers(List.of(f));
                 cfg.setMaxDepth(0);
             })
             .crawl();
@@ -236,7 +236,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 f.getConfig().setLatePageScript("""
                     document.getElementsByTagName('h1')[0].innerHTML='Melon';
                     """);
-                cfg.setHttpFetchers(f);
+                cfg.setFetchers(List.of(f));
                 cfg.setMaxDepth(0);
             })
             .crawl();
@@ -264,7 +264,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         TestWebCrawlSession
                 .forStartUrls(hostUrl(client, path))
                 .crawlerSetup(cfg -> {
-                    cfg.setHttpFetchers(fetcher);
+                    cfg.setFetchers(List.of(fetcher));
                     cfg.setMaxDepth(0);
                     // test setting a bunch of other params
                     var fetchCfg = fetcher.getConfig();

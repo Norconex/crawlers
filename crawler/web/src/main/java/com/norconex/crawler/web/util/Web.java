@@ -14,11 +14,18 @@
  */
 package com.norconex.crawler.web.util;
 
+import java.util.Collection;
+import java.util.List;
+
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.pipeline.AbstractPipelineContext;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.pipeline.importer.WebImporterPipelineContext;
+
+import lombok.NonNull;
 
 public final class Web {
 
@@ -37,6 +44,13 @@ public final class Web {
     public static WebImporterPipelineContext context(
             AbstractPipelineContext ctx) {
         return (WebImporterPipelineContext) ctx;
+    }
+
+    public static List<HttpFetcher> toHttpFetcher(
+            @NonNull Collection<Fetcher<?, ?>> fetchers) {
+        return fetchers.stream()
+            .map(HttpFetcher.class::cast)
+            .toList();
     }
 
 //    public static HttpFetchResponse fetchResponse(FetchResponse response) {

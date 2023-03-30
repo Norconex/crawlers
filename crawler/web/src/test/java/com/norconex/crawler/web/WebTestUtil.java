@@ -82,12 +82,12 @@ public final class WebTestUtil {
     public static GenericHttpFetcher getFirstHttpFetcher(
             @NonNull CrawlSession crawlSession) {
         return (GenericHttpFetcher) getFirstCrawlerConfig(
-                crawlSession.getCrawlSessionConfig()).getHttpFetchers().get(0);
+                crawlSession.getCrawlSessionConfig()).getFetchers().get(0);
     }
     public static GenericHttpFetcherConfig getFirstHttpFetcherConfig(
             @NonNull CrawlerConfig crawlerConfig) {
         return ((GenericHttpFetcher) ((WebCrawlerConfig) crawlerConfig)
-                .getHttpFetchers().get(0)).getConfig();
+                .getFetchers().get(0)).getConfig();
     }
     public static GenericHttpFetcherConfig getFirstHttpFetcherConfig(
             @NonNull CrawlSessionConfig crawlSessionConfig) {

@@ -82,7 +82,7 @@
       <autoCommitDelay>100</autoCommitDelay>    
     </dataStoreEngine>
     
-    <httpFetchers maxRetries="5" retryDelay="10 seconds">
+    <fetchers maxRetries="5" retryDelay="10 seconds">
       <fetcher class="com.norconex.crawler.web.fetch.impl.GenericHttpFetcher">
           <userAgent>Here we crawl!</userAgent>
           <validStatusCodes>200,201</validStatusCodes>
@@ -158,7 +158,7 @@
             <header name="head2">value2</header>
           </headers>
       </fetcher>
-    </httpFetchers>    
+    </fetchers>    
     
     <referenceFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"

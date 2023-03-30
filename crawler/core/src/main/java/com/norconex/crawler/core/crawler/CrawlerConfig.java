@@ -30,6 +30,7 @@ import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.filter.DocumentFilter;
 import com.norconex.crawler.core.filter.MetadataFilter;
 import com.norconex.crawler.core.filter.ReferenceFilter;
@@ -207,9 +208,32 @@ public class CrawlerConfig implements XMLConfigurable {
     private int numThreads = 2;
 
     /**
-     * The maximum number of documents that can be processed.
+     * <p>
+     * The maximum number of documents that can be processed before stopping.
      * Not all processed documents make it to your Committers
-     * as some can be rejected. Default is -1 (unlimited).
+     * as some can be rejected.
+     * </p>
+     * <p>
+     * In multi-threaded or clustered environments, the actual number
+     * of documents processed may be a bit higher than the specified
+     * maximum due to concurrency.
+     * Upon reaching the configured maximum, the crawler will finish with
+     * its documents actively being processed before stopping.
+     * </p>
+     * <p>
+     * Reaching the maximum value does not terminate the crawl session but
+     * rather pauses it.  On next run, the crawler will resume the same session,
+     * processing an additional number of documents up to the maximum
+     * specified.
+     * This maximum allows crawling one or more sources
+     * in chunks, processing a maximum number of documents each time.
+     * When the session fully completes, the next run will start a new
+     * crawl session. To prevent resuming an partial crawl session,
+     * explicitly clean the crawl session.
+     * </p>
+     * <p>
+     * Default is -1 (unlimited).
+     * </p>
      * @param maxDocuments maximum number of documents that can be processed
      * @return maximum number of documents that can be processed
      */
@@ -367,6 +391,26 @@ public class CrawlerConfig implements XMLConfigurable {
     private FetchDirectiveSupport documentFetchSupport =
             FetchDirectiveSupport.REQUIRED;
 
+    private final List<Fetcher<?, ?>> fetchers = new ArrayList<>();
+
+    /**
+     * The maximum number of times a fetcher will re-attempt fetching
+     * a resource in case of failures.  Default is zero (won't retry).
+     * @param fetchersMaxRetries maximum number of retries
+     * @return maximum number of retries
+     */
+    @SuppressWarnings("javadoc")
+    private int fetchersMaxRetries;
+
+    /**
+     * How long to wait before a failing fetcher re-attempts fetching
+     * a resource in case of failures (in milliseconds).
+     * Default is zero (no delay).
+     * @param fetchersRetryDelay retry delay
+     * @return retry delay
+     */
+    @SuppressWarnings("javadoc")
+    private long fetchersRetryDelay;
 
     //--- List Accessors -------------------------------------------------------
 
@@ -558,6 +602,43 @@ public class CrawlerConfig implements XMLConfigurable {
         CollectionUtil.removeNulls(this.postImportProcessors);
     }
 
+    /**
+     * One or more fetchers responsible for pulling documents and document
+     * metadata associated with a reference from a source.
+     * When more than one are configured and for each documents, fetchers will
+     * be invoked in their defined order, until the first one that accepts and
+     * successfully process a reference (others are not invoked).
+     * @return one or more fetchers
+     */
+    /**
+     * Gets reference filters
+     * @return reference filters
+     */
+    public List<Fetcher<?, ?>> getFetchers() {
+        return Collections.unmodifiableList(fetchers);
+    }
+    /**
+     * One or more fetchers responsible for pulling documents and document
+     * metadata associated with a reference from a source.
+     * When more than one are configured and for each documents, fetchers will
+     * be invoked in their defined order, until the first one that accepts and
+     * successfully process a reference (others are not invoked).
+     * @param fetchers one or more fetchers
+     */
+    public void setFetchers(List<Fetcher<?, ?>> fetchers) {
+        CollectionUtil.setAll(this.fetchers, fetchers);
+    }
+    /**
+     * One or more fetchers responsible for pulling documents and document
+     * metadata associated with a reference from a source.
+     * When more than one are configured and for each documents, fetchers will
+     * be invoked in their defined order, until the first one that accepts and
+     * successfully process a reference (others are not invoked).
+     * @param fetchers one or more fetchers
+     */
+    public void setFetchers(Fetcher<?, ?>... fetchers) {
+        CollectionUtil.setAll(this.fetchers, fetchers);
+    }
 
     //--- XML Persist ----------------------------------------------------------
 
@@ -597,6 +678,11 @@ public class CrawlerConfig implements XMLConfigurable {
                 Fields.preImportProcessors, "processor", preImportProcessors);
         xml.addElementList(
                 Fields.postImportProcessors, "processor", postImportProcessors);
+
+        xml.addElement(Fields.fetchers)
+            .setAttribute("maxRetries", fetchersMaxRetries)
+            .setAttribute("retryDelay", fetchersRetryDelay)
+            .addElementList("fetcher", fetchers);
     }
 
     @Override
@@ -662,5 +748,12 @@ public class CrawlerConfig implements XMLConfigurable {
                 "preImportProcessors/processor", preImportProcessors));
         setPostImportProcessors(xml.getObjectListImpl(DocumentProcessor.class,
                 "postImportProcessors/processor", postImportProcessors));
+
+        setFetchers(xml.getObjectListImpl(
+                Fetcher.class, "fetchers/fetcher", fetchers));
+        setFetchersMaxRetries(xml.getInteger(
+                "fetchers/@maxRetries", fetchersMaxRetries));
+        setFetchersRetryDelay(xml.getDurationMillis(
+                "fetchers/@retryDelay", fetchersRetryDelay));
     }
 }

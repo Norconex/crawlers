@@ -19,6 +19,7 @@ import java.util.function.Function;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 import com.norconex.crawler.fs.fetch.impl.GenericFileFetchResponse;
+import com.norconex.crawler.fs.util.Fs;
 
 //TODO make default and move where crawlsession is constructed?
 public class FileFetcherProvider
@@ -29,7 +30,7 @@ public class FileFetcherProvider
 
         var cfg = (FsCrawlerConfig) crawler.getCrawlerConfig();
 
-        var fetchers = cfg.getFileFetchers();
+        var fetchers = Fs.toFileFetcher(cfg.getFetchers());
         if (fetchers.isEmpty()) {
             //fetchers.add(new GenericHttpFetcher());
         }
@@ -42,7 +43,7 @@ public class FileFetcherProvider
                         .reasonPhrase(msg)
                         .exception(ex)
                         .build(),
-                cfg.getFileFetchersMaxRetries(),
-                cfg.getFileFetchersRetryDelay());
+                cfg.getFetchersMaxRetries(),
+                cfg.getFetchersRetryDelay());
     }
 }

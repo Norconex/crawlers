@@ -51,7 +51,7 @@ class TimeoutTest {
                     f.getConfig().setConnectionTimeout(1000);
                     f.getConfig().setSocketTimeout(1000);
                     f.getConfig().setConnectionRequestTimeout(1000);
-                    cfg.setHttpFetchers(f);
+                    cfg.setFetchers(f);
                 })
                 .crawlSession();
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);

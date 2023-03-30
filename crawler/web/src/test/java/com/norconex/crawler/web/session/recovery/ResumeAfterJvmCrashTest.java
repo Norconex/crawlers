@@ -76,7 +76,7 @@ class ResumeAfterJvmCrashTest {
                         WebsiteMock.serverUrl(client, path + "/0005"));
 
         // Second run, it should resume and finish normally, crawling
-        // 10 docs in this session.
+        // an additional 10 max docs, totaling 16.
         crawlSessionConfig.removeEventListener(crasher);
         outcome = ExternalCrawlSessionLauncher.start(crawlSessionConfig);
         Sleeper.sleepMillis(500);  // Give enough time for files to be written

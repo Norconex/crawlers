@@ -22,6 +22,7 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
@@ -90,7 +91,7 @@ class ContentTypeCharsetTest {
                     var fetcher = new GenericHttpFetcher();
                     fetcher.getConfig().setForceContentTypeDetection(true);
                     fetcher.getConfig().setForceCharsetDetection(true);
-                    cfg.setHttpFetchers(fetcher);
+                    cfg.setFetchers(List.of(fetcher));
                 })
                 .crawl();
 
