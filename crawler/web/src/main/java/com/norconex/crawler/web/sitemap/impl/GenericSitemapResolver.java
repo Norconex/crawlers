@@ -276,7 +276,7 @@ public class GenericSitemapResolver
         if (isResolutionRequired(ctx.getUrlRoot())) {
             final Set<String> resolvedLocations = new HashSet<>();
             Set<String> uniqueLocations = null;
-            if (ctx.isStartURLs()) {
+            if (ctx.isStartReferences()) {
                 uniqueLocations = new HashSet<>(ctx.getSitemapLocations());
             } else {
                 uniqueLocations = combineLocations(

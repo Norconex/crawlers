@@ -41,9 +41,9 @@
   <crawlers>
 
     <crawler id="Norconex Complex Test Page 1">
-      <startURLs>
-        <url>https://opensource.norconex.com/collectors/http/test/complex1</url>
-      </startURLs>
+      <start>
+        <ref>https://opensource.norconex.com/collectors/http/test/complex1</ref>
+      </start>
       #parse("shared/importer-config.xml")
       <committers>
         <committer class="XMLFileCommitter">
@@ -53,9 +53,9 @@
     </crawler>
 
     <crawler id="Norconex Complex Test Page 2">
-      <startURLs>
-        <url>https://opensource.norconex.com/collectors/http/test/complex2</url>
-      </startURLs>
+      <start>
+        <ref>https://opensource.norconex.com/collectors/http/test/complex2</ref>
+      </start>
       #parse("shared/importer-config.xml")
       <committers>
         <committer class="XMLFileCommitter">

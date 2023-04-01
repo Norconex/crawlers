@@ -45,7 +45,7 @@ class TimeoutTest {
     void testTimeout(ClientAndServer client) throws CommitterException {
 
         var crawlSession = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, homePath))
+                .forStartReferences(serverUrl(client, homePath))
                 .crawlerSetup(cfg -> {
                     var f = new GenericHttpFetcher();
                     f.getConfig().setConnectionTimeout(1000);

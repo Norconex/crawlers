@@ -20,6 +20,7 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
+import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.doc.CrawlDocRecordFactory;
@@ -46,6 +47,7 @@ import lombok.experimental.Accessors;
 @Builder
 @Getter
 @Accessors(fluent = true)
+@SuppressWarnings("javadoc")
 public class CrawlerImpl {
 
     /**
@@ -55,7 +57,6 @@ public class CrawlerImpl {
      * @param multiFetcherProvider fetcher provider function
      * @return a function returning a fetcher to associate with a given crawler.
      */
-    @SuppressWarnings("javadoc")
     @NonNull
     Function<Crawler, ? extends Fetcher<
             ? extends FetchRequest,
@@ -67,7 +68,6 @@ public class CrawlerImpl {
      * @param crawlDocRecordType crawl document record class
      * @return crawl document record class
      */
-    @SuppressWarnings("javadoc")
     @Default
     @NonNull
     //TODO Needed since we also have CrawlDocRecord Factory? keep only one?
@@ -79,7 +79,6 @@ public class CrawlerImpl {
      * @param queuePipeline queue pipeline
      * @return queue pipeline
      */
-    @SuppressWarnings("javadoc")
     @NonNull
     QueuePipeline queuePipeline;
 
@@ -90,7 +89,6 @@ public class CrawlerImpl {
      * @param importerPipeline importer pipeline
      * @return importer pipeline
      */
-    @SuppressWarnings("javadoc")
     @NonNull
     ImporterPipeline importerPipeline;
 
@@ -101,7 +99,6 @@ public class CrawlerImpl {
      * @param committerPipeline committer pipeline
      * @return committer pipeline
      */
-    @SuppressWarnings("javadoc")
     @NonNull
     CommitterPipeline committerPipeline;
 
@@ -116,7 +113,14 @@ public class CrawlerImpl {
         @Getter
         private final boolean resuming;
         private final Consumer<CrawlDocRecord> queuer;
-        public void queue(CrawlDocRecord rec) {
+        public void queue(@NonNull String reference) {
+            var rec = ClassUtil.newInstance(
+                    crawler.getCrawlerImpl().crawlDocRecordType());
+            rec.setReference(reference);
+            rec.setDepth(0);
+            queue(rec);
+        }
+        public void queue(@NonNull CrawlDocRecord rec) {
             queuer.accept(rec);
         }
     }
@@ -129,11 +133,13 @@ public class CrawlerImpl {
      * the queue can be initialized asynchronously. In such case,
      * the mutable boolean can be returned right away, but must be set to
      * <code>true</code> when initialization is complete.
+     * Defaults to {@link CoreQueueInitializer}.
      * @param queueInitializer queue initializer function
      * @return queue initializer function
      */
-    @SuppressWarnings("javadoc")
-    Function<QueueInitContext, MutableBoolean> queueInitializer;
+    @Default
+    Function<QueueInitContext, MutableBoolean> queueInitializer =
+            new CoreQueueInitializer();
 
     /**
      * Holds contextual objects necessary to create new document records.
@@ -154,21 +160,10 @@ public class CrawlerImpl {
      * @param docRecordFactory factory function for creating doc records
      * @return factory function for creating doc records
      */
-    @SuppressWarnings("javadoc")
     @NonNull
     @Default
     CrawlDocRecordFactory docRecordFactory =
             ctx -> new CrawlDocRecord(ctx.parentDocRecord);
-
-    //TODO crawlerConfig needed here?
-//    /**
-//     * Required crawler configuration.
-//     * @param crawlerConfig crawler configuration
-//     * @return crawler configuration
-//     */
-//    @SuppressWarnings("javadoc")
-//    @NonNull
-//    CrawlerConfig crawlerConfig;
 
     /**
      * Gives crawler implementations a chance to prepare before execution
@@ -181,7 +176,6 @@ public class CrawlerImpl {
      *     a "resume" indicator.
      * @return bi-consumer accepting a crawler and a "resume" indicator
      */
-    @SuppressWarnings("javadoc")
     BiConsumer<Crawler, Boolean> beforeCrawlerExecution;
 
     /**
@@ -194,10 +188,7 @@ public class CrawlerImpl {
      * @param afterCrawlerExecution consumer accepting a crawler
      * @return consumer accepting a crawler
      */
-    @SuppressWarnings("javadoc")
     Consumer<Crawler> afterCrawlerExecution;
-
-
 
     //TODO are those used? Should they be?
     // Add those that are missing to ReferencesProcessor
@@ -208,12 +199,6 @@ public class CrawlerImpl {
     // (the only one used) with after processing?
     BiConsumer<Crawler, CrawlDoc> beforeDocumentFinalizing;
     BiConsumer<Crawler, CrawlDoc> afterDocumentFinalizing;
-
-
-//    Consumer<Crawler> beforeCrawlerRunBegins;
-
-
-
 
 
 

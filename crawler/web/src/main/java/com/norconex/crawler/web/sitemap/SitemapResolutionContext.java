@@ -17,6 +17,6 @@ public class SitemapResolutionContext {
     private final String urlRoot;
     private final List<String> sitemapLocations;
     private final Consumer<WebDocRecord> urlConsumer;
-    private final boolean startURLs;
+    private final boolean startReferences;
 
 }

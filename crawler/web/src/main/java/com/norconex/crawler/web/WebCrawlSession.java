@@ -14,16 +14,28 @@
  */
 package com.norconex.crawler.web;
 
+import static com.norconex.crawler.web.util.Web.config;
+
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.ToIntFunction;
+
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.cli.CliLauncher;
+import com.norconex.crawler.core.crawler.CoreQueueInitializer;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
+import com.norconex.crawler.core.crawler.CrawlerImpl.QueueInitContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionBuilder;
@@ -31,11 +43,12 @@ import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.WebDocRecord;
+import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.HttpFetcherProvider;
 import com.norconex.crawler.web.pipeline.committer.WebCommitterPipeline;
 import com.norconex.crawler.web.pipeline.importer.WebImporterPipeline;
-import com.norconex.crawler.web.pipeline.queue.WebQueueInitializer;
 import com.norconex.crawler.web.pipeline.queue.WebQueuePipeline;
+import com.norconex.crawler.web.sitemap.SitemapResolutionContext;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +112,7 @@ public class WebCrawlSession {
             .fetcherProvider(new HttpFetcherProvider())
             .beforeCrawlerExecution(
                     WebCrawlSession::logCrawlerInformation)
-            .queueInitializer(new WebQueueInitializer())
+            .queueInitializer(new CoreQueueInitializer(sitemapInitializer()))
             .queuePipeline(new WebQueuePipeline())
             .importerPipeline(new WebImporterPipeline())
             .committerPipeline(new WebCommitterPipeline())
@@ -119,6 +132,50 @@ public class WebCrawlSession {
             ;
     }
 
+    private static ToIntFunction<QueueInitContext> sitemapInitializer() {
+        return ctx -> {
+            var cfg = config(ctx.getCrawler());
+            var sitemapURLs = cfg.getStartReferencesSitemaps();
+            var sitemapResolver = cfg.getSitemapResolver();
+
+            // There are sitemaps, process them. First group them by URL root
+            MultiValuedMap<String, String> sitemapsPerRoots =
+                    new ArrayListValuedHashMap<>();
+            for (String sitemapURL : sitemapURLs) {
+                var urlRoot = HttpURL.getRoot(sitemapURL);
+                sitemapsPerRoots.put(urlRoot, sitemapURL);
+            }
+
+            final var urlCount = new MutableInt();
+            Consumer<WebDocRecord> urlConsumer = rec -> {
+                ctx.queue(rec);
+                urlCount.increment();
+            };
+            // Process each URL root group separately
+            for (String urlRoot : sitemapsPerRoots.keySet()) {
+                var locations = (List<String>) sitemapsPerRoots.get(urlRoot);
+                if (sitemapResolver != null) {
+                    sitemapResolver.resolveSitemaps(SitemapResolutionContext
+                            .builder()
+                            .fetcher((HttpFetcher) ctx.getCrawler().getFetcher())
+                            .sitemapLocations(locations)
+                            .startReferences(true)
+                            .urlRoot(urlRoot)
+                            .urlConsumer(urlConsumer)
+                            .build());
+                } else {
+                    LOG.error("Sitemap resolver is null. Sitemaps defined as "
+                            + "start URLs cannot be resolved.");
+                }
+            }
+            if (urlCount.intValue() > 0) {
+                LOG.info("Queued {} start URLs from {} sitemap(s).",
+                        urlCount, sitemapURLs.size());
+            }
+            return urlCount.intValue();
+        };
+    }
+
     private static void initCrawlDoc(Crawler crawler, CrawlDoc doc) {
         var docRecord = (WebDocRecord) doc.getDocRecord();
         var cachedDocRecord = (WebDocRecord) doc.getCachedDocRecord();
@@ -128,7 +185,7 @@ public class WebCrawlSession {
         // (and use reflextion?)
 
         //TODO should DEPTH be set here now that is is in Core?
-        metadata.add(WebDocMetadata.DEPTH, docRecord.getDepth());
+        metadata.add(CrawlDocMetadata.DEPTH, docRecord.getDepth());
         metadata.add(WebDocMetadata.SM_CHANGE_FREQ,
                 docRecord.getSitemapChangeFreq());
         metadata.add(WebDocMetadata.SM_LASTMOD, docRecord.getSitemapLastMod());
@@ -234,20 +291,20 @@ public class WebCrawlSession {
         LOG.info("""
             Enabled features:
 
-            RobotsTxt:        %s
-            RobotsMeta:       %s
-            Sitemap:          %s
-            Canonical links:  %s
+            RobotsTxt:         %s
+            RobotsMeta:        %s
+            Sitemap discovery: %s
+            Canonical links:   %s
             Metadata:
-              Checksummer:    %s
-              Deduplication:  %s
+              Checksummer:     %s
+              Deduplication:   %s
             Document:
-              Checksummer:    %s
-              Deduplication:  %s
+              Checksummer:     %s
+              Deduplication:   %s
             """.formatted(
                     yn(!cfg.isIgnoreRobotsTxt()),
                     yn(!cfg.isIgnoreRobotsMeta()),
-                    yn(!cfg.isIgnoreSitemap()),
+                    yn(!cfg.isIgnoreSitemapDiscovery()),
                     yn(!cfg.isIgnoreCanonicalLinks()),
                     yn(cfg.getMetadataChecksummer() != null),
                     yn(cfg.isMetadataDeduplicate()

@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.web.crawler;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,6 +28,7 @@ import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.crawler.ReferencesProvider;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine;
 import com.norconex.crawler.web.canon.CanonicalLinkDetector;
@@ -54,8 +54,7 @@ import com.norconex.crawler.web.url.WebURLNormalizer;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
 import com.norconex.importer.ImporterConfig;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -64,19 +63,23 @@ import lombok.experimental.FieldNameConstants;
  * </p>
  * <h3>Start URLs</h3>
  * <p>
- * Crawling begins with one or more "start" URLs.  Multiple start URLs can be
- * defined, in a combination of ways:
+ * Crawling begins with specifying one or more references to either documents
+ * or starting points to documents you want to crawl. For a web crawl, those
+ * references are URLs (e.g., web site home page, sitemap, etc.).
+ * There are different ways to specify one or more "start" references
+ * (repeatable, shortened to "ref"):
  * </p>
  * <ul>
- *   <li><b>url:</b> A start URL directly in the configuration
- *       (see {@link #setStartURLs(List)}).</li>
- *   <li><b>urlsFile:</b> A path to a file containing a list of start URLs
- *       (see {@link #setStartURLsFiles(List)}). One per line.</li>
+ *   <li><b>ref:</b> Any regular URL
+ *       (see {@link #setStartReferences(List)}).</li>
+ *   <li><b>refsFile:</b> A path to a file containing a list of start URLs
+ *       (see {@link #setStartReferencesFiles(java.nio.file.Path...)}).
+ *       One per line.</li>
  *   <li><b>sitemap:</b> A URL pointing to a sitemap XML file that contains
- *       the URLs to crawl (see {@link #setStartSitemapURLs(List)}).</li>
+ *       the URLs to crawl (see {@link #setStartReferencesSitemaps(List)}).</li>
  *   <li><b>provider:</b> Your own class implementing
- *       {@link StartURLsProvider} to dynamically provide a list of start
- *       URLs (see {@link #setStartURLsProviders(List)}).</li>
+ *       {@link ReferencesProvider} to dynamically provide a list of start
+ *       URLs (see {@link #setStartReferencesProviders(List)}).</li>
  * </ul>
  * <p>
  * <b>Scope: </b> To limit crawling to specific web domains, and avoid creating
@@ -326,9 +329,11 @@ import lombok.experimental.FieldNameConstants;
  *
  * <h3>Robot Directives</h3>
  * <p>
- * By default, the crawler tries to respect instructions a web site as put
- * in place for the benefit of crawlers. Here is a list of some of the
- * popular ones that can be turned off or supports your own implementation.
+ * By default, the crawler tries to respect instructions a web site has put
+ * in place for the benefit of crawlers. The following is a list of some of the
+ * popular ones that can be disabled by setting them to <code>null</code>.
+ * If you are relying on XML configuration, a self-closed tag will
+ * effectively set them to <code>null</code>.
  * </p>
  * <ul>
  *   <li>
@@ -347,7 +352,7 @@ import lombok.experimental.FieldNameConstants;
  *   <li>
  *     <b>Sitemap:</b> Sitemaps XML files are auto-detected and used to find
  *     a list of URLs to crawl.  To disable detection, use
- *     {@link #setIgnoreSitemap(boolean)}.</li>
+ *     {@link #setIgnoreSitemapDiscovery(boolean)}.</li>
  *   <li>
  *     <b>Canonical URLs:</b> The crawler will reject URLs that are
  *     non-canonical, as per HTML <code>&lt;meta ...&gt;</code> or
@@ -431,18 +436,18 @@ import lombok.experimental.FieldNameConstants;
  * {@nx.xml.usage
  * <crawler id="(crawler unique identifier)">
  *
- *   <startURLs
+ *   <start
  *       stayOnDomain="[false|true]"
  *       includeSubdomains="[false|true]"
  *       stayOnPort="[false|true]"
  *       stayOnProtocol="[false|true]"
  *       async="[false|true]">
  *     <!-- All the following tags are repeatable. -->
- *     <url>(a URL)</url>
- *     <urlsFile>(local path to a file containing URLs)</urlsFile>
+ *     <ref>(a URL)</ref>
+ *     <refsFile>(local path to a file containing URLs)</refsFile>
  *     <sitemap>(URL to a sitemap XML)</sitemap>
  *     <provider class="(StartURLsProvider implementation)"/>
- *   </startURLs>
+ *   </start>
  *
  *   <urlNormalizer class="(URLNormalizer implementation)" />
  *
@@ -470,8 +475,8 @@ import lombok.experimental.FieldNameConstants;
  *       ignore="[false|true]"
  *       class="(RobotsMetaProvider implementation)"/>
  *
+ *   <ignoreSitemapDiscovery>[false|true]</ignoreSitemapDiscovery>
  *   <sitemapResolver
- *       ignore="[false|true]"
  *       class="(SitemapResolver implementation)"/>
  *
  *   <recrawlableResolver class="(RecrawlableResolver implementation)" />
@@ -518,62 +523,160 @@ import lombok.experimental.FieldNameConstants;
  * }
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@Data
 @FieldNameConstants
 public class WebCrawlerConfig extends CrawlerConfig {
 
-    // By default do not include URLs on docs at max depth
-    // (and do not extract them).  Include MAXDEPTH for this.
+    /**
+     * Flags for storing as metadata a page referenced links.
+     * Default will only store linked that are "in-scope".
+     * See class documentation for details.
+     */
     public enum ReferencedLinkType {
         INSCOPE, OUTSCOPE, MAXDEPTH;
     }
 
-    private final List<String> startURLs = new ArrayList<>();
-    private final List<Path> startURLsFiles = new ArrayList<>();
-    private final List<String> startSitemapURLs = new ArrayList<>();
-    private final List<StartURLsProvider> startURLsProviders =
-            new ArrayList<>();
+    private final List<String> startReferencesSitemaps = new ArrayList<>();
 
+    //TODO considered a constant approach for ignore/disabled. Either:
+    // 1. renaming all ignoreXXX with xxxDisabled
+    // 2. remove all ignore/disabled and let people set null to disable
+    // 3. have null fall back to default (document it) and force to rely
+    //    on xxxDisabled instead (kind of goes against our general
+    //    XML practice of self-closed tags to indicate null/disabled).
+    // 4. Have both: the option to do setXXXDisabled and set it to null
+    //    (could be misleading)
+
+
+    /**
+     * Whether to ignore crawler directives defined by web sites in a
+     * <code>/robots.txt</code> file.
+     * @param ignoreRobotsTxt <code>true</code> to ignore
+     *     <code>robots.txt</code> rules.
+     * @return <code>true</code> if ignoring <code>robots.txt</code> rules.
+     */
     private boolean ignoreRobotsTxt;
+
+    /**
+     * Whether to ignore crawler directives defined in
+     * <code>X-Robots-Tag</code> HTTP response header.
+     * @param ignoreRobotsMeta <code>true</code> to ignore
+     *     <code>X-Robots-Tag</code> rules.
+     * @return <code>true</code> if ignoring <code>X-Robots-Tag</code> rules.
+     */
     private boolean ignoreRobotsMeta;
-    private boolean ignoreSitemap;
+
+    /**
+     * Whether to ignore (i.e., disable) automatic sitemap detection and
+     * resolving for each web site crawled. Does not affect sitemaps explicitly
+     * defined via ({@link #setStartReferencesSitemaps(List) (those are
+     * never ignored).
+     * @param ignoreSitemapAutoDiscovery <code>true</code> to disable
+     *     sitemap auto-discovery.
+     * @return <code>true</code> if disabling sitemap auto-discovery.
+     */
+    private boolean ignoreSitemapDiscovery;
+
+    /**
+     * Whether to ignore declarations of canonical links found in HTTP headers
+     * HTML files &lt;head&gt; section. When honoring canonical directives,
+     * pages pointing to a canonical URL (if it does not match itself) are
+     * not processed.
+     * @param ignoreCanonicalLinks <code>true</code> to ignore canonical links.
+     * @return <code>true</code> if ignoring canonical links.
+     */
     private boolean ignoreCanonicalLinks;
+
     private final Set<ReferencedLinkType> keepReferencedLinks =
             new HashSet<>(Arrays.asList(ReferencedLinkType.INSCOPE));
-    private boolean startURLsAsync;
 
+    /**
+     * The strategy to use to determine if a URL is in scope.
+     * @param urlCrawlScopeStrategy strategy to use
+     * @return the strategy
+     */
     private URLCrawlScopeStrategy urlCrawlScopeStrategy =
             new URLCrawlScopeStrategy();
 
-
+    /**
+     * The URL normalizer. Defaults to {@link GenericURLNormalizer}.
+     * @param urlNormalizer URL normalizer
+     * @return URL normalizer
+     */
     private WebURLNormalizer urlNormalizer = new GenericURLNormalizer();
 
+    /**
+     * The delay resolver dictating the minimum amount of time to wait
+     * between web requests. Defaults to {@link GenericDelayResolver}.
+     * @param delayResolver delay resolver
+     * @return delay resolver
+     */
     private DelayResolver delayResolver = new GenericDelayResolver();
 
-//    private final List<HttpFetcher> httpFetchers =
-//            new ArrayList<>(List.of(new GenericHttpFetcher()));
-
-    //TODO Make retry/delay part of core?
-//    private int httpFetchersMaxRetries;
-//    private long httpFetchersRetryDelay;
-
+    /**
+     * The canonical link detector. To disable canonical link detection,
+     * use {@link #setIgnoreCanonicalLinks(boolean)}.
+     * Defaults to {@link GenericCanonicalLinkDetector}.
+     * @param canonicalLinkDetector the canonical link detector
+     * @return the canonical link detector
+     */
     private CanonicalLinkDetector canonicalLinkDetector =
             new GenericCanonicalLinkDetector();
 
     private final List<LinkExtractor> linkExtractors =
             new ArrayList<>(Arrays.asList(new HtmlLinkExtractor()));
 
-
-    private boolean postImportLinksKeep;
     private TextMatcher postImportLinks = new TextMatcher();
+    /**
+     * Whether to keep the Importer-generated field holding URLs to queue
+     * for further crawling.
+     * @param postImportLinksKeep <code>true</code> if keeping
+     * @return <code>true</code> if keeping
+     * @see #setPostImportLinks(TextMatcher)
+     */
+    private boolean postImportLinksKeep;
 
+    /**
+     * The provider of robots.txt rules for a site (if applicable).
+     * To disable, use {@link #setIgnoreRobotsTxt(boolean)}.
+     * Defaults to {@link StandardRobotsTxtProvider}.
+     * @param robotsTxtProvider robots.txt provider
+     * @return robots.txt provider
+     * @see #setIgnoreRobotsTxt(boolean)
+     */
     private RobotsTxtProvider robotsTxtProvider =
             new StandardRobotsTxtProvider();
+
+    /**
+     * The provider of robots metadata rules for a page (if applicable).
+     * To disable, use {@link #setIgnoreRobotsMeta(boolean)}.
+     * Defaults to {@link StandardRobotsMetaProvider}.
+     * @param robotsMetaProvider robots metadata rules
+     * @return robots metadata rules r
+     * @see #setIgnoreRobotsMeta(boolean)
+     */
     private RobotsMetaProvider robotsMetaProvider =
             new StandardRobotsMetaProvider();
+
+    /**
+     * The resolver of website sitemaps (if applicable).
+     * Even if {@link #isIgnoreSitemapDiscovery()} is <code>true</code>,
+     * this resolver is still used for sitemaps reference provided
+     * explicitly in configuration or found in robots.txt.
+     * Defaults to {@link GenericSitemapResolver}.
+     * @param sitemapResolver sitemap resolver
+     * @return sitemap resolver
+     */
     private SitemapResolver sitemapResolver = new GenericSitemapResolver();
 
+    /**
+     * The resolver that indicates whether a given URL is ready to be
+     * crawled by a new crawl session. Usually amounts to checking if enough
+     * time has passed between two crawl sessions.
+     * Defaults to {@link GenericRecrawlableResolver}.
+     * @param robotsMetaProvider recrawlable resolver
+     * @return recrawlableResolver recrawlable resolver
+     */
     private RecrawlableResolver recrawlableResolver =
             new GenericRecrawlableResolver();
 
@@ -582,285 +685,34 @@ public class WebCrawlerConfig extends CrawlerConfig {
         setFetchers(List.of(new GenericHttpFetcher()));
     }
 
-    /**
-     * Gets URLs to initiate crawling from.
-     * @return start URLs (never <code>null</code>)
-     */
-    public List<String> getStartURLs() {
-        return Collections.unmodifiableList(startURLs);
-    }
-    /**
-     * Sets URLs to initiate crawling from.
-     * @param startURLs start URLs
-     */
-    public void setStartURLs(String... startURLs) {
-        setStartURLs(Arrays.asList(startURLs));
-    }
-    /**
-     * Sets URLs to initiate crawling from.
-     * @param startURLs start URLs
-     * @since 3.0.0
-     */
-    public void setStartURLs(List<String> startURLs) {
-        CollectionUtil.setAll(this.startURLs, startURLs);
-    }
-
-    /**
-     * Gets the file paths of seed files containing URLs to be used as
-     * "start URLs".  Files are expected to have one URL per line.
-     * Blank lines and lines starting with # (comment) are ignored.
-     * @return file paths of seed files containing URLs
-     *         (never <code>null</code>)
-     * @since 2.3.0
-     */
-    public List<Path> getStartURLsFiles() {
-        return Collections.unmodifiableList(startURLsFiles);
-    }
-    /**
-     * Sets the file paths of seed files containing URLs to be used as
-     * "start URLs". Files are expected to have one URL per line.
-     * Blank lines and lines starting with # (comment) are ignored.
-     * @param startURLsFiles file paths of seed files containing URLs
-     * @since 2.3.0
-     */
-    public void setStartURLsFiles(Path... startURLsFiles) {
-        setStartURLsFiles(Arrays.asList(startURLsFiles));
-    }
-    /**
-     * Sets the file paths of seed files containing URLs to be used as
-     * "start URLs". Files are expected to have one URL per line.
-     * Blank lines and lines starting with # (comment) are ignored.
-     * @param startURLsFiles file paths of seed files containing URLs
-     * @since 3.0.0
-     */
-    public void setStartURLsFiles(List<Path> startURLsFiles) {
-        CollectionUtil.setAll(this.startURLsFiles, startURLsFiles);
-    }
+    //--- Accessors ------------------------------------------------------------
 
     /**
      * Gets sitemap URLs to be used as starting points for crawling.
      * @return sitemap URLs (never <code>null</code>)
      * @since 2.3.0
      */
-    public List<String> getStartSitemapURLs() {
-        return Collections.unmodifiableList(startSitemapURLs);
+    public List<String> getStartReferencesSitemaps() {
+        return Collections.unmodifiableList(startReferencesSitemaps);
     }
     /**
      * Sets the sitemap URLs used as starting points for crawling.
-     * @param startSitemapURLs sitemap URLs
+     * @param startReferencesSitemaps sitemap URLs
      * @since 2.3.0
      */
-    public void setStartSitemapURLs(String... startSitemapURLs) {
-        setStartSitemapURLs(Arrays.asList(startSitemapURLs));
+    public void setStartReferencesSitemaps(String... startReferencesSitemaps) {
+        setStartReferencesSitemaps(Arrays.asList(startReferencesSitemaps));
     }
     /**
      * Sets the sitemap URLs used as starting points for crawling.
-     * @param startSitemapURLs sitemap URLs
+     * @param startReferencesSitemaps sitemap URLs
      * @since 3.0.0
      */
-    public void setStartSitemapURLs(List<String> startSitemapURLs) {
-        CollectionUtil.setAll(this.startSitemapURLs, startSitemapURLs);
-    }
-
-    /**
-     * Gets the providers of URLs used as starting points for crawling.
-     * Use this approach over other methods when URLs need to be provided
-     * dynamicaly at launch time. URLs obtained by a provider are combined
-     * with start URLs provided through other methods.
-     * @return start URL providers (never <code>null</code>)
-
-     * @since 2.7.0
-     */
-    public List<StartURLsProvider> getStartURLsProviders() {
-        return Collections.unmodifiableList(startURLsProviders);
-    }
-    /**
-     * Sets the providers of URLs used as starting points for crawling.
-     * Use this approach over other methods when URLs need to be provided
-     * dynamicaly at launch time. URLs obtained by a provider are combined
-     * with start URLs provided through other methods.
-     * @param startURLsProviders start URL provider
-     * @since 2.7.0
-     */
-    public void setStartURLsProviders(
-            StartURLsProvider... startURLsProviders) {
-        setStartURLsProviders(Arrays.asList(startURLsProviders));
-    }
-    /**
-     * Sets the providers of URLs used as starting points for crawling.
-     * Use this approach over other methods when URLs need to be provided
-     * dynamicaly at launch time. URLs obtained by a provider are combined
-     * with start URLs provided through other methods.
-     * @param startURLsProviders start URL provider
-     * @since 3.0.0
-     */
-    public void setStartURLsProviders(
-            List<StartURLsProvider> startURLsProviders) {
-        CollectionUtil.setAll(this.startURLsProviders, startURLsProviders);
-        CollectionUtil.removeNulls(this.startURLsProviders);
-    }
-
-    /**
-     * Gets whether the start URLs should be loaded asynchronously. When
-     * <code>true</code>, the crawler will start processing URLs in the queue
-     * even if start URLs are still being loaded. While this may speed up
-     * crawling, it may have an unexpected effect on accuracy of
-     * {@link WebDocMetadata#DEPTH}.  Use of this option is only
-     * recommended when start URLs takes a significant time to load (e.g.,
-     * large sitemaps).
-     * @return <code>true</code> if async.
-     * @since 3.0.0
-     */
-    public boolean isStartURLsAsync() {
-        return startURLsAsync;
-    }
-    /**
-     * Sets whether the start URLs should be loaded asynchronously. When
-     * <code>true</code>, the crawler will start processing URLs in the queue
-     * even if start URLs are still being loaded. While this may speed up
-     * crawling, it may have an unexpected effect on accuracy of
-     * {@link WebDocMetadata#DEPTH}.  Use of this option is only
-     * recommended when start URLs takes a significant time to load (e.g.,
-     * large sitemaps).
-     * @param asyncStartURLs <code>true</code> if async.
-     * @since 3.0.0
-     */
-    public void setStartURLsAsync(boolean asyncStartURLs) {
-        startURLsAsync = asyncStartURLs;
-    }
-
-//    /**
-//     * Gets HTTP fetchers.
-//     * @return HTTP fetchers (never <code>null</code>)
-//     * @since 3.0.0
-//     */
-//    public List<HttpFetcher> getHttpFetchers() {
-//        return Collections.unmodifiableList(httpFetchers);
-//    }
-//    /**
-//     * Sets HTTP fetchers.
-//     * @param httpFetchers list of HTTP fetchers
-//     * @since 3.0.0
-//     */
-//    public void setHttpFetchers(HttpFetcher... httpFetchers) {
-//        setHttpFetchers(Arrays.asList(httpFetchers));
-//    }
-//    /**
-//     * Sets HTTP fetchers.
-//     * @param httpFetchers list of HTTP fetchers
-//     * @since 3.0.0
-//     */
-//    public void setHttpFetchers(List<HttpFetcher> httpFetchers) {
-//        CollectionUtil.setAll(this.httpFetchers, httpFetchers);
-//    }
-//    /**
-//     * Gets the maximum number of times an HTTP fetcher will re-attempt fetching
-//     * a resource in case of failures.  Default is zero (won't retry).
-//     * @return number of times
-//     * @since 3.0.0
-//     */
-//    public int getHttpFetchersMaxRetries() {
-//        return httpFetchersMaxRetries;
-//    }
-//    /**
-//     * Sets the maximum number of times an HTTP fetcher will re-attempt fetching
-//     * a resource in case of failures.
-//     * @param httpFetchersMaxRetries maximum number of retries
-//     * @since 3.0.0
-//     */
-//    public void setHttpFetchersMaxRetries(int httpFetchersMaxRetries) {
-//        this.httpFetchersMaxRetries = httpFetchersMaxRetries;
-//    }
-//    /**
-//     * Gets how long to wait before a failing HTTP fetcher re-attempts fetching
-//     * a resource in case of failures (in milliseconds).
-//     * Default is zero (no delay).
-//     * @return retry delay
-//     * @since 3.0.0
-//     */
-//    public long getHttpFetchersRetryDelay() {
-//        return httpFetchersRetryDelay;
-//    }
-//    /**
-//     * Sets how long to wait before a failing HTTP fetcher re-attempts fetching
-//     * a resource in case of failures (in milliseconds).
-//     * @param httpFetchersRetryDelay retry delay
-//     * @since 3.0.0
-//     */
-//    public void setHttpFetchersRetryDelay(long httpFetchersRetryDelay) {
-//        this.httpFetchersRetryDelay = httpFetchersRetryDelay;
-//    }
-
-    /**
-     * Gets the canonical link detector.
-     * @return the canonical link detector, or <code>null</code> if none
-     *         are defined.
-     * @since 2.2.0
-     */
-    public CanonicalLinkDetector getCanonicalLinkDetector() {
-        return canonicalLinkDetector;
-    }
-    /**
-     * Sets the canonical link detector. To disable canonical link detection,
-     * either pass a <code>null</code> argument, or invoke
-     * {@link #setIgnoreCanonicalLinks(boolean)} with a <code>true</code> value.
-     * @param canonicalLinkDetector the canonical link detector
-     * @since 2.2.0
-     */
-    public void setCanonicalLinkDetector(
-            CanonicalLinkDetector canonicalLinkDetector) {
-        this.canonicalLinkDetector = canonicalLinkDetector;
-    }
-
-    /**
-     * Gets link extractors.
-     * @return link extractors
-     */
-    public List<LinkExtractor> getLinkExtractors() {
-        return Collections.unmodifiableList(linkExtractors);
-    }
-    /**
-     * Sets link extractors.
-     * @param linkExtractors link extractors
-     */
-    public void setLinkExtractors(LinkExtractor... linkExtractors) {
-        setLinkExtractors(Arrays.asList(linkExtractors));
-    }
-    /**
-     * Sets link extractors.
-     * @param linkExtractors link extractors
-     * @since 3.0.0
-     */
-    public void setLinkExtractors(List<LinkExtractor> linkExtractors) {
-        CollectionUtil.setAll(this.linkExtractors, linkExtractors);
-    }
-
-    public RobotsTxtProvider getRobotsTxtProvider() {
-        return robotsTxtProvider;
-    }
-    public void setRobotsTxtProvider(RobotsTxtProvider robotsTxtProvider) {
-        this.robotsTxtProvider = robotsTxtProvider;
-    }
-
-    public WebURLNormalizer getUrlNormalizer() {
-        return urlNormalizer;
-    }
-    public void setUrlNormalizer(WebURLNormalizer urlNormalizer) {
-        this.urlNormalizer = urlNormalizer;
-    }
-
-    public DelayResolver getDelayResolver() {
-        return delayResolver;
-    }
-    public void setDelayResolver(DelayResolver delayResolver) {
-        this.delayResolver = delayResolver;
-    }
-
-    public boolean isIgnoreRobotsTxt() {
-        return ignoreRobotsTxt;
-    }
-    public void setIgnoreRobotsTxt(boolean ignoreRobotsTxt) {
-        this.ignoreRobotsTxt = ignoreRobotsTxt;
+    public void setStartReferencesSitemaps(
+            List<String> startReferencesSitemaps) {
+        CollectionUtil.setAll(
+                this.startReferencesSitemaps, startReferencesSitemaps);
+        CollectionUtil.removeBlanks(this.startReferencesSitemaps);
     }
 
     /**
@@ -896,103 +748,27 @@ public class WebCrawlerConfig extends CrawlerConfig {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
     }
 
-    public boolean isIgnoreRobotsMeta() {
-        return ignoreRobotsMeta;
-    }
-    public void setIgnoreRobotsMeta(boolean ignoreRobotsMeta) {
-        this.ignoreRobotsMeta = ignoreRobotsMeta;
-    }
-
-    public RobotsMetaProvider getRobotsMetaProvider() {
-        return robotsMetaProvider;
-    }
-    public void setRobotsMetaProvider(RobotsMetaProvider robotsMetaProvider) {
-        this.robotsMetaProvider = robotsMetaProvider;
-    }
-
     /**
-     * Whether to ignore sitemap detection and resolving for URLs processed.
-     * Sitemaps specified as start URLs
-     * ({@link #getStartSitemapURLs()}) are never ignored.
-     * @return <code>true</code> to ignore sitemaps
+     * Gets link extractors.
+     * @return link extractors
      */
-    public boolean isIgnoreSitemap() {
-        return ignoreSitemap;
+    public List<LinkExtractor> getLinkExtractors() {
+        return Collections.unmodifiableList(linkExtractors);
     }
     /**
-     * Sets whether to ignore sitemap detection and resolving for URLs
-     * processed. Sitemaps specified as start URLs
-     * ({@link #getStartSitemapURLs()}) are never ignored.
-     * @param ignoreSitemap <code>true</code> to ignore sitemaps
+     * Sets link extractors.
+     * @param linkExtractors link extractors
      */
-    //MAYBE rename this to something like: disableSitemapDiscovery ?
-    public void setIgnoreSitemap(boolean ignoreSitemap) {
-        this.ignoreSitemap = ignoreSitemap;
-    }
-
-    public SitemapResolver getSitemapResolver() {
-        return sitemapResolver;
-    }
-    public void setSitemapResolver(SitemapResolver sitemapResolver) {
-        this.sitemapResolver = sitemapResolver;
-    }
-
-    /**
-     * Whether canonical links found in HTTP headers and in HTML files
-     * &lt;head&gt; section should be ignored or processed. When processed
-     * (default), URL pages with a canonical URL pointer in them are not
-     * processed.
-     * @since 2.2.0
-     * @return <code>true</code> if ignoring canonical links
-     * processed.
-     */
-    public boolean isIgnoreCanonicalLinks() {
-        return ignoreCanonicalLinks;
+    public void setLinkExtractors(LinkExtractor... linkExtractors) {
+        setLinkExtractors(Arrays.asList(linkExtractors));
     }
     /**
-     * Sets whether canonical links found in HTTP headers and in HTML files
-     * &lt;head&gt; section should be ignored or processed. If <code>true</code>
-     * URL pages with a canonical URL pointer in them are not
-     * @since 2.2.0
-     * @param ignoreCanonicalLinks <code>true</code> if ignoring canonical links
+     * Sets link extractors.
+     * @param linkExtractors link extractors
+     * @since 3.0.0
      */
-    public void setIgnoreCanonicalLinks(boolean ignoreCanonicalLinks) {
-        this.ignoreCanonicalLinks = ignoreCanonicalLinks;
-    }
-
-    /**
-     * Gets the strategy to use to determine if a URL is in scope.
-     * @return the strategy
-     */
-    public URLCrawlScopeStrategy getURLCrawlScopeStrategy() {
-        return urlCrawlScopeStrategy;
-    }
-    /**
-     * Sets the strategy to use to determine if a URL is in scope.
-     * @param urlCrawlScopeStrategy strategy to use
-     * @since 2.8.1
-     */
-    public void setUrlCrawlScopeStrategy(
-            URLCrawlScopeStrategy urlCrawlScopeStrategy) {
-        this.urlCrawlScopeStrategy = urlCrawlScopeStrategy;
-    }
-
-    /**
-     * Gets the recrawlable resolver.
-     * @return recrawlable resolver
-     * @since 2.5.0
-     */
-    public RecrawlableResolver getRecrawlableResolver() {
-        return recrawlableResolver;
-    }
-    /**
-     * Sets the recrawlable resolver.
-     * @param recrawlableResolver the recrawlable resolver
-     * @since 2.5.0
-     */
-    public void setRecrawlableResolver(
-            RecrawlableResolver recrawlableResolver) {
-        this.recrawlableResolver = recrawlableResolver;
+    public void setLinkExtractors(List<LinkExtractor> linkExtractors) {
+        CollectionUtil.setAll(this.linkExtractors, linkExtractors);
     }
 
     /**
@@ -1013,24 +789,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
     public void setPostImportLinks(TextMatcher fieldMatcher) {
         postImportLinks.copyFrom(fieldMatcher);
     }
-    /**
-     * Gets whether to keep the importer-generated field holding URLs to
-     * consider for crawling.
-     * @return <code>true</code> if keeping
-     * @since 3.0.0
-     */
-    public boolean isPostImportLinksKeep() {
-        return postImportLinksKeep;
-    }
-    /**
-     * Sets whether to keep the importer-generated field holding URLs to
-     * consider for crawling.
-     * @param postImportLinksKeep <code>true</code> if keeping
-     * @since 3.0.0
-     */
-    public void setPostImportLinksKeep(boolean postImportLinksKeep) {
-        this.postImportLinksKeep = postImportLinksKeep;
-    }
 
     @Override
     public void saveToXML(XML xml) {
@@ -1038,7 +796,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
         xml.addDelimitedElementList("keepReferencedLinks",
                 new ArrayList<>(keepReferencedLinks));
 
-        var startXML = xml.addElement("startURLs")
+        var startXML = xml.computeElementIfAbsent("start", null)
                 .setAttribute("stayOnProtocol",
                         urlCrawlScopeStrategy.isStayOnProtocol())
                 .setAttribute("stayOnDomain",
@@ -1046,27 +804,19 @@ public class WebCrawlerConfig extends CrawlerConfig {
                 .setAttribute("includeSubdomains",
                         urlCrawlScopeStrategy.isIncludeSubdomains())
                 .setAttribute("stayOnPort",
-                        urlCrawlScopeStrategy.isStayOnPort())
-                .setAttribute("async", startURLsAsync);
-        startXML.addElementList("url", startURLs);
-        startXML.addElementList("urlsFile", startURLsFiles);
-        startXML.addElementList("sitemap", startSitemapURLs);
-        startXML.addElementList("provider", startURLsProviders);
+                        urlCrawlScopeStrategy.isStayOnPort());
+        startXML.addElementList("sitemap", startReferencesSitemaps);
 
         xml.addElement("urlNormalizer", urlNormalizer);
         xml.addElement("delay", delayResolver);
         xml.addElement("robotsTxt", robotsTxtProvider)
                 .setAttribute("ignore", ignoreRobotsTxt);
-        xml.addElement("sitemapResolver",
-                sitemapResolver).setAttribute("ignore", ignoreSitemap);
+        xml.addElement("ignoreSitemapDiscovery", ignoreSitemapDiscovery);
+        xml.addElement("sitemapResolver", sitemapResolver);
         xml.addElement("canonicalLinkDetector", canonicalLinkDetector)
                 .setAttribute("ignore", ignoreCanonicalLinks);
         xml.addElement("recrawlableResolver", recrawlableResolver);
 
-//        xml.addElement("httpFetchers")
-//                .setAttribute("maxRetries", httpFetchersMaxRetries)
-//                .setAttribute("retryDelay", httpFetchersRetryDelay)
-//                .addElementList("fetcher", httpFetchers);
         xml.addElement("robotsMeta", robotsMetaProvider)
                 .setAttribute("ignore", ignoreRobotsMeta);
         xml.addElementList("linkExtractors", "extractor", linkExtractors);
@@ -1094,8 +844,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
         setSitemapResolver(xml.getObjectImpl(
                 SitemapResolver.class,
                 "sitemapResolver", sitemapResolver));
-        setIgnoreSitemap(xml.getBoolean(
-                "sitemapResolver/@ignore", ignoreSitemap));
+        setIgnoreSitemapDiscovery(xml.getBoolean(
+                "ignoreSitemapDiscovery", ignoreSitemapDiscovery));
 
         // Canonical Link Detector
         setCanonicalLinkDetector(xml.getObjectImpl(CanonicalLinkDetector.class,
@@ -1106,14 +856,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
         // Recrawlable resolver
         setRecrawlableResolver(xml.getObjectImpl(RecrawlableResolver.class,
                 "recrawlableResolver", recrawlableResolver));
-
-//        // HTTP Fetchers
-//        setHttpFetchers(xml.getObjectListImpl(
-//                HttpFetcher.class, "httpFetchers/fetcher", httpFetchers));
-//        setHttpFetchersMaxRetries(xml.getInteger(
-//                "httpFetchers/@maxRetries", httpFetchersMaxRetries));
-//        setHttpFetchersRetryDelay(xml.getDurationMillis(
-//                "httpFetchers/@retryDelay", httpFetchersRetryDelay));
 
         // RobotsMeta provider
         setRobotsMetaProvider(xml.getObjectImpl(
@@ -1158,25 +900,18 @@ public class WebCrawlerConfig extends CrawlerConfig {
                 "keepReferencedLinks", ReferencedLinkType.class,
                         new ArrayList<>(keepReferencedLinks))));
         urlCrawlScopeStrategy.setStayOnProtocol(xml.getBoolean(
-                "startURLs/@stayOnProtocol",
+                "start/@stayOnProtocol",
                 urlCrawlScopeStrategy.isStayOnProtocol()));
         urlCrawlScopeStrategy.setStayOnDomain(xml.getBoolean(
-                "startURLs/@stayOnDomain",
+                "start/@stayOnDomain",
                 urlCrawlScopeStrategy.isStayOnDomain()));
         urlCrawlScopeStrategy.setIncludeSubdomains(xml.getBoolean(
-                "startURLs/@includeSubdomains",
+                "start/@includeSubdomains",
                 urlCrawlScopeStrategy.isIncludeSubdomains()));
         urlCrawlScopeStrategy.setStayOnPort(xml.getBoolean(
-                "startURLs/@stayOnPort",
+                "start/@stayOnPort",
                 urlCrawlScopeStrategy.isStayOnPort()));
-        setStartURLs(xml.getStringList("startURLs/url", startURLs));
-        setStartURLsFiles(
-                xml.getPathList("startURLs/urlsFile", startURLsFiles));
-        setStartSitemapURLs(
-                xml.getStringList("startURLs/sitemap", startSitemapURLs));
-        setStartURLsProviders(
-                xml.getObjectListImpl(StartURLsProvider.class,
-                "startURLs/provider", startURLsProviders));
-        setStartURLsAsync(xml.getBoolean("startURLs/@async", startURLsAsync));
+        setStartReferencesSitemaps(
+                xml.getStringList("start/sitemap", startReferencesSitemaps));
     }
 }

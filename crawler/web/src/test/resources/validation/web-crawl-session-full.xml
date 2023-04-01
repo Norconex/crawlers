@@ -19,7 +19,7 @@
 <!-- This is a config file with as many configuration options being set
      as possible, to test validation as much we can.
      -->
-<crawlSession id="Test Collector HTTP Config">
+<crawlSession id="Test Web Crawl Session Config">
 
   <workDir>/workdir</workDir>
   
@@ -32,13 +32,18 @@
   </eventListeners>
 
   <crawlerDefaults>
-    <startURLs stayOnDomain="true" includeSubdomains="true" stayOnPort="true" stayOnProtocol="true">
-      <url>http://www.example.com</url>
-      <url>http://www.sample.com</url>
-      <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
+    <start 
+        stayOnDomain="true" 
+        includeSubdomains="true" 
+        stayOnPort="true" 
+        stayOnProtocol="true"
+        async="true">
+      <ref>http://www.example.com</ref>
+      <ref>http://www.sample.com</ref>
+      <refsFile>/local/path/to/a/file/full/of/urls.txt</refsFile>
       <sitemap>http://www.somewhere.com/sitemap.xml</sitemap>
       <provider class="com.norconex.crawler.web.crawler.MockStartURLsProvider"/>
-    </startURLs>
+    </start>
     <keepReferencedLinks>INSCOPE, OUTSCOPE, MAXDEPTH</keepReferencedLinks>
     <maxDepth>99</maxDepth>
     <numThreads>1</numThreads>
@@ -46,6 +51,7 @@
     <orphansStrategy>PROCESS</orphansStrategy>
     <metadataFetchSupport>OPTIONAL</metadataFetchSupport>
     <documentFetchSupport>DISABLED</documentFetchSupport>
+    <ignoreSitemapDiscovery>true</ignoreSitemapDiscovery>
     
     <eventListeners>
       <listener class="URLStatusCrawlerEventListener">
@@ -172,7 +178,7 @@
       </filter>
     </referenceFilters>    
     <robotsTxt ignore="false" class="com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider"/>
-    <sitemapResolver ignore="false" lenient="true" 
+    <sitemapResolver lenient="true" 
         class="com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver">
       <paths>
         <path>/path1/</path>

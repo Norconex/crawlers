@@ -28,7 +28,7 @@ class SitemapResolutionStage implements Predicate<DocRecordPipelineContext> {
     @Override
     public boolean test(DocRecordPipelineContext ctx) { //NOSONAR
         var cfg = Web.config(ctx);
-        if (cfg.isIgnoreSitemap()
+        if (cfg.isIgnoreSitemapDiscovery()
                 || cfg.getSitemapResolver() == null) {
             return true;
         }
@@ -44,7 +44,7 @@ class SitemapResolutionStage implements Predicate<DocRecordPipelineContext> {
                 .builder()
                 .fetcher((HttpFetcher) ctx.getCrawler().getFetcher())
                 .sitemapLocations(robotsTxtLocations)
-                .startURLs(false)
+                .startReferences(false)
                 .urlRoot(urlRoot)
                 .urlConsumer(rec -> ctx.getCrawler().queueDocRecord(rec))
                 .build());

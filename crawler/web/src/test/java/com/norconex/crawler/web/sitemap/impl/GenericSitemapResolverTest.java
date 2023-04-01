@@ -100,7 +100,7 @@ class GenericSitemapResolverTest {
                 .builder()
                 .fetcher((HttpFetcher) crawler.getFetcher())
                 .sitemapLocations(List.of(serverUrl(client, "sitemap-index")))
-                .startURLs(false)
+                .startReferences(false)
                 .urlRoot(serverUrl(client, ""))
                 .urlConsumer(rec -> urls.add(rec.getReference()))
                 .build());

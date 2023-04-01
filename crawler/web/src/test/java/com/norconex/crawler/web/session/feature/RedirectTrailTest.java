@@ -49,7 +49,7 @@ class RedirectTrailTest {
         var baseUrl = serverUrl(client, PATH);
 
         var mem = TestWebCrawlSession
-            .forStartUrls(baseUrl + "?index=0")
+            .forStartReferences(baseUrl + "?index=0")
             .crawlerSetup(cfg -> {
                 cfg.setMaxDepth(0);
             })

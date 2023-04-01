@@ -92,7 +92,7 @@ class StrictTransportSecurityTest {
                 .withBody("I am NOT secure"));
 
         var mem = TestWebCrawlSession
-            .forStartUrls(secureUrl)
+            .forStartReferences(secureUrl)
             .crawlerSetup(cfg -> {
                 cfg.setMaxDocuments(2);
                 var fetcherCfg =

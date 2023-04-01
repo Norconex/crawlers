@@ -18,14 +18,16 @@ import java.util.Iterator;
 
 import org.apache.commons.collections4.iterators.ObjectArrayIterator;
 
+import com.norconex.crawler.core.crawler.ReferencesProvider;
+
 import lombok.EqualsAndHashCode;
 
 // Used in crawler full validation.
 @EqualsAndHashCode
-public class MockStartURLsProvider implements StartURLsProvider {
+public class MockStartURLsProvider implements ReferencesProvider {
 
     @Override
-    public Iterator<String> provideStartURLs() {
+    public Iterator<String> provideReferences() {
         return new ObjectArrayIterator<>(
                 "http://www.provided1.com",
                 "http://www.provided2.com",

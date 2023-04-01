@@ -70,7 +70,7 @@ class MaxConcurrentCrawlersTest {
         var maxDocs = 5;
 
         var crawlSession = TestWebCrawlSession
-            .forStartUrls()
+            .forStartReferences()
             .crawlSessionSetup(sessCfg -> {
                 // add requested num of crawler and max concurrent
                 sessCfg.setMaxConcurrentCrawlers(maxConcurrentCrawlers);
@@ -102,7 +102,7 @@ class MaxConcurrentCrawlersTest {
                                     i+1,
                                     totalCrawlers,
                                     maxConcurrentCrawlers));
-                    cfg.setStartURLs(serverUrl(client, startPath));
+                    cfg.setStartReferences(serverUrl(client, startPath));
                     cfg.setMaxDepth(-1);
                     cfg.setNumThreads(1);
                     cfg.setMaxDocuments(maxDocs);

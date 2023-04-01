@@ -20,9 +20,9 @@
 
   <crawlerDefaults>
 
-    <startURLs stayOnDomain="true" stayOnPort="true" stayOnProtocol="true">
-      <url>http://www.example.com</url>
-    </startURLs>
+    <start stayOnDomain="true" stayOnPort="true" stayOnProtocol="true">
+      <ref>http://www.example.com</ref>
+    </start>
 
   </crawlerDefaults>
 
@@ -30,9 +30,9 @@
   <!-- -->
   <crawlers>
     <crawler id="My Crawler set Some false">
-      <startURLs stayOnDomain="false" stayOnPort="false" stayOnProtocol="true">
-        <url>http://www.overwrite.com</url>
-      </startURLs>
+      <start stayOnDomain="false" stayOnPort="false" stayOnProtocol="true">
+        <ref>http://www.overwrite.com</ref>
+      </start>
     </crawler>
     <crawler id="My Crawler Inherit All true">
     </crawler>

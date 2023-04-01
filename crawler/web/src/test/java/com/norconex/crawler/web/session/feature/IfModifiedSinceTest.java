@@ -73,7 +73,7 @@ class IfModifiedSinceTest {
 
 
         var crawlSession = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, path))
+                .forStartReferences(serverUrl(client, path))
                 .crawlerSetup(cfg -> {
                     // disable checksums and E-Tag so they do not influence
                     // tests

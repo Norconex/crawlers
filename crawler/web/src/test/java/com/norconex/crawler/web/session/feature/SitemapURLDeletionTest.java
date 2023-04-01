@@ -77,9 +77,9 @@ class SitemapURLDeletionTest {
             throws CommitterException {
 
         var crawlSession = TestWebCrawlSession
-            .forStartUrls()
+            .forStartReferences()
             .crawlerSetup(cfg -> {
-                cfg.setStartSitemapURLs(serverUrl(client, sitemapPath));
+                cfg.setStartReferencesSitemaps(serverUrl(client, sitemapPath));
                 cfg.setOrphansStrategy(OrphansStrategy.PROCESS);
             })
             .crawlSession();

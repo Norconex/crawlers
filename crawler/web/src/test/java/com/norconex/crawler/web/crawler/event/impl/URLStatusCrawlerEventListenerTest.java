@@ -70,7 +70,7 @@ class URLStatusCrawlerEventListenerTest {
                 .withReasonPhrase("Kaput!"));
 
         TestWebCrawlSession
-            .forStartUrls(
+            .forStartReferences(
                     serverUrl(client, ok1Path),
                     serverUrl(client, notFoundPath),
                     serverUrl(client, ok2Path),

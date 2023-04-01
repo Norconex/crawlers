@@ -41,7 +41,7 @@ class ZeroLengthTest  {
             .respond(response().withBody(""));
 
         var mem = TestWebCrawlSession
-            .forStartUrls(serverUrl(client, path))
+            .forStartReferences(serverUrl(client, path))
             .crawl();
 
         assertThat(mem.getUpsertCount()).isOne();

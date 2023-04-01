@@ -60,24 +60,24 @@ class WebCrawlerConfigTest {
         // Make sure crawler defaults are applied properly.
         var cc1 = (WebCrawlerConfig) config.getCrawlerConfigs().get(0);
         Assertions.assertFalse(
-                cc1.getURLCrawlScopeStrategy().isStayOnDomain(),
+                cc1.getUrlCrawlScopeStrategy().isStayOnDomain(),
                 "stayOnDomain 1 must be false");
         Assertions.assertFalse(
-                cc1.getURLCrawlScopeStrategy().isStayOnPort(),
+                cc1.getUrlCrawlScopeStrategy().isStayOnPort(),
                 "stayOnPort 1 must be false");
         Assertions.assertTrue(
-                cc1.getURLCrawlScopeStrategy().isStayOnProtocol(),
+                cc1.getUrlCrawlScopeStrategy().isStayOnProtocol(),
                 "stayOnProtocol 1 must be true");
 
         var cc2 = (WebCrawlerConfig) config.getCrawlerConfigs().get(1);
         Assertions.assertTrue(
-                cc2.getURLCrawlScopeStrategy().isStayOnDomain(),
+                cc2.getUrlCrawlScopeStrategy().isStayOnDomain(),
                 "stayOnDomain 2 must be true");
         Assertions.assertTrue(
-                cc2.getURLCrawlScopeStrategy().isStayOnPort(),
+                cc2.getUrlCrawlScopeStrategy().isStayOnPort(),
                 "stayOnPort 2 must be true");
         Assertions.assertTrue(
-                cc2.getURLCrawlScopeStrategy().isStayOnProtocol(),
+                cc2.getUrlCrawlScopeStrategy().isStayOnProtocol(),
                 "stayOnProtocol 2 must be true");
     }
 }

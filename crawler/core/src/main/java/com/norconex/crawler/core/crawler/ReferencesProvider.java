@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.crawler;
+package com.norconex.crawler.core.crawler;
 
 import java.util.Iterator;
 
@@ -20,18 +20,17 @@ import org.apache.commons.collections4.iterators.ObjectArrayIterator;
 import org.apache.commons.collections4.iterators.ObjectArrayListIterator;
 
 /**
- * Provide starting URLs for crawling. Implement this interface if you need
- * start URLs to be established dynamically when the crawler starts.
- * @since 2.7.0
+ * Provide references for crawling. You can implement this interface if you
+ * need start references to be established dynamically when the crawler starts.
  */
-public interface StartURLsProvider {
+public interface ReferencesProvider {
 
     /**
-     * Provides an iterator over start URLs. If you have a limited set
+     * Provides an iterator over provided references. If you have a limited set
      * that is easier to return as array or list, consider wrapping the
-     * return value in {@link ObjectArrayIterator} or 
+     * return value in {@link ObjectArrayIterator} or
      * {@link ObjectArrayListIterator}.
-     * @return iterator of URL strings
+     * @return iterator of reference strings
      */
-    Iterator<String> provideStartURLs();
+    Iterator<String> provideReferences();
 }

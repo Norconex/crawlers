@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.session.feature;
 
-import static com.norconex.crawler.web.TestWebCrawlSession.forStartUrls;
+import static com.norconex.crawler.web.TestWebCrawlSession.forStartReferences;
 import static com.norconex.crawler.web.WebsiteMock.serverUrl;
 import static com.norconex.crawler.web.WebsiteMock.whenHtml;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -41,7 +41,7 @@ class LargeContentTest {
 
         whenHtml(client, path, RandomStringUtils.randomAlphanumeric(minSize));
 
-        var mem = forStartUrls(serverUrl(client, path)).crawl();
+        var mem = forStartReferences(serverUrl(client, path)).crawl();
 
         var txt = IOUtils.toString(
                 mem.getUpsertRequests().get(0).getContent(), UTF_8);

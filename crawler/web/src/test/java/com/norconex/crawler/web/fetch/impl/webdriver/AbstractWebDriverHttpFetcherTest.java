@@ -120,7 +120,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         WebsiteMock.whenJsRenderedWebsite(client);
 
         var mem = TestWebCrawlSession
-            .forStartUrls(hostUrl(client, "/index.html"))
+            .forStartReferences(hostUrl(client, "/index.html"))
             .crawlerSetup(cfg -> {
                 cfg.setFetchers(List.of(createWebDriverHttpFetcher()));
                 cfg.setMaxDepth(0);
@@ -138,7 +138,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         WebsiteMock.whenJsRenderedWebsite(client);
 
         var mem = TestWebCrawlSession
-            .forStartUrls(hostUrl(client, "/apple.html"))
+            .forStartReferences(hostUrl(client, "/apple.html"))
             .crawlerSetup(cfg -> {
                 var h = new ScreenshotHandler();
                 h.setTargets(List.of(Target.METADATA));
@@ -183,7 +183,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         var mem = TestWebCrawlSession
             // using serverUrl (localhost) here since it will be invoked
             // by proxy, which resides locally.
-            .forStartUrls(serverUrl(client, path))
+            .forStartReferences(serverUrl(client, path))
             .crawlerSetup(cfg -> {
                 var snifCfg = new HttpSnifferConfig();
                 snifCfg.setHost("host.testcontainers.internal");
@@ -229,7 +229,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
                     HTML_UTF_8));
 
         var mem = TestWebCrawlSession
-            .forStartUrls(hostUrl(client, path))
+            .forStartReferences(hostUrl(client, path))
             .crawlerSetup(cfg -> {
                 var f = createWebDriverHttpFetcher();
                 f.getConfig().setEarlyPageScript("document.title='Awesome!';");
@@ -262,7 +262,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
         var fetcher = createWebDriverHttpFetcher();
         TestWebCrawlSession
-                .forStartUrls(hostUrl(client, path))
+                .forStartReferences(hostUrl(client, path))
                 .crawlerSetup(cfg -> {
                     cfg.setFetchers(List.of(fetcher));
                     cfg.setMaxDepth(0);

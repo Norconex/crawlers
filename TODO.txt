@@ -26,4 +26,10 @@
   
 * For javadoc custom taglets, add a placeholder equivalent to <THIS_CLASS>
   that is replaced by the fully qualified name of the current class. 
+
+* Maybe have a data store just for general session/crawl state 
+  persistence, not just documents. This would allow us to store things
+  such as :
+    * Was queue initialization complete (useful to know when resuming).
+    * What else? 
   

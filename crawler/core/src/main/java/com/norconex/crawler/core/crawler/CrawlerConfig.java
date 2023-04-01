@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.crawler;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +30,7 @@ import com.norconex.commons.lang.xml.XPathUtil;
 import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer;
+import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.filter.DocumentFilter;
@@ -81,6 +83,24 @@ import lombok.experimental.FieldNameConstants;
  *   </eventListeners>
  *
  *   <dataStoreEngine class="(DataStoreEngine implementation)" />
+ * }
+ *
+ * {@nx.xml #start-refs
+ *   <start>
+ *     <!-- All the following tags are repeatable. -->
+ *     <ref>(a reference)</ref>
+ *     <refsFile>(local path to a file containing references)</refsFile>
+ *     <provider class="(StartRefsProvider implementation)"/>
+ *   </start>
+ * }
+ *
+ * {@nx.xml #fetchers
+ *   <fetchers
+ *       maxRetries="(number of times to retry a failed fetch attempt)"
+ *       retryDelay="(how many milliseconds to wait between re-attempting)">
+ *     <!-- Repeatable -->
+ *     <fetcher class="(Fetcher implementation)"/>
+ *   </fetchers>
  * }
  *
  * {@nx.xml #pipeline-queue
@@ -157,6 +177,7 @@ import lombok.experimental.FieldNameConstants;
  *   </committers>
  * }
  */
+@SuppressWarnings("javadoc")
 @Data
 @FieldNameConstants
 public class CrawlerConfig implements XMLConfigurable {
@@ -196,15 +217,32 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param id unique identifier
      * @return unique identifier
      */
-    @SuppressWarnings("javadoc")
     private String id;
+
+    private final List<String> startReferences = new ArrayList<>();
+    private final List<Path> startReferencesFiles = new ArrayList<>();
+    private final List<ReferencesProvider> startReferencesProviders =
+            new ArrayList<>();
+
+    /**
+     * Whether the start references should be loaded asynchronously. When
+     * <code>true</code>, the crawler will start processing the start
+     * references in a separate thread as they are added to the queue
+     * (as opposed to wait for queue initialization to be complete).
+     * While this may speed up crawling, it may have an unexpected effect on
+     * accuracy of {@link CrawlDocMetadata#DEPTH}. Use of this option is only
+     * recommended when start references take a significant time to load.
+     * @param startReferencesAsync <code>true</code> if initialized
+     *     asynchronously
+     * @return <code>true</code> if initialized asynchronously
+     */
+    private boolean startReferencesAsync;
 
     /**
      * The maximum number of threads a crawler can use. Default is two.
      * @param numThreads number of threads
      * @return number of threads
      */
-    @SuppressWarnings("javadoc")
     private int numThreads = 2;
 
     /**
@@ -237,7 +275,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param maxDocuments maximum number of documents that can be processed
      * @return maximum number of documents that can be processed
      */
-    @SuppressWarnings("javadoc")
     private int maxDocuments = -1;
 
     /**
@@ -248,7 +285,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param maxDepth maximum depth or -1 for unlimited depth
      * @return maximum depth or -1 for unlimited depth
      */
-    @SuppressWarnings("javadoc")
     private int maxDepth = -1;
 
     /**
@@ -262,7 +298,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param idleTimeout time to wait for a document to be processed
      * @return time to wait for a document to be processed
      */
-    @SuppressWarnings("javadoc")
     private Duration idleTimeout;
 
     /**
@@ -275,7 +310,6 @@ public class CrawlerConfig implements XMLConfigurable {
      *     of crawling progress
      * @return time to wait between each logging of crawling progress
      */
-    @SuppressWarnings("javadoc")
     private Duration minProgressLoggingInterval;
 
     /**
@@ -301,7 +335,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param orphansStrategy orphans strategy
      * @return orphans strategy
      */
-    @SuppressWarnings("javadoc")
     private OrphansStrategy orphansStrategy = OrphansStrategy.PROCESS;
 
     private final List<Class<? extends Exception>> stopOnExceptions =
@@ -312,7 +345,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param dataStoreEngine crawl data store factory.
      * @return crawl data store factory.
      */
-    @SuppressWarnings("javadoc")
     private DataStoreEngine dataStoreEngine = new MVStoreDataStoreEngine();
 
     private final List<ReferenceFilter> referenceFilters = new ArrayList<>();
@@ -328,7 +360,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param metadataChecksummer metadata checksummer
      * @return metadata checksummer
      */
-    @SuppressWarnings("javadoc")
     private MetadataChecksummer metadataChecksummer;
 
     /**
@@ -336,7 +367,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param importerConfig Importer module configuration
      * @return Importer module configuration
      */
-    @SuppressWarnings("javadoc")
     private ImporterConfig importerConfig = new ImporterConfig();
 
     private final List<Committer> committers = new ArrayList<>();
@@ -350,7 +380,6 @@ public class CrawlerConfig implements XMLConfigurable {
      *        metadata-based deduplication
      * @return whether to turn on metadata-based deduplication
      */
-    @SuppressWarnings("javadoc")
     private boolean metadataDeduplicate;
 
     /**
@@ -362,7 +391,6 @@ public class CrawlerConfig implements XMLConfigurable {
      *        document-based deduplication
      * @return whether to turn on document-based deduplication
      */
-    @SuppressWarnings("javadoc")
     private boolean documentDeduplicate;
 
     /**
@@ -370,7 +398,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param documentChecksummer document checksummer
      * @return document checksummer
      */
-    @SuppressWarnings("javadoc")
     private DocumentChecksummer documentChecksummer =
             new MD5DocumentChecksummer();
 
@@ -379,7 +406,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param spoiledReferenceStrategizer spoiled state strategy resolver
      * @return spoiled state strategy resolver
      */
-    @SuppressWarnings("javadoc")
     private SpoiledReferenceStrategizer spoiledReferenceStrategizer =
             new GenericSpoiledReferenceStrategizer();
 
@@ -399,7 +425,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param fetchersMaxRetries maximum number of retries
      * @return maximum number of retries
      */
-    @SuppressWarnings("javadoc")
     private int fetchersMaxRetries;
 
     /**
@@ -409,10 +434,96 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param fetchersRetryDelay retry delay
      * @return retry delay
      */
-    @SuppressWarnings("javadoc")
     private long fetchersRetryDelay;
 
     //--- List Accessors -------------------------------------------------------
+
+    /**
+     * Gets the references to initiate crawling from.
+     * @return start references (never <code>null</code>)
+     */
+    public List<String> getStartReferences() {
+        return Collections.unmodifiableList(startReferences);
+    }
+    /**
+     * Sets the references to initiate crawling from.
+     * @param startReferences start references
+     */
+    public void setStartReferences(String... startReferences) {
+        CollectionUtil.setAll(this.startReferences, startReferences);
+    }
+    /**
+     * Sets the references to initiate crawling from.
+     * @param startReferences start references
+     */
+    public void setStartReferences(List<String> startReferences) {
+        CollectionUtil.setAll(this.startReferences, startReferences);
+    }
+
+    /**
+     * Gets the file paths of seed files containing references to be used as
+     * start references.  Files are expected to have one reference per line.
+     * Blank lines and lines starting with # (comment) are ignored.
+     * @return file paths of seed files containing references
+     *         (never <code>null</code>)
+     */
+    public List<Path> getStartReferencesFiles() {
+        return Collections.unmodifiableList(startReferencesFiles);
+    }
+    /**
+     * Sets the file paths of seed files containing references to be used as
+     * start references.  Files are expected to have one reference per line.
+     * Blank lines and lines starting with # (comment) are ignored.
+     * @param startReferencesFiles file paths of seed files containing
+     *     references
+     */
+    public void setStartReferencesFiles(Path... startReferencesFiles) {
+        CollectionUtil.setAll(this.startReferencesFiles, startReferencesFiles);
+    }
+    /**
+     * Sets the file paths of seed files containing references to be used as
+     * start references.  Files are expected to have one reference per line.
+     * Blank lines and lines starting with # (comment) are ignored.
+     * @param startReferencesFiles file paths of seed files containing
+     *     references
+     */
+    public void setStartReferencesFiles(List<Path> startReferencesFiles) {
+        CollectionUtil.setAll(this.startReferencesFiles, startReferencesFiles);
+    }
+
+    /**
+     * Gets the providers of references used as starting points for crawling.
+     * Use this approach when references need to be provided
+     * dynamically at launch time.
+     * @return start references providers (never <code>null</code>)
+     */
+    public List<ReferencesProvider> getStartReferencesProviders() {
+        return Collections.unmodifiableList(startReferencesProviders);
+    }
+    /**
+     * Sets the providers of references used as starting points for crawling.
+     * Use this approach when references need to be provided
+     * dynamically at launch time.
+     * @param startReferencesProviders start references provider
+     */
+    public void setStartReferencesProviders(
+            ReferencesProvider... startReferencesProviders) {
+        CollectionUtil.setAll(
+                this.startReferencesProviders, startReferencesProviders);
+        CollectionUtil.removeNulls(this.startReferencesProviders);
+    }
+    /**
+     * Sets the providers of references used as starting points for crawling.
+     * Use this approach when references need to be provided
+     * dynamically at launch time.
+     * @param startReferencesProviders start references provider
+     */
+    public void setStartReferencesProviders(
+            List<ReferencesProvider> startReferencesProviders) {
+        CollectionUtil.setAll(
+                this.startReferencesProviders, startReferencesProviders);
+        CollectionUtil.removeNulls(this.startReferencesProviders);
+    }
 
     /**
      * The exceptions we want to stop the crawler on.
@@ -610,10 +721,6 @@ public class CrawlerConfig implements XMLConfigurable {
      * successfully process a reference (others are not invoked).
      * @return one or more fetchers
      */
-    /**
-     * Gets reference filters
-     * @return reference filters
-     */
     public List<Fetcher<?, ?>> getFetchers() {
         return Collections.unmodifiableList(fetchers);
     }
@@ -645,6 +752,13 @@ public class CrawlerConfig implements XMLConfigurable {
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute(Fields.id, id);
+
+        var startXML = xml.addElement("start")
+                .setAttribute("async", startReferencesAsync);
+        startXML.addElementList("ref", startReferences);
+        startXML.addElementList("refsFile", startReferencesFiles);
+        startXML.addElementList("provider", startReferencesProviders);
+
         xml.addElement(Fields.numThreads, numThreads);
         xml.addElement(Fields.maxDocuments, maxDocuments);
         xml.addElement(Fields.maxDepth, maxDepth);
@@ -688,6 +802,16 @@ public class CrawlerConfig implements XMLConfigurable {
     @Override
     public void loadFromXML(XML xml) {
         setId(xml.getString(XPathUtil.attr(Fields.id), id));
+
+        setStartReferences(xml.getStringList("start/ref", startReferences));
+        setStartReferencesFiles(
+                xml.getPathList("start/refsFile", startReferencesFiles));
+        setStartReferencesProviders(
+                xml.getObjectListImpl(ReferencesProvider.class,
+                "start/provider", startReferencesProviders));
+        setStartReferencesAsync(
+                xml.getBoolean("start/@async", startReferencesAsync));
+
         setNumThreads(xml.getInteger(Fields.numThreads, numThreads));
         setMaxDocuments(xml.getInteger(Fields.maxDocuments, maxDocuments));
         setMaxDepth(xml.getInteger(Fields.maxDepth, maxDepth));

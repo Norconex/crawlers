@@ -44,7 +44,7 @@ class UserAgentTest {
                             + req.getFirstHeader("User-Agent")));
 
         var mem = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, path))
+                .forStartReferences(serverUrl(client, path))
                 .crawlerSetup(cfg -> WebTestUtil.getFirstHttpFetcherConfig(cfg)
                     .setUserAgent("Smith")
                 )

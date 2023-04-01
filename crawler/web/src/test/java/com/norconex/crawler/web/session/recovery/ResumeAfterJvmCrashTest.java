@@ -50,7 +50,7 @@ class ResumeAfterJvmCrashTest {
         var crasher = new JVMCrasher();
 
         var crawlSessionConfig = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, path + "/0000"))
+                .forStartReferences(serverUrl(client, path + "/0000"))
                 .crawlSessionSetup(cfg -> cfg.setWorkDir(tempDir))
                 .crawlerSetup(cfg -> {
                     cfg.setNumThreads(1);

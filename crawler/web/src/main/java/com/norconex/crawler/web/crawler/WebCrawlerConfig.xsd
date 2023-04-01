@@ -18,44 +18,27 @@
 
   <xs:include schemaLocation="/com/norconex/importer/Importer.xsd"></xs:include>
 
-<!-- 
-  <xs:include schemaLocation="/com/norconex/crawler/core/crawler/CrawlerConfig.xsd"></xs:include>
-  <xs:element name="crawlerDefaults" type="HttpCrawlerConfigType"/>
-  <xs:element name="crawler" type="HttpCrawlerConfigType"/>
- -->
- 
   <xs:redefine schemaLocation="/com/norconex/crawler/core/crawler/CrawlerConfig.xsd">
+  
+    <xs:complexType name="StartType">
+      <xs:complexContent>
+        <xs:extension base="StartType">
+	      <xs:attribute name="stayOnDomain" type="xs:boolean"/>
+	      <xs:attribute name="includeSubdomains" type="xs:boolean"/>
+	      <xs:attribute name="stayOnPort" type="xs:boolean"/>
+	      <xs:attribute name="stayOnProtocol" type="xs:boolean"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  
     <xs:complexType name="CrawlerConfigType">
       <xs:complexContent>
         <xs:extension base="CrawlerConfigType">
           <xs:all>
-            <xs:element name="startURLs" minOccurs="0" maxOccurs="1">
-              <xs:complexType>
-                <xs:all>
-                  <xs:element ref="startURLChoice" minOccurs="1" maxOccurs="unbounded"/>
-                </xs:all>
-                <xs:attribute name="stayOnDomain" type="xs:boolean"/>
-                <xs:attribute name="includeSubdomains" type="xs:boolean"/>
-                <xs:attribute name="stayOnPort" type="xs:boolean"/>
-                <xs:attribute name="stayOnProtocol" type="xs:boolean"/>
-                <xs:attribute name="async" type="xs:boolean"/>
-              </xs:complexType>
-            </xs:element>
             <xs:element name="keepReferencedLinks" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="urlNormalizer" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
             <xs:element name="delay" type="anyComplexOptionalClassType" minOccurs="0" maxOccurs="1"/>
-<!--
-            <xs:element name="httpFetchers" minOccurs="0" maxOccurs="1">
-              <xs:complexType>
-                <xs:all>
-                  <xs:element name="fetcher" 
-                      type="anyComplexRequiredClassType" minOccurs="0" maxOccurs="unbounded"/>
-                </xs:all>
-                <xs:attribute name="maxRetries" type="xs:int"/>
-                <xs:attribute name="retryDelay" type="xs:string"/>
-              </xs:complexType>
-            </xs:element>
- -->
+            <xs:element name="ignoreSitemapDiscovery" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
             <xs:element name="robotsTxt" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:complexContent> 
@@ -115,11 +98,6 @@
     </xs:complexType>
   </xs:redefine>
 
-
-  <xs:element name="startURLChoice" abstract="true"/>
-  <xs:element name="url" substitutionGroup="startURLChoice" type="xs:string"/>
-  <xs:element name="urlsFile" substitutionGroup="startURLChoice" type="xs:string"/>
-  <xs:element name="sitemap" substitutionGroup="startURLChoice" type="xs:string"/>
-  <xs:element name="provider" substitutionGroup="startURLChoice" type="anyComplexRequiredClassType" />
+  <xs:element name="sitemap" substitutionGroup="startRefsChoice" type="xs:string"/>
   
 </xs:schema>

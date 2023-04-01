@@ -337,6 +337,14 @@ public class Crawler {
             fire(CrawlerEvent.CRAWLER_RUN_BEGIN);
 
             //--- Queue initial references ---------------------------------
+            //TODO if we resume, shall we not queue again? What if it stopped
+            // in the middle of initial queuing, then to be safe we have to
+            // queue again and expect that those that were already processed
+            // will simply be ignored (default behavior).
+            // Consider persisting a flag that would tell us if we are resuming
+            // with an incomplete queue initialization, or make initialization
+            // more sophisticated so we can resume in the middle of it
+            // (this last option would likely be very impractical).
             LOG.info("Queueing initial references...");
             queueInitialized = ofNullable(crawlerImpl.queueInitializer())
                 .map(qizer -> qizer.apply(new CrawlerImpl.QueueInitContext(

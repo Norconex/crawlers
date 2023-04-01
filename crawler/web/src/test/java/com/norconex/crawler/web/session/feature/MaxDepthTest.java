@@ -37,7 +37,7 @@ class MaxDepthTest {
         WebsiteMock.whenInfinitDepth(client);
 
         var mem = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, "/maxDepth/0000"))
+                .forStartReferences(serverUrl(client, "/maxDepth/0000"))
                 .crawlerSetup(cfg -> {
                     cfg.setMaxDepth(10);
                 })

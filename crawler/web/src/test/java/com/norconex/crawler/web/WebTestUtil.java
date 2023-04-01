@@ -132,7 +132,7 @@ public final class WebTestUtil {
             cfg.setIgnoreCanonicalLinks(true);
             cfg.setIgnoreRobotsMeta(true);
             cfg.setIgnoreRobotsTxt(true);
-            cfg.setIgnoreSitemap(true);
+            cfg.setIgnoreSitemapDiscovery(true);
         });
     }
 

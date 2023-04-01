@@ -128,7 +128,7 @@ final class WebImporterPipelineUtil {
         newRec.addRedirectURL(sourceURL);
         if (requeue) {
             ctx.getDocRecordService().queue(newRec);
-        } else if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+        } else if (ctx.getConfig().getUrlCrawlScopeStrategy().isInScope(
                 crawlRef.getReference(), redirectURL)) {
             ctx.getCrawler().queueDocRecord(newRec);
         } else {
@@ -137,7 +137,7 @@ final class WebImporterPipelineUtil {
             ctx.fire(CrawlerEvent.builder()
                     .name(CrawlerEvent.REJECTED_FILTER)
                     .source(ctx.getCrawler())
-                    .subject(ctx.getConfig().getURLCrawlScopeStrategy())
+                    .subject(ctx.getConfig().getUrlCrawlScopeStrategy())
                     .crawlDocRecord(newRec)
                     .build());
         }

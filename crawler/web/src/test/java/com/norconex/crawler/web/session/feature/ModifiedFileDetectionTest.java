@@ -52,7 +52,7 @@ class ModifiedFileDetectionTest {
 
         // relies on default checksummers
         var crawlSession = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, homePath))
+                .forStartReferences(serverUrl(client, homePath))
                 .crawlSession();
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
 

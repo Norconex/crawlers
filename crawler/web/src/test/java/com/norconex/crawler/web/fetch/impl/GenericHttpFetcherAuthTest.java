@@ -64,7 +64,7 @@ class GenericHttpFetcherAuthTest {
 
         // Good creds
         var mem = TestWebCrawlSession
-                .forStartUrls(protectedUrl)
+                .forStartReferences(protectedUrl)
                 .crawlerSetup(cfg -> {
                     var authCfg = new HttpAuthConfig();
                     authCfg.setMethod(HttpAuthConfig.METHOD_BASIC);
@@ -87,7 +87,7 @@ class GenericHttpFetcherAuthTest {
 
         // Bad creds
         mem = TestWebCrawlSession
-                .forStartUrls(protectedUrl)
+                .forStartReferences(protectedUrl)
                 .crawlerSetup(cfg -> {
                     var authCfg = new HttpAuthConfig();
                     authCfg.setMethod(HttpAuthConfig.METHOD_BASIC);
@@ -112,7 +112,7 @@ class GenericHttpFetcherAuthTest {
 
         // Fill and submit form with good credentials
         var mem = TestWebCrawlSession
-                .forStartUrls(protectedUrl)
+                .forStartReferences(protectedUrl)
                 .crawlerSetup(cfg -> {
                     var fetchCfg = WebTestUtil.getFirstHttpFetcherConfig(cfg);
                     fetchCfg.setAuthConfig(authConfirm(
@@ -124,7 +124,7 @@ class GenericHttpFetcherAuthTest {
 
         // Fill and submit form with bad credentials
         mem = TestWebCrawlSession
-                .forStartUrls(protectedUrl)
+                .forStartReferences(protectedUrl)
                 .crawlerSetup(cfg -> {
                     var fetchCfg = WebTestUtil.getFirstHttpFetcherConfig(cfg);
                     fetchCfg.setAuthConfig(authConfirm(
@@ -135,7 +135,7 @@ class GenericHttpFetcherAuthTest {
 
         // Invoke form action URL directly with good credentials
         mem = TestWebCrawlSession
-                .forStartUrls(protectedUrl)
+                .forStartReferences(protectedUrl)
                 .crawlerSetup(cfg -> {
                     var fetchCfg = WebTestUtil.getFirstHttpFetcherConfig(cfg);
                     var authCfg = authConfirm(
@@ -149,7 +149,7 @@ class GenericHttpFetcherAuthTest {
 
         // Invoke form action URL directly with bad credentials
         mem = TestWebCrawlSession
-                .forStartUrls(protectedUrl)
+                .forStartReferences(protectedUrl)
                 .crawlerSetup(cfg -> {
                     var fetchCfg = WebTestUtil.getFirstHttpFetcherConfig(cfg);
                     var authCfg = authConfirm(

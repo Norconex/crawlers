@@ -46,6 +46,7 @@ import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.crawler.MockCrawler;
+import com.norconex.crawler.core.crawler.ReferencesProvider;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.crawler.core.fetch.MockFetcher;
@@ -103,7 +104,7 @@ public final class CoreStubber {
             .randomize(AtomicBoolean.class, () -> new AtomicBoolean(
                     new BooleanRandomizer().getRandomValue()))
             .excludeType(DocumentProcessor.class::equals)
-
+            .excludeType(ReferencesProvider.class::equals)
     );
 
     private CoreStubber() {}
