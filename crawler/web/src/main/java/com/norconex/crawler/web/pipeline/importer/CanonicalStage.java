@@ -52,7 +52,7 @@ class CanonicalStage extends AbstractImporterStage {
         var detector = ctx.getConfig().getCanonicalLinkDetector();
 
         //Return right away if canonical links are ignored or no detector.
-        if (ctx.getConfig().isIgnoreCanonicalLinks() || detector == null) {
+        if (detector == null) {
             return true;
         }
 

@@ -207,10 +207,10 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * header is disabled.
      * Servers supporting this header will only return the requested document
      * if it was last modified since the supplied date.
-     * @param disableIfModifiedSince <code>true</code> if disabled
+     * @param ifModifiedSinceDisabled <code>true</code> if disabled
      * @return <code>true</code> if disabled
      */
-    private boolean disableIfModifiedSince;
+    private boolean ifModifiedSinceDisabled;
 
     /**
      * Whether adding "ETag" <code>If-None-Match</code>
@@ -218,10 +218,10 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * Servers supporting this header will only return the requested document
      * if the ETag value has changed, indicating a more recent version is
      * available.
-     * @param disableETag <code>true</code> if disabled
+     * @param eTagDisabled <code>true</code> if disabled
      * @return <code>true</code> if disabled
      */
-    private boolean disableETag;
+    private boolean eTagDisabled;
 
     /**
      * The user-agent used when identifying the crawler to targeted web sites.
@@ -259,10 +259,10 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
 
     /**
      * Sets whether Server Name Indication (SNI) is disabled.
-     * @param disableSNI <code>true</code> if disabled
+     * @param sniDisabled <code>true</code> if disabled
      * @return <code>true</code> if disabled
      */
-    private boolean disableSNI;
+    private boolean sniDisabled;
 
     private final List<String> sslProtocols = new ArrayList<>();
 
@@ -270,10 +270,10 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
      * Gets whether the forcing of non secure URLs to secure ones is disabled,
      * according to the URL domain <code>Strict-Transport-Security</code> policy
      * (obtained from HTTP response header).
-     * @param disableHSTS <code>true</code> if disabled
+     * @param hstsDisabled <code>true</code> if disabled
      * @return <code>true</code> if disabled
      */
-    private boolean disableHSTS;
+    private boolean hstsDisabled;
 
     /**
      * Sets valid HTTP response status codes.
@@ -444,16 +444,16 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
                 (long) maxConnectionInactiveTime).intValue();
         setRequestHeaders(xml.getStringMap(
                 "headers/header", "@name", ".", requestHeaders));
-        setDisableIfModifiedSince(xml.getBoolean(
-                "disableIfModifiedSince", disableIfModifiedSince));
-        setDisableETag(xml.getBoolean("disableETag", disableETag));
+        setIfModifiedSinceDisabled(xml.getBoolean(
+                "ifModifiedSinceDisabled", ifModifiedSinceDisabled));
+        setETagDisabled(xml.getBoolean("eTagDisabled", eTagDisabled));
         setRedirectURLProvider(xml.getObjectImpl(RedirectURLProvider.class,
                 "redirectURLProvider", redirectURLProvider));
 
         trustAllSSLCertificates = xml.getBoolean(
                 "trustAllSSLCertificates", trustAllSSLCertificates);
-        disableSNI = xml.getBoolean("disableSNI", disableSNI);
-        setDisableHSTS(xml.getBoolean("disableHSTS", disableHSTS));
+        sniDisabled = xml.getBoolean("sniDisabled", sniDisabled);
+        setHstsDisabled(xml.getBoolean("hstsDisabled", hstsDisabled));
         setSSLProtocols(
                 xml.getDelimitedStringList("sslProtocols", sslProtocols));
         setHttpMethods(xml.getDelimitedEnumList(
@@ -492,14 +492,14 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
             xmlHeaders.addXML("header").setAttribute(
                     "name", entry.getKey()).setTextContent(entry.getValue());
         }
-        xml.addElement("disableIfModifiedSince", disableIfModifiedSince);
-        xml.addElement("disableETag", disableETag);
+        xml.addElement("ifModifiedSinceDisabled", ifModifiedSinceDisabled);
+        xml.addElement("eTagDisabled", eTagDisabled);
 
         xml.addElement("redirectURLProvider", redirectURLProvider);
 
         xml.addElement("trustAllSSLCertificates", trustAllSSLCertificates);
-        xml.addElement("disableSNI", disableSNI);
-        xml.addElement("disableHSTS", disableHSTS);
+        xml.addElement("sniDisabled", sniDisabled);
+        xml.addElement("hstsDisabled", hstsDisabled);
         xml.addDelimitedElementList("sslProtocols", sslProtocols);
         xml.addDelimitedElementList("httpMethods", httpMethods);
     }

@@ -30,7 +30,7 @@ class RobotsMetaCreateStage extends AbstractImporterStage {
     @Override
     protected boolean executeStage(ImporterPipelineContext context) { //NOSONAR
         var ctx = (WebImporterPipelineContext) context;
-        if (ctx.getConfig().isIgnoreRobotsMeta()) {
+        if (ctx.getConfig().getRobotsMetaProvider() == null) {
             return true;
         }
 

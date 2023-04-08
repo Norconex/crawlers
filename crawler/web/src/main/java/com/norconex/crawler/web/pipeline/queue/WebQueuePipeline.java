@@ -22,9 +22,6 @@ import com.norconex.crawler.core.pipeline.queue.DepthValidationStage;
 import com.norconex.crawler.core.pipeline.queue.QueuePipeline;
 import com.norconex.crawler.core.pipeline.queue.QueueReferenceStage;
 import com.norconex.crawler.core.pipeline.queue.ReferenceFiltersStage;
-import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.robot.RobotsTxt;
-import com.norconex.crawler.web.util.Web;
 
 /**
  * Performs a URL handling logic before actual processing of the document
@@ -49,14 +46,12 @@ public final class WebQueuePipeline implements QueuePipeline {
         STAGES.test(ctx);
     }
 
-    static RobotsTxt getRobotsTxt(DocRecordPipelineContext ctx) {
-        var cfg = Web.config(ctx);
-        if (!cfg.isIgnoreRobotsTxt()) {
-            return cfg.getRobotsTxtProvider().getRobotsTxt(
-                    (HttpFetcher) ctx.getCrawler().getFetcher(),
-                    ctx.getDocRecord().getReference());
-        }
-        return null;
-    }
+//    static RobotsTxt getRobotsTxt(DocRecordPipelineContext ctx) {
+//        var cfg = Web.config(ctx);
+//        return Optional.ofNullable(cfg.getRobotsTxtProvider())
+//            .map(rb -> rb.getRobotsTxt(
+//                    (HttpFetcher) ctx.getCrawler().getFetcher(),
+//                    ctx.getDocRecord().getReference())).orElse(null);
+//    }
 }
 

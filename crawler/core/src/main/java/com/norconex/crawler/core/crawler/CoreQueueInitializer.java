@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
@@ -40,15 +40,14 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Default queue initializer, feeding the queue from a mix of references,
  * files containing references, and reference providers, each configurable
- * in {@link CrawlerConfig}. While you can't change these default initializers,
- * you can provide your own at creation time.
+ * in {@link CrawlerConfig}.
  */
 @Slf4j
 @EqualsAndHashCode
 public class CoreQueueInitializer
         implements Function<QueueInitContext, MutableBoolean> {
 
-    static final ToIntFunction<QueueInitContext> fromList = ctx -> {
+    public static final ToIntFunction<QueueInitContext> fromList = ctx -> {
         var cfg = ctx.getCrawler().getCrawlerConfig();
         var cnt = 0;
         for (String ref : cfg.getStartReferences()) {
@@ -63,7 +62,7 @@ public class CoreQueueInitializer
         return cnt;
     };
 
-    static final ToIntFunction<QueueInitContext> fromFiles = ctx -> {
+    public static final ToIntFunction<QueueInitContext> fromFiles = ctx -> {
         var cfg = ctx.getCrawler().getCrawlerConfig();
         var refsFiles = cfg.getStartReferencesFiles();
         var cnt = 0;
@@ -89,7 +88,7 @@ public class CoreQueueInitializer
         return cnt;
     };
 
-    static final ToIntFunction<QueueInitContext> fromProviders = ctx -> {
+    public static final ToIntFunction<QueueInitContext> fromProviders = ctx -> {
         var cfg = ctx.getCrawler().getCrawlerConfig();
         var providers = cfg.getStartReferencesProviders();
         var cnt = 0;
@@ -113,14 +112,16 @@ public class CoreQueueInitializer
     private final List<ToIntFunction<QueueInitContext>> initializers =
             new ArrayList<>();
 
-    @SafeVarargs
-    public CoreQueueInitializer(
-            ToIntFunction<QueueInitContext>... extraInitializers) {
+    public CoreQueueInitializer() {
         initializers.add(fromList);
         initializers.add(fromFiles);
         initializers.add(fromProviders);
-        if (ArrayUtils.isNotEmpty(extraInitializers)) {
-            initializers.addAll(List.of(extraInitializers));
+    }
+
+    public CoreQueueInitializer(
+            List<ToIntFunction<QueueInitContext>> initializers) {
+        if (CollectionUtils.isNotEmpty(initializers)) {
+            this.initializers.addAll(initializers);
         }
     }
 

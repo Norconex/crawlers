@@ -28,9 +28,8 @@ class RobotsMetaNoIndexStage extends AbstractImporterStage {
 
     @Override
     protected boolean executeStage(ImporterPipelineContext context) {
-        var ctx = Web.context(context);
-        var canIndex = ctx.getConfig().isIgnoreRobotsMeta()
-                || ctx.getRobotsMeta() == null
+        var ctx = Web.importerContext(context);
+        var canIndex = ctx.getRobotsMeta() == null
                 || !ctx.getRobotsMeta().isNoindex();
         if (!canIndex) {
             ctx.fire(CrawlerEvent.builder()

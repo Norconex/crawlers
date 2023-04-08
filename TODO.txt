@@ -32,4 +32,11 @@
   such as :
     * Was queue initialization complete (useful to know when resuming).
     * What else? 
+
+* On online documentation, add a flag that indicates whether a provider
+  of something is "nullable" as a way to disable it.  Else, an exception
+  is thrown (nullpointer or whatever).  
   
+* Add extra validation for invalid config state.  For instance, 
+  specifying a sitemap start URL and disabling sitemap support should
+  prevent the crawler from doing anything.

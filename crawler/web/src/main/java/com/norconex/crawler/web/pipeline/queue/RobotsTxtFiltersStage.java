@@ -23,6 +23,7 @@ import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 import com.norconex.crawler.web.robot.RobotsTxtFilter;
+import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,21 +46,23 @@ class RobotsTxtFiltersStage implements Predicate<DocRecordPipelineContext> {
     public boolean test(DocRecordPipelineContext ctx) {
         var cfg = config(ctx);
 
-        if (!cfg.isIgnoreRobotsTxt()) {
-            var filter = findRejectingRobotsFilter(ctx);
-            if (filter != null) {
-                ctx.getDocRecord().setState(CrawlDocState.REJECTED);
-                ctx.fire(CrawlerEvent.builder()
-                        .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
-                        .source(ctx.getCrawler())
-                        .subject(filter)
-                        .crawlDocRecord(ctx.getDocRecord())
-                        .build());
-                LOG.debug("REJECTED by robots.txt. "
-                        + ". Reference={} Filter={}",
-                        ctx.getDocRecord().getReference(), filter);
-                return false;
-            }
+        if (cfg.getRobotsTxtProvider() == null) {
+            return true;
+        }
+
+        var filter = findRejectingRobotsFilter(ctx);
+        if (filter != null) {
+            ctx.getDocRecord().setState(CrawlDocState.REJECTED);
+            ctx.fire(CrawlerEvent.builder()
+                    .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
+                    .source(ctx.getCrawler())
+                    .subject(filter)
+                    .crawlDocRecord(ctx.getDocRecord())
+                    .build());
+            LOG.debug("REJECTED by robots.txt. "
+                    + ". Reference={} Filter={}",
+                    ctx.getDocRecord().getReference(), filter);
+            return false;
         }
         return true;
     }
@@ -73,7 +76,7 @@ class RobotsTxtFiltersStage implements Predicate<DocRecordPipelineContext> {
     private RobotsTxtFilter findRejectingRobotsFilter(
             DocRecordPipelineContext ctx) {
 
-        var robotsTxt = WebQueuePipeline.getRobotsTxt(ctx);
+        var robotsTxt = Web.robotsTxt(ctx);
         if (robotsTxt == null) {
             return null;
         }

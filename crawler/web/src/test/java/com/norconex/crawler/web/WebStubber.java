@@ -216,7 +216,6 @@ public final class WebStubber {
         return doc;
     }
 
-    //--- Crawl Session --------------------------------------------------------
 
     public static CrawlSession crawlSession(
             Path workDir, String... startRefs) {

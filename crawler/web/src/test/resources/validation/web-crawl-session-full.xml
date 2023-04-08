@@ -51,7 +51,6 @@
     <orphansStrategy>PROCESS</orphansStrategy>
     <metadataFetchSupport>OPTIONAL</metadataFetchSupport>
     <documentFetchSupport>DISABLED</documentFetchSupport>
-    <ignoreSitemapDiscovery>true</ignoreSitemapDiscovery>
     
     <eventListeners>
       <listener class="URLStatusCrawlerEventListener">
@@ -61,7 +60,7 @@
       </listener>
     </eventListeners>
     
-    <urlNormalizer disabled="false" class="com.norconex.crawler.web.url.impl.GenericURLNormalizer">
+    <urlNormalizer class="com.norconex.crawler.web.url.impl.GenericURLNormalizer">
       <normalizations>
         lowerCaseSchemeHost, upperCaseEscapeSequence, 
         decodeUnreservedCharacters, removeDefaultPort 
@@ -140,7 +139,7 @@
           <maxConnectionIdleTime>7</maxConnectionIdleTime>
           <maxConnectionInactiveTime>8</maxConnectionInactiveTime>
           <trustAllSSLCertificates>true</trustAllSSLCertificates>
-          <disableSNI>true</disableSNI>
+          <sniDisabled>true</sniDisabled>
           <sslProtocols>item1,item2</sslProtocols>
           <proxySettings>
             <host>
@@ -158,7 +157,7 @@
               </passwordKey>              
             </credentials>
           </proxySettings>
-          <disableIfModifiedSince>true</disableIfModifiedSince>
+          <ifModifiedSinceDisabled>true</ifModifiedSinceDisabled>
           <headers>
             <header name="head1"></header>
             <header name="head2">value2</header>
@@ -180,11 +179,15 @@
     <robotsTxt ignore="false" class="com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider"/>
     <sitemapResolver lenient="true" 
         class="com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver">
+    </sitemapResolver>
+    <sitemapLocator
+        class="com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator"
+            robotsTxtSitemapDisabled="true">
       <paths>
         <path>/path1/</path>
         <path>/path2/</path>
       </paths>
-    </sitemapResolver>
+    </sitemapLocator>
 
     <recrawlableResolver class="com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver"
         sitemapSupport="last" >
@@ -340,7 +343,7 @@
 
     <documentChecksummer 
         class="com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer"
-        disabled="false" keep="true" toField="afield">
+        keep="true" toField="afield">
       <fieldMatcher method="csv">field1,field2</fieldMatcher>
     </documentChecksummer>
     <postImportProcessors>

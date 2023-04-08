@@ -92,7 +92,6 @@ class CanonicalLinkTest {
         var crawlSession = WebStubber.crawlSession(tempDir, canonicalUrl);
         var cfg = WebTestUtil.getFirstCrawlerConfig(crawlSession);
         canCount.setValue(0);
-        cfg.setIgnoreCanonicalLinks(false);
         cfg.addEventListener(e -> {
             if (e.is(WebCrawlerEvent.REJECTED_NONCANONICAL)) {
                 canCount.increment();

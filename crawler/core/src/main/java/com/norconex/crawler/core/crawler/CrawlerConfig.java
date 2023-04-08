@@ -357,8 +357,9 @@ public class CrawlerConfig implements XMLConfigurable {
 
     /**
      * The metadata checksummer.
+     * Metadata checksum generation is disabled when <code>null</code>.
      * @param metadataChecksummer metadata checksummer
-     * @return metadata checksummer
+     * @return metadata checksummer or <code>null</code> when disabled
      */
     private MetadataChecksummer metadataChecksummer;
 
@@ -373,7 +374,8 @@ public class CrawlerConfig implements XMLConfigurable {
 
     /**
      * Whether to turn on deduplication based on metadata checksum.
-     * Ignored if {@link #getMetadataChecksummer()} returns <code>null</code>.
+     * To enable, {@link #getMetadataChecksummer()} must not return
+     * <code>null</code>.
      * Not recommended unless you know for sure your metadata
      * checksum is acceptably unique.
      * @param metadataDeduplicate <code>true</code> to turn on
@@ -384,7 +386,8 @@ public class CrawlerConfig implements XMLConfigurable {
 
     /**
      * Whether to turn on deduplication based on document checksum.
-     * Ignored if {@link #getDocumentChecksummer()} returns <code>null</code>.
+     * To enable, {@link #getDocumentChecksummer()} must not return
+     * <code>null</code>.
      * Not recommended unless you know for sure your document
      * checksum is acceptably unique.
      * @param documentDeduplicate <code>true</code> to turn on
@@ -395,8 +398,9 @@ public class CrawlerConfig implements XMLConfigurable {
 
     /**
      * The document checksummer.
+     * Document checksum generation is disabled when <code>null</code>.
      * @param documentChecksummer document checksummer
-     * @return document checksummer
+     * @return document checksummer or <code>null</code> when disabled
      */
     private DocumentChecksummer documentChecksummer =
             new MD5DocumentChecksummer();
@@ -417,6 +421,12 @@ public class CrawlerConfig implements XMLConfigurable {
     private FetchDirectiveSupport documentFetchSupport =
             FetchDirectiveSupport.REQUIRED;
 
+    /**
+     * One or more fetchers responsible for obtaining documents and their
+     * metadata from a source.
+     * @param fetchers one or more fetchers
+     * @return one or more fetchers
+     */
     private final List<Fetcher<?, ?>> fetchers = new ArrayList<>();
 
     /**

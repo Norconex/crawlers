@@ -132,6 +132,13 @@ public class Crawler {
 
     //--- Properties set on Init -----------------------------------------------
 
+    /**
+     * Crawler implementation-specific context holding state-data not relevant
+     * to Crawler Core.
+     */
+    @Getter
+    private Object crawlerContext;
+
     @Getter
     private DataStoreEngine dataStoreEngine;
 
@@ -261,6 +268,9 @@ public class Crawler {
         //--- Directories ---
         createDirectory(workDir);
         createDirectory(tempDir);
+
+        //--- Crawler implementation-specific context ---
+        crawlerContext = crawlerImpl.crawlerImplContext().get();
 
         fire(CrawlerEvent.CRAWLER_INIT_BEGIN);
 

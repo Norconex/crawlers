@@ -17,6 +17,7 @@ package com.norconex.crawler.core.crawler;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
@@ -49,6 +50,15 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @SuppressWarnings("javadoc")
 public class CrawlerImpl {
+
+    /**
+     * Holds objects specific to a given crawler implementation.
+     * Useful for keeping objects and state not directly part of
+     * Crawler.
+     */
+    @Default
+    @NonNull
+    Supplier<Object> crawlerImplContext = CrawlerImplContext::new;
 
     /**
      * Provides a required fetcher implementation, responsible for obtaining

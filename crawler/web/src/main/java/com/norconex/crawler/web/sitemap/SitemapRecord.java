@@ -14,15 +14,20 @@
  */
 package com.norconex.crawler.web.sitemap;
 
-@FunctionalInterface
-public interface SitemapResolver {
+import java.io.Serializable;
+import java.time.ZonedDateTime;
 
-    // this one keeps all the state... the locator just suggests stuff
-    // and this one returns right away if already processed for a root
-    // url so the suggestions mean nothing.
+import lombok.Data;
 
-    //TODO rename back SitemapResolver_OLD when done? Since it does more than
-    // parsing (keeping states, plus also fetching).
+@Data
+public class SitemapRecord implements Serializable {
 
-    void resolve(SitemapContext ctx);
+    private static final long serialVersionUID = 1L;
+
+    private String location;
+
+    //TODO NEEDED? used at all?
+    private ZonedDateTime crawlDate;
+
+    private ZonedDateTime lastModified;
 }

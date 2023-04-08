@@ -56,6 +56,8 @@ Misc. Changes
 * Minimum Java version: 17
 * Different features originally found in HTTP Collector and Filesystem Collector
   were moved to Crawler Core.
+* Removed configuration flags to ignore/disabled a given feature when setting
+  the corresponding object to null has the same effect.
 
 ### Committer Core
 
@@ -73,6 +75,7 @@ Misc. Changes
 * CommonMatchers pattern constants are now Collections instead of arrays.
 
 ### Crawler Core
+
 * Renamed CrawlDocInfo to CrawlDocRecord.
 * Renamed .cmdline package to .cli
 * Store export no longer prepare the store for a new crawl (exports as is).
@@ -111,4 +114,5 @@ Misc. Changes
 
 ### Crawler File System
 
-* Too many changes. Major refactor to inherit V4-stack features.
+* Too many changes to list. Major refactor to bring up to speed with V4-stack 
+  features.

@@ -32,6 +32,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 
 /**
@@ -84,9 +85,9 @@ class CanonicalRedirectLoopTest {
 
         var crawlSession = WebStubber.crawlSession(
                 tempDir, serverUrl(client, startUrlPath));
-        var cfg = WebTestUtil.getFirstCrawlerConfig(crawlSession);
         WebTestUtil.ignoreAllIgnorables(crawlSession);
-        cfg.setIgnoreCanonicalLinks(false);
+        var cfg = WebTestUtil.getFirstCrawlerConfig(crawlSession);
+        cfg.setCanonicalLinkDetector(new GenericCanonicalLinkDetector());
         crawlSession.start();
 
         //--- Assertions ---

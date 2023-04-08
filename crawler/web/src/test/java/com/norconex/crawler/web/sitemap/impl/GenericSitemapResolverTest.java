@@ -22,15 +22,9 @@ import static org.mockserver.model.HttpResponse.response;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
@@ -40,9 +34,8 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.web.MockWebCrawlSession;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
-import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
-import com.norconex.crawler.web.sitemap.SitemapResolutionContext;
+import com.norconex.crawler.web.sitemap.SitemapContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -96,12 +89,10 @@ class GenericSitemapResolverTest {
 
         var resolver = ((WebCrawlerConfig)
                 crawler.getCrawlerConfig()).getSitemapResolver();
-        resolver.resolveSitemaps(SitemapResolutionContext
+        resolver.resolve(SitemapContext
                 .builder()
                 .fetcher((HttpFetcher) crawler.getFetcher())
-                .sitemapLocations(List.of(serverUrl(client, "sitemap-index")))
-                .startReferences(false)
-                .urlRoot(serverUrl(client, ""))
+                .location(serverUrl(client, "sitemap-index"))
                 .urlConsumer(rec -> urls.add(rec.getReference()))
                 .build());
 
@@ -140,48 +131,9 @@ class GenericSitemapResolverTest {
     }
 
     @Test
-    void testSitemapResolverParsing()
-            throws IOException, XMLStreamException {
-
-        List<WebDocRecord> extractedLinks = new ArrayList<>();
-        var r = new GenericSitemapResolver();
-        try (var is = getClass().getResourceAsStream("sitemap.xml")) {
-            r.parseSitemap(is, null, d -> {
-                extractedLinks.add(d);
-            }, new HashSet<>(), "https://example.com/sitemap.xml");
-        }
-
-        // All links there?
-        Assertions.assertEquals(
-                Arrays.asList(
-                        "https://example.com/linkA",
-                        "https://example.com/linkB",
-                        "https://example.com/linkC",
-                        "https://example.com/linkD"),
-                extractedLinks.stream()
-                        .map(WebDocRecord::getReference)
-                        .collect(Collectors.toList()));
-
-        // test second one:
-        var doc = extractedLinks.get(1);
-        Assertions.assertEquals(
-                "https://example.com/linkB", doc.getReference());
-        Assertions.assertEquals("2021-04-01",
-                doc.getSitemapLastMod().toLocalDate().toString());
-        Assertions.assertEquals("daily", doc.getSitemapChangeFreq());
-        Assertions.assertEquals(1f, doc.getSitemapPriority());
-    }
-
-    @Test
     void testWriteRead() {
         var r = new GenericSitemapResolver();
         r.setLenient(true);
-        r.setSitemapPaths(List.of("/sitemap.xml", "/subdir/sitemap.xml"));
-        LOG.debug("Writing/Reading this: {}", r);
-        XML.assertWriteRead(r, "sitemapResolver");
-
-        // try with empty paths
-        r.setSitemapPaths(null);
         LOG.debug("Writing/Reading this: {}", r);
         XML.assertWriteRead(r, "sitemapResolver");
     }

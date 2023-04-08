@@ -44,7 +44,7 @@ class RecrawlableResolverStage extends AbstractImporterStage {
             return true;
         }
 
-        var cachedInfo = Web.context(ctx).getCachedDocRecord();
+        var cachedInfo = Web.importerContext(ctx).getCachedDocRecord();
         if (cachedInfo == null) {
             // this document was not previously crawled so process it.
             return true;

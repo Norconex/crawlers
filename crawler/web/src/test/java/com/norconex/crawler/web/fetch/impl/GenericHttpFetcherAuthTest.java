@@ -75,10 +75,10 @@ class GenericHttpFetcherAuthTest {
                     fetchCfg.setAuthConfig(authCfg);
                     // Misc. unaffecting params that should not break
                     fetchCfg.setSSLProtocols(List.of("TLS 1.3"));
-                    fetchCfg.setDisableETag(true);
-                    fetchCfg.setDisableHSTS(true);
-                    fetchCfg.setDisableIfModifiedSince(true);
-                    fetchCfg.setDisableSNI(true);
+                    fetchCfg.setETagDisabled(true);
+                    fetchCfg.setHstsDisabled(true);
+                    fetchCfg.setIfModifiedSinceDisabled(true);
+                    fetchCfg.setSniDisabled(true);
                 })
                 .crawl();
         assertThat(mem.getUpsertCount()).isEqualTo(1);

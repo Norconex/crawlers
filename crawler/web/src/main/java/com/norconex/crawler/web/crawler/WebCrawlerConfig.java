@@ -48,7 +48,9 @@ import com.norconex.crawler.web.robot.RobotsMetaProvider;
 import com.norconex.crawler.web.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider;
 import com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider;
+import com.norconex.crawler.web.sitemap.SitemapLocator;
 import com.norconex.crawler.web.sitemap.SitemapResolver;
+import com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.url.WebURLNormalizer;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
@@ -59,7 +61,7 @@ import lombok.experimental.FieldNameConstants;
 
 /**
  * <p>
- * HTTP Crawler configuration.
+ * Web Crawler configuration.
  * </p>
  * <h3>Start URLs</h3>
  * <p>
@@ -182,14 +184,15 @@ import lombok.experimental.FieldNameConstants;
  * <p>
  * During and between crawl sessions, the crawler needs to preserve
  * specific information in order to keep track of
- * things such as a queue of document reference to process,
+ * things such as a queue of document references to process,
  * those already processed, whether a document has been modified since last
  * crawled, caching of document checksums, etc.
- * For this, the crawler uses a database we call a crawl data store engine.
+ * For this, the crawler uses a database we refer to as a data store engine.
  * The default implementation uses the local file system to store these
  * (see {@link MVStoreDataStoreEngine}). While very capable and suitable
- * for most sites, if you need a larger storage system, you can provide your
- * own implementation with {@link #setDataStoreEngine(IDataStoreEngine)}.
+ * for most sites, if you need a larger storage system, you can change
+ * the default implementation or provide your own
+ * with {@link #setDataStoreEngine(IDataStoreEngine)}.
  * </p>
  *
  * <h3>Document Importing</h3>
@@ -225,7 +228,7 @@ import lombok.experimental.FieldNameConstants;
  *
  * <h3>HTTP Fetcher</h3>
  * <p>
- * To crawl and parse a document, it needs to be downloaded first. This is the
+ * To crawl and parse a document, it first needs to be downloaded. This is the
  * role of one or more HTTP Fetchers.  {@link GenericHttpFetcher} is the
  * default implementation and can handle most web sites.
  * There might be cases where a more specialized way of obtaining web resources
@@ -277,7 +280,7 @@ import lombok.experimental.FieldNameConstants;
  * Without filtering, you would typically crawl many documents you are not
  * interested in.
  * There are different types filtering offered to you, occurring at different
- * type during a URL crawling process. The sooner in a URL processing
+ * time during a URL crawling process. The sooner in a URL processing
  * life-cycle you filter out a document the more you can improve the
  * crawler performance.  It may be important for you to
  * understand the differences:
@@ -287,7 +290,7 @@ import lombok.experimental.FieldNameConstants;
  *     <b>Reference filters:</b> The fastest way to exclude a document.
  *     The filtering rule applies on the URL, before any HTTP request is made
  *     for that URL. Rejected documents are not queued for processing.
- *     They are not be downloaded (thus no URLs are extracted). The
+ *     They are not downloaded (thus no URLs are extracted). The
  *     specified "delay" between downloads is not applied (i.e. no delay
  *     for rejected documents).
  *   </li>
@@ -322,7 +325,7 @@ import lombok.experimental.FieldNameConstants;
  *     and its links extracted.  There are two types of filtering offered
  *     by the Importer: before and after document parsing.  Use
  *     filters before parsing if you need to filter on raw content or
- *     want to prevent a more expensive parsing. Use filters after parsing
+ *     want to prevent an expensive parsing. Use filters after parsing
  *     when you need to read the content as plain text.
  *   </li>
  * </ul>
@@ -331,40 +334,63 @@ import lombok.experimental.FieldNameConstants;
  * <p>
  * By default, the crawler tries to respect instructions a web site has put
  * in place for the benefit of crawlers. The following is a list of some of the
- * popular ones that can be disabled by setting them to <code>null</code>.
- * If you are relying on XML configuration, a self-closed tag will
- * effectively set them to <code>null</code>.
+ * popular ones. Where <code>null</code> can be set to disable support
+ * for specific instructions, you can achieve the equivalent in XML
+ * configuration by declaring the corresponding option as a self-closed tag.
  * </p>
  * <ul>
  *   <li>
- *     <b>Robot rules:</b> Rules defined in a "robots.txt" file at the
- *     root of a web site, or via <code>X-Robots-Tag</code>. See:
- *     {@link #setIgnoreRobotsTxt(boolean)},
- *     {@link #setRobotsTxtProvider(RobotsTxtProvider)},
- *     {@link #setIgnoreRobotsMeta(boolean)},
- *     {@link #setRobotsMetaProvider(RobotsMetaProvider)}
+ *     <b>"robots.txt" rules:</b> Rules defined in a "robots.txt" file at the
+ *     root of a web site.
+ *     Defaults to {@link StandardRobotsTxtProvider}.
+ *     Set to <code>null</code> via
+ *     {@link #setRobotsTxtProvider(RobotsTxtProvider)} to disable
+ *     support for "robots.txt" rules.
+ *   </li>
+ *   <li>
+ *     <b>Robots metadata rules:</b> Rules provided via the HTTP response
+ *     header <code>X-Robots-Tag</code> for a given document.
+ *     Defaults to {@link StandardRobotsMetaProvider}.
+ *     Set to <code>null</code> via
+ *     {@link #setRobotsMetaProvider(RobotsMetaProvider)} to disable
+ *     support for robots metadata rules.
  *   </li>
  *   <li>
  *     <b>HTML "nofollow":</b> Most HTML-oriented link extractors support
- *     the <code>rel="nofollow"</code> attribute set on HTML links.
- *     See: {@link HtmlLinkExtractor#setIgnoreNofollow(boolean)}
+ *     the <code>rel="nofollow"</code> attribute set on HTML links and offer
+ *     a way to disable this instruction. E.g.,
+ *     {@link HtmlLinkExtractor#setIgnoreNofollow(boolean)}.
  *   </li>
  *   <li>
- *     <b>Sitemap:</b> Sitemaps XML files are auto-detected and used to find
- *     a list of URLs to crawl.  To disable detection, use
- *     {@link #setIgnoreSitemapDiscovery(boolean)}.</li>
+ *     <b>Sitemap:</b> Sitemaps XML files contain as listing of
+ *     website URLs typically worth crawling.  They can be detected by
+ *     looking at usual website locations or via robots.txt instructions, or
+ *     they can be specified via {@link #setStartReferencesSitemaps(List)}.
+ *     Defaults to {@link GenericSitemapResolver}, which
+ *     offers support for disabling sitemap detection to rely only
+ *     on sitemap start references.
+ *     Setting it to <code>null</code> via
+ *     {@link #setSitemapResolver(SitemapResolver_OLD) effectively disables
+ *     sitemap support altogether, and is thus incompatible with sitemaps
+ *     specified as start references.
+*    </li>
  *   <li>
  *     <b>Canonical URLs:</b> The crawler will reject URLs that are
  *     non-canonical, as per HTML <code>&lt;meta ...&gt;</code> or
- *     HTTP response instructions.  To crawl non-canonical pages, use
- *     {@link #setIgnoreCanonicalLinks(boolean)}.
+ *     HTTP response instructions.
+ *     Defaults to {@link GenericCanonicalLinkDetector}.
+ *     Set to <code>null</code> via
+ *     {@link #setCanonicalLinkDetector(CanonicalLinkDetector) to disable
+ *     support canonical links (increasing the chance of getting duplicates).
  *     </li>
  *   <li>
- *     <b>If Modified Since:</b> The default HTTP Fetcher
- *     ({@link GenericHttpFetcher}) uses the <code>If-Modified-Since</code>
- *     feature as part of its HTTP requests for web sites supporting it
+ *     <b>Fetcher-specific:</b> Fetcher implementations may support additional
+ *     web site instructions with corresponding configuration options.
+ *     For example, the default HTTP Fetcher ({@link GenericHttpFetcher})
+ *     supports the <code>If-Modified-Since</code> for web sites supporting it
  *     (only affects incremental crawls). To turn that off, use
- *     {@link GenericHttpFetcherConfig#setDisableIfModifiedSince(boolean)}.
+ *     {@link GenericHttpFetcherConfig#setIfModifiedSinceDisabled(boolean)}.
+ *     See fetcher documentation for additional options.
  *   </li>
  * </ul>
  *
@@ -405,7 +431,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setMetadataDeduplicate(boolean)} and/or
  * {@link #setDocumentDeduplicate(boolean)} to <code>true</code>. Setting
  * those will have no effect if the corresponding checksummers are
- * not set (<code>null</code>).
+ * <code>null</code>.
  * </p>
  * <p>
  * Deduplication can impact crawl performance.  It is recommended you
@@ -471,26 +497,18 @@ import lombok.experimental.FieldNameConstants;
  *
  *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#pipeline-queue}
  *
- *   <robotsTxt
- *       ignore="[false|true]"
- *       class="(RobotsMetaProvider implementation)"/>
+ *   <robotsTxt class="(RobotsMetaProvider implementation)"/>
  *
- *   <ignoreSitemapDiscovery>[false|true]</ignoreSitemapDiscovery>
- *   <sitemapResolver
- *       class="(SitemapResolver implementation)"/>
+ *   <sitemapResolver class="(SitemapResolver_OLD implementation)"/>
  *
  *   <recrawlableResolver class="(RecrawlableResolver implementation)" />
  *
- *   <canonicalLinkDetector
- *       ignore="[false|true]"
- *       class="(CanonicalLinkDetector implementation)"/>
+ *   <canonicalLinkDetector class="(CanonicalLinkDetector implementation)"/>
  *
  *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#checksum-meta}
  *   {@nx.include com.norconex.crawler.core.crawler.CrawlerConfig#dedup-meta}
  *
- *   <robotsMeta
- *       ignore="[false|true]"
- *       class="(RobotsMetaProvider implementation)" />
+ *   <robotsMeta class="(RobotsMetaProvider implementation)" />
  *
  *   <linkExtractors>
  *     <!-- Repeatable -->
@@ -537,55 +555,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
     }
 
     private final List<String> startReferencesSitemaps = new ArrayList<>();
-
-    //TODO considered a constant approach for ignore/disabled. Either:
-    // 1. renaming all ignoreXXX with xxxDisabled
-    // 2. remove all ignore/disabled and let people set null to disable
-    // 3. have null fall back to default (document it) and force to rely
-    //    on xxxDisabled instead (kind of goes against our general
-    //    XML practice of self-closed tags to indicate null/disabled).
-    // 4. Have both: the option to do setXXXDisabled and set it to null
-    //    (could be misleading)
-
-
-    /**
-     * Whether to ignore crawler directives defined by web sites in a
-     * <code>/robots.txt</code> file.
-     * @param ignoreRobotsTxt <code>true</code> to ignore
-     *     <code>robots.txt</code> rules.
-     * @return <code>true</code> if ignoring <code>robots.txt</code> rules.
-     */
-    private boolean ignoreRobotsTxt;
-
-    /**
-     * Whether to ignore crawler directives defined in
-     * <code>X-Robots-Tag</code> HTTP response header.
-     * @param ignoreRobotsMeta <code>true</code> to ignore
-     *     <code>X-Robots-Tag</code> rules.
-     * @return <code>true</code> if ignoring <code>X-Robots-Tag</code> rules.
-     */
-    private boolean ignoreRobotsMeta;
-
-    /**
-     * Whether to ignore (i.e., disable) automatic sitemap detection and
-     * resolving for each web site crawled. Does not affect sitemaps explicitly
-     * defined via ({@link #setStartReferencesSitemaps(List) (those are
-     * never ignored).
-     * @param ignoreSitemapAutoDiscovery <code>true</code> to disable
-     *     sitemap auto-discovery.
-     * @return <code>true</code> if disabling sitemap auto-discovery.
-     */
-    private boolean ignoreSitemapDiscovery;
-
-    /**
-     * Whether to ignore declarations of canonical links found in HTTP headers
-     * HTML files &lt;head&gt; section. When honoring canonical directives,
-     * pages pointing to a canonical URL (if it does not match itself) are
-     * not processed.
-     * @param ignoreCanonicalLinks <code>true</code> to ignore canonical links.
-     * @return <code>true</code> if ignoring canonical links.
-     */
-    private boolean ignoreCanonicalLinks;
 
     private final Set<ReferencedLinkType> keepReferencedLinks =
             new HashSet<>(Arrays.asList(ReferencedLinkType.INSCOPE));
@@ -638,8 +607,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     /**
      * The provider of robots.txt rules for a site (if applicable).
-     * To disable, use {@link #setIgnoreRobotsTxt(boolean)}.
      * Defaults to {@link StandardRobotsTxtProvider}.
+     * Set to <code>null</code> to disable.
      * @param robotsTxtProvider robots.txt provider
      * @return robots.txt provider
      * @see #setIgnoreRobotsTxt(boolean)
@@ -649,8 +618,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     /**
      * The provider of robots metadata rules for a page (if applicable).
-     * To disable, use {@link #setIgnoreRobotsMeta(boolean)}.
      * Defaults to {@link StandardRobotsMetaProvider}.
+     * Set to <code>null</code> to disable.
      * @param robotsMetaProvider robots metadata rules
      * @return robots metadata rules r
      * @see #setIgnoreRobotsMeta(boolean)
@@ -659,15 +628,26 @@ public class WebCrawlerConfig extends CrawlerConfig {
             new StandardRobotsMetaProvider();
 
     /**
-     * The resolver of website sitemaps (if applicable).
-     * Even if {@link #isIgnoreSitemapDiscovery()} is <code>true</code>,
-     * this resolver is still used for sitemaps reference provided
-     * explicitly in configuration or found in robots.txt.
+     * The resolver of web site sitemaps (if applicable).
      * Defaults to {@link GenericSitemapResolver}.
+     * Set to <code>null</code> to disable all sitemap support, or
+     * see class documentation to disable sitemap detection only.
      * @param sitemapResolver sitemap resolver
      * @return sitemap resolver
+     * @see SitemapLocator
      */
     private SitemapResolver sitemapResolver = new GenericSitemapResolver();
+
+    /**
+     * The locator of sitemaps (if applicable).
+     * Defaults to {@link GenericSitemapLocator}.
+     * Set to <code>null</code> to disable locating sitemaps
+     * (relying on sitemaps defined as start reference, if any).
+     * @param sitemapLocator sitemap locator
+     * @return sitemap locator
+     * @see SitemapResolver
+     */
+    private SitemapLocator sitemapLocator = new GenericSitemapLocator();
 
     /**
      * The resolver that indicates whether a given URL is ready to be
@@ -809,16 +789,13 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
         xml.addElement("urlNormalizer", urlNormalizer);
         xml.addElement("delay", delayResolver);
-        xml.addElement("robotsTxt", robotsTxtProvider)
-                .setAttribute("ignore", ignoreRobotsTxt);
-        xml.addElement("ignoreSitemapDiscovery", ignoreSitemapDiscovery);
+        xml.addElement("robotsTxt", robotsTxtProvider);
         xml.addElement("sitemapResolver", sitemapResolver);
-        xml.addElement("canonicalLinkDetector", canonicalLinkDetector)
-                .setAttribute("ignore", ignoreCanonicalLinks);
+        xml.addElement(Fields.sitemapLocator, sitemapLocator);
+        xml.addElement("canonicalLinkDetector", canonicalLinkDetector);
         xml.addElement("recrawlableResolver", recrawlableResolver);
 
-        xml.addElement("robotsMeta", robotsMetaProvider)
-                .setAttribute("ignore", ignoreRobotsMeta);
+        xml.addElement("robotsMeta", robotsMetaProvider);
         xml.addElementList("linkExtractors", "extractor", linkExtractors);
 
         postImportLinks.saveToXML(
@@ -837,21 +814,17 @@ public class WebCrawlerConfig extends CrawlerConfig {
         // RobotsTxt provider
         setRobotsTxtProvider(xml.getObjectImpl(
                 RobotsTxtProvider.class, "robotsTxt", robotsTxtProvider));
-        setIgnoreRobotsTxt(
-                xml.getBoolean("robotsTxt/@ignore", ignoreRobotsTxt));
 
         // Sitemap Resolver
         setSitemapResolver(xml.getObjectImpl(
                 SitemapResolver.class,
-                "sitemapResolver", sitemapResolver));
-        setIgnoreSitemapDiscovery(xml.getBoolean(
-                "ignoreSitemapDiscovery", ignoreSitemapDiscovery));
+                Fields.sitemapResolver, sitemapResolver));
+        setSitemapLocator(xml.getObjectImpl(
+                SitemapLocator.class, Fields.sitemapLocator, sitemapLocator));
 
         // Canonical Link Detector
         setCanonicalLinkDetector(xml.getObjectImpl(CanonicalLinkDetector.class,
                 "canonicalLinkDetector", canonicalLinkDetector));
-        setIgnoreCanonicalLinks(xml.getBoolean(
-                "canonicalLinkDetector/@ignore", ignoreCanonicalLinks));
 
         // Recrawlable resolver
         setRecrawlableResolver(xml.getObjectImpl(RecrawlableResolver.class,
@@ -860,8 +833,6 @@ public class WebCrawlerConfig extends CrawlerConfig {
         // RobotsMeta provider
         setRobotsMetaProvider(xml.getObjectImpl(
                 RobotsMetaProvider.class, "robotsMeta", robotsMetaProvider));
-        setIgnoreRobotsMeta(
-                xml.getBoolean("robotsMeta/@ignore", ignoreRobotsMeta));
 
         // Link Extractors
         setLinkExtractors(xml.getObjectListImpl(LinkExtractor.class,
