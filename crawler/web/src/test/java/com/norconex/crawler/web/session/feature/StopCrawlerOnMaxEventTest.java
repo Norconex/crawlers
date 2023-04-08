@@ -47,7 +47,7 @@ class StopCrawlerOnMaxEventTest {
         WebsiteMock.whenInfinitDepth(client);
 
         var mem = TestWebCrawlSession
-            .forStartUrls(serverUrl(client, "/stopCrawlerOnMaxEvent"))
+            .forStartReferences(serverUrl(client, "/stopCrawlerOnMaxEvent"))
             .crawlerSetup(cfg -> {
                 var lis = new StopCrawlerOnMaxEventListener();
                 lis.setEventMatcher(TextMatcher.csv(

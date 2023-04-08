@@ -73,7 +73,7 @@ class ContentTypeCharsetTest {
         //--- First run without detect ---
 
         var mem1 = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, urlPath))
+                .forStartReferences(serverUrl(client, urlPath))
                 .crawl();
 
         assertThat(mem1.getUpsertRequests()).hasSize(1);
@@ -86,7 +86,7 @@ class ContentTypeCharsetTest {
         //--- Second run with detect ---
 
         var mem2 = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, urlPath))
+                .forStartReferences(serverUrl(client, urlPath))
                 .crawlerSetup(cfg -> {
                     var fetcher = new GenericHttpFetcher();
                     fetcher.getConfig().setForceContentTypeDetection(true);

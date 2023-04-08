@@ -59,13 +59,13 @@ public class TestWebCrawlSession {
 
     private Consumer<CrawlSessionConfig> crawlSessionSetup;
     private Consumer<WebCrawlerConfig> crawlerSetup;
-    private final List<String> startUrls = new ArrayList<>();
+    private final List<String> startRefs = new ArrayList<>();
 
     private TestWebCrawlSession() {}
 
-    public static TestWebCrawlSession forStartUrls(String... startUrls) {
+    public static TestWebCrawlSession forStartReferences(String... startRefs) {
         var sess = new TestWebCrawlSession();
-        CollectionUtil.setAll(sess.startUrls, startUrls);
+        CollectionUtil.setAll(sess.startRefs, startRefs);
         return sess;
     }
 
@@ -76,7 +76,7 @@ public class TestWebCrawlSession {
     public CrawlSession crawlSession() {
         var workDir = Files.newTemporaryFolder();
         var crawlSession = WebStubber.crawlSession(
-                workDir.toPath(), startUrls.toArray(EMPTY_STRING_ARRAY));
+                workDir.toPath(), startRefs.toArray(EMPTY_STRING_ARRAY));
         WebTestUtil.ignoreAllIgnorables(crawlSession);
         var sessConfig = crawlSession.getCrawlSessionConfig();
         Optional.ofNullable(crawlSessionSetup)

@@ -28,6 +28,8 @@ public final class CrawlDocMetadata {
 
     public static final String PREFIX = "collector.";
 
+    public static final String DEPTH = PREFIX + "depth";
+
     // Avoid duplicating metadata under Collector when there is an equivalent
     // set by Importer
     public static final String CHECKSUM_METADATA =

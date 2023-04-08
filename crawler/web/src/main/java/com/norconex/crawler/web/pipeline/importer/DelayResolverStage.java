@@ -16,7 +16,6 @@ package com.norconex.crawler.web.pipeline.importer;
 
 import com.norconex.crawler.core.pipeline.importer.AbstractImporterStage;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.util.Web;
 
 /**
@@ -27,16 +26,9 @@ class DelayResolverStage extends AbstractImporterStage {
     protected boolean executeStage(ImporterPipelineContext ctx) {
         var delayResolver = Web.config(ctx).getDelayResolver();
         if (delayResolver != null) {
-            if (!Web.config(ctx).isIgnoreRobotsTxt()) {
-                delayResolver.delay(
-                        Web.config(ctx).getRobotsTxtProvider().getRobotsTxt(
-                                (HttpFetcher) ctx.getCrawler().getFetcher(),
-                                ctx.getDocRecord().getReference()),
-                        ctx.getDocRecord().getReference());
-            } else {
-                delayResolver.delay(
-                        null, ctx.getDocRecord().getReference());
-            }
+            String reference = ctx.getDocRecord().getReference();
+            delayResolver.delay(
+                    Web.robotsTxt(ctx.getCrawler(), reference), reference);
         }
         return true;
     }

@@ -55,7 +55,7 @@ class SpecialURLsTest {
             .respond(response().withBody("A page to be crawled.", HTML_UTF_8));
 
         var mem = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, homePath))
+                .forStartReferences(serverUrl(client, homePath))
                 .crawl();
 
         assertThat(mem.getUpsertRequests())

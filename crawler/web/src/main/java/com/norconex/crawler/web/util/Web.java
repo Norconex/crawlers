@@ -16,14 +16,20 @@ package com.norconex.crawler.web.util;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.pipeline.AbstractPipelineContext;
+import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
+import com.norconex.crawler.web.crawler.WebCrawlerContext;
+import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.pipeline.importer.WebImporterPipelineContext;
+import com.norconex.crawler.web.robot.RobotsTxt;
 
 import lombok.NonNull;
 
@@ -41,11 +47,17 @@ public final class Web {
         return (WebCrawlerConfig) crawler.getCrawlerConfig();
     }
 
-    public static WebImporterPipelineContext context(
+    public static WebCrawlerContext crawlerContext(Crawler crawler) {
+        return (WebCrawlerContext) crawler.getCrawlerContext();
+    }
+
+    public static WebImporterPipelineContext importerContext(
             AbstractPipelineContext ctx) {
         return (WebImporterPipelineContext) ctx;
     }
 
+    //TODO could probably move this where needed since generically,
+    // we would get the fetcher wrapper directly from crawler.
     public static List<HttpFetcher> toHttpFetcher(
             @NonNull Collection<Fetcher<?, ?>> fetchers) {
         return fetchers.stream()
@@ -53,8 +65,26 @@ public final class Web {
             .toList();
     }
 
-//    public static HttpFetchResponse fetchResponse(FetchResponse response) {
-//        MultiFetchResponse<?> multiResp = (MultiFetchResponse<?>) response;
-//        return (HttpFetchResponse) multiResp.getLastFetchResponse().get();
-//    }
+    public static HttpFetcher fetcher(Crawler crawler) {
+        return (HttpFetcher) crawler.getFetcher();
+    }
+
+    public static WebDocRecord docRecord(@NonNull CrawlDoc crawlDoc) {
+        return (WebDocRecord) crawlDoc.getDocRecord();
+    }
+    public static WebDocRecord cachedDocRecord(@NonNull CrawlDoc crawlDoc) {
+        return (WebDocRecord) crawlDoc.getCachedDocRecord();
+    }
+
+    public static RobotsTxt robotsTxt(DocRecordPipelineContext ctx) {
+        return robotsTxt(ctx.getCrawler(), ctx.getDocRecord().getReference());
+    }
+    public static RobotsTxt robotsTxt(Crawler crawler, String reference) {
+        var cfg = Web.config(crawler);
+        return Optional.ofNullable(cfg.getRobotsTxtProvider())
+            .map(rb -> rb.getRobotsTxt(
+                    (HttpFetcher) crawler.getFetcher(),
+                    reference))
+            .orElse(null);
+    }
 }

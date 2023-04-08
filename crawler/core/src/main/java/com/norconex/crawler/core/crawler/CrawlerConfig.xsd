@@ -33,6 +33,7 @@
 
   <xs:complexType name="CrawlerConfigType" abstract="true">
     <xs:all>
+      <xs:element name="start" type="StartType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="numThreads" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="maxDocuments" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="maxDepth" type="xs:int" minOccurs="0" maxOccurs="1"/>
@@ -164,5 +165,18 @@
       <xs:enumeration value="required"/>
     </xs:restriction>
   </xs:simpleType>
+
+  <xs:complexType name="StartType">
+    <xs:all>
+      <xs:element ref="startRefsChoice" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:all>
+    <xs:attribute name="async" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:element name="startRefsChoice" abstract="true"/>
+  <xs:element name="ref" substitutionGroup="startRefsChoice" type="xs:string"/>
+  <xs:element name="refsFile" substitutionGroup="startRefsChoice" type="xs:string"/>
+  <xs:element name="provider" substitutionGroup="startRefsChoice" type="anyComplexRequiredClassType" />
+  
 
 </xs:schema>

@@ -64,7 +64,7 @@ class RedirectRelativeLinksTest {
                 """.formatted(finalPath, homePath)));
 
         var mem = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, homePath))
+                .forStartReferences(serverUrl(client, homePath))
                 .crawlerSetup(cfg -> {
                     cfg.setMaxDepth(0);
                     cfg.setKeepReferencedLinks(

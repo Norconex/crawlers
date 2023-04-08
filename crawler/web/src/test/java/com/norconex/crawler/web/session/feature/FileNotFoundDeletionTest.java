@@ -52,7 +52,7 @@ class FileNotFoundDeletionTest {
                     """.formatted(TOGGLE_PATH), HTML_UTF_8));
 
         var crawlSession = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, HOME_PATH))
+                .forStartReferences(serverUrl(client, HOME_PATH))
                 .crawlSession();
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
 

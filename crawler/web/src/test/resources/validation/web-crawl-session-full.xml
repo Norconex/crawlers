@@ -19,7 +19,7 @@
 <!-- This is a config file with as many configuration options being set
      as possible, to test validation as much we can.
      -->
-<crawlSession id="Test Collector HTTP Config">
+<crawlSession id="Test Web Crawl Session Config">
 
   <workDir>/workdir</workDir>
   
@@ -32,13 +32,18 @@
   </eventListeners>
 
   <crawlerDefaults>
-    <startURLs stayOnDomain="true" includeSubdomains="true" stayOnPort="true" stayOnProtocol="true">
-      <url>http://www.example.com</url>
-      <url>http://www.sample.com</url>
-      <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
+    <start 
+        stayOnDomain="true" 
+        includeSubdomains="true" 
+        stayOnPort="true" 
+        stayOnProtocol="true"
+        async="true">
+      <ref>http://www.example.com</ref>
+      <ref>http://www.sample.com</ref>
+      <refsFile>/local/path/to/a/file/full/of/urls.txt</refsFile>
       <sitemap>http://www.somewhere.com/sitemap.xml</sitemap>
       <provider class="com.norconex.crawler.web.crawler.MockStartURLsProvider"/>
-    </startURLs>
+    </start>
     <keepReferencedLinks>INSCOPE, OUTSCOPE, MAXDEPTH</keepReferencedLinks>
     <maxDepth>99</maxDepth>
     <numThreads>1</numThreads>
@@ -55,7 +60,7 @@
       </listener>
     </eventListeners>
     
-    <urlNormalizer disabled="false" class="com.norconex.crawler.web.url.impl.GenericURLNormalizer">
+    <urlNormalizer class="com.norconex.crawler.web.url.impl.GenericURLNormalizer">
       <normalizations>
         lowerCaseSchemeHost, upperCaseEscapeSequence, 
         decodeUnreservedCharacters, removeDefaultPort 
@@ -134,7 +139,7 @@
           <maxConnectionIdleTime>7</maxConnectionIdleTime>
           <maxConnectionInactiveTime>8</maxConnectionInactiveTime>
           <trustAllSSLCertificates>true</trustAllSSLCertificates>
-          <disableSNI>true</disableSNI>
+          <sniDisabled>true</sniDisabled>
           <sslProtocols>item1,item2</sslProtocols>
           <proxySettings>
             <host>
@@ -152,7 +157,7 @@
               </passwordKey>              
             </credentials>
           </proxySettings>
-          <disableIfModifiedSince>true</disableIfModifiedSince>
+          <ifModifiedSinceDisabled>true</ifModifiedSinceDisabled>
           <headers>
             <header name="head1"></header>
             <header name="head2">value2</header>
@@ -172,13 +177,17 @@
       </filter>
     </referenceFilters>    
     <robotsTxt ignore="false" class="com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider"/>
-    <sitemapResolver ignore="false" lenient="true" 
+    <sitemapResolver lenient="true" 
         class="com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver">
+    </sitemapResolver>
+    <sitemapLocator
+        class="com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator"
+            robotsTxtSitemapDisabled="true">
       <paths>
         <path>/path1/</path>
         <path>/path2/</path>
       </paths>
-    </sitemapResolver>
+    </sitemapLocator>
 
     <recrawlableResolver class="com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver"
         sitemapSupport="last" >
@@ -334,7 +343,7 @@
 
     <documentChecksummer 
         class="com.norconex.crawler.core.checksum.impl.MD5DocumentChecksummer"
-        disabled="false" keep="true" toField="afield">
+        keep="true" toField="afield">
       <fieldMatcher method="csv">field1,field2</fieldMatcher>
     </documentChecksummer>
     <postImportProcessors>

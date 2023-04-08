@@ -32,7 +32,7 @@ class UnhandledExceptiotnJvmCrashTest {
     @Test
     void testUnhandledExceptiotnJvmCrash() {
         var crawlSessionConfig = TestWebCrawlSession
-                .forStartUrls("\\Iam/Not/a/valid.url") // will throw at queuing
+                .forStartReferences("\\Iam/Not/a/valid.url") // will throw at queuing
                 .crawlSessionConfig();
 
         var outcome = ExternalCrawlSessionLauncher.start(crawlSessionConfig);

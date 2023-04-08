@@ -32,6 +32,7 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.core.crawler.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.web.TestWebCrawlSession;
 import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver;
 
 /**
  * The second time the sitemap has 1 less URL and that URL no longer
@@ -77,10 +78,11 @@ class SitemapURLDeletionTest {
             throws CommitterException {
 
         var crawlSession = TestWebCrawlSession
-            .forStartUrls()
+            .forStartReferences()
             .crawlerSetup(cfg -> {
-                cfg.setStartSitemapURLs(serverUrl(client, sitemapPath));
+                cfg.setStartReferencesSitemaps(serverUrl(client, sitemapPath));
                 cfg.setOrphansStrategy(OrphansStrategy.PROCESS);
+                cfg.setSitemapResolver(new GenericSitemapResolver());
             })
             .crawlSession();
 

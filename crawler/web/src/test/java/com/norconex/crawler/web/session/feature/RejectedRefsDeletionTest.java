@@ -54,10 +54,10 @@ class RejectedRefsDeletionTest {
             .when(request())
             .respond(HttpClassCallback.callback(Callback.class));
 
-        var startUrl = serverUrl(client, PATH);
+        var startRef = serverUrl(client, PATH);
 
         var mem = TestWebCrawlSession
-            .forStartUrls(startUrl)
+            .forStartReferences(startRef)
             .crawlerSetup(cfg -> {
                 var drel = new DeleteRejectedEventListener();
                 drel.setEventMatcher(TextMatcher.csv(
@@ -82,17 +82,17 @@ class RejectedRefsDeletionTest {
         assertThat(upserts)
             .map(UpsertRequest::getReference)
             .containsExactly(
-                    startUrl,
-                    startUrl + "?page=1-OK",
-                    startUrl + "?page=3-OK"
+                    startRef,
+                    startRef + "?page=1-OK",
+                    startRef + "?page=3-OK"
             );
         assertThat(deletes)
             .map(DeleteRequest::getReference)
             .containsExactly(
-                    startUrl + "?page=2-REJECTED_NOTFOUND",
-                    startUrl + "?page=4-REJECTED_BAD_STATUS",
-                    startUrl + "?page=5-REJECTED_NOTFOUND",
-                    startUrl + "?page=7-REJECTED_NOTFOUND"
+                    startRef + "?page=2-REJECTED_NOTFOUND",
+                    startRef + "?page=4-REJECTED_BAD_STATUS",
+                    startRef + "?page=5-REJECTED_NOTFOUND",
+                    startRef + "?page=7-REJECTED_NOTFOUND"
             );
     }
 

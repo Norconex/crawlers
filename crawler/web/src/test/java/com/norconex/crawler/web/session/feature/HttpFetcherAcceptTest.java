@@ -95,7 +95,7 @@ class HttpFetcherAcceptTest {
         whenHttpMethod(client, HttpMethod.GET);
 
         var mem = TestWebCrawlSession
-            .forStartUrls(serverUrl(client, HOME_PATH))
+            .forStartReferences(serverUrl(client, HOME_PATH))
             .crawlerSetup(cfg -> {
 
                 // Configure 2 fetches, one doing HEAD, the other doing GET

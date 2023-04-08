@@ -57,11 +57,11 @@ public class CrawlDoc extends Doc {
     }
     public CrawlDoc(
             DocRecord docRecord,
-            CrawlDocRecord cachedDocInfo,
+            CrawlDocRecord cachedDocRecord,
             CachedInputStream content,
             boolean orphan) {
         super(docRecord, content, null);
-        cachedDocRecord = cachedDocInfo;
+        this.cachedDocRecord = cachedDocRecord;
         this.orphan = orphan;
     }
 

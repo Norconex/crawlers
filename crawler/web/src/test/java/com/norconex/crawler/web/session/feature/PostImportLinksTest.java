@@ -52,7 +52,7 @@ class PostImportLinksTest {
                 client, "/post-import-links.pdf", TestResource.PDF_WITH_LINKS);
 
         var mem = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, path))
+                .forStartReferences(serverUrl(client, path))
                 .crawlerSetup(cfg -> {
                     cfg.setMaxDepth(1);
                     // Tell it which field will hold post-import URLs.

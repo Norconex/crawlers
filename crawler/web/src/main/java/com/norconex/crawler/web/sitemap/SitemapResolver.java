@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,40 +14,15 @@
  */
 package com.norconex.crawler.web.sitemap;
 
-import java.util.List;
-
-import com.norconex.crawler.web.crawler.WebCrawlerConfig;
-import com.norconex.crawler.web.robot.RobotsTxtProvider;
-
-
-/**
- * <p>
- * For each unique web site domain (scheme, host name, and port), resolve the
- * corresponding Sitemap(s), if any.  Sitemaps are resolved at most once per
- * domain within a crawling session.
- * </p>
- * <p>
- * Unless configured to do otherwise, the crawler will use the Sitemap resolver
- * to load and parse any Sitemaps defined as crawler start URLs (see
- * {@link WebCrawlerConfig#setStartSitemapURLs(List)} or defined
- * within a web site
- * <a href="http://www.robotstxt.org/robotstxt.html">robots.txt</a> file
- * (see {@link RobotsTxtProvider}.
- * </p>
- * <p>
- * Implementations are free to offer support for additional Sitemap sources.
- * </p>
- *
- */
+@FunctionalInterface
 public interface SitemapResolver {
 
-    //TODO check if start URL sitemaps are define without a resolver
-    //TODO add to robotstxtparser the option to ignore sitemaps.
+    // this one keeps all the state... the locator just suggests stuff
+    // and this one returns right away if already processed for a root
+    // url so the suggestions mean nothing.
 
-    /**
-     * Resolves the sitemap instructions for a URL "root" (e.g.
-     * http://www.example.com).
-     * @param sitemapResolutionContext context objects used to resolve Sitemaps
-     */
-    void resolveSitemaps(SitemapResolutionContext sitemapResolutionContext);
+    //TODO rename back SitemapResolver_OLD when done? Since it does more than
+    // parsing (keeping states, plus also fetching).
+
+    void resolve(SitemapContext ctx);
 }

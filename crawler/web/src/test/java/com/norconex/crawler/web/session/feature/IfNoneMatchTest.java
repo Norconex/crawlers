@@ -54,7 +54,7 @@ class IfNoneMatchTest {
     void testIfNoneMatch(ClientAndServer client) throws CommitterException {
 
         var crawlSession = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, path))
+                .forStartReferences(serverUrl(client, path))
                 .crawlerSetup(cfg -> {
                     // disable checksums so they do not influence tests
                     cfg.setDocumentChecksummer(null);
@@ -84,7 +84,7 @@ class IfNoneMatchTest {
         // Fourth run got same Etag, but we disable E-Tag support, so modified
         whenETag(client, "etag-B");
         WebTestUtil.getFirstHttpFetcher(crawlSession)
-                .getConfig().setDisableETag(true);
+                .getConfig().setETagDisabled(true);
         crawlSession.start();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();

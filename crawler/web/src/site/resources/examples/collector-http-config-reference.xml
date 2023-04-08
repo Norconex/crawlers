@@ -88,18 +88,18 @@
            point to a sitemap.xml. If the list of URLs needs to be dynamically
            built, you can use one or more custom IStartURLsProvider.
            -->    
-      <startURLs 
+      <start 
           stayOnDomain="false" 
           includeSubdomains="false" 
           stayOnPort="false" 
           stayOnProtocol="false"
           async="true">
-        <url>http://www.example.com</url>
-        <url>http://www.sample.com</url>
-        <urlsFile>/local/path/to/a/file/full/of/urls.txt</urlsFile>
+        <ref>http://www.example.com</ref>
+        <ref>http://www.sample.com</ref>
+        <refsFile>/local/path/to/a/file/full/of/urls.txt</refsFile>
         <sitemap>http://www.somewhere.com/sitemap.xml</sitemap>
         <provider class="YourClass"/>
-      </startURLs>
+      </start>
   
       <!-- Optional URL normalization feature. The class must implement
            com.norconex.crawler.web.url.URLNormalizer, 

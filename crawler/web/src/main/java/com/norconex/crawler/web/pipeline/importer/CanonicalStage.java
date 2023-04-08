@@ -52,7 +52,7 @@ class CanonicalStage extends AbstractImporterStage {
         var detector = ctx.getConfig().getCanonicalLinkDetector();
 
         //Return right away if canonical links are ignored or no detector.
-        if (ctx.getConfig().isIgnoreCanonicalLinks() || detector == null) {
+        if (detector == null) {
             return true;
         }
 
@@ -146,7 +146,7 @@ class CanonicalStage extends AbstractImporterStage {
         newRecord.setReference(canURL);
         newRecord.setReferrerReference(reference);
 
-        if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+        if (ctx.getConfig().getUrlCrawlScopeStrategy().isInScope(
                 docRec.getReference(), canURL)) {
             // Call Queue pipeline on Canonical URL
             LOG.debug("""
@@ -164,7 +164,7 @@ class CanonicalStage extends AbstractImporterStage {
             ctx.fire(CrawlerEvent.builder()
                     .name(CrawlerEvent.REJECTED_FILTER)
                     .source(ctx.getCrawler())
-                    .subject(ctx.getConfig().getURLCrawlScopeStrategy())
+                    .subject(ctx.getConfig().getUrlCrawlScopeStrategy())
                     .crawlDocRecord(newRecord)
                     .build());
         }

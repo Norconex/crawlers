@@ -45,7 +45,7 @@ class DisabledMetaChecksummerTest {
             throws CommitterException {
 
         var crawlSession = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, path))
+                .forStartReferences(serverUrl(client, path))
                 .crawlerSetup(cfg -> {
                     cfg.setMetadataChecksummer(null);
                 })

@@ -129,10 +129,11 @@ public final class WebTestUtil {
     public static void ignoreAllIgnorables(CrawlSession crawlSession) {
         crawlSession.getCrawlSessionConfig().getCrawlerConfigs().forEach(c -> {
             var cfg = (WebCrawlerConfig) c;
-            cfg.setIgnoreCanonicalLinks(true);
-            cfg.setIgnoreRobotsMeta(true);
-            cfg.setIgnoreRobotsTxt(true);
-            cfg.setIgnoreSitemap(true);
+            cfg.setCanonicalLinkDetector(null);
+            cfg.setRobotsMetaProvider(null);
+            cfg.setRobotsTxtProvider(null);
+            cfg.setSitemapLocator(null);
+            cfg.setSitemapResolver(null);
         });
     }
 

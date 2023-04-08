@@ -57,7 +57,7 @@ class JavaScriptProtocolURLTest {
             """);
 
         var crawlSession = TestWebCrawlSession
-                .forStartUrls(serverUrl(client, firstPath))
+                .forStartReferences(serverUrl(client, firstPath))
                 .crawlSession();
         var mem = WebTestUtil.getFirstMemoryCommitter(crawlSession);
         assertThatNoException().isThrownBy(() -> {

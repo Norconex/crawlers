@@ -92,14 +92,14 @@ class StrictTransportSecurityTest {
                 .withBody("I am NOT secure"));
 
         var mem = TestWebCrawlSession
-            .forStartUrls(secureUrl)
+            .forStartReferences(secureUrl)
             .crawlerSetup(cfg -> {
                 cfg.setMaxDocuments(2);
                 var fetcherCfg =
                         WebTestUtil.getFirstHttpFetcherConfig(cfg);
                 fetcherCfg.setTrustAllSSLCertificates(true);
                 if (!clientSupportsHSTS) {
-                    fetcherCfg.setDisableHSTS(true);
+                    fetcherCfg.setHstsDisabled(true);
                 }
                 cfg.setPostImportLinks(TextMatcher.basic("secondURL"));
             })

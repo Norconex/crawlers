@@ -93,7 +93,7 @@ class PostImportLinksStage implements Predicate<DocumentPipelineContext> {
         var docRecord = (WebDocRecord) ctx.getDocRecord();
 
         try {
-            if (cfg.getURLCrawlScopeStrategy().isInScope(
+            if (cfg.getUrlCrawlScopeStrategy().isInScope(
                     doc.getReference(), url)) {
                 LOG.trace("Post-import URL in crawl scope: {}", url);
                 // only queue if not queued already for this doc

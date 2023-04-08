@@ -57,7 +57,7 @@ class ScriptTagsTest {
             """);
 
         var mem = TestWebCrawlSession
-            .forStartUrls(serverUrl(client, homePath))
+            .forStartReferences(serverUrl(client, homePath))
             .crawlerSetup(cfg -> {
                 var le = new HtmlLinkExtractor();
                 le.addLinkTag("script", "src");

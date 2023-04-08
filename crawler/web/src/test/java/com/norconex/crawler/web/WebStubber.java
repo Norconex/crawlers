@@ -51,6 +51,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.crawler.ReferencesProvider;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.processor.DocumentProcessor;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -59,7 +60,6 @@ import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.web.crawler.StartURLsProvider;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.delay.DelayResolver;
 import com.norconex.crawler.web.delay.impl.GenericDelayResolver;
@@ -123,10 +123,7 @@ public final class WebStubber {
         .excludeType(DocumentProcessor.class::equals)
         .excludeType(FeaturedImageProcessor.class::equals)
         .excludeType(RecrawlableResolver.class::equals)
-//            .excludeType(HttpAuthConfig.class::equals)
-        .excludeType(StartURLsProvider.class::equals)
-//        .excludeField(f -> "preImportProcessor".equals(f.getName()))
-//        .excludeField(f -> "postImportProcessor".equals(f.getName()))
+        .excludeType(ReferencesProvider.class::equals)
 
         .randomize(Charset.class, () -> StandardCharsets.UTF_8)
         .randomize(CircularRange.class, () -> {
@@ -219,14 +216,13 @@ public final class WebStubber {
         return doc;
     }
 
-    //--- Crawl Session --------------------------------------------------------
 
     public static CrawlSession crawlSession(
-            Path workDir, String... startUrls) {
+            Path workDir, String... startRefs) {
         var sessionConfig = crawlSessionConfig(workDir);
-        if (ArrayUtils.isNotEmpty(startUrls)) {
+        if (ArrayUtils.isNotEmpty(startRefs)) {
             WebTestUtil.getFirstCrawlerConfig(
-                    sessionConfig).setStartURLs(startUrls);
+                    sessionConfig).setStartReferences(startRefs);
         }
         return WebCrawlSession.createSession(sessionConfig);
     }

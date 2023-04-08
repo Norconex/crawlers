@@ -342,7 +342,7 @@ public class GenericHttpFetcher
         try {
 
             //--- HSTS Policy --------------------------------------------------
-            if (!cfg.isDisableHSTS()) {
+            if (!cfg.isHstsDisabled()) {
                 HstsResolver.resolve(
                         httpClient, (WebDocRecord) doc.getDocRecord());
             }
@@ -363,10 +363,10 @@ public class GenericHttpFetcher
                 ctx.setUserToken(userToken);
             }
 
-            if (!cfg.isDisableETag()) {
+            if (!cfg.isETagDisabled()) {
                 ApacheHttpUtil.setRequestIfNoneMatch(request, doc);
             }
-            if (!cfg.isDisableIfModifiedSince()) {
+            if (!cfg.isIfModifiedSinceDisabled()) {
                 ApacheHttpUtil.setRequestIfModifiedSince(request, doc);
             }
 
@@ -813,7 +813,7 @@ public class GenericHttpFetcher
 
                 sslParams.setEndpointIdentificationAlgorithm("HTTPS");
 
-                if (cfg.isDisableSNI()) {
+                if (cfg.isSniDisabled()) {
                     // Disabling SNI extension introduced in Java 7 is necessary
                     // to avoid
                     // SSLProtocolException: handshake alert: unrecognized_name

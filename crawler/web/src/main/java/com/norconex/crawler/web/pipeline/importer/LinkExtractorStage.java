@@ -106,7 +106,7 @@ class LinkExtractorStage extends AbstractImporterStage {
         try {
             String reference = ctx.getDocRecord().getReference();
 
-            if (ctx.getConfig().getURLCrawlScopeStrategy().isInScope(
+            if (ctx.getConfig().getUrlCrawlScopeStrategy().isInScope(
                     reference, link.getUrl())) {
                 if (LOG.isTraceEnabled()) {
                     LOG.trace("URL in crawl scope: {} (keep: {})",
