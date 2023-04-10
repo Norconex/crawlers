@@ -93,7 +93,9 @@ class FileFetchStage extends AbstractImporterStage {
 //        }
         if (state.isGoodState()) {
             ctx.fire(CrawlerEvent.builder()
-                    .name(CrawlerEvent.DOCUMENT_FETCHED)
+                    .name(FetchDirective.METADATA.is(getFetchDirective())
+                            ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
+                            : CrawlerEvent.DOCUMENT_FETCHED)
                     .source(ctx.getCrawler())
                     .subject(response)
                     .crawlDocRecord(docRecord)

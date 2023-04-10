@@ -18,22 +18,12 @@ import java.util.Optional;
 
 import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerImpl;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionBuilder;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
-import com.norconex.crawler.fs.doc.FsDocRecord;
-import com.norconex.crawler.fs.fetch.FileFetcherProvider;
-import com.norconex.crawler.fs.pipeline.committer.FsCommitterPipeline;
-import com.norconex.crawler.fs.pipeline.importer.FsImporterPipeline;
-import com.norconex.crawler.fs.pipeline.queue.FsQueueInitializer;
-import com.norconex.crawler.fs.pipeline.queue.FsQueuePipeline;
-import com.norconex.crawler.fs.util.Fs;
+import com.norconex.crawler.fs.crawler.impl.FsCrawlerImplFactory;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class FsCrawlSession {
 
     /**
@@ -74,54 +64,10 @@ public class FsCrawlSession {
                 (sess, cfg) -> Crawler.builder()
                     .crawlSession(sess)
                     .crawlerConfig(cfg)
-                    .crawlerImpl(crawlerImplBuilder().build())
+                    .crawlerImpl(FsCrawlerImplFactory.create())
                     .build()
             )
             .crawlSessionConfig(sessionConfig);
         return builder;
-    }
-
-
-    static CrawlerImpl.CrawlerImplBuilder crawlerImplBuilder() {
-        return CrawlerImpl.builder()
-            .fetcherProvider(new FileFetcherProvider())
-            .beforeCrawlerExecution(FsCrawlSession::logCrawlerInformation)
-            .queueInitializer(new FsQueueInitializer())
-            .queuePipeline(new FsQueuePipeline())
-            .importerPipeline(new FsImporterPipeline())
-            .committerPipeline(new FsCommitterPipeline())
-            .crawlDocRecordType(FsDocRecord.class)
-            .docRecordFactory(ctx -> new FsDocRecord(
-                    ctx.reference()
-                    //TODO What about depth, cached doc, etc? It should be
-                    // set here unless this is really used just for queue
-                    // initialization or set by caller
-                    //, 999
-                    ))
-            ;
-    }
-
-    private static void logCrawlerInformation(Crawler crawler, boolean resume) {
-        var cfg = Fs.config(crawler);
-        LOG.info("""
-            Enabled features:
-
-            Metadata:
-              Checksummer:    %s
-              Deduplication:  %s
-            Document:
-              Checksummer:    %s
-              Deduplication:  %s
-            """.formatted(
-                    yn(cfg.getMetadataChecksummer() != null),
-                    yn(cfg.isMetadataDeduplicate()
-                            && cfg.getMetadataChecksummer() != null),
-                    yn(cfg.getDocumentChecksummer() != null),
-                    yn(cfg.isDocumentDeduplicate()
-                            && cfg.getDocumentChecksummer() != null)
-            ));
-    }
-    private static String yn(boolean value) {
-        return value ? "Yes" : "No";
     }
 }

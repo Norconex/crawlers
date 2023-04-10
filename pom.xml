@@ -67,7 +67,7 @@
     <lombok.version>1.18.22</lombok.version>
     <mockito.version>4.6.1</mockito.version>
     <mockserver.version>5.14.0</mockserver.version>
-    <testcontainers.version>1.17.6</testcontainers.version>
+    <testcontainers.version>1.18.0</testcontainers.version>
   </properties>
 
   <inceptionYear>2009</inceptionYear>

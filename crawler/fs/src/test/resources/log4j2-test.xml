@@ -228,7 +228,7 @@
     <Logger name="com.norconex.crawler.fs" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.crawler.core" level="DEBUG" additivity="false">
+    <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.importer" level="WARN" additivity="false">
@@ -243,9 +243,6 @@
     <Logger name="com.norconex.commons.lang.xml" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.apache" level="WARN" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
     <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
@@ -255,10 +252,16 @@
     <Logger name="org.testcontainers" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.apache.ftpserver" level="INFO" additivity="false">
+    <Logger name="org.apache.ftpserver" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.apache.commons.vfs2" level="DEBUG" additivity="false">
+    <Logger name="org.apache" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.commons.vfs2" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.mina" level="ERROR" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
 

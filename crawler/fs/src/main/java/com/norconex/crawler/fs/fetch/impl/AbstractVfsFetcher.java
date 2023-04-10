@@ -24,15 +24,9 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.auth.StaticUserAuthenticator;
-import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
-import org.apache.commons.vfs2.util.EncryptUtil;
 
-import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.commons.lang.security.Credentials;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocState;
@@ -53,7 +47,6 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -62,33 +55,8 @@ import lombok.ToString;
  * <a href="https://commons.apache.org/proper/commons-vfs/">Apache Commons
  * VFS</a>.
  * </p>
- *
- * <h3>Generic settings</h3>
- * <p>
- * The following is available to all implementing classes.
- * </p>
- *
- * {@nx.xml.usage
- * <!-- Optional authentication details. -->
- * <authentication>
- *   {@nx.include com.norconex.commons.lang.security.Credentials@nx.xml.usage}
- *   <domain>(If required to authenticate, the user's domain.)</domain>
- * </authentication>
- * }
- *
- * {@nx.block #doc
- * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
- * <p>
- * You can also have password set on the URL, Apache
- * Commons VFS offers a way to encrypt it there using their own
- * {@link EncryptUtil}. More info under the "Naming" section here:
- * <a href="http://commons.apache.org/proper/commons-vfs/filesystems.html">
- * http://commons.apache.org/proper/commons-vfs/filesystems.html</a>
- * </p>
- * }
- *
+ * @see AbstractAuthVfsFetcher
  */
-@SuppressWarnings("javadoc")
 @EqualsAndHashCode
 @ToString
 @XmlAccessorType(XmlAccessType.NONE)
@@ -104,22 +72,11 @@ public abstract class AbstractVfsFetcher
     @Getter(value = AccessLevel.PACKAGE)
     private FileSystemOptions fsOptions;
 
-    // Configurable:
-    @Getter
-    private final Credentials credentials = new Credentials();
-    @Getter
-    @Setter
-    private String authDomain;
-
     @Override
     protected void fetcherStartup(CrawlSession crawlSession) {
         try {
             fsManager = new StandardFileSystemManager();
             fsManager.setClassLoader(getClass().getClassLoader());
-//            if (getCrawlerConfig().getWorkDir() != null) {
-//                fileManager.setTemporaryFileStore(new DefaultFileReplicator(
-//                       new File(getCrawlerConfig().getWorkDir(), "fvs_cache")));
-//            }
             fsManager.init();
         } catch (FileSystemException e) {
             throw new CrawlerException(
@@ -127,7 +84,6 @@ public abstract class AbstractVfsFetcher
         }
 
         fsOptions = new FileSystemOptions();
-        applyDefaultFileSystemOptions(fsOptions);
         applyFileSystemOptions(fsOptions);
     }
 
@@ -154,8 +110,6 @@ public abstract class AbstractVfsFetcher
         // if body, we copy both meta and body, but meta is copied
         // as overwrites or optional (we do not carry multi values for meta
         // obtained from having both META and BODY request types)
-
-
 
         var ref = doc.getReference();
         try {
@@ -184,15 +138,10 @@ public abstract class AbstractVfsFetcher
                 .file(fileObject.isFile())
                 .folder(fileObject.isFolder())
                 .build();
-
-
-            //TODO convert to CrawlDocRecord and/or CralDoc depending
-            // if we are just fetching headers or both.
         } catch (IOException e) {
             throw new FetchException("Could not fetch reference: " + ref, e);
         }
     }
-
 
     @Override
     public Set<FsPath> fetchChildPaths(String parentPath)
@@ -219,20 +168,6 @@ public abstract class AbstractVfsFetcher
         } catch (FileSystemException e) {
             throw new FetchException("Could not fetch child paths of: "
                     + parentPath, e);
-        }
-    }
-
-    /**
-     * Applies options that exists in each Commons VFS implementations.
-     * @param opts file system options
-     */
-    protected void applyDefaultFileSystemOptions(FileSystemOptions opts) {
-        var defBuilder = DefaultFileSystemConfigBuilder.getInstance();
-        if (credentials.isSet()) {
-            defBuilder.setUserAuthenticator(opts, new StaticUserAuthenticator(
-                    authDomain,
-                    credentials.getUsername(),
-                    EncryptionUtil.decryptPassword(credentials)));
         }
     }
 
@@ -280,19 +215,5 @@ public abstract class AbstractVfsFetcher
             doc.setInputStream(is);
         }
         return true;
-    }
-
-    @Override
-    protected void loadFetcherFromXML(XML xml) {
-        xml.ifXML("authentication", authXml -> {
-            authXml.ifXML("credentials", credentials::loadFromXML);
-            setAuthDomain(authXml.getString("domain", authDomain));
-        });
-    }
-    @Override
-    protected void saveFetcherToXML(XML xml) {
-        var authXml = xml.addElement("authentication");
-        credentials.saveToXML(authXml.addElement("credentials"));
-        authXml.addElement("domain", authDomain);
     }
 }
