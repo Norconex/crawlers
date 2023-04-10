@@ -29,8 +29,17 @@
   <properties>
     <commons-net.version>3.9.0</commons-net.version>
     <commons-vfs.version>2.9.0</commons-vfs.version>
-    <opencmis.version>1.1.0</opencmis.version>
     <ftpserver.version>1.2.0</ftpserver.version>
+    <opencmis.version>1.1.0</opencmis.version>
+    <jackrabbit.version>2.21.7</jackrabbit.version>
+    
+    
+<!--    <jackrabbit.version>2.21.6</jackrabbit.version>-->
+<!--    <jackrabbit.version>2.20.9</jackrabbit.version>-->
+
+<!--    <jackrabbit-jcr.version>2.12.11</jackrabbit-jcr.version>
+    <jackrabbit.version>2.21.6</jackrabbit.version>
+-->    
 
     <!-- BELOW ARE V2.x Dependencies: -->
 <!--    <jetty.version>9.4.34.v20201102</jetty.version>-->
@@ -64,6 +73,53 @@
       <version>${commons-net.version}</version>
     </dependency>
 
+    <!-- WebDav support -->
+<!--    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2-jackrabbit1</artifactId>
+      <version>${commons-vfs.version}</version>
+    </dependency>-->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2-jackrabbit2</artifactId>
+      <version>${commons-vfs.version}</version>
+    </dependency>
+<!--    
+<dependency>
+  <groupId>org.apache.jackrabbit</groupId>
+  <artifactId>jackrabbit-jcr-client</artifactId>
+  <version>2.12.11</version>
+</dependency>    
+<dependency>
+  <groupId>org.apache.jackrabbit</groupId>
+  <artifactId>jackrabbit-webdav</artifactId>
+  <version>2.12.11</version>
+</dependency>
+    <dependency>
+      <groupId>org.apache.jackrabbit</groupId>
+      <artifactId>jackrabbit-jcr-client</artifactId>
+      <version>${jackrabbit-jcr.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jackrabbit</groupId>
+      <artifactId>jackrabbit-webdav</artifactId>
+      <version>${jackrabbit.version}</version>
+    </dependency>
+-->
+<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+<!--<dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpclient</artifactId>
+    <version>4.5.14</version>
+</dependency>-->
+<!-- https://mvnrepository.com/artifact/commons-httpclient/commons-httpclient -->
+<dependency>
+    <groupId>commons-httpclient</groupId>
+    <artifactId>commons-httpclient</artifactId>
+    <version>3.1</version>
+</dependency>
+
+
 
     <!-- Test + provided dependencies: -->
 
@@ -82,8 +138,44 @@
       <artifactId>easy-random-core</artifactId>
       <scope>test</scope>
     </dependency>
-    
-    <!-- https://mvnrepository.com/artifact/org.apache.ftpserver/ftpserver-core -->
+<!--    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>-->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+<!--<dependency>
+  <groupId>javax.jcr</groupId>
+  <artifactId>jcr</artifactId>
+  <version>2.0</version>
+  <scope>test</scope>
+</dependency>
+<dependency>
+  <groupId>org.apache.jackrabbit</groupId>
+  <artifactId>jackrabbit-core</artifactId>
+  <version>2.21.16</version>
+  <scope>test</scope>
+  <exclusions>
+    <exclusion>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+<dependency>
+  <groupId>org.apache.jackrabbit</groupId>
+  <artifactId>jackrabbit-jcr-rmi</artifactId>
+  <version>2.21.16</version>
+  <scope>test</scope>
+</dependency>
+-->
+
+
     <dependency>
       <groupId>org.apache.ftpserver</groupId>
       <artifactId>ftpserver-core</artifactId>

@@ -14,12 +14,6 @@
  */
 package com.norconex.crawler.fs.crawler;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 
 import lombok.Data;
@@ -30,43 +24,28 @@ import lombok.Data;
 @Data
 public class FsCrawlerConfig extends CrawlerConfig {
 
-    private final List<String> startPaths = new ArrayList<>();
-    private final List<Path> pathsFiles = new ArrayList<>();
-    private final List<StartPathsProvider> startPathsProviders =
-            new ArrayList<>();
-
-//    //TODO make move fetchers to core?
-//    private final List<FileFetcher> fileFetchers =
-//            new ArrayList<>(/* List.of(new GenericHttpFetcher()) */);
-//    //TODO Move to core?
-//    private int fileFetchersMaxRetries;
-//    //TODO Move to core?
-//    private long fileFetchersRetryDelay;
+//    private final List<String> startPaths = new ArrayList<>();
+//    private final List<Path> pathsFiles = new ArrayList<>();
+//    private final List<StartPathsProvider> startPathsProviders =
+//            new ArrayList<>();
 
 
-    //TODO rename getStartPaths... to getStartReferences and move to core?
-    /**
-     * Gets paths to initiate crawling from.
-     * @return start paths (never <code>null</code>)
-     */
-    public List<String> getStartPaths() {
-        return Collections.unmodifiableList(startPaths);
-    }
-    /**
-     * Sets paths to initiate crawling from.
-     * @param startPaths start paths
-     */
-    public void setStartPaths(List<String> startPaths) {
-        CollectionUtil.setAll(this.startPaths, startPaths);
-    }
 
-//    public List<FileFetcher> getFileFetchers() {
-//        return Collections.unmodifiableList(fileFetchers);
+//    //TODO rename getStartPaths... to getStartReferences and move to core?
+//    /**
+//     * Gets paths to initiate crawling from.
+//     * @return start paths (never <code>null</code>)
+//     */
+//    public List<String> getStartPaths() {
+//        return Collections.unmodifiableList(startPaths);
 //    }
-//    public void setFileFetchers(List<FileFetcher> fileFetchers) {
-//        CollectionUtil.setAll(this.fileFetchers, fileFetchers);
+//    /**
+//     * Sets paths to initiate crawling from.
+//     * @param startPaths start paths
+//     */
+//    public void setStartPaths(List<String> startPaths) {
+//        CollectionUtil.setAll(this.startPaths, startPaths);
 //    }
-
 //
 //    public FSCrawlerConfig() {
 //    }

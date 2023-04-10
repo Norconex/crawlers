@@ -17,6 +17,7 @@ package com.norconex.crawler.fs.fetch.impl;
 import static com.norconex.crawler.fs.FsTestUtil.getUpsertRequestContent;
 import static com.norconex.crawler.fs.FsTestUtil.getUpsertRequestMeta;
 import static com.norconex.crawler.fs.doc.FsDocMetadata.FILE_SIZE;
+import static com.norconex.crawler.fs.doc.FsDocMetadata.LAST_MODIFIED;
 import static com.norconex.importer.doc.DocMetadata.CONTENT_ENCODING;
 import static com.norconex.importer.doc.DocMetadata.CONTENT_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,12 +27,12 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.fs.TestFsCrawlSession;
-import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 
 abstract class AbstractFileFetcherTest {
@@ -96,12 +97,12 @@ abstract class AbstractFileFetcherTest {
                         .isEqualTo("15987");
 
         // Assert last modified (UTC)
-        assertThat(getUpsertRequestMeta(
-                mem, basePath + "/imgs/160x120.png", FsDocMetadata.LAST_MODIFIED))
-                        .isEqualTo(isoLocalToEpoch("2023-03-15T07:25:00"));
-        assertThat(getUpsertRequestMeta(
-                mem, basePath + "/embedded.zip", FsDocMetadata.LAST_MODIFIED))
-                        .isEqualTo(isoLocalToEpoch("2022-08-29T04:00:00"));
+        assertThat(epochTruncatedAtSeconds(getUpsertRequestMeta(
+                mem, basePath + "/imgs/160x120.png", LAST_MODIFIED)))
+                        .isEqualTo(isoLocalToEpoch("2023-03-15T07:25:32"));
+        assertThat(epochTruncatedAtSeconds(getUpsertRequestMeta(
+                mem, basePath + "/embedded.zip", LAST_MODIFIED)))
+                        .isEqualTo(isoLocalToEpoch("2022-08-30T03:50:55"));
 
 //mem.getAllRequests().forEach(req -> {
 //    System.err.println("FILE: " + req.getReference());
@@ -115,6 +116,9 @@ abstract class AbstractFileFetcherTest {
 
     abstract String getStartPath();
 
+    private static String epochTruncatedAtSeconds(String epoch) {
+        return StringUtils.substring(epoch, 0, -3) + "000";
+    }
     private static String isoLocalToEpoch(String isoLocal) {
         return LocalDateTime
                 .from(DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(isoLocal))

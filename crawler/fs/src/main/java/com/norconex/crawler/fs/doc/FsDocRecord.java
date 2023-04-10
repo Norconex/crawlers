@@ -14,10 +14,13 @@
  */
 package com.norconex.crawler.fs.doc;
 
+import java.io.File;
+
 import com.norconex.crawler.core.doc.CrawlDocRecord;
 import com.norconex.importer.doc.DocRecord;
 
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * A path being crawled holding relevant crawl information.
@@ -45,5 +48,18 @@ public class FsDocRecord extends CrawlDocRecord {
      */
     public FsDocRecord(DocRecord docDetails) {
         super(docDetails);
+    }
+
+    @Override
+    public void setReference(@NonNull String reference) {
+        // No protocol specified: we assume local file, and we get
+        // the absolute version.
+        // TODO really? do we want to force having absolute links?
+        // or if only for start references, move logic there?
+        if (!reference.contains("://")) {
+            super.setReference(new File(reference).getAbsolutePath());
+        } else {
+            super.setReference(reference);
+        }
     }
 }

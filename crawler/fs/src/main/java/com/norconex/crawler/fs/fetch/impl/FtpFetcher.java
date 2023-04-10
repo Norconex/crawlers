@@ -61,7 +61,7 @@ import lombok.experimental.FieldNameConstants;
  *
  *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
  *
- *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher@nx.xml.usage}
+ *   {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher@nx.xml.usage}
  *
  *   <!-- FTP and FTPS: -->
  *
@@ -74,7 +74,9 @@ import lombok.experimental.FieldNameConstants;
  *   <defaultDateFormat>...</defaultDateFormat>
  *   <fileType>[ASCII|BINARY|LOCAL|EBCDIC]</fileType>
  *   <passiveMode>[false|true]</passiveMode>
- *   {@nx.include com.norconex.commons.lang.net.ProxySettings#usage}
+ *   <proxySettings>
+ *     {@nx.include com.norconex.commons.lang.net.ProxySettings#usage}
+ *   </proxySettings>
  *   <recentDateFormat>...</recentDateFormat>
  *   <remoteVerification>[false|true]</remoteVerification>
  *   <serverLanguageCode>...</serverLanguageCode>
@@ -95,10 +97,10 @@ import lombok.experimental.FieldNameConstants;
  * }
  *
  * {@nx.xml.example
- * <optionsProvider class="FtpFetcher">
+ * <fetcher class="FtpFetcher">
  *   <ftpPassiveMode>true</ftpPassiveMode>
  *   <ftpUserDirIsRoot>false</ftpUserDirIsRoot>
- * </optionsProvider>
+ * </fetcher>
  * }
  * <p>
  * The above example sets the FTP settings required by some hosts to get file
@@ -110,18 +112,13 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 @XmlRootElement(name = "fetcher")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class FtpFetcher extends AbstractVfsFetcher {
-
+public class FtpFetcher extends AbstractAuthVfsFetcher {
 
     //TODO once we have all fetchers defined, have them all as default
     // fetchers in config
 
-    //TODO abstract FS enums and create our equivalents?
-//    public enum SecureMode {EXPLICIT, IMPLICIT}
-//    public enum FileType {ASCII, BINARY, LOCAL, EBCDIC}
+    //MAYBE: abstract FS enums and create equivalent?
 
-    //TODO document that changes of those properties once started have
-    // no effect.
     private boolean autodetectUtf8;
     private Duration connectTimeout;
     private String controlEncoding;

@@ -110,8 +110,9 @@ class MockFtpServer {
         fetcher.getCredentials()
             .setUsername("testuser")
             .setPassword("testpassword");
-        fetcher.setPassiveMode(true);
+        //fetcher.setPassiveMode(true);
         fetcher.setUserDirIsRoot(false);
+        fetcher.setMdtmLastModifiedTime(true);
         return fetcher;
     }
 }

@@ -29,6 +29,14 @@ final class FileFetchUtil {
 
     private FileFetchUtil() {}
 
+    /**
+     * Whether a reference starts with any of the given prefixes (typically
+     * URI schemes).
+     * @param req file fetch request
+     * @param prefixes prefixes to compare
+     * @return <code>true</code> if the request reference starts with one
+     *     of the supplied prefixes
+     */
     static boolean referenceStartsWith(FileFetchRequest req, String... prefixes) {
 
         return Optional.ofNullable(req)
@@ -55,7 +63,7 @@ final class FileFetchUtil {
      * @param path the path to encode
      * @return encode encoded path
      */
-    public static String uriEncodeLocalPath(String path) {
+    static String uriEncodeLocalPath(String path) {
         // We consider the reference a local file path (absolute or relative)
         // if it matches any of these conditions:
         //     - no scheme
@@ -82,19 +90,15 @@ final class FileFetchUtil {
     private static String uriEncode(String value) {
         try {
             return URLEncoder.encode(value, "UTF-8")
-                    .replaceAll("\\+", "%20")
-                    .replaceAll("\\%21", "!")
-                    .replaceAll("\\%27", "'")
-                    .replaceAll("\\%28", "(")
-                    .replaceAll("\\%29", ")")
-                    .replaceAll("\\%7E", "~");
+                    .replace("+", "%20")
+                    .replace("%21", "!")
+                    .replace("%27", "'")
+                    .replace("%28", "(")
+                    .replace("%29", ")")
+                    .replace("%7E", "~");
         } catch (UnsupportedEncodingException e) {
             //NOOP, return original value and hope for the best.
         }
         return value;
     }
-
-//    return startsWithIgnoreCase(
-//            fetchRequest.getDoc().getReference(), "ftp://");
-
 }

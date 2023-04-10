@@ -34,11 +34,11 @@ public class FsImporterPipeline implements ImporterPipeline {
         new Predicates<>(List.of(
 
             //--- METADATA ---
-            // When the metadata fetch directive is enabled do the following
+            // When the metadata fetch directive is enabled, the following
             // is executed
             new FileFetchStage(FetchDirective.METADATA),
             new MetadataFiltersStage(FetchDirective.METADATA),
-            // Folder children done right after filter to give a chance
+            // Child folders done right after filter to give a chance
             // to reject the folder before getting its children.
             new FolderPathsExtractorStage(FetchDirective.METADATA),
             new MetadataChecksumStage(FetchDirective.METADATA),

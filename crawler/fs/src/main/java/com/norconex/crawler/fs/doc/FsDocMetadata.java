@@ -25,6 +25,7 @@ public final class FsDocMetadata {
     //TODO make part of crawler-core?
     public static final String LAST_MODIFIED = PREFIX + "last-modified";
 
+    public static final String ACL = PREFIX + "acl";
 
 
     private FsDocMetadata() {}

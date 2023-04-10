@@ -48,6 +48,7 @@ import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
 import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
+import com.norconex.crawler.fs.crawler.impl.FsCrawlerImplFactory;
 import com.norconex.importer.ImporterConfig;
 
 public final class FsStubber {
@@ -115,6 +116,10 @@ public final class FsStubber {
         }
         return values[new Random().nextInt(values.length -1)];
     }
+
+//    public Path mockLocalFileSystem() {
+//
+//    }
 //
 //
 //    /**
@@ -156,15 +161,14 @@ public final class FsStubber {
         var sessionConfig = crawlSessionConfig(workDir);
         if (ArrayUtils.isNotEmpty(startPaths)) {
             FsTestUtil.getFirstCrawlerConfig(
-                    sessionConfig).setStartPaths(List.of(startPaths));
+                    sessionConfig).setStartReferences(List.of(startPaths));
         }
         return CrawlSession.builder()
             .crawlerFactory((crawlSess, crawlerCfg) ->
                 Crawler.builder()
                     .crawlerConfig(crawlerCfg)
                     .crawlSession(crawlSess)
-                    .crawlerImpl(FsCrawlSession
-                            .crawlerImplBuilder().build())
+                    .crawlerImpl(FsCrawlerImplFactory.create())
                     .build()
             )
             .crawlSessionConfig(sessionConfig)
