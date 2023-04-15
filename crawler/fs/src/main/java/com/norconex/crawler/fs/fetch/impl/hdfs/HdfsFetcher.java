@@ -12,9 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
-
-import static com.norconex.crawler.fs.fetch.impl.FileFetchUtil.referenceStartsWith;
+package com.norconex.crawler.fs.fetch.impl.hdfs;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -28,6 +26,8 @@ import org.apache.hadoop.fs.Path;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
+import com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher;
+import com.norconex.crawler.fs.fetch.impl.FileFetchUtil;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -40,7 +40,7 @@ import lombok.experimental.FieldNameConstants;
  * </p>
  *
  * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.HdfsFetcher">
+ * <fetcher class="com.norconex.crawler.fs.fetch.impl.hdfs.HdfsFetcher">
  *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
  *   <configNames>
  *     <!-- name is repeatable -->
@@ -74,7 +74,7 @@ public class HdfsFetcher extends AbstractVfsFetcher {
         return Collections.unmodifiableList(configNames);
     }
     public void setConfigNames(List<String> configNames) {
-        CollectionUtil.setAll(this.configNames, configNames);
+        CollectionUtil.setAll(configNames, configNames);
     }
 
     public List<Path> getConfigPaths() {
@@ -88,12 +88,12 @@ public class HdfsFetcher extends AbstractVfsFetcher {
         return Collections.unmodifiableList(configUrls);
     }
     public void setConfigUrls(List<URL> configUrls) {
-        CollectionUtil.setAll(this.configUrls, configUrls);
+        CollectionUtil.setAll(configUrls, configUrls);
     }
 
     @Override
     protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
-        return referenceStartsWith(fetchRequest, "hdfs://");
+        return FileFetchUtil.referenceStartsWith(fetchRequest, "hdfs://");
     }
 
     @Override

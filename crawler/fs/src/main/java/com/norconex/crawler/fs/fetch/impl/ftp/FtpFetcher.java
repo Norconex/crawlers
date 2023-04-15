@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
+package com.norconex.crawler.fs.fetch.impl.ftp;
 
 import static com.norconex.crawler.fs.fetch.impl.FileFetchUtil.referenceStartsWith;
 import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
@@ -34,6 +34,7 @@ import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
+import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -57,7 +58,7 @@ import lombok.experimental.FieldNameConstants;
  * </p>
  *
  * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.FtpFetcher">
+ * <fetcher class="com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher">
  *
  *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
  *

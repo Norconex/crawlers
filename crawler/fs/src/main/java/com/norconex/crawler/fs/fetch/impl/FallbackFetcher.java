@@ -51,6 +51,9 @@ import lombok.NonNull;
 @Data
 public class FallbackFetcher extends AbstractVfsFetcher {
 
+    //TODO really have this? If so, make it GenericVfsFetcher instead
+    // and allow abitrary config to be set?
+
     @Override
     protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
         return true;

@@ -12,11 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
+package com.norconex.crawler.fs.fetch.impl.smb;
 
 import org.apache.commons.vfs2.FileSystemOptions;
 
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher;
 
 import lombok.Data;
 

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
+package com.norconex.crawler.fs.fetch.impl.local;
 
 import static com.norconex.crawler.fs.fetch.impl.FileFetchUtil.referenceStartsWith;
 
@@ -38,6 +38,7 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
+import com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -81,7 +82,7 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  *
  * {@nx.xml.usage
- * <fetcher class="com.norconex.crawler.fs.fetch.impl.LocalFetcher">
+ * <fetcher class="com.norconex.crawler.fs.fetch.impl.local.LocalFetcher">
  *   {@nx.include com.norconex.crawler.core.fetch.AbstractFetcher#referenceFilters}
  *   <aclDisabled>[false|true]</aclDisabled>
  * </fetcher>

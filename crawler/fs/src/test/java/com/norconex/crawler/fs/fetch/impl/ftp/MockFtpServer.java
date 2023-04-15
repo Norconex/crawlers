@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
+package com.norconex.crawler.fs.fetch.impl.ftp;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +28,7 @@ import org.apache.ftpserver.usermanager.impl.BaseUser;
 
 import com.norconex.crawler.fs.FsStubber;
 import com.norconex.crawler.fs.FsTestUtil;
+import com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -12,9 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
-
-import static org.assertj.core.api.Assertions.assertThatNoException;
+package com.norconex.crawler.fs.fetch.impl.ftp;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,11 +20,10 @@ import java.io.IOException;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.crawler.fs.FsStubber;
+import com.norconex.crawler.fs.fetch.FileFetcher;
+import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 class FtpFetcherTest extends AbstractFileFetcherTest {
 
@@ -43,18 +40,13 @@ class FtpFetcherTest extends AbstractFileFetcherTest {
         MockFtpServer.stop(server);
     }
 
-    public FtpFetcherTest() {
-        super(MockFtpServer.fetcherClient());
+    @Override
+    protected FileFetcher fetcher() {
+        return MockFtpServer.fetcherClient();
     }
 
     @Override
-    String getStartPath() {
+    protected String getStartPath() {
         return server.getStartPath();
-    }
-
-    @Test
-    void testFtpFetcher() {
-        assertThatNoException().isThrownBy(() -> XML.assertWriteRead(
-                FsStubber.randomize(FtpFetcher.class), "fetcher"));
     }
 }

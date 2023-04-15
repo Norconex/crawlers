@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
+package com.norconex.crawler.fs.fetch.impl.webdav;
 
 import static com.norconex.commons.lang.encrypt.EncryptionUtil.decrypt;
 import static com.norconex.commons.lang.encrypt.EncryptionUtil.decryptPassword;
@@ -28,6 +28,7 @@ import com.norconex.commons.lang.encrypt.EncryptionKey;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
+import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -70,7 +71,6 @@ import lombok.experimental.FieldNameConstants;
  *   <tlsVersions>...</tlsVersions>
  *   <urlCharset>...</urlCharset>
  *   <userAgent>...</userAgent>
- *   <aclDisabled>[false|true]</aclDisabled>
  * </fetcher>
  * }
  *
@@ -110,7 +110,6 @@ public class WebDavFetcher extends AbstractAuthVfsFetcher {
     private String tlsVersions;
     private String urlCharset;
     private String userAgent;
-    private boolean aclDisabled;
 
     @Override
     protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
@@ -157,7 +156,7 @@ public class WebDavFetcher extends AbstractAuthVfsFetcher {
         super.loadFetcherFromXML(xml);
         xml.ifXML(Fields.proxySettings, proxyXML -> {
             proxySettings.loadFromXML(proxyXML);
-            setProxyDomain(xml.getString(Fields.proxyDomain, proxyDomain));
+            setProxyDomain(proxyXML.getString(Fields.proxyDomain, proxyDomain));
         });
         setKeyStorePassKey(EncryptionKey.loadFromXML(
                 xml.getXML(Fields.keyStorePassKey), keyStorePassKey));

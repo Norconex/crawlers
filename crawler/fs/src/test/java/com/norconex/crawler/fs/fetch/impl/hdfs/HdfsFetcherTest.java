@@ -12,27 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
+package com.norconex.crawler.fs.fetch.impl.hdfs;
 
-import java.nio.file.Path;
+import org.junit.jupiter.api.Disabled;
 
-import org.apache.commons.lang3.StringUtils;
+@Disabled
+class HdfsFetcherTest {// extends AbstractFileFetcherTest {
 
-import com.norconex.crawler.fs.FsStubber;
+    //TODO find a way to unit test HDFS.
 
-class LocalFetcherTest extends AbstractFileFetcherTest {
-
-    public LocalFetcherTest() {
-        super(fetcherClient());
-    }
-
-    public static LocalFetcher fetcherClient() {
-        return new LocalFetcher();
-    }
-
-    @Override
-    String getStartPath() {
-        return StringUtils.removeEnd(Path.of(FsStubber.MOCK_FS_PATH)
-                .toAbsolutePath().toUri().toString(), "/");
-    }
 }

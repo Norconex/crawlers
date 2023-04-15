@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
+package com.norconex.crawler.fs.fetch.impl.ftp;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +21,9 @@ import org.apache.ftpserver.ftplet.FtpException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.io.TempDir;
+
+import com.norconex.crawler.fs.fetch.FileFetcher;
+import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 class FtpsFetcherTest extends AbstractFileFetcherTest {
 
@@ -37,12 +40,13 @@ class FtpsFetcherTest extends AbstractFileFetcherTest {
         MockFtpServer.stop(server);
     }
 
-    public FtpsFetcherTest() {
-        super(MockFtpServer.fetcherClient());
+    @Override
+    protected FileFetcher fetcher() {
+        return MockFtpServer.fetcherClient();
     }
 
     @Override
-    String getStartPath() {
+    protected String getStartPath() {
         return server.getStartPath();
     }
 }

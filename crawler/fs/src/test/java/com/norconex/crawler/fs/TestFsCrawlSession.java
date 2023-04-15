@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 import org.assertj.core.util.Files;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -90,6 +91,9 @@ public class TestFsCrawlSession {
         var crawlSession = crawlSession();
         try {
             crawlSession.start();
+            while (crawlSession.isRunning()) {
+                Sleeper.sleepSeconds(1);
+            }
             return FsTestUtil.getFirstMemoryCommitter(crawlSession);
         } finally {
             try {

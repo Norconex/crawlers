@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
+package com.norconex.crawler.fs.fetch.impl.webdav;
 
 import java.io.File;
 
@@ -25,6 +25,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import com.norconex.crawler.fs.FsStubber;
+import com.norconex.crawler.fs.fetch.FileFetcher;
+import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Testcontainers(disabledWithoutDocker = true)
 class WebDavFetcherTest extends AbstractFileFetcherTest {
@@ -41,8 +43,9 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
 
     private String webdavUrl;
 
-    public WebDavFetcherTest() {
-        super(fetcherClient());
+    @Override
+    protected FileFetcher fetcher() {
+        return fetcherClient();
     }
 
     public static WebDavFetcher fetcherClient() {
@@ -50,7 +53,7 @@ class WebDavFetcherTest extends AbstractFileFetcherTest {
     }
 
     @Override
-    String getStartPath() {
+    protected String getStartPath() {
         return webdavUrl;
     }
 

@@ -66,6 +66,12 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-vfs2</artifactId>
       <version>${commons-vfs.version}</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>commons-logging</groupId>
+      		<artifactId>commons-logging</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-net</groupId>
@@ -74,51 +80,143 @@
     </dependency>
 
     <!-- WebDav support -->
-<!--    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-vfs2-jackrabbit1</artifactId>
-      <version>${commons-vfs.version}</version>
-    </dependency>-->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-vfs2-jackrabbit2</artifactId>
       <version>${commons-vfs.version}</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>commons-logging</groupId>
+      		<artifactId>commons-logging</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
-<!--    
+    
+
+<!--
+
 <dependency>
-  <groupId>org.apache.jackrabbit</groupId>
-  <artifactId>jackrabbit-jcr-client</artifactId>
-  <version>2.12.11</version>
-</dependency>    
-<dependency>
-  <groupId>org.apache.jackrabbit</groupId>
-  <artifactId>jackrabbit-webdav</artifactId>
-  <version>2.12.11</version>
+    <groupId>org.apache.hadoop</groupId>
+    <artifactId>hadoop-minicluster</artifactId>
+    <version>3.3.5</version>
+    <scope>test</scope>
+    <exclusions>
+      <exclusion>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-reload4j</artifactId>
+      </exclusion>
+    </exclusions>
 </dependency>
-    <dependency>
-      <groupId>org.apache.jackrabbit</groupId>
-      <artifactId>jackrabbit-jcr-client</artifactId>
-      <version>${jackrabbit-jcr.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.jackrabbit</groupId>
-      <artifactId>jackrabbit-webdav</artifactId>
-      <version>${jackrabbit.version}</version>
-    </dependency>
--->
-<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
-<!--<dependency>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpclient</artifactId>
-    <version>4.5.14</version>
-</dependency>-->
-<!-- https://mvnrepository.com/artifact/commons-httpclient/commons-httpclient -->
 <dependency>
-    <groupId>commons-httpclient</groupId>
-    <artifactId>commons-httpclient</artifactId>
-    <version>3.1</version>
+  <groupId>commons-configuration</groupId>
+  <artifactId>commons-configuration</artifactId>
+  <version>1.10</version>
+  <scope>test</scope>
+</dependency>
+<dependency>
+  <groupId>com.globalmentor</groupId>
+  <artifactId>hadoop-bare-naked-local-fs</artifactId>
+  <version>0.1.0</version>
+    <scope>test</scope>
 </dependency>
 
+<dependency>
+    <groupId>org.apache.hadoop</groupId>
+    <artifactId>hadoop-hdfs</artifactId>
+    <version>3.3.5</version>
+</dependency>
+
+<dependency>
+  <groupId>io.github.omaraloraini</groupId>
+  <artifactId>testcontainers-hdfs</artifactId>
+  <version>3.0.3-3</version>
+</dependency>
+-->
+
+<!--<dependency>
+    <groupId>fr.jetoile.hadoop</groupId>
+    <artifactId>hadoop-unit-hdfs</artifactId>
+    <version>3.8</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>fr.jetoile.hadoop</groupId>
+    <artifactId>hadoop-unit-client-hdfs</artifactId>
+    <version>3.8</version>
+    <scope>test</scope>
+    <exclusions>
+      <exclusion>
+        <groupId>*</groupId>
+        <artifactId>*</artifactId>
+      </exclusion>
+    </exclusions>
+</dependency>
+-->
+
+<!-- For FileSystemTestHelper: -->
+<!--<dependency>
+    <groupId>org.apache.hadoop</groupId>
+    <artifactId>hadoop-mapreduce-client-core</artifactId>
+    <version>3.3.5</version>
+</dependency>-->
+
+    <!-- For HDFS -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>3.3.5</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>org.slf4j</groupId>
+      		<artifactId>slf4j-log4j12</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>org.slf4j</groupId>
+      		<artifactId>slf4j-reload4j</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>commons-logging</groupId>
+      		<artifactId>commons-logging</artifactId>
+      	</exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs-client</artifactId>
+      <version>3.3.5</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <version>2.1.1</version>
+    </dependency>
+
+
+<!--
+<dependency>
+    <groupId>org.apache.hadoop</groupId>
+    <artifactId>hadoop-hdfs</artifactId>
+    <version>3.3.5</version>
+</dependency>
+
+-->
+
+<!--<dependency>
+    <groupId>org.apache.hbase</groupId>
+    <artifactId>hbase</artifactId>
+    <version>2.4.5</version>
+    <type>pom</type>
+</dependency>
+<dependency>
+    <groupId>org.htrace</groupId>
+    <artifactId>htrace-core</artifactId>
+    <version>3.0.4</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.htrace</groupId>
+    <artifactId>htrace-hbase</artifactId>
+    <version>4.1.0-incubating</version>
+</dependency>-->
 
 
     <!-- Test + provided dependencies: -->
@@ -148,6 +246,39 @@
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+<dependency>
+    <groupId>commons-httpclient</groupId>
+    <artifactId>commons-httpclient</artifactId>
+    <version>3.1</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+          </exclusion>
+          <exclusion>
+          	<groupId>commons-logging</groupId>
+          	<artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>    
+</dependency>    
+<!--    
+    <dependency>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-netty</artifactId>
+      <version>${mockserver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-client-java</artifactId>
+      <version>${mockserver.version}</version>
+    </dependency>
+-->
+
 
 <!--<dependency>
   <groupId>javax.jcr</groupId>
@@ -280,15 +411,18 @@
          More info: 
          https://commons.apache.org/proper/commons-vfs/download.html
       -->
+<!--
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>2.6.0</version>
+-->
       <!-- Will complain at execution time if using "provided":
       <scope>provided</scope>
       <optional>true</optional>
        -->
       <!-- Shall we include all dependencies? or make them separate packages to download? -->
+<!--
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -296,6 +430,7 @@
         </exclusion>
       </exclusions>
     </dependency>      
+-->
 
   </dependencies>
   

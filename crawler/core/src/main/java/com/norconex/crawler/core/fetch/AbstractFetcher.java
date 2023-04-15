@@ -110,6 +110,7 @@ public abstract class AbstractFetcher
      */
     public void setReferenceFilters(List<ReferenceFilter> referenceFilters) {
         CollectionUtil.setAll(this.referenceFilters, referenceFilters);
+        CollectionUtil.removeNulls(this.referenceFilters);
     }
 
     @Override
