@@ -16,12 +16,12 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:include schemaLocation="/com/norconex/crawler/fs/fetch/impl/AbstractVfsFetcher.xsd"></xs:include>
+  <xs:include schemaLocation="/com/norconex/crawler/fs/fetch/impl/AbstractAuthVfsFetcher.xsd"></xs:include>
 
   <xs:element name="fetcher">
     <xs:complexType>
       <xs:complexContent> 
-        <xs:extension base="AbstractVfsFetcher">  
+        <xs:extension base="AbstractAuthVfsFetcher">  
           <xs:all>
             <xs:element name="compression" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="fileNameEncoding" type="xs:string" minOccurs="0" maxOccurs="1"/>

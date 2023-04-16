@@ -72,7 +72,7 @@ public abstract class AbstractAuthVfsFetcher extends AbstractVfsFetcher {
     private final Credentials credentials = new Credentials();
     @Getter
     @Setter
-    private String authDomain;
+    private String domain;
 
     @Override
     protected void fetcherStartup(CrawlSession crawlSession) {
@@ -88,7 +88,7 @@ public abstract class AbstractAuthVfsFetcher extends AbstractVfsFetcher {
         var defBuilder = DefaultFileSystemConfigBuilder.getInstance();
         if (credentials.isSet()) {
             defBuilder.setUserAuthenticator(opts, new StaticUserAuthenticator(
-                    authDomain,
+                    domain,
                     credentials.getUsername(),
                     EncryptionUtil.decryptPassword(credentials)));
         }
@@ -98,13 +98,13 @@ public abstract class AbstractAuthVfsFetcher extends AbstractVfsFetcher {
     protected void loadFetcherFromXML(XML xml) {
         xml.ifXML("authentication", authXml -> {
             authXml.ifXML("credentials", credentials::loadFromXML);
-            setAuthDomain(authXml.getString("domain", authDomain));
+            setDomain(authXml.getString("domain", domain));
         });
     }
     @Override
     protected void saveFetcherToXML(XML xml) {
         var authXml = xml.addElement("authentication");
         credentials.saveToXML(authXml.addElement("credentials"));
-        authXml.addElement("domain", authDomain);
+        authXml.addElement("domain", domain);
     }
 }

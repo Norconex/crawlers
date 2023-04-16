@@ -24,9 +24,7 @@ import java.nio.file.attribute.AclEntryFlag;
 import java.nio.file.attribute.AclEntryPermission;
 import java.nio.file.attribute.AclFileAttributeView;
 import java.util.Objects;
-import java.util.TreeSet;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -117,15 +115,6 @@ public class LocalFetcher extends AbstractVfsFetcher {
 
         if (!aclDisabled && fileObject instanceof LocalFile localFile) {
             fetchAcl(localFile, doc.getMetadata());
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("METADATA:");
-                LOG.trace("---------");
-                for (String key : new TreeSet<>(doc.getMetadata().keySet())) {
-                    LOG.trace("  " + StringUtils.rightPad(key, 40) + " = "
-                            + StringUtils.join(
-                                    doc.getMetadata().getStrings(key), " | "));
-                }
-            }
         }
     }
 

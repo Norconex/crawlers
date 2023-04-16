@@ -16,12 +16,22 @@
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:include schemaLocation="/com/norconex/crawler/core/fetch/AbstractFetcher.xsd"></xs:include>
+  <xs:include schemaLocation="AbstractVfsFetcher.xsd"></xs:include>
   <xs:include schemaLocation="/com/norconex/commons/lang/security/Credentials.xsd"></xs:include>
 
-  <xs:complexType name="AbstractVfsFetcher" abstract="true">
+  <xs:complexType name="AbstractAuthVfsFetcher" abstract="true">
     <xs:complexContent> 
-      <xs:extension base="AbstractFetcher">  
+      <xs:extension base="AbstractVfsFetcher">  
+        <xs:all>
+          <xs:element name="authentication" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:all>
+                <xs:element ref="credentials" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="domain" type="xs:string" minOccurs="0" maxOccurs="1"/>
+              </xs:all>
+            </xs:complexType>
+          </xs:element>         
+        </xs:all>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
