@@ -77,6 +77,7 @@ import lombok.extern.slf4j.Slf4j;
  *   <li>Jar ({@code jar://})</li>
  *   <li>Tar ({@code tar://}, {@code tgz://}, {@code tbz2://})</li>
  *   <li>Zip ({@code zip://})</li>
+ *   <li>MIME ({@code mime://})</li>
  * </ul>
  *
  * {@nx.xml.usage
@@ -103,7 +104,7 @@ public class LocalFetcher extends AbstractVfsFetcher {
         return referenceStartsWith(
             fetchRequest,
             "/", "\\", "file:", "bzip2:", "gzip:", "jar:",
-            "tar:", "tgz:", "tbz2:", "zip:"
+            "tar:", "tgz:", "tbz2:", "zip:", "mime:"
         ) || fetchRequest.getDoc().getDocRecord().getReference().matches(
                 "(?i)^[a-z]{1,2}:[/\\\\].*");
     }
