@@ -17,7 +17,6 @@ package com.norconex.crawler.fs.fetch;
 import java.util.function.Function;
 
 import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 import com.norconex.crawler.fs.fetch.impl.GenericFileFetchResponse;
 import com.norconex.crawler.fs.util.Fs;
 
@@ -28,7 +27,7 @@ public class FileFetcherProvider
     @Override
     public FileMultiFetcher apply(Crawler crawler) {
 
-        var cfg = (FsCrawlerConfig) crawler.getCrawlerConfig();
+        var cfg = crawler.getCrawlerConfig();
 
         var fetchers = Fs.toFileFetcher(cfg.getFetchers());
         if (fetchers.isEmpty()) {

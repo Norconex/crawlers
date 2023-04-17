@@ -18,10 +18,10 @@ import java.util.Optional;
 
 import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionBuilder;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
-import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 import com.norconex.crawler.fs.crawler.impl.FsCrawlerImplFactory;
 
 public class FsCrawlSession {
@@ -45,7 +45,7 @@ public class FsCrawlSession {
         return CliLauncher.launch(
                 initCrawlSessionBuilder(
                         CrawlSession.builder(),
-                        new CrawlSessionConfig(FsCrawlerConfig.class)),
+                        new CrawlSessionConfig(CrawlerConfig.class)),
                 args);
     }
 
@@ -53,7 +53,7 @@ public class FsCrawlSession {
         return initCrawlSessionBuilder(
                 CrawlSession.builder(),
                 Optional.ofNullable(sessionConfig).orElseGet(() ->
-                        new CrawlSessionConfig(FsCrawlerConfig.class)))
+                        new CrawlSessionConfig(CrawlerConfig.class)))
                 .build();
     }
 

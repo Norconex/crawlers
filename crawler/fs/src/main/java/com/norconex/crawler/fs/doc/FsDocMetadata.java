@@ -20,13 +20,12 @@ public final class FsDocMetadata {
 
     public static final String PATH = PREFIX + "path";
 
-    public static final String FILE_SIZE = PREFIX + "file-size";
+    public static final String FILE_SIZE = PREFIX + "fileSize";
 
     //TODO make part of crawler-core?
-    public static final String LAST_MODIFIED = PREFIX + "last-modified";
+    public static final String LAST_MODIFIED = PREFIX + "lastModified";
 
     public static final String ACL = PREFIX + "acl";
-
 
     private FsDocMetadata() {}
 }

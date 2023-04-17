@@ -16,9 +16,9 @@ package com.norconex.crawler.fs.pipeline.importer;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
-import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 
 /**
  * @author Pascal Essiembre
@@ -50,8 +50,8 @@ public class FsImporterPipelineContext extends ImporterPipelineContext {
     }
 
     @Override
-    public FsCrawlerConfig getConfig() {
-        return (FsCrawlerConfig) getCrawler().getCrawlerConfig();
+    public CrawlerConfig getConfig() {
+        return getCrawler().getCrawlerConfig();
     }
 
 //    public FileObject getFileObject() {

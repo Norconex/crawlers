@@ -48,7 +48,6 @@ import com.norconex.crawler.core.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreEngine;
-import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 import com.norconex.crawler.fs.crawler.impl.FsCrawlerImplFactory;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.handler.filter.OnMatch;
@@ -121,43 +120,6 @@ public final class FsStubber {
         return values[new Random().nextInt(values.length -1)];
     }
 
-//    public Path mockLocalFileSystem() {
-//
-//    }
-//
-//
-//    /**
-//     * <p>Random crawler config stub:</p>
-//     * <ul>
-//     *   <li>Single-threaded</li>
-//     *   <li>1 Memory Committer</li>
-//     *   <li>Random values for everything else.</li>
-//     * </ul>
-//     * @return random crawler config
-//     */
-//    public static WebCrawlerConfig crawlerConfigRandom() {
-//        var cfg = easyRandom.nextObject(WebCrawlerConfig.class);
-//        cfg.setNumThreads(1);
-//        cfg.setCommitters(List.of(new MemoryCommitter()));
-//        return cfg;
-//    }
-//
-//    public static CrawlDoc crawlDocHtml(String ref) {
-//        return crawlDocHtml(ref, "Sample HTML content.");
-//    }
-//    public static CrawlDoc crawlDocHtml(String ref, String content) {
-//        return crawlDoc(ref, ContentType.HTML,
-//                IOUtils.toInputStream(content, UTF_8));
-//    }
-//    public static CrawlDoc crawlDoc(
-//            String ref, ContentType ct, InputStream is) {
-//        var docRecord = new WebDocRecord(ref);
-//        docRecord.setContentType(ct);
-//        var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));
-//        doc.getMetadata().set(DocMetadata.CONTENT_TYPE, ct);
-//        return doc;
-//    }
-//
     //--- Crawl Session --------------------------------------------------------
 
     public static CrawlSession crawlSession(
@@ -193,7 +155,7 @@ public final class FsStubber {
     public static CrawlSessionConfig crawlSessionConfig(Path workDir) {
         List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
         crawlerConfigs.add(crawlerConfig());
-        var sessionConfig = new CrawlSessionConfig(FsCrawlerConfig.class);
+        var sessionConfig = new CrawlSessionConfig(CrawlerConfig.class);
         sessionConfig.setWorkDir(workDir);
         sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
         sessionConfig.setCrawlerConfigs(crawlerConfigs);
@@ -210,8 +172,8 @@ public final class FsStubber {
      * </ul>
      * @return crawler config
      */
-    public static FsCrawlerConfig crawlerConfig() {
-        var crawlerConfig = new FsCrawlerConfig();
+    public static CrawlerConfig crawlerConfig() {
+        var crawlerConfig = new CrawlerConfig();
         crawlerConfig.setId(MOCK_CRAWLER_ID);
         crawlerConfig.setNumThreads(1);
         crawlerConfig.setCommitters(List.of(new MemoryCommitter()));

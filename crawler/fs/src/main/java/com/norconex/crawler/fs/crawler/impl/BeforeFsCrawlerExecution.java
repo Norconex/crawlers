@@ -17,7 +17,6 @@ package com.norconex.crawler.fs.crawler.impl;
 import java.util.function.BiConsumer;
 
 import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.fs.util.Fs;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +32,7 @@ class BeforeFsCrawlerExecution implements BiConsumer<Crawler, Boolean> {
     }
 
     private static void logCrawlerInformation(Crawler crawler) {
-        var cfg = Fs.config(crawler);
+        var cfg = crawler.getCrawlerConfig();
         LOG.info("""
             Enabled features:
 

@@ -21,7 +21,10 @@ import com.norconex.crawler.fs.pipeline.committer.FsCommitterPipeline;
 import com.norconex.crawler.fs.pipeline.importer.FsImporterPipeline;
 import com.norconex.crawler.fs.pipeline.queue.FsQueuePipeline;
 
-public class FsCrawlerImplFactory {
+public final class FsCrawlerImplFactory {
+
+    private FsCrawlerImplFactory() {}
+
     public static CrawlerImpl create() {
         return CrawlerImpl.builder()
                 .fetcherProvider(new FileFetcherProvider())
