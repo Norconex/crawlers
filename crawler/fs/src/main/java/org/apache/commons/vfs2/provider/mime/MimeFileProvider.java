@@ -31,9 +31,12 @@ import org.apache.commons.vfs2.provider.AbstractLayeredFileProvider;
 import org.apache.commons.vfs2.provider.FileProvider;
 import org.apache.commons.vfs2.provider.LayeredFileName;
 
+import lombok.Generated;
+
 /**
  * A provider for MIME Message.
  */
+@Generated // to exclude from code coverage
 public class MimeFileProvider extends AbstractLayeredFileProvider implements FileProvider {
     static final Collection<Capability> capabilities = Collections
             .unmodifiableCollection(Arrays.asList(Capability.GET_TYPE, Capability.GET_LAST_MODIFIED, Capability.LIST_CHILDREN,

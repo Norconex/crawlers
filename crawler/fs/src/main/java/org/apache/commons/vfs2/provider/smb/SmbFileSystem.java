@@ -26,9 +26,12 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
 
+import lombok.Generated;
+
 /**
  * An SMB file system.
  */
+@Generated // to exclude from code coverage
 public class SmbFileSystem extends AbstractFileSystem {
     protected SmbFileSystem(final FileName rootName, final FileSystemOptions fileSystemOptions) {
         super(rootName, null, fileSystemOptions);

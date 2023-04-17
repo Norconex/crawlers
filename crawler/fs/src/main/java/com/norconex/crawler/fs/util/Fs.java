@@ -31,7 +31,7 @@ public final class Fs {
         return (FileFetcher) ctx.getCrawler().getFetcher();
     }
 
-    public static List<FileFetcher> toFileFetcher(
+    public static List<FileFetcher> toFileFetchers(
             @NonNull Collection<Fetcher<?, ?>> fetchers) {
         return fetchers.stream()
             .map(FileFetcher.class::cast)

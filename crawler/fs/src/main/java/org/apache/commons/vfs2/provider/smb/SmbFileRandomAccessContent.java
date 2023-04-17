@@ -28,10 +28,12 @@ import org.apache.commons.vfs2.util.RandomAccessMode;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbRandomAccessFile;
+import lombok.Generated;
 
 /**
  * RandomAccess for smb files
  */
+@Generated // to exclude from code coverage
 class SmbFileRandomAccessContent extends AbstractRandomAccessContent {
     private final SmbRandomAccessFile raf;
     private final InputStream rafis;

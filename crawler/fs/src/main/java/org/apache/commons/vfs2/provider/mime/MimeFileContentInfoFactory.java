@@ -26,9 +26,12 @@ import org.apache.commons.vfs2.FileContentInfoFactory;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.impl.DefaultFileContentInfo;
 
+import lombok.Generated;
+
 /**
  * Get access to the content info stuff for mime objects.
  */
+@Generated // to exclude from code coverage
 public class MimeFileContentInfoFactory implements FileContentInfoFactory {
     @Override
     public FileContentInfo create(final FileContent fileContent) throws FileSystemException {

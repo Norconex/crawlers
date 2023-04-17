@@ -24,9 +24,12 @@ import org.apache.commons.vfs2.provider.URLFileNameParser;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.VfsComponentContext;
 
+import lombok.Generated;
+
 /**
  * Implementation for sftp. set default port to 139
  */
+@Generated // to exclude from code coverage
 public class SmbFileNameParser extends URLFileNameParser {
 
     private static final SmbFileNameParser INSTANCE = new SmbFileNameParser();

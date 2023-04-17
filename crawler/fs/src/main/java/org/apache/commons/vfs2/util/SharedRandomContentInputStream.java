@@ -29,9 +29,12 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.RandomAccessContent;
 
+import lombok.Generated;
+
 /**
  * (Sandbox) A wrapper to an FileObject to get a {@link javax.mail.internet.SharedInputStream}.
  */
+@Generated // to exclude from code coverage
 public class SharedRandomContentInputStream extends BufferedInputStream implements SharedInputStream {
     private final Set<SharedRandomContentInputStream> createdStreams;
     private final FileObject fo;

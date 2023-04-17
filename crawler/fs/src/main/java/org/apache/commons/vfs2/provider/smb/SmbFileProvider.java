@@ -29,9 +29,12 @@ import org.apache.commons.vfs2.UserAuthenticationData;
 import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
 import org.apache.commons.vfs2.provider.FileProvider;
 
+import lombok.Generated;
+
 /**
  * A provider for SMB (Samba, Windows share) file systems.
  */
+@Generated // to exclude from code coverage
 public class SmbFileProvider extends AbstractOriginatingFileProvider implements FileProvider {
     /** Authentication data supported by this provider. */
     public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES = new UserAuthenticationData.Type[] {

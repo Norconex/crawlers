@@ -22,10 +22,13 @@ import java.io.RandomAccessFile;
 
 import org.apache.commons.vfs2.RandomAccessContent;
 
+import lombok.Generated;
+
 /**
  * (Sandbox) Encapsulates a {@link RandomAccessContent} instance, allowing it to be used as a {@link RandomAccessFile}
  * instance.
  */
+@Generated // to exclude from code coverage
 public class RACRandomAccessFile extends RandomAccessFile implements RandomAccessContent {
     private final byte[] singleByteBuf = new byte[1];
 

@@ -34,7 +34,7 @@
             <xs:element name="configPaths" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:all>
-                  <xs:element name="name" 
+                  <xs:element name="path" 
                       type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 </xs:all>
               </xs:complexType>
@@ -42,7 +42,7 @@
             <xs:element name="configUrls" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:all>
-                  <xs:element name="name" 
+                  <xs:element name="url" 
                       type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 </xs:all>
               </xs:complexType>

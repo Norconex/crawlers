@@ -74,7 +74,7 @@ public class HdfsFetcher extends AbstractVfsFetcher {
         return Collections.unmodifiableList(configNames);
     }
     public void setConfigNames(List<String> configNames) {
-        CollectionUtil.setAll(configNames, configNames);
+        CollectionUtil.setAll(this.configNames, configNames);
     }
 
     public List<Path> getConfigPaths() {
@@ -88,7 +88,7 @@ public class HdfsFetcher extends AbstractVfsFetcher {
         return Collections.unmodifiableList(configUrls);
     }
     public void setConfigUrls(List<URL> configUrls) {
-        CollectionUtil.setAll(configUrls, configUrls);
+        CollectionUtil.setAll(this.configUrls, configUrls);
     }
 
     @Override
@@ -119,7 +119,8 @@ public class HdfsFetcher extends AbstractVfsFetcher {
     @Override
     protected void saveFetcherToXML(XML xml) {
         xml.addElementList(Fields.configNames, "name", configNames);
-        xml.addElementList(Fields.configPaths, "path", configPaths);
+        var pathsXml = xml.addElement(Fields.configPaths);
+        configPaths.forEach(p -> pathsXml.addElement("path", p.toString()));
         xml.addElementList(Fields.configUrls, "url", configUrls);
     }
 }

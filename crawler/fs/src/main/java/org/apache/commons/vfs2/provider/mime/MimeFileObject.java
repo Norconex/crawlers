@@ -41,9 +41,12 @@ import org.apache.commons.vfs2.provider.AbstractFileObject;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.util.FileObjectUtils;
 
+import lombok.Generated;
+
 /**
  * A part of a MIME message.
  */
+@Generated // to exclude from code coverage
 public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implements FileObject {
     private Part part;
     private Map<String, Object> attributeMap;

@@ -23,8 +23,4 @@ public class FsPath {
     private boolean file;
     private boolean folder;
 
-
-//    private String referrer;
-//    private final Properties metadata = new Properties();
-
 }

@@ -39,9 +39,12 @@ import javax.mail.internet.MimeMessage;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import lombok.Generated;
+
 /**
  * A map which tries to allow access to the various aspects of the mail.
  */
+@Generated // to exclude from code coverage
 public class MimeAttributesMap implements Map<String, Object> {
     private static final String OBJECT_PREFIX = "obj.";
 

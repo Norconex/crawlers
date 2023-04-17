@@ -44,10 +44,10 @@ public class FsDocRecord extends CrawlDocRecord {
     }
     /**
      * Copy constructor.
-     * @param docDetails document details to copy
+     * @param docRecord document record to copy
      */
-    public FsDocRecord(DocRecord docDetails) {
-        super(docDetails);
+    public FsDocRecord(DocRecord docRecord) {
+        super(docRecord);
     }
 
     @Override

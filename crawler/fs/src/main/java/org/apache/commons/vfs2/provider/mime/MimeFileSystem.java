@@ -35,9 +35,12 @@ import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
 import org.apache.commons.vfs2.util.SharedRandomContentInputStream;
 
+import lombok.Generated;
+
 /**
  * An MIME file system.
  */
+@Generated // to exclude from code coverage
 public class MimeFileSystem extends AbstractFileSystem {
     static final String NULL_BP_NAME = "_body_part_";
     static final String CONTENT_NAME = "_content";
@@ -95,7 +98,7 @@ public class MimeFileSystem extends AbstractFileSystem {
             closeMimeStream();
         }
 
-        final FileObject parentLayer = getParentLayer();
+        final var parentLayer = getParentLayer();
         if (!parentLayer.exists()) {
             return null;
         }

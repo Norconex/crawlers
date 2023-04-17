@@ -39,10 +39,12 @@ import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
 import jcifs.smb.SmbFileOutputStream;
+import lombok.Generated;
 
 /**
  * A file in an SMB file system.
  */
+@Generated // to exclude from code coverage
 public class SmbFileObject extends AbstractFileObject<SmbFileSystem> {
     // private final String fileName;
     private SmbFile file;

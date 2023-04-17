@@ -21,9 +21,12 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.GenericFileName;
 
+import lombok.Generated;
+
 /**
  * An SMB URI. Adds a share name to the generic URI.
  */
+@Generated // to exclude from code coverage
 public class SmbFileName extends GenericFileName {
     private static final int DEFAULT_PORT = 139;
 
