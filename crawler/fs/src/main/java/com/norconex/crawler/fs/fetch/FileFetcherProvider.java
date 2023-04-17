@@ -14,11 +14,12 @@
  */
 package com.norconex.crawler.fs.fetch;
 
+import java.util.List;
 import java.util.function.Function;
 
 import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 import com.norconex.crawler.fs.fetch.impl.GenericFileFetchResponse;
+import com.norconex.crawler.fs.fetch.impl.local.LocalFetcher;
 import com.norconex.crawler.fs.util.Fs;
 
 //TODO make default and move where crawlsession is constructed?
@@ -28,11 +29,11 @@ public class FileFetcherProvider
     @Override
     public FileMultiFetcher apply(Crawler crawler) {
 
-        var cfg = (FsCrawlerConfig) crawler.getCrawlerConfig();
+        var cfg = crawler.getCrawlerConfig();
 
-        var fetchers = Fs.toFileFetcher(cfg.getFetchers());
+        var fetchers = Fs.toFileFetchers(cfg.getFetchers());
         if (fetchers.isEmpty()) {
-            //fetchers.add(new GenericHttpFetcher());
+            fetchers = List.of(new LocalFetcher());
         }
 
         return new FileMultiFetcher(

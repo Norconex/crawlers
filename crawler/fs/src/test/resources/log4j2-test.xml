@@ -225,7 +225,7 @@
 
     <!-- Others -->
 
-    <Logger name="com.norconex.crawler.fs" level="DEBUG" additivity="false">
+    <Logger name="com.norconex.crawler.fs" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
@@ -249,7 +249,7 @@
     <Logger name="org.mockserver" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.testcontainers" level="INFO" additivity="false">
+    <Logger name="org.testcontainers" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.apache.ftpserver" level="WARN" additivity="false">
@@ -258,12 +258,17 @@
     <Logger name="org.apache" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.apache.commons.vfs2" level="INFO" additivity="false">
+    <Logger name="org.apache.commons.vfs2" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.apache.mina" level="ERROR" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="jcifs.smb" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+
 
     <Root level="WARN">
       <AppenderRef ref="Console"/>

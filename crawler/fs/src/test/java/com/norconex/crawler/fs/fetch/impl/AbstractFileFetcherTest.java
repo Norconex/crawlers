@@ -17,34 +17,29 @@ package com.norconex.crawler.fs.fetch.impl;
 import static com.norconex.crawler.fs.FsTestUtil.getUpsertRequestContent;
 import static com.norconex.crawler.fs.FsTestUtil.getUpsertRequestMeta;
 import static com.norconex.crawler.fs.doc.FsDocMetadata.FILE_SIZE;
-import static com.norconex.crawler.fs.doc.FsDocMetadata.LAST_MODIFIED;
 import static com.norconex.importer.doc.DocMetadata.CONTENT_ENCODING;
 import static com.norconex.importer.doc.DocMetadata.CONTENT_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.commons.lang.xml.XML;
+import com.norconex.crawler.fs.FsStubber;
 import com.norconex.crawler.fs.TestFsCrawlSession;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 
-abstract class AbstractFileFetcherTest {
+public abstract class AbstractFileFetcherTest {
 
-    private final FileFetcher fetcher;
-
-    public AbstractFileFetcherTest(FileFetcher fetcher) {
-        this.fetcher = fetcher;
-    }
+    protected abstract FileFetcher fetcher();
 
     @Test
     void testFetchFiles() {
+        var fetcher = fetcher();
         var basePath = getStartPath();
         var mem = TestFsCrawlSession.forStartPaths(basePath)
             .crawlerSetup(cfg -> {
@@ -97,32 +92,15 @@ abstract class AbstractFileFetcherTest {
                         .isEqualTo("15987");
 
         // Assert last modified (UTC)
-        assertThat(epochTruncatedAtSeconds(getUpsertRequestMeta(
-                mem, basePath + "/imgs/160x120.png", LAST_MODIFIED)))
-                        .isEqualTo(isoLocalToEpoch("2023-03-15T07:25:32"));
-        assertThat(epochTruncatedAtSeconds(getUpsertRequestMeta(
-                mem, basePath + "/embedded.zip", LAST_MODIFIED)))
-                        .isEqualTo(isoLocalToEpoch("2022-08-30T03:50:55"));
+        //TODO reliably test dates. Probably best to create new files
 
-//mem.getAllRequests().forEach(req -> {
-//    System.err.println("FILE: " + req.getReference());
-//    System.err.println("META: \n" + req.getMetadata());
-//});
 
+        assertThatNoException().isThrownBy(() -> XML.assertWriteRead(
+                FsStubber.randomize(fetcher.getClass()), "fetcher"));
         // Assert ACLs
 
         //TODO extract ACL, possibly making it a flag if costly?
     }
 
-    abstract String getStartPath();
-
-    private static String epochTruncatedAtSeconds(String epoch) {
-        return StringUtils.substring(epoch, 0, -3) + "000";
-    }
-    private static String isoLocalToEpoch(String isoLocal) {
-        return LocalDateTime
-                .from(DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(isoLocal))
-                .atZone(ZoneOffset.UTC)
-                .toEpochSecond() + "000";
-    }
+    protected abstract String getStartPath();
 }

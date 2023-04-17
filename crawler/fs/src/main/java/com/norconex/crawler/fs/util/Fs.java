@@ -17,11 +17,8 @@ package com.norconex.crawler.fs.util;
 import java.util.Collection;
 import java.util.List;
 
-import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.pipeline.AbstractPipelineContext;
-import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 
 import lombok.NonNull;
@@ -30,21 +27,11 @@ public final class Fs {
 
     private Fs() {}
 
-    public static FsCrawlerConfig config(CrawlerConfig cfg) {
-        return (FsCrawlerConfig) cfg;
-    }
-    public static FsCrawlerConfig config(AbstractPipelineContext ctx) {
-        return (FsCrawlerConfig) ctx.getConfig();
-    }
-    public static FsCrawlerConfig config(Crawler crawler) {
-        return (FsCrawlerConfig) crawler.getCrawlerConfig();
-    }
-
     public static FileFetcher fetcher(AbstractPipelineContext ctx) {
         return (FileFetcher) ctx.getCrawler().getFetcher();
     }
 
-    public static List<FileFetcher> toFileFetcher(
+    public static List<FileFetcher> toFileFetchers(
             @NonNull Collection<Fetcher<?, ?>> fetchers) {
         return fetchers.stream()
             .map(FileFetcher.class::cast)

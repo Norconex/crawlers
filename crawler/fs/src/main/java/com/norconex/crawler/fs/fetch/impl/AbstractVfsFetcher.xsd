@@ -22,16 +22,6 @@
   <xs:complexType name="AbstractVfsFetcher" abstract="true">
     <xs:complexContent> 
       <xs:extension base="AbstractFetcher">  
-        <xs:all>
-          <xs:element name="authentication" minOccurs="0" maxOccurs="1">
-            <xs:complexType>
-              <xs:all>
-                <xs:element ref="credentials" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="domain" type="xs:string" minOccurs="0" maxOccurs="1"/>
-              </xs:all>
-            </xs:complexType>
-          </xs:element>         
-        </xs:all>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

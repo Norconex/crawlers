@@ -20,12 +20,11 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.vfs2.provider.UriParser;
 
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 
-final class FileFetchUtil {
+public final class FileFetchUtil {
 
     private FileFetchUtil() {}
 
@@ -37,7 +36,8 @@ final class FileFetchUtil {
      * @return <code>true</code> if the request reference starts with one
      *     of the supplied prefixes
      */
-    static boolean referenceStartsWith(FileFetchRequest req, String... prefixes) {
+    public static boolean referenceStartsWith(
+            FileFetchRequest req, String... prefixes) {
 
         return Optional.ofNullable(req)
                 .map(FileFetchRequest::getDoc)
@@ -63,14 +63,17 @@ final class FileFetchUtil {
      * @param path the path to encode
      * @return encode encoded path
      */
-    static String uriEncodeLocalPath(String path) {
+    public static String uriEncodeLocalPath(String path) {
+        if (path == null) {
+            return null;
+        }
         // We consider the reference a local file path (absolute or relative)
         // if it matches any of these conditions:
         //     - no scheme
         //     - scheme is "file"
         //     - scheme is one letter (e.g., windows drive letter)
         // If a local file, we properly encode all segments.
-        var scheme = UriParser.extractScheme(path);
+        var scheme = path.replaceFirst("^(.*?):.*", "$1");
         if (scheme == null
                 || scheme.length() <= 1 || "file".equalsIgnoreCase(scheme)) {
             // encode segments

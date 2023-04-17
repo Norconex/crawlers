@@ -129,18 +129,6 @@
     <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
 
 
-  
-<!--    <dependency>
-      <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-crawler-core</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>-->
-
     <dependency>
       <groupId>org.imgscalr</groupId>
       <artifactId>imgscalr-lib</artifactId>
@@ -223,18 +211,7 @@
       <artifactId>selenium</artifactId>
       <scope>test</scope>
     </dependency>
-<!--
-    <dependency>
-      <groupId>org.mock-server</groupId>
-      <artifactId>mockserver-netty</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mock-server</groupId>
-      <artifactId>mockserver-client-java</artifactId>
-      <scope>test</scope>
-    </dependency>
-    -->
+
     <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>

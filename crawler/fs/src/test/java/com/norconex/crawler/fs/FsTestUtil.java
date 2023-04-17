@@ -34,9 +34,9 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
-import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.importer.doc.Doc;
 
@@ -74,13 +74,13 @@ public final class FsTestUtil {
         }
         return null;
     }
-    public static FsCrawlerConfig getFirstCrawlerConfig(
+    public static CrawlerConfig getFirstCrawlerConfig(
             @NonNull CrawlSession crawlSession) {
         return getFirstCrawlerConfig(crawlSession.getCrawlSessionConfig());
     }
-    public static FsCrawlerConfig getFirstCrawlerConfig(
+    public static CrawlerConfig getFirstCrawlerConfig(
             @NonNull CrawlSessionConfig crawlSessionConfig) {
-        return (FsCrawlerConfig) crawlSessionConfig.getCrawlerConfigs().get(0);
+        return crawlSessionConfig.getCrawlerConfigs().get(0);
     }
     public static FileFetcher getFirstHttpFetcher(
             @NonNull CrawlSession crawlSession) {

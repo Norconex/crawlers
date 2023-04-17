@@ -26,11 +26,12 @@ import java.util.function.Consumer;
 import org.assertj.core.util.Files;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.FileUtil;
+import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
-import com.norconex.crawler.fs.crawler.FsCrawlerConfig;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -58,7 +59,7 @@ import lombok.experimental.Accessors;
 public class TestFsCrawlSession {
 
     private Consumer<CrawlSessionConfig> crawlSessionSetup;
-    private Consumer<FsCrawlerConfig> crawlerSetup;
+    private Consumer<CrawlerConfig> crawlerSetup;
     private final List<String> startPaths = new ArrayList<>();
 
     private TestFsCrawlSession() {}
@@ -82,7 +83,7 @@ public class TestFsCrawlSession {
                 .ifPresent(css -> css.accept(sessConfig));
         Optional.ofNullable(crawlerSetup)
                 .ifPresent(cs -> sessConfig.getCrawlerConfigs()
-                        .forEach(c -> cs.accept((FsCrawlerConfig) c)));
+                        .forEach(c -> cs.accept(c)));
         return crawlSession;
     }
 
@@ -90,6 +91,9 @@ public class TestFsCrawlSession {
         var crawlSession = crawlSession();
         try {
             crawlSession.start();
+            while (crawlSession.isRunning()) {
+                Sleeper.sleepSeconds(1);
+            }
             return FsTestUtil.getFirstMemoryCommitter(crawlSession);
         } finally {
             try {

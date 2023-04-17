@@ -27,22 +27,21 @@
   <name>Norconex File System Crawler</name>
 
   <properties>
+    <sonar.exclusions>
+        /src/main/java/org/apache/commons/vfs2/**/*
+    </sonar.exclusions>
+      
     <commons-net.version>3.9.0</commons-net.version>
     <commons-vfs.version>2.9.0</commons-vfs.version>
     <ftpserver.version>1.2.0</ftpserver.version>
-    <opencmis.version>1.1.0</opencmis.version>
+    <hadoop.version>3.3.5</hadoop.version>
     <jackrabbit.version>2.21.7</jackrabbit.version>
-    
-    
-<!--    <jackrabbit.version>2.21.6</jackrabbit.version>-->
-<!--    <jackrabbit.version>2.20.9</jackrabbit.version>-->
-
-<!--    <jackrabbit-jcr.version>2.12.11</jackrabbit-jcr.version>
-    <jackrabbit.version>2.21.6</jackrabbit.version>
--->    
-
-    <!-- BELOW ARE V2.x Dependencies: -->
-<!--    <jetty.version>9.4.34.v20201102</jetty.version>-->
+    <jakarta-activation.version>2.1.1</jakarta-activation.version>
+    <javax-mail.version>1.6.2</javax-mail.version>
+    <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
+    <jcifs.version>1.3.17</jcifs.version>
+    <jetty.version>9.4.34.v20201102</jetty.version>
+    <opencmis.version>1.1.0</opencmis.version>
   </properties>
   <inceptionYear>2014</inceptionYear>
 
@@ -66,6 +65,12 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-vfs2</artifactId>
       <version>${commons-vfs.version}</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>commons-logging</groupId>
+      		<artifactId>commons-logging</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-net</groupId>
@@ -74,51 +79,81 @@
     </dependency>
 
     <!-- WebDav support -->
-<!--    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-vfs2-jackrabbit1</artifactId>
-      <version>${commons-vfs.version}</version>
-    </dependency>-->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-vfs2-jackrabbit2</artifactId>
       <version>${commons-vfs.version}</version>
-    </dependency>
-<!--    
-<dependency>
-  <groupId>org.apache.jackrabbit</groupId>
-  <artifactId>jackrabbit-jcr-client</artifactId>
-  <version>2.12.11</version>
-</dependency>    
-<dependency>
-  <groupId>org.apache.jackrabbit</groupId>
-  <artifactId>jackrabbit-webdav</artifactId>
-  <version>2.12.11</version>
-</dependency>
-    <dependency>
-      <groupId>org.apache.jackrabbit</groupId>
-      <artifactId>jackrabbit-jcr-client</artifactId>
-      <version>${jackrabbit-jcr.version}</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>commons-logging</groupId>
+      		<artifactId>commons-logging</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.apache.jackrabbit</groupId>
-      <artifactId>jackrabbit-webdav</artifactId>
-      <version>${jackrabbit.version}</version>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>    
+    </dependency>    
+    
+    <!-- HDFS support -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>org.slf4j</groupId>
+      		<artifactId>slf4j-log4j12</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>org.slf4j</groupId>
+      		<artifactId>slf4j-reload4j</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>commons-logging</groupId>
+      		<artifactId>commons-logging</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>log4j</groupId>
+      		<artifactId>log4j</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
--->
-<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
-<!--<dependency>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpclient</artifactId>
-    <version>4.5.14</version>
-</dependency>-->
-<!-- https://mvnrepository.com/artifact/commons-httpclient/commons-httpclient -->
-<dependency>
-    <groupId>commons-httpclient</groupId>
-    <artifactId>commons-httpclient</artifactId>
-    <version>3.1</version>
-</dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs-client</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <version>${jakarta-activation.version}</version>
+    </dependency>
 
+    <!-- CIFS (Samba) support -->
+    <dependency>
+      <groupId>jcifs</groupId>
+      <artifactId>jcifs</artifactId>
+      <version>${jcifs.version}</version>
+    </dependency>
+    
+    <!-- MIME support -->
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>javax.mail-api</artifactId>
+      <version>${javax-mail.version}</version>
+    </dependency>
 
 
     <!-- Test + provided dependencies: -->
@@ -138,44 +173,17 @@
       <artifactId>easy-random-core</artifactId>
       <scope>test</scope>
     </dependency>
-<!--    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <scope>test</scope>
-    </dependency>-->
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-
-<!--<dependency>
-  <groupId>javax.jcr</groupId>
-  <artifactId>jcr</artifactId>
-  <version>2.0</version>
-  <scope>test</scope>
-</dependency>
-<dependency>
-  <groupId>org.apache.jackrabbit</groupId>
-  <artifactId>jackrabbit-core</artifactId>
-  <version>2.21.16</version>
-  <scope>test</scope>
-  <exclusions>
-    <exclusion>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-    </exclusion>
-  </exclusions>
-</dependency>
-<dependency>
-  <groupId>org.apache.jackrabbit</groupId>
-  <artifactId>jackrabbit-jcr-rmi</artifactId>
-  <version>2.21.16</version>
-  <scope>test</scope>
-</dependency>
--->
-
-
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
     <dependency>
       <groupId>org.apache.ftpserver</groupId>
       <artifactId>ftpserver-core</artifactId>
@@ -194,6 +202,17 @@
       <classifier>classes</classifier>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>${jaxb-api.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+        <scope>test</scope>
+    </dependency>
 
     <dependency>
         <groupId>com.norconex.commons</groupId>
@@ -202,100 +221,6 @@
         <type>zip</type>
         <scope>provided</scope>
     </dependency>
-
-    <!-- BELOW ARE V2.x Dependencies: -->
-
-
-    <!-- STILL NEEDED?: -->
-<!--
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-vfs2</artifactId>
-      <version>2.1</version>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
--->
-
-
-<!--    <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
-        <version>${jetty.version}</version>
-        <scope>test</scope>
-    </dependency>-->
-
-    <!-- Unfortunately Maven does not distribute its VFS-Sandbox lib.
-         Code has been bundled with this project instead.  When made available
-         in a Maven repo, consider adding this back.
-         https://github.com/apache/commons-vfs/tree/VFS-2.1
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-vfs2-sandbox</artifactId>
-      <version>2.1</version>
-    </dependency>
-      -->
-
-    <!-- Following deps are required for FTP protocol (and probably others), see:
-      http://stackoverflow.com/questions/30600843/unable-to-resolve-a-dependency-on-urlutil-conflicting-requirements    
-      http://stackoverflow.com/questions/12730984/noclassdeffound-error-on-ftp-client-org-apache-commons-net-ftp-ftpclient      
-      -->  
-    <!--
-    <dependency>
-        <groupId>commons-httpclient</groupId>
-        <artifactId>commons-httpclient</artifactId>
-        <version>3.1</version>
-        <exclusions>
-          <exclusion>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-          </exclusion>
-        </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>commons-net</groupId>
-      <artifactId>commons-net</artifactId>
-      <version>3.5</version>
-    </dependency>
-    -->
-
-    <!-- This jcifs dep is not distributed due to licensing issue (LGPL 2.1).
-         It is included here as "optional" so it does not get distributed.
-         License:
-         https://jcifs.samba.org/src/LICENSE.txt
-         Downloadable Jar:
-         http://central.maven.org/maven2/jcifs/jcifs/1.3.17/jcifs-1.3.17.jar
-      -->
-    <dependency>
-      <groupId>jcifs</groupId>
-      <artifactId>jcifs</artifactId>
-      <version>1.3.17</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    
-    <!-- HDFS deps are optional. There are too many to distribute.
-         Included here for compilation only.
-         Use "$HADOOP_HOME/bin/hadoop classpath" to get them.
-         More info: 
-         https://commons.apache.org/proper/commons-vfs/download.html
-      -->
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>2.6.0</version>
-      <!-- Will complain at execution time if using "provided":
-      <scope>provided</scope>
-      <optional>true</optional>
-       -->
-      <!-- Shall we include all dependencies? or make them separate packages to download? -->
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>      
 
   </dependencies>
   
