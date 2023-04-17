@@ -35,6 +35,7 @@
     <jakarta-activation.version>2.1.1</jakarta-activation.version>
     <javax-mail.version>1.6.2</javax-mail.version>
     <jcifs.version>1.3.17</jcifs.version>
+    <jetty.version>9.4.34.v20201102</jetty.version>
     <opencmis.version>1.1.0</opencmis.version>
   </properties>
   <inceptionYear>2014</inceptionYear>
@@ -118,6 +119,10 @@
       		<groupId>commons-logging</groupId>
       		<artifactId>commons-logging</artifactId>
       	</exclusion>
+      	<exclusion>
+      		<groupId>log4j</groupId>
+      		<artifactId>log4j</artifactId>
+      	</exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -192,6 +197,19 @@
       <classifier>classes</classifier>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.4.0-b180830.0359</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+        <scope>test</scope>
+    </dependency>
+
+
 
     <dependency>
         <groupId>com.norconex.commons</groupId>

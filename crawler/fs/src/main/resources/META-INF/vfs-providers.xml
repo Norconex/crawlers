@@ -15,13 +15,15 @@
     <if-available class-name="javax.mail.internet.MimeMultipart"/>
   </provider>
 
+  <provider class-name="com.norconex.crawler.fs.fetch.impl.cmis.CmisAtomFileProvider">
+    <scheme name="cmis"/>
+  </provider>
+  <!-- For backward compatibility: -->
+  <provider class-name="com.norconex.crawler.fs.fetch.impl.cmis.CmisAtomFileProvider">
+    <scheme name="cmis-atom"/>
+  </provider>
+
   <extension-map extension="mime" scheme="mime"/>
   <mime-type-map mime-type="message/rfc822" scheme="mime"/>
 
-
-<!--
-    <provider class-name="com.norconex.collector.fs.vfs2.provider.cmis.atom.CmisAtomFileProvider">
-        <scheme name="cmis-atom"/>
-    </provider>
--->
 </providers>

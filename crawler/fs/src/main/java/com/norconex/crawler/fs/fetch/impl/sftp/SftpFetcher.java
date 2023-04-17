@@ -40,7 +40,7 @@ import lombok.experimental.FieldNameConstants;
  * SFTP fetcher.
  * </p>
  *
- * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher#doc}
+ * {@nx.include com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher#doc}
  *
  * <p>
  * XML configuration entries expecting millisecond durations
