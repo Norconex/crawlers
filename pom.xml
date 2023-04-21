@@ -66,7 +66,7 @@
     <assertj.version>3.23.1</assertj.version>
     <easy-random.version>5.0.0</easy-random.version>
     <junit-jupiter.version>5.9.2</junit-jupiter.version>
-    <lombok.version>1.18.22</lombok.version>
+    <lombok.version>1.18.24</lombok.version>
     <mockito.version>4.6.1</mockito.version>
     <mockserver.version>5.14.0</mockserver.version>
     <testcontainers.version>1.18.0</testcontainers.version>
