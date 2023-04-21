@@ -700,7 +700,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.6</version>
+        <version>3.0.1</version>
           <executions>
             <execution>
               <id>sign-artifacts</id>
@@ -723,7 +723,7 @@
         <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>1.6.8</version>
+          <version>1.6.13</version>
           <extensions>true</extensions>
           <configuration>
             <serverId>ossrh</serverId>
@@ -742,12 +742,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.9.1</version>
+          <version>3.12.1</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.wagon</groupId>
               <artifactId>wagon-ssh</artifactId>
-              <version>3.4.1</version>
+              <version>3.5.2</version>
             </dependency>
           </dependencies>
           <inherited>true</inherited>
