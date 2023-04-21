@@ -1,7 +1,14 @@
-# crawler-v4-stack
+# UPCOMING: Crawler V4 Stack
 
-Our private experiments for V4 until it reaches a certain stability, 
-then we'll make it public, merging it with existing project.
+**Are you on the right branch?**
+
+This branch is an experimental/development one for upcoming version 4, 
+which merges a few projects into this repo.
+
+This branch is currently highly unstable and production use is not 
+recommended.  Once it reaches a stable state, we'll update this message.  
+
+In the meantime, please use the stable "master" branch (version 3.x release).
 
 ## Structure
 
@@ -9,8 +16,7 @@ All projects in this repository share the same Maven group id:
 
     com.norconex.crawler
 
-As much as it makes sense, the directory structure matches our Maven
-module names and their artifact IDs:
+Directory structure roughly matches Maven module names:
 
 ```
 Folder             artifactId
@@ -26,15 +32,5 @@ committer/
   idol/            nx-committer-idol
   ...
   
-# Not sure about this one:
-kafka-connector/   com.norconex.???       : nx-crawler-web-kafka???
-
   
 ```
-
-## Questions/not sure
-
-* Kafka directory location/group/artifact.
-* Introducing the `nx-*` prefix.  I think it is easier to group/identify our 
-  artifacts/jar that way.  Used to be `norconex-` but `nx-` makes it shorter.
-
