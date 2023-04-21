@@ -8,7 +8,8 @@ which merges a few projects into this repo.
 This branch is currently highly unstable and production use is not 
 recommended.  Once it reaches a stable state, we'll update this message.  
 
-In the meantime, please use the stable "master" branch (version 3.x release).
+In the meantime, [please use the stable "master" branch](https://github.com/Norconex/collector-http/tree/master) 
+(version 3.x release).
 
 ## Structure
 
