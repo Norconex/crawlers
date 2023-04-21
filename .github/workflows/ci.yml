@@ -10,10 +10,9 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-#env:
-##  BUCKET_NAME : "<example-bucket-name>"
-#  AWS_REGION: ${{ secrets.AWS_REGION }}
-#  SITE_S3_URI: ${{ secrets.SITE_S3_URI }}
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  SITE_S3_URI: ${{ secrets.SITE_S3_URI }}
 
 jobs:
   build:
