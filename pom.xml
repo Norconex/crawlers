@@ -516,6 +516,11 @@
             <reportOutputDirectory>${project.build.directory}/site</reportOutputDirectory>
             <outputDirectory>${project.build.directory}/site/apidocs</outputDirectory>
             <stylesheetfile>${project.build.directory}/site/apidocs/norconex-javadoc.css</stylesheetfile>
+            
+            <!-- Until Lombok fixes JavaDoc generation with @SuperBuilder:
+                 https://github.com/projectlombok/lombok/issues/3147 -->
+            <failOnError>false</failOnError>            
+            
             <!-- TODO build as a module first, then uncomment this.
             <resourcesArtifacts>
               <resourcesArtifact>
