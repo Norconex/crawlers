@@ -54,7 +54,7 @@ class StripBetweenTransformerTest {
                 TestUtil.newHandlerDoc(htmlFile.getAbsolutePath(), is, metadata),
                 is, os, ParseState.PRE);
 
-        Assertions.assertEquals(458, os.toString().length(),
+        Assertions.assertEquals(443, TestUtil.toUtf8UnixLineString(os).length(),
                 "Length of doc content after transformation is incorrect.");
 
         is.close();
@@ -85,7 +85,7 @@ class StripBetweenTransformerTest {
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
         t.transformDocument(TestUtil.newHandlerDoc("fake.html", is, metadata),
                 is, os, ParseState.PRE);
-        var output = os.toString();
+        var output = TestUtil.toUtf8UnixLineString(os);
         is.close();
         os.close();
         //System.out.println(output);

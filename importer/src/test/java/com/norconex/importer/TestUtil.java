@@ -14,7 +14,10 @@
  */
 package com.norconex.importer;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -227,5 +230,9 @@ public final class TestUtil {
                 throw new IOException("Test mock exception.");
             }
         };
+    }
+
+    public static String toUtf8UnixLineString(ByteArrayOutputStream os) {
+        return os.toString(UTF_8).replace("\r", "");
     }
 }

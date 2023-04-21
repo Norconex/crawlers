@@ -51,7 +51,7 @@ class StripAfterTransformerTest {
                 is, os, ParseState.PRE);
 
         Assertions.assertEquals(
-                552, os.toString().length(),
+                539, TestUtil.toUtf8UnixLineString(os).length(),
                 "Length of doc content after transformation is incorrect.");
 
         is.close();
