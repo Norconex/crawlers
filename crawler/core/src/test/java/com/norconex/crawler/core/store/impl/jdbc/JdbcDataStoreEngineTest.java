@@ -17,6 +17,7 @@ package com.norconex.crawler.core.store.impl.jdbc;
 import java.net.MalformedURLException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.store.AbstractDataStoreEngineTest;
@@ -31,9 +32,13 @@ class JdbcDataStoreEngineTest extends AbstractDataStoreEngineTest {
     @Override
     protected DataStoreEngine createEngine() {
         try {
-            var connStr = "jdbc:h2:file:" + StringUtils.removeStart(
+            var dbPath = StringUtils.removeStart(
                     getTempDir().toAbsolutePath().toUri().toURL()
-                            + "test", "file:/");
+                    + "test", "file:");
+            if (SystemUtils.IS_OS_WINDOWS) {
+                dbPath = StringUtils.removeStart(dbPath, "/");
+            }
+            var connStr = "jdbc:h2:file:" + dbPath;
             LOG.info("Creating new JDBC data store engine using: {}", connStr);
             var engine = new JdbcDataStoreEngine();
             var cfg = new Properties();
