@@ -32,7 +32,8 @@ class JdbcDataStoreEngineTest extends AbstractDataStoreEngineTest {
     protected DataStoreEngine createEngine() {
         try {
             var connStr = "jdbc:h2:file:" + StringUtils.removeStart(
-                    getTempDir().toUri().toURL() + "test", "file:/");
+                    getTempDir().toAbsolutePath().toUri().toURL()
+                            + "test", "file:/");
             LOG.info("Creating new JDBC data store engine using: {}", connStr);
             var engine = new JdbcDataStoreEngine();
             var cfg = new Properties();
