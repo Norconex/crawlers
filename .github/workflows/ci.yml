@@ -49,7 +49,9 @@ jobs:
         restore-keys: ${{ runner.os }}-sonar
 
     - name: Build and publish to Apache Maven Central
-      run: mvn -B deploy org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Norconex_collector-http
+      run: mvn -B package org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Norconex_collector-http
+# When ready, uncomment the following instead of above
+#      run: mvn -B deploy org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Norconex_collector-http
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
