@@ -226,6 +226,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
+        <!-- If we need fat jars
         <executions>
           <execution>
             <phase>package</phase>
@@ -246,6 +247,7 @@
             </configuration>
           </execution>
         </executions>
+        -->
       </plugin>
 
       <plugin>
