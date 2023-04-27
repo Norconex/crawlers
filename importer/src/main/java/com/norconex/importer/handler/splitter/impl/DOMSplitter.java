@@ -23,14 +23,12 @@ import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.HandlerDoc;

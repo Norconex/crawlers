@@ -16,7 +16,9 @@ package com.norconex.importer.handler.tagger.impl;
 
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
@@ -99,25 +101,26 @@ public class CurrentDateTagger extends AbstractDocumentTagger {
     public void tagApplicableDocument(
             HandlerDoc doc, InputStream document, ParseState parseState)
                     throws ImporterHandlerException {
-        var date = formatDate(System.currentTimeMillis());
+        var dateStr = nowAsString();
         var finalField = toField;
         if (StringUtils.isBlank(finalField)) {
             finalField = DEFAULT_FIELD;
         }
         PropertySetter.orAppend(onSet).apply(
-                doc.getMetadata(), finalField, date);
+                doc.getMetadata(), finalField, dateStr);
     }
 
-    private String formatDate(long time) {
+    private String nowAsString() {
         if (StringUtils.isBlank(format)) {
-            return Long.toString(time);
+            return Long.toString(System.currentTimeMillis());
         }
         var safeLocale = locale;
         if (safeLocale == null) {
             safeLocale = Locale.US;
         }
-        return new SimpleDateFormat(
-                format, safeLocale).format(new Date(time));
+
+        return ZonedDateTime.now(ZoneOffset.UTC)
+            .format(DateTimeFormatter.ofPattern(format, safeLocale));
     }
 
     /**

@@ -18,6 +18,7 @@ import static com.norconex.commons.lang.xml.XPathUtil.attr;
 
 import java.io.InputStream;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -38,15 +39,16 @@ import com.norconex.commons.lang.Operator;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.commons.lang.time.ZonedDateTimeParser;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.filter.AbstractDocumentFilter;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.FormatUtil;
 
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +85,7 @@ import lombok.extern.slf4j.Slf4j;
  * <code>TODAY</code> is the current day without the hours, minutes, and
  * seconds, where as <code>NOW</code> is the current day with the hours,
  * minutes, and seconds. You can also decide whether you want the
- * current date to be fixed for life time of this filter (does not change
+ * current date to be fixed for the lifetime of this filter (does not change
  * after being set for the first time), or whether
  * it should be refreshed on every invocation to reflect the passing of time.
  * </p>
@@ -93,15 +95,16 @@ import lombok.extern.slf4j.Slf4j;
  * When comparing dates at a more granular level (e.g., hours, minutes,
  * seconds), it may be important to take time zones into account.
  * If the time zone (id or offset) is part of a document field date value
- * and this filter configured format supports time zones, it will be be
- * interpreted as a date in the encountered time zone.
+ * and this filter configured format supports time zones, it will respect
+ * the time zone in the encountered time zone.
  * </p>
  * <p>
- * In cases where you want to overwrite the value existing time zone or
- * specify one for field dates without time zones, you can do so with
+ * In cases where you want to specify the time zone for values
+ * without one, you can do so with
  * the {@link #setDocZoneId(ZoneId)} method.
- * Explicitly setting a time zone will not "convert" a date to that time zone,
- * but will rather assume it was created in the supplied time zone.
+ * Explicitly setting a document time zone that way has no effect
+ * if the date already defines its own zone.
+ * The default time zone when none is specified is UTC.
  * </p>
  * <p>
  * When using XML configuration to define the condition dates, you can
@@ -112,8 +115,8 @@ import lombok.extern.slf4j.Slf4j;
  * <handler class="com.norconex.importer.handler.filter.impl.DateMetadataFilter"
  *     {@nx.include com.norconex.importer.handler.filter.AbstractDocumentFilter#attributes}
  *     format="(document field date format)"
- *     docZoneId="(force a time zone on evaluated fields.)"
- *     conditionZoneId="(time zone of condition dates.)">
+ *     docZoneId="(force a time zone on evaluated fields)"
+ *     conditionZoneId="(time zone of condition dates when not specified)">
  *
  *     {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
  *
@@ -216,9 +219,7 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
     private final TextMatcher fieldMatcher = new TextMatcher();
     private String format;
     private final List<Condition> conditions = new ArrayList<>(2);
-
     private ZoneId docZoneId;
-    // condition zoneId is only kept here for when we save to XML.
     private ZoneId conditionZoneId;
 
     public DateMetadataFilter() {}
@@ -275,9 +276,7 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
                 operator, new StaticDateTimeSupplier(dateTime)));
     }
     public void addCondition(Operator operator,
-            Supplier<ZonedDateTime> dateTimeSupplier) {
-        Objects.requireNonNull(dateTimeSupplier,
-                "'dateTimeSupplier' must not be null.");
+            @NonNull Supplier<ZonedDateTime> dateTimeSupplier) {
         conditions.add(new Condition(operator, dateTimeSupplier));
     }
     public void addCondition(Condition condition) {
@@ -325,7 +324,6 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
     protected boolean isDocumentMatched(
             HandlerDoc doc, InputStream input, ParseState parseState)
                     throws ImporterHandlerException {
-
         if (fieldMatcher.getPattern() == null) {
             throw new IllegalArgumentException(
                     "\"fieldMatcher\" pattern cannot be empty.");
@@ -343,15 +341,17 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
 
     private boolean meetsAllConditions(String fieldName, String fieldValue) {
 
-
-        var dt = FormatUtil.parseZonedDateTimeString(
-                fieldValue, format, null, fieldName, docZoneId);
+        var dt = ZonedDateTimeParser.builder()
+                .format(format)
+                .zoneId(docZoneId)
+                .build()
+                .parse(fieldValue);
         if (dt == null) {
             return false;
         }
         for (Condition condition : conditions) {
             var evalResult = condition.operator.evaluate(
-                    dt, condition.getDateTime());
+                    dt.toInstant(), condition.getDateTime().toInstant());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{}: {} [{}] {} = {}",
                         fieldName, fieldValue, condition.operator,
@@ -416,6 +416,8 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
         fieldMatcher.saveToXML(xml.addElement(Fields.fieldMatcher));
     }
 
+    //TODO most of the logic shared with DateCondition, abstract it?
+    // or keep only condition over filters?
     private static final Pattern RELATIVE_PARTS = Pattern.compile(
             //1              23            4         5
             "^(NOW|TODAY)\\s*(([-+]{1})\\s*(\\d+)\\s*([YMDhms]{1})\\s*)?"
@@ -459,6 +461,8 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
 
             //--- Static ---
             String dateFormat = null;
+            var valueHasZone = false;
+
             if (d.contains(".")) {
                 dateFormat = "yyyy-MM-dd'T'HH:mm:ss.nnn";
             } else if (d.contains("T")) {
@@ -466,8 +470,20 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
             } else {
                 dateFormat = "yyyy-MM-dd";
             }
-            var dt = FormatUtil.parseZonedDateTimeString(
-                    dateString, dateFormat, null, null, zoneId);
+            if (StringUtils.countMatches(d, "-") > 2 || d.contains("+")) {
+                dateFormat += "Z";
+                valueHasZone = true;
+            }
+            if (d.contains("[")) {
+                dateFormat += "'['VV']'";
+                valueHasZone = true;
+            }
+
+            var dt = ZonedDateTimeParser.builder()
+                    .format(dateFormat)
+                    .zoneId(valueHasZone ? null : zoneId)
+                    .build()
+                    .parse(dateString);
             return new Condition(operator, new StaticDateTimeSupplier(dt));
         } catch (DateTimeParseException e) {
             throw new ConfigurationException(
@@ -501,11 +517,10 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
             implements Supplier<ZonedDateTime> {
         private final ZonedDateTime dateTime;
         private final String toString;
-        public StaticDateTimeSupplier(ZonedDateTime dateTime) {
-            this.dateTime = Objects.requireNonNull(
-                    dateTime, "'dateTime' must not be null.");
+        public StaticDateTimeSupplier(@NonNull ZonedDateTime dateTime) {
+            this.dateTime = dateTime;
             toString = dateTime.format(DateTimeFormatter.ofPattern(
-                    "yyyy-MM-dd'T'HH:mm:ss.nnn"));
+                    "yyyy-MM-dd'T'HH:mm:ss.nnnZ'['VV']'"));
         }
         @Override
         public ZonedDateTime get() {
@@ -551,6 +566,8 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
         private final boolean today; // default is false == NOW
         private final ZoneId zoneId;
         private final String toString;
+        @EqualsAndHashCode.Exclude
+        @ToString.Exclude
         private ZonedDateTime dateTime;
         public DynamicFixedDateTimeSupplier(
                 TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
@@ -581,10 +598,7 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
 
     private static ZonedDateTime dynamicDateTime(
             TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
-        var dt = ZonedDateTime.now();
-        if (zoneId != null) {
-            dt = dt.withZoneSameLocal(zoneId);
-        }
+        var dt = ZonedDateTime.now(zoneIdOrUTC(zoneId));
 
         if (today) {
             dt = dt.truncatedTo(ChronoUnit.DAYS);
@@ -617,5 +631,8 @@ public class DateMetadataFilter extends AbstractDocumentFilter {
         }
         return b.toString();
     }
-}
 
+    private static ZoneId zoneIdOrUTC(ZoneId zoneId) {
+        return zoneId == null ? ZoneOffset.UTC : zoneId;
+    }
+}

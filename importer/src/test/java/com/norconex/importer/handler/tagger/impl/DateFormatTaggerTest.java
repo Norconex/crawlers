@@ -36,7 +36,7 @@ class DateFormatTaggerTest {
 
 
         var dateISO = "2001-10-10T11:32:21";
-        var dateEPOCH = "1002727941000";
+        var dateEPOCH = "1002713541000";
         var dateHTTP = "Wed, 10 Oct 2001 11:32:21";
 
         var meta = new Properties();
@@ -87,7 +87,7 @@ class DateFormatTaggerTest {
     void testDateFormat() throws ImporterHandlerException {
         var meta = new Properties();
         meta.add("datefield1", "2001-10-10T11:32:21");
-        meta.add("datefield2", "1002727941000");
+        meta.add("datefield2", "1002713541000");
 
         DateFormatTagger tagger;
 
@@ -97,7 +97,7 @@ class DateFormatTaggerTest {
         tagger.setToField("tofield1");
         tagger.setFromFormats("yyyy-MM-dd'T'HH:mm:ss");
         TestUtil.tag(tagger, "n/a", meta, ParseState.POST);
-        Assertions.assertEquals("1002727941000", meta.getString("tofield1"));
+        Assertions.assertEquals("1002713541000", meta.getString("tofield1"));
 
         tagger = new DateFormatTagger();
         tagger.setOnSet(PropertySetter.REPLACE);

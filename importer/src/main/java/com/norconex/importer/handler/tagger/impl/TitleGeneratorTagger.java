@@ -23,7 +23,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -282,7 +281,7 @@ public class TitleGeneratorTagger
         if (m.find()) {
             firstLine = StringUtils.trim(m.group());
         }
-        
+
 
         // if more than one sentence, ignore
         // must match min/max lengths.

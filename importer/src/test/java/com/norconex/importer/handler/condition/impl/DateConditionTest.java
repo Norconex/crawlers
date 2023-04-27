@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -56,7 +56,7 @@ class DateConditionTest {
         cond.setValueMatcher(new DateCondition.ValueMatcher(
                 Operator.LOWER_EQUAL,
                 () -> LocalDate.of(1980, 12, 21)
-                    .atStartOfDay(ZoneId.systemDefault())));
+                    .atStartOfDay(ZoneOffset.UTC)));
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isFalse();
 
         meta.set("field1", "1980-12-21");
@@ -66,7 +66,7 @@ class DateConditionTest {
         cond.setValueMatcher(new DateCondition.ValueMatcher(
                 Operator.LOWER_EQUAL,
                 () -> LocalDate.of(1980, 12, 21)
-                    .atStartOfDay(ZoneId.systemDefault())));
+                    .atStartOfDay(ZoneOffset.UTC)));
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isTrue();
 
         meta.set("field1", "1980-12-21T12:22:01.123");
@@ -76,10 +76,10 @@ class DateConditionTest {
         cond.setValueMatcher(new DateCondition.ValueMatcher(
                 Operator.LOWER_EQUAL,
                 () -> LocalDate.of(1980, 12, 22)
-                    .atStartOfDay(ZoneId.systemDefault())));
+                    .atStartOfDay(ZoneOffset.UTC)));
         assertThat(TestUtil.condition(cond, "n/a", null, meta, PRE)).isTrue();
 
-        meta.set("field1", ZonedDateTime.now().format(
+        meta.set("field1", ZonedDateTime.now(ZoneOffset.UTC).format(
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
         cond = new DateCondition();
         cond.setFieldMatcher(TextMatcher.basic("field1"));
@@ -104,7 +104,8 @@ class DateConditionTest {
         cond.setFormat("yyyy-MM-dd");
         cond.setValueMatcher(new DateCondition.ValueMatcher(
                 Operator.GREATER_EQUAL,
-                new DateCondition.StaticDateTimeSupplier(ZonedDateTime.now())));
+                new DateCondition.StaticDateTimeSupplier(
+                        ZonedDateTime.now(ZoneOffset.UTC))));
         // Cannot test equality when condition is fixed since the initialization
         // time will vary. So test with last argument false.
         cond.setValueMatcherRangeEnd(new DateCondition.ValueMatcher(
@@ -119,9 +120,8 @@ class DateConditionTest {
         var xml = XML.of("""
                 <condition
                   class="DateCondition"
-                  format="yyyy-MM-dd'T'HH:mm:ss'Z'"
-                  docZoneId="America/New_York"
-                  conditionZoneId="America/New_York"
+                  format="yyyy-MM-dd'T'HH:mm:ssZ"
+                  conditionZoneId="UTC"
                 >
                   <fieldMatcher>scan_timestamp</fieldMatcher>
                   <valueMatcher operator="gt" date="2020-09-27T12:34:56"/>
@@ -132,11 +132,12 @@ class DateConditionTest {
 
         // Assert valid date strings
         assertThat(cond.getValueMatcher().getDateTimeSupplier())
-            .hasToString("2020-09-27T12:34:56.000");
+            .hasToString("2020-09-27T12:34:56.000+0000[UTC]");
         assertThat(cond.getValueMatcherRangeEnd().getDateTimeSupplier())
             .hasToString("TODAY");
 
-        var today = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        var today = ZonedDateTime.now(
+                ZoneOffset.UTC).truncatedTo(ChronoUnit.DAYS);
         var dateTime = ZonedDateTime.of(
                 2020, 9, 27, 12, 34, 56, 0, today.getZone());
 
@@ -147,7 +148,7 @@ class DateConditionTest {
 
     @Test
     void testAroundNow() throws ImporterHandlerException {
-        var now = LocalDateTime.now();
+        var now = LocalDateTime.now(ZoneOffset.UTC);
         var then55min = now.minusMinutes(55);
         var then65min = now.minusMinutes(65);
 
@@ -239,7 +240,7 @@ class DateConditionTest {
         Assertions.assertTrue(TestUtil.condition(f, "n/a", meta, PRE));
 
         //--- TEST ---
-        // Doc timezone in config: YES (time zone in field should be ignored).
+        // Doc timezone in config: YES (should be ignored in favor of field one)
         // Doc timezone in field:  YES (Tokyo UTC+09:00)
 
         xml = XML.of("""
@@ -255,16 +256,16 @@ class DateConditionTest {
         f.loadFromXML(xml);
 
         // doc older
-        meta.set("docdate", "2020-12-20T19:00:00+0900");
+        meta.set("docdate", "2020-12-21T12:00:00+0900");
         Assertions.assertFalse(TestUtil.condition(f, "n/a", meta, PRE));
         // doc equals
-        meta.set("docdate", "2020-12-20T20:00:00+0900");
+        meta.set("docdate", "2020-12-21T13:00:00+0900");
         Assertions.assertFalse(TestUtil.condition(f, "n/a", meta, PRE));
         // doc younger
-        meta.set("docdate", "2020-12-20T21:00:00+0900");
+        meta.set("docdate", "2020-12-21T14:00:00+0900");
         Assertions.assertTrue(TestUtil.condition(f, "n/a", meta, PRE));
         // doc much younger
-        meta.set("docdate", "2020-12-21T06:00:00+0900");
+        meta.set("docdate", "2020-12-22T13:00:00+0900");
         Assertions.assertTrue(TestUtil.condition(f, "n/a", meta, PRE));
 
         //--- TEST ---

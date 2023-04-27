@@ -14,8 +14,12 @@
  */
 package com.norconex.importer.handler.tagger.impl;
 
+import static com.norconex.commons.lang.xml.XPathUtil.attr;
+import static java.util.Optional.ofNullable;
+
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
+import java.time.DateTimeException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,20 +29,21 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.PropertySetter;
+import com.norconex.commons.lang.time.ZonedDateTimeParser;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.tagger.AbstractDocumentTagger;
 import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.FormatUtil;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.FieldNameConstants;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>Formats a date from any given format to a format of choice, as per the
- * formatting options found on {@link SimpleDateFormat} with the exception
- * of the string "EPOCH" which represents the difference, measured in
+ * formatting options found on {@link ZonedDateTimeParser} with the addition
+ * of the format "EPOCH", which represents the difference, measured in
  * milliseconds, between the date and midnight, January 1, 1970.
  * The default format
  * for <code>fromFormat</code> or <code>toFormat</code> when not specified
@@ -61,7 +66,7 @@ import lombok.ToString;
  * The locale is the ISO two-letter language code, with an optional
  * ISO country code, separated with an underscore (e.g., "fr" for French,
  * "fr_CA" for Canadian French). When no locale is specified, the default is
- * "en_US" (US English).</p>
+ * English.</p>
  *
  * <p>
  * Multiple <code>fromFormat</code> values can be specified. Each formats will
@@ -100,20 +105,35 @@ import lombok.ToString;
  * HTTP header "Last-Modified" and sometimes is an EPOCH date,
  * into an Apache Solr date format:
  * </p>
- *
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
+@Data
+@Slf4j
+@FieldNameConstants
 public class DateFormatTagger extends AbstractDocumentTagger {
 
     private String fromField;
     private String toField;
     private final List<String> fromFormats = new ArrayList<>();
     private String toFormat;
+    /**
+     * The locale used for parsing the source date.
+     * @param fromLocale locale
+     * @return locale
+     */
     private Locale fromLocale;
+    /**
+     * The locale used for formatting the target date.
+     * @param toLocale locale
+     * @return locale
+     */
     private Locale toLocale;
     private boolean keepBadDates;
+    /**
+     * The property setter to use when a value is set.
+     * @param onSet property setter
+     * @return property setter
+     */
     private PropertySetter onSet;
 
     @Override
@@ -149,110 +169,51 @@ public class DateFormatTagger extends AbstractDocumentTagger {
             formats.addAll(fromFormats);
         }
         for (String fromFormat : formats) {
-            var toDate = FormatUtil.formatDateString(
-                    fromDate, fromFormat, fromLocale,
-                    toFormat, toLocale, fromField);
-            if (StringUtils.isNotBlank(toDate)) {
-                return toDate;
+            try {
+                var fromZdt = ZonedDateTimeParser.builder()
+                        .format(nullIfEpoch(fromFormat))
+                        .locale(ofNullable(fromLocale).orElse(Locale.ENGLISH))
+                        .build()
+                        .parse(fromDate);
+                if (nullIfEpoch(toFormat) == null) {
+                    return Long.toString(fromZdt.toInstant().toEpochMilli());
+                }
+                var toDate =
+                        fromZdt.format(DateTimeFormatter
+                        .ofPattern(toFormat)
+                        .localizedBy(
+                                ofNullable(toLocale).orElse(Locale.ENGLISH)));
+                if (StringUtils.isNotBlank(toDate)) {
+                    return toDate;
+                }
+            } catch (DateTimeException e) {
+                LOG.debug("Could not parse date '{}' with format '{}' "
+                        + "and locale {}.", fromDate, fromFormat, fromLocale);
             }
         }
         return null;
     }
 
-
-    public String getFromField() {
-        return fromField;
-    }
-    public void setFromField(String fromField) {
-        this.fromField = fromField;
-    }
-
-    public String getToField() {
-        return toField;
-    }
-    public void setToField(String toField) {
-        this.toField = toField;
-    }
-
     /**
      * Gets the source date formats to match.
      * @return source date formats
-         */
+     */
     public List<String> getFromFormats() {
         return fromFormats;
     }
     /**
      * Sets the source date formats to match.
      * @param fromFormats source date formats
-         */
+     */
     public void setFromFormats(String... fromFormats) {
         setFromFormats(Arrays.asList(fromFormats));
     }
     /**
      * Sets the source date formats to match.
      * @param fromFormats source date formats
-         */
+     */
     public void setFromFormats(List<String> fromFormats) {
         CollectionUtil.setAll(this.fromFormats, fromFormats);
-    }
-
-    public String getToFormat() {
-        return toFormat;
-    }
-    public void setToFormat(String toFormat) {
-        this.toFormat = toFormat;
-    }
-
-    /**
-     * Gets the property setter to use when a value is set.
-     * @return property setter
-         */
-    public PropertySetter getOnSet() {
-        return onSet;
-    }
-    /**
-     * Sets the property setter to use when a value is set.
-     * @param onSet property setter
-         */
-    public void setOnSet(PropertySetter onSet) {
-        this.onSet = onSet;
-    }
-
-    public boolean isKeepBadDates() {
-        return keepBadDates;
-    }
-    public void setKeepBadDates(boolean keepBadDates) {
-        this.keepBadDates = keepBadDates;
-    }
-
-    /**
-     * Gets the locale used for parsing the source date.
-     * @return locale
-         */
-    public Locale getFromLocale() {
-        return fromLocale;
-    }
-    /**
-     * Sets the locale used for parsing the source date.
-     * @param fromLocale locale
-         */
-    public void setFromLocale(Locale fromLocale) {
-        this.fromLocale = fromLocale;
-    }
-
-    /**
-     * Gets the locale used for formatting the target date.
-     * @return locale
-         */
-    public Locale getToLocale() {
-        return toLocale;
-    }
-    /**
-     * Sets the locale used for formatting the source date.
-     * @param toLocale locale
-         */
-    public void setToLocale(Locale toLocale) {
-        this.toLocale = toLocale;
     }
 
     private void validateArguments() {
@@ -268,29 +229,34 @@ public class DateFormatTagger extends AbstractDocumentTagger {
 
     @Override
     protected void loadHandlerFromXML(XML xml) {
-        fromField = xml.getString("@fromField", fromField);
-        toField = xml.getString("@toField", toField);
-        toFormat = xml.getString("@toFormat", toFormat);
-        keepBadDates = xml.getBoolean("@keepBadDates", keepBadDates);
-        fromLocale = xml.getLocale("@fromLocale", fromLocale);
-        toLocale = xml.getLocale("@toLocale", toLocale);
+        fromField = xml.getString(attr(Fields.fromField), fromField);
+        toField = xml.getString(attr(Fields.toField), toField);
+        toFormat = xml.getString(attr(Fields.toFormat), toFormat);
+        keepBadDates = xml.getBoolean(attr(Fields.keepBadDates), keepBadDates);
+        fromLocale = xml.getLocale(attr(Fields.fromLocale), fromLocale);
+        toLocale = xml.getLocale(attr(Fields.toLocale), toLocale);
         setFromFormats(xml.getStringList("fromFormat", fromFormats));
         setOnSet(PropertySetter.fromXML(xml, null));
     }
 
     @Override
     protected void saveHandlerToXML(XML xml) {
-        xml.setAttribute("fromField", fromField);
-        xml.setAttribute("toField", toField);
-        xml.setAttribute("toFormat", toFormat);
+        xml.setAttribute(Fields.fromField, fromField);
+        xml.setAttribute(Fields.toField, toField);
+        xml.setAttribute(Fields.toFormat, toFormat);
         PropertySetter.toXML(xml, getOnSet());
-        xml.setAttribute("keepBadDates", keepBadDates);
+        xml.setAttribute(Fields.keepBadDates, keepBadDates);
         if (fromLocale != null) {
-            xml.setAttribute("fromLocale", fromLocale);
+            xml.setAttribute(Fields.fromLocale, fromLocale);
         }
         if (toLocale != null) {
-            xml.setAttribute("toLocale", toLocale);
+            xml.setAttribute(Fields.toLocale, toLocale);
         }
         xml.addElementList("fromFormat", fromFormats);
+    }
+
+    private static String nullIfEpoch(String format) {
+        return "EPOCH".equalsIgnoreCase(StringUtils.trimToEmpty(format))
+                ? null : format;
     }
 }

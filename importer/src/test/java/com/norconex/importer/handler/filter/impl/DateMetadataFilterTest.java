@@ -15,11 +15,12 @@
 package com.norconex.importer.handler.filter.impl;
 
 import static com.norconex.importer.parser.ParseState.PRE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -54,7 +55,7 @@ class DateMetadataFilterTest {
         filter.setFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
         filter.addCondition(Operator.LOWER_EQUAL, LocalDate.of(
-                1980, 12, 21).atStartOfDay(ZoneId.systemDefault()));
+                1980, 12, 21).atStartOfDay(ZoneOffset.UTC));
         Assertions.assertFalse(TestUtil.filter(filter, "n/a", null, meta, PRE));
 
 
@@ -63,7 +64,7 @@ class DateMetadataFilterTest {
         filter.setFieldMatcher(TextMatcher.basic("field1"));
         filter.setFormat("yyyy-MM-dd");
         filter.addCondition(Operator.LOWER_EQUAL, LocalDate.of(
-                1980, 12, 21).atStartOfDay(ZoneId.systemDefault()));
+                1980, 12, 21).atStartOfDay(ZoneOffset.UTC));
         Assertions.assertTrue(TestUtil.filter(filter, "n/a", null, meta, PRE));
 
 
@@ -72,14 +73,14 @@ class DateMetadataFilterTest {
         filter.setFieldMatcher(TextMatcher.basic("field1"));
         filter.setFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
         filter.addCondition(Operator.LOWER_EQUAL, LocalDate.of(
-                1980, 12, 22).atStartOfDay(ZoneId.systemDefault()));
+                1980, 12, 22).atStartOfDay(ZoneOffset.UTC));
         Assertions.assertTrue(TestUtil.filter(filter, "n/a", null, meta, PRE));
 
         meta.set("field1", ZonedDateTime.now().format(
-                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")));
         filter = new DateMetadataFilter();
         filter.setFieldMatcher(TextMatcher.basic("field1"));
-        filter.setFormat("yyyy-MM-dd'T'HH:mm:ss");
+        filter.setFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
         filter.addCondition(
                 Operator.GREATER_THAN, new DynamicFixedDateTimeSupplier(
@@ -112,7 +113,8 @@ class DateMetadataFilterTest {
         var xml = XML.of(
                   "<handler\n"
                 + "    class=\"DateMetadataFilter\""
-                + "    format=\"yyyy-MM-dd'T'HH:mm:ss'Z'\""
+                + "    format=\"yyyy-MM-dd'T'HH:mm:ssZ\""
+                + "    conditionZoneId=\"UTC\""
                 + "    onMatch=\"exclude\">"
                 + "  <fieldMatcher>scan_timestamp</fieldMatcher>"
                 + "  <condition operator=\"lt\" date=\"TODAY\"/>"
@@ -127,26 +129,28 @@ class DateMetadataFilterTest {
         // Assert valid date strings
         Assertions.assertEquals("TODAY",
                 conds.get(0).getDateTimeSupplier().toString());
-        Assertions.assertEquals("2020-09-27T12:34:56.000",
+        Assertions.assertEquals("2020-09-27T12:34:56.000+0000[UTC]",
                 conds.get(1).getDateTimeSupplier().toString());
-        Assertions.assertEquals("2020-09-27T00:00:00.000",
+        Assertions.assertEquals("2020-09-27T00:00:00.000+0000[UTC]",
                 conds.get(2).getDateTimeSupplier().toString());
 
-        var today = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        var today = ZonedDateTime
+                .now(ZoneOffset.UTC)
+                .truncatedTo(ChronoUnit.DAYS);
         var dateTime = ZonedDateTime.of(
                 2020, 9, 27, 12, 34, 56, 0, today.getZone());
         var date = ZonedDateTime.of(
                 2020, 9, 27, 12, 34, 56, 0, today.getZone())
                         .truncatedTo(ChronoUnit.DAYS);
 
-        Assertions.assertEquals(today, conds.get(0).getDateTime());
-        Assertions.assertEquals(dateTime, conds.get(1).getDateTime());
-        Assertions.assertEquals(date, conds.get(2).getDateTime());
+        assertThat(today).isEqualTo(conds.get(0).getDateTime());
+        assertThat(dateTime).isEqualTo(conds.get(1).getDateTime());
+        assertThat(date).isEqualTo(conds.get(2).getDateTime());
     }
 
     @Test
     void testAroundNow() throws ImporterHandlerException {
-        var now = LocalDateTime.now();
+        var now = LocalDateTime.now(ZoneOffset.UTC);
         var then55min = now.minusMinutes(55);
         var then65min = now.minusMinutes(65);
 
@@ -259,21 +263,21 @@ class DateMetadataFilterTest {
         f.loadFromXML(xml);
 
         // doc older
-        meta.set("docdate", "2020-12-20T19:00:00+0900");
+        meta.set("docdate", "2020-12-21T12:00:00+0900");
         Assertions.assertFalse(TestUtil.filter(f, "n/a", meta, PRE));
         // doc equals
-        meta.set("docdate", "2020-12-20T20:00:00+0900");
+        meta.set("docdate", "2020-12-21T13:00:00+0900");
         Assertions.assertFalse(TestUtil.filter(f, "n/a", meta, PRE));
         // doc younger
-        meta.set("docdate", "2020-12-20T21:00:00+0900");
+        meta.set("docdate", "2020-12-21T14:00:00+0900");
         Assertions.assertTrue(TestUtil.filter(f, "n/a", meta, PRE));
         // doc much younger
-        meta.set("docdate", "2020-12-21T06:00:00+0900");
+        meta.set("docdate", "2020-12-22T13:00:00+0900");
         Assertions.assertTrue(TestUtil.filter(f, "n/a", meta, PRE));
 
         //--- TEST ---
         // Doc timezone in config: NO  (time zone in field should be kept).
-        // Doc timezone in field:  YES (L.A. UTC-07:00)
+        // Doc timezone in field:  YES (L.A. UTC-08:00)
 
         xml = XML.of(
                 "<handler\n"

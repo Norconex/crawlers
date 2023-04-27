@@ -19,6 +19,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.io.InputStream;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -35,20 +36,17 @@ import org.apache.commons.lang3.math.NumberUtils;
 import com.norconex.commons.lang.Operator;
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.commons.lang.time.ZonedDateTimeParser;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.ImporterCondition;
 import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.FormatUtil;
 
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -117,15 +115,16 @@ import lombok.extern.slf4j.Slf4j;
  * When comparing dates at a more granular level (e.g., hours, minutes,
  * seconds), it may be important to take time zones into account.
  * If the time zone (id or offset) is part of a document field date value
- * and the configured date format supports time zones, it will be be
- * interpreted as a date in the encountered time zone.
+ * and this filter configured format supports time zones, it will respect
+ * the time zone in the encountered time zone.
  * </p>
  * <p>
- * In cases where you want to overwrite the value's existing time zone or
- * specify one for dates without time zones, you can do so with
+ * In cases where you want to specify the time zone for values
+ * without one, you can do so with
  * the {@link #setDocZoneId(ZoneId)} method.
- * Explicitly setting a time zone will not "convert" a date to that time zone,
- * but will rather assume it was created in the supplied time zone.
+ * Explicitly setting a document time zone that way has no effect
+ * if the date already defines its own zone.
+ * The default time zone when none is specified is UTC.
  * </p>
  * <p>
  * When using XML configuration to define the condition dates, you can
@@ -137,8 +136,8 @@ import lombok.extern.slf4j.Slf4j;
  * {@nx.xml.usage
  * <condition class="com.norconex.importer.handler.condition.impl.DateCondition"
  *     format="(document field date format)"
- *     docZoneId="(force a time zone on evaluated fields.)"
- *     conditionZoneId="(time zone of configured condition dates.)">
+ *     docZoneId="(force a time zone on evaluated fields)"
+ *     conditionZoneId="(time zone of condition dates when not specified)">
  *
  *
  *     <fieldMatcher {@nx.include com.norconex.commons.lang.text.TextMatcher#matchAttributes}>
@@ -243,7 +242,7 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
 
     /**
      * Value matcher for a date, or the begining of a date range
-     * (if an end date value matcher is also supplied.
+     * (if an end date value matcher is also supplied).
      * @param valueMatcher date matcher
      * @return date matcher
      */
@@ -272,15 +271,7 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
      */
     private ZoneId docZoneId;
 
-    // Condition zoneId is only used when using XML configuraiton,
-    // as a way to specify the time zone (which in Java is included
-    // when defining a ZonedDateTime
-    @Getter(value = AccessLevel.NONE)
-    @Setter(value = AccessLevel.NONE)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private ZoneId conditionZoneId;
-
 
     public DateCondition() {
     }
@@ -333,8 +324,11 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
             return true;
         }
 
-        var dt = FormatUtil.parseZonedDateTimeString(
-                fieldValue, format, null, fieldName, docZoneId);
+        var dt = ZonedDateTimeParser.builder()
+                .format(format)
+                .zoneId(docZoneId)
+                .build()
+                .parse(fieldValue);
         if (dt == null) {
             return false;
         }
@@ -349,7 +343,8 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
         }
 
         var op = defaultIfNull(matcher.operator, EQUALS);
-        var evalResult = op.evaluate(dt, matcher.getDateTime());
+        var evalResult = op.evaluate(
+                dt.toInstant(), matcher.getDateTime().toInstant());
         LOG.debug("{}: {} [{}] {} = {}",
                 fieldName, fieldValue, op, matcher.getDateTime(), evalResult);
         return evalResult;
@@ -404,10 +399,13 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
             "^(NOW|TODAY)\\s*(([-+]{1})\\s*(\\d+)\\s*([YMDhms]{1})\\s*)?"
             //6
            + "(\\*?)$");
-    private Supplier<ZonedDateTime> toDateTimeSupplier(@NonNull String date) {
+    private Supplier<ZonedDateTime> toDateTimeSupplier(
+            @NonNull String dateStr) {
         // NOW[-+]9[YMDhms][*]
         // TODAY[-+]9[YMDhms][*]
-        var m = RELATIVE_PARTS.matcher(date);
+        var d = dateStr.trim();
+        
+        var m = RELATIVE_PARTS.matcher(d);
         if (m.matches()) {
             //--- Dynamic ---
             TimeUnit unit = null;
@@ -436,15 +434,29 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
 
         //--- Static ---
         String dateFormat = null;
-        if (date.contains(".")) {
+        var valueHasZone = false;
+
+        if (d.contains(".")) {
             dateFormat = "yyyy-MM-dd'T'HH:mm:ss.nnn";
-        } else if (date.contains("T") || date.contains(":")) {
+        } else if (d.contains("T")) {
             dateFormat = "yyyy-MM-dd'T'HH:mm:ss";
         } else {
             dateFormat = "yyyy-MM-dd";
         }
-        var dt = FormatUtil.parseZonedDateTimeString(
-                date, dateFormat, null, null, conditionZoneId);
+        if (StringUtils.countMatches(d, "-") > 2 || d.contains("+")) {
+            dateFormat += "Z";
+            valueHasZone = true;
+        }
+        if (d.contains("[")) {
+            dateFormat += "'['VV']'";
+            valueHasZone = true;
+        }
+
+        var dt = ZonedDateTimeParser.builder()
+                .format(dateFormat)
+                .zoneId(valueHasZone ? null : conditionZoneId)
+                .build()
+                .parse(d);
         return new StaticDateTimeSupplier(dt);
     }
 
@@ -497,7 +509,7 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
         public StaticDateTimeSupplier(@NonNull ZonedDateTime dateTime) {
             this.dateTime = dateTime;
             toString = dateTime.format(DateTimeFormatter.ofPattern(
-                    "yyyy-MM-dd'T'HH:mm:ss.nnn"));
+                    "yyyy-MM-dd'T'HH:mm:ss.nnnZ'['VV']'"));
         }
         @Override
         public ZonedDateTime get() {
@@ -543,6 +555,8 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
         private final boolean today; // default is false == NOW
         private final ZoneId zoneId;
         private final String toString;
+        @EqualsAndHashCode.Exclude
+        @ToString.Exclude        
         private ZonedDateTime dateTime;
         public DynamicFixedDateTimeSupplier(
                 TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
@@ -573,10 +587,7 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
 
     private static ZonedDateTime dynamicDateTime(
             TimeUnit unit, int amount, boolean today, ZoneId zoneId) {
-        var dt = ZonedDateTime.now();
-        if (zoneId != null) {
-            dt = dt.withZoneSameLocal(zoneId);
-        }
+        var dt = ZonedDateTime.now(zoneIdOrUTC(zoneId));
 
         if (today) {
             dt = dt.truncatedTo(ChronoUnit.DAYS);
@@ -608,5 +619,9 @@ public class DateCondition implements ImporterCondition, XMLConfigurable {
             b.append('*');
         }
         return b.toString();
+    }
+
+    private static ZoneId zoneIdOrUTC(ZoneId zoneId) {
+        return zoneId == null ? ZoneOffset.UTC : zoneId;
     }
 }

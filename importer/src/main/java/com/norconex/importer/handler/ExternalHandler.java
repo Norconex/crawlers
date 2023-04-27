@@ -44,13 +44,13 @@ import org.slf4j.LoggerFactory;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.exec.SystemCommand;
 import com.norconex.commons.lang.exec.SystemCommandException;
-import com.norconex.commons.lang.io.ICachedStream;
+import com.norconex.commons.lang.io.CachedStream;
 import com.norconex.commons.lang.io.InputStreamLineListener;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.handler.tagger.impl.ExternalTagger;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformer;
@@ -414,8 +414,8 @@ public class ExternalHandler {
      * @param value environment variable value
      */
     public void addEnvironmentVariable(String name, String value) {
-        if (this.environmentVariables == null) {
-            this.environmentVariables = new HashMap<>();
+        if (environmentVariables == null) {
+            environmentVariables = new HashMap<>();
         }
         environmentVariables.put(name, value);
     }
@@ -495,9 +495,9 @@ public class ExternalHandler {
         //TODO eliminate output an set it back on doc???
 
         validate();
-        String cmd = command;
-        final ArgFiles files = new ArgFiles();
-        Properties externalMeta = new Properties();
+        var cmd = command;
+        final var files = new ArgFiles();
+        var externalMeta = new Properties();
 
         //--- Resolve command tokens ---
         LOG.debug("Command before token replacement: {}", cmd);
@@ -520,7 +520,7 @@ public class ExternalHandler {
                 if (files.hasOutputMetaFile()) {
                     try (Reader outputMetaReader = Files.newBufferedReader(
                             files.outputMetaFile)) {
-                        String format = getMetadataOutputFormat();
+                        var format = getMetadataOutputFormat();
                         if (META_FORMAT_PROPERTIES.equalsIgnoreCase(format)) {
                             externalMeta.loadFromProperties(outputMetaReader);
                         } else if (META_FORMAT_XML.equals(format)) {
@@ -538,9 +538,9 @@ public class ExternalHandler {
                                 + command, e);
             }
             // Set extracted metadata on actual metadata
-            externalMeta.forEach((k, v) -> {
-                PropertySetter.orAppend(onSet).apply(doc.getMetadata(), k, v);
-            });
+            externalMeta.forEach((k, v) ->  PropertySetter
+                    .orAppend(onSet)
+                    .apply(doc.getMetadata(), k, v));
         } finally {
             files.deleteAll();
         }
@@ -552,7 +552,7 @@ public class ExternalHandler {
             final Properties metadata,
             final InputStream input,
             final OutputStream output) throws ImporterHandlerException {
-        SystemCommand systemCommand = new SystemCommand(cmd);
+        var systemCommand = new SystemCommand(cmd);
         systemCommand.setEnvironmentVariables(environmentVariables);
         systemCommand.addOutputListener(new InputStreamLineListener() {
             @Override
@@ -622,8 +622,8 @@ public class ExternalHandler {
         Path tempDirectory;
         if (tempDir != null) {
             tempDirectory = tempDir;
-        } else if (stream instanceof ICachedStream) {
-            tempDirectory = ((ICachedStream) stream).getCacheDirectory();
+        } else if (stream instanceof CachedStream cachedStream) {
+            tempDirectory = cachedStream.getCacheDirectory();
         } else {
             tempDirectory = FileUtils.getTempDirectory().toPath();
         }
@@ -632,8 +632,7 @@ public class ExternalHandler {
             if (!tempDirectory.toFile().exists()) {
                 Files.createDirectories(tempDirectory);
             }
-            file = Files.createTempFile(tempDirectory, name, suffix);
-            return file;
+            return Files.createTempFile(tempDirectory, name, suffix);
         } catch (IOException e) {
             ArgFiles.delete(file);
             throw new ImporterHandlerException(
@@ -646,7 +645,7 @@ public class ExternalHandler {
         if (!cmd.contains(TOKEN_INPUT) || is == null) {
             return cmd;
         }
-        String newCmd = cmd;
+        var newCmd = cmd;
         files.inputFile = createTempFile(is, "input", ".tmp");
         newCmd = StringUtils.replace(newCmd, TOKEN_INPUT,
                 files.inputFile.toAbsolutePath().toString());
@@ -665,14 +664,14 @@ public class ExternalHandler {
         if (!cmd.contains(TOKEN_INPUT_META)) {
             return cmd;
         }
-        String newCmd = cmd;
+        var newCmd = cmd;
         files.inputMetaFile = createTempFile(
                 is, "input-meta", "." + StringUtils.defaultIfBlank(
                         getMetadataInputFormat(), META_FORMAT_JSON));
         newCmd = StringUtils.replace(newCmd, TOKEN_INPUT_META,
                 files.inputMetaFile.toAbsolutePath().toString());
         try (Writer fw = Files.newBufferedWriter(files.inputMetaFile)) {
-            String format = getMetadataInputFormat();
+            var format = getMetadataInputFormat();
             if (META_FORMAT_PROPERTIES.equalsIgnoreCase(format)) {
                 meta.storeToProperties(fw);
             } else if (META_FORMAT_XML.equals(format)) {
@@ -695,11 +694,10 @@ public class ExternalHandler {
         if (!cmd.contains(TOKEN_OUTPUT) || os == null) {
             return cmd;
         }
-        String newCmd = cmd;
+        var newCmd = cmd;
         files.outputFile = createTempFile(os, "output", ".tmp");
-        newCmd = StringUtils.replace(newCmd, TOKEN_OUTPUT,
+        return StringUtils.replace(newCmd, TOKEN_OUTPUT,
                 files.outputFile.toAbsolutePath().toString());
-        return newCmd;
     }
 
     private String resolveOutputMetaToken(
@@ -708,13 +706,12 @@ public class ExternalHandler {
         if (!cmd.contains(TOKEN_OUTPUT_META)) {
             return cmd;
         }
-        String newCmd = cmd;
+        var newCmd = cmd;
         files.outputMetaFile = createTempFile(
                 os, "output-meta", "." + StringUtils.defaultIfBlank(
                         getMetadataOutputFormat(), ".tmp"));
-        newCmd = StringUtils.replace(newCmd, TOKEN_OUTPUT_META,
+        return StringUtils.replace(newCmd, TOKEN_OUTPUT_META,
                 files.outputMetaFile.toAbsolutePath().toString());
-        return newCmd;
     }
 
     private String resolveReferenceToken(String cmd, String reference) {
@@ -741,14 +738,14 @@ public class ExternalHandler {
                 "metadata/@outputFormat", metadataOutputFormat));
         setOnSet(xml.getEnum("metadata/@onSet", PropertySetter.class, onSet));
 
-        List<XML> nodes = xml.getXMLList("metadata/pattern");
+        var nodes = xml.getXMLList("metadata/pattern");
         for (XML node : nodes) {
-            RegexFieldValueExtractor ex = new RegexFieldValueExtractor();
+            var ex = new RegexFieldValueExtractor();
             ex.loadFromXML(node);
             addMetadataExtractionPatterns(ex);
         }
 
-        List<XML> xmlEnvs = xml.getXMLList("environment/variable");
+        var xmlEnvs = xml.getXMLList("environment/variable");
         if (!xmlEnvs.isEmpty()) {
             Map<String, String> vars = new HashMap<>();
             for (XML node : xmlEnvs) {
@@ -762,7 +759,7 @@ public class ExternalHandler {
         xml.addElement("command", command);
         xml.addElement("tempDir", tempDir);
         if (!getMetadataExtractionPatterns().isEmpty()) {
-            XML metaXML = xml.addElement("metadata")
+            var metaXML = xml.addElement("metadata")
                     .setAttribute("inputFormat", metadataInputFormat)
                     .setAttribute("outputFormat", metadataOutputFormat)
                     .setAttribute("onSet", onSet);
@@ -772,7 +769,7 @@ public class ExternalHandler {
             }
         }
         if (getEnvironmentVariables() != null) {
-            XML envXML = xml.addElement("environment");
+            var envXML = xml.addElement("environment");
             for (Entry<String, String> entry
                     : getEnvironmentVariables().entrySet()) {
                 envXML.addElement("variable", entry.getValue())
@@ -783,10 +780,9 @@ public class ExternalHandler {
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof ExternalHandler)) {
+        if (!(other instanceof ExternalHandler castOther)) {
             return false;
         }
-        ExternalHandler castOther = (ExternalHandler) other;
         return EqualsBuilder.reflectionEquals(
                 this, other, "environmentVariables") && EqualsUtil.equalsMap(
                         getEnvironmentVariables(),

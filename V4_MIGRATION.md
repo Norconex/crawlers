@@ -73,6 +73,8 @@ Misc. Changes
 * Renamed DocInfo to DocRecord
 * New SaveDocumentTagger class.
 * CommonMatchers pattern constants are now Collections instead of arrays.
+* Classes dealing with time zones now default to UTC when
+  zone is not declared.
 
 ### Crawler Core
 
