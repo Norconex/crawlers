@@ -26,12 +26,16 @@ class FsDocRecordTest {
 
     @Test
     void test() {
+        // Should make absolute
         var rec = new FsDocRecord("ref");
         assertThat(rec.getReference()).isEqualTo(
                 new File("ref").getAbsolutePath());
+
+        // Already absolute on windows, do not change
         rec = new FsDocRecord(new DocRecord("c:\\ref"));
         assertThat(rec.getReference()).isEqualTo("c:\\ref");
 
+        // Not a local file, do not change
         rec = new FsDocRecord("cmis:http://blah.com");
         assertThat(rec.getReference()).isEqualTo("cmis:http://blah.com");
     }

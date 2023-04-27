@@ -56,10 +56,10 @@ public class FsDocRecord extends CrawlDocRecord {
         // the absolute version.
         // TODO really? do we want to force having absolute links?
         // or if only for start references, move logic there?
-        if (!reference.contains("://")) {
-            super.setReference(new File(reference).getAbsolutePath());
-        } else {
+        if (reference.contains("://") || reference.matches("^\\w+:\\\\.*")) {
             super.setReference(reference);
+        } else {
+            super.setReference(new File(reference).getAbsolutePath());
         }
     }
 }
