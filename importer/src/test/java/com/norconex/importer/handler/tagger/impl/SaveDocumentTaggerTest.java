@@ -50,7 +50,7 @@ class SaveDocumentTaggerTest {
         var doc = tag(t, "http://example.com/my$file.html");
         assertThat(savedFile(doc)).isRegularFile();
         tag(t, "/with/stripables/");
-        assertThat(listFilePaths(t.getSaveDir())).containsExactly(
+        assertThat(listFilePaths(t.getSaveDir())).containsExactlyInAnyOrder(
                 "http/example.com/my_36_file.html",
                 "with/stripables");
     }
@@ -69,7 +69,7 @@ class SaveDocumentTaggerTest {
         assertThat(savedFile(doc1).resolve("index.html")).isRegularFile();
         assertThat(savedFile(doc2)).isRegularFile();
 
-        assertThat(listFilePaths(t.getSaveDir())).containsExactly(
+        assertThat(listFilePaths(t.getSaveDir())).containsExactlyInAnyOrder(
                 "some/test/index.html",
                 "some/test/surprise");
     }
@@ -89,7 +89,7 @@ class SaveDocumentTaggerTest {
         assertThat(savedFile(doc2).resolve("index.html")).isRegularFile();
         assertThat(savedFile(doc2)).isDirectory();
 
-        assertThat(listFilePaths(t.getSaveDir())).containsExactly(
+        assertThat(listFilePaths(t.getSaveDir())).containsExactlyInAnyOrder(
                 "some/test/file.txt",
                 "some/test/index.html");
     }
@@ -112,7 +112,7 @@ class SaveDocumentTaggerTest {
         t.setMaxPathLength(saveDirLength + 4);
         tag(t, "some/long/path/for/file2.txt");
 
-        assertThat(listFilePaths(t.getSaveDir())).containsExactly(
+        assertThat(listFilePaths(t.getSaveDir())).containsExactlyInAnyOrder(
                 "some/long/path/for/file1.txt",
                 "some/long/path/for/file2.txt");
 
