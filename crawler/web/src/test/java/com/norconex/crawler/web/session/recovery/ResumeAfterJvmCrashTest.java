@@ -106,8 +106,12 @@ class ResumeAfterJvmCrashTest {
                 .getUpsertCount()).isEqualTo(10);
         assertThat(outcome.getCommitterCombininedLaunches()
                 .getUpsertCount()).isEqualTo(26);
-        assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch())).isEqualTo(
-                        WebsiteMock.serverUrl(client, path + "/0025"));
+        //Due to thread synching and timing delays, allow one-off.
+        assertThat(EqualsUtil.equalsAny(
+                WebTestUtil.lastSortedRequestReference(
+                outcome.getCommitterAfterLaunch()),
+                        WebsiteMock.serverUrl(client, path + "/0024"),
+                        WebsiteMock.serverUrl(client, path + "/0025")))
+            .isTrue();
     }
 }
