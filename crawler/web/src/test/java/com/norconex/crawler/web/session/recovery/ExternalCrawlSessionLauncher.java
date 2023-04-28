@@ -30,6 +30,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Java;
+import org.apache.tools.ant.types.Environment;
 
 import com.norconex.committer.core.Committer;
 import com.norconex.committer.core.CommitterContext;
@@ -126,8 +127,12 @@ public class ExternalCrawlSessionLauncher {
             javaTask.setFork(true);
             javaTask.setFailonerror(true);
             javaTask.setClassname(WebCrawlSession.class.getName());
-            javaTask.setClasspath(new org.apache.tools.ant.types.Path(
-                    project, SystemUtils.JAVA_CLASS_PATH));
+
+            var envVar = new Environment.Variable();
+            envVar.setKey("CLASSPATH");
+            envVar.setValue(SystemUtils.JAVA_CLASS_PATH);
+            javaTask.addEnv(envVar);
+
             var args = action + " -config=\"" +
                     configFile.toAbsolutePath().toFile() + "\"";
             if (ArrayUtils.isNotEmpty(extraArgs)) {
@@ -135,6 +140,7 @@ public class ExternalCrawlSessionLauncher {
             }
             javaTask.getCommandLine().createArgument().setLine(args);
             javaTask.init();
+            LOG.info("Command: {}", javaTask.getCommandLine().describeCommand());
             retValue = javaTask.executeJava();
 
             LOG.info("Done. Return code: {}", retValue);

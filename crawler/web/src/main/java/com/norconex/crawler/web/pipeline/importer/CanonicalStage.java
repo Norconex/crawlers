@@ -30,7 +30,7 @@ import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 import com.norconex.crawler.web.doc.WebDocRecord;
 
 import lombok.NonNull;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Unless we are ignoring canonical URL support, checks that a document is
@@ -38,7 +38,7 @@ import lombok.extern.log4j.Log4j2;
  *
  * @since 3.0.0 (Merge of former separate canonical stages).
  */
-@Log4j2
+@Slf4j
 class CanonicalStage extends AbstractImporterStage {
 
     public CanonicalStage(@NonNull FetchDirective directive) {

@@ -516,6 +516,7 @@
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
       
+      <!-- Uncomment when ready:
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -536,6 +537,7 @@
           </execution>
         </executions>
       </plugin>
+      -->
 
     </plugins>    
   </build>

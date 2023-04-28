@@ -1,4 +1,4 @@
-/* Copyright 2022-2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,10 @@ import org.apache.commons.lang3.SystemUtils;
 
 import com.norconex.commons.lang.PackageManifest;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Utility methods related to crawl sessions.
  * Not part of public API.
  */
-@Slf4j
 final class CrawlSessionUtil {
 
     private CrawlSessionUtil() {}

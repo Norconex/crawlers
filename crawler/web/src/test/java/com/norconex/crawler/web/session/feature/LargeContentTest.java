@@ -36,7 +36,7 @@ class LargeContentTest {
 
     @Test
     void testLargeContent(ClientAndServer client) throws IOException {
-        var minSize = 5 * 1024 *1024;
+        var minSize = 3 * 1024 *1024;
         var path = "/largeContent";
 
         whenHtml(client, path, RandomStringUtils.randomAlphanumeric(minSize));

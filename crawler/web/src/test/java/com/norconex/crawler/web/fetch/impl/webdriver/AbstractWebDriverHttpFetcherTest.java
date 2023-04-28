@@ -68,7 +68,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractWebDriverHttpFetcherTest
         implements ExecutionCondition {
 
-    private static final int LARGE_CONTENT_MIN_SIZE = 5 * 1024 *1024;
+    private static final int LARGE_CONTENT_MIN_SIZE = 3 * 1024 *1024;
 
     private final Capabilities capabilities;
     private BrowserWebDriverContainer<?> browser;

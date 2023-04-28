@@ -1,4 +1,4 @@
-/* Copyright 2021-2022 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * <p>
  * Responsible for shutting down a crawl session upon explicit invocation
- * of {@link #fireStopRequest()} or when specific conditions are met.
+ * of {@link #fireStopRequest(CrawlSession)} or when specific conditions are met.
  * See concrete implementation for what those conditions could be.
  * </p>
  * <p>
@@ -48,6 +48,7 @@ public interface CrawlSessionStopper {
 
     /**
      * Stops a currently running crawl session.
+     * @param crawlSession crawl session
      * @return <code>true</code> if the crawl session was running and
      *     successfully stopped or <code>false</code> if the crawl session was
      *     not running.

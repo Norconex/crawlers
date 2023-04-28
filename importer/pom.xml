@@ -27,18 +27,20 @@
   <name>Norconex Importer</name>  
   
   <properties>
-    <commons-compress.version>1.21</commons-compress.version>
-    <cxf.version>3.4.5</cxf.version>
-    <graalvm-js.version>22.3.0</graalvm-js.version>
-    <jdom2.version>2.0.6.1</jdom2.version>
+    <graalvm-js.version>22.3.2</graalvm-js.version>
     <jpeg2000-imageio.version>1.4.0</jpeg2000-imageio.version>
-    <jsoup.version>1.14.3</jsoup.version>
     <jython.version>2.7.3</jython.version>
     <luaj-jse.version>3.0.1</luaj-jse.version>
-    <opencsv.version>5.5.2</opencsv.version>
+    <opencsv.version>5.7.1</opencsv.version>
     <tika.version>1.27</tika.version>
     <ucar-jj2000.version>5.4</ucar-jj2000.version>
     <webp-imageio.version>0.1.6</webp-imageio.version>
+    
+    <!-- Managed -->
+    <cxf.version>4.0.0</cxf.version>
+    <annotation-api.version>2.1.1</annotation-api.version>
+    <jdom2.version>2.0.6.1</jdom2.version>
+    
   </properties>
   <inceptionYear>2009</inceptionYear>
 
@@ -62,11 +64,6 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-compress</artifactId>
-        <version>${commons-compress.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-rt-rs-client</artifactId>
         <version>${cxf.version}</version>
@@ -82,10 +79,11 @@
         <version>${jdom2.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.jsoup</groupId>
-        <artifactId>jsoup</artifactId>
-        <version>${jsoup.version}</version>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${annotation-api.version}</version>
       </dependency>
+      
     </dependencies>
   </dependencyManagement>
 
@@ -207,11 +205,8 @@
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -308,6 +303,7 @@
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
       
+      <!-- Uncomment when ready:
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -328,6 +324,7 @@
           </execution>
         </executions>
       </plugin>
+      -->
       
       <!-- TESTING: -->
       <!-- TODO: rely on SonarQube instead. Remove once confirmed in SonarQube

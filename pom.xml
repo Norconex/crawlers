@@ -32,44 +32,69 @@
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
+    <!-- === Dependencies ================================================== -->
+
     <!-- Norconex dependencies -->
     <norconex-commons-lang.version>3.0.0-SNAPSHOT</norconex-commons-lang.version>
 
     <!-- Apache Commons dependencies -->
-    <commons-cli.version>1.4</commons-cli.version>
+    <commons-cli.version>1.5.0</commons-cli.version>
     <commons-codec.version>1.15</commons-codec.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-csv.version>1.9.0</commons-csv.version>
+    <commons-compress.version>1.23.0</commons-compress.version>
+    <commons-csv.version>1.10.0</commons-csv.version>
     <commons-io.version>2.11.0</commons-io.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
     <commons-logging.version>1.2</commons-logging.version>
-    <commons-text.version>1.9</commons-text.version>
+    <commons-text.version>1.10.0</commons-text.version>
     
     <!-- Other dependencies -->
-    <aws-java-sdk.version>1.12.78</aws-java-sdk.version>
-    <ant.version>1.10.11</ant.version>
-    <httpclient5.version>5.1</httpclient5.version>
-    <jackson.version>2.13.0</jackson.version>
+    <aws-java-sdk.version>1.12.457</aws-java-sdk.version>
+    <ant.version>1.10.13</ant.version>
+    <httpclient5.version>5.2.1</httpclient5.version>
+    <jackson.version>2.15.0</jackson.version>
     <jaxb-runtime.version>2.3.5</jaxb-runtime.version>
     <java-cup.version>10k</java-cup.version>
-    <jetty.version>9.4.44.v20210927</jetty.version>
+    <jetty.version>11.0.15</jetty.version>
     <json.version>1.8</json.version>
-    <log4j.version>2.17.1</log4j.version>
-    <picocli.version>4.6.1</picocli.version>
-    <slf4j.version>1.7.32</slf4j.version>
+    <jsoup.version>1.15.4</jsoup.version>
+    <log4j.version>2.20.0</log4j.version>
+    <picocli.version>4.7.3</picocli.version>
+    <slf4j.version>2.0.7</slf4j.version>
     <velocity-engine.version>2.3</velocity-engine.version>
     <xerces.version>2.12.2</xerces.version>
     <xml-bind-api.version>4.0.0</xml-bind-api.version>
     <xpath2.version>2.1.100</xpath2.version>
 
     <!-- Test/Provided dependencies -->
-    <assertj.version>3.23.1</assertj.version>
+    <assertj.version>3.24.2</assertj.version>
     <easy-random.version>5.0.0</easy-random.version>
-    <junit-jupiter.version>5.9.2</junit-jupiter.version>
-    <lombok.version>1.18.24</lombok.version>
-    <mockito.version>4.6.1</mockito.version>
-    <mockserver.version>5.14.0</mockserver.version>
+    <junit-jupiter.version>5.9.3</junit-jupiter.version>
+    <lombok.version>1.18.26</lombok.version>
+    <mockito.version>5.3.1</mockito.version>
+    <mockserver.version>5.15.0</mockserver.version>
     <testcontainers.version>1.18.0</testcontainers.version>
+    
+    <!-- === Maven plugins ================================================= -->
+    
+    <license-maven-plugin.version>2.0.0</license-maven-plugin.version>
+    <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
+    <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
+    <maven-assembly-plugin.version>3.5.0</maven-assembly-plugin.version>
+    <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+    <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
+    <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
+    <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
+    <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
+    <maven-remote-resources-plugin.version>3.0.0</maven-remote-resources-plugin.version>
+    <maven-site-plugin.version>4.0.0-M7</maven-site-plugin.version>
+    <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+    <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
+    <maven-surefire-plugin.version>3.0.0</maven-surefire-plugin.version>
+    <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
+    <wagon-ssh.version>3.5.3</wagon-ssh.version>
+    
   </properties>
 
   <inceptionYear>2009</inceptionYear>
@@ -173,6 +198,11 @@
         <version>${commons-collections4.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>${commons-compress.version}</version>
+      </dependency>      
+      <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>${commons-io.version}</version>
@@ -234,7 +264,11 @@
         <version>${jaxb-runtime.version}</version>
       </dependency>
       -->      
-      
+      <dependency>
+        <groupId>org.jsoup</groupId>
+        <artifactId>jsoup</artifactId>
+        <version>${jsoup.version}</version>
+      </dependency>
       
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -312,14 +346,18 @@
       </dependency>
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-slf4j-impl</artifactId>
+        <artifactId>log4j-slf4j2-impl</artifactId>
         <version>${log4j.version}</version>
+        <scope>test</scope>
       </dependency>
+<!--
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-core</artifactId>
         <version>${log4j.version}</version>
+        <scope>runtime</scope>
       </dependency>
+      -->
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>jcl-over-slf4j</artifactId>
@@ -359,11 +397,13 @@
         <groupId>org.mock-server</groupId>
         <artifactId>mockserver-netty</artifactId>
         <version>${mockserver.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.mock-server</groupId>
         <artifactId>mockserver-client-java</artifactId>
         <version>${mockserver.version}</version>
+        <scope>test</scope>
       </dependency>
 
     </dependencies>
@@ -429,7 +469,7 @@
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
         <artifactId>wagon-ssh</artifactId>
-        <version>3.4.1</version>
+        <version>${wagon-ssh.version}</version>
       </extension>
     </extensions>
 
@@ -444,7 +484,7 @@
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
+          <version>${lifecycle-mapping.version}</version>
           <configuration>
             <lifecycleMappingMetadata>
               <pluginExecutions>
@@ -470,7 +510,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.0</version>
+          <version>${maven-compiler-plugin.version}</version>
           <configuration>
             <source>${maven.compiler.source}</source>
             <target>${maven.compiler.target}</target>
@@ -482,7 +522,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>${maven-assembly-plugin.version}</version>
           <executions>
             <execution>
               <id>make-dist-assembly</id>
@@ -504,14 +544,14 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-remote-resources-plugin</artifactId>
-          <version>1.6.0</version>
+          <version>${maven-remote-resources-plugin.version}</version>
           <inherited>true</inherited>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>${maven-javadoc-plugin.version}</version>
           <configuration>
             <reportOutputDirectory>${project.build.directory}/site</reportOutputDirectory>
             <outputDirectory>${project.build.directory}/site/apidocs</outputDirectory>
@@ -632,7 +672,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.0.1</version>
+          <version>${maven-source-plugin.version}</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -647,7 +687,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>${maven-jar-plugin.version}</version>
           <configuration>
             <archive>
               <manifest>
@@ -672,14 +712,14 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M5</version>
+          <version>${maven-surefire-plugin.version}</version>
         </plugin>
 
         <!-- https://www.mojohaus.org/license-maven-plugin/ -->
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>1.17</version>
+          <version>${license-maven-plugin.version}</version>
           <executions>
             <execution>
               <id>download-licenses</id>
@@ -705,7 +745,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
-        <version>3.0.1</version>
+        <version>${maven-gpg-plugin.version}</version>
           <executions>
             <execution>
               <id>sign-artifacts</id>
@@ -728,7 +768,7 @@
         <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>1.6.13</version>
+          <version>${nexus-staging-maven-plugin.version}</version>
           <extensions>true</extensions>
           <configuration>
             <serverId>ossrh</serverId>
@@ -741,18 +781,18 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>${maven-dependency-plugin.version}</version>
         </plugin>
         
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.12.1</version>
+          <version>${maven-site-plugin.version}</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.wagon</groupId>
               <artifactId>wagon-ssh</artifactId>
-              <version>3.5.2</version>
+              <version>${wagon-ssh.version}</version>
             </dependency>
           </dependencies>
           <inherited>true</inherited>
@@ -769,7 +809,7 @@
         <plugin>
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok-maven-plugin</artifactId>
-          <version>1.18.20.0</version>
+          <version>${lombok-maven-plugin.version}</version>
           <dependencies>
             <dependency>
               <groupId>org.projectlombok</groupId>
@@ -813,7 +853,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.15.0</version>
+          <version>${versions-maven-plugin.version}</version>
           <executions>
             <execution>
               <phase>compile</phase>
@@ -824,6 +864,31 @@
               </goals>
             </execution>
           </executions>            
+          <inherited>true</inherited>
+        </plugin>
+        
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${maven-enforcer-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>enforce-versions</id>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+              <configuration>
+                <rules>
+                  <requireMavenVersion>
+                    <version>[3.8,)</version>
+                  </requireMavenVersion>
+                  <requireJavaVersion>
+                    <version>[${java.version},)</version>
+                  </requireJavaVersion>
+                </rules>    
+              </configuration>
+            </execution>
+          </executions>
           <inherited>true</inherited>
         </plugin>
  
@@ -850,6 +915,11 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>      
       </plugin>
 
     </plugins>

@@ -28,6 +28,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
 import com.norconex.commons.lang.xml.XML;
@@ -83,10 +84,6 @@ public final class TestUtil {
         }
         return null;
     }
-//    public static MockCrawler getFirstMockCrawler(
-//            @NonNull CrawlSession crawlSession) {
-//        return (MockCrawler) getFirstCrawler(crawlSession);
-//    }
     public static CrawlerConfig getFirstCrawlerConfig(
             @NonNull CrawlSession crawlSession) {
         return crawlSession.getCrawlSessionConfig().getCrawlerConfigs().get(0);
@@ -104,6 +101,7 @@ public final class TestUtil {
             c.accept(cfg);
         }
         sess.start();
+        waitForIt(sess);
         return TestUtil.getFirstMemoryCommitter(sess);
     }
     // One crawler, one committer
@@ -120,7 +118,20 @@ public final class TestUtil {
             c.accept(cfg);
         }
         sess.start();
+        waitForIt(sess);
         return TestUtil.getFirstMemoryCommitter(sess);
+    }
+
+    private static void waitForIt(CrawlSession sess) {
+        var cnt = 0;
+        while (sess.isRunning()) {
+            Sleeper.sleepMillis(100);
+            cnt++;
+            if (cnt == 100) {
+                throw new IllegalStateException(
+                        "Crawler did not stop in time.");
+            }
+        }
     }
 
     public static Exit testLaunch(

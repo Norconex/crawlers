@@ -26,12 +26,10 @@
   <name>Norconex Crawler Core</name>  
 
   <properties>
-    <commons-compress.version>1.21</commons-compress.version>
     <cxf.version>3.4.5</cxf.version>
     <h2.version>2.1.214</h2.version>
     <hikaricp.version>4.0.3</hikaricp.version>
     <jdom2.version>2.0.6.1</jdom2.version>
-    <jsoup.version>1.14.3</jsoup.version>
     <mongodb.version>4.3.2</mongodb.version>
   </properties>
 
@@ -39,11 +37,6 @@
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-compress</artifactId>
-        <version>${commons-compress.version}</version>
-      </dependency>
       <dependency>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-rt-rs-client</artifactId>
@@ -58,11 +51,6 @@
         <groupId>org.jdom</groupId>
         <artifactId>jdom2</artifactId>
         <version>${jdom2.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jsoup</groupId>
-        <artifactId>jsoup</artifactId>
-        <version>${jsoup.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -146,12 +134,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -224,6 +207,7 @@
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
       
+      <!-- Uncomment when ready:
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -244,6 +228,7 @@
           </execution>
         </executions>
       </plugin>
+      -->
     </plugins>
   </build>
 
