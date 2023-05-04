@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="default-config" version="1.6">
+    <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+    <field name="_version_" type="plong" indexed="false" stored="false"/>
+    
+    <dynamicField name="*"       type="string"   indexed="true"  stored="true" />
+    <dynamicField name="*_multi" type="strings"  indexed="true"  stored="true"/>
+
+    <uniqueKey>id</uniqueKey>
+
+    <fieldType name="string"  class="solr.StrField" sortMissingLast="true" docValues="true" />
+    <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" docValues="true" />
+    <fieldType name="plong"   class="solr.LongPointField" docValues="true"/>
+</schema>

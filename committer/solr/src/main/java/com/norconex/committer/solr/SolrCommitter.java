@@ -345,14 +345,14 @@ public class SolrCommitter extends AbstractBatchCommitter {
             boolean previousWasAddition = false;
             while (it.hasNext()) {
                 CommitterRequest r = it.next();
-                if (r instanceof UpsertRequest) {
-                    addSolrUpsertRequest(solrBatchRequest, (UpsertRequest) r);
+                if (r instanceof UpsertRequest upsert) {
+                    addSolrUpsertRequest(solrBatchRequest, upsert);
                     previousWasAddition = true;
-                } else if (r instanceof DeleteRequest) {
+                } else if (r instanceof DeleteRequest delete) {
                     if (previousWasAddition) {
                         pushSolrRequest(solrBatchRequest);
                     }
-                    addSolrDeleteRequest(solrBatchRequest, (DeleteRequest) r);
+                    addSolrDeleteRequest(solrBatchRequest, delete);
                     previousWasAddition = false;
                 } else {
                     throw new CommitterException("Unsupported operation:" + r);
