@@ -27,7 +27,7 @@
 
     <properties>
         <elasticsearch.version>8.7.1</elasticsearch.version>
-        <httpclient.version>4.5.13</httpclient.version>
+<!--        <httpclient.version>5.2.1</httpclient.version> -->
     </properties>
     <inceptionYear>2013</inceptionYear>
 
@@ -38,11 +38,13 @@
                 <artifactId>junit-jupiter-api</artifactId>
                 <version>${junit-jupiter.version}</version>
             </dependency>
+<!--
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
             </dependency>
+-->
         </dependencies>
     </dependencyManagement>
 
