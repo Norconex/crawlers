@@ -29,11 +29,11 @@ import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.language.translate.CachedTranslator;
-import org.apache.tika.language.translate.MicrosoftTranslator;
-import org.apache.tika.language.translate.MosesTranslator;
 import org.apache.tika.language.translate.Translator;
-import org.apache.tika.language.translate.YandexTranslator;
+import org.apache.tika.language.translate.impl.CachedTranslator;
+import org.apache.tika.language.translate.impl.MicrosoftTranslator;
+import org.apache.tika.language.translate.impl.MosesTranslator;
+import org.apache.tika.language.translate.impl.YandexTranslator;
 
 import com.memetix.mst.language.Language;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -45,8 +45,8 @@ import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.doc.DocMetadata;
+import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
@@ -303,8 +303,8 @@ public class TranslatorSplitter extends AbstractDocumentSplitter {
         List<Doc> translatedDocs = new ArrayList<>();
 
         CachedInputStream cachedInput = null;
-        if (input instanceof CachedInputStream) {
-            cachedInput = (CachedInputStream) input;
+        if (input instanceof CachedInputStream cis) {
+            cachedInput = cis;
         } else {
             cachedInput = doc.getStreamFactory().newInputStream(input);
         }
@@ -317,8 +317,8 @@ public class TranslatorSplitter extends AbstractDocumentSplitter {
             try (var reader = new TextReader(
                     new InputStreamReader(cachedInput, StandardCharsets.UTF_8),
                     getTranslatorStrategy().getReadSize())) {
-                translatedDocs.add(
-                        translateDocument(doc, doc.getStreamFactory(), lang, reader));
+                translatedDocs.add(translateDocument(
+                        doc, doc.getStreamFactory(), lang, reader));
             } catch (Exception e) {
                 var extra = "";
                 if (API_GOOGLE.equals(api)

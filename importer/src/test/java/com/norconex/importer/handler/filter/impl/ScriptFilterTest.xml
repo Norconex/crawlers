@@ -23,11 +23,11 @@ Config for "testPrePostScriptFilter" (from #86).
       engineName="javascript"
       onMatch="include"
     >
-    <script>
-      <![CDATA[
-        /*return*/ true;
-      ]]></script>
-    </handler>
+      <script>
+        <![CDATA[
+          /*return*/ true;
+        ]]></script>
+      </handler>
   </preParseHandlers>
 
   <postParseHandlers>
@@ -36,10 +36,10 @@ Config for "testPrePostScriptFilter" (from #86).
       engineName="javascript"
       onMatch="include"
     >
-    <script>
-      <![CDATA[
-        /*return*/ true;
-      ]]></script>
+      <script>
+        <![CDATA[
+          /*return*/ true;
+        ]]></script>
     </handler>
   </postParseHandlers>
 </importer>

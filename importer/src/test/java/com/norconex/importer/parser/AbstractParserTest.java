@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.Importer;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.ImporterRequest;
@@ -46,10 +48,8 @@ public abstract class AbstractParserTest {
     static Path folder;
 
     protected File getFile(String resourcePath) throws IOException {
-        File file = Files.createTempFile(folder, null,
+        var file = Files.createTempFile(folder, null,
                 StringUtils.substringAfterLast(resourcePath, "/")).toFile();
-//        File file = folder.newFile(
-//                StringUtils.substringAfterLast(resourcePath, "/"));
         FileUtils.copyInputStreamToFile(getInputStream(resourcePath), file);
         return file;
     }
@@ -70,16 +70,17 @@ public abstract class AbstractParserTest {
             String contentRegex, String extension, String family,
             boolean splitEmbedded) throws IOException {
 
-        ImporterResponse[] responses = new ImporterResponse[2];
+        var responses = new ImporterResponse[2];
 
-        Properties metadata = null;
-        ImporterResponse response = null;
-        Doc doc = null;
-        ImporterConfig config = new ImporterConfig();
+        Properties metadata;
+        ImporterResponse response;
+        Doc doc;
+        var config = new ImporterConfig();
         if (splitEmbedded) {
-            GenericDocumentParserFactory f = new GenericDocumentParserFactory();
-            f.getParseHints().getEmbeddedConfig().setSplitContentTypes(".*");
-            config.setParserFactory(f);
+            config.getParseConfig()
+                .getParseOptions()
+                .getEmbeddedConfig()
+                .setSplitEmbeddedOf(List.of(TextMatcher.regex(".*")));
         }
 
         // Test file
@@ -114,11 +115,11 @@ public abstract class AbstractParserTest {
             String contentRegex,
             String extension,
             String family) throws IOException {
-        Pattern p = Pattern.compile(contentRegex, Pattern.DOTALL);
+        var p = Pattern.compile(contentRegex, Pattern.DOTALL);
 
         Assertions.assertNotNull(doc, "Document is null");
 
-        String content =
+        var content =
                 IOUtils.toString(doc.getInputStream(), StandardCharsets.UTF_8);
         Assertions.assertEquals(ContentType.valueOf(contentType),
                 doc.getDocRecord().getContentType(),
@@ -129,17 +130,15 @@ public abstract class AbstractParserTest {
                 testType + " content extraction failed for \""
                         + resourcePath + "\". Content:\n" + content);
 
-        String ext = doc.getDocRecord().getContentType().getExtension();
+        var ext = doc.getDocRecord().getContentType().getExtension();
         Assertions.assertEquals(extension, ext,
                 testType + " extension detection failed for \""
                         + resourcePath + "\".");
 
-        String familyEnglish = doc.getDocRecord().getContentType()
+        var familyEnglish = doc.getDocRecord().getContentType()
                 .getContentFamily().getDisplayName(Locale.ENGLISH);
-//        System.out.println("FAMILY: " + familyEnglish);
         Assertions.assertEquals(family, familyEnglish,
                 testType + " family detection failed for \""
                         + resourcePath + "\".");
-
     }
 }

@@ -1,6 +1,14 @@
 TODO:
 ==============
 
+- Allow more Tika config flexibility. Either:
+  - Better document the system properties and env variable as a way to do it
+  - Add an option to specifi a tika config file.
+  - Add an option to specify the tika config file content right into
+    the Importer XML config. 
+  - All of the above options should take place AFTER the Importer's own
+    changes to give a chance to overwrite them.  
+
 - Deprecate "restrictTo" in favor of XML Flow conditions?
 - Deprecate "filters" in favor of XML Flow conditions?
 

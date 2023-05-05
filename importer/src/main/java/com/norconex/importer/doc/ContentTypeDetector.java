@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaMetadataKeys;
+import org.apache.tika.metadata.TikaCoreProperties;
 
 import com.norconex.commons.lang.file.ContentType;
 
@@ -94,7 +94,7 @@ public final class ContentTypeDetector {
             var meta = new Metadata();
             var extension = EXTENSION_PATTERN.matcher(
                     fileName).replaceFirst("$1");
-            meta.set(TikaMetadataKeys.RESOURCE_NAME_KEY,
+            meta.set(TikaCoreProperties.RESOURCE_NAME_KEY,
                     "file:///detect" + extension);
             var media = TIKA.getDetector().detect(tikaStream, meta);
 

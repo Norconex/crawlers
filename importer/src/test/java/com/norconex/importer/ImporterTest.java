@@ -15,14 +15,19 @@
 package com.norconex.importer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
@@ -37,15 +42,20 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.commons.lang.xml.ErrorHandlerCapturer;
+import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.HandlerConsumer;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.filter.OnMatch;
 import com.norconex.importer.handler.filter.impl.TextFilter;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
+import com.norconex.importer.parser.DocumentParser;
 import com.norconex.importer.parser.DocumentParserException;
-import com.norconex.importer.parser.GenericDocumentParserFactory;
+import com.norconex.importer.parser.ParseOptions;
 import com.norconex.importer.response.ImporterStatus;
+
+import lombok.NonNull;
 
 class ImporterTest {
 
@@ -57,6 +67,13 @@ class ImporterTest {
     @BeforeEach
     void setUp() throws Exception {
         var config = new ImporterConfig();
+        config.getParseConfig().getParseOptions()
+            .getEmbeddedConfig().setSplitEmbeddedOf(
+                    List.of(TextMatcher.wildcard("*zip")));
+        config.getParseConfig().getParseOptions()
+            .getEmbeddedConfig().setSkipEmmbbeded(
+                    List.of(TextMatcher.wildcard("*jpeg"),
+                            TextMatcher.wildcard("*wmf")));
         config.setPostParseConsumer(HandlerConsumer.fromHandlers(
                 (DocumentTransformer) (
                 doc, input, output, parseState) -> {
@@ -69,6 +86,8 @@ class ImporterTest {
                txt = txt.replaceAll("DowntheRabbitHole", "");
                txt = StringUtils.replace(txt, " ", "");
                txt = StringUtils.replace(txt, "httppdfreebooksorg", "");
+               txt = StringUtils.replace(txt, "filejpg", "");
+               txt = StringUtils.replace(txt, "filewmf", "");
                IOUtils.write(txt, output, StandardCharsets.UTF_8);
             } catch (IOException e) {
                throw new ImporterHandlerException(e);
@@ -147,9 +166,10 @@ class ImporterTest {
         // ZIP/RTF
         var rtfOutput = File.createTempFile("ImporterTest-zip-rtf-", ".txt");
         var metaRtf = new Properties();
-        writeToFile(importer.importDocument(
+        var resp = importer.importDocument(
                 new ImporterRequest(TestUtil.getAliceZipFile().toPath())
-                        .setMetadata(metaRtf)).getDocument(), rtfOutput);
+                        .setMetadata(metaRtf));
+        writeToFile(resp.getNestedResponses()[0].getDocument(), rtfOutput);
 
         double doc = docxOutput.length();
         double pdf = pdfOutput.length();
@@ -168,21 +188,6 @@ class ImporterTest {
 
         Assertions.assertTrue(pdfOutput.length() < 10,
                 "Converted file size is too small to be valid.");
-    }
-
-    @Test
-    void testNested() throws IOException {
-        var config = new ImporterConfig();
-        var parser = new GenericDocumentParserFactory();
-        parser.getParseHints().getEmbeddedConfig().setSplitContentTypes(".*");
-        config.setParserFactory(parser);
-
-        var imp = new Importer(config);
-        var resp = imp.importDocument(
-                new ImporterRequest(TestUtil.getAliceZipFile().toPath())
-                        .setMetadata(new Properties()));
-        Assertions.assertNotNull(resp.getDocument());
-        Assertions.assertNotNull(resp.getNestedResponses()[0]);
     }
 
     @Test
@@ -228,11 +233,19 @@ class ImporterTest {
         var config = new ImporterConfig();
         var errorDir = tempDir.resolve("errors");
         Files.createDirectories(errorDir);
-        config.setParseErrorsSaveDir(errorDir);
-        config.setParserFactory((documentReference, contentType) ->
-            (doc, output) -> {
+        config.getParseConfig().setErrorsSaveDir(errorDir);
+        config.getParseConfig().setDefaultParser(new DocumentParser() {
+            @Override
+            public List<Doc> parseDocument(Doc doc, Writer output)
+                    throws DocumentParserException {
                 throw new DocumentParserException("TEST");
-         });
+            }
+            @Override
+            public void init(@NonNull ParseOptions parseOptions)
+                    throws DocumentParserException {
+                //NOOP
+            }
+        });
 
         var importer = new Importer(config);
         // test that it works with empty contructor
@@ -244,16 +257,17 @@ class ImporterTest {
         }
     }
 
-//
-//    @Test
-//    void testValidation() throws IOException {
-//        var is = getClass().getResourceAsStream(
-//                "/validation/importer-full.xml");
-//        try (Reader r = new InputStreamReader(is)) {
-//            Assertions.assertEquals(0,
-//                    new XML(r).validate(ImporterConfig.class).size());
-//        }
-//    }
+    @Test
+    void testValidation() throws IOException {
+        var is = getClass().getResourceAsStream(
+                "/validation/importer-full.xml");
+        try (Reader r = new InputStreamReader(is)) {
+            var ehc = new ErrorHandlerCapturer();
+            var xml = XML.of(r).setErrorHandler(ehc).create();
+            xml.validate(ImporterConfig.class);
+            assertThat(ehc.getErrors()).isEmpty();
+        }
+    }
 
     private void writeToFile(Doc doc, File file)
             throws IOException {

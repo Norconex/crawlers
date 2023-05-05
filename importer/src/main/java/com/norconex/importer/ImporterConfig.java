@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +33,49 @@ import com.norconex.importer.handler.HandlerConsumer;
 import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.HandlerPredicate;
 import com.norconex.importer.handler.ImporterHandler;
-import com.norconex.importer.parser.DocumentParserFactory;
-import com.norconex.importer.parser.GenericDocumentParserFactory;
+import com.norconex.importer.parser.ParseConfig;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
+import lombok.NonNull;
 
 /**
- * Importer configuration.
+ * Importer configuration. Refer to {@link ParseConfig} for parse-specific
+ * configuration documentation.
+ *
+ * {@nx.xml.usage
+ * <importer>
+ *   <maxMemoryPool>
+ *     (total memory shared by multiple importer instances in the same JVM)
+ *   </maxMemoryPool>
+ *   <maxMemoryInstance>
+ *     (total memory allocated for processing individual files, before
+ *      they are persisted to disk, to avoid memory issues)
+ *   </maxMemoryInstance>
+ *   <tempDir>(Optionally overwrite the default temp directory)</tempDir>
+ *   <preParseHandlers>
+ *     (any combination of taggers, transformers, splitters, filters,
+ *      and XML conditions)
+ *   </preParseHandlers>
+ *
+ *   {@nx.include com.norconex.importer.parser.ParseConfig@nx.xml.usage}
+ *
+ *   <postParseHandlers>
+ *     (any combination of taggers, transformers, splitters, filters,
+ *      and XML conditions)
+ *   </postParseHandlers>
+ *   <responseProcessors>
+ *     <responseProcessor class="...">
+ *       (optional class that can manipulate the importer response)
+ *     </responseProcessor>
+ *   </responseProcessors>
+ * </importer>
+ * }
+ *
+ * @see ParseConfig
  */
-@EqualsAndHashCode
-@ToString
+@SuppressWarnings("javadoc")
+@Data
 public class ImporterConfig implements XMLConfigurable {
 
     public static final String DEFAULT_TEMP_DIR_PATH =
@@ -56,8 +87,7 @@ public class ImporterConfig implements XMLConfigurable {
     public static final long DEFAULT_MAX_STREAM_CACHE_SIZE =
             DataUnit.GB.toBytes(1).intValue();
 
-    private DocumentParserFactory documentParserFactory =
-            new GenericDocumentParserFactory();
+
 
     private XMLFlow<HandlerContext> xmlFlow = new XMLFlow<>(
             HandlerConsumer.class, HandlerPredicate.class);
@@ -71,30 +101,9 @@ public class ImporterConfig implements XMLConfigurable {
     private Path tempDir = Paths.get(DEFAULT_TEMP_DIR_PATH);
     private long maxMemoryInstance = DEFAULT_MAX_STREAM_CACHE_POOL_SIZE;
     private long maxMemoryPool = DEFAULT_MAX_STREAM_CACHE_SIZE;
-    private Path parseErrorsSaveDir;
 
-    public DocumentParserFactory getParserFactory() {
-        return documentParserFactory;
-    }
-    public void setParserFactory(DocumentParserFactory parserFactory) {
-        documentParserFactory = parserFactory;
-    }
-
-    /**
-     * Gets the directory where file generating parsing errors will be saved.
-     * Default is <code>null</code> (not storing errors).
-     * @return directory where to save error files
-     */
-    public Path getParseErrorsSaveDir() {
-        return parseErrorsSaveDir;
-    }
-    /**
-     * Sets the directory where file generating parsing errors will be saved.
-     * @param parseErrorsSaveDir directory where to save error files
-     */
-    public void setParseErrorsSaveDir(Path parseErrorsSaveDir) {
-        this.parseErrorsSaveDir = parseErrorsSaveDir;
-    }
+    @NonNull
+    private ParseConfig parseConfig = new ParseConfig();
 
     /**
      * Gets the {@link Consumer} to be executed on documents before
@@ -282,17 +291,11 @@ public class ImporterConfig implements XMLConfigurable {
     @Override
     public void loadFromXML(XML xml) {
         setTempDir(xml.getPath("tempDir", getTempDir()));
-        setParseErrorsSaveDir(
-                xml.getPath("parseErrorsSaveDir", getParseErrorsSaveDir()));
-
         setMaxMemoryInstance(
                 xml.getDataSize("maxMemoryInstance", getMaxMemoryInstance()));
-
         setMaxMemoryPool(xml.getDataSize("maxMemoryPool", getMaxMemoryPool()));
-
         setPreParseConsumer(xmlFlow.parse(xml.getXML("preParseHandlers")));
-        setParserFactory(xml.getObjectImpl(DocumentParserFactory.class,
-                "documentParserFactory", getParserFactory()));
+        xml.ifXML("parse", parseConfig::loadFromXML);
         setPostParseConsumer(xmlFlow.parse(xml.getXML("postParseHandlers")));
         setResponseProcessors(xml.getObjectListImpl(
                 ImporterResponseProcessor.class,
@@ -303,12 +306,11 @@ public class ImporterConfig implements XMLConfigurable {
     @Override
     public void saveToXML(XML xml) {
         xml.addElement("tempDir", tempDir);
-        xml.addElement("parseErrorsSaveDir", parseErrorsSaveDir);
         xml.addElement("maxMemoryInstance", maxMemoryInstance);
         xml.addElement("maxMemoryPool", maxMemoryPool);
 
         xmlFlow.write(xml.addElement("preParseHandlers"), preParseConsumer);
-        xml.addElement("documentParserFactory", documentParserFactory);
+        parseConfig.saveToXML(xml.addElement("parse"));
         xmlFlow.write(xml.addElement("postParseHandlers"), postParseConsumer);
         xml.addElementList(
                 "responseProcessors", "responseProcessor", responseProcessors);

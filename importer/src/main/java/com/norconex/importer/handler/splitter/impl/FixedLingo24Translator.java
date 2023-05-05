@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package com.norconex.importer.handler.splitter.impl;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.tika.language.translate.Lingo24Translator;
+import org.apache.tika.language.translate.impl.Lingo24Translator;
 
 import com.norconex.importer.ImporterRuntimeException;
 

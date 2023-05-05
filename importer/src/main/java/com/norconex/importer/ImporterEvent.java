@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ public class ImporterEvent extends Event {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String IMPORTER_INIT_BEGIN = "IMPORTER_INIT_BEGIN";
+    public static final String IMPORTER_INIT_END = "IMPORTER_INIT_END";
     public static final String IMPORTER_HANDLER_BEGIN =
             "IMPORTER_HANDLER_BEGIN";
     public static final String IMPORTER_HANDLER_END= "IMPORTER_HANDLER_END";

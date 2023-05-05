@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,14 @@ import java.util.Objects;
 import com.norconex.commons.lang.convert.DimensionConverter;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.ExternalHandler;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.AbstractDocumentTransformer;
-import com.norconex.importer.parser.GenericDocumentParserFactory;
+import com.norconex.importer.parser.ParseConfig;
 import com.norconex.importer.parser.ParseState;
 
 import lombok.EqualsAndHashCode;
@@ -44,7 +45,7 @@ import lombok.ToString;
  * This class should only be used as a pre-parsing handler, on image files.
  * It may also be appropriate to disable parsing of those images if you
  * want to keep the transformed version intact. This can be done with
- * {@link GenericDocumentParserFactory}.
+ * {@link ParseConfig}, obtained via the {@link ImporterConfig}.
  * </p>
  *
  * <h3>Content-types</h3>
