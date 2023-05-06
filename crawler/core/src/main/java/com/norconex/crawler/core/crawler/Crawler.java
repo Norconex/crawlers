@@ -392,9 +392,7 @@ public class Crawler {
                     }
                 }
             }
-            if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
-                CrawlerMonitorJMX.unregister(this);
-            }
+            // Note: unregistering of JMX monitor bean is done in CrawlSession.
         }
     }
 

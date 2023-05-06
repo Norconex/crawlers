@@ -17,6 +17,8 @@ package com.norconex.crawler.core.session;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -35,13 +37,16 @@ import java.util.function.IntFunction;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileAlreadyLockedException;
 import com.norconex.commons.lang.file.FileLocker;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.monitor.CrawlerMonitorJMX;
 import com.norconex.crawler.core.monitor.MdcUtil;
 import com.norconex.crawler.core.stop.CrawlSessionStopper;
 import com.norconex.crawler.core.stop.impl.FileBasedStopper;
@@ -238,15 +243,40 @@ public class CrawlSession {
                 startConcurrentCrawlers(maxConcurrent);
             }
         } finally {
-            try {
-                eventManager.fire(CrawlSessionEvent.builder()
-                        .name(CrawlSessionEvent.CRAWLSESSION_RUN_END)
-                        .source(this)
-                        .build());
-                destroyCrawlSession();
-            } finally {
-                stopper.destroy();
+            orderlyShutdown();
+        }
+    }
+
+    private void orderlyShutdown() {
+        try {
+            eventManager.fire(CrawlSessionEvent.builder()
+                    .name(CrawlSessionEvent.CRAWLSESSION_RUN_END)
+                    .source(this)
+                    .build());
+
+            // Defer shutdown
+            Optional.ofNullable(
+                    crawlSessionConfig.getDeferredShutdownDuration())
+                .filter(d -> d.toMillis() > 0)
+                .ifPresent(d -> {
+                    LOG.info("Deferred shutdown requested. Pausing for {} "
+                            + "starting from this UTC moment: {}",
+                            DurationFormatter.FULL.format(d),
+                            LocalDateTime.now(ZoneOffset.UTC));
+                    Sleeper.sleepMillis(d.toMillis());
+                    LOG.info("Shutdown resumed.");
+                });
+
+            // Unregister JMX crawlers
+            if (Boolean.getBoolean("enableJMX")) {
+                LOG.info("Unregistering JMX crawler MBeans.");
+                getCrawlers().forEach(CrawlerMonitorJMX::unregister);
             }
+
+            // Close other crawl session resources
+            destroyCrawlSession();
+        } finally {
+            stopper.destroy();
         }
     }
 
