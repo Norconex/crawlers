@@ -15,6 +15,7 @@
 package com.norconex.crawler.fs.fetch.impl.cmis;
 
 import java.io.InputStream;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileObject;
-import org.joda.time.DateTime;
 
 import com.norconex.commons.lang.xml.XML;
 
@@ -174,7 +174,7 @@ public class CmisAtomFileObject extends AbstractFileObject<CmisAtomFileSystem> {
     protected long doGetLastModifiedTime() throws Exception {
         var date = getPropertyValue(PROP_LAST_MODIFICATION_DATE);
         if (StringUtils.isNotEmpty(date)) {
-            return DateTime.parse(date).getMillis();
+            return ZonedDateTime.parse(date).toInstant().toEpochMilli();
         }
         return -1;
     }
