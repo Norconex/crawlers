@@ -24,6 +24,7 @@
   <maxMemoryInstance>99</maxMemoryInstance>
   <maxMemoryPool>99</maxMemoryPool>
 
+
   <preParseHandlers>
     <handler class="com.norconex.importer.handler.filter.impl.DateMetadataFilter"
         onMatch="include" field="FIELD" format="FORMAT" >
