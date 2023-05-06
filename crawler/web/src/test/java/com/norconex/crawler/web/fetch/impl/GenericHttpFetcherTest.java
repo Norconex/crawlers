@@ -18,7 +18,9 @@ import static com.norconex.crawler.web.fetch.impl.GenericHttpFetcher.SCHEME_PORT
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import org.apache.http.HttpHost;
+import java.net.URISyntaxException;
+
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.http.conn.UnsupportedSchemeException;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +38,8 @@ class GenericHttpFetcherTest {
     }
 
     @Test
-    void testShemePortResolver() throws UnsupportedSchemeException {
+    void testShemePortResolver()
+            throws UnsupportedSchemeException, URISyntaxException {
         assertThat(SCHEME_PORT_RESOLVER.resolve(
                 HttpHost.create("http://blah.com"))).isEqualTo(80);
         assertThat(SCHEME_PORT_RESOLVER.resolve(

@@ -15,18 +15,15 @@
 package com.norconex.crawler.web.fetch.util;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.commons.lang.url.HttpURL;
@@ -117,17 +114,20 @@ public class GenericRedirectURLProvider
             HttpResponse response, HttpContext context) {
         var currentReq = (HttpRequest) context.getAttribute(
                 HttpCoreContext.HTTP_REQUEST);
-        var currentHost = (HttpHost)  context.getAttribute(
-                HttpCoreContext.HTTP_TARGET_HOST);
-
-        var originalURL = toAbsoluteURI(currentHost, currentReq);
+        String originalURL = null;
+        try {
+            originalURL = currentReq.getUri().toString();
+        } catch (URISyntaxException e) {
+            LOG.error("Could not provide redirect URL.", e);
+            return null;
+        }
 
         //--- Location ---
         var hl = response.getLastHeader(HttpHeaders.LOCATION);
         if (hl == null) {
             //TODO should throw exception instead?
             LOG.error("Redirect detected to a null Location for: {}",
-                    toAbsoluteURI(currentHost, currentReq));
+                    originalURL);
             return null;
         }
         var redirectLocation = hl.getValue();
@@ -154,34 +154,6 @@ public class GenericRedirectURLProvider
             LOG.debug("URL redirect: {} -> {}", originalURL, targetURL);
         }
         return targetURL;
-    }
-
-    private String toAbsoluteURI(HttpHost host, HttpRequest req) {
-        var originalReq = req;
-
-        // Check if we can get full URL from a nested request, to keep
-        // the #fragment, if present.
-        if (req instanceof HttpRequestWrapper reqWrapper) {
-            originalReq = reqWrapper.getOriginal();
-        }
-        if (originalReq instanceof HttpRequestBase reqBase) {
-            return reqBase.getURI().toString();
-        }
-
-        // Else, built it
-        if (originalReq instanceof HttpUriRequest httpReq) {
-            if (httpReq.getURI().isAbsolute()) {
-                return httpReq.getURI().toString();
-            }
-            return host.toURI() + httpReq.getURI();
-        }
-
-        // if not a friendly type, doing in a more generic way
-        var reqLine = originalReq.getRequestLine();
-        if (reqLine != null) {
-            return reqLine.getUri();
-        }
-        return null;
     }
 
     //TODO is there value in moving this method to somewhere re-usable?

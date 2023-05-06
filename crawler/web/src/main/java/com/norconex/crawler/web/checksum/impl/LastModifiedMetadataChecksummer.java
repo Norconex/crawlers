@@ -15,7 +15,7 @@
 package com.norconex.crawler.web.checksum.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHeaders;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;

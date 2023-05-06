@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.http.HttpStatus;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
+import org.apache.hc.core5.http.HttpStatus;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.net.ProxySettings;
@@ -96,11 +96,12 @@ public class GenericHttpFetcherConfig implements XMLConfigurable {
 
     /**
      * Cookie specification to use when fetching documents, as per
-     * {@link CookieSpecs}. Defaults to {@link CookieSpecs#STANDARD}.
-     * @param cookieSpec the cookieSpec to use as defined in {@link CookieSpecs}
-     * @return the cookieSpec to use as defined in {@link CookieSpecs}
+     * {@link StandardCookieSpec}. Defaults to
+     * {@link StandardCookieSpec#RELAXED}.
+     * @param cookieSpec cookie specification name
+     * @return the cookieSpec cookie specification name
      */
-    private String cookieSpec = CookieSpecs.STANDARD;
+    private String cookieSpec = StandardCookieSpec.RELAXED;
 
     private final ProxySettings proxySettings = new ProxySettings();
 

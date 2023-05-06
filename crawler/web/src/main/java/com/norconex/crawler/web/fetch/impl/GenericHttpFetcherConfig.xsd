@@ -37,11 +37,9 @@
             <xs:element name="cookieSpec" minOccurs="0" maxOccurs="1">
               <xs:simpleType>
                 <xs:restriction base="xs:string">
-                  <xs:enumeration value="default"/>
-                  <xs:enumeration value="ignoreCookies"/>
-                  <xs:enumeration value="netscape"/>
-                  <xs:enumeration value="standard"/>
-                  <xs:enumeration value="standard-strict"/>
+                  <xs:enumeration value="relaxed"/>
+                  <xs:enumeration value="strict"/>
+                  <xs:enumeration value="ignore"/>
                 </xs:restriction>
               </xs:simpleType>
             </xs:element>

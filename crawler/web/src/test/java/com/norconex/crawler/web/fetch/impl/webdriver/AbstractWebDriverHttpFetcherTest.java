@@ -242,7 +242,8 @@ public abstract class AbstractWebDriverHttpFetcherTest
             .crawl();
 
         var doc = mem.getUpsertRequests().get(0);
-        assertThat(doc.getMetadata().getString("title")).isEqualTo("Awesome!");
+        assertThat(doc.getMetadata().getString(
+                "dc:title")).isEqualTo("Awesome!");
         assertThat(WebTestUtil.docText(doc)).contains("Melon");
     }
 

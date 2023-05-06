@@ -18,14 +18,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URISyntaxException;
 
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.jsoup.Jsoup;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.security.Credentials;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.web.WebsiteMock;
 import com.norconex.crawler.web.fetch.impl.HttpAuthConfig;
 
@@ -87,7 +88,8 @@ class ApacheHttpUtilTest {
                 .build(), "http://blah.com");
         var get = (HttpGet) ApacheHttpUtil.formToRequest(doc, authCfg);
         assertThat(get).isNotNull();
-        assertThat(get.getURI())
+
+        assertThat(HttpURL.toURI(get.getRequestUri()))
             .hasParameter("THEusername")
             .hasParameter("THEpassword");
 

@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpHead;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
 
 import com.google.common.net.InternetDomainName;
 import com.norconex.commons.lang.url.URLNormalizer;
@@ -59,7 +59,7 @@ public final class HstsResolver {
 
     private HstsResolver() { }
 
-    public synchronized static void clearCache() {
+    public static synchronized void clearCache() {
         DOMAIN_HSTS.clear();
     }
 
@@ -131,11 +131,11 @@ public final class HstsResolver {
             var req = new HttpHead("https://" + d);
             try {
                 // case-insensitive look-up
-                var header = Stream.of(
-                        httpClient.execute(req).getAllHeaders())
-                    .filter(h -> HSTS_HEADER.equalsIgnoreCase(h.getName()))
-                    .findAny()
-                    .orElse(null);
+                var header = httpClient.execute(req, response ->
+                    Stream.of(response.getHeaders())
+                        .filter(h -> HSTS_HEADER.equalsIgnoreCase(h.getName()))
+                        .findAny()
+                        .orElse(null));
                 if (header == null) {
                     LOG.info("No Strict-Transport-Security (HSTS) support "
                             + "detected for domain \"{}\".", domain);

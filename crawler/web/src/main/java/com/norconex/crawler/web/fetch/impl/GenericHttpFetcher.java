@@ -16,6 +16,8 @@ package com.norconex.crawler.web.fetch.impl;
 
 import static com.norconex.crawler.web.fetch.HttpMethod.GET;
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -43,39 +45,43 @@ import javax.net.ssl.SSLSocket;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpStatus;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.NTCredentials;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.conn.SchemePortResolver;
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustAllStrategy;
-import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.DefaultSchemePortResolver;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.util.Args;
+import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.auth.AuthCache;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.NTCredentials;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.time.DurationParser;
@@ -185,9 +191,7 @@ import lombok.extern.slf4j.Slf4j;
  * <fetcher class="com.norconex.crawler.web.fetch.impl.GenericHttpFetcher">
  *
  *   <userAgent>(identify yourself!)</userAgent>
- *   <cookieSpec>
- *     [STANDARD|DEFAULT|IGNORE_COOKIES|NETSCAPE|STANDARD_STRICT]
- *   </cookieSpec>
+ *   <cookieSpec>[RELAXED|STRICT|IGNORE]</cookieSpec>
  *   <connectionTimeout>(milliseconds)</connectionTimeout>
  *   <socketTimeout>(milliseconds)</socketTimeout>
  *   <connectionRequestTimeout>(milliseconds)</connectionRequestTimeout>
@@ -338,7 +342,7 @@ public class GenericHttpFetcher
                     + "initialized ('httpClient' not set).");
         }
 
-        HttpRequestBase request = null;
+        HttpUriRequestBase request = null;
         try {
 
             //--- HSTS Policy --------------------------------------------------
@@ -371,78 +375,75 @@ public class GenericHttpFetcher
             }
 
             // Execute the method.
-            var response = httpClient.execute(request, ctx);
+            return httpClient.execute(request, ctx, response -> {
 
-            //--- Process the response -----------------------------------------
+                //--- Process the response -----------------------------------------
 
-            var statusCode = response.getStatusLine().getStatusCode();
-            var reason = response.getStatusLine().getReasonPhrase();
+                var statusCode = response.getCode();
+                var reason = response.getReasonPhrase();
 
-            LOG.debug("Fetch status for: \"{}\": {} - {}",
-                    doc.getReference(), statusCode, reason);
+                LOG.debug("Fetch status for: \"{}\": {} - {}",
+                        doc.getReference(), statusCode, reason);
 
-            var responseBuilder =
-                    GenericHttpFetchResponse.builder()
-                .statusCode(statusCode)
-                .reasonPhrase(reason)
-                .userAgent(cfg.getUserAgent())
-                .redirectTarget(
-                        ApacheRedirectCaptureStrategy.getRedirectTarget(ctx));
+                var responseBuilder = GenericHttpFetchResponse.builder()
+                    .statusCode(statusCode)
+                    .reasonPhrase(reason)
+                    .userAgent(cfg.getUserAgent())
+                    .redirectTarget(ApacheRedirectCaptureStrategy
+                            .getRedirectTarget(ctx));
 
-            //--- Extract headers ---
-            ApacheHttpUtil.applyResponseHeaders(
-                    response, cfg.getHeadersPrefix(), doc);
+                //--- Extract headers ---
+                ApacheHttpUtil.applyResponseHeaders(
+                        response, cfg.getHeadersPrefix(), doc);
 
-            //--- Extract body ---
-            if (HttpMethod.GET.is(method) || HttpMethod.POST.is(method)) {
-                if (ApacheHttpUtil.applyResponseContent(response, doc)) {
-                    performDetection(doc);
-                } else {
-                    LOG.debug("No content returned for: {}",
-                            doc.getReference());
+                //--- Extract body ---
+                if (HttpMethod.GET.is(method) || HttpMethod.POST.is(method)) {
+                    if (ApacheHttpUtil.applyResponseContent(response, doc)) {
+                        performDetection(doc);
+                    } else {
+                        LOG.debug("No content returned for: {}",
+                                doc.getReference());
+                    }
                 }
-            }
 
-            //--- VALID http response handling ---------------------------------
-            if (cfg.getValidStatusCodes().contains(statusCode)) {
-                userToken = ctx.getUserToken();
+                //--- VALID http response handling ---------------------------------
+                if (cfg.getValidStatusCodes().contains(statusCode)) {
+                    userToken = ctx.getUserToken();
 
+                    return responseBuilder
+                            .crawlDocState(CrawlDocState.NEW)
+                            .build();
+                }
+
+                // UNMODIFIED
+                if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
+                    return responseBuilder
+                            .crawlDocState(CrawlDocState.UNMODIFIED)
+                            .build();
+                }
+
+                //--- INVALID http response handling -------------------------------
+
+                // NOT_FOUND
+                if (cfg.getNotFoundStatusCodes().contains(statusCode)) {
+                    return responseBuilder
+                            .crawlDocState(CrawlDocState.NOT_FOUND)
+                            .build();
+                }
+
+                // BAD_STATUS
+                LOG.debug("Unsupported HTTP Response: {}",
+                        response.getReasonPhrase());
                 return responseBuilder
-                        .crawlDocState(CrawlDocState.NEW)
+                        .crawlDocState(CrawlDocState.BAD_STATUS)
                         .build();
-            }
+            });
 
-            // UNMODIFIED
-            if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-                return responseBuilder
-                        .crawlDocState(CrawlDocState.UNMODIFIED)
-                        .build();
-            }
-
-            //--- INVALID http response handling -------------------------------
-
-            // NOT_FOUND
-            if (cfg.getNotFoundStatusCodes().contains(statusCode)) {
-                return responseBuilder
-                        .crawlDocState(CrawlDocState.NOT_FOUND)
-                        .build();
-            }
-
-            // BAD_STATUS
-            LOG.debug("Unsupported HTTP Response: {}",
-                    response.getStatusLine());
-            return responseBuilder
-                    .crawlDocState(CrawlDocState.BAD_STATUS)
-                    .build();
         } catch (Exception e) {
             analyseException(e);
             //MAYBE set exception on response instead?
             throw new FetchException(
                     "Could not fetch document: " + doc.getReference(), e);
-        } finally {
-            if (request != null) {
-                request.releaseConnection();
-            }
         }
     }
 
@@ -524,20 +525,20 @@ public class GenericHttpFetcher
 
     protected HttpClient createHttpClient() {
         var builder = HttpClientBuilder.create();
-        var sslContext = createSSLContext();
-        builder.setSSLContext(sslContext);
-        builder.setSSLSocketFactory(createSSLSocketFactory(sslContext));
-        builder.setSchemePortResolver(createSchemePortResolver());
+        var schemePortResolver = createSchemePortResolver();
+        ofNullable(createRoutePlanner(schemePortResolver)).ifPresent(
+                builder::setRoutePlanner
+        );
+
+        builder.setConnectionManager(createConnectionManager());
+        builder.setSchemePortResolver(schemePortResolver);
         builder.setDefaultRequestConfig(createRequestConfig());
         builder.setProxy(createProxy());
         builder.setDefaultCredentialsProvider(createCredentialsProvider());
-        builder.setDefaultConnectionConfig(createConnectionConfig());
         builder.setUserAgent(cfg.getUserAgent());
-        builder.setMaxConnTotal(cfg.getMaxConnections());
-        builder.setMaxConnPerRoute(cfg.getMaxConnectionsPerRoute());
         builder.evictExpiredConnections();
         builder.evictIdleConnections(
-                cfg.getMaxConnectionIdleTime(), TimeUnit.MILLISECONDS);
+                TimeValue.ofMilliseconds(cfg.getMaxConnectionIdleTime()));
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
         builder.setRedirectStrategy(new ApacheRedirectCaptureStrategy(
@@ -545,38 +546,46 @@ public class GenericHttpFetcher
 
         buildCustomHttpClient(builder);
 
-        HttpClient client = builder.build();
-        hackValidateAfterInactivity(client);
-        return client;
+        return builder.build();
     }
 
-    /**
-     * This is a hack to work around
-     * PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)
-     * not being exposed to the builder.
-     */
-    //TODO get rid of this method in favor of setXXX method when available
-    // in a future version of HttpClient (planned for 5.0.0).
-    private void hackValidateAfterInactivity(HttpClient httpClient) {
-        if (cfg.getMaxConnectionInactiveTime() <= 0) {
-            return;
+    protected HttpClientConnectionManager createConnectionManager() {
+        final var sslContext = createSSLContext();
+        final var sslSocketFactory = createSSLSocketFactory(sslContext);
+
+        var tlsBuilder = TlsConfig.custom()
+                .setHandshakeTimeout(cfg.getSocketTimeout(), TimeUnit.MINUTES);
+        if (!cfg.getSSLProtocols().isEmpty()) {
+            tlsBuilder.setSupportedProtocols(
+                    cfg.getSSLProtocols().toArray(EMPTY_STRING_ARRAY));
         }
-        try {
-            var connManager =
-                    FieldUtils.readField(httpClient, "connManager", true);
-            if (connManager instanceof PoolingHttpClientConnectionManager pm) {
-                pm.setValidateAfterInactivity(
-                        cfg.getMaxConnectionInactiveTime());
-            } else {
-                LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
-                        + "internal connection manager does not support it.");
+        return PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(sslSocketFactory)
+                .setDefaultTlsConfig(tlsBuilder.build())
+                .setDefaultConnectionConfig(createConnectionConfig())
+                .setMaxConnTotal(cfg.getMaxConnections())
+                .setMaxConnPerRoute(cfg.getMaxConnectionsPerRoute())
+                .build();
+    }
+
+    protected HttpRoutePlanner createRoutePlanner(
+            SchemePortResolver schemePortResolver) {
+        if (StringUtils.isBlank(cfg.getLocalAddress())) {
+            return null;
+        }
+        return new DefaultRoutePlanner(schemePortResolver) {
+            @Override
+            protected InetAddress determineLocalAddress(HttpHost firstHop,
+                    HttpContext context) throws HttpException {
+                try {
+                    return InetAddress.getByName(cfg.getLocalAddress());
+                } catch (UnknownHostException e) {
+                    throw new CrawlerException("Invalid local address: {}"
+                            + cfg.getLocalAddress(), e);
+                }
             }
-        } catch (Exception e) {
-            LOG.warn("\"maxConnectionInactiveTime\" could not be set since "
-                    + "internal connection manager does not support it.");
-        }
+        };
     }
-
 
     /**
      * For implementors to subclass.  Does nothing by default.
@@ -660,37 +669,28 @@ public class GenericHttpFetcher
     }
     protected RequestConfig createRequestConfig() {
         var builder = RequestConfig.custom()
-                .setConnectTimeout(cfg.getConnectionTimeout())
-                .setSocketTimeout(cfg.getSocketTimeout())
-                .setConnectionRequestTimeout(cfg.getConnectionRequestTimeout())
+                .setConnectionRequestTimeout(
+                        cfg.getConnectionRequestTimeout(),
+                        TimeUnit.MILLISECONDS)
                 .setMaxRedirects(cfg.getMaxRedirects())
                 .setExpectContinueEnabled(cfg.isExpectContinueEnabled())
                 .setCookieSpec(cfg.getCookieSpec());
         if (cfg.getMaxRedirects() <= 0) {
             builder.setRedirectsEnabled(false);
         }
-        if (StringUtils.isNotBlank(cfg.getLocalAddress())) {
-            try {
-                builder.setLocalAddress(
-                        InetAddress.getByName(cfg.getLocalAddress()));
-            } catch (UnknownHostException e) {
-                throw new CrawlerException(
-                        "Invalid local address: " + cfg.getLocalAddress(), e);
-            }
-        }
         return builder.build();
     }
     protected HttpHost createProxy() {
         if (cfg.getProxySettings().isSet()) {
             return new HttpHost(
+                    cfg.getProxySettings().getScheme(),
                     cfg.getProxySettings().getHost().getName(),
-                    cfg.getProxySettings().getHost().getPort(),
-                    cfg.getProxySettings().getScheme());
+                    cfg.getProxySettings().getHost().getPort());
         }
         return null;
     }
     protected CredentialsProvider createCredentialsProvider() {
-        CredentialsProvider credsProvider = null;
+        BasicCredentialsProvider credsProvider = null;
 
         //--- Proxy ---
         var proxy = cfg.getProxySettings();
@@ -698,13 +698,16 @@ public class GenericHttpFetcher
             var password = EncryptionUtil.decryptPassword(
                     proxy.getCredentials());
             credsProvider = new BasicCredentialsProvider();
-            credsProvider.setCredentials(new AuthScope(
-                    proxy.getHost().getName(),
-                    proxy.getHost().getPort(),
-                    proxy.getRealm()),
+            credsProvider.setCredentials(
+                    new AuthScope(
+                        new HttpHost(
+                                proxy.getHost().getName(),
+                                proxy.getHost().getPort()),
+                        proxy.getRealm(),
+                        null),
                     new UsernamePasswordCredentials(
                             proxy.getCredentials().getUsername(),
-                            password));
+                            trimToEmpty(password).toCharArray()));
         }
 
         //--- Auth ---
@@ -722,17 +725,19 @@ public class GenericHttpFetcher
             if (AUTH_METHOD_NTLM.equalsIgnoreCase(authConfig.getMethod())) {
                 creds = new NTCredentials(
                         authConfig.getCredentials().getUsername(),
-                        password,
+                        trimToEmpty(password).toCharArray(),
                         authConfig.getWorkstation(),
                         authConfig.getDomain());
             } else {
                 creds = new UsernamePasswordCredentials(
                         authConfig.getCredentials().getUsername(),
-                        password);
+                        trimToEmpty(password).toCharArray());
             }
-            credsProvider.setCredentials(new AuthScope(
-                    authConfig.getHost().getName(),
-                    authConfig.getHost().getPort(),
+            credsProvider.setCredentials(
+                    new AuthScope(
+                        new HttpHost(
+                            authConfig.getHost().getName(),
+                            authConfig.getHost().getPort()),
                     authConfig.getRealm(),
                     authConfig.getMethod()),
                     creds);
@@ -740,15 +745,17 @@ public class GenericHttpFetcher
         return credsProvider;
     }
     protected ConnectionConfig createConnectionConfig() {
-        if (cfg.getProxySettings().getCredentials().isSet()) {
-            return ConnectionConfig.custom()
-                    .setCharset(Consts.UTF_8)
-                    .build();
-        }
-        return null;
+        return ConnectionConfig
+                .custom()
+                .setConnectTimeout(
+                        cfg.getConnectionTimeout(), TimeUnit.MILLISECONDS)
+                .setSocketTimeout(cfg.getSocketTimeout(), TimeUnit.MILLISECONDS)
+                .setValidateAfterInactivity(TimeValue.ofMilliseconds(
+                        cfg.getMaxConnectionInactiveTime()))
+                .build();
     }
 
-    protected LayeredConnectionSocketFactory createSSLSocketFactory(
+    protected SSLConnectionSocketFactory createSSLSocketFactory(
             SSLContext sslContext) {
         if (!cfg.isTrustAllSSLCertificates()
                 && cfg.getSSLProtocols().isEmpty()) {

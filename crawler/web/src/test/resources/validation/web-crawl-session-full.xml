@@ -98,7 +98,7 @@
           <detectContentType>true</detectContentType>
           <detectCharset>true</detectCharset>
           <redirectURLProvider fallbackCharset="UTF-8"/>
-          <cookieSpec>ignoreCookies</cookieSpec>
+          <cookieSpec>ignore</cookieSpec>
           <authentication>
             <formParams>
               <param name="param1">value1</param>

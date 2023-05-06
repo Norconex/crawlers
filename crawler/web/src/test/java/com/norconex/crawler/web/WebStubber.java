@@ -152,7 +152,7 @@ public final class WebStubber {
             extractor.addLinkSelector("text");
             return extractor;
         })
-        .randomize(f -> "cookieSpec".equals(f.getName()), () -> "default")
+        .randomize(f -> "cookieSpec".equals(f.getName()), () -> "strict")
         .randomize(named(HttpAuthConfig.Fields.method)
                 .and(ofType(String.class))
                 .and(inClass(HttpAuthConfig.class)),

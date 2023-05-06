@@ -26,7 +26,7 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -159,7 +159,7 @@ import lombok.extern.slf4j.Slf4j;
  * </fetcher>
  * }
  *
- * {@nx.xml.usage
+ * {@nx.xml.example
  * <fetcher class="com.norconex.crawler.web.fetch.impl.webdriver.WebDriverHttpFetcher">
  *   <browser>firefox</browser>
  *   <driverPath>/drivers/geckodriver.exe</driverPath>

@@ -17,7 +17,6 @@ package com.norconex.crawler.web.canon.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,7 +27,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.text.StringEscapeUtils;
-import org.apache.http.client.utils.URIUtils;
 
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -36,6 +34,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.unit.DataUnit;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.canon.CanonicalLinkDetector;
@@ -215,8 +214,9 @@ public class GenericCanonicalLinkDetector
         if (link.matches("^https?://")) {
             return link;
         }
-        return URIUtils.resolve(URI.create(pageReference),
-                StringEscapeUtils.unescapeHtml4(link)).toString();
+
+        return HttpURL.toAbsolute(
+                pageReference, StringEscapeUtils.unescapeHtml4(link));
     }
 
     @Override

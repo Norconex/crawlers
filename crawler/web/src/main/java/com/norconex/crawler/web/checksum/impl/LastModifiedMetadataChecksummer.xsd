@@ -18,12 +18,10 @@
 
   <xs:include schemaLocation="/com/norconex/crawler/core/checksum/AbstractMetadataChecksummer.xsd"></xs:include>
 
-
   <xs:element name="metadataChecksummer">
     <xs:complexType>
       <xs:complexContent> 
-        <xs:extension base="AbstractMetadataChecksummer"> 
-        </xs:extension>
+        <xs:extension base="AbstractMetadataChecksummer"></xs:extension>
       </xs:complexContent>
     </xs:complexType>
   </xs:element>
