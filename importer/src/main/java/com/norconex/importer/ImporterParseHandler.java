@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -127,7 +128,7 @@ class ImporterParseHandler {
                         doc.getMetadata().getString(
                                 DocMetadata.CONTENT_ENCODING));
             }
-            if (nestedDocs != null) {
+            if (CollectionUtils.isNotEmpty(nestedDocs)) {
                 for (var i = 0; i < nestedDocs.size() ; i++) {
                     var meta = nestedDocs.get(i).getMetadata();
                     meta.add(DocMetadata.EMBEDDED_INDEX, i);

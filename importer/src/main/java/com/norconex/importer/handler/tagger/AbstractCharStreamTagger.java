@@ -82,7 +82,7 @@ public abstract class AbstractCharStreamTagger extends AbstractDocumentTagger {
                     throws ImporterHandlerException {
         var nonNullDocument = input;
         if (nonNullDocument == null) {
-            nonNullDocument = new NullInputStream(0);
+            nonNullDocument = new NullInputStream(0); //NOSONAR nothing to close
         }
 
         var inputCharset = CharsetUtil.firstNonBlankOrUTF8(

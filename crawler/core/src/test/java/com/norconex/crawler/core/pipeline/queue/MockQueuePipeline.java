@@ -18,7 +18,6 @@ import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.doc.CrawlDocState;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
-import com.norconex.crawler.core.pipeline.queue.QueuePipeline;
 
 public class MockQueuePipeline implements QueuePipeline {
 

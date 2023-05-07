@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +39,6 @@ import org.apache.tika.language.translate.impl.YandexTranslator;
 import com.memetix.mst.language.Language;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.unit.DataUnit;
@@ -302,52 +302,55 @@ public class TranslatorSplitter extends AbstractDocumentSplitter {
 
         List<Doc> translatedDocs = new ArrayList<>();
 
-        CachedInputStream cachedInput = null;
-        if (input instanceof CachedInputStream cis) {
-            cachedInput = cis;
-        } else {
-            cachedInput = doc.getStreamFactory().newInputStream(input);
-        }
-
-        for (String lang : targetLanguages) {
-            if (Objects.equals(sourceLanguage, lang)) {
-                continue;
-            }
-            cachedInput.rewind();
-            try (var reader = new TextReader(
-                    new InputStreamReader(cachedInput, StandardCharsets.UTF_8),
-                    getTranslatorStrategy().getReadSize())) {
-                translatedDocs.add(translateDocument(
-                        doc, doc.getStreamFactory(), lang, reader));
-            } catch (Exception e) {
-                var extra = "";
-                if (API_GOOGLE.equals(api)
-                        && e instanceof IndexOutOfBoundsException) {
-                    extra = " \"apiKey\" is likely invalid.";
+        try (var cachedInput =
+                input instanceof CachedInputStream cis
+                ? cis : doc.getStreamFactory().newInputStream(input)) {
+            for (String lang : targetLanguages) {
+                var translatedDoc =
+                        translateDocumentFromStream(doc, cachedInput, lang);
+                if (translatedDoc != null) {
+                    translatedDocs.add(translatedDoc);
                 }
-                throw new ImporterHandlerException(
-                        "Translation failed form \"" + sourceLanguage
-                      + "\" to \"" + lang + "\" for: \""
-                      + doc.getReference() + "\"." + extra, e);
             }
+        } catch (ImporterHandlerException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ImporterHandlerException(
+                    "Could not translate document: " + doc.getReference(), e);
         }
         return translatedDocs;
     }
 
-
-
-    private TranslatorStrategy getTranslatorStrategy() {
-        var strategy = translators.get(api);
-        if (strategy == null) {
-            throw new ImporterRuntimeException(
-                    "Unsupported translation api: " + api);
+    private Doc translateDocumentFromStream(
+            HandlerDoc doc, CachedInputStream cachedInput, String targetLang)
+                    throws ImporterHandlerException {
+        if (Objects.equals(sourceLanguage, targetLang)) {
+            return null;
         }
-        return strategy;
+        cachedInput.rewind();
+        try (var reader = new TextReader(
+                new InputStreamReader(cachedInput, StandardCharsets.UTF_8),
+                getTranslatorStrategy().getReadSize())) {
+            return translateDocumentFromReader(doc, targetLang, reader);
+        } catch (Exception e) {
+            var extra = "";
+            if (API_GOOGLE.equals(api)
+                    && e instanceof IndexOutOfBoundsException) {
+                extra = " \"apiKey\" is likely invalid.";
+            }
+            throw new ImporterHandlerException(
+                    "Translation failed form \"%s\" to \"%s\" for: \"%s\". %s"
+                    .formatted(
+                          sourceLanguage,
+                          targetLang,
+                          doc.getReference(),
+                          extra), e);
+        }
     }
 
-    private Doc translateDocument(HandlerDoc doc,
-            CachedStreamFactory streamFactory, String targetLang,
-            TextReader reader) throws Exception {
+    private Doc translateDocumentFromReader(
+            HandlerDoc doc, String targetLang, TextReader reader)
+                    throws Exception {
 
         var translator = getTranslatorStrategy().getTranslator();
         var sourceLang = getResolvedSourceLanguage(doc);
@@ -360,18 +363,19 @@ public class TranslatorSplitter extends AbstractDocumentSplitter {
         //--- Do Content ---
         CachedInputStream childInput = null;
         if (!ignoreContent) {
-            var childContent = streamFactory.newOuputStream();
-
-            String text = null;
-            while ((text = reader.readText()) != null) {
-                var txt = translator.translate(text, sourceLang, targetLang);
-                childContent.write(txt.getBytes(StandardCharsets.UTF_8));
-                childContent.flush();
+            try (var childContent = doc.getStreamFactory().newOuputStream()) {
+                String text = null;
+                while ((text = reader.readText()) != null) {
+                    var txt = translator.translate(
+                            text, sourceLang, targetLang);
+                    childContent.write(txt.getBytes(StandardCharsets.UTF_8));
+                    childContent.flush();
+                }
+                try { reader.close(); } catch (IOException ie) {/*NOOP*/}
+                childInput = childContent.getInputStream();
             }
-            try { reader.close(); } catch (IOException ie) {/*NOOP*/}
-            childInput = childContent.getInputStream();
         } else {
-            childInput = streamFactory.newInputStream();
+            childInput = doc.getStreamFactory().newInputStream();
         }
 
         //--- Build child document ---
@@ -383,13 +387,15 @@ public class TranslatorSplitter extends AbstractDocumentSplitter {
         childMeta.set(
                 DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
 
-//        childInfo.setEmbeddedReference(childEmbedRef);
         childInfo.addEmbeddedParentReference(doc.getReference());
 
-//        childMeta.setReference(childDocRef);
-//        childMeta.setEmbeddedReference(childEmbedRef);
-//        childMeta.setEmbeddedParentReference(doc.getReference());
-//        childMeta.setEmbeddedParentRootReference(doc.getReference());
+/*TODO: what about these?
+ *        childInfo.setEmbeddedReference(childEmbedRef);
+ *        childMeta.setReference(childDocRef);
+ *        childMeta.setEmbeddedReference(childEmbedRef);
+ *        childMeta.setEmbeddedParentReference(doc.getReference());
+ *        childMeta.setEmbeddedParentRootReference(doc.getReference());
+ */
         childMeta.set(DocMetadata.LANGUAGE, targetLang);
         childMeta.set(DocMetadata.TRANSLATED_FROM, sourceLang);
 
@@ -406,10 +412,8 @@ public class TranslatorSplitter extends AbstractDocumentSplitter {
                 return childMeta;
             }
             for (String key : fieldsToTranslate) {
-                var values = doc.getMetadata().get(key);
-                if (values != null) {
-                    childMeta.put(key, values);
-                }
+                Optional.ofNullable(doc.getMetadata().get(key))
+                    .ifPresent(values -> childMeta.put(key, values));
             }
         } else {
             childMeta.loadFromMap(doc.getMetadata());
@@ -441,6 +445,15 @@ public class TranslatorSplitter extends AbstractDocumentSplitter {
             index++;
         }
         return childMeta;
+    }
+
+    private TranslatorStrategy getTranslatorStrategy() {
+        var strategy = translators.get(api);
+        if (strategy == null) {
+            throw new ImporterRuntimeException(
+                    "Unsupported translation api: " + api);
+        }
+        return strategy;
     }
 
     private void validateProperties(HandlerDoc doc)

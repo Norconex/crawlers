@@ -154,14 +154,7 @@ public class AbstractTikaParser implements DocumentParser {
             context.set(Parser.class, recursiveParser);
 
             var pdfConfig = new PDFParserConfig();
-            //var ocrConfig = parseHints.getOcrConfig();
             if (!parseOptionsOrThrow().getOcrConfig().isDisabled()) {
-                // Tesseract config should already be on context if enabled,
-                // thanks to configured TikaConfig
-//                    && StringUtils.isNotBlank(ocrConfig.getPath())
-//                    && (StringUtils.isBlank(ocrConfig.getContentTypes())
-//                        || contentType.matches(ocrConfig.getContentTypes()))) {
-//                context.set(TesseractOCRConfig.class, ocrTesseractConfig);
                 pdfConfig.setExtractInlineImages(true);
             } else {
                 pdfConfig.setOcrStrategy(PDFParserConfig.OCR_STRATEGY.NO_OCR);
@@ -487,7 +480,8 @@ public class AbstractTikaParser implements DocumentParser {
     class ThreadSafeCacheableAutoDetectWrapper implements Detector {
         private static final long serialVersionUID = 225979407457365951L;
         private final Detector originalDetector;
-        private final ThreadLocal<Cache> threadCache = new ThreadLocal<>();
+        private final transient ThreadLocal<Cache> threadCache = //NOSONAR
+                new ThreadLocal<>();
         public ThreadSafeCacheableAutoDetectWrapper(Detector originalDetector) {
             this.originalDetector = originalDetector;
         }

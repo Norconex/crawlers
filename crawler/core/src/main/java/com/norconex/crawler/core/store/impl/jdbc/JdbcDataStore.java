@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.store.impl.jdbc;
 
 import static java.lang.System.currentTimeMillis;
-import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -30,6 +29,8 @@ import com.norconex.crawler.core.store.DataStore;
 import com.norconex.crawler.core.store.DataStoreException;
 import com.norconex.crawler.core.store.impl.SerialUtil;
 
+import lombok.NonNull;
+
 public class JdbcDataStore<T> implements DataStore<T> {
 
     private static final PreparedStatementConsumer NO_ARGS = stmt -> {};
@@ -41,15 +42,14 @@ public class JdbcDataStore<T> implements DataStore<T> {
     private final TableAdapter adapter;
 
     JdbcDataStore(
-            JdbcDataStoreEngine engine,
-            String storeName,
-            Class<? extends T> type) {
-        this.engine = requireNonNull(engine, "'engine' must not be null.");
-        this.type = requireNonNull(type, "'type' must not be null.");
-        this.adapter = engine.getTableAdapter();
-        this.storeName = requireNonNull(
-                storeName, "'storeName' must not be null.");
-        this.tableName = engine.tableName(storeName);
+            @NonNull JdbcDataStoreEngine engine,
+            @NonNull String storeName,
+            @NonNull Class<? extends T> type) {
+        this.engine = engine;
+        this.type = type;
+        adapter = engine.getTableAdapter();
+        this.storeName = storeName;
+        tableName = engine.tableName(storeName);
         if (!engine.tableExist(tableName)) {
             createTable();
         }
@@ -199,8 +199,8 @@ public class JdbcDataStore<T> implements DataStore<T> {
                                 adapter.modifiedType(),
                                 adapter.jsonType()));
                 stmt.executeUpdate(
-                        "CREATE INDEX " + tableName + "_modified_index "
-                        + "ON " + tableName + "(modified)");
+                        "CREATE INDEX %s_modified_index ON %s(modified)"
+                                .formatted(tableName, tableName));
                 if (!conn.getAutoCommit()) {
                     conn.commit();
                 }
@@ -218,8 +218,8 @@ public class JdbcDataStore<T> implements DataStore<T> {
             executeWrite("DROP TABLE " + newTableName, NO_ARGS);
         }
         executeWrite("ALTER TABLE <table> RENAME TO " + newTableName, NO_ARGS);
-        this.storeName = newStoreName;
-        this.tableName = newTableName;
+        storeName = newStoreName;
+        tableName = newTableName;
         return targetExists;
     }
 

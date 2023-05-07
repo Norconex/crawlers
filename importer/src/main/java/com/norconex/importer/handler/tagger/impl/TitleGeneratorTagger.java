@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,8 +170,9 @@ public class TitleGeneratorTagger
 
         // The first chunk already did the title generation.
         // If title already exists and not overwriting, leave now
-        if ((sectionIndex > 0) || (PropertySetter.OPTIONAL == onSet && StringUtils.isNotBlank(
-                doc.getMetadata().getString(getTargetField())))) {
+        if (sectionIndex > 0
+                || (PropertySetter.OPTIONAL == onSet && StringUtils.isNotBlank(
+                        doc.getMetadata().getString(getTargetField())))) {
             return;
         }
 
@@ -285,7 +286,9 @@ public class TitleGeneratorTagger
 
         // if more than one sentence, ignore
         // must match min/max lengths.
-        if (StringUtils.isBlank(firstLine) || (StringUtils.split(firstLine, "?!.").length != 1) || firstLine.length() < detectHeadingMinLength
+        if (StringUtils.isBlank(firstLine)
+                || (StringUtils.split(firstLine, "?!.").length != 1)
+                || firstLine.length() < detectHeadingMinLength
                 || firstLine.length() > detectHeadingMaxLength) {
             return null;
         }
@@ -302,7 +305,7 @@ public class TitleGeneratorTagger
         var topSentence = index.sentences.get(0);
         for (String  sentence : index.sentences) {
             var score = 0L;
-            long densityFactor = 500 - sentence.length();
+            var densityFactor = 500L - sentence.length();
             for (TermOccurence to : index.terms) {
                 var m = Pattern.compile(
                         "\\b\\Q" + to.term + "\\E\\b").matcher(sentence);

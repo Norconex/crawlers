@@ -20,10 +20,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.commons.lang.url.HttpURL;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+@EqualsAndHashCode
+@ToString
 public class SiteDelay extends AbstractDelay {
 
     private final Map<String, SleepState> siteLastHitNanos =
@@ -34,8 +37,8 @@ public class SiteDelay extends AbstractDelay {
         if (expectedDelayNanos <= 0) {
             return;
         }
-        var site = StringUtils.lowerCase(
-                url.replaceFirst("(.*?//.*?)(/.*)|$]", "$1"));
+
+        var site = StringUtils.lowerCase(HttpURL.getRoot(url));
         SleepState sleepState = null;
         try {
             synchronized (siteLastHitNanos) {

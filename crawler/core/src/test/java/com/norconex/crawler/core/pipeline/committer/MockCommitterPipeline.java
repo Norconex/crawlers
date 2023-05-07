@@ -15,12 +15,10 @@
 package com.norconex.crawler.core.pipeline.committer;
 
 import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
-import com.norconex.crawler.core.pipeline.committer.CommitterPipeline;
 
 public class MockCommitterPipeline implements CommitterPipeline {
 
     @Override
-//    public void accept(Crawler t, CrawlDoc u) {
     public void accept(DocumentPipelineContext ctx) {
         // TODO Auto-generated method stub
         // Event triggered by service

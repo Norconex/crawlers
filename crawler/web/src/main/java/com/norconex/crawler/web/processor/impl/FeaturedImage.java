@@ -22,8 +22,11 @@ import java.util.Base64;
 
 import javax.imageio.ImageIO;
 
-//TODO move as part of importer along with utility methods, and create
-//handler(s) to convert images
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@ToString
+@EqualsAndHashCode
 public class FeaturedImage {
     private String url;
     private final Dimension originalSize;

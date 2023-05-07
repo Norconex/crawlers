@@ -60,6 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractLinkExtractor
         implements LinkExtractor, XMLConfigurable {
 
+    private static final String ELEM_RESTRICT_TO = "restrictTo";
     private final PropertyMatchers restrictions = new PropertyMatchers();
 
     @Override
@@ -135,13 +136,12 @@ public abstract class AbstractLinkExtractor
     @Override
     public final void loadFromXML(XML xml) {
         loadLinkExtractorFromXML(xml);
-        var nodes = xml.getXMLList("restrictTo");
+        var nodes = xml.getXMLList(ELEM_RESTRICT_TO);
         if (!nodes.isEmpty()) {
             restrictions.clear();
             for (XML node : nodes) {
-                Object obj = PropertyMatcher.loadFromXML(node);
                 Optional.ofNullable(PropertyMatcher.loadFromXML(node))
-                    .ifPresent(r -> restrictions.add(r));
+                    .ifPresent(restrictions::add);
             }
         }
     }
@@ -155,10 +155,10 @@ public abstract class AbstractLinkExtractor
     public final void saveToXML(XML xml) {
         saveLinkExtractorToXML(xml);
         if (restrictions.isEmpty()) {
-            xml.addElement("restrictTo");
+            xml.addElement(ELEM_RESTRICT_TO);
         } else {
             restrictions.forEach(pm ->
-                PropertyMatcher.saveToXML(xml.addElement("restrictTo"), pm)
+                PropertyMatcher.saveToXML(xml.addElement(ELEM_RESTRICT_TO), pm)
             );
         }
     }

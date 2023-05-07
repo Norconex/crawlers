@@ -303,6 +303,7 @@ class CharacterCaseTaggerTest {
         meta.add("string1", "normal String. another One.");
         meta.add("string2", " string starTing with a Space.");
         meta.add("string3", "1 string starTing with a Number. pLUS this");
+        meta.add("string4", "yes.no. yes. . ");
 
         var tagger = new CharacterCaseTagger();
         InputStream is;
@@ -328,12 +329,20 @@ class CharacterCaseTaggerTest {
         tagger.tagDocument(TestUtil.newHandlerDoc(
                 "blah", is, meta), is, ParseState.PRE);
 
+        tagger.setFieldMatcher(TextMatcher.basic("string4"));
+        tagger.setCaseType(CASE_SENTENCES);
+        tagger.setApplyTo(APPLY_VALUE);
+        is = new NullInputStream(0);
+        tagger.tagDocument(TestUtil.newHandlerDoc(
+                "blah", is, meta), is, ParseState.PRE);
+
         Assertions.assertEquals("Normal String. Another One.",
                 meta.getString("string1"));
         Assertions.assertEquals(" String starTing with a Space.",
                 meta.getString("string2"));
         Assertions.assertEquals("1 string starTing with a Number. PLUS this",
                 meta.getString("string3"));
+        Assertions.assertEquals("Yes.no. Yes. . ", meta.getString("string4"));
     }
 
     @Test

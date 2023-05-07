@@ -181,8 +181,8 @@ public final class CharsetUtil {
      * @param doc document to detect encoding on
      * @return string representation of character encoding
      * @throws IOException problem detecting charset
-         */
-    public static String detectsCharset(Doc doc) throws IOException {
+     */
+    public static String detectCharset(Doc doc) throws IOException {
         return detectCharsetIfBlank(null, doc);
     }
     /**
@@ -196,7 +196,7 @@ public final class CharsetUtil {
      * @param doc document to detect encoding on
      * @return supplied charset if not blank, or the detected charset
      * @throws IOException problem detecting charset
-         */
+     */
     public static String detectCharsetIfBlank(String charset, Doc doc)
             throws IOException {
         if (StringUtils.isNotBlank(charset)) {
@@ -221,7 +221,7 @@ public final class CharsetUtil {
      * @param is input stream
      * @return supplied charset if not blank, or the detected charset
      * @throws IOException problem detecting charset
-         */
+     */
     public static String detectCharsetIfBlank(String charset, InputStream is)
             throws IOException {
         if (StringUtils.isNotBlank(charset)) {
@@ -240,7 +240,7 @@ public final class CharsetUtil {
      * are all blank.
      * @param charsets character encodings to test
      * @return first non-blank, or UTF-8
-         */
+     */
     public static String firstNonBlankOrUTF8(String... charsets) {
         var encoding = StringUtils.firstNonBlank(charsets);
         if (StringUtils.isBlank(encoding)) {
@@ -256,7 +256,7 @@ public final class CharsetUtil {
      * @param parseState document parsing state
      * @param charsets character encodings to test
      * @return first non-blank, or UTF-8
-         */
+     */
     public static String firstNonBlankOrUTF8(
             ParseState parseState, String... charsets) {
         if (ParseState.isPost(parseState)) {

@@ -21,29 +21,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.parser.txt.CharsetDetector;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.xml.XMLUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.parser.DocumentParser;
 import com.norconex.importer.parser.DocumentParserException;
 import com.norconex.importer.parser.ParseOptions;
+import com.norconex.importer.util.CharsetUtil;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -70,17 +69,8 @@ public class XFDLParser implements DocumentParser {
     public List<Doc> parseDocument(Doc doc,
             Writer output) throws DocumentParserException {
         try {
-            //TODO have a generic utility method for this?
-            var is =
-                    new BufferedInputStream(doc.getInputStream());
-            var detector = new CharsetDetector();
-            detector.enableInputFilter(true);
-            detector.setText(is);
-            var match = detector.detect();
-            var charset = StandardCharsets.UTF_8.toString();
-            if (match != null && Charset.isSupported(match.getName())) {
-                charset = match.getName();
-            }
+            var charset = CharsetUtil.detectCharset(doc);
+            var is = new BufferedInputStream(doc.getInputStream());
             var reader = new BufferedReader(
                     new InputStreamReader(is, charset));
             parse(reader, output, doc.getMetadata());
@@ -88,7 +78,7 @@ public class XFDLParser implements DocumentParser {
             throw new DocumentParserException(
                     "Could not parse " + doc.getReference(), e);
         }
-        return null;
+        return Collections.emptyList();
     }
 
     private void parse(
@@ -104,11 +94,11 @@ public class XFDLParser implements DocumentParser {
 
         //--- Create XML DOM ---
         var docBuilder =
-                DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                XMLUtil.createDocumentBuilderFactory().newDocumentBuilder();
         Document dom = null;
         if (Arrays.equals(signature, MAGIC_BASE64)) {
             // skip first line
-            reader.readLine();
+            reader.readLine();  //NOSONAR no use for storing the output
 
             // un-encode first
             var compressedContent =
@@ -132,9 +122,8 @@ public class XFDLParser implements DocumentParser {
         var xmlTitles = doc.getElementsByTagName("title");
         if (xmlTitles != null && xmlTitles.getLength() > 0) {
             var titleItem = xmlTitles.item(0);
-            if (titleItem instanceof Element) {
-                metadata.add("title",
-                        ((Element) titleItem).getTextContent());
+            if (titleItem instanceof Element titleEl) {
+                metadata.add("title", titleEl.getTextContent());
             }
         }
 

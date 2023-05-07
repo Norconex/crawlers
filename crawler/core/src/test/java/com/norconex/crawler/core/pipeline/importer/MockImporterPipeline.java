@@ -19,8 +19,6 @@ import java.time.ZonedDateTime;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core.doc.CrawlDocState;
-import com.norconex.crawler.core.pipeline.importer.ImporterPipeline;
-import com.norconex.crawler.core.pipeline.importer.ImporterPipelineContext;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.response.ImporterResponse;
 
@@ -54,11 +52,6 @@ public class MockImporterPipeline implements ImporterPipeline {
         meta.set(DocMetadata.CONTENT_TYPE, rec.getContentType());
         meta.set(DocMetadata.CONTENT_ENCODING, rec.getContentEncoding());
 
-
-
         return ctx.getCrawler().getImporter().importDocument(doc);
-
-
-//        return new ImporterResponse(doc);
     }
 }

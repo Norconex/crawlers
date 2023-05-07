@@ -223,13 +223,17 @@ public class CharacterCaseTagger extends AbstractDocumentTagger {
         }
         if (CASE_WORDS.equals(type)) {
             return WordUtils.capitalize(value);
-        } else if (CASE_WORDS_FULLY.equals(type)) {
+        }
+        if (CASE_WORDS_FULLY.equals(type)) {
             return WordUtils.capitalizeFully(value);
-        } else if (CASE_SWAP.equals(type)) {
+        }
+        if (CASE_SWAP.equals(type)) {
             return WordUtils.swapCase(value);
-        } else if (CASE_STRING.equals(type)) {
+        }
+        if (CASE_STRING.equals(type)) {
             return capitalizeString(value);
-        } else if (CASE_STRING_FULLY.equals(type)) {
+        }
+        if (CASE_STRING_FULLY.equals(type)) {
             return capitalizeStringFully(value);
         } else if (CASE_SENTENCES.equals(type)) {
             return capitalizeSentences(value);
@@ -272,20 +276,29 @@ public class CharacterCaseTagger extends AbstractDocumentTagger {
         return capitalizeString(StringUtils.lowerCase(value));
     }
     private String capitalizeSentences(String value) {
-        if (StringUtils.isNotBlank(value)) {
-            var b = new StringBuffer();
-            var re = Pattern.compile(
-                    "[^.!?\\s][^.!?]*(?:[.!?](?!['\"]?\\s|$)[^.!?]*)*"
-                  + "[.!?]?['\"]?(?=\\s|$)",
-                    Pattern.MULTILINE);
-            var m = re.matcher(value);
-            while (m.find()) {
-                m.appendReplacement(b, capitalizeString(m.group()));
-            }
-            m.appendTail(b);
-            return b.toString();
+        if (StringUtils.isBlank(value)) {
+            return value;
         }
-        return value;
+        var pos = 0;
+        var followedBySpace = true;
+        var sentenceEnded = true;
+        var b = new StringBuilder(value);
+        while (pos < b.length()) {
+            var ch = b.charAt(pos);
+            if (ch == '.' || ch == '!' || ch == '?') {
+                sentenceEnded = true;
+            } else if (sentenceEnded && Character.isWhitespace(ch)) {
+                followedBySpace = true;
+            } else {
+                if (sentenceEnded && followedBySpace) {
+                    b.setCharAt(pos, Character.toUpperCase(b.charAt(pos)));
+                }
+                sentenceEnded = false;
+                followedBySpace = false;
+            }
+            pos++;
+        }
+        return b.toString();
     }
     private String capitalizeSentencesFully(String value) {
         return capitalizeSentences(StringUtils.lowerCase(value));
