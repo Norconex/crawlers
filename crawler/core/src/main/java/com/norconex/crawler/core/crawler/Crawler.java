@@ -235,7 +235,7 @@ public class Crawler {
         crawlerImpl.queuePipeline().accept(
                 new DocRecordPipelineContext(this, rec));
     }
-    //TODO Keep this one or always force to pass context?
+    //MAYBE: Keep this one or always force to pass context?
     public ImporterResponse importDoc(CrawlDoc doc) {
         return importDoc(new ImporterPipelineContext(this, doc));
     }
@@ -424,7 +424,7 @@ public class Crawler {
                 execService.awaitTermination(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new CrawlerException(e);
+                LOG.error("Failed to wait for crawler termination.", e);
             }
         }
     }

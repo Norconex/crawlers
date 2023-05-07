@@ -27,7 +27,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
- * Holds data defined outside a committer but useful or required for the
+ * Holds objects defined outside a committer but useful or required for the
  * committer execution.
  */
 @ToString(doNotUseGetters = true)

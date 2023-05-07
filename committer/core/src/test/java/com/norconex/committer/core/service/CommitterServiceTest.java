@@ -14,14 +14,18 @@
  */
 package com.norconex.committer.core.service;
 
+import static java.io.InputStream.nullInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -32,6 +36,9 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.StringListConverter;
 import com.norconex.committer.core.UpsertRequest;
+import com.norconex.committer.core.fs.AbstractFSCommitter;
+import com.norconex.committer.core.fs.impl.JSONFileCommitter;
+import com.norconex.committer.core.fs.impl.XMLFileCommitter;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatcher;
@@ -289,5 +296,45 @@ class CommitterServiceTest {
     void testToString(String testCtx, String expectedToString) {
         var test = testContexes.get(testCtx);
         assertThat(test.getService()).hasToString(expectedToString);
+    }
+
+    @Test
+    void testCommitterDefaultDirs(@TempDir Path tempDir) {
+        // Directory names bearing the committer class names should be created.
+        // In case of using the same Committer more than once, a counter is
+        // added.  It should still be possible to overwrite and give
+        // a specific path.
+
+        var overwrittenPath = new XMLFileCommitter();
+        overwrittenPath.setDirectory(tempDir.resolve("customOne"));
+
+        var service = CommitterService.builder()
+                .committers(List.of(
+                    new XMLFileCommitter(),
+                    new JSONFileCommitter(),
+                    overwrittenPath,
+                    new XMLFileCommitter()
+                ))
+                .upsertRequestBuilder(obj -> new UpsertRequest(
+                        "mock", new Properties(), nullInputStream()))
+                .deleteRequestBuilder(obj -> new DeleteRequest(
+                        "mock", new Properties()))
+                .build();
+
+        service.init(CommitterContext.builder()
+                .setWorkDir(tempDir)
+                .build());
+
+        var actualDirNames = service.getCommitters().stream()
+            .map(AbstractFSCommitter.class::cast)
+            .map(c -> c.getDirectory().getFileName().toString())
+            .toList();
+        assertThat(actualDirNames).containsExactly(
+                "XMLFileCommitter",
+                "JSONFileCommitter",
+                "customOne",
+                // we expect this one to be _3, not _2, since it is the 3rd XML
+                // committer, after the "customOne".
+                "XMLFileCommitter_3");
     }
 }

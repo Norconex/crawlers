@@ -131,6 +131,11 @@ public final class FSQueueUtil {
                 }
             }
         }
+        if (ref == null) {
+            throw new IOException("Committer queue zip contains no "
+                    + "\"reference\" file: " + sourceFile);
+        }
+
         if (content == null) {
             return new DeleteRequest(ref, meta);
         }
