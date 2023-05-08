@@ -19,6 +19,7 @@
         <groupId>com.norconex.crawler</groupId>
         <artifactId>nx-crawler-parent</artifactId>
         <version>4.0.0-SNAPSHOT</version>
+        <relativePath>../..</relativePath>
     </parent>
     <groupId>norconex-committer-elasticsearch</groupId>
     <artifactId>norconex-committer-elasticsearch</artifactId>
