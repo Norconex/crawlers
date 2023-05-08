@@ -54,7 +54,7 @@ public enum Browser {
                 WebDriverLocation location,
                 Consumer<MutableCapabilities> optionsConsumer) {
             var options = new ChromeOptions();
-            options.addArguments("--headless=new");
+            options.addArguments("--headless");
             ofNullable(location.getBrowserPath()).ifPresent(
                     p -> options.setBinary(p.toFile()));
             optionsConsumer.accept(options);

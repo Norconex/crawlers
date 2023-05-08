@@ -157,6 +157,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         var img = MutableImage.fromBase64String(
                 mem.getUpsertRequests().get(0).getMetadata().getString(
                         "myimage"));
+        assertThat(img).isNotNull();
         assertThat(img.getWidth()).isEqualTo(350);
         assertThat(img.getHeight()).isEqualTo(350);
     }
