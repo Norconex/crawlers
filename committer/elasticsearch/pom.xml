@@ -21,9 +21,8 @@
         <version>4.0.0-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
-    <groupId>norconex-committer-elasticsearch</groupId>
-    <artifactId>norconex-committer-elasticsearch</artifactId>
-    <version>6.0.0-SNAPSHOT</version>
+    
+    <artifactId>nx-committer-elasticsearch</artifactId>
     <name>Norconex Committer Elasticsearch</name>
 
     <properties>
@@ -42,18 +41,14 @@
     </dependencyManagement>
 
     <dependencies>
-
         <dependency>
             <groupId>com.norconex.commons</groupId>
             <artifactId>norconex-commons-lang</artifactId>
         </dependency>
-<!--
         <dependency>
-            <groupId>com.norconex.collectors</groupId>
+            <groupId>com.norconex.crawler</groupId>
             <artifactId>nx-committer-core</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
         </dependency>
--->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-client</artifactId>
