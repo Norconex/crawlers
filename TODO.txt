@@ -1,7 +1,7 @@
 * Redo all metadata constants to be more consistent in naming and syntax,
   plus remove references to "collector.".  Make them all prefixed the same,
   including Importer (e.g., "doc.*")
-
+ 
 * Maybe, have a Configurable interface with set/getConfiguration method
 * which will get autowired with the matching class.
 * or look at autowiring framework as a global addition.
