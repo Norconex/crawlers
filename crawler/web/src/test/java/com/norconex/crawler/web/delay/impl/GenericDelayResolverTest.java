@@ -16,10 +16,10 @@ package com.norconex.crawler.web.delay.impl;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joda.time.LocalDateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +54,7 @@ class GenericDelayResolverTest {
         Assertions.assertTrue(schedule.isDateTimeInSchedule(
                 LocalDateTime.parse("2000-01-03T13:30")));
         Assertions.assertFalse(schedule.isDateTimeInSchedule(
-                LocalDateTime.parse("2000-01-03T1:30")));
+                LocalDateTime.parse("2000-01-03T01:30")));
 
         schedule = new DelaySchedule(
                 "Fri to Tue", "25 to 5", "22:00 to 6:00", 0);

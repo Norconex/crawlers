@@ -14,11 +14,11 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
+import static java.util.Optional.ofNullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.littleshoot.proxy.HttpFiltersSource;
@@ -30,6 +30,7 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 
 import io.netty.handler.codec.http.HttpResponse;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.filters.ResponseFilter;
@@ -54,7 +55,7 @@ import net.lightbody.bmp.util.HttpMessageInfo;
 @Slf4j
 class HttpSniffer {
 
-    //TODO If it gets stable enough, move the proxy setting to Browser class.
+    //MAYBE If it gets stable enough, move the proxy setting to Browser class.
 
     private final ThreadLocal<FilterAndSource> tlocal = new ThreadLocal<>();
     private BrowserMobProxyServer mobProxy;
@@ -89,32 +90,29 @@ class HttpSniffer {
         return fs.filter;
     }
 
-    void start(
-            MutableCapabilities options, HttpSnifferConfig config) {
-        Objects.requireNonNull("'options' must not be null");
+    void start(@NonNull MutableCapabilities options, HttpSnifferConfig config) {
 
-        var cfg = Optional.ofNullable(
-                config).orElseGet(HttpSnifferConfig::new);
+        var cfg = ofNullable(config).orElseGet(HttpSnifferConfig::new);
 
         mobProxy = new BrowserMobProxyServer();
         mobProxy.setTrustAllServers(true);
 
         // maximum content length (#751)
-        if (config.getMaxBufferSize() > 0 ) {
+        if (cfg.getMaxBufferSize() > 0 ) {
             mobProxy.addFirstHttpFilterFactory(new HttpFiltersSourceAdapter() {
                 @Override
                 public int getMaximumRequestBufferSizeInBytes() {
-                    return config.getMaxBufferSize();
+                    return cfg.getMaxBufferSize();
                 }
                 @Override
                 public int getMaximumResponseBufferSizeInBytes() {
-                    return config.getMaxBufferSize();
+                    return cfg.getMaxBufferSize();
                 }
             });
         }
 
         // request headers
-        config.getRequestHeaders().entrySet().forEach(
+        cfg.getRequestHeaders().entrySet().forEach(
                 en -> mobProxy.addHeader(en.getKey(), en.getValue()));
 
         // User agent
@@ -142,7 +140,7 @@ class HttpSniffer {
         // Fix bug with firefox where request/response filters are not
         // triggered properly unless dealing with firefox profile
         if (options instanceof FirefoxOptions foxOptions) {
-            //TODO Shall we prevent calls to firefox browser addons?
+            //MAYBE: Shall we prevent calls to firefox browser addons?
 
             var profile = new FirefoxProfile();
             profile.setAcceptUntrustedCertificates(true);

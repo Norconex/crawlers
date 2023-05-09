@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ class LanguageTaggerTest {
         tagger.tagDocument(
                 new HandlerDoc(doc), doc.getInputStream(), ParseState.POST);
         Assertions.assertNotEquals(
-                "en", doc.getMetadata().get(DocMetadata.LANGUAGE));
+                "en", doc.getMetadata().getString(DocMetadata.LANGUAGE));
     }
 
     @Test

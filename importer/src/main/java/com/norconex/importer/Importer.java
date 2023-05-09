@@ -14,42 +14,28 @@
  */
 package com.norconex.importer;
 
-import static com.norconex.importer.ImporterEvent.IMPORTER_PARSER_BEGIN;
-import static com.norconex.importer.ImporterEvent.IMPORTER_PARSER_END;
-import static com.norconex.importer.ImporterEvent.IMPORTER_PARSER_ERROR;
-
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.ContentFamily;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.importer.ImporterEvent.ImporterEventBuilder;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.doc.DocRecord;
 import com.norconex.importer.handler.HandlerContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.DocumentParserException;
 import com.norconex.importer.parser.ParseState;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterResponseProcessor;
@@ -57,12 +43,15 @@ import com.norconex.importer.response.ImporterStatus;
 import com.norconex.importer.response.ImporterStatus.Status;
 import com.norconex.importer.util.CharsetUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Principal class responsible for importing documents.
+ * Refer to {@link ImporterConfig} for configuration options.
+ * @see ImporterConfig
  */
+@Slf4j
 public class Importer {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Importer.class);
 
     private static final ImporterStatus PASSING_FILTER_STATUS =
             new ImporterStatus();
@@ -76,6 +65,8 @@ public class Importer {
     private final EventManager eventManager;
     private static final InheritableThreadLocal<Importer> INSTANCE =
             new InheritableThreadLocal<>();
+
+    private final ImporterParseHandler parseHandler;
 
     /**
      * Creates a new importer with default configuration.
@@ -102,7 +93,7 @@ public class Importer {
             this.importerConfig = new ImporterConfig();
         }
         this.eventManager = new EventManager(eventManager);
-
+        parseHandler = new ImporterParseHandler(this);
         INSTANCE.set(this);
     }
 
@@ -154,14 +145,17 @@ public class Importer {
      * Imports a document according to the importer configuration.
      * @param document the document to import
      * @return importer response
-         */
+     */
     public ImporterResponse importDocument(Doc document) {
         // Note: Doc reference, InputStream and metadata are all null-safe.
 
-        prepareDocumentForImporting(document);
-
         //--- Document Handling ---
         try {
+            parseHandler.init(
+                    importerConfig.getParseConfig().getParseOptions());
+
+            prepareDocumentForImporting(document);
+
             List<Doc> nestedDocs = new ArrayList<>();
             var filterStatus = doImportDocument(document, nestedDocs);
             ImporterResponse response = null;
@@ -313,7 +307,7 @@ public class Importer {
         //--- Parse ---
         //MAYBE: make parse just another handler in the chain?  Eliminating
         //the need for pre and post handlers?
-        parseDocument(document, nestedDocs);
+        parseHandler.parseDocument(document, nestedDocs);
 
         //--- Post-handlers ---
         filterStatus = executeHandlers(
@@ -362,146 +356,5 @@ public class Importer {
                   + "matched.");
         }
         return PASSING_FILTER_STATUS;
-    }
-
-    private void parseDocument(
-            final Doc doc,
-            final List<Doc> embeddedDocs)
-                    throws IOException, ImporterException {
-
-        var factory = importerConfig.getParserFactory();
-        var parser = factory.getParser(
-                doc.getReference(), doc.getDocRecord().getContentType());
-
-        // Do not attempt to parse zero-length content
-        if (doc.getInputStream().isEmpty()) {
-            LOG.debug("No content for \"{}\".", doc.getReference());
-            return;
-        }
-
-        // No parser means no parsing, so we simply return
-        if (parser == null) {
-            LOG.debug("No parser for \"{}\"", doc.getReference());
-            return;
-        }
-
-        fire(IMPORTER_PARSER_BEGIN, doc,
-                b -> b.source(parser).parseState(ParseState.PRE));
-
-        try (var out = doc.getStreamFactory().newOuputStream();
-             var output = new OutputStreamWriter(
-                     out, StandardCharsets.UTF_8)) {
-
-            LOG.debug("Parser \"{}\" about to parse \"{}\".",
-                    parser.getClass().getCanonicalName(),
-                    doc.getReference());
-            var nestedDocs = parser.parseDocument(doc, output);
-            output.flush();
-            if (doc.getDocRecord().getContentType() == null) {
-                doc.getDocRecord().setContentType(ContentType.valueOf(
-                        StringUtils.trimToNull(doc.getMetadata().getString(
-                                DocMetadata.CONTENT_TYPE))));
-            }
-            if (StringUtils.isBlank(doc.getDocRecord().getContentEncoding())) {
-                doc.getDocRecord().setContentEncoding(doc.getMetadata().getString(
-                        DocMetadata.CONTENT_ENCODING));
-            }
-            if (nestedDocs != null) {
-                for (var i = 0; i < nestedDocs.size() ; i++) {
-                    var meta = nestedDocs.get(i).getMetadata();
-                    meta.add(DocMetadata.EMBEDDED_INDEX, i);
-                    meta.add(DocMetadata.EMBEDDED_PARENT_REFERENCES,
-                            doc.getReference());
-                }
-                embeddedDocs.addAll(nestedDocs);
-            }
-            fire(IMPORTER_PARSER_END, doc,
-                    b -> b.source(parser).parseState(ParseState.POST));
-
-            if (out.isCacheEmpty()) {
-                LOG.debug("Parser \"{}\" did not produce new content for: {}",
-                        parser.getClass(), doc.getReference());
-                doc.setInputStream(doc.getStreamFactory().newInputStream());
-            } else {
-                var newInputStream = out.getInputStream();
-                doc.setInputStream(newInputStream);
-            }
-        } catch (DocumentParserException e) {
-            fire(IMPORTER_PARSER_ERROR, doc, b -> b
-                    .source(parser).parseState(ParseState.PRE).exception(e));
-            if (importerConfig.getParseErrorsSaveDir() != null) {
-                saveParseError(doc, e);
-            }
-            throw e;
-        }
-    }
-
-    private void saveParseError(Doc doc, Exception e) {
-        var saveDir = importerConfig.getParseErrorsSaveDir();
-        if (!saveDir.toFile().exists()) {
-            try {
-                Files.createDirectories(saveDir);
-            } catch (IOException ex) {
-                LOG.error("Cannot create importer temporary directory: "
-                        + saveDir, ex);
-            }
-        }
-
-        var uuid = UUID.randomUUID().toString();
-
-        // Save exception
-        try (var exWriter = new PrintWriter(Files.newBufferedWriter(
-                saveDir.resolve(uuid + "-error.txt")))) {
-            e.printStackTrace(exWriter);
-        } catch (IOException e1) {
-            LOG.error("Cannot save parse exception.", e1);
-        }
-
-        if (doc == null) {
-            LOG.error("""
-                The importer document that cause a parse error is\s\
-                null. It is not possible to save it.  Only the\s\
-                exception will be saved.""");
-            return;
-        }
-
-        // Save metadata
-        try (var metaWriter = new PrintWriter(Files.newBufferedWriter(
-                saveDir.resolve(uuid + "-meta.txt")))) {
-            doc.getMetadata().storeToProperties(metaWriter);
-        } catch (IOException e1) {
-            LOG.error("Cannot save parse error file metadata.", e1);
-        }
-
-        // Save content
-        try {
-            var ext = FilenameUtils.getExtension(doc.getReference());
-            if (StringUtils.isBlank(ext)) {
-                var ct = doc.getDocRecord().getContentType();
-                if (ct != null) {
-                    ext = ct.getExtension();
-                }
-            }
-            if (StringUtils.isBlank(ext)) {
-                ext = "unknown";
-            }
-
-            Files.copy(doc.getInputStream(),
-                    saveDir.resolve(uuid + "-content." + ext),
-                    StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e1) {
-            LOG.error("Cannot save parse error file content.", e1);
-        }
-    }
-
-    private void fire(
-            String eventName, Doc doc, Consumer<ImporterEventBuilder<?, ?>> c) {
-        var b = ImporterEvent.builder()
-                .name(eventName)
-                .document(doc);
-        if (c != null) {
-            c.accept(b);
-        }
-        eventManager.fire(b.build());
     }
 }

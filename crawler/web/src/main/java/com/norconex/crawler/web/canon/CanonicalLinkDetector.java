@@ -27,7 +27,8 @@ import com.norconex.crawler.web.crawler.WebCrawlerConfig;
  * Documents having a canonical URL reference in them are rejected in favor
  * of the document represented by the canonical URL.</p>
  *
- * <p>When a {@link WebCrawlerConfig#getFetchHttpHead()} is enabled,
+ * <p>When metadata fetching is enabled via
+ * {@link WebCrawlerConfig#getMetadataFetchSupport()},
  * a page won't be downloaded if a canonical link is found in the HTTP headers
  * (saving bandwidth and
  * processing). If not used, or if no canonical link was found, an attempt

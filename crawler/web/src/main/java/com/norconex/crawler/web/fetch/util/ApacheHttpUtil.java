@@ -36,24 +36,23 @@ import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.net.URIBuilder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -90,7 +89,7 @@ public final class ApacheHttpUtil {
      * @throws IOException could not read existing content
      */
     public static boolean applyResponseContent(
-            HttpResponse response, CrawlDoc doc) throws IOException {
+            ClassicHttpResponse response, CrawlDoc doc) throws IOException {
 
         var entity = response.getEntity();
         if (entity == null) {
@@ -133,7 +132,7 @@ public final class ApacheHttpUtil {
         var docRecord = (WebDocRecord) doc.getDocRecord();
         var it = response.headerIterator();
         while (it.hasNext()) {
-            var header = (Header) it.next();
+            var header = it.next();
             var name = header.getName();
             var value = header.getValue();
 
@@ -147,14 +146,12 @@ public final class ApacheHttpUtil {
             }
 
             // ETag
-            if (HttpHeaders.ETAG.equalsIgnoreCase(name)
-                    && StringUtils.isNotBlank(value)) {
+            if (HttpHeaders.ETAG.equalsIgnoreCase(name)) {
                 docRecord.setEtag(value);
             }
 
             // Last Modified
-            if (HttpHeaders.LAST_MODIFIED.equalsIgnoreCase(name)
-                    && StringUtils.isNotBlank(value)) {
+            if (HttpHeaders.LAST_MODIFIED.equalsIgnoreCase(name)) {
                 try {
                     docRecord.setLastModified(ZonedDateTime.parse(
                             value, DateTimeFormatter.RFC_1123_DATE_TIME));
@@ -190,8 +187,7 @@ public final class ApacheHttpUtil {
         }
         // delegate parsing of content-type honoring various forms
         // https://tools.ietf.org/html/rfc7231#section-3.1.1
-        var apacheCT =
-                org.apache.http.entity.ContentType.parse(value);
+        var apacheCT = org.apache.hc.core5.http.ContentType.parse(value);
 
         // only overwrite object properties if not null
         var ct = ContentType.valueOf(apacheCT.getMimeType());
@@ -250,7 +246,8 @@ public final class ApacheHttpUtil {
      * @param method HTTP method (defaults to GET if <code>null</code>)
      * @return Apache HTTP request
      */
-    public static HttpRequestBase createUriRequest(String url, String method) {
+    public static HttpUriRequestBase createUriRequest(
+            String url, String method) {
         var m = firstNonBlank(method, "GET");
         return createUriRequest(url, HttpMethod.valueOf(m.toUpperCase()));
     }
@@ -260,14 +257,14 @@ public final class ApacheHttpUtil {
      * @param method HTTP method (defaults to GET if <code>null</code>)
      * @return Apache HTTP request
      */
-    public static HttpRequestBase createUriRequest(
+    public static HttpUriRequestBase createUriRequest(
             String url, HttpMethod method) {
         var uri = HttpURL.toURI(url);
         LOG.debug("Encoded URI: {}", uri);
         return switch (method) {
-        case HEAD -> new HttpHead(uri);
-        case POST -> new HttpPost(uri);
-        default -> new HttpGet(uri);
+            case HEAD -> new HttpHead(uri);
+            case POST -> new HttpPost(uri);
+            default -> new HttpGet(uri);
         };
     }
 
@@ -309,27 +306,28 @@ public final class ApacheHttpUtil {
         LOG.info("Performing FORM authentication at \"{}\" (username={}; p"
                 + "assword=*****)", cfg.getUrl(),
                 cfg.getCredentials().getUsername());
-        try {
-            var entity = new UrlEncodedFormEntity(
-                    formparams, cfg.getFormCharset());
-            post.setEntity(entity);
-            var response =
-                    httpClient.execute(post, (HttpContext) null);
-            LOG.info("Authentication status: {}.", response.getStatusLine());
+        var entity = new UrlEncodedFormEntity(
+                formparams, cfg.getFormCharset());
+        post.setEntity(entity);
 
+        httpClient.execute(post, response -> {
+            LOG.info("Authentication status: {} {}.",
+                    response.getCode(),
+                    response.getReasonPhrase());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Authentication response: {}", IOUtils.toString(
-                        response.getEntity().getContent(),
+                LOG.debug("Authentication response: {}",
+                        IOUtils.toString(
+                                response.getEntity().getContent(),
                         StandardCharsets.UTF_8));
+            } else {
+                EntityUtils.consume(response.getEntity());
             }
-        } finally {
-            post.releaseConnection();
-        }
+            return null;
+        });
     }
 
-    private static void authLoginPage(
-            HttpClient httpClient, HttpAuthConfig cfg)
-                    throws IOException, URISyntaxException {
+    private static void authLoginPage(HttpClient httpClient, HttpAuthConfig cfg)
+            throws IOException, URISyntaxException {
 
         LOG.info("""
             Parsing, filing, and submitting login FORM at "{}" \
@@ -337,46 +335,49 @@ public final class ApacheHttpUtil {
             assword=*****)""", cfg.getUrl(),
                 cfg.getCredentials().getUsername());
         var get = new HttpGet(cfg.getUrl());
-        try {
-            var formReadResponse =
-                    httpClient.execute(get, (HttpContext) null);
-            var entity = formReadResponse.getEntity();
+        var authReq = httpClient.<HttpUriRequestBase>execute(
+                get, response -> {
+            var entity = response.getEntity();
             if (entity == null) {
                 LOG.error("Authentication URL returned no content. "
-                        + "Status: {}.", formReadResponse.getStatusLine());
-                return;
+                        + "Status: {} {}",
+                        response.getCode(),
+                        response.getReasonPhrase());
+                return null;
             }
             var doc = Jsoup.parse(
                     entity.getContent(),
                     entity.getContentEncoding() != null
-                            ? entity.getContentEncoding().getValue()
+                            ? entity.getContentEncoding()
                             : null,
                     cfg.getUrl());
-            var authReq = formToRequest(doc, cfg);
-            if (authReq != null) {
-                try {
-                    // execute auth request
-                    var formSubmitResponse =
-                            httpClient.execute(authReq);
-                    LOG.info("Authentication status: {}.",
-                            formSubmitResponse.getStatusLine());
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Authentication response: {}",
-                                IOUtils.toString(formSubmitResponse
-                                        .getEntity().getContent(),
-                                StandardCharsets.UTF_8));
-                    }
-                } finally {
-                    authReq.releaseConnection();
-                }
+            try {
+                return formToRequest(doc, cfg);
+            } catch (URISyntaxException e) {
+                throw new IOException(
+                        "Can't process authentication login page.", e);
             }
-            //TODO share some of auth code with authFormAction(...)
-        } finally {
-            get.releaseConnection();
+        });
+
+
+        if (authReq != null) {
+            // execute auth request
+            httpClient.execute(authReq, response -> {
+                LOG.info("Authentication status: {} {}",
+                        response.getCode(),
+                        response.getReasonPhrase());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Authentication response: {}",
+                            IOUtils.toString(response.getEntity().getContent(),
+                                    StandardCharsets.UTF_8));
+                }
+                return null;
+            });
         }
+        //MAYBE share some of auth code with authFormAction(...)
     }
 
-    static HttpRequestBase formToRequest(
+    static HttpUriRequestBase formToRequest(
             Document doc, HttpAuthConfig cfg) throws URISyntaxException {
 
         var form = doc.selectFirst(cfg.getFormSelector());
@@ -410,12 +411,18 @@ public final class ApacheHttpUtil {
         }
         params.putAll(cfg.getFormParams());
 
+        return buildFormRequest(form, cfg, params);
+    }
 
-        //--- Form params to HTTP request ---
+    //--- Form params to HTTP request ---
+    private static HttpUriRequestBase buildFormRequest(
+            Element form,
+            HttpAuthConfig cfg,
+            Map<String, String> params) throws URISyntaxException {
 
-        // If no "action", we assume self.
         var actionURL =
                 firstNonBlank(form.attr("abs:action"), cfg.getUrl());
+
         // If no "method", we assume "GET".
         var httpRequest =
                 createUriRequest(actionURL, form.attr("method"));
@@ -451,7 +458,7 @@ public final class ApacheHttpUtil {
             }
             httpPost.setEntity(entity);
         } else if (httpRequest instanceof HttpGet get) {
-            get.setURI(new URIBuilder(get.getURI())
+            get.setUri(new URIBuilder(get.getUri())
                     .setParameters(toNameValuePairs(params))
                     .build());
         } else {

@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.store.impl.jdbc;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.removeStartIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 
@@ -78,7 +79,11 @@ import lombok.extern.slf4j.Slf4j;
  *   </datasource>
  *   <tablePrefix>
  *     (Optional prefix used for table creation. Default is the collector
- *      id plus the crawler id, each followed by an underscore character.)
+ *      id plus the crawler id, each followed by an underscore character.
+ *      The value is first modified to convert spaces to underscores, and
+ *      to strip unsupported characters. The supported
+ *      characters are: alphanumeric, period, and underscore.
+ *      )
  *   </tablePrefix>
  *   <!--
  *     Optionally overwrite default SQL data type used.  You should only
@@ -120,6 +125,7 @@ public class JdbcDataStoreEngine
     // table id field is store name
     private JdbcDataStore<String> storeTypes;
     private TableAdapter tableAdapter;
+    private String resolvedSafeTablePrefix;
 
     // Configurable:
     private Properties configProperties = new Properties();
@@ -160,12 +166,9 @@ public class JdbcDataStoreEngine
 
     @Override
     public void init(Crawler crawler) {
-        // create a clean table name prefix to avoid collisions in case
-        // multiple crawlers use the same DB.
-        if (tablePrefix == null) {
-            tablePrefix = tablePrefix(crawler.getCrawlSession().getId()
-                    + "_" + crawler.getId() + "_");
-        }
+        resolvedSafeTablePrefix = SqlUtil.safeTableName(isBlank(tablePrefix)
+            ? crawler.getCrawlSession().getId() + "_" + crawler.getId() + "_"
+            : tablePrefix);
 
         // create data source
         datasource = new HikariDataSource(
@@ -225,7 +228,7 @@ public class JdbcDataStoreEngine
         }
         try (var conn = datasource.getConnection()) {
             try (var stmt = conn.createStatement()) {
-                stmt.executeUpdate("DROP TABLE " + tableName);
+                stmt.executeUpdate("DROP TABLE %s".formatted(tableName));
                 if (!conn.getAutoCommit()) {
                     conn.commit();
                 }
@@ -261,10 +264,11 @@ public class JdbcDataStoreEngine
                     null, null, "%", new String[]{"TABLE"})) {
                 while (rs.next()) {
                     var tableName = rs.getString(3);
-                    if (startsWithIgnoreCase(tableName, tablePrefix)) {
+                    if (startsWithIgnoreCase(
+                            tableName, resolvedSafeTablePrefix)) {
                         // only add if not the table holding store types
-                        var storeName =
-                                removeStartIgnoreCase(tableName, tablePrefix);
+                        var storeName = removeStartIgnoreCase(
+                                tableName, resolvedSafeTablePrefix);
                         if (!STORE_TYPES_NAME.equalsIgnoreCase(storeName)) {
                             names.add(storeName);
                         }
@@ -341,14 +345,9 @@ public class JdbcDataStoreEngine
                     "Could not get database connection.", e);
         }
     }
-    String tablePrefix(String prefix) {
-        var n = prefix.trim();
-        n = n.replaceFirst("(?i)^[^a-z]", "x");
-        return n.replaceAll("\\W+", "_");
-    }
+
     String tableName(String storeName) {
-        var n = tablePrefix + storeName.trim();
-        return n.replaceAll("\\W+", "_");
+        return SqlUtil.safeTableName(resolvedSafeTablePrefix + storeName);
     }
 
     boolean tableExist(String tableName) {

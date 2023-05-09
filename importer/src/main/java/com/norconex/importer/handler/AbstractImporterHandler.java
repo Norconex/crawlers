@@ -74,7 +74,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * The above will apply to any content type starting with "text/".
  * </p>
- *
  */
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode

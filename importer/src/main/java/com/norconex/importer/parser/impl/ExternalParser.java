@@ -25,16 +25,18 @@ import org.apache.commons.io.output.WriterOutputStream;
 
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.RegexFieldValueExtractor;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.ExternalHandler;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformer;
-import com.norconex.importer.parser.DocumentParserException;
-import com.norconex.importer.parser.GenericDocumentParserFactory;
 import com.norconex.importer.parser.DocumentParser;
+import com.norconex.importer.parser.DocumentParserException;
+import com.norconex.importer.parser.ParseOptions;
+
+import lombok.NonNull;
 
 /**
  * <p>
@@ -292,6 +294,12 @@ public class ExternalParser implements DocumentParser, XMLConfigurable {
     }
 
     @Override
+    public void init(@NonNull ParseOptions parseOptions)
+            throws DocumentParserException {
+        //NOOP
+    }
+
+    @Override
     public List<Doc> parseDocument(Doc doc,
             Writer output) throws DocumentParserException {
         try {
@@ -316,10 +324,9 @@ public class ExternalParser implements DocumentParser, XMLConfigurable {
 
     @Override
     public boolean equals(final Object other) {
-        if (!(other instanceof ExternalParser)) {
+        if (!(other instanceof ExternalParser castOther)) {
             return false;
         }
-        ExternalParser castOther = (ExternalParser) other;
         return h.equals(castOther.h);
     }
     @Override
@@ -328,10 +335,9 @@ public class ExternalParser implements DocumentParser, XMLConfigurable {
     }
     @Override
     public String toString() {
-        String toString = h.toString();
-        toString = toString.replaceFirst(
+        var toString = h.toString();
+        return toString.replaceFirst(
             "ExternalTransformer\\[restrictions=\\[.*?\\],",
             ExternalParser.class.getSimpleName() + "[");
-        return toString;
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,12 @@ import lombok.extern.slf4j.Slf4j;
  *   (Maximum number of bytes used for memory caching of each individual
  *    documents document. Defaults to 100 MB.)
  * </maxMemoryInstance>
+ *
+ * <deferredShutdownDuration>
+ *   (Optional amount of time to defer the collector shutdown when it is
+ *    done executing. This is useful if you have external processes that
+ *    need a bit of time to catch up. E.g.,: 10 seconds. Defaults to 0.)
+ * </deferredShutdownDuration>
  *
  * <crawlerDefaults>
  *   <!-- All crawler options defined in a "crawler" section (except for
@@ -158,7 +164,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * @param maxConcurrentCrawlers
      *     maximum number of crawlers to be executed concurrently
      * @return maximum number of crawlers to be executed concurrently
-         */
+     */
     @SuppressWarnings("javadoc")
     private int maxConcurrentCrawlers = -1;
 
@@ -168,13 +174,25 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * crawlers).
      * @param crawlersStartInterval amount of time
      * @return amount of time or <code>null</code>
-         */
+     */
     @SuppressWarnings("javadoc")
     private Duration crawlersStartInterval;
 
     // see methods for javadoc
     private final List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
     private final List<EventListener<?>> eventListeners = new ArrayList<>();
+
+    /**
+     * The amount of time to defer the collector shutdown when it is
+     * done executing. This is useful for giving external processes
+     * with polling intervals enough time to grab the latest state of
+     * the collector before it shuts down.  Default is zero (does not
+     * wait to shutdown after completion).
+     * @param deferredShutdownDuration duration
+     * @return duration
+     */
+    @SuppressWarnings("javadoc")
+    private Duration deferredShutdownDuration = Duration.ZERO;
 
     //TODO check if there is a way to not have to do this?
     // Replace with CrawlConfigFactory? Or set it at CrawlSession
@@ -276,6 +294,8 @@ public class CrawlSessionConfig implements XMLConfigurable {
                 Fields.maxStreamCachePoolSize, getMaxStreamCachePoolSize());
         xml.addElement(Fields.maxStreamCacheSize, getMaxStreamCacheSize());
         xml.addElementList(Fields.eventListeners, "listener", eventListeners);
+        xml.addElement(
+                "deferredShutdownDuration", getDeferredShutdownDuration());
         xml.addElementList("crawlers", "crawler", getCrawlerConfigs());
     }
 
@@ -290,8 +310,6 @@ public class CrawlSessionConfig implements XMLConfigurable {
         crawlerConfigClass = xml.getClass(
                 Fields.crawlerConfigClass, getCrawlerConfigClass());
         setWorkDir(xml.getPath(Fields.workDir, getWorkDir()));
-        setEventListeners(xml.getObjectListImpl(EventListener.class,
-                Fields.eventListeners + "/listener", eventListeners));
         setMaxConcurrentCrawlers(xml.getInteger(
                 Fields.maxConcurrentCrawlers, getMaxConcurrentCrawlers()));
         setCrawlersStartInterval(xml.getDuration(
@@ -300,6 +318,10 @@ public class CrawlSessionConfig implements XMLConfigurable {
                 Fields.maxStreamCachePoolSize, getMaxStreamCachePoolSize()));
         setMaxStreamCacheSize(xml.getDataSize(
                 Fields.maxStreamCacheSize, getMaxStreamCacheSize()));
+        setEventListeners(xml.getObjectListImpl(EventListener.class,
+                Fields.eventListeners + "/listener", eventListeners));
+        setDeferredShutdownDuration(
+                xml.getDuration("deferredShutdownDuration"));
 
         if (crawlerConfigClass != null) {
             var cfgs = loadCrawlerConfigs(xml);

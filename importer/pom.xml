@@ -32,7 +32,7 @@
     <jython.version>2.7.3</jython.version>
     <luaj-jse.version>3.0.1</luaj-jse.version>
     <opencsv.version>5.7.1</opencsv.version>
-    <tika.version>1.27</tika.version>
+    <tika.version>2.7.0</tika.version>
     <ucar-jj2000.version>5.4</ucar-jj2000.version>
     <webp-imageio.version>0.1.6</webp-imageio.version>
     
@@ -95,23 +95,75 @@
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
-      <artifactId>tika-parsers</artifactId>
+      <artifactId>tika-parsers-standard-package</artifactId>
       <version>${tika.version}</version>
       <exclusions>
-        <exclusion>
-          <groupId>xerces</groupId>
-          <artifactId>xercesImpl</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
+      	<exclusion>
+      		<groupId>xml-apis</groupId>
+      		<artifactId>xml-apis</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>xerces</groupId>
+      		<artifactId>xercesImpl</artifactId>
+      	</exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-parser-sqlite3-package</artifactId>
+      <version>${tika.version}</version>
+    </dependency>
+    
+    <!--
+      Note about scientific package:
+      When installed, the scientify package my use GDALParser instead of 
+      an image parser for some image formats, and will fail to gather
+      image metadata (e.g., Exif/XMP).
+      If that is what you want, uncomment the following, or look for 
+      alternatives such as: https://tinyurl.com/8erp2pa2
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-parser-scientific-package</artifactId>
+      <version>${tika.version}</version>
+    </dependency>
+    -->
+    
+<!-- NEEDED?
+<dependency>
+    <groupId>org.apache.tika</groupId>
+    <artifactId>tika-xmp</artifactId>
+      <version>${tika.version}</version>
+</dependency>
+ -->
+    
+    
+    
+    
+    <!-- Are below used? -->
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-langdetect-lingo24</artifactId>
+      <version>${tika.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-langdetect-opennlp</artifactId>
+      <version>${tika.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-langdetect-mitll-text</artifactId>
+      <version>${tika.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-translate</artifactId>
       <version>${tika.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>

@@ -42,6 +42,8 @@
                     type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxStreamCacheSize"
                     type="xs:string" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="deferredShutdownDuration" 
+                    type="xs:string" minOccurs="0" maxOccurs="1"/>                      
         <xs:element name="crawlerDefaults"
                     type="anyComplexType" minOccurs="0" maxOccurs="1"/>                  
         <xs:element name="crawlers" minOccurs="0" maxOccurs="1">

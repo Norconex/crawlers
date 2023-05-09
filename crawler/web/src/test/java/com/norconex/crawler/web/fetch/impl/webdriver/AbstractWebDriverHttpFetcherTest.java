@@ -157,6 +157,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         var img = MutableImage.fromBase64String(
                 mem.getUpsertRequests().get(0).getMetadata().getString(
                         "myimage"));
+        assertThat(img).isNotNull();
         assertThat(img.getWidth()).isEqualTo(350);
         assertThat(img.getHeight()).isEqualTo(350);
     }
@@ -242,7 +243,8 @@ public abstract class AbstractWebDriverHttpFetcherTest
             .crawl();
 
         var doc = mem.getUpsertRequests().get(0);
-        assertThat(doc.getMetadata().getString("title")).isEqualTo("Awesome!");
+        assertThat(doc.getMetadata().getString(
+                "dc:title")).isEqualTo("Awesome!");
         assertThat(WebTestUtil.docText(doc)).contains("Melon");
     }
 

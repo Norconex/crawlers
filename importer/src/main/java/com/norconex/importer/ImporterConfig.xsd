@@ -18,6 +18,7 @@
 
   <xs:include schemaLocation="/com/norconex/commons/lang/xml/flow/XMLIf.xsd" />
   <xs:include schemaLocation="/com/norconex/commons/lang/xml/flow/XMLIfNot.xsd" />
+  <xs:include schemaLocation="parser/ParseConfig.xsd" />
 
   <xs:element name="importer">
     <xs:complexType>
@@ -28,12 +29,9 @@
                     type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="maxMemoryPool" 
                     type="xs:string" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="parseErrorsSaveDir" 
-                    type="xs:string" minOccurs="0" maxOccurs="1"/>
         <xs:element name="preParseHandlers" 
                     type="parseHandlerType" minOccurs="0" maxOccurs="1"/>
-        <xs:element name="documentParserFactory" 
-                    type="anyComplexType" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="parse" minOccurs="0" maxOccurs="1"/>
         <xs:element name="postParseHandlers" 
                     type="parseHandlerType" minOccurs="0" maxOccurs="1"/>
         <xs:element name="responseProcessors" 

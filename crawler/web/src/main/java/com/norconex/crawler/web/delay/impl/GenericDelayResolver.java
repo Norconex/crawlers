@@ -14,11 +14,11 @@
  */
 package com.norconex.crawler.web.delay.impl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
 
 import com.norconex.commons.lang.CircularRange;
 import com.norconex.commons.lang.time.DurationParser;
@@ -173,7 +173,7 @@ public class GenericDelayResolver extends AbstractDelayResolver {
         //MAYBE: use LocalTime (and make this class top-level)?
         private final CircularRange<Integer> timeRange;
         private final long delay;
-        public enum DOW {mon,tue,wed,thu,fri,sat,sun}
+        public enum DOW {MON,TUE,WED,THU,FRI,SAT,SUN}
 
         public DelaySchedule(String dow, String dom, String time, long delay) {
             dayOfWeekRange = parseDayOfWeekRange(dow);
@@ -186,13 +186,13 @@ public class GenericDelayResolver extends AbstractDelayResolver {
         }
         boolean isDateTimeInSchedule(LocalDateTime dt) {
             if ((dayOfWeekRange != null && !dayOfWeekRange.contains(
-                    DOW.values()[dt.getDayOfWeek() -1]))
+                    DOW.values()[dt.getDayOfWeek().ordinal()]))
                     || (dayOfMonthRange != null
                     && !dayOfMonthRange.contains(dt.getDayOfMonth()))) {
                 return false;
             }
             return timeRange == null || timeRange.contains(
-                    (dt.getHourOfDay() * 100) + dt.getMinuteOfHour());
+                    (dt.getHour() * 100) + dt.getMinute());
         }
         public CircularRange<DOW> getDayOfWeekRange() {
             return dayOfWeekRange;
@@ -222,7 +222,7 @@ public class GenericDelayResolver extends AbstractDelayResolver {
             var dow = normalize(dayOfWeek);
             var parts = StringUtils.split(dow, '-');
             return CircularRange.between(
-                    DOW.mon, DOW.sun, toDow(parts[0]), toDow(parts[1]));
+                    DOW.MON, DOW.SUN, toDow(parts[0]), toDow(parts[1]));
         }
         private CircularRange<Integer> parseDayOfMonthRange(String dayOfMonth) {
             if (StringUtils.isBlank(dayOfMonth)) {
@@ -246,7 +246,7 @@ public class GenericDelayResolver extends AbstractDelayResolver {
                 throw new CrawlerException("Invalid day of week: " + str);
             }
             var dow = str.substring(0, MIN_DOW_LENGTH);
-            return DOW.valueOf(dow);
+            return DOW.valueOf(dow.toUpperCase());
         }
         private String normalize(String str) {
             var out = str.toLowerCase();

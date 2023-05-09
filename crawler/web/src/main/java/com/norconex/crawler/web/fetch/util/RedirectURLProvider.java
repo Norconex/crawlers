@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.web.fetch.util;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 import com.norconex.crawler.web.fetch.impl.GenericHttpFetcherConfig;
 

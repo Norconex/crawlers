@@ -72,7 +72,8 @@
       <!-- Author should be set: -->
       <if>
         <condition>
-          <fieldMatcher>title</fieldMatcher>
+          <!-- as of Tika 2.x, "title" is replaced with dc:title -->
+          <fieldMatcher>dc:title</fieldMatcher>
           <valueMatcher method="wildcard">*Alice's Adventures in Wonderland*</valueMatcher>
         </condition>
         <then>

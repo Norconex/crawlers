@@ -14,7 +14,9 @@
  */
 package com.norconex.crawler.web.processor.impl;
 
+import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -40,7 +42,6 @@ import org.imgscalr.Scalr.Mode;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
@@ -415,7 +416,7 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
                     filePath = FileUtil.createURLDirs(
                             storageDiskDir.toFile(),
                             doc.getReference() + "/base64-"
-                                    + Math.abs(img.getUrl().hashCode()), true)
+                                    + img.getUrl().hashCode(), true)
                                             .getAbsolutePath();
                 } else {
                     filePath = FileUtil.createURLDirs(
@@ -441,22 +442,20 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
 
     private FeaturedImage findFeaturedImage(
             Document dom, HttpFetcher fetcher, boolean largest) {
-        Elements els;
-        if (StringUtils.isNotBlank(domSelector)) {
-            els = dom.select(domSelector);
-        } else {
-            els = dom.getElementsByTag("img");
-        }
+        var els = isNotBlank(domSelector)
+                ? dom.select(domSelector)
+                : dom.getElementsByTag("img");
+
         FeaturedImage largestImg = null;
         for (Element el : els) {
-            var imgURL = el.absUrl("src");
-            FeaturedImage img = null;
-            if (StringUtils.isNotBlank(imgURL)) {
-                img = getImage(fetcher, imgURL);
-            }
+            var img = ofNullable(el.absUrl("src"))
+                    .filter(StringUtils::isNotBlank)
+                    .map(url ->  getImage(fetcher, url))
+                    .orElse(null);
             if (img == null) {
                 continue;
             }
+
             if (minDimensions == null || img.contains(minDimensions)) {
                 if (!largest) {
                     return img;

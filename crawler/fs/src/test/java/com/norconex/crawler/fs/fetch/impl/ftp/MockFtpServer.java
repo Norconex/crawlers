@@ -28,7 +28,6 @@ import org.apache.ftpserver.usermanager.impl.BaseUser;
 
 import com.norconex.crawler.fs.FsStubber;
 import com.norconex.crawler.fs.FsTestUtil;
-import com.norconex.crawler.fs.fetch.impl.ftp.FtpFetcher;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -19,6 +19,7 @@ import org.apache.commons.lang3.builder.ToStringExclude;
 import com.norconex.commons.lang.map.Properties;
 
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * A committer deletion request. Metadata associated with a deletion
@@ -32,7 +33,7 @@ public class DeleteRequest implements CommitterRequest {
     @ToStringExclude
     private final Properties metadata = new Properties();
 
-    public DeleteRequest(String reference, Properties metadata) {
+    public DeleteRequest(@NonNull String reference, Properties metadata) {
         this.reference = reference;
         this.metadata.putAll(metadata);
     }

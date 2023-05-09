@@ -63,6 +63,10 @@ Misc. Changes
 
 * MemoryCommitter#clean will now clear the cached requests.
 * New CommitterService and CommitterServiceEvent classes.
+* Unless explicitly overwritten by a committer, each committer defined
+  will now have a working directory named after their simple class name.
+  In case there are more than one of the same class defined, they'll be 
+  appended with a number (e.g., "XMLFileCommitter_2").
 
 ### Importer
 
@@ -75,6 +79,15 @@ Misc. Changes
 * CommonMatchers pattern constants are now Collections instead of arrays.
 * Classes dealing with time zones now default to UTC when
   zone is not declared.
+* Removed GenericDocumentParserFactory (merged into core classes)
+* FallbackParser is now DefaultParser.
+* <documentParserFactory> has been replaced with new <parse> section.
+* <parseErrorsSaveDir> now under <parse><errorsSaveDir>
+* <fallbackParser> now <defaultParser>
+* <ocr> and <embedded> now under <parseOptions>
+* <splitContentTypes>, <noExtractContainerContentTypes>, and
+  <noExtractEmbeddedContentTypes> are now <splitEmbeddedOf>, <skipEmmbbededOf>,
+  and <skipEmmbbeded>, respectively.
 
 ### Crawler Core
 
@@ -113,6 +126,7 @@ Misc. Changes
 * GenericURLNormalizer enum constants are now uppercase.
 * Moved fetchers to crawler-core: "httpFetchers" now just "fetchers".
 * Moved startURLs* configuration options to crawler-core.
+* Now supports HTTP/v2 thanks to Apache HttpClient upgrade to version 5.x
 
 ### Crawler File System
 

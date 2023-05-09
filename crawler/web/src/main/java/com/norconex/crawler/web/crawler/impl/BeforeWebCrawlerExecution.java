@@ -30,13 +30,6 @@ class BeforeWebCrawlerExecution implements BiConsumer<Crawler, Boolean> {
     @Override
     public void accept(Crawler crawler, Boolean resume) {
         logCrawlerInformation(crawler);
-//        initCrawlerContext(crawler);
-    }
-
-    private static void initCrawlerContext(Crawler crawler) {
-//        var ctx = Web.crawlerContext(crawler);
-//        ctx.setSitemapStore(crawler.getDataStoreEngine().openStore(
-//                SitemapRecord.class.getSimpleName(), SitemapRecord.class));
     }
 
     private static void logCrawlerInformation(Crawler crawler) {

@@ -54,7 +54,7 @@ public enum Browser {
                 WebDriverLocation location,
                 Consumer<MutableCapabilities> optionsConsumer) {
             var options = new ChromeOptions();
-            options.setHeadless(true);
+            options.addArguments("--headless");
             ofNullable(location.getBrowserPath()).ifPresent(
                     p -> options.setBinary(p.toFile()));
             optionsConsumer.accept(options);
@@ -81,7 +81,7 @@ public enum Browser {
                 WebDriverLocation location,
                 Consumer<MutableCapabilities> optionsConsumer) {
             var options = new FirefoxOptions();
-            options.setHeadless(true);
+            options.addArguments("-headless");
             ofNullable(location.getBrowserPath()).ifPresent(options::setBinary);
             //TODO consider making page load strategy configurable (with
             //different defaults).

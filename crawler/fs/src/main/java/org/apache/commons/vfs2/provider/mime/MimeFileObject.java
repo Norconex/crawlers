@@ -64,7 +64,7 @@ public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implement
     protected void doAttach() throws Exception {
         if (part == null) {
             if (!getName().equals(getFileSystem().getRootName())) {
-                final MimeFileObject foParent = (MimeFileObject) FileObjectUtils.getAbstractFileObject(getParent());
+                final var foParent = (MimeFileObject) FileObjectUtils.getAbstractFileObject(getParent());
                 setPart(foParent.findPart(getName().getBaseName()));
                 return;
             }
@@ -79,10 +79,10 @@ public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implement
             return null;
         }
 
-        if (isMultipart()) { 
-            final Multipart multipart = (Multipart) part.getContent();
+        if (isMultipart()) {
+            final var multipart = (Multipart) part.getContent();
             if (partName.startsWith(MimeFileSystem.NULL_BP_NAME)) {
-                final int partNumber = Integer.parseInt(partName.substring(MimeFileSystem.NULL_BP_NAME.length()), 10);
+                final var partNumber = Integer.parseInt(partName.substring(MimeFileSystem.NULL_BP_NAME.length()), 10);
                 if (partNumber < 0 || partNumber + 1 > multipart.getCount()) {
                     // non existent
                     return null;
@@ -91,7 +91,7 @@ public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implement
                 return multipart.getBodyPart(partNumber);
             }
 
-            for (int i = 0; i < multipart.getCount(); i++) {
+            for (var i = 0; i < multipart.getCount(); i++) {
                 final Part childPart = multipart.getBodyPart(i);
                 if (partName.equals(childPart.getFileName())) {
                     return childPart;
@@ -140,19 +140,17 @@ public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implement
 
         final List<MimeFileObject> vfs = new ArrayList<>();
         if (isMultipart()) {
-            final Object container = part.getContent();
-            if (container instanceof Multipart) {
-                final Multipart multipart = (Multipart) container;
-
-                for (int i = 0; i < multipart.getCount(); i++) {
+            final var container = part.getContent();
+            if (container instanceof Multipart multipart) {
+                for (var i = 0; i < multipart.getCount(); i++) {
                     final Part part = multipart.getBodyPart(i);
 
-                    String filename = UriParser.encode(part.getFileName());
+                    var filename = UriParser.encode(part.getFileName());
                     if (filename == null) {
                         filename = MimeFileSystem.NULL_BP_NAME + i;
                     }
 
-                    final MimeFileObject fo = (MimeFileObject) FileObjectUtils
+                    final var fo = (MimeFileObject) FileObjectUtils
                             .getAbstractFileObject(getFileSystem().resolveFile(getFileSystem().getFileSystemManager()
                                     .resolveName(getName(), filename, NameScope.CHILD)));
                     fo.setPart(part);
@@ -166,7 +164,7 @@ public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implement
 
     private void setPart(final Part part) {
         this.part = part;
-        this.attributeMap = null;
+        attributeMap = null;
     }
 
     /**
@@ -182,7 +180,7 @@ public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implement
      */
     @Override
     protected long doGetLastModifiedTime() throws Exception {
-        final Message mm = getMessage();
+        final var mm = getMessage();
         if (mm == null) {
             return -1;
         }
@@ -211,7 +209,7 @@ public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implement
         if (isMultipart()) {
             // deliver the preamble as the only content
 
-            final String preamble = ((MimeMultipart) part.getContent()).getPreamble();
+            final var preamble = ((MimeMultipart) part.getContent()).getPreamble();
             if (preamble == null) {
                 return new ByteArrayInputStream(new byte[] {});
             }
@@ -256,7 +254,6 @@ public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implement
         return attributeMap;
     }
 
-    @SuppressWarnings("unchecked") // Javadoc says Part returns Header
     protected Enumeration<Header> getAllHeaders() throws MessagingException {
         return part.getAllHeaders();
     }

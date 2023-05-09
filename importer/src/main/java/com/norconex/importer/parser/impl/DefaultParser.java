@@ -1,4 +1,4 @@
-/* Copyright 2016-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,19 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.parser;
+package com.norconex.importer.parser.impl;
 
-import lombok.Data;
+import org.apache.tika.parser.AutoDetectParser;
+
 
 /**
- * Configuration settings influencing how documents are parsed by various
- * parsers.  These settings are not applicable to all parsers and some parsers
- * may decide not to support some of these settings (for not being able to
- * or else).
+ * Parser using auto-detection of document content-type to figure out
+ * which specific parser to invoke to best parse a document.
  */
-@Data
-public class ParseHints {
+public class DefaultParser extends AbstractTikaParser {
 
-    private final OCRConfig ocrConfig = new OCRConfig();
-    private final EmbeddedConfig embeddedConfig = new EmbeddedConfig();
+    public DefaultParser() {
+        super(AutoDetectParser::new);
+    }
 }

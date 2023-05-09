@@ -15,11 +15,11 @@
 package com.norconex.crawler.web.fetch.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolException;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * <p>This class is used by each crawler instance to capture the closest
@@ -29,7 +29,7 @@ import org.apache.http.protocol.HttpContext;
  * </p>
  * @since 3.0.0 (adapted from v2.x RedirectStrategyWrapper)
  */
-public class ApacheRedirectCaptureStrategy extends LaxRedirectStrategy {
+public class ApacheRedirectCaptureStrategy extends DefaultRedirectStrategy {
 
     public static final String TARGET_REDIRECT_CONTEXT_KEY =
             ApacheRedirectCaptureStrategy.class.getName() + ".targetRedirect";
@@ -40,7 +40,6 @@ public class ApacheRedirectCaptureStrategy extends LaxRedirectStrategy {
 
     public ApacheRedirectCaptureStrategy(
             RedirectURLProvider redirectURLProvider) {
-        super();
         this.redirectURLProvider = redirectURLProvider;
     }
 
@@ -54,9 +53,9 @@ public class ApacheRedirectCaptureStrategy extends LaxRedirectStrategy {
 
         //TODO check for max redirects here using config max redirect setting?
 
-        boolean isRedirected = super.isRedirected(request, response, context);
+        var isRedirected = super.isRedirected(request, response, context);
         if (isRedirected) {
-            String targetURL = redirectURLProvider.provideRedirectURL(
+            var targetURL = redirectURLProvider.provideRedirectURL(
                     request, response, context);
             if (StringUtils.isNotBlank(targetURL)) {
                 context.setAttribute(TARGET_REDIRECT_CONTEXT_KEY, targetURL);

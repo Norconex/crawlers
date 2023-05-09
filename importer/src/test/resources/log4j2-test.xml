@@ -25,7 +25,19 @@
       <AppenderRef ref="Console"/>
     </Logger>
     
-    <!-- To get rid of useless errors from dependencies: -->
+    <!-- To get rid of "usually" useless error logging from tests: -->
+    <Logger name="com.norconex.importer.Importer" level="ERROR" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.importer.handler.splitter.impl.XMLStreamSplitter" level="OFF" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.poi" level="ERROR" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.poi.hdgf.chunks.Chunk" level="OFF" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="org.apache.pdfbox.jbig2.JBIG2Globals" level="OFF" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

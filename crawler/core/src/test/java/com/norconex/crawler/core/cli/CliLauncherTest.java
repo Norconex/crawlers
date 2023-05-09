@@ -292,7 +292,7 @@ class CliLauncherTest {
         // check that some entries not explicitely configured are present:
         assertThat(exit1.getStdOut()).contains(
             "ignoreDiacritic=\"false\"",
-            "<fallbackParser ",
+            "<defaultParser ",
             ".impl.GenericSpoiledReferenceStrategizer"
         );
 

@@ -19,8 +19,6 @@ import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.support.ThreadGuard;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.crawler.web.fetch.impl.webdriver.Browser.WebDriverSupplier;
 
@@ -34,9 +32,6 @@ import com.norconex.crawler.web.fetch.impl.webdriver.Browser.WebDriverSupplier;
  */
 class WebDriverHolder {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            WebDriverHolder.class);
-
     private final WebDriverSupplier driverSupplier;
     private final MutableObject<MutableCapabilities> options =
             new MutableObject<>();
@@ -49,8 +44,6 @@ class WebDriverHolder {
                         cfg.getBrowserPath(),
                         cfg.getRemoteURL()),
                 o -> {
-//                    configureWebDriverLogging(o);
-//                    o.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
                     o.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
                     o.merge(cfg.getCapabilities());
                     options.setValue(o);
@@ -78,17 +71,4 @@ class WebDriverHolder {
             DRIVER.remove();
         }
     }
-
-//    private static void configureWebDriverLogging(
-//            MutableCapabilities capabilities) {
-//        var logPrefs = new LoggingPreferences();
-//        var level = SLF4JUtil.toJavaLevel(SLF4JUtil.getLevel(LOG));
-//        logPrefs.enable(LogType.PERFORMANCE, level);
-//        logPrefs.enable(LogType.PROFILER, level);
-//        logPrefs.enable(LogType.BROWSER, level);
-//        logPrefs.enable(LogType.CLIENT, level);
-//        logPrefs.enable(LogType.DRIVER, level);
-//        logPrefs.enable(LogType.SERVER, level);
-//        capabilities.setCapability(CapabilityType.LOGGING_PREFS, logPrefs);
-//    }
 }

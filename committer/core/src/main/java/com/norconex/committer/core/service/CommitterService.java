@@ -27,12 +27,14 @@ import static com.norconex.committer.core.service.CommitterServiceEvent.COMMITTE
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.norconex.committer.core.Committer;
 import com.norconex.committer.core.CommitterContext;
@@ -75,16 +77,24 @@ public class CommitterService<T> {
         return !committers.isEmpty();
     }
 
-    public void init(CommitterContext baseContext) throws CommitterServiceException {
+    public void init(CommitterContext baseContext)
+            throws CommitterServiceException {
         fire(COMMITTER_SERVICE_INIT_BEGIN, committers,  null);
 
-        //TODO Use Committer "id" instead of index (maybe optional, using
-        // index as fall back?
-        var idx = new MutableInt();
+        Set<String> uniqueDirNames = new HashSet<>();
         executeAll("init", c -> {
+            var dirName = ClassUtils.getShortClassName(c.getClass());
+            if (StringUtils.isBlank(dirName)) {
+                dirName = "UnnamedCommitter";
+            }
+            var cnt = 1;
+            while (uniqueDirNames.contains(dirName)) {
+                cnt++;
+                dirName = dirName.replaceFirst("(.*)_\\d+$", "$1") + "_" + cnt;
+            }
+            uniqueDirNames.add(dirName);
             var ctx = baseContext.withWorkdir(
-                    baseContext.getWorkDir().resolve(idx.toString()));
-            idx.increment();
+                    baseContext.getWorkDir().resolve(dirName));
             c.init(ctx);
         });
 
@@ -207,7 +217,6 @@ public class CommitterService<T> {
                 .build());
     }
 
-    //TODO have to string print committer id
     @Override
     public String toString() {
         return CommitterService.class.getSimpleName() + '[' +
