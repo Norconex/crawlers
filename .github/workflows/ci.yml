@@ -52,14 +52,20 @@ jobs:
   
       - id: file_changes
         name: File Changes
-        uses: trilom/file-changes-action@v1.2.3
-        with:
-          prNumber: $
-          pushBefore: ''
-          pushAfter: ''
+        uses: trilom/file-changes-action@v1.2.4
+#        with:
+#          prNumber: $
+#          pushBefore: ''
+#          pushAfter: ''
+
   
       - name: Ouput File Changes
-        run: echo '$'        
+        run: |        
+          echo '${{ steps.file_changes.outputs.files}}'
+          echo '${{ steps.file_changes.outputs.files_modified}}'
+          echo '${{ steps.file_changes.outputs.files_added}}'
+          echo '${{ steps.file_changes.outputs.files_removed}}'
+        
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
