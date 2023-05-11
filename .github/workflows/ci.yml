@@ -1,7 +1,12 @@
 # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
 
-name: Java CI with Maven
+
+
+#=== CURRENTLY TESTING ===
+
+
+name: Maven Java CI 
 
 on:
   push:
@@ -10,63 +15,72 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  SITE_S3_URI: ${{ secrets.SITE_S3_URI }}
+#env:
+#  AWS_REGION: ${{ secrets.AWS_REGION }}
+#  SITE_S3_URI: ${{ secrets.SITE_S3_URI }}
+
+# We run a few jobs to get them done in parallel.
 
 jobs:
   build:
-    permissions:
-      id-token: write
-      contents: read
+#    permissions:
+      # The following permissions are needed for OpenID Connect (OIDC) to 
+      # allows GitHub Actions access resources on cloud provider, 
+      # without having to store creds as GH secrets.
+      
+      # This is required for requesting the JWT
+#      id-token: write 
+      # This is required for actions/checkout
+#      contents: read
 
     runs-on: ubuntu-latest
 
     steps:
-    
-    - name: Source checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-       
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: 'maven'
-        server-id: ossrh
-        server-username: MAVEN_USERNAME
-        server-password: MAVEN_CENTRAL_TOKEN
-        gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-        gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-    - name: Cache SonarCloud packages
-      uses: actions/cache@v1
-      with:
-        path: ~/.sonar/cache
-        key: ${{ runner.os }}-sonar
-        restore-keys: ${{ runner.os }}-sonar
-
-    - name: Build and publish to Apache Maven Central
-      run: mvn -B package org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Norconex_collector-http
-# When ready, uncomment the following instead of above
-#      run: mvn -B deploy org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Norconex_collector-http
-      env:
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-#
-#    - name: Configure AWS Credentials
-#      uses: aws-actions/configure-aws-credentials@v1
-#      with:
-#        role-to-assume: ${{ secrets.AWS_ROLE }}
-#        aws-region: ${{ env.AWS_REGION }}
-#        
-#    - name:  Copy site resources to s3
-#      run: |
-#        aws s3 cp /home/runner/work/commons-lang/commons-lang/target/site/CHANGES.xml ${{ env.SITE_S3_URI }}commons/lang/v3/
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
       
+      - name: Source checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - id: pr
+        name: Get Current Pull Request
+        if: github.event_name == 'pull_request'
+        uses: 8BitJonny/gh-get-current-pr@1.0.1
+        with:
+          github-token: $
+          filterOutClosed: true
+  
+      - id: file_changes
+        name: File Changes
+        uses: trilom/file-changes-action@v1.2.3
+        with:
+          prNumber: $
+          pushBefore: ''
+          pushAfter: ''
+  
+      - name: Ouput File Changes
+        run: echo '$'        
+         
+#        if: github.event_name == 'push'
+  
+        
+      # Runs a single command using the runners shell
+#      - name: Run one "build"
+#        run: echo Hello, one!
+#        if: contains(steps.file_changes.outputs.files , '"one/')
+        
 
+      #--- PUSH ---     
+#      - name: Maven build and unit tests
+#        run: mvn -B package
+      #--- PULL REQUESTS ---          
+           
+
+        
