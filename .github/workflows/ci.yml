@@ -40,31 +40,38 @@ jobs:
       - name: Source checkout
         uses: actions/checkout@v3
         with:
+          # depth 0 means checkout all commits... we need that 
+          # in case there are many commits in a push/PR
           fetch-depth: 0
           
-      - id: pr
-        name: Get Current Pull Request
-        if: github.event_name == 'pull_request'
-        uses: 8BitJonny/gh-get-current-pr@1.0.1
-        with:
-          github-token: $
-          filterOutClosed: true
+#      - id: pr
+#        name: Get Current Pull Request
+#        if: github.event_name == 'pull_request'
+#        uses: 8BitJonny/gh-get-current-pr@1.0.1
+#        with:
+#          github-token: $
+#          filterOutClosed: true
   
-      - id: file_changes
-        name: File Changes
-        uses: trilom/file-changes-action@v1.2.4
+      - id: changed-files
+        name: Get changed files
+        uses: tj-actions/changed-files@v35
 #        with:
 #          prNumber: $
 #          pushBefore: ''
 #          pushAfter: ''
 
-  
-      - name: Ouput File Changes
-        run: |        
-          echo '${{ steps.file_changes.outputs.files}}'
-          echo '${{ steps.file_changes.outputs.files_modified}}'
-          echo '${{ steps.file_changes.outputs.files_added}}'
-          echo '${{ steps.file_changes.outputs.files_removed}}'
+      - name: List all changed files
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done
+          
+#      - name: Ouput File Changes
+#        run: |        
+#          echo '${{ steps.file_changes.outputs.files}}'
+#          echo '${{ steps.file_changes.outputs.files_modified}}'
+#          echo '${{ steps.file_changes.outputs.files_added}}'
+#          echo '${{ steps.file_changes.outputs.files_removed}}'
         
 
       - name: Set up JDK 17
