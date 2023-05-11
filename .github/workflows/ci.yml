@@ -37,13 +37,6 @@ jobs:
 
     steps:
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      
       - name: Source checkout
         uses: actions/checkout@v3
         with:
@@ -67,6 +60,14 @@ jobs:
   
       - name: Ouput File Changes
         run: echo '$'        
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
          
 #        if: github.event_name == 'push'
   
