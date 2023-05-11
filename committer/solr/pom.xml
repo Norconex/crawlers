@@ -38,6 +38,10 @@
             <version>${solr.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.norconex.crawler</groupId>
+            <artifactId>nx-committer-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.norconex.commons</groupId>
             <artifactId>norconex-commons-lang</artifactId>
         </dependency>
