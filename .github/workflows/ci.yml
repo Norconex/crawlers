@@ -52,7 +52,7 @@ jobs:
         # https://github.com/tj-actions/changed-files/issues/1046 
         #if: ${{ always() }}
         run: |
-          mvn_cmd="mvn clean package $(bash .github/workflows/scripts/mvn-project-filter-args.sh) -amd --threads=2 --batch-mode";
+          mvn_cmd="mvn clean package $(bash $GITHUB_ACTION_PATH/.github/workflows/scripts/mvn-project-filter-args.sh) -amd --threads=2 --batch-mode";
           echo "Maven build command: $mvn_cmd";
           eval $mvn_cmd;
         env:
