@@ -1,5 +1,4 @@
 name: Maven Java CI 
-description: TODO
 
 on:
   push:
