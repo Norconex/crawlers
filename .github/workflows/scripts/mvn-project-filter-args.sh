@@ -14,8 +14,6 @@ CHANGES_FILE=all_changed_files.txt
 
 parent_changed=$(cd $OUTPUTS_DIR && cat $CHANGES_FILE | grep -v -e ^committer -e ^importer -e ^crawler | wc -l)
 
-echo "PARENT CHANGED? $parent_changed"; 
-
 if [ $parent_changed -gt 0 ]; then
     # maven parent has changed, so don't filter to build all projects
     echo "";
