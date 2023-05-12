@@ -21,5 +21,5 @@ if [ $parent_changed -gt 0 ]; then
 fi
 
 # Filter on modified artifacts
-artifacts=$(cd $OUTPUTS_DIR && cat $CHANGES_FILE | tr ' ' '\n' | grep -e ^committer -e ^importer -e ^crawler | sed 's_^\(committer\|crawler\)/\(.*\)$_:\1-\2_' | sed 's_^\(importer\)/.*$_:\1_' | sort | uniq | tr '\n' ' ')
+artifacts=$(cd $OUTPUTS_DIR && cat $CHANGES_FILE | tr ' ' '\n' | grep -e ^committer -e ^importer -e ^crawler | sed 's_^\(committer\|crawler\)/\(.*\)$_:nx-\1-\2_' | sed 's_^\(importer\)/.*$_:nx-\1_' | sort | uniq | tr '\n' ' ')
 echo "--projects $artifacts"
