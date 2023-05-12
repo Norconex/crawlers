@@ -1,6 +1,6 @@
 TODO:
 ==============
-
+ 
 - Whall we merge import and commit pipelines? likely not if we want
   to split them one day (e.g. micro-services).
 
