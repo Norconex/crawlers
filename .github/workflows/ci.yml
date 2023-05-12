@@ -53,10 +53,9 @@ jobs:
         #if: ${{ always() }}
 #        working-directory: ./app
         run: |
-          bash .github/workflows/scripts/mvn-build.sh ${{ github.event_name }}
-#          mvn_cmd="mvn clean package $(bash .github/workflows/scripts/mvn-build.sh) -amd --threads=2 --batch-mode";
-#          echo "Maven build command: $mvn_cmd";
-#          eval $mvn_cmd;
+          mvn_cmd=$(bash .github/workflows/scripts/mvn-build.sh ${{ github.event_name }})
+          echo "Maven build command: $mvn_cmd";
+          eval $mvn_cmd;
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}

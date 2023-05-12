@@ -45,7 +45,5 @@ if [ $parent_changed -eq 0 ]; then
     mvn_projects="--projects $artifacts"
 fi
 
-# Run Maven
-mvn_cmd="mvn clean $mvn_phase $mvn_projects -amd --threads=2 --batch-mode";
-echo "Maven build command: $mvn_cmd";
-eval $mvn_cmd;
+# return command so it can be logged by GHA workflow
+echo "mvn clean $mvn_phase $mvn_projects -amd --threads=2 --batch-mode";
