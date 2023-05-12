@@ -16,5 +16,5 @@ Change duration in millis to Duration everywhere.
 
 - Committer server (and a committer "client" that can round-robin between 
   committer servers?)
-
+ 
 - Add chainable committers??
