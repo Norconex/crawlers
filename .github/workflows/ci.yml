@@ -53,20 +53,28 @@ jobs:
           dir_names_max_depth: 2
           write_output_files: true
 
-      - name: Build and analyze
-        # Uncomment always() if running into issues using act on a local
-        # environment, until this is fixed:
-        # https://github.com/tj-actions/changed-files/issues/1046 
-        #if: ${{ always() }}
-#        working-directory: ./app
+      - name: Build
         run: |
-          mvn_cmd=$(bash .github/workflows/scripts/mvn-build.sh ${{ github.event_name }})
+          mvn_cmd=$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)
           echo "Maven build command: $mvn_cmd";
           eval $mvn_cmd;
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#        env:
+#          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+#          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+#          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           
+      - name: Analyze
+        run: |
+          mvn_cmds=$(bash .github/workflows/scripts/get-mvn-analyze-cmds.sh)
+          for mvn_cmd in $mvn_cmds; do
+            echo "Maven analyze command: $mvn_cmd";
+            eval $mvn_cmd;
+          done          
+        env:
+#          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+#          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+#          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

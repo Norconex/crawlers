@@ -78,6 +78,7 @@
     
     <!-- === Maven plugins ================================================= -->
     
+    <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <license-maven-plugin.version>2.0.0</license-maven-plugin.version>
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
@@ -714,6 +715,7 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-plugin.version}</version>
+          <inherited>true</inherited>
         </plugin>
 
         <!-- https://www.mojohaus.org/license-maven-plugin/ -->
@@ -893,6 +895,40 @@
           <inherited>true</inherited>
         </plugin>
  
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>prepare-agent</id>              
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>report</id>
+<!--              <phase>prepare-package</phase>-->
+              <phase>verify</phase>
+              <goals>
+                <goal>report</goal>
+              </goals>
+              <configuration>
+                <formats>
+                  <format>XML</format>
+                </formats>
+                <!-- Sets the VM argument line used when unit tests are run.
+                     See: https://stackoverflow.com/questions/33293930/
+                          jacoco-not-generating-jacoco-exec-until-after-
+                          skipping-jacoco-execution
+                <propertyName>surefireArgLine</propertyName>
+                  -->
+              </configuration>
+            </execution>
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+ 
       </plugins>
     </pluginManagement>
 
@@ -922,6 +958,16 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>      
       </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+      </plugin>            
 
     </plugins>
 
