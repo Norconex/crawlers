@@ -45,5 +45,7 @@ if [ $parent_changed -eq 0 ]; then
     mvn_projects="--projects $artifacts"
 fi
 
-# return command so it can be logged by GHA workflow
-echo "mvn clean $mvn_phase org.sonarsource.scanner.maven:sonar-maven-plugin:sonar $mvn_projects -amd --threads=2 --batch-mode";
+# Return command so it can be logged by GHA workflow
+# We could speed it up with --threads=2 (max supported by GHA, but
+# Sonar plugin warns about not being thread safe.
+echo "mvn clean $mvn_phase org.sonarsource.scanner.maven:sonar-maven-plugin:sonar $mvn_projects -amd --batch-mode";
