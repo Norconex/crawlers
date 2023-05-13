@@ -27,6 +27,7 @@
   <name>Norconex Committer Core</name>
 
   <properties>
+    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
   </properties>
   <inceptionYear>2009</inceptionYear>
 

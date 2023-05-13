@@ -26,7 +26,7 @@ parent_changed=$(cd $OUTPUTS_DIR && cat $CHANGES_FILE \
     | grep -v -e ^committer -e ^importer -e ^crawler \
     | wc -l)
 
-mvn_phase=package
+mvn_phase=verify
 if [ $GHA_EVENT == "push" ]; then
     mvn_phase=deploy
 fi
@@ -46,4 +46,4 @@ if [ $parent_changed -eq 0 ]; then
 fi
 
 # return command so it can be logged by GHA workflow
-echo "mvn clean $mvn_phase $mvn_projects -amd --threads=2 --batch-mode";
+echo "mvn clean $mvn_phase org.sonarsource.scanner.maven:sonar-maven-plugin:sonar $mvn_projects -amd --threads=2 --batch-mode";
