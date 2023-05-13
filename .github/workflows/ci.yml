@@ -58,7 +58,7 @@ jobs:
           mvn_cmd=$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)
           echo "Maven build command: $mvn_cmd";
           eval $mvn_cmd;
-#        env:
+        env:
 #          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
 #          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
