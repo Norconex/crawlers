@@ -25,11 +25,6 @@
 # Relies on "mvn-build.sh" having run or other Maven command that
 # would have generated the Jacoco in standard locations. 
 
-echo find . -name "jacoco.xml" | sed 's|^\(.*\)/target/.*|cd \1 \&\& mvn sonar:sonar -Pcoverage;|';
-
-# We could speed it up with --threads=2 (max supported by GHA, but
-# Sonar plugin warns about not being thread safe.
-
-
-#org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+echo $(find . -name "jacoco.xml" \
+    | sed 's|^\(.*\)/target/.*$|cd \1 \&\& mvn sonar:sonar -Pcoverage\n|')
 
