@@ -20,9 +20,13 @@
 # ./github/outputs/mvn_projects-arg.txt (if present)
 #
 
-OUTPUTS_DIR=.github/outputs
-MVN_PROJECTS_ARG_FILE=mvn_projects-arg.txt
+MVN_PROJECTS_ARG_FILE=.github/outputs/mvn_projects-arg.txt
 
 # If Maven parent changed, build all, else, filter on changed projects
-mvn_projects=$(cat "${OUTPUTS_DIR}/${MVN_PROJECTS_ARG_FILE}")
+mvn_projects=""
+
+if [ -f "$MVN_PROJECTS_ARG_FILE" ]; then
+    mvn_projects=$(cat "${MVN_PROJECTS_ARG_FILE}")
+fi
+
 echo "mvn deploy:deploy $mvn_projects --threads=2";
