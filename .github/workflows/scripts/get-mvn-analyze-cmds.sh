@@ -25,6 +25,6 @@
 # Relies on "mvn-build.sh" having run or other Maven command that
 # would have generated the Jacoco in standard locations. 
 
-echo $(find . -name "jacoco.xml" \
-    | sed 's|^\(.*\)/target/.*$|cd \1 \&\& mvn sonar:sonar -Pcoverage\n|')
+echo "$(find . -name 'jacoco.xml' \
+    | sed -n 's|^\(.*\)/target/.*$|cd \1 \&\& mvn sonar:sonar -Pcoverage|gp')";
 
