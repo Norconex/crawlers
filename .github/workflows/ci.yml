@@ -56,10 +56,11 @@ jobs:
       - name: Build
         run: |
           mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)"
-          echo "Maven build command: $mvn_cmd";
-          eval $mvn_cmd;
+          echo "Maven build command: $mvn_cmd"
+          echo "${mvn_cmd}" | bash
           
 #To test on a single project:
+#        run: |
 #          mvn clean verify --projects :nx-committer-solr
         env:
 #          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
@@ -73,9 +74,8 @@ jobs:
           mvn_cmds="$(bash .github/workflows/scripts/get-mvn-analyze-cmds.sh)"
           echo -e "${mvn_cmds}" | while IFS= read -r mvn_cmd
           do
-            echo "Maven analyze command: $mvn_cmd"
-            eval $mvn_cmd
-          done          
+            echo "${mvn_cmd}" | bash
+          done
         env:
 #          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
 #          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
