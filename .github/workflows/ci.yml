@@ -77,9 +77,10 @@ jobs:
       - name: Analyze
         run: |
           mvn_cmds="$(bash .github/workflows/scripts/get-mvn-analyze-cmds.sh)"
-          for mvn_cmd in $mvn_cmds; do
-            echo "Maven analyze command: $mvn_cmd";
-            eval $mvn_cmd;
+          echo -e "${mvn_cmds}" | while IFS= read -r mvn_cmd
+          do
+            echo "Maven analyze command: $mvn_cmd"
+            eval $mvn_cmd
           done          
         env:
 #          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
@@ -87,3 +88,8 @@ jobs:
 #          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+#                    for mvn_cmd in $mvn_cmds; do
+#            echo "Maven analyze command: $mvn_cmd";
+#            eval $mvn_cmd;
+#          done          
