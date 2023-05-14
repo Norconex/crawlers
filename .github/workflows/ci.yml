@@ -54,19 +54,13 @@ jobs:
           write_output_files: true
 
       - name: Build
-#        run: |
-#          mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)""
-#          echo "Maven build command: $mvn_cmd";
-#          eval $mvn_cmd;
-
-# TEST BEGIN (uncomment above when done)
-
-
         run: |
-          mvn clean verify --projects :nx-committer-solr
+          mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)""
+          echo "Maven build command: $mvn_cmd";
+          eval $mvn_cmd;
           
-# TEST END
-           
+#To test on a single project:
+#          mvn clean verify --projects :nx-committer-solr
         env:
 #          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
 #          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}

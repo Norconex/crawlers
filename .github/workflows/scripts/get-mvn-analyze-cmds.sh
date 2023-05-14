@@ -26,5 +26,5 @@
 # would have generated the Jacoco in standard locations. 
 
 echo "$(find . -name 'jacoco.xml' \
-    | sed -n 's|^\(.*\)/target/.*$|cd \1 \&\& mvn sonar:sonar -Pcoverage|gp')";
+    | sed -n 's|^\(.*\)/target/.*$|cd \1 \&\& mvn sonar:sonar|gp')";
 
