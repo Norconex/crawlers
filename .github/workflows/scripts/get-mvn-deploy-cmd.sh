@@ -30,4 +30,4 @@
 #####fi
 #####
 #####echo "mvn deploy:deploy $mvn_projects --threads=2";
-echo "mvn deploy:deploy -DallowIncompleteProjects=true --threads=2";
+echo "mvn deploy:deploy --threads=2";

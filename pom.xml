@@ -86,6 +86,7 @@
     <maven-assembly-plugin.version>3.5.0</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
+    <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
     <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
     <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
     <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
@@ -709,6 +710,16 @@
               </goals>
             </execution>
           </executions>
+          <inherited>true</inherited>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${maven-deploy-plugin.version}</version>
+          <configuration>
+            <allowIncompleteProjects>true</allowIncompleteProjects>
+          </configuration>
           <inherited>true</inherited>
         </plugin>
         
