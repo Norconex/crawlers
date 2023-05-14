@@ -55,7 +55,7 @@ jobs:
 
       - name: Build
         run: |
-          mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)""
+          mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)"
           echo "Maven build command: $mvn_cmd";
           eval $mvn_cmd;
           
