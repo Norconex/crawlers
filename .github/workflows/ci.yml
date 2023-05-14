@@ -54,10 +54,19 @@ jobs:
           write_output_files: true
 
       - name: Build
+#        run: |
+#          mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)""
+#          echo "Maven build command: $mvn_cmd";
+#          eval $mvn_cmd;
+
+# TEST BEGIN (uncomment above when done)
+
+
         run: |
-          mvn_cmd=$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)
-          echo "Maven build command: $mvn_cmd";
-          eval $mvn_cmd;
+          mvn clean verify --projects :committer-solr
+          
+# TEST END
+           
         env:
 #          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
 #          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
@@ -67,7 +76,7 @@ jobs:
           
       - name: Analyze
         run: |
-          mvn_cmds=$(bash .github/workflows/scripts/get-mvn-analyze-cmds.sh)
+          mvn_cmds="$(bash .github/workflows/scripts/get-mvn-analyze-cmds.sh)"
           for mvn_cmd in $mvn_cmds; do
             echo "Maven analyze command: $mvn_cmd";
             eval $mvn_cmd;
