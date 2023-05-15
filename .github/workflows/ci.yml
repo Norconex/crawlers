@@ -60,7 +60,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Get pull-request changes
+      - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v35.9.2
         with:
@@ -74,6 +74,7 @@ jobs:
             **/README.md
 
       - name: Build
+        if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)"
           echo "Maven build command: $mvn_cmd"
@@ -82,6 +83,7 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
       - name: Analyze
+        if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           mvn_cmds="$(bash .github/workflows/scripts/get-mvn-analyze-cmds.sh)"
           echo -e "${mvn_cmds}" | while IFS= read -r mvn_cmd
@@ -93,7 +95,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Deploy
-        if: github.event_name == 'push'
+        if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'push'
         run: |
           mvn_cmd="$(bash .github/workflows/scripts/get-mvn-deploy-cmd.sh)"
           echo "Maven deploy command: $mvn_cmd"
