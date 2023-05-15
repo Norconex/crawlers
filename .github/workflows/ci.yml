@@ -60,7 +60,8 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Get directories with changes
+      - name: Get pull-request changes
+        if: github.event_name == 'pull_request'
         id: changed-files
         uses: tj-actions/changed-files@v35.9.2
         with:
@@ -75,12 +76,12 @@ jobs:
 
       - name: Build
         run: |
-          mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)"
+          mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh ${{ github.event_name }})"
           echo "Maven build command: $mvn_cmd"
           echo "${mvn_cmd}" | bash
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-          
+
       - name: Analyze
         run: |
           mvn_cmds="$(bash .github/workflows/scripts/get-mvn-analyze-cmds.sh)"
