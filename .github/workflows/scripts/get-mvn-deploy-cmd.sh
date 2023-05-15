@@ -15,7 +15,16 @@
 # limitations under the License.
 #-------------------------------------------------------------------------------
 
-# Returns a Maven deployment command. Always attempt to deploy all
-# modules.
+# Returns a Maven deployment command. The project artifacts deployed
+# will be filtered with arguments present in 
+# ./github/outputs/mvn_projects-arg.txt (if present)
+#
 
-echo "mvn jar:jar deploy:deploy --threads=2";
+MVN_PROJECTS_ARG_FILE=.github/outputs/mvn_projects-arg.txt
+
+# If Maven parent changed, build all, else, filter on changed projects
+mvn_projects=""
+if [ -f "$MVN_PROJECTS_ARG_FILE" ]; then
+    mvn_projects=$(cat "${MVN_PROJECTS_ARG_FILE}")
+fi
+echo "mvn jar:jar deploy:deploy $mvn_projects --threads=2";
