@@ -57,4 +57,4 @@ if [ $GHA_EVENT == "pull_request" ]; then
 fi
 
 # Return command so it can be executed and logged by GHA workflow
-echo "mvn clean verify $mvn_projects -amd --batch-mode --threads=2";
+echo "mvn clean install $mvn_projects -amd --batch-mode --threads=2";

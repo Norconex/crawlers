@@ -1031,8 +1031,6 @@
 
   <description>Maven parent POM for Norconex crawler-related projects.</description>
   <modules>
-<!--     <module>javadoc-resources</module>
- -->
     <module>committer/core</module>
     <module>committer/solr</module>
     <module>committer/elasticsearch</module>
@@ -1041,7 +1039,6 @@
     <module>crawler/web</module>
     <module>crawler/fs</module>
 <!--     <module>javadoc-resources</module>
-    <module>crawler/filesystem</module>
  -->
   </modules>
 </project>
