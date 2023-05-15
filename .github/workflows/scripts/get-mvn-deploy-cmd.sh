@@ -18,4 +18,4 @@
 # Returns a Maven deployment command. Always attempt to deploy all
 # modules.
 
-echo "mvn deploy:deploy --threads=2";
+echo "mvn jar:jar deploy:deploy --threads=2";
