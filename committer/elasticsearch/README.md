@@ -10,4 +10,4 @@ Website: https://opensource.norconex.com/committers/elasticsearch/
 | This Committer   | Committer Core | HTTP Collector | FS Collector |
 | ---------------- | -------------- | -------------- | ------------ |
 
- 
+  
