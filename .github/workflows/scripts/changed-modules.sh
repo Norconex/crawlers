@@ -29,6 +29,8 @@
 #   changed-module-dirs-deps.txt      -> changed directories incl. dependents
 #   all-module-artifacts.txt          -> all artifacts, regardless of changes
 #   all-module-dirs.txt               -> all directories, regardless of changes
+#   any-module-changed.txt            -> true|false if at least one module 
+#                                        changed, including parent
 #     
 # The files will be empty if the parent module was modified, which
 # equates to all modules being modified.
@@ -42,6 +44,7 @@ MODULE_ARTIFACTS_DEPS_FILE="${OUTPUTS_DIR}/changed-module-artifacts-deps.txt"
 MODULE_DIRS_DEPS_FILE="${OUTPUTS_DIR}/changed-module-dirs-deps.txt"
 MODULE_ARTIFACTS_ALL_FILE="${OUTPUTS_DIR}/all-module-artifacts.txt"
 MODULE_DIRS_ALL_FILE="${OUTPUTS_DIR}/all-module-dirs.txt"
+MODULE_ANY_CHANGED="${OUTPUTS_DIR}/any-module-changed.txt"
 
 # Make sure the files exist and empty by default
 touch $MODULE_ARTIFACTS_FILE
@@ -50,6 +53,8 @@ touch $MODULE_ARTIFACTS_DEPS_FILE
 touch $MODULE_DIRS_DEPS_FILE
 touch $MODULE_ARTIFACTS_ALL_FILE
 touch $MODULE_DIRS_ALL_FILE
+touch $MODULE_DIRS_ALL_FILE
+echo "true" > $MODULE_ANY_CHANGED
 
 # if no changes at all, abort now
 if [ ! -s $CHANGED_DIRS_FILE ]; then
@@ -79,6 +84,12 @@ for dir in $(cat $CHANGED_DIRS_FILE); do
         module_artifacts="${module_artifacts} :${artifactId}";
     fi
 done
+
+if [ -n "$module_artifacts" ]; then
+    echo "Latest changes do not include any of the modules.";
+    echo "false" > $MODULE_ANY_CHANGED
+    exit;
+fi
 
 echo "Changed artifacts:                 $module_artifacts";
 echo "Changed directories:               $module_dirs";

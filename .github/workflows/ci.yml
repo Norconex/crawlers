@@ -78,9 +78,10 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           bash .github/workflows/scripts/changed-modules.sh
+          echo "any_changed=$(cat .github/outputs/any-module-changed.txt)" >> $GITHUB_OUTPUT
 
       - name: Build
-        if: steps.changed-files.outputs.any_changed == 'true'
+        if: steps.changed-modules.outputs.any_changed == 'true'
         run: |
           projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
           if [! -n "$projectsArg" ]; then
@@ -91,7 +92,7 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
       - name: Analyze
-        if: steps.changed-files.outputs.any_changed == 'true'
+        if: steps.changed-modules.outputs.any_changed == 'true'
         run: |
           dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
           if [ -n "$changedDirs" ]; then
@@ -105,7 +106,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Deploy
-        if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'push'
+        if: steps.changed-modules.outputs.any_changed == 'true' && github.event_name == 'push'
         run: |
           projectsArg=$(cat ".github/outputs/changed-module-artifacts-deps.txt");
           if [! -n "$projectsArg" ]; then
