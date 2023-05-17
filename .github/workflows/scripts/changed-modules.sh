@@ -59,6 +59,7 @@ echo "true" > $MODULE_ANY_CHANGED
 # if no changes at all, abort now
 if [ ! -s $CHANGED_DIRS_FILE ]; then
     echo "No changes detected.";
+    exit;
 fi
 
 # Get changed directory names and artifact ids
@@ -85,7 +86,7 @@ for dir in $(cat $CHANGED_DIRS_FILE); do
     fi
 done
 
-if [ -n "$module_artifacts" ]; then
+if [ -n $module_artifacts ]; then
     echo "Latest changes do not include any of the modules.";
     echo "false" > $MODULE_ANY_CHANGED
     exit;
