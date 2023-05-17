@@ -73,22 +73,32 @@ jobs:
             ./V4_MIGRATION
             **/README.md
 
+      - name: Get changed modules
+        id: changed-modules
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          bash .github/workflows/scripts/changed-modules.sh
+
       - name: Build
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          mvn_cmd="$(bash .github/workflows/scripts/get-mvn-build-cmd.sh)"
-          echo "Maven build command: $mvn_cmd"
-          echo "${mvn_cmd}" | bash
+          projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
+          if [! -n "$projectsArg" ]; then
+             projectsArg="--projects $projectsArg"
+          fi
+          mvn clean install ${projectsArg} -amd --batch-mode --threads=2
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
       - name: Analyze
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          mvn_cmds="$(bash .github/workflows/scripts/get-mvn-analyze-cmds.sh)"
-          echo -e "${mvn_cmds}" | while IFS= read -r mvn_cmd
-          do
-            echo "${mvn_cmd}" | bash
+          dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
+          if [ -n "$changedDirs" ]; then
+            dirs=$(cat ".github/outputs/all-module-dirs.txt");
+          fi
+          for dir in $changedDirs; do
+              $(cd ${dir} && mvn sonar:sonar)
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -97,9 +107,11 @@ jobs:
       - name: Deploy
         if: steps.changed-files.outputs.any_changed == 'true' && github.event_name == 'push'
         run: |
-          mvn_cmd="$(bash .github/workflows/scripts/get-mvn-deploy-cmd.sh)"
-          echo "Maven deploy command: $mvn_cmd"
-          echo "${mvn_cmd}" | bash
+          projectsArg=$(cat ".github/outputs/changed-module-artifacts-deps.txt");
+          if [! -n "$projectsArg" ]; then
+             projectsArg="--projects $projectsArg"
+          fi
+          mvn jar:jar deploy:deploy $projectArg --threads=2
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
