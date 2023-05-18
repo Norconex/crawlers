@@ -85,7 +85,7 @@ jobs:
         if: steps.changed-modules.outputs.any_changed == 'true'
         run: |
           projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
-          if [! -n "$projectsArg" ]; then
+          if [! -z "$projectsArg" ]; then
              projectsArg="--projects $projectsArg"
           fi
           bash -x mvn clean install ${projectsArg} -amd --batch-mode --threads=2
@@ -96,7 +96,7 @@ jobs:
         if: steps.changed-modules.outputs.any_changed == 'true'
         run: |
           dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
-          if [ -n "$changedDirs" ]; then
+          if [ -z "$changedDirs" ]; then
             dirs=$(cat ".github/outputs/all-module-dirs.txt");
           fi
           for dir in $changedDirs; do
@@ -110,7 +110,7 @@ jobs:
         if: steps.changed-modules.outputs.any_changed == 'true' && github.event_name == 'push'
         run: |
           projectsArg=$(cat ".github/outputs/changed-module-artifacts-deps.txt");
-          if [! -n "$projectsArg" ]; then
+          if [! -z "$projectsArg" ]; then
              projectsArg="--projects $projectsArg"
           fi
           bash -x mvn jar:jar deploy:deploy $projectArg --threads=2

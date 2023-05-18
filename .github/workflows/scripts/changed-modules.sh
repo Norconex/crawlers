@@ -85,7 +85,7 @@ for dir in $(cat $CHANGED_DIRS_FILE); do
     fi
 done
 
-if [[ -z "$module_artifacts" ]]; then
+if [ -z "$module_artifacts" ]; then
     echo "Aborting: none of the modules include any of the latest changes.";
     echo "false" > $MODULE_ANY_CHANGED
     exit;

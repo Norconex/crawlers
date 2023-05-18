@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.function.BiPredicate;
 
 // Stores anything for fast retrieval.
-// TODO document
 public interface DataStore<T> extends Closeable {
 
     String getName();
