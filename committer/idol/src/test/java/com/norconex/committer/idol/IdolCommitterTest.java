@@ -21,6 +21,7 @@ import static org.mockserver.model.HttpResponse.response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -304,16 +305,12 @@ class IdolCommitterTest {
 			.isNotNull()
 			.hasSize(2);
 		
-		Parameter actionParam = params.getEntries().get(0);
-		assertThat(actionParam.getName().getValue()).isEqualTo("action");
-		assertThat(actionParam.getValues().get(0).getValue())
-			.isEqualTo("ingest");
+		assertThat(params.getValues("action"))
+			.isEqualTo(Collections.singletonList("ingest"));
 		
-		Parameter addsParam = params.getEntries().get(1);
-		assertThat(addsParam.getName().getValue()).isEqualTo("adds");
-		assertThat(addsParam.getValues().get(0).getValue())
-			.isEqualTo("""			        
-			        <adds><add><document><reference>http://thesimpsons.com</reference><metadata name="homer" value="simpson"></metadata><metadata name="DREDBNAME" value="test"></metadata></document><source content=""></source></add></adds>""");
+		assertThat(params.getValues("adds"))
+			.isEqualTo(Collections.singletonList("""			        
+			        <adds><add><document><reference>http://thesimpsons.com</reference><metadata name="homer" value="simpson"></metadata><metadata name="DREDBNAME" value="test"></metadata></document><source content=""></source></add></adds>"""));
 	}
 	
 	private void assertIdolDeleteRequest() {
@@ -335,15 +332,11 @@ class IdolCommitterTest {
 			.isNotNull()
 			.hasSize(2);
 		
-		Parameter firstParam = params.getEntries().get(0);
-		assertThat(firstParam.getName().getValue()).isEqualTo("Docs");
-		assertThat(firstParam.getValues().get(0).getValue())
-			.isEqualTo("http://thesimpsons.com");
+		assertThat(params.getValues("Docs"))
+			.isEqualTo(Collections.singletonList("http://thesimpsons.com"));
 		
-		Parameter secondParam = params.getEntries().get(1);
-		assertThat(secondParam.getName().getValue()).isEqualTo("DREDbName");
-		assertThat(secondParam.getValues().get(0).getValue())
-			.isEqualTo(IDOL_DB_NAME);
+		assertThat(params.getValues("DREDbName"))
+		.isEqualTo(Collections.singletonList(IDOL_DB_NAME));
 	}
 	
 	private CommitterContext createIdolCommitterContext() {
