@@ -167,34 +167,7 @@ class IdolCommitterTest {
 		});
 
 		// verify
-		String path = "/DREDELETEREF";
-		mockIdol.verify(request()
-				.withPath(path), VerificationTimes.exactly(1));
-		
-				
-		HttpRequest[] request = 
-				mockIdol.retrieveRecordedRequests(
-						HttpRequest.request()
-						.withPath(path)
-						.withMethod("POST"));
-		
-		assertThat(request).hasSize(1);
-		
-		Parameters params = request[0].getQueryStringParameters();
-		assertThat(params).isNotNull();
-		assertThat(params.getEntries())
-			.isNotNull()
-			.hasSize(2);
-		
-		Parameter firstParam = params.getEntries().get(0);
-		assertThat(firstParam.getName().getValue()).isEqualTo("Docs");
-		assertThat(firstParam.getValues().get(0).getValue())
-			.isEqualTo("http://thesimpsons.com");
-		
-		Parameter secondParam = params.getEntries().get(1);
-		assertThat(secondParam.getName().getValue()).isEqualTo("DREDbName");
-		assertThat(secondParam.getValues().get(0).getValue())
-			.isEqualTo(IDOL_DB_NAME);
+		assertDeleteRequest();
 	}
 	
 	@Test
@@ -212,7 +185,7 @@ class IdolCommitterTest {
 		
 		//execute
 		try {
-			withinCommitterSessionForCustomSourceRefField(c -> {
+			withinCommitterSessionWithCustomSourceRefField(c -> {
 				c.commitBatch(docs.iterator());
 			});
 		} catch(CommitterException e) {
@@ -225,6 +198,27 @@ class IdolCommitterTest {
 			.hasMessage("Source reference field 'myRefField' has no value "
 					+ "for document: http://thesimpsons.com");
 		
+	}
+	
+	@Test
+	void testDeleteOneDoc_customSourceRefFieldWithNoValue_originalDocRefUsed() 
+			throws CommitterException {
+		//setup
+		mockIdol.when(request().withPath("/DREDELETEREF"))
+			.respond(response().withBody("INDEXID=12"));
+		
+		Collection<CommitterRequest> docs = new ArrayList<>();
+		CommitterRequest deleteReq = new DeleteRequest(
+				"http://thesimpsons.com", new Properties());
+		docs.add(deleteReq);
+		
+		//execute
+		withinCommitterSessionWithCustomSourceRefField(c -> {
+			c.commitBatch(docs.iterator());
+		});
+		
+		//verify
+		assertDeleteRequest();
 	}
 	
 	@Test
@@ -256,6 +250,36 @@ class IdolCommitterTest {
 		        .hasMessage("Configuration 'url' must be provided.");
 	}
 	
+	private void assertDeleteRequest() throws AssertionError {
+		String path = "/DREDELETEREF";
+		mockIdol.verify(request()
+				.withPath(path), VerificationTimes.exactly(1));		
+				
+		HttpRequest[] request = 
+				mockIdol.retrieveRecordedRequests(
+						HttpRequest.request()
+						.withPath(path)
+						.withMethod("POST"));
+		
+		assertThat(request).hasSize(1);
+		
+		Parameters params = request[0].getQueryStringParameters();
+		assertThat(params).isNotNull();
+		assertThat(params.getEntries())
+			.isNotNull()
+			.hasSize(2);
+		
+		Parameter firstParam = params.getEntries().get(0);
+		assertThat(firstParam.getName().getValue()).isEqualTo("Docs");
+		assertThat(firstParam.getValues().get(0).getValue())
+			.isEqualTo("http://thesimpsons.com");
+		
+		Parameter secondParam = params.getEntries().get(1);
+		assertThat(secondParam.getName().getValue()).isEqualTo("DREDbName");
+		assertThat(secondParam.getValues().get(0).getValue())
+			.isEqualTo(IDOL_DB_NAME);
+	}
+	
 	private CommitterContext createIdolCommitterContext() {
 		CommitterContext ctx = CommitterContext.builder()
                 .setWorkDir(new File(tempDir,
@@ -264,19 +288,19 @@ class IdolCommitterTest {
 		return ctx;
 	}
 	
-	//
-	private IdolCommitter createIdolCommitter() throws CommitterException {
-        CommitterContext ctx = createIdolCommitterContext();
+	private IdolCommitter createIdolCommitterNoInitContext() 
+			throws CommitterException {
         IdolCommitter committer = new IdolCommitter();
-        committer.getConfig().setUrl("http://localhost:" + mockIdol.getLocalPort());
+        committer.getConfig().setUrl(
+        		"http://localhost:" + mockIdol.getLocalPort());
         committer.getConfig().setDatabaseName(IDOL_DB_NAME);
-        committer.init(ctx);
         return committer;
     }
 
     private IdolCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
-        IdolCommitter committer = createIdolCommitter();
+        IdolCommitter committer = createIdolCommitterNoInitContext();
+        committer.init(createIdolCommitterContext());
         try {
             c.accept(committer);
         } catch (CommitterException e) {
@@ -288,21 +312,11 @@ class IdolCommitterTest {
         return committer;
     }
     
-    //
-    private IdolCommitter createIdolCommitterWithCustomSourceRefField() 
-    		throws CommitterException {
-        CommitterContext ctx = createIdolCommitterContext();
-        IdolCommitter committer = new IdolCommitter();
-        committer.getConfig().setUrl("http://localhost:" + mockIdol.getLocalPort());
-        committer.getConfig().setDatabaseName(IDOL_DB_NAME);
-        committer.getConfig().setSourceReferenceField("myRefField");
-        committer.init(ctx);
-        return committer;
-    }
-    
-    private IdolCommitter withinCommitterSessionForCustomSourceRefField(
+    private IdolCommitter withinCommitterSessionWithCustomSourceRefField(
     		CommitterConsumer c) throws CommitterException {
-        IdolCommitter committer = createIdolCommitterWithCustomSourceRefField();
+        IdolCommitter committer = createIdolCommitterNoInitContext();
+        committer.getConfig().setSourceReferenceField("myRefField");
+        committer.init(createIdolCommitterContext());
         try {
             c.accept(committer);
         } catch (CommitterException e) {
@@ -311,24 +325,14 @@ class IdolCommitterTest {
             throw new CommitterException(e);
         }
         committer.close();
-        return committer;
-    }
-    
-    //
-    private IdolCommitter createIdolCommitterWithEmptyUrl() 
-    		throws CommitterException {
-        CommitterContext ctx = createIdolCommitterContext();
-        IdolCommitter committer = new IdolCommitter();
-        committer.getConfig().setUrl("");
-        committer.getConfig().setDatabaseName(IDOL_DB_NAME);
-        committer.getConfig().setSourceReferenceField("myRefField");
-        committer.init(ctx);
         return committer;
     }
     
     private IdolCommitter withinCommitterSessionWithEmptyIdolUrl(
     		CommitterConsumer c) throws CommitterException {
-        IdolCommitter committer = createIdolCommitterWithEmptyUrl();
+        IdolCommitter committer = createIdolCommitterNoInitContext();
+        committer.getConfig().setUrl("");
+        committer.init(createIdolCommitterContext());
         try {
             c.accept(committer);
         } catch (CommitterException e) {
