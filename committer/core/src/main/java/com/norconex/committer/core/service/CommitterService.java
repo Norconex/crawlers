@@ -90,7 +90,7 @@ public class CommitterService<T> {
             var cnt = 1;
             while (uniqueDirNames.contains(dirName)) {
                 cnt++;
-                dirName = dirName.replaceFirst("(.*)_\\d+$", "$1") + "_" + cnt;
+                dirName = dirName.replaceFirst("^(.*)_\\d+$", "$1") + "_" + cnt;
             }
             uniqueDirNames.add(dirName);
             var ctx = baseContext.withWorkdir(
