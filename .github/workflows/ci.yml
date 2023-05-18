@@ -96,10 +96,10 @@ jobs:
         if: steps.changed-modules.outputs.any_changed == 'true'
         run: |
           dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
-          if [ -z "$changedDirs" ]; then
+          if [ -z "$dirs" ]; then
             dirs=$(cat ".github/outputs/all-module-dirs.txt");
           fi
-          for dir in $changedDirs; do
+          for dir in $dirs; do
               $(cd ${dir} && mvn sonar:sonar)
           done
         env:
