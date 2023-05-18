@@ -167,7 +167,7 @@ class IdolCommitterTest {
 		});
 
 		// verify
-		assertDeleteRequest();
+		assertIdolDeleteRequest();
 	}
 	
 	@Test
@@ -218,7 +218,7 @@ class IdolCommitterTest {
 		});
 		
 		//verify
-		assertDeleteRequest();
+		assertIdolDeleteRequest();
 	}
 	
 	@Test
@@ -250,7 +250,73 @@ class IdolCommitterTest {
 		        .hasMessage("Configuration 'url' must be provided.");
 	}
 	
-	private void assertDeleteRequest() throws AssertionError {
+	@Test
+	void testAddOneDoc_cfs_success() throws CommitterException {
+		// setup
+		mockIdol.when(
+					request()
+						.withPath("/")
+						.withQueryStringParameter("action", "ingest"))
+				.respond(response().withBody("""
+				        <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
+							<action>INGEST</action>
+							<response>SUCCESS</response>
+							<responsedata>
+								<token>MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==</token>
+							</responsedata>
+						</autnresponse>
+				        """));
+
+		Collection<CommitterRequest> docs = new ArrayList<>();
+
+		Properties metadata = new Properties();
+		metadata.add("homer", "simpson");
+		CommitterRequest addReq = new UpsertRequest(
+				"http://thesimpsons.com",
+		        metadata, 
+		        null);
+
+		docs.add(addReq);
+
+		// execute
+		withinCommitterSessionCFS(c -> {
+			c.commitBatch(docs.iterator());
+		});
+
+		// verify
+		String path = "/";
+		mockIdol.verify(request()
+				.withPath(path)
+				.withQueryStringParameter("action", "ingest"), 
+				VerificationTimes.exactly(1));
+		
+		HttpRequest[] request = 
+				mockIdol.retrieveRecordedRequests(
+						HttpRequest.request()
+						.withPath(path)
+						.withMethod("POST"));
+		
+		assertThat(request).hasSize(1);
+		
+		Parameters params = request[0].getQueryStringParameters();
+		assertThat(params).isNotNull();
+		assertThat(params.getEntries())
+			.isNotNull()
+			.hasSize(2);
+		
+		Parameter actionParam = params.getEntries().get(0);
+		assertThat(actionParam.getName().getValue()).isEqualTo("action");
+		assertThat(actionParam.getValues().get(0).getValue())
+			.isEqualTo("ingest");
+		
+		Parameter addsParam = params.getEntries().get(1);
+		assertThat(addsParam.getName().getValue()).isEqualTo("adds");
+		assertThat(addsParam.getValues().get(0).getValue())
+			.isEqualTo("""			        
+			        <adds><add><document><reference>http://thesimpsons.com</reference><metadata name="homer" value="simpson"></metadata><metadata name="DREDBNAME" value="test"></metadata></document><source content=""></source></add></adds>""");
+	}
+	
+	private void assertIdolDeleteRequest() {
 		String path = "/DREDELETEREF";
 		mockIdol.verify(request()
 				.withPath(path), VerificationTimes.exactly(1));		
@@ -332,6 +398,22 @@ class IdolCommitterTest {
     		CommitterConsumer c) throws CommitterException {
         IdolCommitter committer = createIdolCommitterNoInitContext();
         committer.getConfig().setUrl("");
+        committer.init(createIdolCommitterContext());
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }
+    
+    private IdolCommitter withinCommitterSessionCFS(CommitterConsumer c)
+            throws CommitterException {
+        IdolCommitter committer = createIdolCommitterNoInitContext();
+        committer.getConfig().setCfs(true);
         committer.init(createIdolCommitterContext());
         try {
             c.accept(committer);
