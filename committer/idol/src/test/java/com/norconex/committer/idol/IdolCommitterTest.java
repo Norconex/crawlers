@@ -34,8 +34,6 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.Parameter;
 import org.mockserver.model.Parameters;
 import org.mockserver.verify.VerificationTimes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
@@ -53,6 +51,9 @@ import com.norconex.commons.lang.map.Properties;
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
 class IdolCommitterTest {
+	
+	private final String IDOL_DB_NAME = "test";
+	
 	@TempDir
     static File tempDir;
 	
@@ -94,7 +95,7 @@ class IdolCommitterTest {
 
 		// verify
 		assertThat(expectedException).isNotNull()
-		        .isOfAnyClassIn(CommitterException.class)
+		        .isInstanceOf(CommitterException.class)
 		        .hasMessageStartingWith("Unexpected HTTP response: ");
 	}
 	
@@ -188,17 +189,87 @@ class IdolCommitterTest {
 		Parameter firstParam = params.getEntries().get(0);
 		assertThat(firstParam.getName().getValue()).isEqualTo("Docs");
 		assertThat(firstParam.getValues().get(0).getValue())
-			.isEqualTo("http://thesimpsons.com");		
+			.isEqualTo("http://thesimpsons.com");
+		
+		Parameter secondParam = params.getEntries().get(1);
+		assertThat(secondParam.getName().getValue()).isEqualTo("DREDbName");
+		assertThat(secondParam.getValues().get(0).getValue())
+			.isEqualTo(IDOL_DB_NAME);
 	}
 	
-	private IdolCommitter createIdolCommitter() throws CommitterException {
-        CommitterContext ctx = CommitterContext.builder()
+	@Test
+	void testAddOneDoc_customSourceRefFieldWithNoValue_ExceptionThrown() {
+		//setup
+		mockIdol.when(request().withPath("/DREADDDATA"))
+			.respond(response().withBody("INDEXID=12"));
+		
+		Exception expectedException = null;
+		
+		Collection<CommitterRequest> docs = new ArrayList<>();
+		CommitterRequest addReq = new UpsertRequest(
+				"http://thesimpsons.com", null, null);
+		docs.add(addReq);
+		
+		//execute
+		try {
+			withinCommitterSessionForCustomSourceRefField(c -> {
+				c.commitBatch(docs.iterator());
+			});
+		} catch(CommitterException e) {
+			expectedException = e;
+		}
+		
+		//verify
+		assertThat(expectedException)
+			.isInstanceOf(CommitterException.class)
+			.hasMessage("Source reference field 'myRefField' has no value "
+					+ "for document: http://thesimpsons.com");
+		
+	}
+	
+	@Test
+	void testAddOneDoc_emptyIdolUrl_throwsException() 
+			throws CommitterException {
+		// setup
+		Exception expectedException = null;
+
+		mockIdol.when(request().withPath("/DREADDDATA"))
+		.respond(response().withBody("INDEXID=132"));
+
+		Collection<CommitterRequest> docs = new ArrayList<>();
+		CommitterRequest addReq = new UpsertRequest(
+				"http://thesimpsons.com", null, null);
+		docs.add(addReq);
+
+		// execute
+		try {
+			withinCommitterSessionWithEmptyIdolUrl(c -> {
+				c.commitBatch(docs.iterator());
+			});
+		} catch (IllegalArgumentException e) {
+			expectedException = e;
+		}
+
+		// verify
+		assertThat(expectedException).isNotNull()
+		        .isOfAnyClassIn(IllegalArgumentException.class)
+		        .hasMessage("Configuration 'url' must be provided.");
+	}
+	
+	private CommitterContext createIdolCommitterContext() {
+		CommitterContext ctx = CommitterContext.builder()
                 .setWorkDir(new File(tempDir,
                         "" + TimeIdGenerator.next()).toPath())
                 .build();
+		return ctx;
+	}
+	
+	//
+	private IdolCommitter createIdolCommitter() throws CommitterException {
+        CommitterContext ctx = createIdolCommitterContext();
         IdolCommitter committer = new IdolCommitter();
         committer.getConfig().setUrl("http://localhost:" + mockIdol.getLocalPort());
-        committer.getConfig().setDatabaseName("test");
+        committer.getConfig().setDatabaseName(IDOL_DB_NAME);
         committer.init(ctx);
         return committer;
     }
@@ -206,6 +277,58 @@ class IdolCommitterTest {
     private IdolCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
         IdolCommitter committer = createIdolCommitter();
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }
+    
+    //
+    private IdolCommitter createIdolCommitterWithCustomSourceRefField() 
+    		throws CommitterException {
+        CommitterContext ctx = createIdolCommitterContext();
+        IdolCommitter committer = new IdolCommitter();
+        committer.getConfig().setUrl("http://localhost:" + mockIdol.getLocalPort());
+        committer.getConfig().setDatabaseName(IDOL_DB_NAME);
+        committer.getConfig().setSourceReferenceField("myRefField");
+        committer.init(ctx);
+        return committer;
+    }
+    
+    private IdolCommitter withinCommitterSessionForCustomSourceRefField(
+    		CommitterConsumer c) throws CommitterException {
+        IdolCommitter committer = createIdolCommitterWithCustomSourceRefField();
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }
+    
+    //
+    private IdolCommitter createIdolCommitterWithEmptyUrl() 
+    		throws CommitterException {
+        CommitterContext ctx = createIdolCommitterContext();
+        IdolCommitter committer = new IdolCommitter();
+        committer.getConfig().setUrl("");
+        committer.getConfig().setDatabaseName(IDOL_DB_NAME);
+        committer.getConfig().setSourceReferenceField("myRefField");
+        committer.init(ctx);
+        return committer;
+    }
+    
+    private IdolCommitter withinCommitterSessionWithEmptyIdolUrl(
+    		CommitterConsumer c) throws CommitterException {
+        IdolCommitter committer = createIdolCommitterWithEmptyUrl();
         try {
             c.accept(committer);
         } catch (CommitterException e) {
