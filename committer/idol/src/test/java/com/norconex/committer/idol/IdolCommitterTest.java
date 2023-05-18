@@ -252,21 +252,13 @@ class IdolCommitterTest {
 	}
 	
 	@Test
-	void testAddOneDoc_cfs_success() throws CommitterException {
+	void testAddOneDocViaCFS_success() throws CommitterException {
 		// setup
 		mockIdol.when(
 					request()
 						.withPath("/")
 						.withQueryStringParameter("action", "ingest"))
-				.respond(response().withBody("""
-				        <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
-							<action>INGEST</action>
-							<response>SUCCESS</response>
-							<responsedata>
-								<token>MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==</token>
-							</responsedata>
-						</autnresponse>
-				        """));
+				.respond(response().withBody(ingestActionResponse()));
 
 		Collection<CommitterRequest> docs = new ArrayList<>();
 
@@ -311,6 +303,208 @@ class IdolCommitterTest {
 		assertThat(params.getValues("adds"))
 			.isEqualTo(Collections.singletonList("""			        
 			        <adds><add><document><reference>http://thesimpsons.com</reference><metadata name="homer" value="simpson"></metadata><metadata name="DREDBNAME" value="test"></metadata></document><source content=""></source></add></adds>"""));
+	}
+	
+	@Test
+	void testAddOneDocViaCFS_customSourceRefFieldWithNoValue_ExceptionThrown() {
+		//setup
+		mockIdol.when(
+				request()
+					.withPath("/")
+					.withQueryStringParameter("action", "ingest"))
+			.respond(response().withBody("""
+			        <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
+						<action>INGEST</action>
+						<response>SUCCESS</response>
+						<responsedata>
+							<token>MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==</token>
+						</responsedata>
+					</autnresponse>
+			        """));
+		
+		Exception expectedException = null;
+		
+		Collection<CommitterRequest> docs = new ArrayList<>();
+		CommitterRequest addReq = new UpsertRequest(
+				"http://thesimpsons.com", null, null);
+		docs.add(addReq);
+		
+		//execute
+		try {
+			withinCommitterSessionCFSWithCustomSourceRefField(c -> {
+				c.commitBatch(docs.iterator());
+			});
+		} catch(CommitterException e) {
+			expectedException = e;
+		}
+		
+		//verify
+		assertThat(expectedException)
+			.isInstanceOf(CommitterException.class)
+			.hasMessage("Source reference field 'myRefField' has no value "
+					+ "for document: http://thesimpsons.com");
+		
+	}
+	
+	@Test
+	void testDeleteOneDocViaCFS_success() throws CommitterException {
+		// setup
+		mockIdol.when(
+				request()
+					.withPath("/")
+					.withQueryStringParameter("action", "ingest"))
+				.respond(response().withBody(ingestActionResponse()));
+
+		Collection<CommitterRequest> docs = new ArrayList<>();
+
+		CommitterRequest deleteReq = new DeleteRequest(
+				"http://thesimpsons.com",
+		        new Properties());
+
+		docs.add(deleteReq);
+
+		// execute
+		withinCommitterSessionCFS(c -> {
+			c.commitBatch(docs.iterator());
+		});
+
+		// verify
+		String path = "/";
+		mockIdol.verify(request()
+				.withPath(path)
+				.withQueryStringParameter("action", "ingest"), 
+				VerificationTimes.exactly(1));
+		
+		HttpRequest[] request = 
+				mockIdol.retrieveRecordedRequests(
+						HttpRequest.request()
+						.withPath(path)
+						.withMethod("POST"));
+		
+		assertThat(request).hasSize(1);
+		
+		Parameters params = request[0].getQueryStringParameters();
+		assertThat(params).isNotNull();
+		assertThat(params.getEntries())
+			.isNotNull()
+			.hasSize(3);
+		
+		assertThat(params.getValues("action"))
+			.isEqualTo(Collections.singletonList("ingest"));
+		assertThat(params.getValues("removes"))
+			.isEqualTo(Collections.singletonList("http://thesimpsons.com"));
+		assertThat(params.getValues("DREDbName"))
+			.isEqualTo(Collections.singletonList("test"));
+	}
+	
+	@Test
+	void testDeleteMultipleDocsViaCFS_success() throws CommitterException {
+		// setup
+		mockIdol.when(
+				request()
+					.withPath("/")
+					.withQueryStringParameter("action", "ingest"))
+				.respond(response().withBody(ingestActionResponse()));
+
+		Collection<CommitterRequest> docs = new ArrayList<>();
+
+		CommitterRequest deleteReqOne = new DeleteRequest(
+				"http://thesimpsons.com",
+		        new Properties());
+		CommitterRequest deleteReqTwo= new DeleteRequest(
+				"http://familyguy.com",
+		        new Properties());
+
+		docs.add(deleteReqOne);
+		docs.add(deleteReqTwo);
+
+		// execute
+		withinCommitterSessionCFS(c -> {
+			c.commitBatch(docs.iterator());
+		});
+
+		// verify
+		String path = "/";
+		mockIdol.verify(request()
+				.withPath(path)
+				.withQueryStringParameter("action", "ingest"), 
+				VerificationTimes.exactly(1));
+		
+		HttpRequest[] request = 
+				mockIdol.retrieveRecordedRequests(
+						HttpRequest.request()
+						.withPath(path)
+						.withMethod("POST"));
+		
+		assertThat(request).hasSize(1);
+		
+		Parameters params = request[0].getQueryStringParameters();
+		assertThat(params).isNotNull();
+		assertThat(params.getEntries())
+			.isNotNull()
+			.hasSize(3);
+		
+		assertThat(params.getValues("action"))
+			.isEqualTo(Collections.singletonList("ingest"));
+		assertThat(params.getValues("removes"))
+			.isEqualTo(Collections.singletonList(
+					"http://thesimpsons.com,http://familyguy.com"));
+		assertThat(params.getValues("DREDbName"))
+			.isEqualTo(Collections.singletonList("test"));
+	}
+	
+	@Test
+	void testDeleteOneDocViaCFS_customSourceRefFieldWithNoValue_originalDocRefUsed() 
+			throws CommitterException {
+		// setup		
+		mockIdol.when(
+				request()
+					.withPath("/")
+					.withQueryStringParameter("action", "ingest"))
+				.respond(response().withBody(ingestActionResponse()));
+
+		Collection<CommitterRequest> docs = new ArrayList<>();
+
+		CommitterRequest deleteReq = new DeleteRequest(
+				"http://thesimpsons.com",
+		        new Properties());
+
+		docs.add(deleteReq);
+
+		// execute
+		withinCommitterSessionCFSWithCustomSourceRefField(c -> {
+			c.commitBatch(docs.iterator());
+		});
+	
+		// verify
+		String path = "/";
+		mockIdol.verify(
+				request()
+					.withPath(path)
+					.withQueryStringParameter("action", "ingest"), 
+				VerificationTimes.exactly(1));		
+				
+		HttpRequest[] request = 
+				mockIdol.retrieveRecordedRequests(
+						HttpRequest.request()
+						.withPath(path)
+						.withMethod("POST"));
+		
+		assertThat(request).hasSize(1);
+		
+		Parameters params = request[0].getQueryStringParameters();
+		assertThat(params).isNotNull();
+		assertThat(params.getEntries())
+			.isNotNull()
+			.hasSize(3);
+		
+		assertThat(params.getValues("action"))
+			.isEqualTo(Collections.singletonList("ingest"));
+		assertThat(params.getValues("removes"))
+			.isEqualTo(Collections.singletonList(
+					"http://thesimpsons.com"));
+		assertThat(params.getValues("DREDbName"))
+			.isEqualTo(Collections.singletonList("test"));
 	}
 	
 	private void assertIdolDeleteRequest() {
@@ -419,8 +613,38 @@ class IdolCommitterTest {
         return committer;
     }
     
+    private IdolCommitter withinCommitterSessionCFSWithCustomSourceRefField(
+    		CommitterConsumer c)
+            throws CommitterException {
+        IdolCommitter committer = createIdolCommitterNoInitContext();
+        committer.getConfig().setCfs(true);
+        committer.getConfig().setSourceReferenceField("myRefField");
+        committer.init(createIdolCommitterContext());
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }
+    
     @FunctionalInterface
     private interface CommitterConsumer {
         void accept(IdolCommitter c) throws Exception;
+    }
+    
+    private String ingestActionResponse() {
+    	return """
+    	        <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
+					<action>INGEST</action>
+					<response>SUCCESS</response>
+					<responsedata>
+						<token>MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==</token>
+					</responsedata>
+				</autnresponse>
+    	        """;
     }
 }
