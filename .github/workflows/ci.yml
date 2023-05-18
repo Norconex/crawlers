@@ -85,7 +85,7 @@ jobs:
         if: steps.changed-modules.outputs.any_changed == 'true'
         run: |
           projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
-          if [! -z "$projectsArg" ]; then
+          if [ ! -z "$projectsArg" ]; then
              projectsArg="--projects $projectsArg"
           fi
           mvn clean install ${projectsArg} -amd --batch-mode --threads=2
