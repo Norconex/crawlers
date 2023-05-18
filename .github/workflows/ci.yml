@@ -70,8 +70,9 @@ jobs:
           files_ignore: |
             ./README.md
             ./TODO.txt
-            ./V4_MIGRATION
+            ./V4_MIGRATION.md
             **/README.md
+            **/TODO.txt
 
       - name: Get changed modules
         id: changed-modules
