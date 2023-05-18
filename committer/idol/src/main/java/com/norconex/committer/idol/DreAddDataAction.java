@@ -130,7 +130,7 @@ class DreAddDataAction implements IIdolIndexAction {
         }
         w.append("\n#DRECONTENT\n");
         w.append(content);
-        w.append("\n#DREENDDOC ");
+        w.append("\n#DREENDDOC");
 
         w.append("\n");
     }

@@ -30,12 +30,17 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
+import org.mockserver.model.HttpRequest;
+import org.mockserver.model.Parameter;
+import org.mockserver.model.Parameters;
+import org.mockserver.verify.VerificationTimes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
+import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.map.Properties;
@@ -48,10 +53,6 @@ import com.norconex.commons.lang.map.Properties;
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
 class IdolCommitterTest {
-
-	private static final Logger LOG = LoggerFactory
-	        .getLogger(IdolCommitterTest.class);
-
 	@TempDir
     static File tempDir;
 	
@@ -68,13 +69,12 @@ class IdolCommitterTest {
 	}
 
 	@Test
-	void testAddOneDoc_IdolReturnsInvalidResponse_exceptionThrown() {
+	void testAddOneDoc_IdolReturnsUnexpectedResponse_exceptionThrown() {
 		// setup
 		Exception expectedException = null;
 
-		mockIdol.when(request()).respond(response().withBody("""
-		        <html><body>laksdj</body></html>
-		        """));
+		mockIdol.when(request().withPath("/DREADDDATA"))
+			.respond(response().withBody("NOOP"));
 
 		Collection<CommitterRequest> docs = new ArrayList<>();
 
@@ -96,6 +96,99 @@ class IdolCommitterTest {
 		assertThat(expectedException).isNotNull()
 		        .isOfAnyClassIn(CommitterException.class)
 		        .hasMessageStartingWith("Unexpected HTTP response: ");
+	}
+	
+	@Test
+	void testAddOneDoc_success() throws CommitterException {
+		// setup
+		mockIdol.when(request().withPath("/DREADDDATA"))
+				.respond(response().withBody("INDEXID=1"));
+
+		Collection<CommitterRequest> docs = new ArrayList<>();
+
+		Properties metadata = new Properties();
+		metadata.add("homer", "simpson");
+		CommitterRequest addReq = new UpsertRequest(
+				"http://thesimpsons.com",
+		        metadata, 
+		        null);
+
+		docs.add(addReq);
+
+		// execute
+		withinCommitterSession(c -> {
+			c.commitBatch(docs.iterator());
+		});
+
+		// verify
+		String path = "/DREADDDATA";
+		mockIdol.verify(request()
+				.withPath(path), VerificationTimes.exactly(1));
+		
+		HttpRequest[] request = 
+				mockIdol.retrieveRecordedRequests(
+						HttpRequest.request()
+						.withPath(path)
+						.withMethod("POST"));
+		
+		assertThat(request).hasSize(1);
+		assertThat(request[0].getBodyAsString()).isEqualTo("""
+
+		        #DREREFERENCE http://thesimpsons.com
+		        #DREFIELD homer="simpson"
+		        #DREDBNAME test
+		        #DRECONTENT
+
+		        #DREENDDOC
+
+		        #DREENDDATANOOP
+
+		        """);
+	}
+	
+	@Test
+	void testDeleteOneDoc_success() throws CommitterException {
+		// setup
+		mockIdol.when(request().withPath("/DREDELETEREF"))
+				.respond(response().withBody("INDEXID=12"));
+
+		Collection<CommitterRequest> docs = new ArrayList<>();
+
+		CommitterRequest deleteReq = new DeleteRequest(
+				"http://thesimpsons.com",
+		        new Properties());
+
+		docs.add(deleteReq);
+
+		// execute
+		withinCommitterSession(c -> {
+			c.commitBatch(docs.iterator());
+		});
+
+		// verify
+		String path = "/DREDELETEREF";
+		mockIdol.verify(request()
+				.withPath(path), VerificationTimes.exactly(1));
+		
+				
+		HttpRequest[] request = 
+				mockIdol.retrieveRecordedRequests(
+						HttpRequest.request()
+						.withPath(path)
+						.withMethod("POST"));
+		
+		assertThat(request).hasSize(1);
+		
+		Parameters params = request[0].getQueryStringParameters();
+		assertThat(params).isNotNull();
+		assertThat(params.getEntries())
+			.isNotNull()
+			.hasSize(2);
+		
+		Parameter firstParam = params.getEntries().get(0);
+		assertThat(firstParam.getName().getValue()).isEqualTo("Docs");
+		assertThat(firstParam.getValues().get(0).getValue())
+			.isEqualTo("http://thesimpsons.com");		
 	}
 	
 	private IdolCommitter createIdolCommitter() throws CommitterException {
