@@ -122,7 +122,7 @@ jobs:
         if: >
           github.repository == 'Norconex/collector-http' &&
           github.event_name == 'push' &&
-          steps.changed-modules.outputs.any_changed == 'true'
+          steps.changed-files.outputs.any_changed == 'true'
         run: |
           mvn jar:jar deploy:deploy --threads=2
         env:
