@@ -87,11 +87,14 @@ jobs:
       - name: Build
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
-          mvn_cmd=install
+          mvn_cmd="install""
+          projectsArg=""
+          if [ -f ".github/outputs/changed-module-artifacts.txt" ]; then
+              projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
+          fi
           if [ ! -z "$projectsArg" ]; then
              projectsArg="--projects $projectsArg"
-             mvn_cmd=package
+             mvn_cmd="package""
           fi
           mvn clean ${mvn_cmd} ${projectsArg} -amd --batch-mode --threads=2
         env:
