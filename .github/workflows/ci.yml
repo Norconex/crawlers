@@ -1,3 +1,19 @@
+#-------------------------------------------------------------------------------
+# Copyright 2013-2017 Norconex Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+
 name: Maven Java CI 
 
 on:
@@ -16,7 +32,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-      
+
     steps:
 
       - name: Source checkout
@@ -38,28 +54,79 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Get directories with changes
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v35.9.2
         with:
           dir_names: true
           dir_names_max_depth: 2
           write_output_files: true
+          files_ignore: |
+            ./README.md
+            ./TODO.txt
+            ./V4_MIGRATION.md
+            **/README.md
+            **/TODO.txt
 
-      - name: Maven build
-        # Uncomment always() if running into issues using act on a local
-        # environment, until this is fixed:
-        # https://github.com/tj-actions/changed-files/issues/1046 
-        #if: ${{ always() }}
-#        working-directory: ./app
+      - name: Get changed modules (PR only)
+        id: changed-modules
+        if: >
+          github.event_name == 'pull_request' &&
+          steps.changed-files.outputs.any_changed == 'true'
         run: |
-          mvn_cmd=$(bash .github/workflows/scripts/mvn-build.sh ${{ github.event_name }})
-          echo "Maven build command: $mvn_cmd";
-          eval $mvn_cmd;
+          bash .github/workflows/scripts/changed-modules.sh
+          echo "any_changed=$(cat .github/outputs/any-module-changed.txt)" >> $GITHUB_OUTPUT
+
+      - name: Build
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          mvn_cmd="install"
+          projectsArg=""
+          if [ -f .github/outputs/changed-module-artifacts.txt ]; then
+              projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
+          fi
+          if [ ! -z "$projectsArg" ]; then
+             projectsArg="--projects $projectsArg"
+             mvn_cmd="package"
+          fi
+          mvn clean ${mvn_cmd} ${projectsArg} -amd --batch-mode --threads=2
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+      - name: Analyze
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          dirs=""
+          if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
+              dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
+          fi
+          if [ -z "$dirs" ]; then
+              dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
+          fi
+          for dir in $dirs; do
+              echo "Analyzing ${dir}..."
+              (cd ${dir}; mvn sonar:sonar)
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Deploy
+        if: >
+          github.repository == 'Norconex/collector-http' &&
+          github.event_name == 'push' &&
+          steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          mvn jar:jar deploy:deploy --threads=2
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          
+

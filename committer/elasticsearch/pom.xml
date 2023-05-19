@@ -26,7 +26,8 @@
     <name>Norconex Committer Elasticsearch</name>
 
     <properties>
-        <elasticsearch.version>8.7.1</elasticsearch.version>
+      <elasticsearch.version>8.7.1</elasticsearch.version>
+      <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>        
     </properties>
     <inceptionYear>2013</inceptionYear>
 

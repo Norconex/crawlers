@@ -27,6 +27,8 @@
   <name>Norconex Web Crawler</name>
 
   <properties>
+    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
+      
     <mockserver.version>5.15.0</mockserver.version>      
       
     <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          

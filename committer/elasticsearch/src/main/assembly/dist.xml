@@ -29,7 +29,7 @@
         <include>*.txt</include>
       </includes>
       <outputDirectory>./</outputDirectory>
-    </fileSet>
+    </fileSet> 
     <fileSet>
       <directory>${basedir}</directory>
       <includes>
