@@ -1,4 +1,3 @@
-name: Maven Java CI 
 #-------------------------------------------------------------------------------
 # Copyright 2013-2017 Norconex Inc.
 #
@@ -15,16 +14,28 @@ name: Maven Java CI
 # limitations under the License.
 #-------------------------------------------------------------------------------
 
+name: Prepare build environment
+
 on:
-  push:
-    branches:
-      - upcoming-v4
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_call:
+#    inputs:
+#      config-path:
+#        required: true
+#        type: string
+#    secrets:
+#      token:
+#        required: true
 
 jobs:
-
-  build:
+#  triage:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/labeler@v4
+#      with:
+#        repo-token: ${{ secrets.token }}
+#        configuration-path: ${{ inputs.config-path }}
+        
+  prepare:
 
     runs-on: ubuntu-latest
 
@@ -73,48 +84,3 @@ jobs:
             ./V4_MIGRATION.md
             **/README.md
             **/TODO.txt
-
-      - name: Get changed modules
-        id: changed-modules
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: |
-          bash .github/workflows/scripts/changed-modules.sh
-          echo "any_changed=$(cat .github/outputs/any-module-changed.txt)" >> $GITHUB_OUTPUT
-
-      - name: Build
-        if: steps.changed-modules.outputs.any_changed == 'true'
-        run: |
-          projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
-          if [ ! -z "$projectsArg" ]; then
-             projectsArg="--projects $projectsArg"
-          fi
-          mvn clean install ${projectsArg} -amd --batch-mode --threads=2
-        env:
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-
-      - name: Analyze
-        if: steps.changed-modules.outputs.any_changed == 'true'
-        run: |
-          dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
-          if [ -z "$dirs" ]; then
-            dirs=$(cat ".github/outputs/all-module-dirs.txt");
-          fi
-          for dir in $dirs; do
-              $(cd ${dir} && mvn sonar:sonar)
-          done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Deploy
-        if: steps.changed-modules.outputs.any_changed == 'true' && github.event_name == 'push'
-        run: |
-          projectsArg=$(cat ".github/outputs/changed-module-artifacts-deps.txt");
-          if [! -z "$projectsArg" ]; then
-             projectsArg="--projects $projectsArg"
-          fi
-          mvn jar:jar deploy:deploy $projectArg --threads=2
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
