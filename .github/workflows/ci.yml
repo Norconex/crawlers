@@ -14,28 +14,18 @@
 # limitations under the License.
 #-------------------------------------------------------------------------------
 
-name: Prepare build environment
+name: Maven Java CI 
 
 on:
-  workflow_call:
-#    inputs:
-#      config-path:
-#        required: true
-#        type: string
-#    secrets:
-#      token:
-#        required: true
+  push:
+    branches:
+      - upcoming-v4
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-#  triage:
-#    runs-on: ubuntu-latest
-#    steps:
-#    - uses: actions/labeler@v4
-#      with:
-#        repo-token: ${{ secrets.token }}
-#        configuration-path: ${{ inputs.config-path }}
-        
-  prepare:
+
+  build:
 
     runs-on: ubuntu-latest
 
@@ -84,3 +74,52 @@ jobs:
             ./V4_MIGRATION.md
             **/README.md
             **/TODO.txt
+
+      - name: Get changed modules (PR only)
+        id: changed-modules
+        if: >
+          github.event_name == 'pull_request' &&
+          steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          bash .github/workflows/scripts/changed-modules.sh
+          echo "any_changed=$(cat .github/outputs/any-module-changed.txt)" >> $GITHUB_OUTPUT
+
+      - name: Build
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
+          mvn_cmd=install
+          if [ ! -z "$projectsArg" ]; then
+             projectsArg="--projects $projectsArg"
+             mvn_cmd=package
+          fi
+          mvn clean ${mvn_cmd} ${projectsArg} -amd --batch-mode --threads=2
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+      - name: Analyze
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
+          if [ -z "$dirs" ]; then
+            dirs=$(bash .github/workflows/scripts/all_project_dirs.sh);
+          fi
+          for dir in $dirs; do
+              $(cd ${dir} && mvn sonar:sonar)
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Deploy
+        if: >
+          github.repository == 'Norconex/collector-http' &&
+          github.event_name == 'push' &&
+          steps.changed-modules.outputs.any_changed == 'true'
+        run: |
+          mvn jar:jar deploy:deploy --threads=2
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
