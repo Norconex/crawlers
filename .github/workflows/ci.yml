@@ -103,7 +103,10 @@ jobs:
       - name: Analyze
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
+          dirs=""
+          if [ -f .github/outputs/changed-module-dirs-deps.txt ]; then
+              dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
+          fi
           if [ -z "$dirs" ]; then
             dirs=$(bash .github/workflows/scripts/all_project_dirs.sh);
           fi
