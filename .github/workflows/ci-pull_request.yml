@@ -29,7 +29,8 @@ jobs:
     uses: ./.github/workflows/_prepare-build.yml
 
   build:
-
+  
+    runs-on: ubuntu-latest
     needs: prepare-build
     if: needs.prepare-build.steps.changed-files.outputs.any_changed == 'true'
 
