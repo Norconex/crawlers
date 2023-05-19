@@ -87,7 +87,7 @@ jobs:
       - name: Build
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          mvn_cmd="install""
+          mvn_cmd="install"
           projectsArg=""
           if [ -f .github/outputs/changed-module-artifacts.txt ]; then
               projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
