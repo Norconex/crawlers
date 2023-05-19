@@ -25,7 +25,7 @@ Folder             artifactId
 crawler/
   core/            nx-crawler-core
   web/             nx-crawler-web
-  filesystem/      nx-crawler-filesystem
+  fs/              nx-crawler-fs
 importer/          nx-importer
 committer/
   core/            nx-committer-core
