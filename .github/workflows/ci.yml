@@ -94,7 +94,7 @@ jobs:
           fi
           if [ ! -z "$projectsArg" ]; then
              projectsArg="--projects $projectsArg"
-             mvn_cmd="package""
+             mvn_cmd="package"
           fi
           mvn clean ${mvn_cmd} ${projectsArg} -amd --batch-mode --threads=2
         env:
