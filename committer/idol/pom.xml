@@ -20,6 +20,10 @@
     </description>
 
     <inceptionYear>2013</inceptionYear>
+    
+    <properties> 
+        <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+    </properties>
 
     <dependencies>
         <dependency>
