@@ -26,7 +26,7 @@ jobs:
 
   prepare-build:
   
-    uses: ./.github/workflows/shared/prepare-build.yml
+    uses: ./.github/workflows/_prepare-build.yml
 
   build:
 
