@@ -19,8 +19,8 @@
 # separated by spaces
 
 all_project_dirs=""
-for pom in $(find . -name "pom.xml"); do
-    dir=$(echo $pom | sed -n 's|^\./\(.*\)/pom.xml$|\1|gp');
+for pomFile in $(find . -name "pom.xml" -not -path "*/target/*"); do
+    dir=$(echo $pomFile | sed -n 's|^\./\(.*\)/pom.xml$|\1|gp');
     all_project_dirs="${all_project_dirs} ${dir}";
 done
 

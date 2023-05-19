@@ -104,14 +104,15 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           dirs=""
-          if [ -f .github/outputs/changed-module-dirs-deps.txt ]; then
+          if [ -f ".github/outputs/changed-module-dirs-deps.txt" ]; then
               dirs=$(cat ".github/outputs/changed-module-dirs-deps.txt");
           fi
           if [ -z "$dirs" ]; then
-            dirs=$(bash .github/workflows/scripts/all_project_dirs.sh);
+              dirs=$(bash ".github/workflows/scripts/all_project_dirs.sh");
           fi
           for dir in $dirs; do
-              $(cd ${dir} && mvn sonar:sonar)
+              echo "Analyzing ${dir}..."
+              (cd ${dir}; mvn sonar:sonar)
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
