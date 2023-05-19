@@ -89,7 +89,7 @@ jobs:
         run: |
           mvn_cmd="install""
           projectsArg=""
-          if [ -f ".github/outputs/changed-module-artifacts.txt" ]; then
+          if [ -f .github/outputs/changed-module-artifacts.txt ]; then
               projectsArg=$(cat ".github/outputs/changed-module-artifacts.txt");
           fi
           if [ ! -z "$projectsArg" ]; then

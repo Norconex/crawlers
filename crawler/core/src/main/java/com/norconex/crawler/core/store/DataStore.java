@@ -18,7 +18,7 @@ import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
-//  Stores anything for fast retrieval.
+//   Stores anything for fast retrieval.
 public interface DataStore<T> extends Closeable {
 
     String getName();
