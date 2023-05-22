@@ -149,7 +149,7 @@ public class TitleGeneratorTagger
     public static final int DEFAULT_MAX_READ_SIZE = 10000;
 
     private static final Pattern PATTERN_HEADING = Pattern.compile(
-            "^.*?([^\\n\\r]+)[\\n\\r]", Pattern.DOTALL);
+            "^([^\\n\\r]+)[\\n\\r]", Pattern.DOTALL);
 
     private String fromField;
     private String toField = DEFAULT_TO_FIELD;
