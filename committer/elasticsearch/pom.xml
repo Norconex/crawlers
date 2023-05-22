@@ -5,7 +5,7 @@
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
    
-       http://www.apache.org/licenses/LICENSE-2.0
+     http://www.apache.org/licenses/LICENSE-2.0
    
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,169 +14,148 @@
    limitations under the License.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.norconex.crawler</groupId>
-        <artifactId>nx-crawler-parent</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
-        <relativePath>../..</relativePath>
-    </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.norconex.crawler</groupId>
+    <artifactId>nx-crawler-parent</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+    <relativePath>../..</relativePath>
+  </parent>
+  
+  <artifactId>nx-committer-elasticsearch</artifactId>
+  <name>Norconex Committer Elasticsearch</name>
+
+  <properties>
+    <elasticsearch.version>8.7.1</elasticsearch.version>
+    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>    
+  </properties>
+  <inceptionYear>2013</inceptionYear>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-committer-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-client</artifactId>
+      <version>${elasticsearch.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-client-sniffer</artifactId>
+      <version>${elasticsearch.version}</version>
+    </dependency>
     
-    <artifactId>nx-committer-elasticsearch</artifactId>
-    <name>Norconex Committer Elasticsearch</name>
+    <!-- Testing libs -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>elasticsearch</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+      <classifier>resources</classifier>
+      <type>zip</type>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
 
-    <properties>
-      <elasticsearch.version>8.7.1</elasticsearch.version>
-      <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>        
-    </properties>
-    <inceptionYear>2013</inceptionYear>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-api</artifactId>
-                <version>${junit-jupiter.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.norconex.commons</groupId>
-            <artifactId>norconex-commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.norconex.crawler</groupId>
-            <artifactId>nx-committer-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>elasticsearch-rest-client</artifactId>
-            <version>${elasticsearch.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>elasticsearch-rest-client-sniffer</artifactId>
-            <version>${elasticsearch.version}</version>
-        </dependency>
-        
-        <!-- Testing libs -->
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>elasticsearch</artifactId>
-            <version>${testcontainers.version}</version>
-            <scope>test</scope>
-        </dependency>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
 
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.norconex.commons</groupId>
-            <artifactId>norconex-commons-lang</artifactId>
-            <classifier>resources</classifier>
-            <type>zip</type>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
+      <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <!-- We are referencing doc from importer with @nx.include so
-               we need to include that dependency here. -->
-                    <tagletArtifacts combine.children="append">
-                        <tagletArtifact>
-                            <groupId>com.norconex.collectors</groupId>
-                            <artifactId>norconex-committer-core</artifactId>
-                            <version>${norconex-committer-core.version}</version>
-                        </tagletArtifact>
-                    </tagletArtifacts>
-                </configuration>
-            </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-
-            <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-            </plugin>
-
-      <!-- Uncomment when ready:
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-shared-resources</id>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <classifier>resources</classifier>
-                            <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
-                            <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
-                            <includeGroupIds>com.norconex.commons</includeGroupIds>
-                            <excludeTransitive>true</excludeTransitive>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+    <!-- Uncomment when ready:
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-shared-resources</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <classifier>resources</classifier>
+              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
+              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
+              <includeGroupIds>com.norconex.commons</includeGroupIds>
+              <excludeTransitive>true</excludeTransitive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
 
-        </plugins>
-    </build>
+    </plugins>
+  </build>
 
-    <distributionManagement>
-        <site>
-            <id>norconex-site-deployment</id>
-            <url>${site.baseurl}/committers/elasticsearch/v6</url>
-        </site>
-    </distributionManagement>
+  <distributionManagement>
+    <site>
+      <id>norconex-site-deployment</id>
+      <url>${site.baseurl}/committers/elasticsearch/v6</url>
+    </site>
+  </distributionManagement>
 
-    <url>https://opensource.norconex.com/committers/elasticsearch</url>
-    <scm>
-        <url>https://github.com/Norconex/committer-elasticsearch</url>
-        <connection>scm:git:git@github.com:Norconex/committer-elasticsearch.git</connection>
-        <developerConnection>scm:git:git@github.com:Norconex/committer-elasticsearch.git</developerConnection>
-    </scm>
-    <issueManagement>
-        <url>https://github.com/Norconex/committer-elasticsearch/issues</url>
-        <system>GitHub</system>
-    </issueManagement>
+  <url>https://opensource.norconex.com/committers/elasticsearch</url>
+  <scm>
+    <url>https://github.com/Norconex/committer-elasticsearch</url>
+    <connection>scm:git:git@github.com:Norconex/committer-elasticsearch.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/committer-elasticsearch.git</developerConnection>
+  </scm>
+  <issueManagement>
+    <url>https://github.com/Norconex/committer-elasticsearch/issues</url>
+    <system>GitHub</system>
+  </issueManagement>
 </project>

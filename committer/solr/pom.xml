@@ -81,12 +81,6 @@
       <artifactId>log4j-slf4j2-impl</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <version>2.20.0</version>
-      <scope>test</scope>
-    </dependency>
     
   </dependencies>
 
@@ -149,24 +143,24 @@
   </build>
 
   <distributionManagement>
-      <site>
-          <id>norconex-site-deployment</id>
-          <url>${site.baseurl}/committers/solr/v4</url>
-      </site>
+    <site>
+      <id>norconex-site-deployment</id>
+      <url>${site.baseurl}/committers/solr/v4</url>
+    </site>
   </distributionManagement>
 
   <url>https://opensource.norconex.com/committers/solr</url>
   <description>
-      Solr implementation of Norconex Committer. Should also work with any 
-      Solr-based products, such as LucidWorks.
+    Solr implementation of Norconex Committer. Should also work with any 
+    Solr-based products, such as LucidWorks.
   </description>
   <issueManagement>
-      <url>https://github.com/Norconex/committer-solr/issues</url>
-      <system>GitHub</system>
+    <url>https://github.com/Norconex/committer-solr/issues</url>
+    <system>GitHub</system>
   </issueManagement>
   <scm>
-      <url>https://github.com/Norconex/committer-solr</url>
-      <connection>scm:git:git@github.com:Norconex/committer-solr.git</connection>
-      <developerConnection>scm:git:git@github.com:Norconex/committer-solr.git</developerConnection>
+    <url>https://github.com/Norconex/committer-solr</url>
+    <connection>scm:git:git@github.com:Norconex/committer-solr.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/committer-solr.git</developerConnection>
   </scm>
 </project>

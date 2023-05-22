@@ -14,31 +14,38 @@
  */
 package com.norconex.committer.elasticsearch;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.time.Duration;
 
-import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.committer.core.CommitterContext;
+import com.norconex.committer.core.CommitterException;
+import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 
-public class ElasticsearchCommitterConfigTest {
+class ElasticsearchCommitterConfigTest {
 
     @Test
-    public void testWriteRead() throws Exception {
-        ElasticsearchCommitter c = new ElasticsearchCommitter();
+    void testWriteRead() throws Exception {
+        var c = new ElasticsearchCommitter();
 
-        FSQueue q = new FSQueue();
+        var q = new FSQueue();
         q.setBatchSize(10);
         q.setMaxPerFolder(5);
         c.setCommitterQueue(q);
 
-        Credentials creds = new Credentials();
+        var creds = new Credentials();
         creds.setPassword("mypassword");
         creds.setUsername("myusername");
         c.setCredentials(creds);
@@ -56,28 +63,63 @@ public class ElasticsearchCommitterConfigTest {
         c.setSourceIdField("mySourceIdField");
         c.setTargetContentField("myTargetContentField");
 
-
         c.setIndexName("my-inxed");
         c.setNodes("http://localhost:9200", "http://somewhere.com");
         c.setDiscoverNodes(true);
         c.setDotReplacement("_");
         c.setIgnoreResponseErrors(true);
         c.setJsonFieldsPattern("jsonFieldPattern");
-        c.setConnectionTimeout(200);
-        c.setSocketTimeout(300);
+        c.setConnectionTimeout(Duration.ofMillis(200));
+        c.setSocketTimeout(Duration.ofMillis(300));
         c.setFixBadIds(true);
 
-        XML.assertWriteRead(c, "committer");
+        Assertions.assertDoesNotThrow(
+                () -> XML.assertWriteRead(c, "committer"));
     }
 
     @Test
     void testValidation() {
         Assertions.assertDoesNotThrow(() -> {
-            try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
-                    ClassUtils.getShortClassName(getClass()) + ".xml"))) {
-                XML xml = XML.of(r).create();
+            try (var r = ResourceLoader.getXmlReader(getClass())) {
+                var xml = XML.of(r).create();
                 xml.toObjectImpl(ElasticsearchCommitter.class);
             }
+        });
+    }
+
+    @Test
+    void testMisc(@TempDir Path tempDir) throws CommitterException {
+        Assertions.assertThrows(CommitterException.class, () -> {
+            new ElasticsearchCommitter().initBatchCommitter();
+        });
+
+        @SuppressWarnings("resource")
+        var c = new ElasticsearchCommitter();
+
+        Assertions.assertThrows(CommitterException.class, () ->
+            c.init(CommitterContext.builder()
+                    .setWorkDir(tempDir)
+                    .build()));
+
+        c.setIndexName("index");
+        var fsQueue = new FSQueue();
+        fsQueue.setBatchSize(1);
+        c.setCommitterQueue(fsQueue);
+        c.setDiscoverNodes(true);
+        c.init(CommitterContext.builder()
+                .setWorkDir(tempDir)
+                .build());
+
+        var reqWithIdTooLong = new UpsertRequest(
+                StringUtils.repeat("A", 1024),
+                new Properties(), InputStream.nullInputStream());
+        var reqOK = new UpsertRequest(
+                "AAA", new Properties(), InputStream.nullInputStream());
+
+        c.setFixBadIds(false);
+        Assertions.assertThrows(CommitterException.class, () -> { //NOSONAR
+            c.upsert(reqWithIdTooLong);
+            c.upsert(reqOK);
         });
     }
 }
