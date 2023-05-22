@@ -55,6 +55,7 @@
     <ant.version>1.10.13</ant.version>
     <httpclient5.version>5.2.1</httpclient5.version>
     <jackson.version>2.15.0</jackson.version>
+    <jakarta-activation.version>2.1.1</jakarta-activation.version>
     <jaxb-runtime.version>2.3.5</jaxb-runtime.version>
     <java-cup.version>10k</java-cup.version>
     <jetty.version>11.0.15</jetty.version>
@@ -284,6 +285,12 @@
         <artifactId>jetty-proxy</artifactId>
         <version>${jetty.version}</version>
       </dependency>
+      
+      <dependency>
+        <groupId>jakarta.activation</groupId>
+        <artifactId>jakarta.activation-api</artifactId>
+        <version>${jakarta-activation.version}</version>
+      </dependency>      
 
       <!-- TODO: REMOVE THIS ONE IN FAVOR OF PICOCLI? -->
       <dependency>
@@ -406,6 +413,12 @@
       <dependency>
         <groupId>org.mock-server</groupId>
         <artifactId>mockserver-client-java</artifactId>
+        <version>${mockserver.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+       <groupId>org.mock-server</groupId>
+         <artifactId>mockserver-junit-jupiter</artifactId>
         <version>${mockserver.version}</version>
         <scope>test</scope>
       </dependency>
