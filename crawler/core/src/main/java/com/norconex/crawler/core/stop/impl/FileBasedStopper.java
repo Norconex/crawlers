@@ -69,6 +69,8 @@ public class FileBasedStopper implements CrawlSessionStopper {
                 LOG.info("STOP request received.");
                 startedSession.stop();
                 scheduler.shutdownNow();
+            } else if (!monitoring && !scheduler.isShutdown()) {
+                scheduler.shutdownNow();
             }
         }, 1000, 100, TimeUnit.MILLISECONDS);
     }

@@ -14,7 +14,6 @@
  */
 package com.norconex.committer.solr;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -34,41 +33,83 @@ import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
  * <a href="https://lucene.apache.org/solr/guide/8_1/using-solrj.html#types-of-solrclients">
  * SolrClient</a> types.
  * @author Pascal Essiembre
- * @since 2.4.0
  */
+@SuppressWarnings("deprecation")
 public enum SolrClientType {
 
-    HTTP("HttpSolrClient", url -> new HttpSolrClient.Builder(url).build()),
-
-    LB_HTTP("LBHttpSolrClient",
-            url -> new LBHttpSolrClient.Builder().withBaseSolrUrls(
-                    url.split("[,\\s]+")).build()),
-
-    CONCURRENT_UPDATE("ConcurrentUpdateSolrClient",
-            url -> new ConcurrentUpdateSolrClient.Builder(url).build()),
-
+    /**
+     * For use with a SolrCloud cluster. Expects a comma-separated list
+     * of Zookeeper hosts.
+     */
     CLOUD("CloudSolrClient", url -> {
-        List<String> urls = Arrays.asList(url.split("[,\\s]+"));
+        List<String> urls = List.of(url.split(SolrClientType.CSV_SPLIT_REGEX));
         if (url.startsWith("http")) {
             return new CloudSolrClient.Builder(urls).build();
         }
         return new CloudSolrClient.Builder(urls, Optional.empty()).build();
     }),
-    HTTP2("Http2SolrClient", (url) -> new Http2SolrClient.Builder(url).build()),
 
-    LB_HTTP2("LBHttp2SolrClient", url -> new LBHttp2SolrClient(
-            new Http2SolrClient.Builder().build(), url.split("[,\\s]+"))),
+    /**
+     * For direct access to a single Solr node using the HTTP/2 protocol.
+     * Ideal for local development or small setups. Expects a Solr URL.
+     */
+    HTTP2("Http2SolrClient", url -> new Http2SolrClient.Builder(url).build()),
 
+    /**
+     * A client using the HTTP/2 protocol, performing simple load-balancing
+     * as an alternative to an external load balancer.
+     * Expects two or more Solr node URLs (comma-separated).
+     */
+    LB_HTTP2("LBHttp2SolrClient", url -> new LBHttp2SolrClient.Builder(
+            new Http2SolrClient.Builder().build(),
+            url.split(SolrClientType.CSV_SPLIT_REGEX)).build()),
+
+    /**
+     * A client using the HTTP/2 protocol, optimized for mass upload on a
+     * single node.  Not best for queries.
+     * Expects a Solr URL.
+     */
     CONCURRENT_UPDATE_HTTP2("ConcurrentUpdateHttp2SolrClient", url ->
             new ConcurrentUpdateHttp2SolrClient.Builder(
-                    url, new Http2SolrClient.Builder().build()).build())
+                    url, new Http2SolrClient.Builder().build()).build()),
+
+    // Keep these deprecations for a while, for backward compatibility
+
+    /**
+     * For direct access to a single Solr node using the HTTP/1.x protocol.
+     * Ideal for local development or small setups. Expects a Solr URL.
+     * @deprecated use {@link #HTTP2} instead.
+     */
+    @Deprecated(since = "4.0.0")
+    HTTP("HttpSolrClient", url -> new HttpSolrClient.Builder(url).build()),
+    /**
+     * A client using the HTTP/1.x protocol, performing simple load-balancing
+     * as an alternative to an external load balancer.
+     * Expects two or more Solr node URLs (comma-separated).
+     * @deprecated use {@link #LB_HTTP2} instead.
+     */
+    @Deprecated(since = "4.0.0")
+    LB_HTTP("LBHttpSolrClient",
+            url -> new LBHttpSolrClient.Builder().withBaseSolrUrls(
+                    url.split(SolrClientType.CSV_SPLIT_REGEX)).build()),
+    /**
+     * A client using the HTTP/1.x protocol, optimized for mass upload on a
+     * single node.  Not best for queries.
+     * Expects a Solr URL.
+     * @deprecated use {@link #CONCURRENT_UPDATE_HTTP2} instead.
+     */
+    @Deprecated(since = "4.0.0")
+    CONCURRENT_UPDATE("ConcurrentUpdateSolrClient",
+            url -> new ConcurrentUpdateSolrClient.Builder(url).build()),
     ;
+
+    private static final String CSV_SPLIT_REGEX = "\\s*,\\s*";
 
     private final String type;
     private final Function<String, SolrClient> clientFactory;
     SolrClientType(String type, Function<String, SolrClient> f) {
         this.type = type;
-        this.clientFactory = f;
+        clientFactory = f;
     }
 
     @Override

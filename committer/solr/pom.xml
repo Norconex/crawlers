@@ -13,111 +13,111 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project 
+  xmlns="https://maven.apache.org/POM/4.0.0" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
 
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.norconex.crawler</groupId>
-        <artifactId>nx-crawler-parent</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
-        <relativePath>../..</relativePath>
-    </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.norconex.crawler</groupId>
+    <artifactId>nx-crawler-parent</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+    <relativePath>../..</relativePath>
+  </parent>
 
-    <artifactId>nx-committer-solr</artifactId>
-    <name>Norconex Committer Solr</name>
+  <artifactId>nx-committer-solr</artifactId>
+  <name>Norconex Committer Solr</name>
 
-    <properties>
-      <solr.version>9.2.1</solr.version>
-      <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>  
-    </properties>
-    <inceptionYear>2009</inceptionYear>
+  <properties>
+    <solr.version>9.2.1</solr.version>
+    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>  
+  </properties>
+  <inceptionYear>2009</inceptionYear>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.solr</groupId>
-            <artifactId>solr-solrj</artifactId>
-            <version>${solr.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.norconex.crawler</groupId>
-            <artifactId>nx-committer-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.norconex.commons</groupId>
-            <artifactId>norconex-commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.norconex.commons</groupId>
-            <artifactId>norconex-commons-lang</artifactId>
-            <classifier>resources</classifier>
-            <type>zip</type>
-            <scope>provided</scope>
-        </dependency>
+  <dependencies>
+      
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-solrj</artifactId>
+      <version>${solr.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-committer-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+      <classifier>resources</classifier>
+      <type>zip</type>
+      <scope>provided</scope>
+    </dependency>
 
-        <!-- Tests and provided. -->
-        <dependency>
-            <groupId>org.apache.solr</groupId>
-            <artifactId>solr-test-framework</artifactId>
-            <version>${solr.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j2-impl</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.20.0</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <!-- Tests and provided. -->
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-test-framework</artifactId>
+      <version>${solr.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
+  </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
 
-            <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-            </plugin>
+      <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+      </plugin>
 
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-            </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+      </plugin>
 
-            <!-- Uncomment when ready:
+      <!-- Uncomment when ready:
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -139,28 +139,28 @@
         </executions>
       </plugin>
       -->
-        </plugins>
-    </build>
+    </plugins>
+  </build>
 
-    <distributionManagement>
-        <site>
-            <id>norconex-site-deployment</id>
-            <url>${site.baseurl}/committers/solr/v4</url>
-        </site>
-    </distributionManagement>
+  <distributionManagement>
+    <site>
+      <id>norconex-site-deployment</id>
+      <url>${site.baseurl}/committers/solr/v4</url>
+    </site>
+  </distributionManagement>
 
-    <url>https://opensource.norconex.com/committers/solr</url>
-    <description>
-        Solr implementation of Norconex Committer. Should also work with any 
-        Solr-based products, such as LucidWorks.
-    </description>
-    <issueManagement>
-        <url>https://github.com/Norconex/committer-solr/issues</url>
-        <system>GitHub</system>
-    </issueManagement>
-    <scm>
-        <url>https://github.com/Norconex/committer-solr</url>
-        <connection>scm:git:git@github.com:Norconex/committer-solr.git</connection>
-        <developerConnection>scm:git:git@github.com:Norconex/committer-solr.git</developerConnection>
-    </scm>
+  <url>https://opensource.norconex.com/committers/solr</url>
+  <description>
+    Solr implementation of Norconex Committer. Should also work with any 
+    Solr-based products, such as LucidWorks.
+  </description>
+  <issueManagement>
+    <url>https://github.com/Norconex/committer-solr/issues</url>
+    <system>GitHub</system>
+  </issueManagement>
+  <scm>
+    <url>https://github.com/Norconex/committer-solr</url>
+    <connection>scm:git:git@github.com:Norconex/committer-solr.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/committer-solr.git</developerConnection>
+  </scm>
 </project>

@@ -16,30 +16,21 @@
 package com.norconex.committer.solr;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringExclude;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.util.NamedList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
@@ -47,12 +38,21 @@ import com.norconex.committer.core.CommitterUtil;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
+import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.io.IOUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.time.DurationParser;
 import com.norconex.commons.lang.xml.XML;
+
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -61,35 +61,44 @@ import com.norconex.commons.lang.xml.XML;
  *
  * <h3>Solr Client:</h3>
  * <p>
- * As of 2.4.0, it is possible to specify which type of
+ * You can specify which type of
  * <a href="https://lucene.apache.org/solr/guide/8_1/using-solrj.html#types-of-solrclients">
  * Solr Client</a> to use.
  * The expected configuration value of "solrURL" is influenced
  * by the client type chosen.  Default client type is
- * <code>HttpSolrClient</code>. The clients are:
+ * <code>Http2SolrClient</code>. The clients are:
  * </p>
+ * <dl>
+ *   <dt>Http2SolrClient</dt>
+ *     <dd>Default client. For direct access to a single Solr node. Ideal for
+ *         local development or small setups. Expects a Solr URL.</dd>
+ *   <dt>CloudSolrClient</dt>
+ *     <dd>For use with a SolrCloud cluster. Expects a comma-separated list
+ *         of Zookeeper hosts.</dd>
+ *   <dt>LBHttp2SolrClient</dt>
+ *     <dd>Simple load-balancing as an alternative to an external load balancer.
+ *         Expects two or more Solr node URLs (comma-separated).</dd>
+ *   <dt>ConcurrentUpdateHttp2SolrClient</dt>
+ *     <dd>Optimized for mass upload on a single node.  Not best for queries.
+ *         Expects a Solr URL.</dd>
+ * </dl>
+ *
+ * <p>
+ * The above client types are using the HTTP/2 protocol. They should be
+ * favored over the following, which are using HTTP/1.x and are
+ * considered <b>deprecated</b>:
+ * </p>
+ *
  * <dl>
  *   <dt>HttpSolrClient</dt>
  *     <dd>For direct access to a single Solr node. Ideal for
- *         local development. Needs a Solr URL. Default client.</dd>
+ *         local development. Expects a Solr URL.</dd>
  *   <dt>LBHttpSolrClient</dt>
  *     <dd>Simple load-balancing as an alternative to an external load balancer.
- *         Needs two or more Solr node URLs (comma-separated).</dd>
+ *         Expects two or more Solr node URLs (comma-separated).</dd>
  *   <dt>ConcurrentUpdateSolrClient</dt>
  *     <dd>Optimized for mass upload on a single node.  Not best for queries.
- *         Needs a Solr URL.</dd>
- *   <dt>CloudSolrClient</dt>
- *     <dd>For use with a SolrCloud cluster. Needs a comma-separated list
- *         of Zookeeper hosts.</dd>
- *   <dt>Http2SolrClient</dt>
- *     <dd>Same as HttpSolrClient but for HTTP/2 support. Marked as
- *         experimental by Apache.</dd>
- *   <dt>LBHttp2SolrClient</dt>
- *     <dd>Same as LBHttpSolrClient but for HTTP/2 support. Marked as
- *         experimental by Apache.</dd>
- *   <dt>ConcurrentUpdateHttp2SolrClient</dt>
- *     <dd>Same as LBHttpSolrClient but for HTTP/2 support. Marked as
- *         experimental by Apache.</dd>
+ *         Expects a Solr URL.</dd>
  * </dl>
  *
  * <h3>Authentication</h3>
@@ -100,9 +109,9 @@ import com.norconex.commons.lang.xml.XML;
  *
  * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#restrictTo}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#fieldMappings}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
  * {@nx.xml.usage
  * <committer class="com.norconex.committer.solr.SolrCommitter">
@@ -134,7 +143,7 @@ import com.norconex.commons.lang.xml.XML;
  *     Default is "content".)
  *   </targetContentField>
  *
- *   {@nx.include com.norconex.committer.core3.batch.AbstractBatchCommitter#options}
+ *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
  * </committer>
  * }
  *
@@ -143,75 +152,92 @@ import com.norconex.commons.lang.xml.XML;
  * can be provided in human-readable format (English only), as per
  * {@link DurationParser} (e.g., "5 minutes and 30 seconds" or "5m30s").
  * </p>
- *
- * @author Pascal Essiembre
- * @author Harinder Hanjan
  */
-
+@SuppressWarnings("javadoc")
+@Data
+@Slf4j
 public class SolrCommitter extends AbstractBatchCommitter {
-
-	private static final Logger LOG =
-            LoggerFactory.getLogger(SolrCommitter.class);
 
     /** Default Solr ID field */
     public static final String DEFAULT_SOLR_ID_FIELD = "id";
     /** Default Solr content field */
     public static final String DEFAULT_SOLR_CONTENT_FIELD = "content";
 
+    /**
+     * The type of Solr client.
+     * @param solrClientType solr client type
+     * @return Solr client type
+     */
     private SolrClientType solrClientType;
+
+    /**
+     * The endpoint URL used to connect to Solr (as per the client type
+     * selected).
+     * @param solrURL solrURL
+     * @return Solr URL
+     */
     private String solrURL;
+
+    /**
+     * Whether to send an explicit commit request at the end of every
+     * batch, or let the server auto-commit.
+     * @param solrCommitDisabled <code>true</code> if sending Solr commit is
+     *        disabled
+     * @return <code>true</code> if disabling sending Solr commits.
+     */
     private boolean solrCommitDisabled;
+
     private final Map<String, String> updateUrlParams = new HashMap<>();
     private final Credentials credentials = new Credentials();
 
+    /**
+     * The document field name containing the value to be stored
+     * in Solr ID field. A <code>null</code> value (default) will use the
+     * document reference instead of a document field.
+     * @param sourceIdField name of field containing id value,
+     *        or <code>null</code>
+     * @return name of field containing id value
+     */
     private String sourceIdField;
+
+    /**
+     * The name of the Solr field where to store a document unique
+     * identifier (sourceIdField).  Default is "id".
+     * @param targetIdField name of Solr ID field
+     * @return name of Solr ID field
+     */
     private String targetIdField = DEFAULT_SOLR_ID_FIELD;
+
+    /**
+     * The name of the Solr field where content will be stored. Default
+     * is "content". A <code>null</code> value will disable storing the content.
+     * @param targetContentField target content field name
+     * @return target content field name
+     */
     private String targetContentField = DEFAULT_SOLR_CONTENT_FIELD;
 
-    @ToStringExclude
-    @HashCodeExclude
-    @EqualsExclude
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private SolrClient solrClient;
 
     /**
-     * Constructor.
+     * Gets URL parameters to be added on Solr HTTP calls.
+     * @return a map of parameter names and values
      */
-    public SolrCommitter() {
-        super();
+    public Map<String, String> getUpdateUrlParams() {
+        return Collections.unmodifiableMap(updateUrlParams);
     }
-
-    /**
-     * Gets the Solr client type.
-     * @return solr client type
-     */
-    public SolrClientType getSolrClientType() {
-        return solrClientType;
-    }
-    /**
-     * Sets the Solr client type.
-     * @param solrClientType solr client type
-     */
-    public void setSolrClientType(SolrClientType solrClientType) {
-        this.solrClientType = solrClientType;
-    }
-
-    /**
-     * Gets the Solr URL.
-     * @return Solr URL
-     */
-    public String getSolrURL() {
-        return solrURL;
-    }
-    /**
-     * Sets the Solr URL.
-     * @param solrURL solrURL
-     */
-    public void setSolrURL(String solrURL) {
-        this.solrURL = solrURL;
-    }
-
     /**
      * Sets URL parameters to be added on Solr HTTP calls.
+     * @param updateUrlParams a map of parameter names and values
+     */
+    public void setUpdateUrlParams(Map<String, String> updateUrlParams) {
+        CollectionUtil.setAll(this.updateUrlParams, updateUrlParams);
+    }
+    /**
+     * Sets a URL parameter to be added on Solr HTTP calls.
      * @param name parameter name
      * @param value parameter value
      */
@@ -235,24 +261,6 @@ public class SolrCommitter extends AbstractBatchCommitter {
     }
 
     /**
-     * Sets whether to send an explicit commit request at the end of every
-     * batch, or let the server auto-commit.
-     * @param solrCommitDisabled <code>true</code> if sending Solr commit is
-     *        disabled
-     */
-    public void setSolrCommitDisabled(boolean solrCommitDisabled) {
-        this.solrCommitDisabled = solrCommitDisabled;
-    }
-    /**
-     * Gets whether to send an explicit commit request at the end of every
-     * batch, or let the server auto-commit.
-     * @return <code>true</code> if sending Solr commit is disabled.
-     */
-    public boolean isSolrCommitDisabled() {
-        return solrCommitDisabled;
-    }
-
-    /**
      * Gets Solr authentication credentials.
      * @return credentials
      */
@@ -267,64 +275,10 @@ public class SolrCommitter extends AbstractBatchCommitter {
         this.credentials.copyFrom(credentials);
     }
 
-    /**
-     * Gets the name of the Solr field where content will be stored. Default
-     * is "content".
-     * @return field name
-     */
-    public String getTargetContentField() {
-        return targetContentField;
-    }
-    /**
-     * Sets the name of the Solr field where content will be stored.
-     * Specifying a <code>null</code> value will disable storing the content.
-     * @param targetContentField field name
-     */
-    public void setTargetContentField(String targetContentField) {
-        this.targetContentField = targetContentField;
-    }
-
-    /**
-     * Gets the document field name containing the value to be stored
-     * in Solr ID field. Default is not a field, but rather
-     * the document reference.
-     * @return name of field containing id value
-     */
-    public String getSourceIdField() {
-        return sourceIdField;
-    }
-    /**
-     * Sets the document field name containing the value to be stored
-     * in Solr ID field. Set <code>null</code> to use the
-     * document reference instead of a field (default).
-     * @param sourceIdField name of field containing id value,
-     *        or <code>null</code>
-     */
-    public void setSourceIdField(String sourceIdField) {
-        this.sourceIdField = sourceIdField;
-    }
-
-    /**
-     * Gets the name of the Solr field where to store a document unique
-     * identifier (sourceIdField).  Default is "id".
-     * @return name of Solr ID field
-     */
-    public String getTargetIdField() {
-        return targetIdField;
-    }
-    /**
-     * Sets the name of the Solr field where to store a document unique
-     * identifier (sourceIdField).  If not specified, default is "id".
-     * @param targetIdField name of Solr ID field
-     */
-    public void setTargetIdField(String targetIdField) {
-        this.targetIdField = targetIdField;
-    }
-
     @Override
     protected void initBatchCommitter() throws CommitterException {
         solrClient = ObjectUtils.defaultIfNull(solrClientType,
-                SolrClientType.HTTP).create(solrURL);
+                SolrClientType.HTTP2).create(solrURL);
     }
 
     @Override
@@ -339,12 +293,12 @@ public class SolrCommitter extends AbstractBatchCommitter {
         //MAYBE: before a delete, check if the same reference was previously
         //added before forcing a commit if any additions occurred.
 
-        int docCount = 0;
+        var docCount = 0;
         try {
-            final UpdateRequest solrBatchRequest = new UpdateRequest();
-            boolean previousWasAddition = false;
+            final var solrBatchRequest = new UpdateRequest();
+            var previousWasAddition = false;
             while (it.hasNext()) {
-                CommitterRequest r = it.next();
+                var r = it.next();
                 if (r instanceof UpsertRequest upsert) {
                     addSolrUpsertRequest(solrBatchRequest, upsert);
                     previousWasAddition = true;
@@ -413,9 +367,9 @@ public class SolrCommitter extends AbstractBatchCommitter {
         solrBatchRequest.deleteById(committerRequest.getReference());
     }
     protected SolrInputDocument buildSolrDocument(Properties fields) {
-        SolrInputDocument doc = new SolrInputDocument();
+        var doc = new SolrInputDocument();
         for (String key : fields.keySet()) {
-            List<String> values = fields.getStrings(key);
+            var values = fields.getStrings(key);
             for (String value : values) {
                 doc.addField(key, value);
             }
@@ -430,14 +384,14 @@ public class SolrCommitter extends AbstractBatchCommitter {
     private void handleResponse(NamedList<Object> response)
             throws CommitterException {
         @SuppressWarnings("unchecked")
-        NamedList<Object> headers =
+        var headers =
                 (NamedList<Object>) response.get("responseHeader");
         if (headers == null) {
             throw new CommitterException(
                     "No response headers obtained from Solr request. "
                   + "Response: " + response);
         }
-        String status = Objects.toString(headers.get("status"), null);
+        var status = Objects.toString(headers.get("status"), null);
         if (!"0".equals(status)) {
             throw new CommitterException(
                     "Invalid Solr response status: " + status);
@@ -452,7 +406,7 @@ public class SolrCommitter extends AbstractBatchCommitter {
         setSolrCommitDisabled(xml.getBoolean(
                 "solrCommitDisabled", isSolrCommitDisabled()));
 
-        List<XML> paramsXML = xml.getXMLList("solrUpdateURLParams/param");
+        var paramsXML = xml.getXMLList("solrUpdateURLParams/param");
         if (!paramsXML.isEmpty()) {
             updateUrlParams.clear();
             paramsXML.forEach(p -> setUpdateUrlParam(
@@ -473,7 +427,7 @@ public class SolrCommitter extends AbstractBatchCommitter {
         xml.addElement("solrURL", solrURL);
 
         if (!updateUrlParams.isEmpty()) {
-            XML paramsXML = xml.addElement("solrUpdateURLParams");
+            var paramsXML = xml.addElement("solrUpdateURLParams");
             updateUrlParams.forEach((k, v) -> {
                 paramsXML.addElement("param", v).setAttribute("name", k);
             });
@@ -484,19 +438,5 @@ public class SolrCommitter extends AbstractBatchCommitter {
         xml.addElement("sourceIdField", getSourceIdField());
         xml.addElement("targetIdField", getTargetIdField());
         xml.addElement("targetContentField", getTargetContentField());
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(
-                this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
 }

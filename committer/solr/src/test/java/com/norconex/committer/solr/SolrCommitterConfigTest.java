@@ -14,14 +14,11 @@
  */
 package com.norconex.committer.solr;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
-
-import org.apache.commons.lang3.ClassUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
+import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
@@ -36,14 +33,14 @@ class SolrCommitterConfigTest {
 
     @Test
     void testWriteRead() {
-        SolrCommitter c = new SolrCommitter();
+        var c = new SolrCommitter();
 
-        FSQueue q = new FSQueue();
+        var q = new FSQueue();
         q.setBatchSize(10);
         q.setMaxPerFolder(5);
         c.setCommitterQueue(q);
 
-        Credentials creds = new Credentials();
+        var creds = new Credentials();
         creds.setPassword("mypassword");
         creds.setUsername("myusername");
         c.setCredentials(creds);
@@ -78,9 +75,8 @@ class SolrCommitterConfigTest {
     @Test
     void testValidation() {
         Assertions.assertDoesNotThrow(() -> {
-            try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
-                    ClassUtils.getShortClassName(getClass()) + ".xml"))) {
-                XML xml = XML.of(r).create();
+            try (var r = ResourceLoader.getXmlReader(getClass())) {
+                var xml = XML.of(r).create();
                 xml.toObjectImpl(SolrCommitter.class);
             }
         });
