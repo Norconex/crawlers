@@ -21,7 +21,7 @@
 
     <inceptionYear>2013</inceptionYear>
     
-    <properties> 
+    <properties>
         <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     </properties>
 
