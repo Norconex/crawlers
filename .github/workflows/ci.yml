@@ -20,7 +20,7 @@ on:
   push:
     branches:
       - upcoming-v4
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 jobs:
@@ -78,7 +78,7 @@ jobs:
       - name: Get changed modules (PR only)
         id: changed-modules
         if: >
-          github.event_name == 'pull_request' &&
+          github.event_name == 'pull_request_target' &&
           steps.changed-files.outputs.any_changed == 'true'
         run: |
           bash .github/workflows/scripts/changed-modules.sh
@@ -97,7 +97,7 @@ jobs:
               projectsArg="--projects $projectsArg"
               mvn_cmd="package"
           fi
-          if [ ${{ github.event_name }} == 'pull_request' ]; then
+          if [ ${{ github.event_name }} == 'pull_request_target' ]; then
               mvn_skip="-Dgpg.skip=true"
           fi
           mvn clean ${mvn_skip} ${mvn_cmd} ${projectsArg} -amd --batch-mode --threads=2
