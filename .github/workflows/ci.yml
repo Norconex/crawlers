@@ -20,8 +20,11 @@ on:
   push:
     branches:
       - upcoming-v4
+      - 'pr/**'
   pull_request:
     types: [opened, synchronize, reopened]
+    branches:
+      - '!pr/**'
 
 jobs:
 
