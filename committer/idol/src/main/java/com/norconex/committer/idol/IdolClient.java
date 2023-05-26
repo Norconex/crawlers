@@ -105,7 +105,7 @@ class IdolClient {
             List<CommitterRequest> batch,
             Class<? extends CommitterRequest> reqType)
                     throws CommitterException {
-        if (batch.isEmpty()) {
+        if (batch.isEmpty() || reqType == null) {
             return;
         }
         IIdolIndexAction indexAction = actionForType(reqType);

@@ -19,14 +19,4 @@ interface IIdolIndexAction {
 
     void writeTo(List<CommitterRequest> batch, Writer writer)
             throws CommitterException;
-
-
-
-//    IHttpBodyWriter prepare(List<ICommitterRequest> batch, HttpURL startUrl)
-//            throws CommitterException;
-//
-//    @FunctionalInterface
-//    interface IHttpBodyWriter {
-//        void writeTo(Writer writer) throws CommitterException;
-//    }
 }

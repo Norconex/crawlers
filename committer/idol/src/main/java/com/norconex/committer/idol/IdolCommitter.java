@@ -94,6 +94,7 @@ public class IdolCommitter extends AbstractBatchCommitter {
             LoggerFactory.getLogger(IdolCommitter.class);
 
     private final IdolCommitterConfig config = new IdolCommitterConfig();
+    private static final String ELEMENT_NAME_PARAM = "param";
 
     @ToStringExclude
     @HashCodeExclude
@@ -126,10 +127,10 @@ public class IdolCommitter extends AbstractBatchCommitter {
                 xml.getString("databaseName", config.getDatabaseName()));
         xml.ifXML("dreAddDataParams", x -> CollectionUtil.setAll(
                 config.getDreAddDataParams(),
-                x.getStringMap("param", "@name", ".")));
+                x.getStringMap(ELEMENT_NAME_PARAM, "@name", ".")));
         xml.ifXML("dreDeleteRefParams", x -> CollectionUtil.setAll(
                 config.getDreDeleteRefParams(),
-                x.getStringMap("param", "@name", ".")));
+                x.getStringMap(ELEMENT_NAME_PARAM, "@name", ".")));
         config.setSourceReferenceField(xml.getString(
                 "sourceReferenceField", config.getSourceReferenceField()));
         config.setSourceContentField(xml.getString(
@@ -144,12 +145,12 @@ public class IdolCommitter extends AbstractBatchCommitter {
         if (!config.getDreAddDataParams().isEmpty()) {
             XML x = xml.addElement("dreAddDataParams");
             config.getDreAddDataParams().forEach(
-                    (k, v) -> x.addElement("param", v).setAttribute("name", k));
+                    (k, v) -> x.addElement(ELEMENT_NAME_PARAM, v).setAttribute("name", k));
         }
         if (!config.getDreDeleteRefParams().isEmpty()) {
             XML x = xml.addElement("dreDeleteRefParams");
             config.getDreDeleteRefParams().forEach(
-                    (k, v) -> x.addElement("param", v).setAttribute("name", k));
+                    (k, v) -> x.addElement(ELEMENT_NAME_PARAM, v).setAttribute("name", k));
         }
         xml.addElement(
                 "sourceReferenceField", config.getSourceReferenceField());
