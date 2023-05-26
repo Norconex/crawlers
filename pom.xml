@@ -22,7 +22,7 @@
   <version>4.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Norconex Crawler Parent</name>
-
+  
   <properties>
     <java.version>17</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -1047,6 +1047,7 @@
     <module>committer/core</module>
     <module>committer/solr</module>
     <module>committer/elasticsearch</module>
+    <module>committer/idol</module>
     <module>importer</module>
     <module>crawler/core</module>
     <module>crawler/web</module>

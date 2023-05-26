@@ -1,0 +1,161 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.norconex.crawler</groupId>
+        <artifactId>nx-crawler-parent</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
+        <relativePath>../..</relativePath>
+    </parent>
+
+    <artifactId>nx-committer-idol</artifactId>
+    <name>Norconex Committer IDOL</name>
+    <description>
+        OpenText IDOL implementation of Norconex Committer. 
+        This library will help you commit documents to an IDOL Server.
+        OpenText IDOL was formely referred to as MicroFocus IDOL or HP IDOL or 
+        Autonomy IDOL.
+    </description>
+
+    <inceptionYear>2013</inceptionYear>
+    
+    <properties>
+        <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.norconex.commons</groupId>
+            <artifactId>norconex-commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.norconex.crawler</groupId>
+            <artifactId>nx-committer-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.20.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.norconex.commons</groupId>
+            <artifactId>norconex-commons-lang</artifactId>
+            <classifier>resources</classifier>
+            <type>zip</type>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <!-- We are referencing doc from importer with @nx.include so
+               we need to include that dependency here. -->
+                    <tagletArtifacts combine.children="append">
+                        <tagletArtifact>
+                            <groupId>com.norconex.collectors</groupId>
+                            <artifactId>norconex-committer-core</artifactId>
+                            <version>${norconex-committer-core.version}</version>
+                        </tagletArtifact>
+                    </tagletArtifacts>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+
+            <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-shared-resources</id>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <classifier>resources</classifier>
+                            <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
+                            <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
+                            <includeGroupIds>com.norconex.commons</includeGroupIds>
+                            <excludeTransitive>true</excludeTransitive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <site>
+            <id>norconex-site-deployment</id>
+            <url>${site.baseurl}/committers/idol/v4</url>
+        </site>
+    </distributionManagement>
+
+    <url>https://opensource.norconex.com/committers/idol/</url>
+    <scm>
+        <url>https://github.com/Norconex/committer-idol</url>
+        <connection>scm:git:git@github.com:Norconex/committer-idol.git</connection>
+        <developerConnection>scm:git:git@github.com:Norconex/committer-idol.git</developerConnection>
+    </scm>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/Norconex/committer-idol/issues</url>
+    </issueManagement>
+</project>
