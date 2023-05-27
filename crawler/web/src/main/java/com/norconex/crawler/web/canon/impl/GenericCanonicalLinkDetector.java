@@ -14,26 +14,26 @@
  */
 package com.norconex.crawler.web.canon.impl;
 
+import static org.apache.commons.lang3.StringUtils.substringBefore;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.text.StringEscapeUtils;
 
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
@@ -124,36 +124,26 @@ public class GenericCanonicalLinkDetector
     public String detectFromMetadata(String reference, Properties metadata) {
         var link = StringUtils.trimToNull(metadata.getString("Link"));
         if (link != null) {
-            var m = Pattern.compile(
-                    "<([^>]+)>\\s*;?\\s*rel\\s*=\\s*\"([^\"]+)\"").matcher(link);
-            while (m.find()) {
-                if ("canonical".equalsIgnoreCase(m.group(2))) {
-                    return toAbsolute(reference, m.group(1));
-                }
-            }
+            link = link.replaceAll("\\s+", " ");
+            // There might be multiple "links" in the same Link string.
+            // We process them all individually.
+            return Stream.of(StringUtils.split(link,  '<'))
+                .filter(lnk -> Pattern.compile(
+                        "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1")
+                        .matcher(lnk).find())
+                .findFirst()
+                .map(lnk -> Pattern.compile("^([^>]+)>").matcher(lnk))
+                .filter(Matcher::find)
+                .map(matcher -> toAbsolute(reference, matcher.group(1).trim()))
+                .orElse(null);
         }
         return null;
     }
-
-    private static final Pattern PATTERN_TAG =
-            Pattern.compile("<\\s*(\\w+.*?)[/\\s]*>", Pattern.DOTALL);
-    private static final int PATTERN_TAG_GROUP = 1;
-    private static final Pattern PATTERN_NAME =
-            Pattern.compile("^(\\w+)", Pattern.DOTALL);
-    private static final int PATTERN_NAME_GROUP = 1;
-    private static final Pattern PATTERN_REL =
-            Pattern.compile("\\srel\\s*=\\s*([\"'])\\s*canonical\\s*\\1",
-                    Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-    private static final Pattern PATTERN_URL =
-            Pattern.compile("\\shref\\s*=\\s*([\"'])\\s*(.*?)\\s*\\1",
-                    Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-    private static final int PATTERN_URL_GROUP = 2;
 
     @Override
     public String detectFromContent(
             String reference, InputStream is, ContentType contentType)
                     throws IOException {
-
         var cTypes = contentTypes;
         if (cTypes.isEmpty()) {
             cTypes = DEFAULT_CONTENT_TYPES;
@@ -163,48 +153,31 @@ public class GenericCanonicalLinkDetector
         if (!cTypes.contains(contentType)) {
             return null;
         }
-        try (   var isr = new InputStreamReader(is);
-                var r = new TextReader(
-                        isr, DataUnit.KB.toBytes(16).intValue())) {
-            String text = null;
-            while ((text = r.readText()) != null) {
-                var matcher = PATTERN_TAG.matcher(text);
-                var foundUrl = new MutableObject<String>();
-                if (findInContent(reference, matcher, foundUrl)) {
-                    return foundUrl.getValue();
+
+        try (var scanner = new Scanner(is)) {
+            scanner.useDelimiter("<");
+            while (scanner.hasNext()) {
+                var tag = substringBefore(scanner.next().trim(), ">")
+                        .replaceAll("\\s+", " ");
+                // if we are past the HTML "head" section, we are done
+                if (EqualsUtil.equalsAnyIgnoreCase(
+                        tag.replaceFirst("^(\\w+)", "$1"), "body", "/head")) {
+                    return null;
+                }
+
+                if (Pattern.compile(
+                        "(?i)\\brel\\s?=\\s?([\"'])\\s?canonical\\s?\\1")
+                                .matcher(tag).find()) {
+                    var matcher = Pattern.compile(
+                            "(?i)\\bhref\\s?=\\s?([\"'])(.*?)\\s?\\1")
+                                    .matcher(tag);
+                    if (matcher.find()) {
+                        return toAbsolute(reference, matcher.group(2));
+                    }
                 }
             }
         }
         return null;
-    }
-
-    // true = done looking
-    private boolean findInContent(
-            String reference,
-            Matcher matcher,
-            MutableObject<String> foundUrl) {
-
-        while (matcher.find()) {
-            var tag = matcher.group(PATTERN_TAG_GROUP);
-            var nameMatcher = PATTERN_NAME.matcher(tag);
-            nameMatcher.find();
-            var name = nameMatcher.group(
-                    PATTERN_NAME_GROUP).toLowerCase();
-            if ("link".equalsIgnoreCase(name)
-                    && PATTERN_REL.matcher(tag).find()) {
-                var urlMatcher = PATTERN_URL.matcher(tag);
-                if (urlMatcher.find()) {
-                    foundUrl.setValue(toAbsolute(reference,
-                            urlMatcher.group(PATTERN_URL_GROUP)));
-                }
-                return true;
-            }
-            if (EqualsUtil.equalsAnyIgnoreCase(
-                    name, "body", "/head")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private String toAbsolute(String pageReference, String link) {

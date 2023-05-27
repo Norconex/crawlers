@@ -90,7 +90,7 @@ public final class HstsResolver {
         } else if (StringUtils.countMatches(rootDomain, '.') > 1) {
             isSubdomain = true;
             rootDomain =
-                    rootDomain.replaceFirst(".*\\.([^\\.]+\\.[^\\.]+)$", "$1");
+                    rootDomain.replaceFirst("^.*\\.([^\\.]+\\.[^\\.]+)$", "$1");
         }
 
         // If secure, cache HSTS support settings

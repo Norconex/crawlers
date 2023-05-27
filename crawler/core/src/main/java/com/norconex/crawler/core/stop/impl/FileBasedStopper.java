@@ -57,8 +57,7 @@ public class FileBasedStopper implements CrawlSessionStopper {
             }
         }
 
-        var scheduler =
-                Executors.newScheduledThreadPool(1);
+        var scheduler = Executors.newScheduledThreadPool(1);
         monitoring = true;
         scheduler.scheduleAtFixedRate(() -> {
             MdcUtil.setCrawlSessionId(startedSession.getId());
