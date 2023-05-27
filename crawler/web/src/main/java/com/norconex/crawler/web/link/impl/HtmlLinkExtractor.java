@@ -16,6 +16,7 @@ package com.norconex.crawler.web.link.impl;
 
 import static com.norconex.commons.lang.EqualsUtil.equalsAny;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.substring;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -379,7 +380,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                         addMetadataToLink(new Link(url), tag, "http.equiv")))
                 .orElse(false)
             )
-            .get())
+            .orElse(false))
 
         //--- From anchor tag ---
         // E.g.: <a href="...">...</a>
@@ -634,7 +635,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                 .map(String::toLowerCase)
                 .toList());
 
-        var tagNameMatcher = Pattern.compile("<(w+)").matcher(content);
+        var tagNameMatcher = Pattern.compile("<([\\w-]+)").matcher(content);
         while (tagNameMatcher.find()) {
             var tag = parseTagMatch(content, tagNameMatcher.toMatchResult());
             tag.referrer = referrerUrl;
@@ -650,20 +651,28 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
         tag.name = tagNameMatch.group(1).toLowerCase();
         String attribsStr = null;
-        var attribsMatcher = Pattern.compile("^(.*?)(/)?>").matcher(content);
-        if (attribsMatcher.find(tagNameMatch.end())) {
+
+        var attribsMatcher = Pattern
+                .compile("^(.*?)(/)?>")
+                .matcher(content)
+                .region(tagNameMatch.end(), content.length());
+        if (attribsMatcher.find()) {
             attribsStr = attribsMatcher.group(1);
             if (attribsMatcher.group(2) == null) { // not self-closed
-                var m = Pattern.compile("(?i)^(.*?)</" + tag.name + ">")
-                        .matcher(content);
-                if (m.find(attribsMatcher.end())) {
+                var m = Pattern
+                        .compile("(?i)^(.*?)</" + tag.name + ">")
+                        .matcher(content)
+                        .region(attribsMatcher.end(), content.length());
+                if (m.find()) {
                     tag.body = m.group(1);
                 }
             }
         }
 
         if (attribsStr != null) {
-            parseTagAttribs(tag, attribsStr);
+            parseTagAttribs(tag, attribsStr
+                    .replace(" =", "=")
+                    .replace("= ", "="));
         }
 
         tag.configAttribNames.addAll(tagAttribs.getStrings(tag.name));
@@ -672,13 +681,26 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     }
 
     private void parseTagAttribs(Tag tag, String attribsStr) {
-        var m = Pattern.compile("^\\s*(\\w+)\\s*=\\s*([\"'])(.*?)\\2\\s*")
-            .matcher(attribsStr);
+        var m = Pattern.compile("^([\\w-]+)=(.+)")
+                .matcher(attribsStr.trim());
         if (m.find()) {
             var name = m.group(1);
-            var value = m.group(3);
-            tag.attribs.add(name, value);
-            parseTagAttribs(tag, StringUtils.substring(attribsStr, m.end()));
+            var theRest = m.group(2);
+            var quote = theRest.charAt(0);
+            if (quote != '"' && quote != '\'') {
+                quote = '\0';
+            }
+            m = Pattern.compile(quote == '\0'
+                    // no quotes
+                    ? "^.*?=(.+?)(\\s|>|$)"
+                    // with quotes
+                    : "^.*?=%1$s(.*?)%1$s".formatted(quote))
+                    .matcher(attribsStr);
+            if (m.find()) {
+                var value = m.group(1);
+                tag.attribs.add(name, value);
+                parseTagAttribs(tag, substring(attribsStr, m.end()));
+            }
         }
     }
 
