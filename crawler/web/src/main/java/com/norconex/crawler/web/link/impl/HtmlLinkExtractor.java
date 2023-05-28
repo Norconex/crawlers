@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.web.link.impl;
 
-import static com.norconex.commons.lang.EqualsUtil.equalsAny;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substring;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -39,6 +39,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
 import com.google.common.base.Objects;
+import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
@@ -54,8 +55,11 @@ import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.HandlerDoc;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -285,7 +289,9 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             List.of("http", "https", "ftp");
 
     private static final int LOGGING_MAX_URL_LENGTH = 200;
+
     private static final String HTTP_EQUIV = "http-equiv";
+    private static final String CONTENT = "content";
 
     //--- Properties -----------------------------------------------------------
 
@@ -346,8 +352,11 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
     // NOTE: When this predicate is invoked the tag name is always lower case
     // and known to have been identified as a target tag name in configuration.
+    // For each predicate, returning true won't try following predicates
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private final BiPredicate<Tag, Set<Link>> tagLinksExtractor =
 
         //--- From tag body ---
@@ -355,10 +364,12 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         // value as the URL.
         ((BiPredicate<Tag, Set<Link>>) (tag, links) -> Optional.of(tag)
             .filter(t -> t.configAttribNames.isEmpty())
-            .filter(t -> isNotBlank(t.body))
-            .map(t -> toCleanAbsoluteURL(t.referrer, tag.body.trim()))
-            .map(url -> links.add(addMetadataToLink(new Link(url), tag, null)))
-            .orElse(false))
+            .filter(t -> isNotBlank(t.bodyText))
+            .map(t -> toCleanAbsoluteURL(t.referrer, tag.bodyText.trim()))
+            .map(url -> addAsLink(links, url, tag, null))
+            .filter(Boolean::valueOf)
+            .orElse(false)
+        )
 
         //--- From meta http-equiv tag ---
         // E.g.: <meta http-equiv="refresh" content="...">:
@@ -366,21 +377,23 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             .filter(t -> "meta".equals(t.name))
             .filter(t -> t.configAttribNames.contains(HTTP_EQUIV))
             .filter(t -> t.attribs.getStrings(HTTP_EQUIV).contains("refresh"))
-            .filter(t -> t.attribs.containsKey("content"))
+            .filter(t -> t.attribs.containsKey(CONTENT))
             // very unlikely that we have more than one redirect directives,
             // but loop just in case
-            .map(t -> t.attribs.getStrings("content")
+            .map(t -> t.attribs.getStrings(CONTENT)
                 .stream()
                 .map(attr -> attr.trim().replaceFirst("^\\d+;", ""))
                 .map(url -> url.trim().replaceFirst("^URL\\s*=(.*)$", "$1"))
                 .map(url -> StringUtils.strip(url, "\"'"))
                 .map(url -> toCleanAbsoluteURL(tag.referrer, url))
                 .findFirst()
-                .map(url -> links.add(
-                        addMetadataToLink(new Link(url), tag, "http.equiv")))
+                .map(url -> addAsLink(links, url, tag, CONTENT))
+                .filter(Boolean::valueOf)
                 .orElse(false)
             )
-            .orElse(false))
+            .filter(Boolean::valueOf)
+            .orElse(false)
+        )
 
         //--- From anchor tag ---
         // E.g.: <a href="...">...</a>
@@ -388,24 +401,24 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             .filter(t -> "a".equals(t.name))
             .filter(t -> t.configAttribNames.contains("href"))
             .filter(t -> t.attribs.containsKey("href"))
-            .filter(t -> ignoreNofollow
-                    || !tag.attribs.getStrings("rel").contains("nofollow"))
+            .filter(t -> !hasActiveDoNotFollow(t))
             .map(t -> toCleanAbsoluteURL(
                     t.referrer, t.attribs.getString("href")))
-            .map(url -> links.add(
-                    addMetadataToLink(new Link(url), tag, "href")))
-            .orElse(false))
+            .map(url -> addAsLink(links, url, tag, "href"))
+            .filter(Boolean::valueOf)
+            .orElse(hasActiveDoNotFollow(tag)) // skip others if no follow
+        )
 
         //--- From other matching attributes for tag ---
         .or((tag, links) -> tag.configAttribNames.stream()
             .map(cfgAttr -> Optional.ofNullable(tag.attribs.getString(cfgAttr))
-                .map(urlStr -> (equalsAny(tag.name, "object", "applet")
+                .map(urlStr ->
+                    (EqualsUtil.equalsAny(tag.name, "object", "applet")
                         ? List.of(StringUtils.split(urlStr, ", "))
                         : List.of(urlStr))
                     .stream()
                     .map(url -> toCleanAbsoluteURL(tag.referrer, url))
-                    .map(url -> links.add(
-                            addMetadataToLink(new Link(url), tag, cfgAttr)))
+                    .map(url -> addAsLink(links, url, tag, cfgAttr))
                     .anyMatch(Boolean::valueOf)
                 )
             )
@@ -664,7 +677,11 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                         .matcher(content)
                         .region(attribsMatcher.end(), content.length());
                 if (m.find()) {
-                    tag.body = m.group(1);
+                    var markup = m.group(1);
+                    tag.bodyText = markup.replaceAll("<[^<>]+>", "");
+                    if (!tag.bodyText.equals(markup)) {
+                        tag.bodyMarkup = markup;
+                    }
                 }
             }
         }
@@ -675,7 +692,11 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                     .replace("= ", "="));
         }
 
-        tag.configAttribNames.addAll(tagAttribs.getStrings(tag.name));
+        tag.configAttribNames.addAll(tagAttribs
+                .getStrings(tag.name)
+                .stream()
+                .filter(StringUtils::isNotBlank)
+                .toList());
 
         return tag;
     }
@@ -715,16 +736,24 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                 .replace("/ >", "/>");
     }
 
-    // return same Link, for chaining
-    private Link addMetadataToLink(Link link, Tag tag, String attWithUrl) {
+    private boolean addAsLink(
+            Set<Link> links, String url, Tag tag, String attWithUrl) {
+        if (StringUtils.isBlank(url)) {
+            return false;
+        }
+
+        var link = new Link(url);
+        link.setReferrer(tag.referrer);
+
         if (ignoreLinkData) {
-            return link;
+            return links.add(link);
         }
 
         var linkMeta = link.getMetadata();
 
         setNonBlank(linkMeta, "tag", tag.name);
-        setNonBlank(linkMeta, "text", tag.body);
+        setNonBlank(linkMeta, "text", tag.bodyText);
+        setNonBlank(linkMeta, "markup", tag.bodyMarkup);
         setNonBlank(linkMeta, "attr", attWithUrl);
 
         tag.attribs.forEach((attName, attValues) -> {
@@ -733,7 +762,15 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                         val -> setNonBlank(linkMeta, "attr." + attName, val));
             }
         });
-        return link;
+        return links.add(link);
+    }
+
+    private boolean hasActiveDoNotFollow(Tag tag) {
+        return "a".equals(tag.name)
+                && !ignoreNofollow
+                && tag.attribs.getStrings("rel")
+                    .stream()
+                    .anyMatch(s -> "nofollow".equalsIgnoreCase(trimToEmpty(s)));
     }
 
     private void setNonBlank(Properties meta, String key, String value) {
@@ -1027,9 +1064,12 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         }
     }
 
+    @EqualsAndHashCode
+    @ToString
     private static class Tag {
         private String name;
-        private String body;
+        private String bodyText;
+        private String bodyMarkup;
         private String referrer;
         private final Properties attribs = new Properties();
         private final List<String> configAttribNames = new ArrayList<>();

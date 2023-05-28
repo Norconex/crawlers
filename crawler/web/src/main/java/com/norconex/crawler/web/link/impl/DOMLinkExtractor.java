@@ -364,6 +364,10 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
             if (StringUtils.isNotBlank(elm.text())) {
                 linkMeta.set("text", elm.text());
             }
+            if (StringUtils.isNotBlank(elm.html())
+                    && !elm.html().equals(elm.text())) {
+                linkMeta.set("markup", elm.html());
+            }
 
             for (Attribute attr : elm.attributes()) {
                 var key = attr.getKey();

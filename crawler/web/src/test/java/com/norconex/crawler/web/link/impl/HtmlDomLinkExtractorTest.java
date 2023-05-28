@@ -17,7 +17,6 @@ package com.norconex.crawler.web.link.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -120,7 +119,7 @@ class HtmlDomLinkExtractorTest {
         link3.getMetadata().add("attr.alt", "Image Alt");
 
         Set<Link> expectedLinks = new TreeSet<>(
-                Arrays.asList(link0, link1, link2, link3));
+                List.of(link0, link1, link2, link3));
 
         Set<Link> links;
         try (var is = getClass().getResourceAsStream(

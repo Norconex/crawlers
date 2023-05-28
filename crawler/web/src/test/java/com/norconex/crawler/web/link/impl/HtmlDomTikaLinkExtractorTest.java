@@ -33,7 +33,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.WebStubber;
 import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
@@ -193,14 +192,26 @@ class HtmlDomTikaLinkExtractorTest {
     void testLinkKeepReferrer(LinkExtractor extractor) throws IOException {
         // All these must be found
         Set<Link> expectedLinks = new HashSet<>(Arrays.asList(
-                keepReferrerLink("1-notitle-notext.html", null, null),
-                keepReferrerLink("2-notitle-yestext.html", "2 Yes Text", null),
-                keepReferrerLink(
-                        "3-yestitle-yestext.html", "3 Yes Text", "3 Yes Title"),
-                keepReferrerLink("4-yestitle-notext.html", null, "4 Yes Title"),
+                linkWithReferrer("1-notitle-notext.html", null, null, null),
+                linkWithReferrer(
+                        "2-notitle-yestext.html",
+                        "2 Yes Text",
+                        null,
+                        null),
+                linkWithReferrer(
+                        "3-yestitle-yestext.html",
+                        "3 Yes Text",
+                        null,
+                        "3 Yes Title"),
+                linkWithReferrer(
+                        "4-yestitle-notext.html", null, null, "4 Yes Title"),
                 // Link 5 should not be there (no href).
-                keepReferrerLink("6-yestitle-yestexthtml.html",
-                        "[6]Yes Text", "6 Yes Title")
+                linkWithReferrer(
+                        "6-yestitle-yestexthtml.html",
+                        "[6]Yes Text",
+                        (extractor instanceof TikaLinkExtractor)
+                            ? null : "[<font color=\"red\">6</font>]Yes Text",
+                        "6 Yes Title")
         ));
 
         var is = getClass().getResourceAsStream(
@@ -218,16 +229,20 @@ class HtmlDomTikaLinkExtractorTest {
         LinkExtractor randomEx = WebStubber.randomize(extractor.getClass());
         assertThatNoException().isThrownBy(
                 () -> XML.assertWriteRead(
-                        (XMLConfigurable) randomEx, "extractor"));
+                        randomEx, "extractor"));
     }
 
-    private Link keepReferrerLink(String relURL, String text, String title) {
+    private Link linkWithReferrer(
+            String relURL, String text, String markup, String title) {
         var link = new Link("http://www.site.com/" + relURL);
         link.setReferrer("http://www.site.com/parent.html");
         link.getMetadata().set("tag", "a");
         link.getMetadata().set("attr", "href");
         if (text != null) {
             link.getMetadata().set("text", text);
+        }
+        if (markup != null) {
+            link.getMetadata().set("markup", markup);
         }
         if (title != null) {
             link.getMetadata().set("attr.title", title);
