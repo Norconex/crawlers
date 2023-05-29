@@ -14,10 +14,12 @@
  */
 package com.norconex.crawler.web.link.impl;
 
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.exception.TikaException;
@@ -69,11 +71,6 @@ import lombok.ToString;
 @ToString
 public class TikaLinkExtractor extends AbstractLinkExtractor {
 
-    private static final Pattern META_REFRESH_PATTERN = Pattern.compile(
-            "(\\W|^)(url)(\\s*=\\s*)([\"']?)(.+?)([\"'>])",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    private static final int URL_PATTERN_GROUP_URL = 5;
-
     private boolean ignoreNofollow;
     private boolean ignoreLinkData;
     private static final HtmlMapper fixedHtmlMapper = new FixedHtmlParserMapper();
@@ -93,76 +90,81 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
         parseContext.set(HtmlMapper.class, fixedHtmlMapper);
 
         var parser = new HtmlParser();
-        var url = doc.getReference();
+        var referrerUrl = doc.getReference();
         try (InputStream is = doc.getInputStream()) {
             parser.parse(is, linkHandler, metadata, parseContext);
             var tikaLinks = linkHandler.getLinks();
-            for (Link tikaLink : tikaLinks) {
-                if (!isIgnoreNofollow()
-                        && "nofollow".equalsIgnoreCase(
-                                StringUtils.trim(tikaLink.getRel()))) {
-                    continue;
-                }
-                var extractedURL = tikaLink.getUri();
-                if (StringUtils.isBlank(extractedURL)) {
-                    continue;
-                }
-                if (extractedURL.startsWith("?") || extractedURL.startsWith("#")) {
-                    extractedURL = url + extractedURL;
-                } else {
-                    extractedURL = HttpURL.toAbsolute(url, extractedURL);
-                }
-                if (StringUtils.isNotBlank(extractedURL)) {
-                    var nxLink =
-                            new com.norconex.crawler.web.link.Link(
-                                    extractedURL);
-                    nxLink.setReferrer(url);
-
-                    if (!ignoreLinkData) {
-                        var linkMeta = nxLink.getMetadata();
-                        if (StringUtils.isNotBlank(tikaLink.getText())) {
-                            linkMeta.set("text", tikaLink.getText());
-                        }
-                        if (StringUtils.isNotBlank(tikaLink.getType())) {
-                            linkMeta.set("tag", tikaLink.getType());
-                            if (tikaLink.isAnchor()
-                                    || tikaLink.isLink()) {
-                                linkMeta.set("attr", "href");
-                            } else if (tikaLink.isIframe()
-                                    || tikaLink.isImage()
-                                    || tikaLink.isScript()) {
-                                linkMeta.set("attr", "src");
-                            }
-                        }
-                        if (StringUtils.isNotBlank(tikaLink.getTitle())) {
-                            linkMeta.set("attr.title", tikaLink.getTitle());
-                        }
-                        if (StringUtils.isNotBlank(tikaLink.getRel())) {
-                            linkMeta.set("attr.rel", tikaLink.getRel());
-                        }
-                        nxLinks.add(nxLink);
-                    }
-                }
-            }
+            tikaLinks.forEach(tikaLink -> toNxLink(referrerUrl, tikaLink)
+                .ifPresent(nxLinks::add));
 
             //grab refresh URL from metadata (if present)
-            var refreshURL = getCaseInsensitive(metadata, "refresh");
-            if (StringUtils.isNotBlank(refreshURL)) {
-                var matcher = META_REFRESH_PATTERN.matcher(refreshURL);
-                if (matcher.find()) {
-                    refreshURL = matcher.group(URL_PATTERN_GROUP_URL);
-                }
-                refreshURL = HttpURL.toAbsolute(url, refreshURL);
-                if (StringUtils.isNotBlank(refreshURL)) {
-                    var nxLink =
-                            new com.norconex.crawler.web.link.Link(
-                                    refreshURL);
-                    nxLink.setReferrer(url);
-                    nxLinks.add(nxLink);
-                }
-            }
+            Optional.ofNullable(
+                    trimToNull(getCaseInsensitive(metadata, "refresh")))
+                .map(LinkUtil::extractHttpEquivRefreshContentUrl)
+                .map(url -> trimToNull(HttpURL.toAbsolute(referrerUrl, url)))
+                .map(url -> {
+                    var nxLink = new com.norconex.crawler.web.link.Link(url);
+                    nxLink.setReferrer(referrerUrl);
+                    return nxLink;
+                })
+                .ifPresent(nxLinks::add);
         } catch (TikaException | SAXException e) {
-            throw new IOException("Could not parse to extract URLs: " + url, e);
+            throw new IOException(
+                    "Could not parse to extract URLs: " + referrerUrl, e);
+        }
+    }
+
+    private Optional<com.norconex.crawler.web.link.Link> toNxLink(
+            String referrerUrl, Link tikaLink) {
+        if (!isIgnoreNofollow()
+                && "nofollow".equalsIgnoreCase(
+                        StringUtils.trim(tikaLink.getRel()))) {
+            return Optional.empty();
+        }
+        var extractedURL = tikaLink.getUri();
+        if (StringUtils.isBlank(extractedURL)) {
+            return Optional.empty();
+        }
+        if (extractedURL.startsWith("?") || extractedURL.startsWith("#")) {
+            extractedURL = referrerUrl + extractedURL;
+        } else {
+            extractedURL = HttpURL.toAbsolute(referrerUrl, extractedURL);
+        }
+        if (StringUtils.isNotBlank(extractedURL)) {
+            var nxLink = new com.norconex.crawler.web.link.Link(extractedURL);
+            nxLink.setReferrer(referrerUrl);
+
+            if (!ignoreLinkData) {
+                tikaMetaToNxMeta(nxLink, tikaLink);
+            }
+//System.err.println("EXTRACTED LINK: " + nxLink);
+            return Optional.of(nxLink);
+        }
+        return Optional.empty();
+    }
+
+    private void tikaMetaToNxMeta(
+            com.norconex.crawler.web.link.Link nxLink,  Link tikaLink) {
+        var linkMeta = nxLink.getMetadata();
+        if (StringUtils.isNotBlank(tikaLink.getText())) {
+            linkMeta.set("text", tikaLink.getText());
+        }
+        if (StringUtils.isNotBlank(tikaLink.getType())) {
+            linkMeta.set("tag", tikaLink.getType());
+            if (tikaLink.isAnchor()
+                    || tikaLink.isLink()) {
+                linkMeta.set("attr", "href");
+            } else if (tikaLink.isIframe()
+                    || tikaLink.isImage()
+                    || tikaLink.isScript()) {
+                linkMeta.set("attr", "src");
+            }
+        }
+        if (StringUtils.isNotBlank(tikaLink.getTitle())) {
+            linkMeta.set("attr.title", tikaLink.getTitle());
+        }
+        if (StringUtils.isNotBlank(tikaLink.getRel())) {
+            linkMeta.set("attr.rel", tikaLink.getRel());
         }
     }
 

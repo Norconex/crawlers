@@ -15,7 +15,6 @@
 package com.norconex.crawler.web.link.impl;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.substring;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.IOException;
@@ -51,6 +50,7 @@ import com.norconex.crawler.web.link.Link;
 import com.norconex.crawler.web.link.LinkExtractor;
 import com.norconex.crawler.web.url.WebURLNormalizer;
 import com.norconex.crawler.web.url.impl.GenericURLNormalizer;
+import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.HandlerDoc;
@@ -292,6 +292,8 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
     private static final String HTTP_EQUIV = "http-equiv";
     private static final String CONTENT = "content";
+    private static final String START = "start";
+    private static final String END = "end";
 
     //--- Properties -----------------------------------------------------------
 
@@ -382,9 +384,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             // but loop just in case
             .map(t -> t.attribs.getStrings(CONTENT)
                 .stream()
-                .map(attr -> attr.trim().replaceFirst("^\\d+;", ""))
-                .map(url -> url.trim().replaceFirst("^URL\\s*=(.*)$", "$1"))
-                .map(url -> StringUtils.strip(url, "\"'"))
+                .map(LinkUtil::extractHttpEquivRefreshContentUrl)
                 .map(url -> toCleanAbsoluteURL(tag.referrer, url))
                 .findFirst()
                 .map(url -> addAsLink(links, url, tag, CONTENT))
@@ -594,9 +594,10 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             var firstChunk = true;
             String text = null;
             while ((text = r.readText()) != null) {
-                refererUrl = adjustReferer(text, refererUrl, firstChunk);
+                var content = normalizeWhiteSpaces(text);
+                refererUrl = adjustReferer(content, refererUrl, firstChunk);
                 firstChunk = false;
-                extractLinks(text, refererUrl, links);
+                extractLinks(content, refererUrl, links);
             }
         }
     }
@@ -608,12 +609,13 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             final boolean firstChunk) {
         var ref = refererUrl;
         if (firstChunk) {
-            var cntnt = content.replaceAll("\\s+", " ");
-            var matcher = Pattern.compile(
-                    "(?is)<base[^<]+?href\\s?=\\s?([\"']?)(.*?)\\1")
-                        .matcher(cntnt);
+            // make content easier to match by normalizing white spaces
+            var cntnt = content.replace(" =", "=").replace("= ", "=");
+            var matcher = Pattern.compile("(?is)<base\\b([^<>]+)>")
+                    .matcher(cntnt);
             if (matcher.find()) {
-                var baseUrl = matcher.group(2);
+                var attribs = Web.parseDomAttributes(matcher.group(1), true);
+                var baseUrl = attribs.getString("href");
                 if (StringUtils.isNotBlank(baseUrl)) {
                     ref = toCleanAbsoluteURL(refererUrl, baseUrl);
                 }
@@ -628,9 +630,6 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
 
         // Eliminate content not matching extract patterns
         content = excludeUnwantedContent(content);
-
-        // make content easier to match by normalizing white spaces
-        content = normalizeWhiteSpaces(content);
 
         // Get rid of <script> tags content to eliminate possibly
         // generated URLs.
@@ -686,11 +685,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             }
         }
 
-        if (attribsStr != null) {
-            parseTagAttribs(tag, attribsStr
-                    .replace(" =", "=")
-                    .replace("= ", "="));
-        }
+        tag.attribs.putAll(Web.parseDomAttributes(attribsStr));
 
         tag.configAttribNames.addAll(tagAttribs
                 .getStrings(tag.name)
@@ -701,33 +696,9 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         return tag;
     }
 
-    private void parseTagAttribs(Tag tag, String attribsStr) {
-        var m = Pattern.compile("^([\\w-]+)=(.+)")
-                .matcher(attribsStr.trim());
-        if (m.find()) {
-            var name = m.group(1);
-            var theRest = m.group(2);
-            var quote = theRest.charAt(0);
-            if (quote != '"' && quote != '\'') {
-                quote = '\0';
-            }
-            m = Pattern.compile(quote == '\0'
-                    // no quotes
-                    ? "^.*?=(.+?)(\\s|>|$)"
-                    // with quotes
-                    : "^.*?=%1$s(.*?)%1$s".formatted(quote))
-                    .matcher(attribsStr);
-            if (m.find()) {
-                var value = m.group(1);
-                tag.attribs.add(name, value);
-                parseTagAttribs(tag, substring(attribsStr, m.end()));
-            }
-        }
-    }
-
     private String normalizeWhiteSpaces(String content) {
-        //MAYBE replacing all \s+ with " " in body might be ill advised.
-        // make sure we do it on tags only.
+        //MAYBE can replacing all \s+ with " " in body even just for URL
+        // extraction be ill-advised? Make sure we do it on tags only?
         return content
                 .replaceAll("\\s+", " ")
                 .replace("< ", "<")
@@ -958,8 +929,8 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             extractBetweens.clear();
             for (XML xmlBetween: xmlBetweens) {
                 addExtractBetween(
-                        xmlBetween.getString("start", null),
-                        xmlBetween.getString("end", null),
+                        xmlBetween.getString(START, null),
+                        xmlBetween.getString(END, null),
                         xmlBetween.getBoolean("@caseSensitive", false));
             }
         }
@@ -970,8 +941,8 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
             noExtractBetweens.clear();
             for (XML xmlNoBetween: xmlNoBetweens) {
                 addNoExtractBetween(
-                        xmlNoBetween.getString("start", null),
-                        xmlNoBetween.getString("end", null),
+                        xmlNoBetween.getString(START, null),
+                        xmlNoBetween.getString(END, null),
                         xmlNoBetween.getBoolean("@caseSensitive", false));
             }
         }
@@ -1021,16 +992,16 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         for (RegexPair pair : extractBetweens) {
             var xmlBetween = xml.addElement("extractBetween")
                     .setAttribute("caseSensitive", pair.caseSensitive);
-            xmlBetween.addElement("start", pair.getStart());
-            xmlBetween.addElement("end", pair.getEnd());
+            xmlBetween.addElement(START, pair.getStart());
+            xmlBetween.addElement(END, pair.getEnd());
         }
 
         // no extract between
         for (RegexPair pair : noExtractBetweens) {
             var xmlNoBetween = xml.addElement("noExtractBetween")
                     .setAttribute("caseSensitive", pair.caseSensitive);
-            xmlNoBetween.addElement("start", pair.getStart());
-            xmlNoBetween.addElement("end", pair.getEnd());
+            xmlNoBetween.addElement(START, pair.getStart());
+            xmlNoBetween.addElement(END, pair.getEnd());
         }
 
         // extract selector

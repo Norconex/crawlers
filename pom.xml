@@ -532,6 +532,13 @@
             <source>${maven.compiler.source}</source>
             <target>${maven.compiler.target}</target>
             <encoding>UTF-8</encoding>
+            <annotationProcessorPaths>
+              <annotationProcessorPath>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </annotationProcessorPath>
+            </annotationProcessorPaths>
           </configuration>
           <inherited>true</inherited>
         </plugin>

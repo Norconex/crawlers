@@ -27,6 +27,7 @@ import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.web.robot.RobotsMeta;
 import com.norconex.crawler.web.robot.RobotsMetaProvider;
+import com.norconex.crawler.web.util.Web;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -51,14 +52,14 @@ import lombok.extern.slf4j.Slf4j;
  * ones in HTTP header will be ignored.</p>
  *
  * {@nx.xml.usage
- *  <robotsMeta ignore="false"
+ *  <robotsMeta
  *     class="com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider">
  *     <headersPrefix>(string prefixing headers)</headersPrefix>
  *  </robotsMeta>
  * }
  *
  * {@nx.xml.example
- * <robotsMeta ignore="true" />
+ * <robotsMeta />
  * }
  * <p>
  * The above example ignores robot meta information.
@@ -69,48 +70,44 @@ import lombok.extern.slf4j.Slf4j;
 public class StandardRobotsMetaProvider
         implements RobotsMetaProvider, XMLConfigurable {
 
-    private static final Pattern META_ROBOTS_PATTERN = Pattern.compile(
-            "<\\s*META[^>]*?NAME\\s*=\\s*[\"']?\\s*robots"
-                    + "\\s*[\"']?\\s*[^>]*?>",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    private static final Pattern META_CONTENT_PATTERN = Pattern.compile(
-            "\\s*CONTENT\\s*=\\s*[\"']?([\\s\\w,]+)[\"']?\\s*[^>]*?>",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    private static final Pattern HEAD_PATTERN = Pattern.compile(
-            "<\\s*/\\s*HEAD\\s*>",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    private static final Pattern COMMENT_PATTERN = Pattern.compile("<!--.*?-->",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-
     private String headersPrefix;
 
     @Override
-    public RobotsMeta getRobotsMeta(Reader document, String documentUrl,
-           ContentType contentType, Properties httpHeaders) throws IOException {
+    public RobotsMeta getRobotsMeta(
+            Reader document,
+            String documentUrl,
+            ContentType contentType,
+            Properties httpHeaders) throws IOException {
 
         RobotsMeta robotsMeta = null;
 
         //--- Find in page content ---
         if (isMetaSupportingContentType(contentType)) {
-            var reader = new TextReader(document);
-            String text = null;
-            while ((text = reader.readText()) != null) {
-                // First eliminate comments
-                var clean = COMMENT_PATTERN.matcher(text).replaceAll("");
-                var robotContent = findInContent(clean);
-                if (robotContent != null) {
+            try (var reader = new TextReader(document)) {
+                String text = null;
+                while ((text = reader.readText()) != null) {
+                    // Normalize spaces
+                    var cleanText = text
+                            .replaceAll("\\s+", " ")
+                            .replace("< ", "<")
+                            .replace(" >", ">")
+                            .replace("</ ", "</")
+                            .replace("/ >", "/>");
+
+                    // Eliminate comments
+                    cleanText = cleanText.replaceAll(
+                            "(?s)(<!--.*?-->)|(<!--.+?-->)|(<!--.*$)", "");
+                    var robotContent = findInContent(cleanText);
                     robotsMeta = buildMeta(robotContent);
                     if (robotsMeta != null) {
-                        LOG.debug("Meta robots \"{}\" found in HTML meta tag "
-                                + "for: {}", robotContent, documentUrl);
+                        LOG.debug("Meta robots \"{}\" found in HTML meta "
+                                + "tag for: {}", robotContent, documentUrl);
                     }
-                    break;
-                }
-                if (isEndOfHead(clean)) {
-                    break;
+                    if (robotsMeta != null || isEndOfHead(cleanText)) {
+                        break;
+                    }
                 }
             }
-            reader.close();
         }
 
         //--- Find in HTTP header ---
@@ -162,14 +159,13 @@ public class StandardRobotsMetaProvider
         return new RobotsMeta(nofollow, noindex);
     }
 
-
     private String findInContent(String text) {
-        var rmatcher = META_ROBOTS_PATTERN.matcher(text);
-        while (rmatcher.find()) {
-            var robotTag = rmatcher.group();
-            var cmatcher = META_CONTENT_PATTERN.matcher(robotTag);
-            if (cmatcher.find()) {
-                var content = cmatcher.group(1);
+        var m = Pattern.compile("(?is)<meta\\s[^<>]+>").matcher(text);
+        while (m.find()) {
+            var props = Web.parseDomAttributes(m.group(), true);
+            if ("robots".equalsIgnoreCase(StringUtils.trimToEmpty(
+                    props.getString("name")))) {
+                var content = props.getString("content");
                 if (StringUtils.isNotBlank(content)) {
                     return content;
                 }
@@ -179,7 +175,7 @@ public class StandardRobotsMetaProvider
     }
 
     private boolean isEndOfHead(String line) {
-        return HEAD_PATTERN.matcher(line).matches();
+        return line.matches("(?is)<\\s*/\\s*HEAD\\s*>");
     }
 
     @Override

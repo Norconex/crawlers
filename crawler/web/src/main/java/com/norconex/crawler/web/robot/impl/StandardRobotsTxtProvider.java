@@ -143,8 +143,8 @@ public class StandardRobotsTxtProvider implements RobotsTxtProvider {
                 continue;
             }
 
-            var key = line.replaceFirst("(.*?)(:.*)", "$1").trim();
-            var value = line.replaceFirst("(.*?:)(.*)", "$2").trim();
+            var key = StringUtils.substringBefore(line, ":").trim();
+            var value = StringUtils.substringAfter(line, ":").trim();
 
             if ("sitemap".equalsIgnoreCase(key)) {
                 data.sitemaps.add(value);
@@ -177,10 +177,7 @@ public class StandardRobotsTxtProvider implements RobotsTxtProvider {
     }
 
     private String cleanLineFromTrailingComments(String line) {
-        if (line.matches(".*\\s+#.*")){
-            line = line.replaceFirst("\\s+#.*", "");
-        }
-        return line;
+        return StringUtils.substringBefore(line, "#").trim();
     }
 
     private static final Pattern PATTERN_COMMENT = Pattern.compile("\\s*#.*");
