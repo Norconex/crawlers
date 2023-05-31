@@ -157,6 +157,24 @@ class AmazonCloudSearchCommitterTest {
         // Check that it's remove from CloudSearch
         Assertions.assertEquals(0, getAllDocs().size());
     }
+    
+    
+    @Test
+    void testCommitDeleteWithBadIdValue() throws Exception {
+        // Add a document
+        withinCommitterSession(c -> {
+            c.upsert(upsertRequest("1`~<", "Document 1"));
+        });
+
+        // Delete it in a new session.
+        withinCommitterSession(c -> {
+            c.delete(new DeleteRequest("1`~<", new Properties()));
+        });
+
+        //System.out.println("*************************" + getAllDocs().get(0).getString("id"));
+        // Check that it's remove from CloudSearch
+        Assertions.assertEquals(0, getAllDocs().size());
+    }
 
     @Test
     void testMultiValueFields() throws Exception {
