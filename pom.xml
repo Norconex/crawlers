@@ -1048,6 +1048,7 @@
     <module>committer/solr</module>
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
+    <module>committer/amazoncloudsearch</module>
     <module>importer</module>
     <module>crawler/core</module>
     <module>crawler/web</module>
