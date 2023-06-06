@@ -476,7 +476,7 @@ public class FeaturedImageProcessor extends CrawlerLifeCycleListener
                 img = cache.getImage(url);
             }
             if (img == null) {
-                if (url.matches("(?i)^data:image/.*?;base64,.*$")) {
+                if (url.matches("(?i)^data:image/[^;]*;base64,.*$")) {
                     var mutableImg = MutableImage.fromBase64String(url);
                     if (mutableImg == null) {
                         return null;

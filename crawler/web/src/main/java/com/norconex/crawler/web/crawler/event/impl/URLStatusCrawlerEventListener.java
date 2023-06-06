@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -324,32 +325,35 @@ public class URLStatusCrawlerEventListener
             parsedCodes.clear();
             return;
         }
-        var ranges = statusCodes.split("\\s*,\\s*");
-        for (String range : ranges) {
-            var endPoints = range.split("\\s*-\\s*");
-            if (endPoints.length == 1) {
-                parsedCodes.add(toInt(endPoints[0]));
-            } else if (endPoints.length == 2) {
-                var start = toInt(endPoints[0]);
-                var end = toInt(endPoints[1]);
-                if (start >= end) {
-                    throw new IllegalArgumentException(
-                            "Invalid statusCode range: " + range
-                          + ". Start value must be higher than end value.");
-                }
-                while (start <= end) {
-                    parsedCodes.add(start);
-                    start++;
-                }
-            } else {
-                throw new IllegalArgumentException(
-                        "Invalid statusCode range: " + range);
-            }
-        }
 
+        Stream.of(StringUtils.split(statusCodes,  ','))
+            .map(String::trim)
+            .forEach(range -> resolveStatusCodeRange(parsedCodes, range));
     }
-    //TODO make sure Collector validates workdir is
-    // not null on startup.
+
+    private void resolveStatusCodeRange(
+            List<Integer> parsedCodes, String range) {
+        var endPoints = StringUtils.split(range.trim(), '-');
+        if (endPoints.length == 1) {
+            parsedCodes.add(toInt(endPoints[0]));
+        } else if (endPoints.length == 2) {
+            var start = toInt(endPoints[0]);
+            var end = toInt(endPoints[1]);
+            if (start >= end) {
+                throw new IllegalArgumentException(
+                        "Invalid statusCode range: " + range
+                      + ". Start value must be higher than end value.");
+            }
+            while (start <= end) {
+                parsedCodes.add(start);
+                start++;
+            }
+        } else {
+            throw new IllegalArgumentException(
+                    "Invalid statusCode range: " + range);
+        }
+    }
+
     private Path getBaseDir(CrawlSession collector) {
         if (outputDir == null) {
             return collector.getWorkDir();
@@ -381,7 +385,7 @@ public class URLStatusCrawlerEventListener
 
     private int toInt(String num) {
         try {
-            return Integer.parseInt(num);
+            return Integer.parseInt(num.trim());
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("The statusCodes attribute "
                     + "can only contain valid numbers. This number is invalid: "

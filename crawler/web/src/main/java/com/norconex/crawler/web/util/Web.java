@@ -14,10 +14,16 @@
  */
 package com.norconex.crawler.web.util;
 
+import static org.apache.commons.lang3.StringUtils.substring;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.doc.CrawlDoc;
@@ -86,5 +92,99 @@ public final class Web {
                     (HttpFetcher) crawler.getFetcher(),
                     reference))
             .orElse(null);
+    }
+
+    //TODO Move below methods to Importer or Nx Commons Lang?
+
+    public static String trimAroundSubString(String wholeStr, String subStr) {
+        if (wholeStr == null || subStr == null) {
+            return wholeStr;
+        }
+        return wholeStr.replaceAll(
+                "\\s*(" + Pattern.quote(subStr) + ")\\s*", "$1");
+    }
+    public static String trimBeforeSubString(String wholeStr, String subStr) {
+        if (wholeStr == null || subStr == null) {
+            return wholeStr;
+        }
+        return wholeStr.replaceAll("\\s*(" + Pattern.quote(subStr) + ")", "$1");
+    }
+    public static String trimAfterSubString(String wholeStr, String subStr) {
+        if (wholeStr == null || subStr == null) {
+            return wholeStr;
+        }
+        return wholeStr.replaceAll("(" + Pattern.quote(subStr) + ")\\s*", "$1");
+    }
+
+    /**
+     * Parses a string containing one or more HTML/XML attributes
+     * (e.g., key="value") and returns them all. This method deals with
+     * attributes only but can also be passed actual HTML/XML mark-up.
+     * Given the latter, this method will only consider attributes of the
+     * first element encountered.
+     * No attempt is made to first create a DOM model, so the string argument
+     * does not have to be fully "valid" XML/HTML.
+     * If the attribute string is <code>null</code> or produces no match,
+     * an empty {@link Properties} is returned.
+     * @param attribsStr the string containing attributes
+     * @return attributes (never <code>null</code>)
+     */
+    public static Properties parseDomAttributes(String attribsStr) {
+        return parseDomAttributes(attribsStr, false);
+    }
+
+    /**
+     * Parses a string containing one or more HTML/XML attributes
+     * (e.g., key="value") and returns them all. This method deals with
+     * attributes only but can also be passed actual HTML/XML mark-up.
+     * Given the latter, this method will only consider attributes of the
+     * first element encountered.
+     * No attempt is made to first create a DOM model, so the string argument
+     * does not have to be fully "valid" XML/HTML.
+     * If the attribute string is <code>null</code> or produces no match,
+     * an empty {@link Properties} is returned.
+     * @param attribsStr the string containing attributes
+     * @param caseInsensitive whether the return properties
+     *     has case-insensitive keys
+     * @return attributes (never <code>null</code>)
+     */
+    public static Properties parseDomAttributes(
+            String attribsStr, boolean caseInsensitive) {
+        var props = new Properties(caseInsensitive);
+        if (StringUtils.isBlank(attribsStr)) {
+            return props;
+        }
+        doParseDomAttributes(
+                attribsStr
+                    // strip before and after angle brackets as separate steps,
+                    // in case of weird mark-up
+                    .replaceFirst("(?s)^.*<\\s*[\\w-]+\\s*(.*)$", "$1")
+                    .replaceFirst("(?s)^(.*?)>.*$", "$1")
+                    .replaceAll("\\s+", " ")
+                    .replace(" =", "=")
+                    .replace("= ", "="),
+                props);
+        return props;
+    }
+    private static void doParseDomAttributes(
+            String attribsStr, Properties attribs) {
+        var m = Pattern.compile("^([\\w-]+)=(.+)")
+                .matcher(attribsStr.trim());
+        if (m.find()) {
+            var name = m.group(1);
+            var theRest = m.group(2);
+            var quote = theRest.charAt(0);
+            m = Pattern.compile((quote != '"' && quote != '\'')
+                    // no quotes
+                    ? "^.*?=(.+?)(\\s|>|$)"
+                    // with quotes
+                    : "^.*?=%1$s(.*?)%1$s".formatted(quote))
+                    .matcher(attribsStr);
+            if (m.find()) {
+                var value = m.group(1);
+                attribs.add(name, value);
+                doParseDomAttributes(substring(attribsStr, m.end()), attribs);
+            }
+        }
     }
 }

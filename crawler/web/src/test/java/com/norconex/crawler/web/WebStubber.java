@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiPredicate;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
@@ -124,6 +125,7 @@ public final class WebStubber {
         .excludeType(FeaturedImageProcessor.class::equals)
         .excludeType(RecrawlableResolver.class::equals)
         .excludeType(ReferencesProvider.class::equals)
+        .excludeType(BiPredicate.class::equals)
 
         .randomize(Charset.class, () -> StandardCharsets.UTF_8)
         .randomize(CircularRange.class, () -> {

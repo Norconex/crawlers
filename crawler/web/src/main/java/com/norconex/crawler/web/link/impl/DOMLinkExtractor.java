@@ -328,7 +328,9 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
 
         // Do a bit of clean-up
         if (elm.is("meta[http-equiv='refresh']") && elm.hasAttr("content")) {
-            url = url.replaceFirst("(?i).*?url\\s*=\\s*(.*)\\s*$", "$1");
+            url = url.replaceAll("\\s+", " ");
+            url = url.replaceFirst(
+                    "(?i)^.*\\burl\\s?=\\s?([\"']?)\\s?([^\\s]+)\\s?\\1", "$2");
             url = StringUtils.strip(url, "\"'");
         }
 
@@ -361,6 +363,10 @@ public class DOMLinkExtractor extends AbstractTextLinkExtractor {
             linkMeta.set("tag", elm.tagName());
             if (StringUtils.isNotBlank(elm.text())) {
                 linkMeta.set("text", elm.text());
+            }
+            if (StringUtils.isNotBlank(elm.html())
+                    && !elm.html().equals(elm.text())) {
+                linkMeta.set("markup", elm.html());
             }
 
             for (Attribute attr : elm.attributes()) {
