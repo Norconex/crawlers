@@ -92,7 +92,7 @@ class AmazonCloudSearchCommitterTest {
     private static String CLOUDSEARCH_ENDPOINT;
 
     @TempDir
-    static File tempDir;
+    static File tempDir; 
 
     @BeforeAll 
     static void setCloudSearchEndpoint() {
