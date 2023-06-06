@@ -82,6 +82,10 @@ class AmazonCloudSearchCommitterTest {
             .withExposedService(
                     CLOUDSEARCH_NAME, 
                     CLOUDSEARCH_PORT,
+                    /*
+                     * Ensure nozama container gets into a state where 
+                     * it will accept HTTP DELETE requests
+                     */
                     Wait
                         .forHttp(API_DEV_DOCUMENTS)
                         .withMethod("DELETE")
