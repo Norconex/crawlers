@@ -16,7 +16,7 @@ package com.norconex.committer.sql;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.sql.Clob;
@@ -33,7 +33,6 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -84,7 +83,7 @@ class SQLCommitterTest {
             c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
         });
         List<Map<String, Object>> docs = getAllDocs();
-        assertEquals(1, docs.size());
+        assertThat(docs).hasSize(1);
         assertTestDoc(docs.get(0));
     }
 
@@ -96,7 +95,7 @@ class SQLCommitterTest {
         });
 
         //Check that there is 2 documents in SQL table
-        Assertions.assertEquals(2, getAllDocs().size());
+        assertThat(getAllDocs()).hasSize(2);
     }
 
     @Test
@@ -110,7 +109,7 @@ class SQLCommitterTest {
         });
 
         //Check that there are 2 documents in SQL table
-        Assertions.assertEquals(2, getAllDocs().size());
+        assertThat(getAllDocs()).hasSize(2);
     }
 
     @Test
@@ -124,8 +123,8 @@ class SQLCommitterTest {
             c.upsert(upsertRequest("3", "Document 3"));
         });
 
-        //Check that there is 1 documents in SQL table
-        Assertions.assertEquals(1, getAllDocs().size());
+        //Check that there is 1 document in SQL table
+        assertThat(getAllDocs()).hasSize(1);
     }
 
     @Test
@@ -142,7 +141,7 @@ class SQLCommitterTest {
         });
 
         // Check that it's remove from SQL table
-        Assertions.assertEquals(0, getAllDocs().size());
+        assertThat(getAllDocs()).isEmpty();
     }
 
 
@@ -159,12 +158,11 @@ class SQLCommitterTest {
 
         // Check that it's in SQL table
         List<Map<String, Object>> docs = getAllDocs();
-        assertEquals(1, docs.size());
+        assertThat(getAllDocs()).hasSize(1);
         Map<String, Object> doc = docs.get(0);
 
         // Check multi values are still there
-        assertEquals(3, doc.get(fieldname).toString().split("_").length,
-                "Multi-value not saved properly.");
+        assertThat(doc.get(fieldname).toString().split("_")).hasSize(3);
     }
 
     @Test
@@ -186,16 +184,21 @@ class SQLCommitterTest {
 
 
         List<Map<String, Object>> docs = getAllDocs();
-        assertEquals(1, docs.size());
+        assertThat(docs).hasSize(1);
 
         Map<String, Object> doc = docs.get(0);
-        assertEquals(TEST_ID, doc.get(TEST_FLD_PK));
+        assertThat(doc.get(TEST_FLD_PK))
+            .isInstanceOf(String.class)
+            .isEqualTo(TEST_ID);
         // Check values were truncated
-        assertEquals(doc.get("LONGSINGLE"), StringUtils.repeat("a", 30));
-        assertEquals(doc.get("LONGMULTI"),
-                StringUtils.repeat("a", 10) + "-"
-              + StringUtils.repeat("b", 10) + "-"
-              + StringUtils.repeat("c", 8));
+        assertThat(doc.get("LONGSINGLE"))
+            .isInstanceOf(String.class)
+            .isEqualTo(StringUtils.repeat("a", 30));
+        assertThat(doc.get("LONGMULTI"))
+                .isInstanceOf(String.class)
+                .isEqualTo(StringUtils.repeat("a", 10) + "-"
+                        + StringUtils.repeat("b", 10) + "-"
+                        + StringUtils.repeat("c", 8));
     }
 
     @Test
@@ -212,15 +215,23 @@ class SQLCommitterTest {
         });
 
         List<Map<String, Object>> docs = getAllDocs();
-        assertEquals(1, docs.size());
+        assertThat(docs).hasSize(1);
 
         Map<String, Object> doc = docs.get(0);
-        assertEquals(TEST_ID, doc.get(TEST_FLD_PK));
+        assertThat(doc.get(TEST_FLD_PK))
+            .isInstanceOf(String.class)
+            .isEqualTo(TEST_ID);
 
         // Check values were truncated
-        assertEquals(doc.get("A_B_C_E_F"), "test1");
-        assertEquals(doc.get("FIELD2"), "test2");
-        assertEquals(doc.get("FIELD3"), "test3");
+        assertThat(doc.get("A_B_C_E_F"))
+            .isInstanceOf(String.class)
+            .isEqualTo("test1");
+        assertThat(doc.get("FIELD2"))
+            .isInstanceOf(String.class)
+            .isEqualTo("test2");
+        assertThat(doc.get("FIELD3"))
+            .isInstanceOf(String.class)
+            .isEqualTo("test3");
     }
 
 
@@ -235,8 +246,12 @@ class SQLCommitterTest {
     }
 
     private void assertTestDoc(Map<String, Object> doc) {
-        assertEquals(TEST_ID, doc.get(TEST_FLD_PK));
-        assertEquals(TEST_CONTENT, doc.get(TEST_FLD_CONTENT));
+        assertThat(doc.get(TEST_FLD_PK))
+            .isInstanceOf(String.class)
+            .isEqualTo(TEST_ID);
+        assertThat(doc.get(TEST_FLD_CONTENT))
+            .isInstanceOf(String.class)
+            .isEqualTo(TEST_CONTENT);
     }
 
     private SQLCommitter createSQLCommitter()
