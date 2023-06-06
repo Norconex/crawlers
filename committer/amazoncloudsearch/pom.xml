@@ -47,6 +47,17 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+	        <groupId>org.testcontainers</groupId>
+	        <artifactId>junit-jupiter</artifactId>
+	        <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.testcontainers</groupId>
+		    <artifactId>testcontainers</artifactId>
+		    <version>${testcontainers.version}</version>
+		    <scope>test</scope>
+		</dependency>
+        <dependency>
             <groupId>com.norconex.commons</groupId>
             <artifactId>norconex-commons-lang</artifactId>
             <classifier>resources</classifier>

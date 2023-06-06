@@ -16,7 +16,6 @@ package com.norconex.committer.amazoncloudsearch;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -24,6 +23,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,34 +32,35 @@ import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.exec.RetriableException;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.URLStreamer;
 
 /**
- * AmazonCloudSearch main tests. Meant to be run locally using
- * https://github.com/oisinmulvihill/nozama-cloudsearch.
+ * AmazonCloudSearch main tests.
  *
  * @author Pascal Essiembre
  */
-@EnabledIfSystemProperty(named = "cloudsearch.endpoint", matches = ".*")
-@TestInstance(Lifecycle.PER_CLASS)
+
+@Testcontainers(disabledWithoutDocker = true)
 class AmazonCloudSearchCommitterTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(
@@ -67,25 +68,45 @@ class AmazonCloudSearchCommitterTest {
 
     //TODO test update/delete URL params
     //TODO test source + target mappings + other mappings
-
+  
+    private static final int CLOUDSEARCH_PORT = 15808;
+    private static final String CLOUDSEARCH_NAME = "nozama-cloudsearch";
+    private static final String API_DEV_DOCUMENTS = "/dev/documents";
     private static final String TEST_ID = "3";
     private static final String TEST_CONTENT = "This is test content.";
-
-    private static final String CLOUDSEARCH_ENDPOINT =
-            appendIfMissing(System.getProperty("cloudsearch.endpoint"), "/");
     
-    private static final String API_PATH = "dev/documents";
+    @Container
+    static DockerComposeContainer<?> container = 
+            new DockerComposeContainer<>(
+                    new File("src/test/resources/nozama-cloudsearch.yaml"))
+            .withExposedService(
+                    CLOUDSEARCH_NAME, 
+                    CLOUDSEARCH_PORT,
+                    Wait
+                        .forHttp(API_DEV_DOCUMENTS)
+                        .withMethod("DELETE")
+                        .forStatusCode(200)
+                        .withStartupTimeout(Duration.ofSeconds(60))
+                    );
+
+    private static String CLOUDSEARCH_ENDPOINT;
 
     @TempDir
     static File tempDir;
 
+    @BeforeAll 
+    static void setCloudSearchEndpoint() {
+        CLOUDSEARCH_ENDPOINT = 
+                "http://"
+                + container.getServiceHost(CLOUDSEARCH_NAME, CLOUDSEARCH_PORT)
+                + ":"
+                + container.getServicePort(CLOUDSEARCH_NAME, CLOUDSEARCH_PORT)
+                + "/";
+    }
+
     @BeforeEach
     void beforeEach() throws Exception {
-        httpDelete(API_PATH);
-    }
-    @AfterAll
-    void afterAll() throws Exception {
-        httpDelete(API_PATH);
+        httpDelete(API_DEV_DOCUMENTS);
     }
 
     @Test
@@ -171,7 +192,6 @@ class AmazonCloudSearchCommitterTest {
             c.delete(new DeleteRequest("1`~<", new Properties()));
         });
 
-        //System.out.println("*************************" + getAllDocs().get(0).getString("id"));
         // Check that it's remove from CloudSearch
         Assertions.assertEquals(0, getAllDocs().size());
     }
@@ -213,7 +233,7 @@ class AmazonCloudSearchCommitterTest {
                 doc.getJSONObject("fields").getString("content"));
     }
     private List<JSONObject> getAllDocs() {
-        String response = httpGET(API_PATH);
+        String response = httpGET(API_DEV_DOCUMENTS);
         LOG.debug("CloudSearch getAllDocs() response: {}", response);
         JSONObject json = new JSONObject(response);
         JSONArray jsonDocs = json.getJSONArray("documents");

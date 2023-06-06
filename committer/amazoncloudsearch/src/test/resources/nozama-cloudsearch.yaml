@@ -1,0 +1,21 @@
+version: "3.4"
+services:
+
+  nozama-cloudsearch:
+    image: oisinmulvihill/nozama-cloudsearch
+#    ports:
+#      - "15808:15808"
+    environment:
+      - MONGO_HOST=mongo
+      - ELASTICSEARCH_HOST=elasticsearch
+    depends_on:
+      - mongo
+      - elasticsearch
+
+  mongo:
+    image: mongo:3.4
+
+  elasticsearch:
+    image: elasticsearch:7.1.0
+    environment:
+      - "discovery.type=single-node"
