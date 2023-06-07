@@ -45,6 +45,7 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.security.Credentials;
 
 class SQLCommitterTest {
 
@@ -68,7 +69,7 @@ class SQLCommitterTest {
         LOG.debug("Creating new database.");
         connectionURL = "jdbc:h2:"
               + tempDir.getAbsolutePath()
-              + ";WRITE_DELAY=0;AUTOCOMMIT=ON;AUTO_SERVER=TRUE";
+              + ";WRITE_DELAY=0;AUTOCOMMIT=ON;AUTO_SERVER=TRUE;USER=sa;PASSWORD=123";
         try {
             withinDbSession(qr -> qr.update("DROP TABLE " + TEST_TABLE));
         } catch (SQLException e) {
@@ -87,6 +88,69 @@ class SQLCommitterTest {
         assertTestDoc(docs.get(0));
     }
 
+    @Test
+    void testCommitAdd_emptyConnUrl_throwsException() {
+        // Setup
+        Exception expectedException = null;
+        
+        // Execute
+        try {
+            withinCommitterSessionEmptyConnUrl(c -> {
+                c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
+            });
+        } catch (Exception e) {
+            expectedException = e;
+        }
+        
+        // Verify
+        assertThat(expectedException)
+            .isNotNull()
+            .isInstanceOf(CommitterException.class)
+            .hasMessage("No connection URL specified.");
+    }
+    
+    @Test
+    void testCommitAdd_emptyTableName_throwsException() {
+        // Setup
+        Exception expectedException = null;
+        
+        // Execute
+        try {
+            withinCommitterSessionEmptyTableName(c -> {
+                c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
+            });
+        } catch (Exception e) {
+            expectedException = e;
+        }
+        
+        // Verify
+        assertThat(expectedException)
+            .isNotNull()
+            .isInstanceOf(CommitterException.class)
+            .hasMessage("No table name specified.");
+    }
+
+    @Test
+    void testCommitAdd_emptyPrimaryKey_throwsException() {
+        // Setup
+        Exception expectedException = null;
+        
+        // Execute
+        try {
+            withinCommitterSessionEmptyPrimaryKey(c -> {
+                c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
+            });
+        } catch (Exception e) {
+            expectedException = e;
+        }
+        
+        // Verify
+        assertThat(expectedException)
+            .isNotNull()
+            .isInstanceOf(CommitterException.class)
+            .hasMessage("No primary key specified.");
+    }
+    
     @Test
     void testAddWithQueueContaining2documents() throws Exception{
         withinCommitterSession(c -> {
@@ -254,18 +318,26 @@ class SQLCommitterTest {
             .isEqualTo(TEST_CONTENT);
     }
 
-    private SQLCommitter createSQLCommitter()
-            throws CommitterException {
-        CommitterContext ctx = CommitterContext.builder()
+    private CommitterContext createCommitterContext() {
+        return CommitterContext.builder()
                 .setWorkDir(new File(tempDir,
                         "work-" + TimeIdGenerator.next()).toPath()).build();
+    }
+    
+    private SQLCommitter createSQLCommitterNoInit()
+            throws CommitterException {
         SQLCommitter committer = new SQLCommitter();
         SQLCommitterConfig config = committer.getConfig();
         config.setConnectionUrl(connectionURL);
         config.setDriverClass(DRIVER_CLASS);
-        config.setConnectionUrl(connectionURL);
         config.setTableName(TEST_TABLE);
         config.setPrimaryKey(TEST_FLD_PK);
+        config.setCredentials(new Credentials("sa", "123"));
+        
+        Properties props = new Properties();
+        props.add("key1", "value1");
+        config.setProperties(props);
+        
         config.setCreateTableSQL(
                 "CREATE TABLE {tableName} ("
               + "  {primaryKey} VARCHAR(32672) NOT NULL, "
@@ -274,13 +346,14 @@ class SQLCommitterTest {
               + ")");
         config.setCreateFieldSQL(
                 "ALTER TABLE {tableName} ADD {fieldName} VARCHAR(30)");
-        committer.init(ctx);
+        
         return committer;
     }
 
     private SQLCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
-        SQLCommitter committer = createSQLCommitter();
+        SQLCommitter committer = createSQLCommitterNoInit();
+        committer.init(createCommitterContext());
         try {
             c.accept(committer);
         } catch (CommitterException e) {
@@ -291,6 +364,86 @@ class SQLCommitterTest {
         committer.close();
         return committer;
     }
+    
+    private SQLCommitter withinCommitterSessionEmptyConnUrl(
+            CommitterConsumer c) throws CommitterException {
+        
+        SQLCommitter committer = createSQLCommitterEmptyConnUrl();
+        committer.init(createCommitterContext());
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }    
+
+    private SQLCommitter createSQLCommitterEmptyConnUrl() {
+        SQLCommitter committer = new SQLCommitter();
+        SQLCommitterConfig config = committer.getConfig();
+        config.setConnectionUrl("");
+        config.setDriverClass(DRIVER_CLASS);
+        
+        return committer;
+    }
+    
+    private SQLCommitter withinCommitterSessionEmptyTableName( 
+            CommitterConsumer c) throws CommitterException {
+                
+        SQLCommitter committer = createSQLCommitterEmptyTableName();
+        committer.init(createCommitterContext());
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;   
+    }
+    
+    private SQLCommitter createSQLCommitterEmptyTableName() {
+        SQLCommitter committer = new SQLCommitter();
+        SQLCommitterConfig config = committer.getConfig();
+        config.setConnectionUrl(connectionURL);
+        config.setDriverClass(DRIVER_CLASS);
+        config.setTableName("");
+        
+        return committer;
+    }
+    
+    
+    private SQLCommitter withinCommitterSessionEmptyPrimaryKey( 
+            CommitterConsumer c) throws CommitterException {
+                
+        SQLCommitter committer = createSQLCommitterEmptyPrimaryKey();
+        committer.init(createCommitterContext());
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;   
+    }
+    
+    private SQLCommitter createSQLCommitterEmptyPrimaryKey() {
+        SQLCommitter committer = new SQLCommitter();
+        SQLCommitterConfig config = committer.getConfig();
+        config.setConnectionUrl(connectionURL);
+        config.setDriverClass(DRIVER_CLASS);
+        config.setTableName(TEST_TABLE);
+        config.setPrimaryKey("");
+        
+        return committer;
+    }
+    
 
     private <T> T withinDbSession(DbFunction<T> c) throws SQLException {
         BasicDataSource datasource = new BasicDataSource();
