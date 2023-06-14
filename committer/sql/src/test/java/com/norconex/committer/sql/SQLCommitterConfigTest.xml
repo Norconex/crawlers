@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<!-- 
+   Copyright 2017-2023 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<committer class="com.norconex.committer.sql.SQLCommitter">
+  <driverPath>/some/path</driverPath>
+  <driverClass>driverClass</driverClass>
+  <connectionUrl>connectionUrl</connectionUrl>
+  <credentials>
+    <username>myusername</username>
+    <password>mypassword</password>
+    <passwordKey>
+      <value>mykey</value>
+      <source>key</source>
+      <size>128</size>
+    </passwordKey>
+  </credentials>
+  <properties>
+    <property name="key1">value 1</property>
+    <property name="key2">value 2</property>
+  </properties>
+  <tableName>tableName</tableName>
+  <primaryKey>pk</primaryKey>
+  <createTableSQL>CREATE TABLE blah</createTableSQL>
+  <createFieldSQL>CREATE FIELD blah</createFieldSQL>
+  <fixFieldNames>true</fixFieldNames>
+  <fixFieldValues>true</fixFieldValues>
+  <multiValuesJoiner>^^</multiValuesJoiner>
+  
+  <targetContentField>targetContentField</targetContentField>
+  
+  <restrictTo>
+    <fieldMatcher method="basic">document.reference</fieldMatcher>
+    <valueMatcher method="wildcard">*.pdf</valueMatcher>
+  </restrictTo>
+  <restrictTo>
+    <fieldMatcher method="basic">title</fieldMatcher>
+    <valueMatcher method="basic">bad</valueMatcher>
+  </restrictTo>
+  <fieldMappings>
+    <mapping fromField="whatever1" toField="wherever1"/>
+    <mapping fromField="whatever2" toField="wherever2"/>
+  </fieldMappings>
+  <queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
+    <batchSize>40</batchSize>
+    <maxPerFolder>10</maxPerFolder>
+  </queue>
+</committer>

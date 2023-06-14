@@ -68,8 +68,13 @@ public final class FSQueueUtil {
      * @throws IOException problem occurred searching for files.
      */
     public static Stream<Path> findZipFiles(Path dir) throws IOException {
-        return Files.find(dir,  Integer.MAX_VALUE,
-                (f, a) -> FILTER.accept(f.toFile()));
+//       return Files.find(dir,  Integer.MAX_VALUE,
+//                (f, a) -> FILTER.accept(f.toFile()));
+        
+        return Files
+                .list(dir)
+                .filter(s -> s.toString().endsWith(EXT))
+                .sorted();
     }
 
     public static void toZipFile(
