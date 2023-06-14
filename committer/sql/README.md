@@ -10,4 +10,3 @@ Website: https://opensource.norconex.com/committers/sql/
 | This Committer   | Committer Core | HTTP Collector | FS Collector |
 | ---------------- | -------------- | -------------- | ------------ |
 
-  
