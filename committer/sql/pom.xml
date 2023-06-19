@@ -39,12 +39,12 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-dbcp2</artifactId>
-      <version>2.1.1</version>
+      <version>2.9.0</version>
     </dependency>
     <dependency>
       <groupId>commons-dbutils</groupId>
       <artifactId>commons-dbutils</artifactId>
-      <version>1.6</version>
+      <version>1.7</version>
     </dependency>
     
     <dependency>
@@ -141,18 +141,18 @@
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
-      <url>${site.baseurl}/committers/template/v___________</url>
+      <url>${site.baseurl}/committers/sql/v4</url>
     </site>
   </distributionManagement>
 
-  <url>https://opensource.norconex.com/committers/template</url>
+  <url>https://opensource.norconex.com/committers/sql</url>
   <scm>
-    <url>https://github.com/Norconex/committer-template</url>
-    <connection>scm:git:git@github.com:Norconex/committer-template.git</connection>
-    <developerConnection>scm:git:git@github.com:Norconex/committer-template.git</developerConnection>
+    <url>https://github.com/Norconex/committer-sql</url>
+    <connection>scm:git:git@github.com:Norconex/committer-sql.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/committer-sql.git</developerConnection>
   </scm>
   <issueManagement>
-    <url>https://github.com/Norconex/committer-template/issues</url>
+    <url>https://github.com/Norconex/committer-sql/issues</url>
     <system>GitHub</system>
   </issueManagement>
 </project>
