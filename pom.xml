@@ -1056,7 +1056,7 @@
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
     <module>committer/amazoncloudsearch</module>
-    <module>committer/sql</module>
+    <module>committer/sql</module> 
     <module>importer</module>
     <module>crawler/core</module>
     <module>crawler/web</module>

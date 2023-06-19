@@ -19,6 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Enumeration;
@@ -68,13 +69,9 @@ public final class FSQueueUtil {
      * @throws IOException problem occurred searching for files.
      */
     public static Stream<Path> findZipFiles(Path dir) throws IOException {
-//       return Files.find(dir,  Integer.MAX_VALUE,
-//                (f, a) -> FILTER.accept(f.toFile()));
-        
-        return Files
-                .list(dir)
-                .filter(s -> s.toString().endsWith(EXT))
-                .sorted();
+       return Files
+               .find(dir, Integer.MAX_VALUE, (f, a) -> FILTER.accept(f.toFile()))
+               .sorted();
     }
 
     public static void toZipFile(

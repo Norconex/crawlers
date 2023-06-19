@@ -90,7 +90,7 @@ class SQLClient {
     }
 
     private BasicDataSource createDataSource() throws CommitterException {
-        BasicDataSource ds = new BasicDataSource();
+        BasicDataSource ds = new BasicDataSource(); //NOSONAR. closed in close()
         // if path is blank, we assume it is already in classpath
         if (StringUtils.isNotBlank(cfg.getDriverPath())) {
             try {

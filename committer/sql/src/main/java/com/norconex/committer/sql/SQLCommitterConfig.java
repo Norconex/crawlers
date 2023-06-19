@@ -171,9 +171,9 @@ public class SQLCommitterConfig implements Serializable {
         xml.ifXML("credentials", x -> x.populate(credentials));
         xml.ifXML("properties", xmlProps -> {
             properties.clear();
-            xmlProps.getXMLList("property").forEach(xp -> {
-                properties.add(xp.getString("@name"), xp.getString("."));
-            });
+            xmlProps.getXMLList("property").forEach(xp -> 
+                properties.add(xp.getString("@name"), xp.getString("."))
+            );
         });
         setTableName(xml.getString("tableName", getTableName()));
         setPrimaryKey(xml.getString("primaryKey", getPrimaryKey()));
