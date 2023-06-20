@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<!-- 
+   Copyright 2021 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<committer class="com.norconex.committer.neo4j.Neo4jCommitter">
+
+  <uri>bolt://localhost:7687</uri>
+  <upsertCypher>MERGE xyz</upsertCypher>
+  <deleteCypher>DELETE xyz</deleteCypher>
+  <credentials>
+    <username>neo4j</username>
+    <password>AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=</password>
+    <passwordKey>
+      <value>key.txt</value>
+      <source>file</source>
+    </passwordKey>
+  </credentials>
+  <multiValuesJoiner>/</multiValuesJoiner>
+  <nodeIdProperty>docId</nodeIdProperty>
+  <nodeContentProperty>docContent</nodeContentProperty>
+  <optionalParameters>param1, param2</optionalParameters>
+
+  <restrictTo>
+    <fieldMatcher method="basic">document.reference</fieldMatcher>
+    <valueMatcher method="wildcard">*.pdf</valueMatcher>
+  </restrictTo>
+  <restrictTo>
+    <fieldMatcher method="basic">title</fieldMatcher>
+    <valueMatcher method="basic">bad</valueMatcher>
+  </restrictTo>
+  <fieldMappings>
+    <mapping fromField="whatever1" toField="wherever1"/>
+    <mapping fromField="whatever2" toField="wherever2"/>
+  </fieldMappings>
+  <queue class="com.norconex.committer.core3.batch.queue.impl.FSQueue">
+    <batchSize>40</batchSize>
+    <maxPerFolder>10</maxPerFolder>
+  </queue> 
+  
+</committer>
