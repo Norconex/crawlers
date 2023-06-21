@@ -1,4 +1,4 @@
-/* Copyright 2021 Norconex Inc.
+/* Copyright 2019-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
  */
 package com.norconex.committer.neo4j;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+
 import java.io.IOException;
 import java.io.Reader;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
@@ -62,11 +64,11 @@ class Neo4jCommitterConfigTest {
 
     @Test
     void testValidation() throws IOException {
-        Assertions.assertDoesNotThrow(() -> {
+        assertThatCode(() -> { 
             try (Reader r = ResourceLoader.getXmlReader(this.getClass())) {
                 XML xml = XML.of(r).create();
                 xml.toObjectImpl(Neo4jCommitter.class);
             }
-        });
+        }).doesNotThrowAnyException();
     }
 }

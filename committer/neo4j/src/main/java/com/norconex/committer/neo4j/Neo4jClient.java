@@ -123,7 +123,7 @@ class Neo4jClient {
                     req.getContent(), StandardCharsets.UTF_8));
         }
         try (Session session = neo4jDriver.session(sessionConfig)) {
-            session.writeTransaction(tx -> {
+            session.executeWrite(tx -> {
                 tx.run(config.getUpsertCypher(), toObjectMap(meta));
                 return null;
             });
@@ -135,7 +135,7 @@ class Neo4jClient {
         Optional.ofNullable(trimToNull(config.getNodeIdProperty())).ifPresent(
                 fld -> meta.set(fld, req.getReference()));
         try (Session session = neo4jDriver.session(sessionConfig)) {
-            session.writeTransaction(tx -> {
+            session.executeWrite(tx -> {
                 tx.run(config.getDeleteCypher(), toObjectMap(meta));
                 return null;
             });
@@ -153,9 +153,9 @@ class Neo4jClient {
         });
 
         // Add optional parameters
-        config.getOptionalParameters().forEach(param -> {
-            map.computeIfAbsent(param, p -> NullValue.NULL);
-        });
+        config.getOptionalParameters().forEach(param -> 
+            map.computeIfAbsent(param, p -> NullValue.NULL)
+        );
         return map;
     }
 }

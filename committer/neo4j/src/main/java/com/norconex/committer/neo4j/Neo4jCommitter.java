@@ -44,9 +44,9 @@ import com.norconex.commons.lang.xml.XML;
  *
  * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#restrictTo}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#fieldMappings}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
  * {@nx.xml.usage
  * <committer class="com.norconex.committer.neo4j.Neo4jCommitter">
@@ -97,7 +97,7 @@ import com.norconex.commons.lang.xml.XML;
  *     client exception for missing parameters.)
  *   <optionalParameters>
  *
- *   {@nx.include com.norconex.committer.core3.batch.AbstractBatchCommitter#options}
+ *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
  *
  * </committer>
  * }
@@ -134,7 +134,6 @@ import com.norconex.commons.lang.xml.XML;
  * @author Sylvain Roussy
  * @author Pascal Essiembre
  */
-@SuppressWarnings("javadoc")
 public class Neo4jCommitter extends AbstractBatchCommitter {
 
     private final Neo4jCommitterConfig config;

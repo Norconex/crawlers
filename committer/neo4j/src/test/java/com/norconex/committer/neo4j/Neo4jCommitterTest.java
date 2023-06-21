@@ -1,4 +1,4 @@
-/* Copyright 2019-2021 Norconex Inc.
+/* Copyright 2019-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package com.norconex.committer.neo4j;
 import static java.lang.System.out;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -59,7 +59,7 @@ import com.norconex.commons.lang.map.Properties;
 @Testcontainers(disabledWithoutDocker = true)
 class Neo4jCommitterTest {
 
-    private static final String NEO4J_VERSION = "4.2.0";
+    private static final String NEO4J_VERSION = "5.9.0";
     private static final String TEST_CONTENT =
             "This is a movie about something.";
 
@@ -113,11 +113,11 @@ class Neo4jCommitterTest {
         cnt = 0;
         for (Record rec : records) {
             UpsertRequest req = movieUpsertRequest(prop(rec, "movie.id"));
-            assertEquals(meta(req, "title"), prop(rec, "movie.title"));
-            assertEquals(meta(req, "year"), prop(rec, "movie.year"));
+            assertThat(meta(req, "title")).isEqualTo(prop(rec, "movie.title"));
+            assertThat(meta(req, "year")).isEqualTo(prop(rec, "movie.year"));
             cnt++;
         }
-        assertEquals(3, cnt);
+        assertThat(cnt).isEqualTo(3);
 
         // Check all actors are there
         records = session.run("MATCH (actor:Actor)\nRETURN actor.name").list();
@@ -125,10 +125,10 @@ class Neo4jCommitterTest {
         for (Record rec : records) {
             actors.add(prop(rec, "actor.name"));
         }
-        assertEquals(new HashSet<>(Arrays.asList(
+        assertThat(actors).containsExactlyInAnyOrder(
                 "Keanu Reeves", "Charlize Theron", "Al Pacino",
                 "Carrie-Anne Moss", "Laurence Fishburne",
-                "Hugo Weaving")), actors);
+                "Hugo Weaving");
 
         // Check all producers are there
         records = session.run("MATCH (prod:Producer)\nRETURN prod.name").list();
@@ -136,7 +136,7 @@ class Neo4jCommitterTest {
         for (Record rec : records) {
             producers.add(prop(rec, "prod.name"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("Joel Silver")), producers);
+        assertThat(producers).containsExactly("Joel Silver");
 
         // Check all directors are there
         records = session.run("MATCH (dir:Director)\nRETURN dir.name").list();
@@ -144,20 +144,19 @@ class Neo4jCommitterTest {
         for (Record rec : records) {
             directors.add(prop(rec, "dir.name"));
         }
-        assertEquals(new HashSet<>(Arrays.asList(
-                "Taylor Hackford", "Lilly Wachowski", "Lana Wachowski")),
-                directors);
+        assertThat(directors).containsExactlyInAnyOrder(
+                "Taylor Hackford", "Lilly Wachowski", "Lana Wachowski");
 
         // Check relations are OK for actors
-        records = session.run("MATCH (a { name: 'Keanu Reeves' })\n"
-                + "RETURN (a)-->() AS actedIn").list();
-        Set<String> actorRels = new HashSet<>();
-        for (Record rec : records) {
-            actorRels.add(prop(rec, "actedIn"));
-        }
-
-        //TODO HOW to return all movies Keanu was in, and test against that?
-        System.out.println("RELS:\n" + actorRels);
+//        records = session.run("MATCH (a { name: 'Keanu Reeves' })\n"
+//                + "RETURN (a)-->() AS actedIn").list();
+//        Set<String> actorRels = new HashSet<>();
+//        for (Record rec : records) {
+//            actorRels.add(prop(rec, "actedIn"));
+//        }
+//
+//        //TODO HOW to return all movies Keanu was in, and test against that?
+//        System.out.println("RELS:\n" + actorRels);
 
         //TODO more tests as appropriate
     }

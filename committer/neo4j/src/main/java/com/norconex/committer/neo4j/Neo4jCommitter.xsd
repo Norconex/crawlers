@@ -17,7 +17,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:include schemaLocation="/com/norconex/commons/lang/security/Credentials.xsd"></xs:include>
-  <xs:include schemaLocation="/com/norconex/committer/core3/batch/AbstractBatchCommitter.xsd"></xs:include>
+  <xs:include schemaLocation="/com/norconex/committer/core/batch/AbstractBatchCommitter.xsd"></xs:include>
   
   <xs:element name="committer">
     <xs:complexType>
