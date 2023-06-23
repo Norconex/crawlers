@@ -14,7 +14,6 @@
  */
 package com.norconex.committer.neo4j;
 
-import static java.lang.System.out;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,9 +51,11 @@ import org.testcontainers.utility.DockerImageName;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
+import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.security.Credentials;
 
 @Testcontainers(disabledWithoutDocker = true)
 class Neo4jCommitterTest {
@@ -80,7 +81,9 @@ class Neo4jCommitterTest {
     @BeforeEach
     void beforeEach() throws Exception {
         session = driver.session();
-        session.run("MATCH (n)\nDETACH DELETE n");
+        session.run("""
+                MATCH (n)
+                DETACH DELETE n""");
     }
     @AfterEach
     void afterEach() throws Exception {
@@ -107,9 +110,9 @@ class Neo4jCommitterTest {
         int cnt;
 
         // Check all movies are there
-        records = session.run(
-                "MATCH (movie:Movie)\n"
-              + "RETURN movie.id, movie.title, movie.year").list();
+        records = session.run("""
+                MATCH (movie:Movie)
+               RETURN movie.id, movie.title, movie.year""").list();
         cnt = 0;
         for (Record rec : records) {
             UpsertRequest req = movieUpsertRequest(prop(rec, "movie.id"));
@@ -131,7 +134,10 @@ class Neo4jCommitterTest {
                 "Hugo Weaving");
 
         // Check all producers are there
-        records = session.run("MATCH (prod:Producer)\nRETURN prod.name").list();
+        records = session.run("""
+                
+                MATCH (prod:Producer)
+                RETURN prod.name""").list();
         Set<String> producers = new HashSet<>();
         for (Record rec : records) {
             producers.add(prop(rec, "prod.name"));
@@ -139,33 +145,46 @@ class Neo4jCommitterTest {
         assertThat(producers).containsExactly("Joel Silver");
 
         // Check all directors are there
-        records = session.run("MATCH (dir:Director)\nRETURN dir.name").list();
+        records = session.run("""
+                MATCH (dir:Director)
+                RETURN dir.name""").list();
         Set<String> directors = new HashSet<>();
         for (Record rec : records) {
             directors.add(prop(rec, "dir.name"));
         }
         assertThat(directors).containsExactlyInAnyOrder(
                 "Taylor Hackford", "Lilly Wachowski", "Lana Wachowski");
-
-        // Check relations are OK for actors
-//        records = session.run("MATCH (a { name: 'Keanu Reeves' })\n"
-//                + "RETURN (a)-->() AS actedIn").list();
-//        Set<String> actorRels = new HashSet<>();
-//        for (Record rec : records) {
-//            actorRels.add(prop(rec, "actedIn"));
-//        }
-//
-//        //TODO HOW to return all movies Keanu was in, and test against that?
-//        System.out.println("RELS:\n" + actorRels);
-
-        //TODO more tests as appropriate
     }
 
     @Test
     void deleteTest() throws CommitterException, IOException {
-        //TODO test deleting one node and its relationship based on "id".
-        // e.g., test that Keany is only in 2 movies after deleting
-        // movie with id "matrix1".
+        //setup
+        String queryFindAllKeanuMovies = ("""
+                MATCH (a:Actor WHERE a.name='Keanu Reeves')-[:ACTED_IN]->(m:Movie)
+                WITH m.title as movieTitle
+                RETURN movieTitle""");
+        commitAllMovies();
+        
+        List<Record> records = session.run(queryFindAllKeanuMovies).list();
+        assertThat(records).hasSize(3);
+        
+        //execute
+        withinCommitterSession(c -> {
+            Neo4jCommitterConfig cfg = c.getConfig();
+            cfg.setDeleteCypher("""
+                    MATCH (n:Movie {id: $movieId })
+                    DETACH DELETE n
+                    """);
+            
+            Properties meta = new Properties();
+            meta.add("movieId", "matrix1");
+            
+            c.delete(new DeleteRequest("matrix1", meta));
+        });
+        
+        //verify
+        records = session.run(queryFindAllKeanuMovies).list();
+        assertThat(records).hasSize(2);
     }
 
     //--- UTILS. ---------------------------------------------------------------
@@ -185,18 +204,18 @@ class Neo4jCommitterTest {
         withinCommitterSession(c -> {
             Neo4jCommitterConfig cfg = c.getConfig();
             cfg.addOptionalParameter("producers");
-            cfg.setUpsertCypher(
-                "MERGE (m:Movie { "
-                    + "id: $movieId, title: $title, year: $year })\n"
-              + "FOREACH (actor IN COALESCE($actors, []) |\n"
-                    + "MERGE (a:Actor{name: actor})\n"
-                    + "CREATE (a)-[:ACTED_IN]->(m))\n"
-              + "FOREACH (producer IN COALESCE($producers, []) |\n"
-                    + "MERGE (p:Producer{name: producer})\n"
-                    + "CREATE (p)-[:PRODUCED]->(m))\n"
-              + "FOREACH (director IN COALESCE($directors, []) |\n"
-                    + "MERGE (d:Director{name: director})\n"
-                    + "CREATE (d)-[:DIRECTED]->(m))\n"
+            cfg.setUpsertCypher("""
+                MERGE (m:Movie { 
+                     id: $movieId, title: $title, year: $year })
+                    FOREACH (actor IN COALESCE($actors, []) |
+                        MERGE (a:Actor{name: actor})
+                        CREATE (a)-[:ACTED_IN]->(m))
+                    FOREACH (producer IN COALESCE($producers, []) |
+                        MERGE (p:Producer{name: producer})
+                        CREATE (p)-[:PRODUCED]->(m))
+                    FOREACH (director IN COALESCE($directors, []) |
+                        MERGE (d:Director{name: director})
+                        CREATE (d)-[:DIRECTED]->(m))"""
             );
             c.upsert(movieUpsertRequest("matrix1"));
             c.upsert(movieUpsertRequest("matrix2"));
@@ -206,7 +225,9 @@ class Neo4jCommitterTest {
 
     // will consume result and will no longer be usable
     private Result getAllRecords() {
-        return session.run("MATCH (n)\nRETURN n");
+        return session.run("""
+                MATCH (n)
+                RETURN n""");
     }
     void renderAll() {
         renderResult(getAllRecords());
@@ -225,17 +246,17 @@ class Neo4jCommitterTest {
             String indent = StringUtils.repeat(' ', depth * 2);
             if (value instanceof Node) {
                 Node node = (Node) value;
-                out.print(indent + key);
-                node.labels().forEach(l -> out.print(":" + l));
-                out.println(" {");
+                System.out.print(indent + key);
+                node.labels().forEach(l -> System.out.print(":" + l));
+                System.out.println(" {");
                 renderMap(depth + 1, node.asMap());
-                out.println(indent + "}");
+                System.out.println(indent + "}");
             } else if (value instanceof Collection) {
-                out.print(indent + key);
-                ((Collection<?>) value).forEach(v -> out.print(":" + v));
-                out.println();
+                System.out.print(indent + key);
+                ((Collection<?>) value).forEach(v -> System.out.print(":" + v));
+                System.out.println();
             } else {
-                out.println(indent + key + ": " + value);
+                System.out.println(indent + key + ": " + value);
             }
         }
         return null;
@@ -265,6 +286,7 @@ class Neo4jCommitterTest {
         cfg.setUri(neo4jContainer.getBoltUrl());
         cfg.setNodeIdProperty("movieId");
         cfg.setNodeContentProperty("movieContent");
+        cfg.setCredentials(new Credentials("Capitan", "America"));
         committer.init(ctx);
         return committer;
     }
