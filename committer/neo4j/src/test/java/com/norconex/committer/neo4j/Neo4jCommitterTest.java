@@ -221,46 +221,7 @@ class Neo4jCommitterTest {
             c.upsert(movieUpsertRequest("matrix2"));
             c.upsert(movieUpsertRequest("devilsAdvocate"));
         });
-    }
-
-    // will consume result and will no longer be usable
-    private Result getAllRecords() {
-        return session.run("""
-                MATCH (n)
-                RETURN n""");
-    }
-    void renderAll() {
-        renderResult(getAllRecords());
-    }
-    private void renderResult(Result result) {
-        List<Record> records = result.list();
-        System.out.println("=== DUMP: =======================================");
-        for (Record rec : records) {
-            renderMap(0, rec.asMap());
-        }
-    }
-    private Void renderMap(int depth, Map<String, Object> map) {
-        for (Entry<String, Object> en : map.entrySet()) {
-            String key = en.getKey();
-            Object value = en.getValue();
-            String indent = StringUtils.repeat(' ', depth * 2);
-            if (value instanceof Node) {
-                Node node = (Node) value;
-                System.out.print(indent + key);
-                node.labels().forEach(l -> System.out.print(":" + l));
-                System.out.println(" {");
-                renderMap(depth + 1, node.asMap());
-                System.out.println(indent + "}");
-            } else if (value instanceof Collection) {
-                System.out.print(indent + key);
-                ((Collection<?>) value).forEach(v -> System.out.print(":" + v));
-                System.out.println();
-            } else {
-                System.out.println(indent + key + ": " + value);
-            }
-        }
-        return null;
-    }
+    }    
 
     private UpsertRequest movieUpsertRequest(String movieId)
             throws IOException {
@@ -307,5 +268,46 @@ class Neo4jCommitterTest {
     @FunctionalInterface
     protected interface CommitterConsumer {
         void accept(Neo4jCommitter c) throws Exception;
+    }
+    
+    class Utils {
+        // will consume result and will no longer be usable
+        private Result getAllRecords() {
+            return session.run("""
+                    MATCH (n)
+                    RETURN n""");
+        }
+        void renderAll() {
+            renderResult(getAllRecords());
+        }
+        private void renderResult(Result result) {
+            List<Record> records = result.list();
+            System.out.println("=== DUMP: ======================");
+            for (Record rec : records) {
+                renderMap(0, rec.asMap());
+            }
+        }
+        public void renderMap(int depth, Map<String, Object> map) {
+            for (Entry<String, Object> en : map.entrySet()) {
+                String key = en.getKey();
+                Object value = en.getValue();
+                String indent = StringUtils.repeat(' ', depth * 2);
+                if (value instanceof Node) {
+                    Node node = (Node) value;
+                    System.out.print(indent + key);
+                    node.labels().forEach(l -> System.out.print(":" + l));
+                    System.out.println(" {");
+                    renderMap(depth + 1, node.asMap());
+                    System.out.println(indent + "}");
+                } else if (value instanceof Collection) {
+                    System.out.print(indent + key);
+                    ((Collection<?>) value).forEach(v -> System.out.print(":" + v));
+                    System.out.println();
+                } else {
+                    System.out.println(indent + key + ": " + value);
+                }
+            }
+            return null;
+        }
     }
 }
