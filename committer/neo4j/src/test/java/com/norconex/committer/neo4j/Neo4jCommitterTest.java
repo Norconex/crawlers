@@ -307,7 +307,6 @@ class Neo4jCommitterTest {
                     System.out.println(indent + key + ": " + value);
                 }
             }
-            return null;
         }
     }
 }
