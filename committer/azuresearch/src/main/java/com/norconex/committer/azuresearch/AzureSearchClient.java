@@ -291,18 +291,15 @@ class AzureSearchClient {
         if (field.startsWith("azureSearch")) {
             validationError("Document field cannot begin "
                     + "with \"azureSearch\": " + field);
-            return false;
         }
         if (!field.matches("[A-Za-z0-9_]+")) {
             validationError("Document field cannot have "
                     + "one or more characters other than letters, "
                     + "numbers and underscores: " + field);
-            return false;
         }
         if (field.length() > 128) {
             validationError("Document field cannot be "
                     + "longer than 128 characters: " + field);
-            return false;
         }
         return true;
     }
@@ -311,13 +308,11 @@ class AzureSearchClient {
         if (docId.startsWith("_")) {
             validationError("Document key cannot start "
                     + "with an underscore character: " + docId);
-            return false;
         }
         if (!docId.matches("[A-Za-z0-9_\\-=]+")) {
             validationError("Document key cannot have one or more "
                     + "characters other than letters, numbers, dashes, "
                     + "underscores, and equal signs: " + docId);
-            return false;
         }
         return true;
     }

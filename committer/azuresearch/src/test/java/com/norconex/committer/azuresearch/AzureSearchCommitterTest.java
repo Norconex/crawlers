@@ -42,6 +42,8 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.exec.RetriableException;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.net.Host;
+import com.norconex.commons.lang.security.Credentials;
 
 /**
  * Azure Search main tests. Because Microsoft does not offer a local instance
@@ -388,7 +390,9 @@ class AzureSearchCommitterTest {
         config.setDisableDocKeyEncoding(true);
         config.setEndpoint("http://localhost:" + port);
         config.setIndexName("test");
-
+        config.getProxySettings().setHost(new Host("localhost", port));
+        config.getProxySettings().setCredentials(
+                new Credentials("Homer", "simpson"));
         return committer;
     }
 
