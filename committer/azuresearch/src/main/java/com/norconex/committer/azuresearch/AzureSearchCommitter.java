@@ -180,8 +180,8 @@ public class AzureSearchCommitter extends AbstractBatchCommitter {
     @Override
     protected void initBatchCommitter() throws CommitterException {
         client = new AzureSearchClient(config);
-        if (getCommitterQueue() instanceof FSQueue
-                && ((FSQueue) getCommitterQueue()).getBatchSize() > 1000) {
+        if (getCommitterQueue() instanceof FSQueue queue && 
+                queue.getBatchSize() > 1000) {
             throw new CommitterException(
                     "Commit batch size cannot be greater than 1000.");
         }
