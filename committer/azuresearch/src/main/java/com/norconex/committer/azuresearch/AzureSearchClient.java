@@ -284,8 +284,13 @@ class AzureSearchClient {
             return Pattern.compile(
                     config.getArrayFields()).matcher(field).matches();
         }
-        return ArrayUtils.contains(
-                config.getArrayFields().split("\\s*,\\s*"), field);
+        
+        String[] arrayOfArrayFields = config.getArrayFields().split(",");
+        for(int i=0; i<arrayOfArrayFields.length; i++) {
+            arrayOfArrayFields[i] = arrayOfArrayFields[i].trim();
+        }
+        
+        return ArrayUtils.contains(arrayOfArrayFields , field);
     }
     private boolean validateFieldName(String field) throws CommitterException {
         if (field.startsWith("azureSearch")) {
@@ -293,7 +298,7 @@ class AzureSearchClient {
                     + "with \"azureSearch\": " + field);
             return false;
         }
-        if (!field.matches("[A-Za-z0-9_]+")) {
+        if (!field.matches("[\\w]+")) {
             validationError("Document field cannot have "
                     + "one or more characters other than letters, "
                     + "numbers and underscores: " + field);
