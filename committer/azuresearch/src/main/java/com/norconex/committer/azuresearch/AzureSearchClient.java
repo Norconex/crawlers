@@ -40,9 +40,9 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.win.WinHttpClients;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
@@ -204,7 +204,7 @@ class AzureSearchClient {
         HttpPost post = new HttpPost(restURL);
         post.addHeader("api-key", config.getApiKey());
         post.setEntity(requestEntity);
-        try (CloseableHttpResponse response = client.execute(post)) {
+        try (ClassicHttpResponse response = client.executeOpen(null, post, null)) {
             handleResponse(response);
             LOG.info("Done sending {} upserts/deletes to Azure Search.",
                     documentBatch.length());
@@ -214,7 +214,7 @@ class AzureSearchClient {
         }
     }
 
-    private void handleResponse(CloseableHttpResponse res)
+    private void handleResponse(ClassicHttpResponse res)
             throws IOException, CommitterException {
         String responseAsString = "";
         HttpEntity entity = res.getEntity();
@@ -291,15 +291,18 @@ class AzureSearchClient {
         if (field.startsWith("azureSearch")) {
             validationError("Document field cannot begin "
                     + "with \"azureSearch\": " + field);
+            return false;
         }
         if (!field.matches("[A-Za-z0-9_]+")) {
             validationError("Document field cannot have "
                     + "one or more characters other than letters, "
                     + "numbers and underscores: " + field);
+            return false;
         }
         if (field.length() > 128) {
             validationError("Document field cannot be "
                     + "longer than 128 characters: " + field);
+            return false;
         }
         return true;
     }
@@ -308,11 +311,13 @@ class AzureSearchClient {
         if (docId.startsWith("_")) {
             validationError("Document key cannot start "
                     + "with an underscore character: " + docId);
+            return false;
         }
         if (!docId.matches("[A-Za-z0-9_\\-=]+")) {
             validationError("Document key cannot have one or more "
                     + "characters other than letters, numbers, dashes, "
                     + "underscores, and equal signs: " + docId);
+            return false;
         }
         return true;
     }
