@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.committer.azuresearch;
+package com.norconex.committer.azurecognitivesearch;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
@@ -34,7 +34,9 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerExtension;
 
-import com.norconex.committer.azuresearch.AzureSearchMocker.Doc;
+import com.norconex.committer.azurecognitivesearch.AzureSearchCommitter;
+import com.norconex.committer.azurecognitivesearch.AzureSearchCommitterConfig;
+import com.norconex.committer.azurecognitivesearch.AzureSearchMocker.Doc;
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;

@@ -16,7 +16,7 @@
    limitations under the License.
 -->
 
-<committer class="com.norconex.committer.azuresearch.AzureSearchCommitter">
+<committer class="com.norconex.committer.azurecognitivesearch.AzureSearchCommitter">
   <endpoint>endpoint</endpoint>
   <apiVersion>apiVersion</apiVersion>
   <apiKey>apiKey</apiKey>
