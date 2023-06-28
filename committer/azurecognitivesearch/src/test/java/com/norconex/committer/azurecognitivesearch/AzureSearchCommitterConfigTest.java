@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.committer.azuresearch;
+package com.norconex.committer.azurecognitivesearch;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -20,6 +20,8 @@ import java.io.Reader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.committer.azurecognitivesearch.AzureSearchCommitter;
+import com.norconex.committer.azurecognitivesearch.AzureSearchCommitterConfig;
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.map.PropertyMatcher;
