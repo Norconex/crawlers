@@ -524,17 +524,17 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
             append(json, field, values.get(0));
             return;
         }
+
         json.append('"')
             .append(StringEscapeUtils.escapeJson(field))
             .append("\":[");
-        var first = true;
+        
         for (String value : values) {
-            if (!first) {
-                json.append(',');
-            }
             appendValue(json, field, value);
-            first = false;
+            json.append(',');
         }
+        
+        json.deleteCharAt(json.length()-1);
         json.append(']');
     }
 
