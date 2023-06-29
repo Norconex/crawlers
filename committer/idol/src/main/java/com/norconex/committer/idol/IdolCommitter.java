@@ -40,9 +40,9 @@ import com.norconex.commons.lang.xml.XML;
  * determines which of the two will be the documents target.
  * </p>
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#restrictTo}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#fieldMappings}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
  * {@nx.xml.usage
  * <committer class="com.norconex.committer.idol.IdolCommitter">
@@ -68,7 +68,7 @@ import com.norconex.commons.lang.xml.XML;
  *     IDOL "DRECONTENT" field. Default is the document content stream.)
  *   </sourceContentField>
  *
- *   {@nx.include com.norconex.committer.core3.batch.AbstractBatchCommitter#options}
+ *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
  * </committer>
  * }
  *
