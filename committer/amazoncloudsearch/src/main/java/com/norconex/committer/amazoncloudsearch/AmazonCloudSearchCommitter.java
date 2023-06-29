@@ -89,9 +89,9 @@ import com.norconex.commons.lang.xml.XML;
  *
  * {@nx.include com.norconex.commons.lang.security.Credentials#doc}
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#restrictTo}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#fieldMappings}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
  * {@nx.xml.usage
  * <committer class="com.norconex.committer.cloudsearch.CloudSearchCommitter">
@@ -127,7 +127,7 @@ import com.norconex.commons.lang.xml.XML;
  *     content/body. Default is "content".)
  *   </targetContentField>
  *
- *   {@nx.include com.norconex.committer.core3.batch.AbstractBatchCommitter#options}
+ *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
  * </committer>
  * }
  *

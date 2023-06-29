@@ -144,9 +144,9 @@ import lombok.extern.slf4j.Slf4j;
  * to Elasticsearch.
  * </p>
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#restrictTo}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#restrictTo}
  *
- * {@nx.include com.norconex.committer.core3.AbstractCommitter#fieldMappings}
+ * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
  * {@nx.xml.usage
  * <committer class="com.norconex.committer.elasticsearch.ElasticsearchCommitter">
@@ -187,7 +187,7 @@ import lombok.extern.slf4j.Slf4j;
  *     content/body. Default is "content".)
  *   </targetContentField>
  *
- *   {@nx.include com.norconex.committer.core3.batch.AbstractBatchCommitter#options}
+ *   {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
  * </committer>
  * }
  * <p>
