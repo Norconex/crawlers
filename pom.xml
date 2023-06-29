@@ -1051,7 +1051,7 @@
 
   <description>Maven parent POM for Norconex crawler-related projects.</description>
   <modules>
-    <module>committer/core</module>
+    <module>committer/core</module> 
     <module>committer/solr</module>
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
