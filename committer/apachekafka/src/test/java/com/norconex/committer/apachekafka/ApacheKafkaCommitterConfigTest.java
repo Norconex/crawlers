@@ -29,6 +29,9 @@ class ApacheKafkaCommitterConfigTest {
     void testWriteRead() throws Exception {
         var c = new ApacheKafkaCommitter();
 
+        c.setBootstrapServers("host1:1234, host2:1234");
+        c.setTopicName("my-topic");
+        
         var q = new FSQueue();
         q.setBatchSize(10);
         q.setMaxPerFolder(5);
@@ -43,12 +46,6 @@ class ApacheKafkaCommitterConfigTest {
         c.getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("title"),
                 TextMatcher.wildcard("Nah!")));
-
-//        c.setSourceIdField("mySourceIdField");
-//        c.setTargetContentField("myTargetContentField");
-//
-//        c.setConnectionTimeout(Duration.ofMillis(200));
-//        c.setSocketTimeout(Duration.ofMillis(300));
 
         Assertions.assertDoesNotThrow(
                 () -> XML.assertWriteRead(c, "committer"));

@@ -16,6 +16,8 @@
 package com.norconex.committer.apachekafka;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,14 +25,18 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
+import com.norconex.committer.core.DeleteRequest;
+import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.xml.XML;
 
@@ -59,18 +65,63 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
     @Override
     protected void commitBatch(Iterator<CommitterRequest> it)
             throws CommitterException {
-       
-        createProducer();
-
-    }
-    
-    private KafkaProducer<String, String> createProducer() {
-        if(producer != null) {
-            return producer;
+        if(producer == null) {
+            createProducer();
         }
+
+        LOG.info("Committing batch to Apache Kafka");
         
+        var json = new StringBuilder();
+        var docCountUpserts = 0;
+        var docCountDeletes = 0;
+        try {
+            while (it.hasNext()) {
+                var req = it.next();
+                if (req instanceof UpsertRequest upsert) {
+                    appendUpsertRequest(json, upsert);
+                    
+                    ProducerRecord<String, String> rec = new ProducerRecord<>
+                        (getTopicName(), upsert.getReference(), json.toString());
+System.out.println("Sending upsert-- " + rec.toString());
+                    producer.send(rec);
+                    
+                    docCountUpserts++;
+                    
+                } else if (req instanceof DeleteRequest delete) {
+                    appendDeleteRequest(json, delete);
+            
+                    ProducerRecord<String, String> rec = new ProducerRecord<>
+                    (getTopicName(), delete.getReference(), json.toString());
+
+                    producer.send(rec);
+System.out.println("Sending delete-- " + rec.toString());                    
+                    docCountDeletes++;
+                } else {
+                    throw new CommitterException("Unsupported request: " + req);
+                }
+            }
+
+            if(docCountUpserts > 0) {
+                LOG.info("Sent {} upsert commit operations to Apache Kafka.", 
+                    docCountUpserts);
+            }
+            
+            if(docCountDeletes> 0) {
+                LOG.info("Sent {} delete commit operations to Apache Kafka.", 
+                    docCountDeletes);
+            }
+            
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(
+                    "Could not commit JSON batch to Elasticsearch.", e);
+        }
+    }
+
+    private synchronized KafkaProducer<String, String> createProducer() {        
         Properties props = new Properties();
-        props.put(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put("bootstrap.servers", getBootstrapServers());
         props.put(ProducerConfig.LINGER_MS_CONFIG, "0");
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class);
@@ -81,9 +132,9 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
         
-        producer = new KafkaProducer<String, String>(props);
+        producer = new KafkaProducer<>(props);
         
-        LOG.info("Creating Apache Kafka producer client: {}", 
+        LOG.info("Created Apache Kafka producer client: {}", 
                 producer.metrics());
         
         return producer;
@@ -135,5 +186,76 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
     public String toString() {
         return new ReflectionToStringBuilder(
                 this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
+    }
+    
+    private void appendUpsertRequest(StringBuilder json, UpsertRequest upsert) {
+//        String id = upsert.getMetadata().getString(getSourceReferenceField());
+//        String id = upsert.getReference();
+//        if (StringUtils.isBlank(id)) {
+//            id = upsert.getReference();
+//        }
+        json.append("{");
+        append(json, "id", upsert.getReference());
+        json.append(",");
+        boolean first = true;
+        for (Map.Entry<String, List<String>> entry : upsert.getMetadata().entrySet()) {
+            String field = entry.getKey();
+//            field = StringUtils.replace(field, ".", dotReplacement);
+
+            // Remove id from source unless specified to keep it
+//            if (!isKeepSourceReferenceField()
+//                    && field.equals(getSourceReferenceField())) {
+//                continue;
+//            }
+            if (!first) {
+                json.append(',');
+            }
+            append(json, field, entry.getValue());
+            first = false;
+        }
+        json.append("}\n");
+    }
+
+    private void appendDeleteRequest(StringBuilder json, DeleteRequest del) {
+        json.append("{\"delete\":{");
+        append(json, "id", del.getReference());
+        json.append("}}\n");
+    }
+
+    private void append(StringBuilder json, String field, List<String> values) {
+        if (values.size() == 1) {
+            append(json, field, values.get(0));
+            return;
+        }
+        json.append('"')
+                .append(StringEscapeUtils.escapeJson(field))
+                .append("\":[");
+        boolean first = true;
+        for (String value : values) {
+            if (!first) {
+                json.append(',');
+            }
+            appendValue(json, field, value);
+            first = false;
+        }
+        json.append(']');
+    }
+
+    private void append(StringBuilder json, String field, String value) {
+        json.append('"')
+                .append(StringEscapeUtils.escapeJson(field))
+                .append("\":");
+        appendValue(json, field, value);
+    }
+
+    private void appendValue(StringBuilder json, String field, String value) {
+//        if (getJsonFieldsPattern() != null
+//                && getJsonFieldsPattern().matches(field)) {
+            json.append(value);
+//        } else {
+//            json.append('"')
+//                    .append(StringEscapeUtils.escapeJson(value))
+//                    .append("\"");
+//        }
     }
 }
