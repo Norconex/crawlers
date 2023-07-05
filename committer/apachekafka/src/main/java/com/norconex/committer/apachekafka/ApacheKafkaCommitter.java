@@ -42,38 +42,31 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
             "Invalid configuration. Both `topicName` and `bootstrapServers` "
             + "are required.";
     private static final String BOOTSTRAP_SERVERS_CONFIG = "bootstrapServers";
+    private static final String TOPIC_NAME_CONFIG = "topicName";
     
     private String topicName;
     private String bootstrapServers;
     private KafkaProducer<String, String> producer;
 
     @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        // TODO Auto-generated method stub
-
+    protected void initBatchCommitter() throws CommitterException {
+        if (    StringUtils.isBlank(topicName) || 
+                StringUtils.isBlank(bootstrapServers)) {
+            throw new CommitterException(EXCEPTION_MSG_INVALID_CONFIG);
+        }
     }
-
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        // TODO Auto-generated method stub
-
-    }
-
+    
     @Override
     protected void commitBatch(Iterator<CommitterRequest> it)
             throws CommitterException {
-        init();
+       
+        createProducer();
 
     }
-
-    private void init() throws CommitterException {
-        if (producer != null) {
-            return;
-        }
-
-        if (StringUtils.isBlank(topicName) || 
-                StringUtils.isBlank(bootstrapServers)) {
-            throw new CommitterException(EXCEPTION_MSG_INVALID_CONFIG);
+    
+    private KafkaProducer<String, String> createProducer() {
+        if(producer != null) {
+            return producer;
         }
         
         Properties props = new Properties();
@@ -83,10 +76,51 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
                 StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class);
-
+        
         // ensure exactly once delivery
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
+        
+        producer = new KafkaProducer<String, String>(props);
+        
+        LOG.info("Creating Apache Kafka producer client: {}", 
+                producer.metrics());
+        
+        return producer;
+    }
+    
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public void setTopicName(String topicName) {
+        this.topicName = topicName;
+    }
+    
+    public String getBootstrapServers() {
+        return bootstrapServers;
+    }
+
+    public void setBootstrapServers(String servers) {
+        this.bootstrapServers = servers;
+    }
+
+    @Override
+    protected void saveBatchCommitterToXML(XML writer) {
+
+        if (StringUtils.isNotBlank(topicName)) {
+            writer.addElement(TOPIC_NAME_CONFIG, getTopicName());
+        }
+
+        if (StringUtils.isNotBlank(bootstrapServers)) {
+            writer.addElement(BOOTSTRAP_SERVERS_CONFIG, getBootstrapServers());
+        }
+    }
+
+    @Override
+    protected void loadBatchCommitterFromXML(XML xml) {
+        setTopicName(xml.getString(TOPIC_NAME_CONFIG));
+        setBootstrapServers(xml.getString(BOOTSTRAP_SERVERS_CONFIG));
     }
     
     @Override

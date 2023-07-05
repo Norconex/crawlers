@@ -14,23 +14,12 @@
  */
 package com.norconex.committer.apachekafka;
 
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.time.Duration;
-
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.committer.core.CommitterContext;
-import com.norconex.committer.core.CommitterException;
-import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatcher;
-import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
 

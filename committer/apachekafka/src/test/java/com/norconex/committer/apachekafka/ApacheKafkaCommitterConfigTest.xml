@@ -16,13 +16,14 @@
    limitations under the License.
 -->
 
-<committer class="com.norconex.committer.elasticsearch.ElasticsearchCommitter">
-  <indexName>index</indexName>
-  TODO
+<committer class="com.norconex.committer.apachekafka.ApacheKafkaCommitter">
+  <topicName>index</topicName>
+  <bootstrapServers>host1:9999,host2:9821</bootstrapServers>
 
+<!-- 
   <sourceIdField>sourceIdField</sourceIdField>
   <targetContentField>targetContentField</targetContentField>
-  
+ 
   <credentials>
     <username>myusername</username>
     <password>mypassword</password>
@@ -48,4 +49,5 @@
     <batchSize>40</batchSize>
     <maxPerFolder>10</maxPerFolder>
   </queue>
+  -->
 </committer>

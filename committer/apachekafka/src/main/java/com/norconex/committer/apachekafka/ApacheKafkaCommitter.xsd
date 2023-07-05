@@ -23,8 +23,8 @@
       <xs:complexContent> 
         <xs:extension base="AbstractBatchCommitter">
           <xs:all>
-            <xs:element name="nodes" type="xs:string" minOccurs="0" maxOccurs="1" />
-            ...
+            <xs:element name="topicName" type="xs:string" minOccurs="0" maxOccurs="1" />
+            <xs:element name="bootstrapServers" type="xs:string" minOccurs="0" maxOccurs="1" />
           </xs:all>
         </xs:extension> 
       </xs:complexContent>
