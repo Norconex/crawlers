@@ -40,6 +40,31 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
 import com.norconex.commons.lang.xml.XML;
 
+/**
+ * <p>
+ * Commits documents to Kafka via it's Producer API
+ * </p>
+ * <h3>XML configuration usage:</h3>
+ *
+ * <pre>
+ *  &lt;committer class="com.norconex.committer.apachekafka.KafkaCommitter&gt;
+ *
+ *      &lt;bootstrapServers&gt;...&lt;/bootstrapServers&gt;
+ *      &lt;topicName&gt;...&lt;/topicName&gt;
+ *
+ *      &lt;commitBatchSize&gt;
+ *          (max number of documents to send to Apache Kafka at once)
+ *      &lt;/commitBatchSize&gt;
+ *      &lt;queueDir&gt;(optional path where to queue files)&lt;/queueDir&gt;
+ *      &lt;queueSize&gt;(max queue size before committing)&lt;/queueSize&gt;
+ *      &lt;maxRetries&gt;(max retries upon commit failures)&lt;/maxRetries&gt;
+ *      &lt;maxRetryWait&gt;(max delay in milliseconds between retries)&lt;/maxRetryWait&gt;
+ *  &lt;/committer&gt;
+ * </pre>
+ *
+ * @author Harinder Hanjan
+ */
+
 public class ApacheKafkaCommitter extends AbstractBatchCommitter {
 
     private static final Logger LOG = LoggerFactory
@@ -71,43 +96,46 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
 
         LOG.info("Committing batch to Apache Kafka");
         
-        var json = new StringBuilder();
         var docCountUpserts = 0;
         var docCountDeletes = 0;
         try {
             while (it.hasNext()) {
                 var req = it.next();
                 if (req instanceof UpsertRequest upsert) {
+                    var json = new StringBuilder();
                     appendUpsertRequest(json, upsert);
                     
                     ProducerRecord<String, String> rec = new ProducerRecord<>
                         (getTopicName(), upsert.getReference(), json.toString());
 System.out.println("Sending upsert-- " + rec.toString());
-                    producer.send(rec);
+//                    producer.send(rec);
                     
                     docCountUpserts++;
+                    json.setLength(0);
                     
                 } else if (req instanceof DeleteRequest delete) {
+                    var json = new StringBuilder();
                     appendDeleteRequest(json, delete);
             
                     ProducerRecord<String, String> rec = new ProducerRecord<>
                     (getTopicName(), delete.getReference(), json.toString());
 
-                    producer.send(rec);
+//                    producer.send(rec);
 System.out.println("Sending delete-- " + rec.toString());                    
                     docCountDeletes++;
+                    json.setLength(0);
                 } else {
                     throw new CommitterException("Unsupported request: " + req);
                 }
             }
 
             if(docCountUpserts > 0) {
-                LOG.info("Sent {} upsert commit operations to Apache Kafka.", 
+                LOG.info("Sent {} upsert commit operation(s) to Apache Kafka.", 
                     docCountUpserts);
             }
             
             if(docCountDeletes> 0) {
-                LOG.info("Sent {} delete commit operations to Apache Kafka.", 
+                LOG.info("Sent {} delete commit operation(s) to Apache Kafka.", 
                     docCountDeletes);
             }
             
@@ -134,9 +162,7 @@ System.out.println("Sending delete-- " + rec.toString());
         
         producer = new KafkaProducer<>(props);
         
-        LOG.info("Created Apache Kafka producer client: {}", 
-                producer.metrics());
-        
+        LOG.info("Created Apache Kafka producer client");        
         return producer;
     }
     
@@ -197,7 +223,6 @@ System.out.println("Sending delete-- " + rec.toString());
         json.append("{");
         append(json, "id", upsert.getReference());
         json.append(",");
-        boolean first = true;
         for (Map.Entry<String, List<String>> entry : upsert.getMetadata().entrySet()) {
             String field = entry.getKey();
 //            field = StringUtils.replace(field, ".", dotReplacement);
@@ -207,11 +232,7 @@ System.out.println("Sending delete-- " + rec.toString());
 //                    && field.equals(getSourceReferenceField())) {
 //                continue;
 //            }
-            if (!first) {
-                json.append(',');
-            }
             append(json, field, entry.getValue());
-            first = false;
         }
         json.append("}\n");
     }
@@ -251,11 +272,11 @@ System.out.println("Sending delete-- " + rec.toString());
     private void appendValue(StringBuilder json, String field, String value) {
 //        if (getJsonFieldsPattern() != null
 //                && getJsonFieldsPattern().matches(field)) {
-            json.append(value);
+//            json.append(value);
 //        } else {
-//            json.append('"')
-//                    .append(StringEscapeUtils.escapeJson(value))
-//                    .append("\"");
+            json.append('"')
+                    .append(StringEscapeUtils.escapeJson(value))
+                    .append("\"");
 //        }
     }
 }
