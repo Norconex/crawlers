@@ -26,9 +26,11 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.text.StringEscapeUtils;
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +111,13 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
                         (getTopicName(), upsert.getReference(), json.toString());
 System.out.println("Sending upsert-- " + rec.toString());
 //                    producer.send(rec);
+producer.send(rec, new Callback() {
+    public void onCompletion(RecordMetadata metadata, Exception e) {
+      if (e != null)
+        LOG.error("Send failed for record {}", rec, e);
+      LOG.info("@@@@@@@@@@@@@@@ success");
+    }
+  });
                     
                     docCountUpserts++;
                     json.setLength(0);
@@ -120,8 +129,9 @@ System.out.println("Sending upsert-- " + rec.toString());
                     ProducerRecord<String, String> rec = new ProducerRecord<>
                     (getTopicName(), delete.getReference(), json.toString());
 
-//                    producer.send(rec);
-System.out.println("Sending delete-- " + rec.toString());                    
+System.out.println("Sending delete-- " + rec.toString());
+                    producer.send(rec);
+                    
                     docCountDeletes++;
                     json.setLength(0);
                 } else {
@@ -145,6 +155,14 @@ System.out.println("Sending delete-- " + rec.toString());
             throw new CommitterException(
                     "Could not commit JSON batch to Elasticsearch.", e);
         }
+    }
+    
+    @Override
+    protected void closeBatchCommitter() throws CommitterException {
+        LOG.info("Flushing and closing Kafka Producer client...");
+        producer.flush();
+        producer.close();
+        LOG.info("Done");
     }
 
     private synchronized KafkaProducer<String, String> createProducer() {        
