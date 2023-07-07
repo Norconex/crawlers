@@ -26,11 +26,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.text.StringEscapeUtils;
-import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +53,6 @@ import com.norconex.commons.lang.xml.XML;
  *      &lt;bootstrapServers&gt;...&lt;/bootstrapServers&gt;
  *      &lt;topicName&gt;...&lt;/topicName&gt;
  *
- *      &lt;commitBatchSize&gt;
- *          (max number of documents to send to Apache Kafka at once)
- *      &lt;/commitBatchSize&gt;
  *      &lt;queueDir&gt;(optional path where to queue files)&lt;/queueDir&gt;
  *      &lt;queueSize&gt;(max queue size before committing)&lt;/queueSize&gt;
  *      &lt;maxRetries&gt;(max retries upon commit failures)&lt;/maxRetries&gt;
@@ -118,10 +113,10 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
                     
                 } else if (req instanceof DeleteRequest delete) {
                     var json = new StringBuilder();
-                    appendDeleteRequest(json, delete);
+//                    appendDeleteRequest(json, delete);
             
                     ProducerRecord<String, String> rec = new ProducerRecord<>
-                    (getTopicName(), delete.getReference(), json.toString());
+                    (getTopicName(), delete.getReference(), null);
 
 //System.out.println("Sending delete-- " + rec.toString());
                     producer.send(rec);
@@ -239,7 +234,8 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         json.append("{");
         append(json, "id", upsert.getReference());
         json.append(",");
-        for (Map.Entry<String, List<String>> entry : upsert.getMetadata().entrySet()) {
+        for (Map.Entry<String, List<String>> entry : 
+                upsert.getMetadata().entrySet()) {
             String field = entry.getKey();
 //            field = StringUtils.replace(field, ".", dotReplacement);
 
@@ -255,11 +251,11 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         json.append("}\n");
     }
 
-    private void appendDeleteRequest(StringBuilder json, DeleteRequest del) {
-        json.append("{\"delete\":{");
-        append(json, "id", del.getReference());
-        json.append("}}\n");
-    }
+//    private void appendDeleteRequest(StringBuilder json, DeleteRequest del) {
+//        json.append("{\"delete\":{");
+//        append(json, "id", del.getReference());
+//        json.append("}}\n");
+//    }
 
     private void append(StringBuilder json, String field, List<String> values) {
         if (values.size() == 1) {
