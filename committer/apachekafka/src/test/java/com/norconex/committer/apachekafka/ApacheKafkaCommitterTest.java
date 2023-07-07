@@ -81,7 +81,8 @@ class ApacheKafkaCommitterTest {
     void setUp() throws Exception {
         TOPIC_NAME = String.valueOf(TimeIdGenerator.next());
         createTopic();
-        consumer = createConsumerAndSubscribeToTopic();
+        consumer = createConsumerAndSubscribeToTopic(
+                "nx-test-consumer-" + TOPIC_NAME);
     }
 
     @AfterEach
@@ -154,23 +155,9 @@ class ApacheKafkaCommitterTest {
         
         //verify
         ConsumerRecord<String, String> receivedRecord = null;
-        Consumer<String, String> localConsumer = null;
-        
-        java.util.Properties props = new java.util.Properties();
-        props.setProperty("bootstrap.servers", kafka.getBootstrapServers());
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "nx-test-consumer234-" 
-                + TOPIC_NAME);
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10");
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class);
-
-        localConsumer = new KafkaConsumer<>(props);
-        localConsumer.subscribe(Arrays.asList(TOPIC_NAME));
+        Consumer<String, String> localConsumer = 
+                createConsumerAndSubscribeToTopic(
+                        "nx-test-localconsumer" + TOPIC_NAME);
         
         ConsumerRecords<String, String> receivedRecords = localConsumer
                 .poll(Duration.ofMillis(5000));
@@ -228,12 +215,12 @@ class ApacheKafkaCommitterTest {
         void accept(ApacheKafkaCommitter c) throws Exception;
     }
     
-    private Consumer<String, String> createConsumerAndSubscribeToTopic(){
+    private Consumer<String, String> createConsumerAndSubscribeToTopic(
+            String groupId){
         java.util.Properties props = new java.util.Properties();
         props.setProperty("bootstrap.servers", kafka.getBootstrapServers());
 
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "nx-test-consumer-" 
-                + TOPIC_NAME);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
