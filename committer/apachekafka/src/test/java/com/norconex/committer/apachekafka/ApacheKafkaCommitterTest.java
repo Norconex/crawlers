@@ -83,13 +83,19 @@ class ApacheKafkaCommitterTest {
     }
 
     @Test
-    void testAdd() throws CommitterException, InterruptedException {
+    void testAddOneDocumentWithMetadata() throws CommitterException {
         //setup
         ConsumerRecord<String, String> expectedRecord = null;
+        String expectedRecordValue = """
+                {"id":"http:\\/\\/www.simpsons.com","category":"TV Show","sub-category":"Cartoon","content":"Homer says DOH!"}
+                """;
+        Properties props = new Properties();
+        props.add("category", "TV Show");
+        props.add("sub-category", "Cartoon");
 
         //execute
         withinCommitterSession(c -> {
-            c.upsert(upsertRequest(TEST_ID, TEST_CONTENT, null));
+            c.upsert(upsertRequest(TEST_ID, TEST_CONTENT, props));
         });
         
         //verify
@@ -102,39 +108,10 @@ class ApacheKafkaCommitterTest {
         
         assertThat(expectedRecord).isNotNull();
         assertThat(expectedRecord.key()).isEqualTo(TEST_ID);
-//        assertThat(expectedRecord.value()).isEqualTo(something);
-        consumer.close();
+        assertThat(expectedRecord.value()).isEqualTo(expectedRecordValue);
         
+        consumer.close();        
     }
-    
-//    @Test
-//    void testCommitBatch() throws CommitterException {
-//        //setup
-//        String id = "http://www.abc.com"; 
-//        
-//        Properties upsertProps = new Properties();
-//        upsertProps.add("upsert1", """
-//                jumbled stuff "][`12#@#$*!~?><""");
-//        upsertProps.add("upsert2", """
-//                this is a normal string.
-//                """);
-//        CommitterRequest upsert = upsertRequest(
-//                id, 
-//                "This is an upsert request", 
-//                upsertProps);
-//        
-//        CommitterRequest delete = new DeleteRequest(id, new Properties());
-//        
-//        List<CommitterRequest> requests = new ArrayList<>();
-//        requests.add(upsert);
-//        requests.add(delete);
-//        
-//        ApacheKafkaCommitter c = new ApacheKafkaCommitter();
-//        c.setBootstrapServers(kafka.getBootstrapServers());
-//        c.setTopicName(TOPIC_NAME);
-//        
-//        c.commitBatch(requests.iterator());
-//    }
 
     private UpsertRequest upsertRequest(
             String id, String content, Properties metadata) {

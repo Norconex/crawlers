@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
+import com.norconex.committer.core.CommitterUtil;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
@@ -225,12 +226,16 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
                 this, ToStringStyle.SHORT_PREFIX_STYLE).toString();
     }
     
-    private void appendUpsertRequest(StringBuilder json, UpsertRequest upsert) {
+    private void appendUpsertRequest(StringBuilder json, UpsertRequest upsert) 
+            throws CommitterException {
 //        String id = upsert.getMetadata().getString(getSourceReferenceField());
 //        String id = upsert.getReference();
 //        if (StringUtils.isBlank(id)) {
 //            id = upsert.getReference();
 //        }
+        
+        CommitterUtil.applyTargetContent(upsert, "content");
+        
         json.append("{");
         append(json, "id", upsert.getReference());
         json.append(",");
@@ -244,7 +249,9 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
 //                continue;
 //            }
             append(json, field, entry.getValue());
+            json.append(",");
         }
+        json.deleteCharAt(json.length()-1);
         json.append("}\n");
     }
 
