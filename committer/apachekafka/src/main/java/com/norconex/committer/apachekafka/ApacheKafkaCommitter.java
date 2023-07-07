@@ -109,15 +109,8 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
                     
                     ProducerRecord<String, String> rec = new ProducerRecord<>
                         (getTopicName(), upsert.getReference(), json.toString());
-System.out.println("Sending upsert-- " + rec.toString());
-//                    producer.send(rec);
-producer.send(rec, new Callback() {
-    public void onCompletion(RecordMetadata metadata, Exception e) {
-      if (e != null)
-        LOG.error("Send failed for record {}", rec, e);
-      LOG.info("@@@@@@@@@@@@@@@ success");
-    }
-  });
+//System.out.println("Sending upsert-- " + rec.toString());
+                    producer.send(rec);
                     
                     docCountUpserts++;
                     json.setLength(0);
@@ -129,7 +122,7 @@ producer.send(rec, new Callback() {
                     ProducerRecord<String, String> rec = new ProducerRecord<>
                     (getTopicName(), delete.getReference(), json.toString());
 
-System.out.println("Sending delete-- " + rec.toString());
+//System.out.println("Sending delete-- " + rec.toString());
                     producer.send(rec);
                     
                     docCountDeletes++;

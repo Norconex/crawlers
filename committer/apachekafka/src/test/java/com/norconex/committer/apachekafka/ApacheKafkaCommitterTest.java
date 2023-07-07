@@ -2,6 +2,7 @@ package com.norconex.committer.apachekafka;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.time.Duration;
@@ -47,9 +48,10 @@ class ApacheKafkaCommitterTest {
     private static final Logger LOG = LoggerFactory.getLogger(
             ApacheKafkaCommitterTest.class);
     private static String TOPIC_NAME = "";
-    private static final String TEST_ID = "1";
-    private static final String TEST_CONTENT = "This is test content.";
+    private static final String TEST_ID = "http://www.simpsons.com";
+    private static final String TEST_CONTENT = "Homer says DOH!";
     private static Admin admin;
+    private Consumer<String, String> consumer;
     
     @TempDir
     static File tempDir;
@@ -70,22 +72,21 @@ class ApacheKafkaCommitterTest {
 
     @BeforeEach
     void setUp() throws Exception {
-LOG.info("****************Kafka broker: {}", kafka.getBootstrapServers());
         TOPIC_NAME = String.valueOf(TimeIdGenerator.next());
         createTopic();
+        consumer = createConsumerAndSubscribeToTopic();
     }
 
     @AfterEach
     void tearDown() throws Exception {
+        consumer.close();
     }
 
     @Test
-    void testAdd() throws CommitterException {
+    void testAdd() throws CommitterException, InterruptedException {
         //setup
-        // need a consumer to read from the same topic
-        // or a ksqldb query perhaps?
-        Consumer<String, String> consumer = createConsumerAndSubscribeToTopic();
-        
+        ConsumerRecord<String, String> expectedRecord = null;
+
         //execute
         withinCommitterSession(c -> {
             c.upsert(upsertRequest(TEST_ID, TEST_CONTENT, null));
@@ -93,18 +94,17 @@ LOG.info("****************Kafka broker: {}", kafka.getBootstrapServers());
         
         //verify
         ConsumerRecords<String, String> records = consumer
-                .poll(Duration.ofMillis(100));
+                .poll(Duration.ofMillis(5000));
 
         for (ConsumerRecord<String, String> item : records) {
-            LOG.trace("Received from Kafka. offset={}, key={}, value={}",
-                    item.offset(), item.key(), item.value());
-            
-            LOG.info("@@@@@@@@@@@@ {}", item.value());
+            expectedRecord = item;
         }
         
-        LOG.info("Closing consumer...");
+        assertThat(expectedRecord).isNotNull();
+        assertThat(expectedRecord.key()).isEqualTo(TEST_ID);
+//        assertThat(expectedRecord.value()).isEqualTo(something);
         consumer.close();
-        LOG.info("Done.");
+        
     }
     
 //    @Test
@@ -194,13 +194,11 @@ LOG.info("****************Kafka broker: {}", kafka.getBootstrapServers());
 
         Consumer<String, String> consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Arrays.asList(TOPIC_NAME));
-        LOG.info("Created consumer");        
+        LOG.info("Created consumer");
         return consumer;
     }
     
-    private void createTopic() throws Exception {
-        LOG.info("Creating topic `{}`...", TOPIC_NAME);
-        
+    private void createTopic() throws Exception {        
         // Create a compacted topic
         CreateTopicsResult result = admin.createTopics(Collections
                 .singleton(new NewTopic(TOPIC_NAME, 1, (short) 1)
@@ -216,9 +214,9 @@ LOG.info("****************Kafka broker: {}", kafka.getBootstrapServers());
             throw new Exception(
                     "Could not create topic '" + TOPIC_NAME + "'.", e);
         }
-        
-        LOG.info("Done");
+        LOG.info("Created topic `{}`...", TOPIC_NAME);
     }
+    
     
     private static Admin createAdminClient() {
         java.util.Properties props = new java.util.Properties();
