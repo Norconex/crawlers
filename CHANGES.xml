@@ -7,13 +7,15 @@
   </properties>
   <body>
 
-    <release version="3.0.2-SNAPSHOT" date="2022-??-??" description="Maintenance release">
+    <release version="3.0.2" date="2023-07-09" description="Maintenance release">
       <action dev="essiembre" type="add" issue="803">
         Fixed GenericSitemapResolver NPE when the sitemap content-type
         could not be detected.
       </action>
       <action dev="essiembre" type="update">
-        Maven dependency updates: norconex-commons-maven-parent 1.0.2-SNAPSHOT.
+        Maven dependency updates: norconex-commons-maven-parent 1.0.2,
+        norconex-collector-core 2.0.2, norconex-importer 3.0.1,
+        Guava 32.0.0-jre, Selenium 4.0.0, Jetty 9.4.51.v20230217.
       </action>
     </release>
 
