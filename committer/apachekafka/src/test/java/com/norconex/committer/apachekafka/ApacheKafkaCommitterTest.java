@@ -59,7 +59,7 @@ class ApacheKafkaCommitterTest {
 
     @AfterAll
     static void tearDownAfterClass() throws Exception {
-        testHelper.tearDown();
+        testHelper.tearDownAfterClass();
     }
 
     @BeforeEach
@@ -83,13 +83,13 @@ class ApacheKafkaCommitterTest {
         String expectedRecordValue = """
                 {"id":"http:\\/\\/www.simpsons.com","category":"TV Show","sub-category":"Cartoon","content":"Homer says DOH!"}
                 """;
-        Properties props = new Properties();
-        props.add("category", "TV Show");
-        props.add("sub-category", "Cartoon");
+        Properties metadata = new Properties();
+        metadata.add("category", "TV Show");
+        metadata.add("sub-category", "Cartoon");
 
         //execute
         withinCommitterSession(c -> {
-            c.upsert(upsertRequest(TEST_ID, TEST_CONTENT, props));
+            c.upsert(upsertRequest(TEST_ID, TEST_CONTENT, metadata));
         });
         
         //verify
@@ -103,8 +103,6 @@ class ApacheKafkaCommitterTest {
         assertThat(expectedRecord).isNotNull();
         assertThat(expectedRecord.key()).isEqualTo(TEST_ID);
         assertThat(expectedRecord.value()).isEqualTo(expectedRecordValue);
-        
-        consumer.close();        
     }
     
     @Test
@@ -128,6 +126,10 @@ class ApacheKafkaCommitterTest {
         ConsumerRecords<String, String> records = consumer
                 .poll(Duration.ofMillis(5000));
 
+        assertThat(records)
+            .isNotNull()
+            .hasSize(1);
+        
         for (ConsumerRecord<String, String> item : records) {
             insertedRecord = item;
         }
@@ -149,17 +151,43 @@ class ApacheKafkaCommitterTest {
         
         ConsumerRecords<String, String> receivedRecords = localConsumer
                 .poll(Duration.ofMillis(5000));
-
+        localConsumer.close();
+        
         for (ConsumerRecord<String, String> item : receivedRecords) {
             receivedRecord = item;
         }
         
         assertThat(receivedRecord).isNotNull();
         assertThat(receivedRecord.key()).isEqualTo(id);
-        assertThat(receivedRecord.value()).isNull();
+        assertThat(receivedRecord.value()).isNull();        
+    }
+    
+    @Test
+    void testAddMultiValueFields_isAdded() throws Exception {
+        //setup
+        ConsumerRecord<String, String> expectedRecord = null;
+        String expectedRecordValue = """
+                {"id":"http:\\/\\/www.simpsons.com","content":"","multi":["1","2","3"]}
+                """;
+        Properties metadata = new Properties();
+        metadata.set("multi", "1", "2", "3");
+
+        //execute
+        withinCommitterSession(c -> {
+            c.upsert(upsertRequest(TEST_ID, null, metadata));
+        });
+
+        //verify
+        ConsumerRecords<String, String> records = consumer
+                .poll(Duration.ofMillis(5000));
+
+        for (ConsumerRecord<String, String> item : records) {
+            expectedRecord = item;
+        }
         
-        
-        localConsumer.close();
+        assertThat(expectedRecord).isNotNull();
+        assertThat(expectedRecord.key()).isEqualTo(TEST_ID);
+        assertThat(expectedRecord.value()).isEqualTo(expectedRecordValue);
     }
 
     private UpsertRequest upsertRequest(

@@ -33,7 +33,7 @@ class TestHelper {
         createAdminClient();
     }
     
-    public void tearDown() {
+    public void tearDownAfterClass() {
         admin.close();
     }
     

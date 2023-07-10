@@ -113,7 +113,6 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
                     
                 } else if (req instanceof DeleteRequest delete) {
                     var json = new StringBuilder();
-//                    appendDeleteRequest(json, delete);
             
                     ProducerRecord<String, String> rec = new ProducerRecord<>
                     (getTopicName(), delete.getReference(), null);
@@ -223,12 +222,6 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
     
     private void appendUpsertRequest(StringBuilder json, UpsertRequest upsert) 
             throws CommitterException {
-//        String id = upsert.getMetadata().getString(getSourceReferenceField());
-//        String id = upsert.getReference();
-//        if (StringUtils.isBlank(id)) {
-//            id = upsert.getReference();
-//        }
-        
         CommitterUtil.applyTargetContent(upsert, "content");
         
         json.append("{");
@@ -237,42 +230,28 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         for (Map.Entry<String, List<String>> entry : 
                 upsert.getMetadata().entrySet()) {
             String field = entry.getKey();
-//            field = StringUtils.replace(field, ".", dotReplacement);
-
-            // Remove id from source unless specified to keep it
-//            if (!isKeepSourceReferenceField()
-//                    && field.equals(getSourceReferenceField())) {
-//                continue;
-//            }
             append(json, field, entry.getValue());
             json.append(",");
         }
         json.deleteCharAt(json.length()-1);
         json.append("}\n");
     }
-
-//    private void appendDeleteRequest(StringBuilder json, DeleteRequest del) {
-//        json.append("{\"delete\":{");
-//        append(json, "id", del.getReference());
-//        json.append("}}\n");
-//    }
-
+    
     private void append(StringBuilder json, String field, List<String> values) {
         if (values.size() == 1) {
             append(json, field, values.get(0));
             return;
         }
+        
         json.append('"')
                 .append(StringEscapeUtils.escapeJson(field))
                 .append("\":[");
-        boolean first = true;
+
         for (String value : values) {
-            if (!first) {
-                json.append(',');
-            }
             appendValue(json, field, value);
-            first = false;
+            json.append(',');
         }
+        json.deleteCharAt(json.length()-1);
         json.append(']');
     }
 
