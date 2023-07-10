@@ -18,36 +18,6 @@
 
 <committer class="com.norconex.committer.apachekafka.ApacheKafkaCommitter">
   <topicName>index</topicName>
+  <createTopic>false</createTopic>
   <bootstrapServers>host1:9999,host2:9821</bootstrapServers>
-
-<!-- 
-  <sourceIdField>sourceIdField</sourceIdField>
-  <targetContentField>targetContentField</targetContentField>
- 
-  <credentials>
-    <username>myusername</username>
-    <password>mypassword</password>
-    <passwordKey>
-      <value>mykey</value>
-      <source>key</source>
-      <size>128</size>
-    </passwordKey>
-  </credentials>
-  <restrictTo>
-    <fieldMatcher method="basic">document.reference</fieldMatcher>
-    <valueMatcher method="wildcard">*.pdf</valueMatcher>
-  </restrictTo>
-  <restrictTo>
-    <fieldMatcher method="basic">title</fieldMatcher>
-    <valueMatcher method="basic">bad</valueMatcher>
-  </restrictTo>
-  <fieldMappings>
-    <mapping fromField="whatever1" toField="wherever1"/>
-    <mapping fromField="whatever2" toField="wherever2"/>
-  </fieldMappings>
-  <queue class="com.norconex.committer.core.batch.queue.impl.FSQueue">
-    <batchSize>40</batchSize>
-    <maxPerFolder>10</maxPerFolder>
-  </queue>
-  -->
 </committer>

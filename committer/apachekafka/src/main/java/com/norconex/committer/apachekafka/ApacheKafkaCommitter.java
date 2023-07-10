@@ -45,12 +45,7 @@ import com.norconex.commons.lang.xml.XML;
  * <p>
  * Commits documents to Kafka via it's Producer API
  * </p>
- * 
- * <h3>bootstrapServers</h3>
- * <p>
- * Location of Apache kafka servers
- * 
- * </p>
+ *
  * <h3>createTopic</h3>
  * <p>
  * Whether to create the topic in Apache Kafka. 
@@ -58,16 +53,19 @@ import com.norconex.commons.lang.xml.XML;
  * </p>
  *
  * <h3>XML configuration usage:</h3>
- * <pre>
- *  &lt;committer class="com.norconex.committer.apachekafka.KafkaCommitter&gt;
- *
- *      &lt;bootstrapServers&gt;...&lt;/bootstrapServers&gt;
- *      &lt;topicName&gt;...&lt;/topicName&gt;
- *      &lt;createTopic&gt;...&lt;/createTopic&gt;
+ * committer class="com.norconex.committer.apachekafka.KafkaCommitter&gt;
+ *      <bootstrapServers>
+ *          (A list of host/port pairs in the form host1:port1,host2:port2,...
+ *          to use for establishing a connection to the Kafka cluster)
+ *      </bootstrapServers>
+ *      <topicName>my-topic</topicName>
+ *      <createTopic>
+ *          [true|false](Whether to create topic in Apache Kafka)
+ *      </createTopic>
  *
  *      {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
- *  &lt;/committer&gt;
- * </pre>
+ *  </committer>
+ * 
  *
  * {@nx.xml.example
  * <committer class="com.norconex.committer.apachekafka.KafkaCommitter">
@@ -192,16 +190,18 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
     }
     
     /*
-     * Gets the topic name in Apache Kafka to which documents will be sent
-     * @return the topic name
+     * Gets the topic name to which documents will be sent
+     * 
+     * @return name of the topic
      */
     public String getTopicName() {
         return topicName;
     }
 
     /*
-     * Sets the topic name in Apache Kafka to which documents will be sent
-     * @param name of the topic
+     * Sets the topic name to which documents will be sent
+     * 
+     * @param   topicName   name of the topic
      */
     public void setTopicName(String topicName) {
         this.topicName = topicName;
@@ -209,7 +209,8 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
     
     /*
      * Gets the Apache Kafka broker list
-     * @return the list of brokers
+     * 
+     * @return the list of Kafka brokers
      */
     public String getBootstrapServers() {
         return bootstrapServers;
@@ -217,15 +218,28 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
 
     /*
      * Sets the Apache Kafka broker list
+     * 
+     * @param   servers a CSV list of Kafka brokers of format 
+     *                  host1:port1,host2:port2,...
      */
     public void setBootstrapServers(String servers) {
         this.bootstrapServers = servers;
     }
     
+    /*
+     * Gets whether to create the topic in Apache Kafka 
+     * 
+     * @return  <code>true</code> if topic should be created
+     */
     public boolean isCreateTopic() {
         return createTopic;
     }
 
+    /* Sets whether to create the topic in Apache Kafka
+     * It will be created only if it is not already present
+     * 
+     * @param   createTopic whether topic should be created
+     */
     public void setCreateTopic(boolean createTopic) {
         this.createTopic = createTopic;
     }
