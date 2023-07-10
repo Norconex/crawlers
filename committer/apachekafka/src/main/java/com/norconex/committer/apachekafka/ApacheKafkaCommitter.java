@@ -45,21 +45,41 @@ import com.norconex.commons.lang.xml.XML;
  * <p>
  * Commits documents to Kafka via it's Producer API
  * </p>
- * <h3>XML configuration usage:</h3>
+ * 
+ * <h3>bootstrapServers</h3>
+ * <p>
+ * Location of Apache kafka servers
+ * 
+ * </p>
+ * <h3>createTopic</h3>
+ * <p>
+ * Whether to create the topic in Apache Kafka. 
+ * It will be created only if it is not already present. Defaults to false.
+ * </p>
  *
+ * <h3>XML configuration usage:</h3>
  * <pre>
  *  &lt;committer class="com.norconex.committer.apachekafka.KafkaCommitter&gt;
  *
  *      &lt;bootstrapServers&gt;...&lt;/bootstrapServers&gt;
  *      &lt;topicName&gt;...&lt;/topicName&gt;
+ *      &lt;createTopic&gt;...&lt;/createTopic&gt;
  *
- *      &lt;queueDir&gt;(optional path where to queue files)&lt;/queueDir&gt;
- *      &lt;queueSize&gt;(max queue size before committing)&lt;/queueSize&gt;
- *      &lt;maxRetries&gt;(max retries upon commit failures)&lt;/maxRetries&gt;
- *      &lt;maxRetryWait&gt;(max delay in milliseconds between retries)&lt;/maxRetryWait&gt;
+ *      {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
  *  &lt;/committer&gt;
  * </pre>
  *
+ * {@nx.xml.example
+ * <committer class="com.norconex.committer.apachekafka.KafkaCommitter">
+ *   <bootstrapServers>http://some_host:1234</bootstrapServers>
+ *   <topicName>my-topic</topicName>
+ * </committer>
+ * }
+ * <p>
+ * The above example uses the minimum required settings. It does not attempt
+ * to create the topic. As such, topic must already exist in Apache Kafka.
+ * </p>
+ * 
  * @author Harinder Hanjan
  */
 
@@ -72,9 +92,10 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
             + "are required.";
     private static final String BOOTSTRAP_SERVERS_CONFIG = "bootstrapServers";
     private static final String TOPIC_NAME_CONFIG = "topicName";
-    
+    private static final String CREATE_TOPIC_CONFIG = "createTopic";
     private String topicName;
     private String bootstrapServers;
+    private boolean createTopic;
     private KafkaProducer<String, String> producer;
 
     @Override
@@ -84,7 +105,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
             throw new CommitterException(EXCEPTION_MSG_INVALID_CONFIG);
         }
     }
-    
+
     @Override
     protected void commitBatch(Iterator<CommitterRequest> it)
             throws CommitterException {
@@ -170,38 +191,57 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         return producer;
     }
     
+    /*
+     * Gets the topic name in Apache Kafka to which documents will be sent
+     * @return the topic name
+     */
     public String getTopicName() {
         return topicName;
     }
 
+    /*
+     * Sets the topic name in Apache Kafka to which documents will be sent
+     * @param name of the topic
+     */
     public void setTopicName(String topicName) {
         this.topicName = topicName;
     }
     
+    /*
+     * Gets the Apache Kafka broker list
+     * @return the list of brokers
+     */
     public String getBootstrapServers() {
         return bootstrapServers;
     }
 
+    /*
+     * Sets the Apache Kafka broker list
+     */
     public void setBootstrapServers(String servers) {
         this.bootstrapServers = servers;
+    }
+    
+    public boolean isCreateTopic() {
+        return createTopic;
+    }
+
+    public void setCreateTopic(boolean createTopic) {
+        this.createTopic = createTopic;
     }
 
     @Override
     protected void saveBatchCommitterToXML(XML writer) {
-
-        if (StringUtils.isNotBlank(topicName)) {
-            writer.addElement(TOPIC_NAME_CONFIG, getTopicName());
-        }
-
-        if (StringUtils.isNotBlank(bootstrapServers)) {
-            writer.addElement(BOOTSTRAP_SERVERS_CONFIG, getBootstrapServers());
-        }
+        writer.addElement(TOPIC_NAME_CONFIG, getTopicName());
+        writer.addElement(BOOTSTRAP_SERVERS_CONFIG, getBootstrapServers());
+        writer.addElement(CREATE_TOPIC_CONFIG, isCreateTopic());
     }
 
     @Override
     protected void loadBatchCommitterFromXML(XML xml) {
         setTopicName(xml.getString(TOPIC_NAME_CONFIG));
         setBootstrapServers(xml.getString(BOOTSTRAP_SERVERS_CONFIG));
+        setCreateTopic(xml.getBoolean(CREATE_TOPIC_CONFIG, isCreateTopic()));
     }
     
     @Override
