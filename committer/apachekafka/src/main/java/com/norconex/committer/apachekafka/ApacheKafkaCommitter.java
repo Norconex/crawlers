@@ -161,8 +161,6 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
                 StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class);
-        
-        // ensure exactly once delivery
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
         
@@ -225,7 +223,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         CommitterUtil.applyTargetContent(upsert, "content");
         
         json.append("{");
-        append(json, "id", upsert.getReference());
+        appendFieldAndValue(json, "id", upsert.getReference());
         json.append(",");
         for (Map.Entry<String, List<String>> entry : 
                 upsert.getMetadata().entrySet()) {
@@ -239,37 +237,33 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
     
     private void append(StringBuilder json, String field, List<String> values) {
         if (values.size() == 1) {
-            append(json, field, values.get(0));
+            appendFieldAndValue(json, field, values.get(0));
             return;
         }
         
-        json.append('"')
+        json.append("\"")
                 .append(StringEscapeUtils.escapeJson(field))
                 .append("\":[");
 
         for (String value : values) {
-            appendValue(json, field, value);
+            appendValue(json, value);
             json.append(',');
         }
         json.deleteCharAt(json.length()-1);
         json.append(']');
     }
 
-    private void append(StringBuilder json, String field, String value) {
-        json.append('"')
+    private void appendFieldAndValue(
+            StringBuilder json, String field, String value) {
+        json.append("\"")
                 .append(StringEscapeUtils.escapeJson(field))
                 .append("\":");
-        appendValue(json, field, value);
+        appendValue(json, value);
     }
 
-    private void appendValue(StringBuilder json, String field, String value) {
-//        if (getJsonFieldsPattern() != null
-//                && getJsonFieldsPattern().matches(field)) {
-//            json.append(value);
-//        } else {
-            json.append('"')
-                    .append(StringEscapeUtils.escapeJson(value))
-                    .append("\"");
-//        }
+    private void appendValue(StringBuilder json, String value) {
+        json.append("\"")
+                .append(StringEscapeUtils.escapeJson(value))
+                .append("\"");
     }
 }
