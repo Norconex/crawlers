@@ -6,29 +6,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.io.input.NullInputStream;
-import org.apache.kafka.clients.admin.Admin;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.CreateTopicsResult;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.KafkaFuture;
-import org.apache.kafka.common.config.TopicConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -57,8 +42,8 @@ class ApacheKafkaCommitterTest {
     private static String TOPIC_NAME = "";
     private static final String TEST_ID = "http://www.simpsons.com";
     private static final String TEST_CONTENT = "Homer says DOH!";
-    private static Admin admin;
     private Consumer<String, String> consumer;
+    private static TestHelper testHelper;
     
     @TempDir
     static File tempDir;
@@ -69,20 +54,21 @@ class ApacheKafkaCommitterTest {
             
     @BeforeAll
     static void setUpBeforeClass() throws Exception {
-        admin = createAdminClient();
+        testHelper = new TestHelper(kafka.getBootstrapServers());
     }
 
     @AfterAll
     static void tearDownAfterClass() throws Exception {
-        admin.close();
+        testHelper.tearDown();
     }
 
     @BeforeEach
     void setUp() throws Exception {
         TOPIC_NAME = String.valueOf(TimeIdGenerator.next());
-        createTopic();
-        consumer = createConsumerAndSubscribeToTopic(
-                "nx-test-consumer-" + TOPIC_NAME);
+        testHelper.createTopic(TOPIC_NAME);
+        consumer = testHelper.createConsumerAndSubscribeToTopic(
+                "nx-test-consumer-" + TOPIC_NAME, 
+                TOPIC_NAME);
     }
 
     @AfterEach
@@ -133,7 +119,8 @@ class ApacheKafkaCommitterTest {
                         id,
                         "Homer says DOH!");
         
-        KafkaProducer<String, String> producer = createProducer();
+        KafkaProducer<String, String> producer = 
+                testHelper.createProducer();
         producer.send(record).get();
         producer.close();
         
@@ -156,8 +143,9 @@ class ApacheKafkaCommitterTest {
         //verify
         ConsumerRecord<String, String> receivedRecord = null;
         Consumer<String, String> localConsumer = 
-                createConsumerAndSubscribeToTopic(
-                        "nx-test-localconsumer" + TOPIC_NAME);
+                testHelper.createConsumerAndSubscribeToTopic(
+                        "nx-test-localconsumer" + TOPIC_NAME, 
+                        TOPIC_NAME);
         
         ConsumerRecords<String, String> receivedRecords = localConsumer
                 .poll(Duration.ofMillis(5000));
@@ -215,68 +203,5 @@ class ApacheKafkaCommitterTest {
         void accept(ApacheKafkaCommitter c) throws Exception;
     }
     
-    private Consumer<String, String> createConsumerAndSubscribeToTopic(
-            String groupId){
-        java.util.Properties props = new java.util.Properties();
-        props.setProperty("bootstrap.servers", kafka.getBootstrapServers());
-
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10");
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class);
-
-        Consumer<String, String> consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(Arrays.asList(TOPIC_NAME));
-        LOG.info("Created consumer");
-        return consumer;
-    }
     
-    private void createTopic() throws Exception {        
-        // Create a compacted topic
-        Map<String, String> topicConfig = new HashMap<>();
-        topicConfig.put(TopicConfig.CLEANUP_POLICY_CONFIG, 
-                TopicConfig.CLEANUP_POLICY_COMPACT);
-        topicConfig.put(TopicConfig.DELETE_RETENTION_MS_CONFIG, "1");
-        
-        CreateTopicsResult result = admin.createTopics(
-                Collections.singleton(new NewTopic(TOPIC_NAME, 1, (short) 1)
-                        .configs(topicConfig)));
-
-        KafkaFuture<Void> future = result.values().get(TOPIC_NAME);
-
-        try {
-            future.get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new Exception(
-                    "Could not create topic '" + TOPIC_NAME + "'.", e);
-        }
-        LOG.info("Created topic `{}`...", TOPIC_NAME);
-    }
-    
-    
-    private static Admin createAdminClient() {
-        java.util.Properties props = new java.util.Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, 
-                    kafka.getBootstrapServers());
-        return Admin.create(props);
-    }
-
-    private KafkaProducer<String, String> createProducer() {        
-        java.util.Properties props = new java.util.Properties();
-        props.put("bootstrap.servers", kafka.getBootstrapServers());
-        props.put(ProducerConfig.LINGER_MS_CONFIG, "0");
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class);
-        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
-        props.put(ProducerConfig.ACKS_CONFIG, "all");
-        
-        return new KafkaProducer<>(props);
-    }
 }
