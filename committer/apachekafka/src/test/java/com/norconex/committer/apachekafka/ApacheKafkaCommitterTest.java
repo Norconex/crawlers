@@ -20,8 +20,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -37,8 +35,6 @@ import com.norconex.commons.lang.map.Properties;
 @Testcontainers(disabledWithoutDocker = true)
 class ApacheKafkaCommitterTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            ApacheKafkaCommitterTest.class);
     private static String TOPIC_NAME = "";
     private static final String TEST_ID = "http://www.simpsons.com";
     private static final String TEST_CONTENT = "Homer says DOH!";
