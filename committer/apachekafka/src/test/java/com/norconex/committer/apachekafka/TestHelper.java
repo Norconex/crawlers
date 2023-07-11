@@ -24,18 +24,12 @@ import org.slf4j.LoggerFactory;
 
 class TestHelper {
     private String kafkaBrokers;
-    private static Admin admin;
     private static final Logger LOG = LoggerFactory.getLogger(
             TestHelper.class);
     
     public TestHelper(String kafkaBootstrapServers) {
         kafkaBrokers = kafkaBootstrapServers;
-        createAdminClient();
-    }
-    
-    public void tearDownAfterClass() {
-        admin.close();
-    }
+    }   
     
     public Consumer<String, String> createConsumerAndSubscribeToTopic(
             String groupId, String topicName){
@@ -56,35 +50,7 @@ class TestHelper {
         consumer.subscribe(Arrays.asList(topicName));
         LOG.info("Created consumer");
         return consumer;
-    }
-    
-    public void createTopic(String topicName) throws Exception {        
-        // Create a compacted topic
-        Map<String, String> topicConfig = new HashMap<>();
-        topicConfig.put(TopicConfig.CLEANUP_POLICY_CONFIG, 
-                TopicConfig.CLEANUP_POLICY_COMPACT);
-        
-        CreateTopicsResult result = admin.createTopics(
-                Collections.singleton(new NewTopic(topicName, 1, (short) 1)
-                        .configs(topicConfig)));
-
-        KafkaFuture<Void> future = result.values().get(topicName);
-
-        try {
-            future.get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new Exception(
-                    "Could not create topic '" + topicName + "'.", e);
-        }
-        LOG.info("Created topic `{}`...", topicName);
-    }
-    
-    
-    private void createAdminClient() {
-        java.util.Properties props = new java.util.Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
-        admin = Admin.create(props);
-    }
+    }    
 
     public KafkaProducer<String, String> createProducer() {        
         java.util.Properties props = new java.util.Properties();

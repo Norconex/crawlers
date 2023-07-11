@@ -59,13 +59,11 @@ class ApacheKafkaCommitterTest {
 
     @AfterAll
     static void tearDownAfterClass() throws Exception {
-        testHelper.tearDownAfterClass();
     }
 
     @BeforeEach
     void setUp() throws Exception {
         TOPIC_NAME = String.valueOf(TimeIdGenerator.next());
-        testHelper.createTopic(TOPIC_NAME);
         consumer = testHelper.createConsumerAndSubscribeToTopic(
                 "nx-test-consumer-" + TOPIC_NAME, 
                 TOPIC_NAME);
@@ -207,6 +205,9 @@ class ApacheKafkaCommitterTest {
         ApacheKafkaCommitter committer = new ApacheKafkaCommitter();
         committer.setBootstrapServers(kafka.getBootstrapServers());
         committer.setTopicName(TOPIC_NAME);
+        committer.setCreateTopic(true);
+        committer.setNumOfPartitions(1);
+        committer.setReplicationFactor((short) 1);
         
         committer.init(ctx);
         return committer;

@@ -116,16 +116,25 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         }
         
         kafkaAdmin = new KafkaAdmin(bootstrapServers);
-        
+
         if(isCreateTopic()) {
+            if(partitions == 0 || replicationFactor == 0) {
+                String msg = String.format(
+                        "%s=true requires these settings be also set. %s, %s",
+                        CREATE_TOPIC_CONFIG,
+                        NUM_OF_PARTITIONS_CONFIG, 
+                        REPLICATION_FACTOR_CONFIG);
+                throw new CommitterException(msg);
+            }
+            
             LOG.info("Ensuring topic `{}` exists in Kafka", topicName);
             kafkaAdmin.ensureTopicExists(
                     topicName, 
                     partitions, 
                     replicationFactor);
             
-        } else if(! kafkaAdmin.isTopicExists(topicName)){
-            String msg = String.format("Topic `%d` does not exist in Kafka. "
+        } else if(! kafkaAdmin.isTopicExists(topicName)) {
+            String msg = String.format("Topic `%s` does not exist in Kafka. "
                     + "Either create the topic manually or set `%s` to true.", 
                     topicName, CREATE_TOPIC_CONFIG);
             LOG.error(msg);            
@@ -153,7 +162,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
                     
                     ProducerRecord<String, String> rec = new ProducerRecord<>
                         (getTopicName(), upsert.getReference(), json.toString());
-//System.out.println("Sending upsert-- " + rec.toString());
+
                     producer.send(rec);
                     
                     docCountUpserts++;
@@ -165,7 +174,6 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
                     ProducerRecord<String, String> rec = new ProducerRecord<>
                     (getTopicName(), delete.getReference(), null);
 
-//System.out.println("Sending delete-- " + rec.toString());
                     producer.send(rec);
                     
                     docCountDeletes++;
@@ -279,7 +287,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
     
     /**
      * Gets the number of partitions for the new topic. 
-     * Only applies if {@see #createTopic} is set to <code>true</code>
+     * Required if {@see #createTopic} is set to <code>true</code>
      * 
      * @return number of partitions
      */
@@ -289,7 +297,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
 
     /**
      * Sets the number of partitions for the new topic. 
-     * Only applies if {@see #createTopic} is set to <code>true</code>
+     * Required if {@see #createTopic} is set to <code>true</code>
      * 
      * @param   numOfPartitions   number of partitions
      */
@@ -299,16 +307,15 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
 
     /**
      * Gets the replication factor for the new topic. 
-     * Only applies if {@see #createTopic} is set to <code>true</code>
+     * Required if {@see #createTopic} is set to <code>true</code>
      */
     public short getReplicationFactor() {
-        System.out.println("@@@@@@@@--" + replicationFactor);
         return replicationFactor;
     }
 
     /**
      * Sets the replication factor for the new topic. 
-     * Only applies if {@see #createTopic} is set to <code>true</code>
+     * Required if {@see #createTopic} is set to <code>true</code>
      */
     public void setReplicationFactor(short replicationFactor) {
         this.replicationFactor = replicationFactor;
