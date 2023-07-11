@@ -31,6 +31,9 @@ class ApacheKafkaCommitterConfigTest {
 
         c.setBootstrapServers("host1:1234, host2:1234");
         c.setTopicName("my-topic");
+        c.setCreateTopic(true);
+        c.setNumOfPartitions(1);
+        c.setReplicationFactor((short) 1);
         
         var q = new FSQueue();
         q.setBatchSize(10);

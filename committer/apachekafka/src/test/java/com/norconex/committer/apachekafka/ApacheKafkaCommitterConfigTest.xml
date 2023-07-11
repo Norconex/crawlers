@@ -17,7 +17,9 @@
 -->
 
 <committer class="com.norconex.committer.apachekafka.ApacheKafkaCommitter">
-  <topicName>index</topicName>
-  <createTopic>false</createTopic>
   <bootstrapServers>host1:9999,host2:9821</bootstrapServers>
+  <topicName>index</topicName>
+  <createTopic>true</createTopic>
+  <numOfPartitions>1</numOfPartitions>
+  <replicationFactor>1</replicationFactor>
 </committer>

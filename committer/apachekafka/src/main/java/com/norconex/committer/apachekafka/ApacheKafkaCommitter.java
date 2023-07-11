@@ -62,6 +62,12 @@ import com.norconex.commons.lang.xml.XML;
  *      <createTopic>
  *          [true|false](Whether to create topic in Apache Kafka)
  *      </createTopic>
+ *      <numOfPartitions>
+ *          (Number of partitions, if createTopic is set to <code>true</code>)
+ *      </numOfPartitions>
+ *      <replicationFactor>
+ *          (Replication Factor, if createTopic is set to <code>true</code>)
+ *      </replicationFactor>
  *
  *      {@nx.include com.norconex.committer.core.batch.AbstractBatchCommitter#options}
  *  </committer>
@@ -91,16 +97,39 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
     private static final String BOOTSTRAP_SERVERS_CONFIG = "bootstrapServers";
     private static final String TOPIC_NAME_CONFIG = "topicName";
     private static final String CREATE_TOPIC_CONFIG = "createTopic";
+    private static final String NUM_OF_PARTITIONS_CONFIG = "numOfPartitions";
+    private static final String REPLICATION_FACTOR_CONFIG = "replicationFactor";
+    private KafkaProducer<String, String> producer;
+    private KafkaAdmin kafkaAdmin; 
+    
     private String topicName;
     private String bootstrapServers;
     private boolean createTopic;
-    private KafkaProducer<String, String> producer;
-
+    private int partitions;
+    private short replicationFactor;
+    
     @Override
     protected void initBatchCommitter() throws CommitterException {
         if (    StringUtils.isBlank(topicName) || 
                 StringUtils.isBlank(bootstrapServers)) {
             throw new CommitterException(EXCEPTION_MSG_INVALID_CONFIG);
+        }
+        
+        kafkaAdmin = new KafkaAdmin(bootstrapServers);
+        
+        if(isCreateTopic()) {
+            LOG.info("Ensuring topic `{}` exists in Kafka", topicName);
+            kafkaAdmin.ensureTopicExists(
+                    topicName, 
+                    partitions, 
+                    replicationFactor);
+            
+        } else if(! kafkaAdmin.isTopicExists(topicName)){
+            String msg = String.format("Topic `%d` does not exist in Kafka. "
+                    + "Either create the topic manually or set `%s` to true.", 
+                    topicName, CREATE_TOPIC_CONFIG);
+            LOG.error(msg);            
+            throw new CommitterException(msg);
         }
     }
 
@@ -170,6 +199,9 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         producer.flush();
         producer.close();
         LOG.info("Done");
+        
+        LOG.info("Closing Kafka Admin client");
+        kafkaAdmin.close();
     }
 
     private synchronized KafkaProducer<String, String> createProducer() {        
@@ -189,7 +221,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         return producer;
     }
     
-    /*
+    /**
      * Gets the topic name to which documents will be sent
      * 
      * @return name of the topic
@@ -198,7 +230,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         return topicName;
     }
 
-    /*
+    /**
      * Sets the topic name to which documents will be sent
      * 
      * @param   topicName   name of the topic
@@ -207,7 +239,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         this.topicName = topicName;
     }
     
-    /*
+    /**
      * Gets the Apache Kafka broker list
      * 
      * @return the list of Kafka brokers
@@ -216,7 +248,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         return bootstrapServers;
     }
 
-    /*
+    /**
      * Sets the Apache Kafka broker list
      * 
      * @param   servers a CSV list of Kafka brokers of format 
@@ -226,7 +258,7 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         this.bootstrapServers = servers;
     }
     
-    /*
+    /**
      * Gets whether to create the topic in Apache Kafka 
      * 
      * @return  <code>true</code> if topic should be created
@@ -235,13 +267,51 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         return createTopic;
     }
 
-    /* Sets whether to create the topic in Apache Kafka
-     * It will be created only if it is not already present
+    /**
+     * Sets whether to create the topic in Apache Kafka. 
+     * It will be created only if it is not already present.
      * 
      * @param   createTopic whether topic should be created
      */
     public void setCreateTopic(boolean createTopic) {
         this.createTopic = createTopic;
+    }
+    
+    /**
+     * Gets the number of partitions for the new topic. 
+     * Only applies if {@see #createTopic} is set to <code>true</code>
+     * 
+     * @return number of partitions
+     */
+    public int getNumOfPartitions() {
+        return partitions;
+    }
+
+    /**
+     * Sets the number of partitions for the new topic. 
+     * Only applies if {@see #createTopic} is set to <code>true</code>
+     * 
+     * @param   numOfPartitions   number of partitions
+     */
+    public void setNumOfPartitions(int numOfPartitions) {
+        this.partitions = numOfPartitions;
+    }
+
+    /**
+     * Gets the replication factor for the new topic. 
+     * Only applies if {@see #createTopic} is set to <code>true</code>
+     */
+    public short getReplicationFactor() {
+        System.out.println("@@@@@@@@--" + replicationFactor);
+        return replicationFactor;
+    }
+
+    /**
+     * Sets the replication factor for the new topic. 
+     * Only applies if {@see #createTopic} is set to <code>true</code>
+     */
+    public void setReplicationFactor(short replicationFactor) {
+        this.replicationFactor = replicationFactor;
     }
 
     @Override
@@ -249,6 +319,8 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         writer.addElement(TOPIC_NAME_CONFIG, getTopicName());
         writer.addElement(BOOTSTRAP_SERVERS_CONFIG, getBootstrapServers());
         writer.addElement(CREATE_TOPIC_CONFIG, isCreateTopic());
+        writer.addElement(NUM_OF_PARTITIONS_CONFIG, getNumOfPartitions());
+        writer.addElement(REPLICATION_FACTOR_CONFIG, getReplicationFactor());
     }
 
     @Override
@@ -256,6 +328,12 @@ public class ApacheKafkaCommitter extends AbstractBatchCommitter {
         setTopicName(xml.getString(TOPIC_NAME_CONFIG));
         setBootstrapServers(xml.getString(BOOTSTRAP_SERVERS_CONFIG));
         setCreateTopic(xml.getBoolean(CREATE_TOPIC_CONFIG, isCreateTopic()));
+        setNumOfPartitions(
+                xml.getInteger(NUM_OF_PARTITIONS_CONFIG, getNumOfPartitions()));
+        setReplicationFactor(
+                xml.get(REPLICATION_FACTOR_CONFIG, 
+                        Short.class, 
+                        getReplicationFactor()));
     }
     
     @Override
