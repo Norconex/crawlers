@@ -155,7 +155,7 @@ class ApacheKafkaCommitterTest {
         assertThat(receivedRecord.key()).isEqualTo(id);
         assertThat(receivedRecord.value()).isNull();        
     }
-    
+        
     @Test
     void testAddMultiValueFields_isAdded() throws Exception {
         //setup
@@ -182,6 +182,52 @@ class ApacheKafkaCommitterTest {
         assertThat(expectedRecord).isNotNull();
         assertThat(expectedRecord.key()).isEqualTo(TEST_ID);
         assertThat(expectedRecord.value()).isEqualTo(expectedRecordValue);
+    }
+    
+    @Test
+    void createTopicSetWithoutPartitionOrReplication_throwsException() {
+        //setup
+        Exception expectedException = null;
+        
+        //execute
+        try {
+            withinCommitterSessionCreateTopicOnly(c -> {
+                c.upsert(upsertRequest(TEST_ID, null, new Properties()));
+            });
+        } catch(CommitterException e) {
+            expectedException = e;
+        }
+        
+        //verify
+        assertThat(expectedException)
+            .isNotNull()
+            .hasMessage("createTopic=true requires these settings be also set. "
+                    + "numOfPartitions, replicationFactor");
+    }
+    
+    @Test
+    void createTopicIsFalseAndTopicDoesNotAlreadyExist_throwsException() {
+        //setup
+        Exception expectedException = null;
+        String expectedExceptionMsg = String.format( 
+                "Topic `%s` does not exist in Kafka. Either "
+                + "create the topic manually or set `createTopic` to true.",
+                TOPIC_NAME
+                );
+        
+        //execute
+        try {
+            withinCommitterSessionTopicDoesNotExist(c -> {
+                c.upsert(upsertRequest(TEST_ID, null, new Properties()));
+            });
+        } catch(CommitterException e) {
+            expectedException = e;
+        }
+        
+        //verify
+        assertThat(expectedException)
+            .isNotNull()
+            .hasMessage(expectedExceptionMsg);
     }
 
     private UpsertRequest upsertRequest(
@@ -223,10 +269,72 @@ class ApacheKafkaCommitterTest {
         return committer;
     }
 
+    protected ApacheKafkaCommitter createApacheKafkaCommitterCreateTopicOnly()
+            throws CommitterException {
+
+        CommitterContext ctx = CommitterContext.builder()
+                .setWorkDir(new File(tempDir,
+                        "" + TimeIdGenerator.next()).toPath())
+                .build();
+        ApacheKafkaCommitter committer = new ApacheKafkaCommitter();
+        committer.setBootstrapServers(kafka.getBootstrapServers());
+        committer.setTopicName(TOPIC_NAME);
+        committer.setCreateTopic(true);
+        
+        committer.init(ctx);
+        return committer;
+    }
+    
+    protected ApacheKafkaCommitter withinCommitterSessionCreateTopicOnly(
+            CommitterConsumer c)
+            throws CommitterException {
+        ApacheKafkaCommitter committer = 
+                createApacheKafkaCommitterCreateTopicOnly();
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }
+    
+    protected ApacheKafkaCommitter createApacheKafkaCommitterTopicDoesNotExist()
+            throws CommitterException {
+
+        CommitterContext ctx = CommitterContext.builder()
+                .setWorkDir(new File(tempDir,
+                        "" + TimeIdGenerator.next()).toPath())
+                .build();
+        ApacheKafkaCommitter committer = new ApacheKafkaCommitter();
+        committer.setBootstrapServers(kafka.getBootstrapServers());
+        committer.setTopicName(TOPIC_NAME);
+        committer.setCreateTopic(false);
+        
+        committer.init(ctx);
+        return committer;
+    }
+    
+    protected ApacheKafkaCommitter withinCommitterSessionTopicDoesNotExist(
+            CommitterConsumer c)
+            throws CommitterException {
+        ApacheKafkaCommitter committer = 
+                createApacheKafkaCommitterTopicDoesNotExist();
+        try {
+            c.accept(committer);
+        } catch (CommitterException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommitterException(e);
+        }
+        committer.close();
+        return committer;
+    }
+    
     @FunctionalInterface
     protected interface CommitterConsumer {
         void accept(ApacheKafkaCommitter c) throws Exception;
     }
-    
-    
 }

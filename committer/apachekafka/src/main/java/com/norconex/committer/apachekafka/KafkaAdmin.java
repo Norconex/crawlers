@@ -52,10 +52,6 @@ class KafkaAdmin {
             throw new CommitterException("Could not list topics.", e);
         }
 
-        if(topicNames == null) {
-            return false;
-        }
-        
         return topicNames.contains(topicName);
     }
 
