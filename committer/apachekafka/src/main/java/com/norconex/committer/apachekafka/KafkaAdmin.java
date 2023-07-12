@@ -41,8 +41,7 @@ class KafkaAdmin {
         createTopic(topicName, partitions, replicationFactor);
     }
     
-    public boolean isTopicExists(String topicName) 
-            throws CommitterException {
+    public boolean isTopicExists(String topicName) {
         ListTopicsResult topics = admin.listTopics();
 
         Set<String> topicNames = null;
@@ -67,7 +66,7 @@ class KafkaAdmin {
     private void createTopic(
             String topicName, 
             int partitions, 
-            short replicationFactor) throws CommitterException {
+            short replicationFactor) {
         LOG.info("Creating compacted topic `{}`...", topicName);
 
         CreateTopicsResult result = admin.createTopics(Collections
