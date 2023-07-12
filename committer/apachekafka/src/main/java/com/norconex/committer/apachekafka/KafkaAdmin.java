@@ -49,9 +49,14 @@ class KafkaAdmin {
         try {
             topicNames = topics.names().get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new CommitterException("Could not list topics.", e);
+            LOG.error("Listing topic names interrupted.", e);
+            Thread.currentThread().interrupt();
         }
 
+        if(topicNames == null) {
+            return false;
+        }
+        
         return topicNames.contains(topicName);
     }
 
@@ -76,8 +81,8 @@ class KafkaAdmin {
         try {
             future.get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new CommitterException(
-                    "Could not create topic '" + topicName + "'.", e);
+            LOG.error("Creating topic `{}` interrupted.", topicName, e);
+            Thread.currentThread().interrupt();
         }
         LOG.info("Done");
     }

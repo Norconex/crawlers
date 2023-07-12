@@ -206,7 +206,7 @@ class ApacheKafkaCommitterTest {
     }
     
     @Test
-    void createTopicIsFalseAndTopicDoesNotAlreadyExist_throwsException() {
+    void testCreateTopicIsFalseAndTopicDoesNotAlreadyExist_throwsException() {
         //setup
         Exception expectedException = null;
         String expectedExceptionMsg = String.format( 
