@@ -1,13 +1,27 @@
 * Redo all metadata constants to be more consistent in naming and syntax,
   plus remove references to "collector.".  Make them all prefixed the same,
   including Importer (e.g., "doc.*")
- 
+
+Configuration:
+--------------- 
 * Maybe, have a Configurable interface with set/getConfiguration method
-* which will get autowired with the matching class.
-* or look at autowiring framework as a global addition.
-* Or, have annotation @config that will take the type of the property
-* it decorates, or accepts an optional configuration object as a value.
-* Dagger 2 seems best: well-maintained, lightweight and compile-time
+  which will get autowired with the matching class.
+  or look at autowiring framework as a global addition.
+  Or, have annotation @config that will take the type of the property
+  it decorates, or accepts an optional configuration object as a value.
+  Dagger 2 seems best: well-maintained, lightweight and compile-time
+
+* Consider replacing XSD with OpenAPI JSON Schema.  That way, using the crawler
+  as a service could automatically build a swagger api and clients, in 
+  addition that users can use a bunch of existing json-schema-based editors.
+  We could also integrate https://github.com/rjsf-team/react-jsonschema-form
+  in our SaaS app.
+  MUI5 example: https://rjsf-team.github.io/react-jsonschema-form/
+  
+* Have a Server mode, that would allow crawling of passed URL mixed 
+  with config snippets, based on JSON schema.  
+
+  
 
 * Remove all "restrictTo" across the board in favor of XML flow (if/else, etc).
   At a minimum, if we keep it, wrap in "restrictions" to improve null handling.
