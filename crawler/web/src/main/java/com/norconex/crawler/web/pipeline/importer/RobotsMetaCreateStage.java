@@ -42,12 +42,14 @@ class RobotsMetaCreateStage extends AbstractImporterStage {
                             ctx.getDocument().getDocRecord().getContentType(),
                             ctx.getDocument().getMetadata()));
             reader.close();
-            ctx.fire(CrawlerEvent.builder()
-                    .name(WebCrawlerEvent.CREATED_ROBOTS_META)
-                    .source(ctx.getCrawler())
-                    .subject(ctx.getRobotsMeta())
-                    .crawlDocRecord(ctx.getDocRecord())
-                    .build());
+            if (ctx.getRobotsMeta() != null) {
+                ctx.fire(CrawlerEvent.builder()
+                        .name(WebCrawlerEvent.EXTRACTED_ROBOTS_META)
+                        .source(ctx.getCrawler())
+                        .subject(ctx.getRobotsMeta())
+                        .crawlDocRecord(ctx.getDocRecord())
+                        .build());
+            }
         } catch (IOException e) {
             throw new CrawlerException("Cannot create RobotsMeta for : "
                             + ctx.getDocRecord().getReference(), e);

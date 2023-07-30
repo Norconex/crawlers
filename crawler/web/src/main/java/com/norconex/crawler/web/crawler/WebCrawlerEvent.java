@@ -20,9 +20,10 @@ package com.norconex.crawler.web.crawler;
  */
 public final class WebCrawlerEvent {
 
+    public static final String FETCHED_ROBOTS_TXT = "FETCHED_ROBOTS_TXT";
     public static final String REJECTED_ROBOTS_TXT =
             "REJECTED_ROBOTS_TXT";
-    public static final String CREATED_ROBOTS_META = "CREATED_ROBOTS_META";
+    public static final String EXTRACTED_ROBOTS_META = "EXTRACTED_ROBOTS_META";
     public static final String REJECTED_ROBOTS_META_NOINDEX =
             "REJECTED_ROBOTS_META_NOINDEX";
     public static final String URLS_EXTRACTED = "URLS_EXTRACTED";
