@@ -21,8 +21,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.codec.ServerSentEvent;
 
-import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.server.api.feature.crawl.model.CrawlDocDTO;
+import com.norconex.crawler.server.api.feature.crawl.model.CrawlEventDTO;
 
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
@@ -48,7 +48,7 @@ public class OpenApiConfigurer {
                 "ServerSentEventObject",
                 schema -> schema.setDescription(SSE_DESC));
             addSchema(openApi, CrawlDocDTO.class, "CrawlDoc");
-            addSchema(openApi, Event.class, "CrawlEvent");
+            addSchema(openApi, CrawlEventDTO.class, "CrawlEvent");
         };
     }
 

@@ -37,7 +37,7 @@ public class OpenApiController {
         return route(
             GET("/"),
             req -> ServerResponse.temporaryRedirect(
-                    URI.create("swagger-ui.html")).build()
+                  URI.create("swagger-ui.html")).build()
         );
     }
 
