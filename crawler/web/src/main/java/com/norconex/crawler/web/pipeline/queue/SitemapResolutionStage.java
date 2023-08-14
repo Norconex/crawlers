@@ -14,16 +14,18 @@
  */
 package com.norconex.crawler.web.pipeline.queue;
 
-import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.apache.commons.collections4.queue.SynchronizedQueue;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.pipeline.DocRecordPipelineContext;
+import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.sitemap.SitemapContext;
 import com.norconex.crawler.web.util.Web;
@@ -31,54 +33,82 @@ import com.norconex.crawler.web.util.Web;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class SitemapResolutionStage implements Predicate<DocRecordPipelineContext> {
-
-    private Queue<String> resolvedWebsites =
-            SynchronizedQueue.synchronizedQueue(
-                    new CircularFifoQueue<>(10_000) {
-                        private static final long serialVersionUID = 1L;
-                        @Override
-                        public boolean add(String element) {
-                            if (contains(element)) {
-                                return false;
-                            }
-                            return super.add(element);
-                        }
-                    });
+class SitemapResolutionStage extends CrawlerLifeCycleListener
+        implements Predicate<DocRecordPipelineContext> {
 
     @Override
     public boolean test(DocRecordPipelineContext ctx) { //NOSONAR
+
+
         var cfg = Web.config(ctx);
+        var docRec = (WebDocRecord) ctx.getDocRecord();
+        var resolvedWebsites =
+                Web.crawlerContext(ctx.getCrawler()).getResolvedWebsites();
 
         // Both a sitemap resolver and locator must be set to attempt
         // sitemap discovery and processing for a URL web site.
+        // "stayOnSitemapWhenPresent" is also ignored in such case.
         if (cfg.getSitemapResolver() == null
                 || cfg.getSitemapLocator() == null) {
             return true;
         }
-
 
         // On top of any caching the Sitemap resolver implementation might
         // chose to do, we cache here whether a sitemap detection
         // what already performed for a site so we don't do it again.
         // Sitemaps provided as start references are not initially cached.
 
-        String docUrl = ctx.getDocRecord().getReference();
+        String docUrl = docRec.getReference();
         var urlRoot = HttpURL.getRoot(docUrl);
 
         // if the queue did not change after addition, it means the sitemap
         // was already resolved for a site, so we abort now.
-        if (!resolvedWebsites.add(urlRoot)) {
+        // We start false until at least one url is extracted.
+
+
+        var sitemapExists =
+                resolvedWebsites.putIfAbsent(urlRoot, Boolean.FALSE);
+        if (sitemapExists != null) {
+            // already resolved so return right away, rejecting if out
+            // of sitemap and stayOnSitemap is true.
+
+            if (cfg.isStayOnSitemapWhenPresent()
+                    && Boolean.TRUE.equals(sitemapExists)
+                    && !docRec.isFromSitemap()) {
+                Web.fire(ctx.getCrawler(), b -> b
+                        .name(WebCrawlerEvent.REJECTED_NOT_FROM_SITEMAP)
+                        .crawlDocRecord(docRec)
+                        .source(ctx.getCrawler()));
+                return false;
+            }
             return true;
         }
 
+        // Sitemap never processed, so do it
+
         final var urlCount = new MutableInt();
+        final var isDocRecSitemapOK =
+                new MutableBoolean(!cfg.isStayOnSitemapWhenPresent());
         Consumer<WebDocRecord> urlConsumer = rec -> {
+            rec.setFromSitemap(true);
+            if (isDocRecSitemapOK.isFalse() && StringUtils.equalsAny(
+                    rec.getReference(),
+                    docRec.getReference(),
+                    docRec.getOriginalReference())) {
+                isDocRecSitemapOK.setTrue();
+            }
             ctx.getCrawler().queueDocRecord(rec);
-            urlCount.increment();
+            var cnt = urlCount.getAndIncrement();
+            if ((cnt == 0)) {
+                resolvedWebsites.put(urlRoot, Boolean.TRUE);
+                Web.fire(ctx.getCrawler(), b -> b
+                        .name(WebCrawlerEvent.SITEMAP_FETCH_BEGIN)
+                        .crawlDocRecord(docRec)
+                        .source(ctx.getCrawler()));
+            }
         };
 
-        // Queue changed, proceed
+        var foundLocation = new MutableObject<>();
         for (String location :
                 cfg.getSitemapLocator().locations(docUrl, ctx.getCrawler())) {
 
@@ -90,10 +120,28 @@ class SitemapResolutionStage implements Predicate<DocRecordPipelineContext> {
             cfg.getSitemapResolver().resolve(sitemapCtx);
 
             if (urlCount.intValue() > 0) {
+                foundLocation.setValue(location);
                 LOG.info("{} references were extracted from sitemap: {}",
                         urlCount.intValue(), location);
                 break;
             }
+        }
+        Web.fire(ctx.getCrawler(), b -> b
+                .name(WebCrawlerEvent.SITEMAP_FETCH_END)
+                .crawlDocRecord(docRec)
+                .source(ctx.getCrawler())
+                .subject(urlCount.toInteger())
+                .message(urlCount.toInteger()
+                        + " references were extracted from sitemap: "
+                        + foundLocation.getValue()));
+
+
+        if (isDocRecSitemapOK.isFalse()) {
+            Web.fire(ctx.getCrawler(), b -> b
+                    .name(WebCrawlerEvent.REJECTED_NOT_FROM_SITEMAP)
+                    .crawlDocRecord(docRec)
+                    .source(ctx.getCrawler()));
+            return false;
         }
         return true;
     }

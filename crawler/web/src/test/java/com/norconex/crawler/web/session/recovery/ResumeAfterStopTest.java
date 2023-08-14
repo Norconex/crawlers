@@ -42,7 +42,7 @@ class ResumeAfterStopTest {
     void testResumeAfterStop(ClientAndServer client, @TempDir Path tempDir) {
         var path = "/resumeAfterStop";
 
-        WebsiteMock.whenInfinitDepth(client);
+        WebsiteMock.whenInfiniteDepth(client);
 
         var stopper = new CrawlSessionStopper();
 

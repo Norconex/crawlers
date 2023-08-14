@@ -14,21 +14,24 @@
  */
 package com.norconex.crawler.web.crawler;
 
+import java.util.Collections;
+import java.util.Map;
+
+import org.apache.commons.collections4.map.LRUMap;
+
 import com.norconex.crawler.core.crawler.CrawlerImplContext;
 
 import lombok.Data;
 
 /**
  * Crawler implementation-specific contextual data. Useful for keeping state
- * between components that existing for a crawler implementation only.
+ * between components that existing for specific crawler implementations only.
  */
 @Data
 public class WebCrawlerContext extends CrawlerImplContext {
 
-    // Maybe have a @Builder or otherwise ensure properties defined here
-    // cannot be modified. But take into account this context is not
-    // initialized on its own... it is for using classes to initialize
-    // whenever if need be.
-//    private DataStore<SitemapRecord> sitemapStore;
+    // <root_url, sitemap_exists>
+    private final Map<String, Boolean> resolvedWebsites =
+            Collections.synchronizedMap(new LRUMap<>(10_000));
 
 }

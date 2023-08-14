@@ -14,21 +14,13 @@
  */
 package com.norconex.crawler.server.api.common.config;
 
-import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 
-import com.fasterxml.jackson.databind.Module;
-
 @Configuration
 public class AppConfigurer {
-
-    @Bean
-    Module jsonNullableModule() {
-        return new JsonNullableModule();
-    }
 
     //TODO implement CORS properly
     @Bean

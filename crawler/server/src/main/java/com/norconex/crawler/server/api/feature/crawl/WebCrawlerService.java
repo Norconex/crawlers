@@ -39,8 +39,10 @@ public class WebCrawlerService {
     public Flux<Object> crawlSample(CrawlSampleRequest req) {
         return Flux.create(sink -> {
             try {
-                WebCrawlSession.createSession(
-                        CrawlSampleRequestMapper.mapRequest(req, sink)).start();
+                var session = WebCrawlSession.createSession(
+                        CrawlSampleRequestMapper.mapRequest(req, sink));
+                session.clean();
+                session.start();
             } catch (RuntimeException e) {
                 sink.error(e);
             } finally {

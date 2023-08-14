@@ -43,7 +43,7 @@ public final class WebsiteMock {
 
     private WebsiteMock() {}
 
-    public static void whenInfinitDepth(ClientAndServer client) {
+    public static void whenInfiniteDepth(ClientAndServer client) {
         client
             .when(request())
             .respond(WebsiteMock.responseWithInfiniteDepth());

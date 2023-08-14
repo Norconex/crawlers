@@ -62,7 +62,7 @@ class MaxConcurrentCrawlersTest {
         var basePath = "/maxConcurrent/";
 
         client.reset();
-        WebsiteMock.whenInfinitDepth(client);
+        WebsiteMock.whenInfiniteDepth(client);
 
         var startPath = basePath + "0";
         var totalRunning = new AtomicInteger();

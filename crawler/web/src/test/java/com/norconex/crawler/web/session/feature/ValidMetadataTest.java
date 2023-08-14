@@ -37,7 +37,7 @@ class ValidMetadataTest {
 
     @Test
     void testValidMetadata(ClientAndServer client) {
-        WebsiteMock.whenInfinitDepth(client);
+        WebsiteMock.whenInfiniteDepth(client);
 
         var mem = TestWebCrawlSession
                 .forStartReferences(serverUrl(client, "/validMetadata/0000"))

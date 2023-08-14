@@ -34,7 +34,7 @@ class MaxDocumentsTest {
 
     @Test
     void testMaxDocuments(ClientAndServer client) throws IOException {
-        WebsiteMock.whenInfinitDepth(client);
+        WebsiteMock.whenInfiniteDepth(client);
 
         var mem = TestWebCrawlSession
                 .forStartReferences(serverUrl(client, "/maxDocuments/0000"))

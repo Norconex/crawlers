@@ -127,8 +127,17 @@ Misc. Changes
 * Moved fetchers to crawler-core: "httpFetchers" now just "fetchers".
 * Moved startURLs* configuration options to crawler-core.
 * Now supports HTTP/v2 thanks to Apache HttpClient upgrade to version 5.x
+* New stayOnSitemapWhenPresent option on <startURLs>.
 
 ### Crawler File System
 
 * Too many changes to list. Major refactor to bring up to speed with V4-stack 
   features.
+  
+### Misc. Committers
+
+* Now part of the same project and share the same version.
+
+### Crawler Server
+
+* New, experimental project.

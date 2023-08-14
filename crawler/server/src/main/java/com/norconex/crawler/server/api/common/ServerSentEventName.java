@@ -12,13 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.pipeline.committer;
+package com.norconex.crawler.server.api.common;
 
-import java.util.function.Consumer;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
+@Schema
+public enum ServerSentEventName {
 
-@FunctionalInterface
-public interface CommitterPipeline
-        extends Consumer<DocumentPipelineContext> {}
-//TODO should we pass a CommitterContext instead?
+    CRAWL_DOC,
+    CRAWL_EVENT
+
+}

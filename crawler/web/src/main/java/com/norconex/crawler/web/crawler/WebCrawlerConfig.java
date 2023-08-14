@@ -467,7 +467,8 @@ import lombok.experimental.FieldNameConstants;
  *       includeSubdomains="[false|true]"
  *       stayOnPort="[false|true]"
  *       stayOnProtocol="[false|true]"
- *       async="[false|true]">
+ *       async="[false|true]"
+ *       stayOnSitemapWhenPresent="[false|true]">
  *     <!-- All the following tags are repeatable. -->
  *     <ref>(a URL)</ref>
  *     <refsFile>(local path to a file containing URLs)</refsFile>
@@ -604,6 +605,22 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @see #setPostImportLinks(TextMatcher)
      */
     private boolean postImportLinksKeep;
+
+    /**
+     * Whether to limit crawling to entries found in an existing website
+     * sitemap (do not go deeper).
+     * This option is similar to specifying a sitemap start URL with a
+     * <code>maxDepth</code> of <code>1</code> with the difference that when
+     * used with regular start URLs and no sitemap is detected, it will crawl
+     * the corresponding website as if this option was set to
+     * <code>false</code>.
+     * Does not apply if sitemap support has been disabled in your
+     * configuration.
+     * Note that if <code>async</code> is <code>true</code>, you may get
+     * a few false rejection events until for documents not yet encountered
+     * in the sitemap.
+     */
+    private boolean stayOnSitemapWhenPresent;
 
     /**
      * The provider of robots.txt rules for a site (if applicable).
@@ -784,7 +801,10 @@ public class WebCrawlerConfig extends CrawlerConfig {
                 .setAttribute("includeSubdomains",
                         urlCrawlScopeStrategy.isIncludeSubdomains())
                 .setAttribute("stayOnPort",
-                        urlCrawlScopeStrategy.isStayOnPort());
+                        urlCrawlScopeStrategy.isStayOnPort())
+                .setAttribute("stayOnSitemapWhenPresent",
+                        stayOnSitemapWhenPresent);
+
         startXML.addElementList("sitemap", startReferencesSitemaps);
 
         xml.addElement("urlNormalizer", urlNormalizer);
@@ -884,5 +904,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
                 urlCrawlScopeStrategy.isStayOnPort()));
         setStartReferencesSitemaps(
                 xml.getStringList("start/sitemap", startReferencesSitemaps));
+        setStayOnSitemapWhenPresent(xml.getBoolean(
+                "start/@stayOnSitemapWhenPresent",
+                isStayOnSitemapWhenPresent()));
     }
 }

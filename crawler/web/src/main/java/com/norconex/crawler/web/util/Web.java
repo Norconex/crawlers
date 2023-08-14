@@ -19,6 +19,7 @@ import static org.apache.commons.lang3.StringUtils.substring;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
+import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.crawler.CrawlerEvent.CrawlerEventBuilder;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.pipeline.AbstractPipelineContext;
@@ -60,6 +63,18 @@ public final class Web {
     public static WebImporterPipelineContext importerContext(
             AbstractPipelineContext ctx) {
         return (WebImporterPipelineContext) ctx;
+    }
+
+    //TODO move this one to core?
+    public static void fire(
+            Crawler crawler,
+            @NonNull
+            Consumer<CrawlerEventBuilder<?, ?>> c) {
+        if (crawler != null) {
+            var builder = CrawlerEvent.builder();
+            c.accept(builder);
+            crawler.getEventManager().fire(builder.build());
+        }
     }
 
     //TODO could probably move this where needed since generically,

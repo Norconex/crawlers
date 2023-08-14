@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.server.api.common.config;
+package com.norconex.crawler.server.api.feature.apidoc;
 
 import java.util.function.Consumer;
 
@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.codec.ServerSentEvent;
 
+import com.norconex.crawler.server.api.common.ServerSentEventName;
 import com.norconex.crawler.server.api.feature.crawl.model.CrawlDocDTO;
 import com.norconex.crawler.server.api.feature.crawl.model.CrawlEventDTO;
 
@@ -39,9 +40,11 @@ public class OpenApiConfigurer {
             stream of server-sent events. Refer to the operation
             documentation for expected "data" field schemas.""";
 
+
     @Bean
     public OpenApiCustomizer customizeOpenApi() {
         return openApi -> {
+
             addSchema(
                 openApi,
                 ServerSentEvent.class,
@@ -49,6 +52,8 @@ public class OpenApiConfigurer {
                 schema -> schema.setDescription(SSE_DESC));
             addSchema(openApi, CrawlDocDTO.class, "CrawlDoc");
             addSchema(openApi, CrawlEventDTO.class, "CrawlEvent");
+            addSchema(openApi,
+                    ServerSentEventName.class, "ServerSentEventName");
         };
     }
 
@@ -65,4 +70,5 @@ public class OpenApiConfigurer {
         }
         openApi.getComponents().addSchemas(name, schema);
     }
+
 }

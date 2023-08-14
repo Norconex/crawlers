@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 
+import com.norconex.crawler.server.api.common.ServerSentEventName;
 import com.norconex.crawler.server.api.common.config.AppConfig;
 import com.norconex.crawler.server.api.feature.crawl.model.CrawlDocDTO;
 import com.norconex.crawler.server.api.feature.crawl.model.CrawlSampleRequest;
@@ -106,7 +107,8 @@ public class WebCrawlerController {
                 data -> ServerSentEvent.builder()
                     .id(UUID.randomUUID().toString())
                     .event(data instanceof CrawlDocDTO
-                            ? "crawl_doc": "crawl_event")
+                            ? ServerSentEventName.CRAWL_DOC.name()
+                            : ServerSentEventName.CRAWL_EVENT.name())
                     .data(data)
                     .build());
     }

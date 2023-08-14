@@ -17,6 +17,9 @@ package com.norconex.crawler.server.api.feature.crawl.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -35,5 +38,6 @@ public class CrawlEventMatcher {
     /**
      * Indexed property names on the event object for properties to return.
      */
+    @JsonSetter(nulls = Nulls.SKIP)
     private final List<String> properties = new ArrayList<>();
 }

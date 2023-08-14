@@ -39,6 +39,13 @@ public class WebDocRecord extends CrawlDocRecord {
     private String urlRoot;
 
     /**
+     * Whether this record was obtained from parsing a sitemap. Set
+     * by the queue pipeline so implementors should not have to set
+     * it themselves.
+     */
+    private boolean fromSitemap;
+
+    /**
      * The document last modified date according to sitemap.
      * @param sitemapLastMod document last modified date
      * @return document last modified date

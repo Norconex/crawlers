@@ -43,7 +43,7 @@ class StartCleanAfterStopTest {
             ClientAndServer client, @TempDir Path tempDir) {
         var path = "/startCleanAfterStop";
 
-        WebsiteMock.whenInfinitDepth(client);
+        WebsiteMock.whenInfiniteDepth(client);
 
         var stopper = new CrawlSessionStopper();
 

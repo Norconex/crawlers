@@ -27,14 +27,14 @@ public final class WebCrawlerEvent {
     public static final String REJECTED_ROBOTS_META_NOINDEX =
             "REJECTED_ROBOTS_META_NOINDEX";
     public static final String URLS_EXTRACTED = "URLS_EXTRACTED";
-    /** @since 2.8.0 (renamed from REJECTED_CANONICAL) */
     public static final String REJECTED_NONCANONICAL = "REJECTED_NONCANONICAL";
-    /** @since 2.3.0 */
     public static final String REJECTED_REDIRECTED = "REJECTED_REDIRECTED";
-
-    /** @since 3.0.0 */
     public static final String URLS_POST_IMPORTED =
             "URLS_POST_IMPORTED";
+    public static final String SITEMAP_FETCH_BEGIN = "SITEMAP_FETCH_BEGIN";
+    public static final String SITEMAP_FETCH_END = "SITEMAP_FETCH_END";
+    public static final String REJECTED_NOT_FROM_SITEMAP =
+            "REJECTED_NOT_FROM_SITEMAP";
 
     private WebCrawlerEvent() {
     }

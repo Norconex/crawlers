@@ -23,8 +23,8 @@ import lombok.Data;
 /**
  * A crawler event.
  */
-@Schema(name="CrawlEvent")
 @Data
+@Schema(name = "CrawlEvent")
 public class CrawlEventDTO {
     /**
      * Event name

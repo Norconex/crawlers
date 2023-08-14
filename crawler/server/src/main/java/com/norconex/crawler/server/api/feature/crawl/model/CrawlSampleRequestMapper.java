@@ -30,7 +30,6 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.unit.DataUnit;
-import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
@@ -179,14 +178,6 @@ public final class CrawlSampleRequestMapper {
             }
         });
 
-        if (event.getSource() != null) {
-            props.computeIfAbsent(KEY_SOURCE,
-                    k -> event.getSource().getClass().getName().toString());
-        }
-        if (event instanceof CrawlerEvent ev && ev.getSubject() != null) {
-            props.computeIfAbsent(KEY_SUBJECT,
-                    k -> ev.getSubject().getClass().getName().toString());
-        }
         return dto;
     }
 

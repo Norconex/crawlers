@@ -44,7 +44,7 @@ class StopCrawlerOnMaxEventTest {
 
     @Test
     void testStopCrawlerOnMaxEvent(ClientAndServer client) {
-        WebsiteMock.whenInfinitDepth(client);
+        WebsiteMock.whenInfiniteDepth(client);
 
         var mem = TestWebCrawlSession
             .forStartReferences(serverUrl(client, "/stopCrawlerOnMaxEvent"))
