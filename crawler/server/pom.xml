@@ -33,6 +33,7 @@
     <jsonx.version>2.3.9</jsonx.version>
 
     <openapi-generator.version>6.6.0</openapi-generator.version>
+    <reactor-version>3.5.8</reactor-version>
     <springboot.version>3.1.0</springboot.version>
     <springdoc.version>2.1.0</springdoc.version>
     <swagger-annotations-version>1.5.8</swagger-annotations-version>
@@ -82,6 +83,20 @@
         <artifactId>jackson-datatype-jdk8</artifactId>
         <version>${jackson.version}</version>
       </dependency>
+      
+      <dependency>
+        <groupId>io.projectreactor</groupId>
+        <artifactId>reactor-core</artifactId>
+        <version>${reactor-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.projectreactor</groupId>
+        <artifactId>reactor-test</artifactId>
+        <version>${reactor-version}</version>
+        <scope>test</scope>
+      </dependency>
+      
+      
     </dependencies>
   </dependencyManagement>
 
@@ -93,14 +108,26 @@
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-crawler-web</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
+      <!-- MAYBE? <scope>provided</scope> -->
+      <exclusions>
+      	<exclusion>
+      		<groupId>org.mongodb</groupId>
+      		<artifactId>mongodb-driver-sync</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>org.mongodb</groupId>
+      		<artifactId>mongodb-driver-core</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
+    <!-- BREAKS with httpclient version when included:
     <dependency>
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-crawler-fs</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
+    -->
 
     <!-- Open-API related dependencies -->
 
@@ -255,6 +282,14 @@
       <scope>test</scope>
     </dependency>
     -->
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+
+    
     
   </dependencies>
 
