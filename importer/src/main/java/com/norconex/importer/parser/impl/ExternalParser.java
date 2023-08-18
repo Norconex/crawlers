@@ -14,6 +14,7 @@
  */
 package com.norconex.importer.parser.impl;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -304,8 +305,11 @@ public class ExternalParser implements DocumentParser, XMLConfigurable {
             Writer output) throws DocumentParserException {
         try {
             h.handleDocument(new HandlerDoc(doc), doc.getInputStream(),
-                    new WriterOutputStream(output, StandardCharsets.UTF_8));
-        } catch (ImporterHandlerException e) {
+                    WriterOutputStream.builder()
+                        .setCharset(StandardCharsets.UTF_8)
+                        .setWriter(output)
+                        .get());
+        } catch (ImporterHandlerException | IOException e) {
             throw new DocumentParserException(
                     "Could not parse document: " + doc.getReference(), e);
         }

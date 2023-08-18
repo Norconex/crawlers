@@ -71,7 +71,7 @@ class DOMSplitterTest {
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
         return splitter.splitApplicableDocument(
                 TestUtil.newHandlerDoc("n/a", is, metadata),
-                is, NullOutputStream.NULL_OUTPUT_STREAM, ParseState.PRE);
+                is, NullOutputStream.INSTANCE, ParseState.PRE);
     }
 
     @Test

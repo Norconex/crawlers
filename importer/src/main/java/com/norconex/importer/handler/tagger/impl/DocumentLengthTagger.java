@@ -93,7 +93,7 @@ public class DocumentLengthTagger extends AbstractDocumentTagger {
         } else {
             var is = new CountingInputStream(document);
             try {
-                IOUtils.copy(is, NullOutputStream.NULL_OUTPUT_STREAM);
+                IOUtils.copy(is, NullOutputStream.INSTANCE);
             } catch (IOException e) {
                 throw new ImporterHandlerException(e);
             }

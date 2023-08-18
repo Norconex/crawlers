@@ -16,7 +16,7 @@ package com.norconex.importer.handler.filter.impl;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.io.StringReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
@@ -90,7 +90,7 @@ class TextFilterTest {
     }
 
     @Test
-    void testRegexContentMatchesOneOfManyIncludes() {
+    void testRegexContentMatchesOneOfManyIncludes() throws IOException {
         var filter1 = newRegexTextFilter();
         filter1.getValueMatcher().setPattern(".*string.*");
         filter1.setOnMatch(OnMatch.INCLUDE);
@@ -108,9 +108,11 @@ class TextFilterTest {
                 HandlerConsumer.fromHandlers(filter1, filter2, filter3));
 
         var response = new Importer(config).importDocument(
-                new ImporterRequest(new ReaderInputStream(
-                        new StringReader("a string that matches"),
-                        StandardCharsets.UTF_8))
+                new ImporterRequest(
+                        ReaderInputStream.builder()
+                            .setCharset(StandardCharsets.UTF_8)
+                            .setCharSequence("a string that matches")
+                            .get())
                 .setReference("N/A"));
         Assertions.assertEquals(
                 Status.SUCCESS, response.getImporterStatus().getStatus(),
@@ -118,7 +120,7 @@ class TextFilterTest {
     }
 
     @Test
-    void testRegexContentNoMatchesOfManyIncludes() {
+    void testRegexContentNoMatchesOfManyIncludes() throws IOException {
 
         var filter1 = newRegexTextFilter();
         filter1.getValueMatcher().setPattern(".*zxcv.*");
@@ -137,8 +139,11 @@ class TextFilterTest {
                 HandlerConsumer.fromHandlers(filter1, filter2, filter3));
 
         var response = new Importer(config).importDocument(
-                new ImporterRequest(new ReaderInputStream(
-                        new StringReader("no matches"), StandardCharsets.UTF_8))
+                new ImporterRequest(
+                        ReaderInputStream.builder()
+                        .setCharset(StandardCharsets.UTF_8)
+                        .setCharSequence("no matches")
+                        .get())
                 .setReference("N/A"));
         Assertions.assertEquals(
                 Status.REJECTED, response.getImporterStatus().getStatus(),
