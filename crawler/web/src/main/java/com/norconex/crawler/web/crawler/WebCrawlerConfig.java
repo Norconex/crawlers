@@ -468,7 +468,7 @@ import lombok.experimental.FieldNameConstants;
  *       stayOnPort="[false|true]"
  *       stayOnProtocol="[false|true]"
  *       async="[false|true]"
- *       stayOnSitemapWhenPresent="[false|true]">
+ *       stayOnSitemap="[false|true]">
  *     <!-- All the following tags are repeatable. -->
  *     <ref>(a URL)</ref>
  *     <refsFile>(local path to a file containing URLs)</refsFile>
@@ -608,7 +608,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     /**
      * Whether to limit crawling to entries found in an existing website
-     * sitemap (do not go deeper).
+     * sitemap (do not go deeper). Only applies if a sitemap is present
+     * for a website.
      * This option is similar to specifying a sitemap start URL with a
      * <code>maxDepth</code> of <code>1</code> with the difference that when
      * used with regular start URLs and no sitemap is detected, it will crawl
@@ -620,7 +621,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * a few false rejection events until for documents not yet encountered
      * in the sitemap.
      */
-    private boolean stayOnSitemapWhenPresent;
+    private boolean stayOnSitemap;
 
     /**
      * The provider of robots.txt rules for a site (if applicable).
@@ -802,8 +803,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
                         urlCrawlScopeStrategy.isIncludeSubdomains())
                 .setAttribute("stayOnPort",
                         urlCrawlScopeStrategy.isStayOnPort())
-                .setAttribute("stayOnSitemapWhenPresent",
-                        stayOnSitemapWhenPresent);
+                .setAttribute("stayOnSitemap",
+                        stayOnSitemap);
 
         startXML.addElementList("sitemap", startReferencesSitemaps);
 
@@ -904,8 +905,8 @@ public class WebCrawlerConfig extends CrawlerConfig {
                 urlCrawlScopeStrategy.isStayOnPort()));
         setStartReferencesSitemaps(
                 xml.getStringList("start/sitemap", startReferencesSitemaps));
-        setStayOnSitemapWhenPresent(xml.getBoolean(
-                "start/@stayOnSitemapWhenPresent",
-                isStayOnSitemapWhenPresent()));
+        setStayOnSitemap(xml.getBoolean(
+                "start/@stayOnSitemap",
+                isStayOnSitemap()));
     }
 }

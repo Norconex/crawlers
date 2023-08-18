@@ -65,6 +65,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
+@org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
 public abstract class AbstractWebDriverHttpFetcherTest
         implements ExecutionCondition {
 

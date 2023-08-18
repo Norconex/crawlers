@@ -123,6 +123,7 @@ public final class CrawlSampleRequestMapper {
         ucss.setStayOnDomain(true);
         ucss.setStayOnPort(true);
         ucss.setStayOnProtocol(true);
+        cfg.setStayOnSitemap(true);
 
         //TODO  Set User-Agent, mixing browser + Nx contact +  based on
         // customer profile

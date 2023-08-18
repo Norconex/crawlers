@@ -47,7 +47,7 @@ class SitemapResolutionStage extends CrawlerLifeCycleListener
 
         // Both a sitemap resolver and locator must be set to attempt
         // sitemap discovery and processing for a URL web site.
-        // "stayOnSitemapWhenPresent" is also ignored in such case.
+        // "stayOnSitemap" is also ignored in such case.
         if (cfg.getSitemapResolver() == null
                 || cfg.getSitemapLocator() == null) {
             return true;
@@ -72,7 +72,7 @@ class SitemapResolutionStage extends CrawlerLifeCycleListener
             // already resolved so return right away, rejecting if out
             // of sitemap and stayOnSitemap is true.
 
-            if (cfg.isStayOnSitemapWhenPresent()
+            if (cfg.isStayOnSitemap()
                     && Boolean.TRUE.equals(sitemapExists)
                     && !docRec.isFromSitemap()) {
                 Web.fire(ctx.getCrawler(), b -> b
@@ -88,7 +88,7 @@ class SitemapResolutionStage extends CrawlerLifeCycleListener
 
         final var urlCount = new MutableInt();
         final var isDocRecSitemapOK =
-                new MutableBoolean(!cfg.isStayOnSitemapWhenPresent());
+                new MutableBoolean(!cfg.isStayOnSitemap());
         Consumer<WebDocRecord> urlConsumer = rec -> {
             rec.setFromSitemap(true);
             if (isDocRecSitemapOK.isFalse() && StringUtils.equalsAny(

@@ -61,7 +61,7 @@ class SitemapResolutionStageTest {
 
     // Should only crawl URLs in sitemap. Start URL not in sitemap.
     @Test
-    void testStayOnSitemapWhenPresent(ClientAndServer client) {
+    void testStayOnSitemap(ClientAndServer client) {
         client.reset();
         var baseUrl = serverUrl(client, "");
         var sitemap = SITEMAP_XML.formatted(
@@ -80,7 +80,7 @@ class SitemapResolutionStageTest {
                 cfg.setMaxDocuments(10);
                 cfg.setSitemapLocator(new GenericSitemapLocator());
                 cfg.setSitemapResolver(new GenericSitemapResolver());
-                cfg.setStayOnSitemapWhenPresent(true);
+                cfg.setStayOnSitemap(true);
             })
             .crawl();
         assertThat(mem.getRequestCount()).isEqualTo(3);
@@ -91,7 +91,7 @@ class SitemapResolutionStageTest {
 
     // Should only crawl URLs in sitemap. Start URL included in sitemap.
     @Test
-    void testStayOnSitemapWhenPresentStartInSitemap(ClientAndServer client) {
+    void testStayOnSitemapStartInSitemap(ClientAndServer client) {
         client.reset();
         var baseUrl = serverUrl(client, "");
         var sitemap = SITEMAP_XML.formatted(
@@ -110,7 +110,7 @@ class SitemapResolutionStageTest {
                 cfg.setMaxDocuments(10);
                 cfg.setSitemapLocator(new GenericSitemapLocator());
                 cfg.setSitemapResolver(new GenericSitemapResolver());
-                cfg.setStayOnSitemapWhenPresent(true);
+                cfg.setStayOnSitemap(true);
             })
             .crawl();
         assertThat(mem.getRequestCount()).isEqualTo(3);
