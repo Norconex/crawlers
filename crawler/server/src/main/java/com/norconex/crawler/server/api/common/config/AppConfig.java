@@ -14,10 +14,13 @@
  */
 package com.norconex.crawler.server.api.common.config;
 
+import lombok.Data;
+
+@Data
 public class AppConfig {
 
     public static final String REQUEST_MAPPING_API_V1 =
             "${openapi.nx-crawler-server.base-path:/api/v1}";
 
-
+    private String todo;
 }

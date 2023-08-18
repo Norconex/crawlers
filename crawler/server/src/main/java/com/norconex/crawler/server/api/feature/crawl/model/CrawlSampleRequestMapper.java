@@ -64,8 +64,6 @@ public final class CrawlSampleRequestMapper {
     public static final long DEFAULT_MAX_CONTENT_SIZE =
             DataUnit.MB.toBytes(10).longValue();
 
-    private static final String KEY_SOURCE = "source";
-    private static final String KEY_SUBJECT = "subject";
     private static final String KEY_MESSAGE = "message";
     private static final String KEY_EXCEPTION = "exception";
 
