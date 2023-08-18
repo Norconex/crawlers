@@ -1058,7 +1058,8 @@
     <module>committer/amazoncloudsearch</module>
     <module>committer/sql</module>
     <module>committer/neo4j</module>
-    <module>committer/azurecognitivesearch</module> 
+    <module>committer/azurecognitivesearch</module>
+    <module>committer/apachekafka</module>
     <module>importer</module>
     <module>crawler/core</module>
     <module>crawler/web</module>
