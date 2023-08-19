@@ -31,8 +31,8 @@ public final class WebCrawlerEvent {
     public static final String REJECTED_REDIRECTED = "REJECTED_REDIRECTED";
     public static final String URLS_POST_IMPORTED =
             "URLS_POST_IMPORTED";
-    public static final String SITEMAP_FETCH_BEGIN = "SITEMAP_FETCH_BEGIN";
-    public static final String SITEMAP_FETCH_END = "SITEMAP_FETCH_END";
+    public static final String SITEMAP_RESOLVE_BEGIN = "SITEMAP_RESOLVE_BEGIN";
+    public static final String SITEMAP_RESOLVE_END = "SITEMAP_RESOLVE_END";
     public static final String REJECTED_NOT_FROM_SITEMAP =
             "REJECTED_NOT_FROM_SITEMAP";
 

@@ -176,7 +176,6 @@ public final class CrawlSampleRequestMapper {
                 // Swallow
             }
         });
-
         return dto;
     }
 

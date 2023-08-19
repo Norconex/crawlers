@@ -61,88 +61,92 @@ class SitemapResolutionStage extends CrawlerLifeCycleListener
         String docUrl = docRec.getReference();
         var urlRoot = HttpURL.getRoot(docUrl);
 
-        // if the queue did not change after addition, it means the sitemap
-        // was already resolved for a site, so we abort now.
-        // We start false until at least one url is extracted.
-
-
+        // if the queue did not change after addition, the "put" will return
+        // null, meaning the sitemap was already resolved for a site and
+        // we abort.
+        // We start false until we confirm existence by having at least one
+        // URL extracted (we treat empty sitemaps as having no sitemaps).
         var sitemapExists =
                 resolvedWebsites.putIfAbsent(urlRoot, Boolean.FALSE);
-        if (sitemapExists != null) {
-            // already resolved so return right away, rejecting if out
-            // of sitemap and stayOnSitemap is true.
 
-            if (cfg.isStayOnSitemap()
-                    && Boolean.TRUE.equals(sitemapExists)
-                    && !docRec.isFromSitemap()) {
+        // To make sure the initial doc is not rejected just because
+        // it is encountered before the sitemap gets processed.
+        var isDocFoundInSitemap = new MutableBoolean(false);
+
+        if (sitemapExists == null) {
+            // Sitemap never processed, so do it
+
+            final var urlCount = new MutableInt();
+            Web.fire(ctx.getCrawler(), b -> b
+                    .name(WebCrawlerEvent.SITEMAP_RESOLVE_BEGIN)
+                    .crawlDocRecord(docRec)
+                    .source(ctx.getCrawler()));
+            Consumer<WebDocRecord> urlConsumer = rec -> {
+                rec.setFromSitemap(true);
+                if (isDocFoundInSitemap.isFalse() && StringUtils.equalsAny(
+                        rec.getReference(),
+                        docRec.getReference(),
+                        docRec.getOriginalReference())) {
+                    isDocFoundInSitemap.setTrue();
+                }
+                ctx.getCrawler().queueDocRecord(rec);
+                var cnt = urlCount.getAndIncrement();
+                if ((cnt == 0)) {
+                    resolvedWebsites.put(urlRoot, Boolean.TRUE);
+                }
+            };
+
+            var foundLocation = new MutableObject<String>();
+            for (String location : cfg.getSitemapLocator().locations(
+                    docUrl, ctx.getCrawler())) {
+
+                var sitemapCtx = SitemapContext.builder()
+                    .fetcher(Web.fetcher(ctx.getCrawler()))
+                    .location(location)
+                    .urlConsumer(urlConsumer)
+                    .build();
+                cfg.getSitemapResolver().resolve(sitemapCtx);
+
+                if (urlCount.intValue() > 0) {
+                    foundLocation.setValue(location);
+                    LOG.info("{} references were extracted from sitemap: {}",
+                            urlCount.intValue(), location);
+                    break;
+                }
+            }
+
+            String eventMsg;
+            if (StringUtils.isBlank(foundLocation.getValue())) {
+                eventMsg = "No sitemap found or sitemap was empty.";
+                sitemapExists = false;
+            } else {
+                eventMsg = urlCount.toInteger()
+                        + " references were extracted from sitemap: "
+                        + foundLocation.getValue();
+                sitemapExists = true;
+            }
+
+            Web.fire(ctx.getCrawler(), b -> b
+                    .name(WebCrawlerEvent.SITEMAP_RESOLVE_END)
+                    .crawlDocRecord(docRec)
+                    .source(ctx.getCrawler())
+                    .subject(urlCount.toInteger())
+                    .message(eventMsg));
+        }
+
+
+        if (cfg.isStayOnSitemap()
+                && sitemapExists.booleanValue()
+                && !docRec.isFromSitemap()) {
+            if (!isDocFoundInSitemap.booleanValue()) {
                 Web.fire(ctx.getCrawler(), b -> b
                         .name(WebCrawlerEvent.REJECTED_NOT_FROM_SITEMAP)
                         .crawlDocRecord(docRec)
                         .source(ctx.getCrawler()));
-                return false;
             }
-            return true;
-        }
-
-        // Sitemap never processed, so do it
-
-        final var urlCount = new MutableInt();
-        final var isDocRecSitemapOK =
-                new MutableBoolean(!cfg.isStayOnSitemap());
-        Consumer<WebDocRecord> urlConsumer = rec -> {
-            rec.setFromSitemap(true);
-            if (isDocRecSitemapOK.isFalse() && StringUtils.equalsAny(
-                    rec.getReference(),
-                    docRec.getReference(),
-                    docRec.getOriginalReference())) {
-                isDocRecSitemapOK.setTrue();
-            }
-            ctx.getCrawler().queueDocRecord(rec);
-            var cnt = urlCount.getAndIncrement();
-            if ((cnt == 0)) {
-                resolvedWebsites.put(urlRoot, Boolean.TRUE);
-                Web.fire(ctx.getCrawler(), b -> b
-                        .name(WebCrawlerEvent.SITEMAP_FETCH_BEGIN)
-                        .crawlDocRecord(docRec)
-                        .source(ctx.getCrawler()));
-            }
-        };
-
-        var foundLocation = new MutableObject<>();
-        for (String location :
-                cfg.getSitemapLocator().locations(docUrl, ctx.getCrawler())) {
-
-            var sitemapCtx = SitemapContext.builder()
-                .fetcher(Web.fetcher(ctx.getCrawler()))
-                .location(location)
-                .urlConsumer(urlConsumer)
-                .build();
-            cfg.getSitemapResolver().resolve(sitemapCtx);
-
-            if (urlCount.intValue() > 0) {
-                foundLocation.setValue(location);
-                LOG.info("{} references were extracted from sitemap: {}",
-                        urlCount.intValue(), location);
-                break;
-            }
-        }
-        Web.fire(ctx.getCrawler(), b -> b
-                .name(WebCrawlerEvent.SITEMAP_FETCH_END)
-                .crawlDocRecord(docRec)
-                .source(ctx.getCrawler())
-                .subject(urlCount.toInteger())
-                .message(urlCount.toInteger()
-                        + " references were extracted from sitemap: "
-                        + foundLocation.getValue()));
-
-
-        if (isDocRecSitemapOK.isFalse()) {
-            Web.fire(ctx.getCrawler(), b -> b
-                    .name(WebCrawlerEvent.REJECTED_NOT_FROM_SITEMAP)
-                    .crawlDocRecord(docRec)
-                    .source(ctx.getCrawler()));
             return false;
         }
         return true;
     }
+
 }
