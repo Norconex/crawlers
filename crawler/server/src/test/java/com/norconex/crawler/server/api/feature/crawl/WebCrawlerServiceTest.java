@@ -54,6 +54,7 @@ class WebCrawlerServiceTest {
         req.setStartUrl("http://localhost:" + serverPort);
         var eventMatcher = new CrawlEventMatcher();
         eventMatcher.setName(CrawlerEvent.CRAWLER_RUN_END);
+        eventMatcher.getProperties().add("message");
         req.getEventMatchers().add(eventMatcher);
 
         var flux = service.crawlSample(req);

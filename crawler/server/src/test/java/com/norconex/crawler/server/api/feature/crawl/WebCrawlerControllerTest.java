@@ -55,7 +55,8 @@ class WebCrawlerControllerTest {
         doc1.setContent("Sample content");
 
         var event2 = new CrawlEventDTO();
-        event1.setName(CrawlerEvent.CRAWLER_INIT_END);
+        event2.setName(CrawlerEvent.CRAWLER_INIT_END);
+        event2.getProperties().put("message", "blah blah");
 
         var req = new CrawlSampleRequest();
         req.setStartUrl("https://example.com");
