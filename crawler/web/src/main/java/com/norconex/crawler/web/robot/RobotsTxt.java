@@ -87,4 +87,10 @@ public class RobotsTxt {
     public float getCrawlDelay() {
         return crawlDelay;
     }
+    public boolean isEmpty() {
+        return disallowFilters.isEmpty()
+                && allowFilters.isEmpty()
+                && sitemapLocations.isEmpty()
+                && crawlDelay < 0;
+    }
 }

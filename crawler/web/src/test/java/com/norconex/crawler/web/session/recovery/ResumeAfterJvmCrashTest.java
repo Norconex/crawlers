@@ -46,7 +46,7 @@ class ResumeAfterJvmCrashTest {
             ClientAndServer client, @TempDir Path tempDir) {
         var path = "/resumeAfterJvmCrash";
 
-        WebsiteMock.whenInfinitDepth(client);
+        WebsiteMock.whenInfiniteDepth(client);
 
         var crasher = new JVMCrasher();
 

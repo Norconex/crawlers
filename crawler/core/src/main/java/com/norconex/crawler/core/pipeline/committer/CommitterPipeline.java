@@ -21,5 +21,4 @@ import com.norconex.crawler.core.pipeline.DocumentPipelineContext;
 @FunctionalInterface
 public interface CommitterPipeline
         extends Consumer<DocumentPipelineContext> {}
-//        extends BiConsumer<Crawler, CrawlDoc> {}
 //TODO should we pass a CommitterContext instead?

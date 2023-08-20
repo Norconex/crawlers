@@ -34,8 +34,12 @@ import org.apache.hc.core5.http.HttpStatus;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.crawler.core.crawler.Crawler;
+import com.norconex.crawler.core.crawler.CrawlerEvent;
+import com.norconex.crawler.core.crawler.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.filter.impl.GenericReferenceFilter;
+import com.norconex.crawler.web.crawler.WebCrawlerEvent;
 import com.norconex.crawler.web.doc.WebDocRecord;
 import com.norconex.crawler.web.fetch.HttpFetchRequest;
 import com.norconex.crawler.web.fetch.HttpFetcher;
@@ -71,11 +75,20 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-public class StandardRobotsTxtProvider implements RobotsTxtProvider {
+public class StandardRobotsTxtProvider
+        extends CrawlerLifeCycleListener
+        implements RobotsTxtProvider {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private final Map<String, RobotsTxt> robotsTxtCache = new HashMap<>();
+
+    private Crawler crawler;
+
+    @Override
+    protected void onCrawlerRunBegin(CrawlerEvent event) {
+        crawler = event.getSource();
+    }
 
     @Override
     public synchronized RobotsTxt getRobotsTxt(
@@ -88,9 +101,10 @@ public class StandardRobotsTxtProvider implements RobotsTxtProvider {
         }
 
         var robotsURL = baseURL + "/robots.txt";
+        CrawlDoc doc = null;
         try {
             // Try once
-            var doc = new CrawlDoc(new WebDocRecord(robotsURL),
+            doc = new CrawlDoc(new WebDocRecord(robotsURL),
                     CachedInputStream.nullInputStream());
             var response = fetcher.fetch(
                     new HttpFetchRequest(doc, HttpMethod.GET));
@@ -113,6 +127,14 @@ public class StandardRobotsTxtProvider implements RobotsTxtProvider {
                 robotsTxt = parseRobotsTxt(doc.getInputStream(), trimmedURL,
                         response.getUserAgent());
                 LOG.debug("Fetched and parsed robots.txt: {}", robotsURL);
+                if (crawler != null) {
+                    crawler.getEventManager().fire(CrawlerEvent.builder()
+                            .name(WebCrawlerEvent.FETCHED_ROBOTS_TXT)
+                            .crawlDocRecord(doc.getDocRecord())
+                            .source(crawler)
+                            .subject(robotsTxt)
+                            .build());
+                }
             } else {
                 LOG.info("No robots.txt found for {}. ({} - {})", robotsURL,
                         response.getStatusCode(), response.getReasonPhrase());

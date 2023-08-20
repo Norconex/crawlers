@@ -67,9 +67,6 @@ public class GenericSitemapResolver
     @Setter
     private boolean lenient;
 
-    //TODO does sitemap store really need to be in CrawlerContext?
-    // seems it is not used anywhere else... move its initialization back here?
-
     @Override
     public void resolve(SitemapContext ctx) {
         var location = ctx.getLocation();
@@ -153,7 +150,6 @@ public class GenericSitemapResolver
         List<SitemapRecord> childSitemaps = new ArrayList<>();
         var parser = new SitemapParser(lenient, stopping);
         childSitemaps.addAll(parser.parse(sitemapDoc, ctx.getUrlConsumer()));
-        LOG.info("         Resolved: {}", location);
 
         return childSitemaps;
     }

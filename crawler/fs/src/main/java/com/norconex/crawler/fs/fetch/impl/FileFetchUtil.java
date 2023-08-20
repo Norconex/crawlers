@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.fs.fetch.impl;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -67,12 +65,6 @@ public final class FileFetchUtil {
         if (path == null) {
             return null;
         }
-        // We consider the reference a local file path (absolute or relative)
-        // if it matches any of these conditions:
-        //     - no scheme
-        //     - scheme is "file"
-        //     - scheme is one letter (e.g., windows drive letter)
-        // If a local file, we properly encode all segments.
         var scheme = path.replaceFirst("^(.*?):.*", "$1");
         if (scheme == null
                 || scheme.length() <= 1 || "file".equalsIgnoreCase(scheme)) {
@@ -83,25 +75,25 @@ public final class FileFetchUtil {
                 if (StringUtils.containsAny(m.group(), "\\/:")) {
                     b.append(m.group());
                 } else {
-                    b.append(uriEncode(m.group()));
+                    b.append(uriEncodeSegment(m.group()));
                 }
             }
             return b.toString();
         }
         return path;
     }
-    private static String uriEncode(String value) {
-        try {
-            return URLEncoder.encode(value, "UTF-8")
-                    .replace("+", "%20")
-                    .replace("%21", "!")
-                    .replace("%27", "'")
-                    .replace("%28", "(")
-                    .replace("%29", ")")
-                    .replace("%7E", "~");
-        } catch (UnsupportedEncodingException e) {
-            //NOOP, return original value and hope for the best.
+    private static String uriEncodeSegment(String value) {
+        // Encode control characters and a handful of specific characters,
+        // assuming all others are filename-valid on all major OSes.
+        var b = new StringBuilder();
+        for (char ch : value.toCharArray()) {
+            if (ch >= 0 && ch <= 31 || "<>:;@#=&$,\"/\\|?*".indexOf(ch) > -1) {
+                b.append("%" + Integer.toHexString(ch));
+
+            } else {
+                b.append(ch);
+            }
         }
-        return value;
+        return b.toString();
     }
 }

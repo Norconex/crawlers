@@ -20,20 +20,21 @@ package com.norconex.crawler.web.crawler;
  */
 public final class WebCrawlerEvent {
 
+    public static final String FETCHED_ROBOTS_TXT = "FETCHED_ROBOTS_TXT";
     public static final String REJECTED_ROBOTS_TXT =
             "REJECTED_ROBOTS_TXT";
-    public static final String CREATED_ROBOTS_META = "CREATED_ROBOTS_META";
+    public static final String EXTRACTED_ROBOTS_META = "EXTRACTED_ROBOTS_META";
     public static final String REJECTED_ROBOTS_META_NOINDEX =
             "REJECTED_ROBOTS_META_NOINDEX";
     public static final String URLS_EXTRACTED = "URLS_EXTRACTED";
-    /** @since 2.8.0 (renamed from REJECTED_CANONICAL) */
     public static final String REJECTED_NONCANONICAL = "REJECTED_NONCANONICAL";
-    /** @since 2.3.0 */
     public static final String REJECTED_REDIRECTED = "REJECTED_REDIRECTED";
-
-    /** @since 3.0.0 */
     public static final String URLS_POST_IMPORTED =
             "URLS_POST_IMPORTED";
+    public static final String SITEMAP_RESOLVE_BEGIN = "SITEMAP_RESOLVE_BEGIN";
+    public static final String SITEMAP_RESOLVE_END = "SITEMAP_RESOLVE_END";
+    public static final String REJECTED_NOT_FROM_SITEMAP =
+            "REJECTED_NOT_FROM_SITEMAP";
 
     private WebCrawlerEvent() {
     }

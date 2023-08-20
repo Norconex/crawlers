@@ -79,7 +79,7 @@ class XMLStreamSplitterTest {
                 () -> splitter.splitDocument(
                         TestUtil.newHandlerDoc(),
                         InputStream.nullInputStream(),
-                        NullOutputStream.NULL_OUTPUT_STREAM,
+                        NullOutputStream.INSTANCE,
                         ParseState.PRE));
 
         // Test non applicable
@@ -89,7 +89,7 @@ class XMLStreamSplitterTest {
         assertThat(splitter.splitDocument(
                 TestUtil.newHandlerDoc(),
                 TestUtil.toCachedInputStream(sampleXML),
-                NullOutputStream.NULL_OUTPUT_STREAM,
+                NullOutputStream.INSTANCE,
                 ParseState.PRE)).isEmpty();
     }
 
@@ -99,7 +99,7 @@ class XMLStreamSplitterTest {
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
         return splitter.splitDocument(
                 TestUtil.newHandlerDoc("n/a", is, metadata),
-                is, NullOutputStream.NULL_OUTPUT_STREAM, ParseState.PRE);
+                is, NullOutputStream.INSTANCE, ParseState.PRE);
     }
 
     @Test

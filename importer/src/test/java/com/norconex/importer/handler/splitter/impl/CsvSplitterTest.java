@@ -108,7 +108,7 @@ class CsvSplitterTest {
         var metadata = new Properties();
         return splitter.splitApplicableDocument(
                 TestUtil.newHandlerDoc("n/a", input, metadata),
-                input, NullOutputStream.NULL_OUTPUT_STREAM, ParseState.PRE);
+                input, NullOutputStream.INSTANCE, ParseState.PRE);
 
     }
 

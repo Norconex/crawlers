@@ -27,6 +27,7 @@
 	      <xs:attribute name="includeSubdomains" type="xs:boolean"/>
 	      <xs:attribute name="stayOnPort" type="xs:boolean"/>
 	      <xs:attribute name="stayOnProtocol" type="xs:boolean"/>
+          <xs:attribute name="stayOnSitemap" type="xs:boolean"/>
         </xs:extension>
       </xs:complexContent>
     </xs:complexType>

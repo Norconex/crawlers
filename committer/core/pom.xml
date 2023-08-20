@@ -36,6 +36,7 @@
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
     </dependency>
+    <!-- TODO, when ready: 
     <dependency>
         <groupId>com.norconex.commons</groupId>
         <artifactId>norconex-commons-lang</artifactId>
@@ -43,6 +44,7 @@
         <type>zip</type>
         <scope>provided</scope>
     </dependency>
+    -->
     <dependency>
         <groupId>com.tdunning</groupId>
         <artifactId>json</artifactId>

@@ -75,6 +75,7 @@
       <scope>test</scope>
     </dependency>
 
+<!-- TODO when ready:
     <dependency>
       <groupId>com.norconex.commons</groupId>
       <artifactId>norconex-commons-lang</artifactId>
@@ -82,6 +83,7 @@
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
+    -->
   </dependencies>
 
   <build>

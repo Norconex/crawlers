@@ -34,7 +34,7 @@ class MaxDepthTest {
 
     @Test
     void testMaxDepth(ClientAndServer client) throws IOException {
-        WebsiteMock.whenInfinitDepth(client);
+        WebsiteMock.whenInfiniteDepth(client);
 
         var mem = TestWebCrawlSession
                 .forStartReferences(serverUrl(client, "/maxDepth/0000"))
