@@ -18,7 +18,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
+import com.norconex.cfgconverter.json.XmlToJsonConfigConverter;
+import com.norconex.cfgconverter.xml.XmlToXmlV4ConfigConverter;
+import com.norconex.cfgconverter.yaml.XmlToYamlConfigConverter;
 import com.norconex.commons.lang.xml.XML;
 
 import lombok.EqualsAndHashCode;
@@ -57,7 +61,16 @@ import picocli.CommandLine.Spec;
 public class ConfigConverterLauncher
         implements Callable<Integer>, IExecutionExceptionHandler {
 
-    enum Format { xml, yaml, json } //NOSONAR
+    private enum Format {
+        xml(XmlToXmlV4ConfigConverter::new), //NOSONAR
+        yaml(XmlToYamlConfigConverter::new), //NOSONAR
+        json(XmlToJsonConfigConverter::new)  //NOSONAR
+        ;
+        final Supplier<ConfigConverter> converterSupplier;
+        Format(Supplier<ConfigConverter> converterSupplier) {
+            this.converterSupplier = converterSupplier;
+        }
+    }
 
     @Option(
         names = {"-h", "-help"},
@@ -110,14 +123,8 @@ public class ConfigConverterLauncher
             return Format.yaml;
         });
 
-        var converter = new ConfigConverter();
-        var xml = new XML(inputFile);
         try (var writer = Files.newBufferedWriter(outputFile)) {
-            switch (fmt) {
-                case xml -> converter.toV4xml(xml, writer);
-                case json -> converter.toV4json(xml, writer);
-                case yaml -> converter.toV4yaml(xml, writer);
-            }
+            fmt.converterSupplier.get().convert(new XML(inputFile), writer);
         }
         return 0;
     }

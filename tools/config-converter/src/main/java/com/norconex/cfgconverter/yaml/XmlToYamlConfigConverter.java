@@ -12,13 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.cfgconverter;
+package com.norconex.cfgconverter.yaml;
 
 import java.io.Writer;
 
+import com.norconex.cfgconverter.ConfigConverter;
 import com.norconex.commons.lang.xml.XML;
 
-public interface ConfigConverter {
+public class XmlToYamlConfigConverter implements ConfigConverter {
 
-    void convert(XML input, Writer output);
+    @Override
+    public void convert(XML input, Writer output) {
+        // TODO Auto-generated method stub
+
+    }
+
 }
