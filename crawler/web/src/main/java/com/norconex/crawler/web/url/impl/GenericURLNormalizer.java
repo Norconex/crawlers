@@ -42,8 +42,7 @@ import lombok.ToString;
  * <p>
  * This class is in effect by default. To skip its usage, you
  * can explicitly set the URL Normalizer to <code>null</code> in the
- * {@link WebCrawlerConfig}, or you can disable it using
- * {@link #setDisabled(boolean)}.
+ * {@link WebCrawlerConfig}.
  * </p>
  * <p>
  * By default, this class removes the URL fragment and applies these
@@ -105,8 +104,7 @@ import lombok.ToString;
  *
  * {@nx.xml.usage
  *  <urlNormalizer
- *      class="com.norconex.crawler.web.url.impl.GenericURLNormalizer"
- *      disabled="[false|true]">
+ *      class="com.norconex.crawler.web.url.impl.GenericURLNormalizer">
  *    <normalizations>
  *      (normalization code names, coma separated)
  *    </normalizations>
@@ -195,7 +193,6 @@ public class GenericURLNormalizer implements WebURLNormalizer, XMLConfigurable {
 
     private final List<Normalization> normalizations = new ArrayList<>();
     private final List<Replace> replaces = new ArrayList<>();
-    private boolean disabled;
 
     public GenericURLNormalizer() {
         setNormalizations(List.of(
@@ -209,10 +206,6 @@ public class GenericURLNormalizer implements WebURLNormalizer, XMLConfigurable {
 
     @Override
     public String normalizeURL(String url) {
-        if (disabled) {
-            return url;
-        }
-
         var normalizer = new URLNormalizer(url);
         for (Normalization n : normalizations) {
             n.c.accept(normalizer);
@@ -245,26 +238,8 @@ public class GenericURLNormalizer implements WebURLNormalizer, XMLConfigurable {
         CollectionUtil.setAll(this.replaces, replaces);
     }
 
-    /**
-     * Whether this URL Normalizer is disabled or not.
-     * @return <code>true</code> if disabled
-     * @since 2.3.0
-     */
-    public boolean isDisabled() {
-        return disabled;
-    }
-    /**
-     * Sets whether this URL Normalizer is disabled or not.
-     * @param disabled <code>true</code> if disabled
-     * @since 2.3.0
-     */
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
-    }
-
     @Override
     public void loadFromXML(XML xml) {
-        setDisabled(xml.getBoolean("@disabled", disabled));
         setNormalizations(xml.getDelimitedEnumList(
                 "normalizations", Normalization.class, normalizations));
         var xmlReplaces = xml.getXMLList("replacements/replace");
@@ -280,7 +255,6 @@ public class GenericURLNormalizer implements WebURLNormalizer, XMLConfigurable {
 
     @Override
     public void saveToXML(XML xml) {
-        xml.setAttribute("disabled", disabled);
         xml.addDelimitedElementList("normalizations", normalizations);
         if (!replaces.isEmpty()) {
             var xmlReplaces = xml.addElement("replacements");

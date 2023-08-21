@@ -39,7 +39,6 @@
         </xs:element>
       </xs:all>
       <xs:attribute name="class" type="xs:string"/>
-      <xs:attribute name="disabled" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
 
