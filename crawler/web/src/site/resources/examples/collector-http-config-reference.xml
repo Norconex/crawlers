@@ -261,7 +261,7 @@
       <metadataFilters>
         <filter class="RegexMetadataFilter" 
                 onMatch="exclude"
-                caseSensitive="false"
+                ignoreCase="true"
                 field="Content-Type">.*css.*</filter>
       </metadataFilters>        
   

@@ -234,14 +234,14 @@ import lombok.extern.slf4j.Slf4j;
  *   </tags>
  *
  *   <!-- Only extract URLs from the following text portions. -->
- *   <extractBetween caseSensitive="[false|true]">
+ *   <extractBetween ignoreCase="[false|true]">
  *     <start>(regex)</start>
  *     <end>(regex)</end>
  *   </extractBetween>
  *   <!-- you can have multiple extractBetween entries -->
  *
  *   <!-- Do not extract URLs from the following text portions. -->
- *   <noExtractBetween caseSensitive="[false|true]">
+ *   <noExtractBetween ignoreCase="[false|true]">
  *     <start>(regex)</start>
  *     <end>(regex)</end>
  *   </noExtractBetween>
@@ -464,11 +464,11 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * for link extraction.
      * @param start pattern matching start of text portion
      * @param end pattern matching end of text portion
-     * @param caseSensitive whether the patterns are case sensitive or not
+     * @param ignoreCase whether the patterns are case sensitive or not
      */
     public void addExtractBetween(
-            String start, String end, boolean caseSensitive) {
-        extractBetweens.add(new RegexPair(start, end, caseSensitive));
+            String start, String end, boolean ignoreCase) {
+        extractBetweens.add(new RegexPair(start, end, ignoreCase));
     }
 
     /**
@@ -492,11 +492,11 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
      * from link extraction.
      * @param start pattern matching start of text portion
      * @param end pattern matching end of text portion
-     * @param caseSensitive whether the patterns are case sensitive or not
+     * @param ignoreCase whether the patterns are case sensitive or not
      */
     public void addNoExtractBetween(
-            String start, String end, boolean caseSensitive) {
-        noExtractBetweens.add(new RegexPair(start, end, caseSensitive));
+            String start, String end, boolean ignoreCase) {
+        noExtractBetweens.add(new RegexPair(start, end, ignoreCase));
     }
 
     /**
@@ -796,7 +796,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     private List<Pair<Integer, Integer>> matchBetweens(
             String content, RegexPair pair) {
         var flags = Pattern.DOTALL;
-        if (!pair.isCaseSensitive()) {
+        if (pair.isIgnoreCase()) {
             flags = flags | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
         }
         List<Pair<Integer, Integer>> matches = new ArrayList<>();
@@ -931,7 +931,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                 addExtractBetween(
                         xmlBetween.getString(START, null),
                         xmlBetween.getString(END, null),
-                        xmlBetween.getBoolean("@caseSensitive", false));
+                        xmlBetween.getBoolean("@ignoreCase", false));
             }
         }
 
@@ -943,7 +943,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
                 addNoExtractBetween(
                         xmlNoBetween.getString(START, null),
                         xmlNoBetween.getString(END, null),
-                        xmlNoBetween.getBoolean("@caseSensitive", false));
+                        xmlNoBetween.getBoolean("@ignoreCase", false));
             }
         }
     }
@@ -991,7 +991,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         // extract between
         for (RegexPair pair : extractBetweens) {
             var xmlBetween = xml.addElement("extractBetween")
-                    .setAttribute("caseSensitive", pair.caseSensitive);
+                    .setAttribute("ignoreCase", pair.ignoreCase);
             xmlBetween.addElement(START, pair.getStart());
             xmlBetween.addElement(END, pair.getEnd());
         }
@@ -999,7 +999,7 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         // no extract between
         for (RegexPair pair : noExtractBetweens) {
             var xmlNoBetween = xml.addElement("noExtractBetween")
-                    .setAttribute("caseSensitive", pair.caseSensitive);
+                    .setAttribute("ignoreCase", pair.ignoreCase);
             xmlNoBetween.addElement(START, pair.getStart());
             xmlNoBetween.addElement(END, pair.getEnd());
         }
@@ -1018,11 +1018,11 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
     public static class RegexPair {
         private final String start;
         private final String end;
-        private final boolean caseSensitive;
-        public RegexPair(String start, String end, boolean caseSensitive) {
+        private final boolean ignoreCase;
+        public RegexPair(String start, String end, boolean ignoreCase) {
             this.start = start;
             this.end = end;
-            this.caseSensitive = caseSensitive;
+            this.ignoreCase = ignoreCase;
         }
         public String getStart() {
             return start;
@@ -1030,8 +1030,8 @@ public class HtmlLinkExtractor extends AbstractTextLinkExtractor {
         public String getEnd() {
             return end;
         }
-        public boolean isCaseSensitive() {
-            return caseSensitive;
+        public boolean isIgnoreCase() {
+            return ignoreCase;
         }
     }
 

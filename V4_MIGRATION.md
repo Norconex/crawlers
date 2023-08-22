@@ -9,6 +9,8 @@ Renamed
 ### General
 
 * All interfaces prefixed with "I" were renamed to drop the "I".
+* All configurable classes with a "caseSensitive" attribute are 
+  having a "ignoreCase" attribute instead (defaults to false).
 
 ### Packages:
 

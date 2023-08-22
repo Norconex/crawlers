@@ -75,7 +75,7 @@
         </xs:simpleType>        
       </xs:element>
     </xs:all>
-    <xs:attribute name="caseSensitive" type="xs:boolean"/>
+    <xs:attribute name="ignoreCase" type="xs:boolean"/>
   </xs:complexType>
 
 </xs:schema>

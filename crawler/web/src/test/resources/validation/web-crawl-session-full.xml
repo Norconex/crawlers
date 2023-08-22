@@ -167,7 +167,7 @@
     
     <referenceFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+          onMatch="exclude" ignoreCase="false">xml,pdf,doc</filter>
       <filter class=".GenericReferenceFilter" onMatch="exclude">
         <valueMatcher ignoreCase="false" method="regex">.*example.com.*</valueMatcher>
       </filter>
@@ -205,7 +205,7 @@
     
     <metadataFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+          onMatch="exclude" ignoreCase="false">xml,pdf,doc</filter>
       <filter class=".GenericReferenceFilter" onMatch="exclude">
         <valueMatcher ignoreCase="true" method="regex">.*example.com.*</valueMatcher>
       </filter>
@@ -246,16 +246,16 @@
           <tag name="img" attribute="src" />
           <tag name="meta" attribute="http-equiv" />
         </tags>
-        <extractBetween caseSensitive="true">
+        <extractBetween ignoreCase="false">
           <start>start1</start><end>end1</end>
         </extractBetween>
-        <extractBetween caseSensitive="false">
+        <extractBetween ignoreCase="true">
           <start>start2</start><end>end2</end>
         </extractBetween>
-        <noExtractBetween caseSensitive="true">
+        <noExtractBetween ignoreCase="false">
           <start>nostart1</start><end>noend1</end>
         </noExtractBetween>
-        <noExtractBetween caseSensitive="false">
+        <noExtractBetween ignoreCase="true">
           <start>nostart2</start><end>noend2</end>
         </noExtractBetween>
       </extractor>
@@ -293,7 +293,7 @@
     </linkExtractors>
     <documentFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+          onMatch="exclude" ignoreCase="false">xml,pdf,doc</filter>
       <filter class=".GenericReferenceFilter" onMatch="exclude">
         <valueMatcher ignoreCase="true" method="regex">.*example.com.*</valueMatcher>
       </filter>
