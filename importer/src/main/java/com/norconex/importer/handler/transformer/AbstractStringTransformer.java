@@ -72,11 +72,9 @@ import lombok.ToString;
  *      maxReadSize="(max characters to read at once)"
  *      sourceCharset="(character encoding)"
  *    --&gt;
- *  &lt;restrictTo caseSensitive="[false|true]"
- *          field="(name of header/metadata field name to match)" &gt;
- *      (regular expression of value to match)
- *  &lt;/restrictTo&gt;
- *  &lt;!-- multiple "restrictTo" tags allowed (only one needs to match) --&gt;
+ * {@nx.xml
+ *   {@nx.include com.norconex.importer.handler.AbstractImporterHandler#restrictTo}
+ * }
  * </pre>
  */
 @SuppressWarnings("javadoc")

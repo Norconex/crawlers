@@ -149,12 +149,12 @@ class TextBetweenTaggerTest {
 
     private static TextBetweenDetails addDetails(
             TextBetweenTagger t, String toField, String start, String end,
-            boolean inclusive, boolean caseSensitive, PropertySetter onSet) {
+            boolean inclusive, boolean ignoreCase, PropertySetter onSet) {
         var tbd = new TextBetweenDetails();
         tbd.setToField(toField);
         tbd.setStartMatcher(
-                TextMatcher.regex(start).setIgnoreCase(!caseSensitive));
-        tbd.setEndMatcher(TextMatcher.regex(end).setIgnoreCase(!caseSensitive));
+                TextMatcher.regex(start).setIgnoreCase(!ignoreCase));
+        tbd.setEndMatcher(TextMatcher.regex(end).setIgnoreCase(!ignoreCase));
         tbd.setInclusive(inclusive);
         tbd.setOnSet(onSet);
         t.addTextBetweenDetails(tbd);
