@@ -48,7 +48,7 @@ import lombok.ToString;
  * {@nx.xml.usage
  * <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
  *     onMatch="[include|exclude]"
- *     caseSensitive="[false|true]" >
+ *     ignoreCase="[false|true]" >
  *   (comma-separated list of extensions)
  * </filter>
  * }
@@ -72,7 +72,7 @@ public class ExtensionReferenceFilter implements
         MetadataFilter,
         XMLConfigurable {
 
-    private boolean caseSensitive;
+    private boolean ignoreCase;
     private final Set<String> extensions = new HashSet<>();
     private OnMatch onMatch;
 
@@ -86,10 +86,10 @@ public class ExtensionReferenceFilter implements
         this(extensions, onMatch, false);
     }
     public ExtensionReferenceFilter(
-            String extensions, OnMatch onMatch, boolean caseSensitive) {
+            String extensions, OnMatch onMatch, boolean ignoreCase) {
         setExtensions(extensions);
         setOnMatch(onMatch);
-        setCaseSensitive(caseSensitive);
+        setIgnoreCase(ignoreCase);
     }
 
     @Override
@@ -118,8 +118,8 @@ public class ExtensionReferenceFilter implements
         var refExtension = FilenameUtils.getExtension(referencePath);
 
         for (String ext : extensions) {
-            if ((!isCaseSensitive() && ext.equalsIgnoreCase(refExtension))
-                    || (isCaseSensitive() && ext.equals(refExtension))) {
+            if ((isIgnoreCase() && ext.equalsIgnoreCase(refExtension))
+                    || (!isIgnoreCase() && ext.equals(refExtension))) {
                 return safeOnMatch == OnMatch.INCLUDE;
             }
         }
@@ -136,23 +136,23 @@ public class ExtensionReferenceFilter implements
         CollectionUtil.setAll(this.extensions, extensions);
     }
 
-    public boolean isCaseSensitive() {
-        return caseSensitive;
+    public boolean isIgnoreCase() {
+        return ignoreCase;
     }
-    public final void setCaseSensitive(boolean caseSensitive) {
-        this.caseSensitive = caseSensitive;
+    public final void setIgnoreCase(boolean ignoreCase) {
+        this.ignoreCase = ignoreCase;
     }
 
     @Override
     public void loadFromXML(XML xml)  {
         setExtensions(xml.getDelimitedStringList("."));
         setOnMatch(xml.getEnum("@onMatch", OnMatch.class, onMatch));
-        setCaseSensitive(xml.getBoolean("@caseSensitive", caseSensitive));
+        setIgnoreCase(xml.getBoolean("@ignoreCase", ignoreCase));
     }
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("onMatch", onMatch);
-        xml.setAttribute("caseSensitive", caseSensitive);
+        xml.setAttribute("ignoreCase", ignoreCase);
         xml.setTextContent(StringUtils.join(extensions, ','));
     }
 

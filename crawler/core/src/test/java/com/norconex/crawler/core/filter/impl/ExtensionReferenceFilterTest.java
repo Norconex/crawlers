@@ -112,7 +112,7 @@ class ExtensionReferenceFilterTest {
     @Test
     void testWriteRead() {
         var f = new ExtensionReferenceFilter();
-        f.setCaseSensitive(true);
+        f.setIgnoreCase(true);
         f.setExtensions("com","pdf");
         f.setOnMatch(OnMatch.EXCLUDE);
         assertThatNoException().isThrownBy(

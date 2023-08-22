@@ -31,7 +31,7 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
-          <xs:attribute name="caseSensitive" type="xs:boolean"/>
+          <xs:attribute name="ignoreCase" type="xs:boolean"/>
         </xs:extension>
       </xs:simpleContent>
     </xs:complexType>

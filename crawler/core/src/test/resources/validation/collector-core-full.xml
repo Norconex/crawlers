@@ -41,25 +41,25 @@
     <dataStoreEngine class="com.norconex.crawler.core.store.impl.mvstore.MVStoreDataStoreEngine" />
     <referenceFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+          onMatch="exclude" ignoreCase="false">xml,pdf,doc</filter>
       <filter class="com.norconex.crawler.core.filter.impl.RegexReferenceFilter"
-          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+          onMatch="exclude" ignoreCase="true">.*example.com.*</filter>
     </referenceFilters>
     <metadataFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+          onMatch="exclude" ignoreCase="false">xml,pdf,doc</filter>
       <filter class="com.norconex.crawler.core.filter.impl.RegexReferenceFilter"
-          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+          onMatch="exclude" ignoreCase="true">.*example.com.*</filter>
       <filter class="com.norconex.crawler.core.filter.impl.RegexMetadataFilter"
-          onMatch="include" caseSensitive="false" field="title">Blah.*</filter>
+          onMatch="include" ignoreCase="true" field="title">Blah.*</filter>
     </metadataFilters>
     <documentFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+          onMatch="exclude" ignoreCase="false">xml,pdf,doc</filter>
       <filter class="com.norconex.crawler.core.filter.impl.RegexReferenceFilter"
-          onMatch="exclude" caseSensitive="false">.*example.com.*</filter>
+          onMatch="exclude" ignoreCase="true">.*example.com.*</filter>
       <filter class="com.norconex.crawler.core.filter.impl.RegexMetadataFilter"
-          onMatch="include" caseSensitive="false" field="title">Blah.*</filter>
+          onMatch="include" ignoreCase="true" field="title">Blah.*</filter>
     </documentFilters>
     <!-- DEPRECATED: 
     <crawlerListeners>

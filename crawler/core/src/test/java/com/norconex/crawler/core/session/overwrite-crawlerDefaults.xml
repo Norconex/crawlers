@@ -25,7 +25,7 @@
     <numThreads>1</numThreads>
     <referenceFilters>
       <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-          onMatch="exclude" caseSensitive="true">defaultFilter</filter>
+          onMatch="exclude" ignoreCase="false">defaultFilter</filter>
     </referenceFilters>
     <importer>
       <preParseHandlers>
@@ -52,7 +52,7 @@
       <numThreads>22</numThreads>
       <referenceFilters>
         <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-            onMatch="exclude" caseSensitive="true">crawlAFilter</filter>
+            onMatch="exclude" ignoreCase="false">crawlAFilter</filter>
       </referenceFilters>
       <importer>
         <preParseHandlers>
