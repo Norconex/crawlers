@@ -158,8 +158,8 @@
     </fetchers>
     <referenceFilters>
       <filter
-          caseSensitive="true"
           class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
+          ignoreCase="false"
           onMatch="exclude">
         xml,pdf,doc
       </filter>
@@ -175,35 +175,35 @@
       </filter>
     </referenceFilters>
     <robotsTxt
-        class="com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider"
-        ignore="false"/>
-    <sitemapResolver lenient="true" 
-        class="com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver">
+        class="com.norconex.crawler.web.robot.impl.StandardRobotsTxtProvider"/>
+    <sitemapResolver
+        class="com.norconex.crawler.web.sitemap.impl.GenericSitemapResolver"
+        lenient="true">
     </sitemapResolver>
     <sitemapLocator
-        class="com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator"
-            robotsTxtSitemapDisabled="true">
+        class="com.norconex.crawler.web.sitemap.impl.GenericSitemapLocator">
       <paths>
         <path>/path1/</path>
         <path>/path2/</path>
       </paths>
     </sitemapLocator>
-    <recrawlableResolver class="com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver"
-        sitemapSupport="last" >
-      <minFrequency applyTo="reference" value="always" >
-        <matcher method="regex">
-          .*\.pdf
-        </matcher>
+    <recrawlableResolver
+        class="com.norconex.crawler.web.recrawl.impl.GenericRecrawlableResolver"
+        sitemapSupport="last">
+      <minFrequency applyTo="reference" value="always">
+        <matcher ignoreCase="true" method="regex">.*\.pdf</matcher>
       </minFrequency>
-      <minFrequency applyTo="contentType" value="3000" >
-        <matcher>
-          text/html
-        </matcher>
+      <minFrequency applyTo="contentType" value="3000">
+        <matcher ignoreCase="false" method="regex">text/html</matcher>
       </minFrequency>
     </recrawlableResolver>
     <metadataFilters>
-      <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+      <filter
+          class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
+          ignoreCase="false"
+          onMatch="exclude">
+        xml,pdf,doc
+      </filter>
       <filter class=".GenericReferenceFilter" onMatch="exclude">
         <valueMatcher ignoreCase="true" method="regex">.*example.com.*</valueMatcher>
       </filter>
@@ -211,21 +211,25 @@
         <valueMatcher ignoreCase="true" method="regex">Blah.*</valueMatcher>
         <fieldMatcher>title</fieldMatcher>
       </filter>
-      <filter class="com.norconex.crawler.web.filter.impl.SegmentCountURLFilter"
-              onMatch="exclude" count="5" duplicate="false">
+      <filter
+          class="com.norconex.crawler.web.filter.impl.SegmentCountURLFilter"
+          count="5"
+          duplicate="false"
+          onMatch="exclude">
         <separator>/</separator>
       </filter>
     </metadataFilters>
-    <canonicalLinkDetector class="com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector"
-          ignore="true">
+    <canonicalLinkDetector
+        class="com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector">
       <contentTypes>text/html</contentTypes>
     </canonicalLinkDetector>
-    <metadataChecksummer 
+    <metadataChecksummer
         class="com.norconex.crawler.web.checksum.impl.LastModifiedMetadataChecksummer"
-        keep="true" toField="myfield" />
-    <robotsMeta ignore="false" 
-       class="com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider">
-       <headersPrefix>prefix</headersPrefix>
+        keep="true"
+        toField="myfield"/>
+    <robotsMeta
+        class="com.norconex.crawler.web.robot.impl.StandardRobotsMetaProvider">
+      <headersPrefix>prefix</headersPrefix>
     </robotsMeta>
     <linkExtractors>
       <extractor class="com.norconex.crawler.web.link.impl.HtmlLinkExtractor"
@@ -243,16 +247,16 @@
           <tag name="img" attribute="src" />
           <tag name="meta" attribute="http-equiv" />
         </tags>
-        <extractBetween caseSensitive="true">
+        <extractBetween ignoreCase="false">
           <start>start1</start><end>end1</end>
         </extractBetween>
-        <extractBetween caseSensitive="false">
+        <extractBetween ignoreCase="true">
           <start>start2</start><end>end2</end>
         </extractBetween>
-        <noExtractBetween caseSensitive="true">
+        <noExtractBetween ignoreCase="false">
           <start>nostart1</start><end>noend1</end>
         </noExtractBetween>
-        <noExtractBetween caseSensitive="false">
+        <noExtractBetween ignoreCase="true">
           <start>nostart2</start><end>noend2</end>
         </noExtractBetween>
       </extractor>
@@ -289,8 +293,12 @@
       </extractor>      
     </linkExtractors>
     <documentFilters>
-      <filter class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
-          onMatch="exclude" caseSensitive="true">xml,pdf,doc</filter>
+      <filter
+          class="com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter"
+          ignoreCase="false"
+          onMatch="exclude">
+        xml,pdf,doc
+      </filter>
       <filter class=".GenericReferenceFilter" onMatch="exclude">
         <valueMatcher ignoreCase="true" method="regex">.*example.com.*</valueMatcher>
       </filter>
@@ -298,8 +306,11 @@
         <fieldMatcher>title</fieldMatcher>
         <valueMatcher ignoreCase="true" method="regex">Blah.*</valueMatcher>
       </filter>
-      <filter class="com.norconex.crawler.web.filter.impl.SegmentCountURLFilter"
-              onMatch="exclude" count="5" duplicate="false">
+      <filter
+          class="com.norconex.crawler.web.filter.impl.SegmentCountURLFilter"
+          count="5"
+          duplicate="false"
+          onMatch="exclude">
         <separator>/</separator>
       </filter>
     </documentFilters>

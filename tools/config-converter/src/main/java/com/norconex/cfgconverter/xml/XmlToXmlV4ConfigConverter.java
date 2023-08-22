@@ -16,6 +16,7 @@ package com.norconex.cfgconverter.xml;
 
 import static com.norconex.cfgconverter.xml.Util.setClass;
 import static com.norconex.cfgconverter.xml.Util.setElemValue;
+import static com.norconex.commons.lang.xml.XPathUtil.attr;
 import static org.apache.commons.lang3.StringUtils.replace;
 
 import java.io.IOException;
@@ -30,19 +31,34 @@ import com.norconex.commons.lang.xml.XMLFormatter;
 import com.norconex.commons.lang.xml.XMLFormatter.Builder.AttributeWrap;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Converter for V3 HTTP Collector XML or just Importer XML.
  */
+@Slf4j
 public class XmlToXmlV4ConfigConverter implements ConfigConverter {
+
+    private static final String IMPORTER = "importer";
+    private static final String TEMP_DIR = "tempDir";
+    private static final String IGNORE_CASE = "ignoreCase";
 
     @Override
     public void convert(@NonNull XML input, @NonNull Writer output) {
         convertAllClassAttributes(input);
-        convertDisabledElements(input);
+
+        // "disabled" and "ignore" are no longer supported, we use self-closing
+        // tag to indicate null, which equates disabled/ignored.
+        // So if an item is disabled/ignored, we make it self-closed.
+        // In either case, we remove the "disabled" and "ignore" attributes.
+        convertAllDisabledElements(input);
+        convertAllIgnoreElements(input);
+
+        convertAllCaseSensitive(input);
+
         if ("httpcollector".equals(input.getName())) {
             convertSession(input);
-        } else if ("importer".equals(input.getName())) {
+        } else if (IMPORTER.equals(input.getName())) {
             convertImporter(input);
         }
         writeXml(input, output);
@@ -56,17 +72,30 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
             setClass(x, v -> v.replace("committer.core3", "committer.core"));
         });
     }
-    private void convertDisabledElements(XML xml) {
-        // "disabled" no longer supported, we use self-closing tag to
-        // indicate null, which equates disabled.
-        // So if an item is disabled, we make it self-closed.
-        // In either case, we remove the "disabled" attribute
+    private void convertAllDisabledElements(XML xml) {
         xml.forEach("//*[@disabled]", x -> {
             if (x.isDisabled()) {
                 x.clear();
             } else {
                 x.removeAttribute("disabled");
             }
+        });
+    }
+    private void convertAllIgnoreElements(XML xml) {
+        xml.forEach("//*[@ignore]", x -> {
+            if (Boolean.TRUE.equals(x.getBoolean("@ignore"))) {
+                x.clear();
+            } else {
+                x.removeAttribute("ignore");
+            }
+        });
+    }
+
+    // now case sensitive by default, so attribute is now "ignoreCase".
+    private void convertAllCaseSensitive(XML xml) {
+        xml.forEach("//*[@caseSensitive]", x -> {
+            x.setAttribute(IGNORE_CASE, !x.getBoolean("@caseSensitive"));
+            x.removeAttribute("caseSensitive");
         });
     }
 
@@ -88,7 +117,7 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
         if (Boolean.TRUE.equals( crawlerXml.getBoolean("keepDownloads"))) {
             // as there are no importer generated yes, this handler will
             // be added as the first, as we expect.
-            crawlerXml.computeElementIfAbsent("importer", null)
+            crawlerXml.computeElementIfAbsent(IMPORTER, null)
                 .computeElementIfAbsent("preParseHandlers", null)
                 .addXML("""
                     <handler class="com.norconex.importer.handler.tagger.impl.\
@@ -111,22 +140,54 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
                         x -> x.rename("ifModifiedSinceDisabled"));
             });
         });
-        crawlerXml.forEach("referenceFilters/filter", f -> {
+        crawlerXml.forEach("referenceFilters/filter"
+                + "|metadataFilters/filter|documentFilters/filter", f -> {
             setClass(f, v -> v.replaceFirst(
                     "\\bReferenceFilter\\b", "GenericReferenceFilter"));
+            setClass(f, v -> v.replaceFirst(
+                    "\\bMetadataFilter\\b", "GenericMetadataFilter"));
             if (f.getString("@class").contains("SegmentCountURLFilter")) {
                 f.addElement("separator", f.getString("@separator"));
                 f.removeAttribute("separator");
             }
         });
+        crawlerXml.ifXML("sitemapResolver[contains("
+                + "@class, 'GenericSitemapResolver')]", xml -> {
+            xml.ifXML(TEMP_DIR, x -> LOG.warn(elemNoLongerSupported(
+                    TEMP_DIR, "GenericSitemapResolver")));
+            var slXml = new XML("sitemapLocator");
+            slXml.setAttribute("class", "com.norconex.crawler.web.sitemap"
+                    + ".impl.GenericSitemapLocator");
+            var paths = slXml.addElement("paths");
+            xml.forEach("path",
+                    x -> paths.addElement("path", x.getString(".")));
+            xml.removeElement(TEMP_DIR);
+            xml.forEach("path", XML::remove);
+            xml.insertAfter(slXml);
+        });
+        crawlerXml.ifXML("recrawlableResolver[contains("
+                + "@class, 'GenericRecrawlableResolver')]", xml ->
+            xml.forEach("minFrequency", minFreq -> {
+                var matcher = new XML("matcher");
+                matcher.setAttribute("method", "regex");
+                matcher.setAttribute(IGNORE_CASE,
+                        minFreq.getBoolean(attr(IGNORE_CASE), false));
+                minFreq.removeAttribute(IGNORE_CASE);
+                matcher.setTextContent(minFreq.getTextContent());
+                minFreq.removeTextContent();
+                minFreq.addXML(matcher);
+            })
+        );
 
 
         //TODO the rest
 
+        crawlerXml.ifXML(IMPORTER, this::convertImporter);
+
     }
 
     private void convertImporter(XML importerXml) {
-
+        //TODO
     }
 
 
@@ -140,5 +201,11 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private String elemNoLongerSupported(String elemName, String className) {
+        return ("Element \"%s\" of class %s is no longer supported, and has no "
+                + "alternatives. It has been removed.").formatted(
+                        elemName, className);
     }
 }

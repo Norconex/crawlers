@@ -188,7 +188,7 @@
               onMatch="exclude" count="5" duplicate="false" separator="/" />
     </metadataFilters>
     <canonicalLinkDetector class="com.norconex.collector.http.canon.impl.GenericCanonicalLinkDetector"
-          ignore="true">
+          ignore="false">
       <contentTypes>text/html</contentTypes>
     </canonicalLinkDetector>
     <metadataChecksummer 

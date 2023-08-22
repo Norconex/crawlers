@@ -16,7 +16,7 @@
       <condition operator="lt" date="TODAY" />
     </handler>
     <handler class="com.norconex.importer.handler.filter.impl.DOMFilter"
-            onMatch="exclude"  caseSensitive="true" sourceCharset="UTF-8" 
+            onMatch="exclude"  ignoreCase="false" sourceCharset="UTF-8" 
             selector="selector" extract="text" parser="html">
       <restrictTo>
         <fieldMatcher>FIELD</fieldMatcher>
@@ -41,7 +41,7 @@
       <condition operator="lt" number="30" />
     </handler>
     <handler class="com.norconex.importer.handler.filter.impl.RegexContentFilter"
-            onMatch="include"  caseSensitive="true"
+            onMatch="include"  ignoreCase="false"
             sourceCharset="UTF-8" maxReadSize="9999">
       <restrictTo>
         <fieldMatcher>FIELD</fieldMatcher>
@@ -147,9 +147,9 @@
         <valueMatcher ignoreCase="true" method="regex">.*</valueMatcher>
       </restrictTo>
       <countMatches fromField="ff1" toField="tf1" 
-          caseSensitive="false" regex="true">.*</countMatches>
+          ignoreCase="true" regex="true">.*</countMatches>
       <countMatches fromField="ff2" toField="tf2"
-          caseSensitive="false" regex="true">.*</countMatches>
+          ignoreCase="true" regex="true">.*</countMatches>
     </handler>
     <handler class="com.norconex.importer.handler.tagger.impl.CurrentDateTagger"
           field="datefield" format="yyy-MM-dd" locale="fr" overwrite="true" >
@@ -218,7 +218,7 @@
       </command>
       <metadata inputFormat="json" outputFormat="xml">
         <pattern field="field1">&lt;title&gt;&lt;(title)&gt;</pattern>
-        <pattern fieldGroup="2" valueGroup="1" caseSensitive="true">(.*?):(.*)</pattern>
+        <pattern fieldGroup="2" valueGroup="1" ignoreCase="false">(.*?):(.*)</pattern>
       </metadata>
       <environment>
         <variable name="var1">blah</variable>
@@ -286,15 +286,15 @@
         <fieldMatcher>FIELD</fieldMatcher>
         <valueMatcher ignoreCase="true" method="regex">.*</valueMatcher>
       </restrictTo>
-      <replace fromField="FF" toField="TF" caseSensitive="true"
+      <replace fromField="FF" toField="TF" ignoreCase="false"
                regex="false" wholeMatch="false" replaceAll="true">
           <fromValue>apple</fromValue><toValue>orange</toValue>
       </replace>
-      <replace fromField="FF2" toField="TF2" caseSensitive="true"
+      <replace fromField="FF2" toField="TF2" ignoreCase="false"
                regex="false" wholeMatch="false" replaceAll="true">
           <fromValue>_</fromValue><toValue xml:space="preserve"> </toValue>
       </replace>
-      <replace fromField="FF3" toField="TF3" caseSensitive="true"
+      <replace fromField="FF3" toField="TF3" ignoreCase="false"
                regex="false" wholeMatch="false" replaceAll="true">
           <fromValue>apple</fromValue>
       </replace>
@@ -320,7 +320,7 @@
       </split>
     </handler>
     <handler class="com.norconex.importer.handler.tagger.impl.TextBetweenTagger"
-          inclusive="true" caseSensitive="false"
+          inclusive="true" ignoreCase="true"
           sourceCharset="UTF-8" maxReadSize="9999" >
       <restrictTo>
         <fieldMatcher>FIELD</fieldMatcher>
@@ -340,7 +340,7 @@
         <valueMatcher ignoreCase="true" method="regex">.*</valueMatcher>
       </restrictTo>
       <pattern field="field1" valueGroup="1" fieldGroup="2">potato</pattern>
-      <pattern field="field2" caseSensitive="true">apple</pattern>
+      <pattern field="field2" ignoreCase="false">apple</pattern>
     </handler>
     <handler class="com.norconex.importer.handler.tagger.impl.TextStatisticsTagger"
           sourceCharset="UTF-8" fieldName="myfield" >
@@ -392,7 +392,7 @@
       <command>c:\Apps\myapp.exe ${INPUT} ${OUTPUT} ${REFERENCE}</command>
       <metadata inputFormat="json" outputFormat="xml">
         <pattern field="field1">&lt;title&gt;&lt;(title)&gt;</pattern>
-        <pattern fieldGroup="2" valueGroup="1" caseSensitive="true">(.*?):(.*)</pattern>
+        <pattern fieldGroup="2" valueGroup="1" ignoreCase="false">(.*?):(.*)</pattern>
       </metadata>
       <environment>
         <variable name="var1">blah</variable>
@@ -401,7 +401,7 @@
       <tempDir>/some/dir</tempDir>
     </handler>
     <handler class="com.norconex.importer.handler.transformer.impl.ReduceConsecutivesTransformer"
-          caseSensitive="false" sourceCharset="UTF-8" maxReadSize="999" >
+          ignoreCase="true" sourceCharset="UTF-8" maxReadSize="999" >
       <restrictTo>
         <fieldMatcher>FIELD</fieldMatcher>
         <valueMatcher ignoreCase="true" method="regex">.*</valueMatcher>
@@ -410,7 +410,7 @@
       <reduce>\n\n</reduce>
     </handler>
     <handler class="com.norconex.importer.handler.transformer.impl.ReplaceTransformer"
-          caseSensitive="false" sourceCharset="UTF-8" maxReadSize="999" >
+          ignoreCase="true" sourceCharset="UTF-8" maxReadSize="999" >
       <restrictTo>
         <fieldMatcher>FIELD</fieldMatcher>
         <valueMatcher ignoreCase="true" method="regex">.*</valueMatcher>
@@ -428,7 +428,7 @@
       <script>var blah = 'blah';</script>
     </handler>
     <handler class="com.norconex.importer.handler.transformer.impl.StripAfterTransformer"
-          inclusive="true" caseSensitive="false" sourceCharset="UTF-8" maxReadSize="999" >
+          inclusive="true" ignoreCase="true" sourceCharset="UTF-8" maxReadSize="999" >
       <restrictTo>
         <fieldMatcher>FIELD</fieldMatcher>
         <valueMatcher ignoreCase="true" method="regex">.*</valueMatcher>
@@ -436,7 +436,7 @@
       <stripAfterRegex>blah</stripAfterRegex>
     </handler>
     <handler class="com.norconex.importer.handler.transformer.impl.StripBeforeTransformer"
-          inclusive="true" caseSensitive="false" sourceCharset="UTF-8" maxReadSize="999" >
+          inclusive="true" ignoreCase="true" sourceCharset="UTF-8" maxReadSize="999" >
       <restrictTo>
         <fieldMatcher>FIELD</fieldMatcher>
         <valueMatcher ignoreCase="true" method="regex">.*</valueMatcher>
@@ -444,7 +444,7 @@
       <stripBeforeRegex>blah</stripBeforeRegex>
     </handler>
     <handler class="com.norconex.importer.handler.transformer.impl.StripBetweenTransformer"
-          inclusive="true" caseSensitive="false" sourceCharset="UTF-8" maxReadSize="999" >
+          inclusive="true" ignoreCase="true" sourceCharset="UTF-8" maxReadSize="999" >
       <restrictTo>
         <fieldMatcher>FIELD</fieldMatcher>
         <valueMatcher ignoreCase="true" method="regex">.*</valueMatcher>
@@ -473,7 +473,7 @@
         <command>c:\Apps\myapp.exe ${INPUT} ${OUTPUT}</command>
         <metadata inputFormat="xml" outputFormat="json">
           <pattern field="field1">&lt;title&gt;&lt;(title)&gt;</pattern>
-          <pattern fieldGroup="2" valueGroup="1" caseSensitive="true">(.*?):(.*)</pattern>
+          <pattern fieldGroup="2" valueGroup="1" ignoreCase="false">(.*?):(.*)</pattern>
         </metadata>
         <environment>
           <variable name="var1">blah</variable>
