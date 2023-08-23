@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.XML;
@@ -544,6 +545,12 @@ import lombok.experimental.FieldNameConstants;
 @SuppressWarnings("javadoc")
 @Data
 @FieldNameConstants
+
+//TODO Given we don't need @schema here to pick up javadoc
+// when we have the maven-compiler-plugin setup properly...
+// do we need to include all compile maven dependencies we are including for open api?
+// maybe need to add to maven-compiler plugin the swagger stuff, like in core?
+//@Schema //(description = "Web crawler configuration.")
 public class WebCrawlerConfig extends CrawlerConfig {
 
     /**
@@ -698,6 +705,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @param startReferencesSitemaps sitemap URLs
      * @since 2.3.0
      */
+    @JsonIgnore
     public void setStartReferencesSitemaps(String... startReferencesSitemaps) {
         setStartReferencesSitemaps(Arrays.asList(startReferencesSitemaps));
     }
@@ -741,6 +749,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * @param keepReferencedLinks option for keeping links
      * @since 3.0.0
      */
+    @JsonIgnore
     public void setKeepReferencedLinks(
             ReferencedLinkType... keepReferencedLinks) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
@@ -757,6 +766,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
      * Sets link extractors.
      * @param linkExtractors link extractors
      */
+    @JsonIgnore
     public void setLinkExtractors(LinkExtractor... linkExtractors) {
         setLinkExtractors(Arrays.asList(linkExtractors));
     }
