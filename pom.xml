@@ -54,7 +54,7 @@
     <aws-java-sdk.version>1.12.457</aws-java-sdk.version>
     <ant.version>1.10.13</ant.version>
     <httpclient5.version>5.2.1</httpclient5.version>
-    <jackson.version>2.15.0</jackson.version>
+    <jackson.version>2.15.2</jackson.version>
     <jakarta-activation.version>2.1.1</jakarta-activation.version>
     <jaxb-runtime.version>2.3.5</jaxb-runtime.version>
     <java-cup.version>10k</java-cup.version>
@@ -64,6 +64,7 @@
     <log4j.version>2.20.0</log4j.version>
     <picocli.version>4.7.3</picocli.version>
     <slf4j.version>2.0.7</slf4j.version>
+    <springdoc.version>2.1.0</springdoc.version>
     <velocity-engine.version>2.3</velocity-engine.version>
     <xerces.version>2.12.2</xerces.version>
     <xml-bind-api.version>4.0.0</xml-bind-api.version>
@@ -97,12 +98,13 @@
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
     <maven-surefire-plugin.version>3.0.0</maven-surefire-plugin.version>
+    <therapi.version>0.15.0</therapi.version>
     <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
     <wagon-ssh.version>3.5.3</wagon-ssh.version>
     
   </properties>
 
-  <inceptionYear>2009</inceptionYear>
+  <inceptionYear>2022</inceptionYear>
 
   <licenses>
     <license>
@@ -187,6 +189,11 @@
       <dependency>
         <groupId>com.fasterxml.jackson.datatype</groupId>
         <artifactId>jackson-datatype-jdk8</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
         <version>${jackson.version}</version>
       </dependency>
 
@@ -533,6 +540,11 @@
             <target>${maven.compiler.target}</target>
             <encoding>UTF-8</encoding>
             <annotationProcessorPaths>
+              <path>
+                <groupId>com.github.therapi</groupId>
+                <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+                <version>${therapi.version}</version>
+              </path>
               <annotationProcessorPath>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
