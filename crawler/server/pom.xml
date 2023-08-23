@@ -27,15 +27,9 @@
 
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
-
-    <jackson.version>2.13.2</jackson.version>
-    <jackson-databind.version>2.13.4.2</jackson-databind.version>
-    <jsonx.version>2.3.9</jsonx.version>
-
     <openapi-generator.version>6.6.0</openapi-generator.version>
     <reactor-version>3.5.8</reactor-version>
     <springboot.version>3.1.0</springboot.version>
-    <springdoc.version>2.1.0</springdoc.version>
     <swagger-annotations-version>1.5.8</swagger-annotations-version>
     
   </properties>
@@ -55,35 +49,6 @@
         <scope>import</scope>
       </dependency>
       
-      
-      <!-- Jackson dependencies -->
-      
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson-databind.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.datatype</groupId>
-        <artifactId>jackson-datatype-jsr310</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.datatype</groupId>
-        <artifactId>jackson-datatype-jdk8</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      
       <dependency>
         <groupId>io.projectreactor</groupId>
         <artifactId>reactor-core</artifactId>
@@ -95,7 +60,6 @@
         <version>${reactor-version}</version>
         <scope>test</scope>
       </dependency>
-      
       
     </dependencies>
   </dependencyManagement>
@@ -131,27 +95,6 @@
 
     <!-- Open-API related dependencies -->
 
-    <dependency>
-      <groupId>io.springfox</groupId>
-      <artifactId>springfox-swagger2</artifactId>
-      <version>3.0.0</version>
-      <exclusions>
-        <exclusion>
-          <groupId>io.swagger.core.v3</groupId>
-          <artifactId>swagger-annotations</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-core-jakarta</artifactId>
-      <version>2.2.7</version>
-    </dependency>
-    <dependency>
-      <groupId>io.swagger</groupId>
-      <artifactId>swagger-annotations</artifactId>
-      <version>${swagger-annotations-version}</version>
-    </dependency>
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
@@ -383,6 +326,11 @@
                         <artifactId>therapi-runtime-javadoc-scribe</artifactId>
                         <version>0.15.0</version>
                     </path>
+            <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </path>                    
                 </annotationProcessorPaths>
             </configuration>
         </plugin>

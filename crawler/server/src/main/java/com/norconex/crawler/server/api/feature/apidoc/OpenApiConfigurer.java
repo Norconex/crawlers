@@ -24,6 +24,7 @@ import org.springframework.http.codec.ServerSentEvent;
 import com.norconex.crawler.server.api.common.ServerSentEventName;
 import com.norconex.crawler.server.api.feature.crawl.model.CrawlDocDTO;
 import com.norconex.crawler.server.api.feature.crawl.model.CrawlEventDTO;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
@@ -54,6 +55,7 @@ public class OpenApiConfigurer {
             addSchema(openApi, CrawlEventDTO.class, "CrawlEvent");
             addSchema(openApi,
                     ServerSentEventName.class, "ServerSentEventName");
+            addCrawlerConfigSchemas(openApi);
         };
     }
 
@@ -71,4 +73,54 @@ public class OpenApiConfigurer {
         openApi.getComponents().addSchemas(name, schema);
     }
 
+
+    private void addCrawlerConfigSchemas(OpenAPI openApi) {
+        //TODO use GroupOpenApi bean
+
+        addSchema(openApi, WebCrawlerConfig.class, "WebCrawlerConfig");
+    }
+
+
+//    public OpenApiCustomizer addAllCrawlerClasses() {
+//
+//        return openApi -> {
+//            ClassFinder.findSubTypes(XMLConfigurable.class, this::accepts)
+//                    .forEach(schemaClass -> {
+//                        var schema = schemaClass.getAnnotation(Schema.class);
+//                        var name = schema != null ? schema.name()
+//                                : schemaClass.getName();
+//
+//                        if (!openApi.getComponents().getSchemas()
+//                                .containsKey(name)) {
+//                            var resolvedSchema = ModelConverters.getInstance()
+//                                    .readAllAsResolvedSchema(schemaClass);
+//                            if (resolvedSchema.schema.getName() != null)
+//                                openApi.schema(resolvedSchema.schema.getName(),
+//                                        resolvedSchema.schema);
+//                        }
+//                    });
+//        };
+//    }
+//
+//    private boolean accepts(String className) {
+//        var accepted = className.startsWith("com.norconex.")
+//                // exclude those for now as they cause
+//                // trouble.
+//                && !StringUtils.containsAny(className, exclusions());
+//        if (className.startsWith("com.norconex.")) {
+//        }
+//        return accepted;
+//    }
+//
+//    // All "endsWith"
+//    private String[] exclusions() {
+//        return """
+//            .CsvSplitter
+//            .CrawlerConfig
+//            .ExtensionReferenceFilter
+//            .WebCrawlerConfig
+//            .CrawlSessionConfig
+//            .DateFormatTagger
+//            """.lines().toList().toArray(EMPTY_STRING_ARRAY);
+//    }
 }
