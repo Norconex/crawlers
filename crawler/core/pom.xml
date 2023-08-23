@@ -33,6 +33,7 @@
     <hikaricp.version>4.0.3</hikaricp.version>
     <jdom2.version>2.0.6.1</jdom2.version>
     <mongodb.version>4.3.2</mongodb.version>
+    <swagger.version>2.2.15</swagger.version>
   </properties>
 
   <inceptionYear>2014</inceptionYear>
@@ -96,18 +97,36 @@
       <version>${h2.version}</version>
       <!-- <scope>test</scope> -->
     </dependency>
+    
+    <!-- Jackson & misc -->
+    <!-- TODO: remove from here as likely inherited from Importer or Nx Lang -->
     <dependency>
-      <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-parameter-names</artifactId>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>    
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-parameter-names</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jdk8</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-core-jakarta</artifactId>
+      <version>${swagger.version}</version>
+    </dependency>
+
+    
     
     <dependency>
       <groupId>info.picocli</groupId>

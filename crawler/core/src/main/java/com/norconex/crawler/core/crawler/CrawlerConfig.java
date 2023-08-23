@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
@@ -459,6 +460,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * Sets the references to initiate crawling from.
      * @param startReferences start references
      */
+    @JsonIgnore
     public void setStartReferences(String... startReferences) {
         CollectionUtil.setAll(this.startReferences, startReferences);
     }
@@ -487,6 +489,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * @param startReferencesFiles file paths of seed files containing
      *     references
      */
+    @JsonIgnore
     public void setStartReferencesFiles(Path... startReferencesFiles) {
         CollectionUtil.setAll(this.startReferencesFiles, startReferencesFiles);
     }
@@ -516,6 +519,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * dynamically at launch time.
      * @param startReferencesProviders start references provider
      */
+    @JsonIgnore
     public void setStartReferencesProviders(
             ReferencesProvider... startReferencesProviders) {
         CollectionUtil.setAll(
@@ -684,6 +688,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * Sets pre-import processors.
      * @param preImportProcessors pre-import processors
      */
+    @JsonIgnore
     public void setPreImportProcessors(
             DocumentProcessor... preImportProcessors) {
         setPreImportProcessors(Arrays.asList(preImportProcessors));
@@ -709,6 +714,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * Sets post-import processors.
      * @param postImportProcessors post-import processors
      */
+    @JsonIgnore
     public void setPostImportProcessors(
             DocumentProcessor... postImportProcessors) {
         setPostImportProcessors(Arrays.asList(postImportProcessors));
@@ -753,6 +759,7 @@ public class CrawlerConfig implements XMLConfigurable {
      * successfully process a reference (others are not invoked).
      * @param fetchers one or more fetchers
      */
+    @JsonIgnore
     public void setFetchers(Fetcher<?, ?>... fetchers) {
         CollectionUtil.setAll(this.fetchers, fetchers);
     }

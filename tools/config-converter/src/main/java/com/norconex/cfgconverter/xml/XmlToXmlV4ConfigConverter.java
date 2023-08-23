@@ -101,9 +101,6 @@ public class XmlToXmlV4ConfigConverter implements ConfigConverter {
 
     private void convertSession(XML sessionXml) {
         sessionXml.rename("crawlSession");
-        sessionXml.forEach("eventListeners/listener", xml ->
-            setClass(xml, v -> v.replace("collector.http", "crawler.web"))
-        );
         sessionXml.ifXML("crawlerDefaults", this::convertCrawler);
         sessionXml.forEach("crawlers/crawler", this::convertCrawler);
     }

@@ -232,9 +232,12 @@
       <headersPrefix>prefix</headersPrefix>
     </robotsMeta>
     <linkExtractors>
-      <extractor class="com.norconex.crawler.web.link.impl.HtmlLinkExtractor"
-          maxURLLength="999" ignoreNofollow="false" 
-          commentsEnabled="true" charset="UTF-8" >
+      <extractor
+          charset="UTF-8"
+          class="com.norconex.crawler.web.link.impl.HtmlLinkExtractor"
+          commentsEnabled="true"
+          ignoreNofollow="false"
+          maxURLLength="999">
         <restrictTo>
           <fieldMatcher>document.contentType</fieldMatcher>
           <valueMatcher>text/html</valueMatcher>
