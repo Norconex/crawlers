@@ -299,6 +299,14 @@
         <version>${jakarta-activation.version}</version>
       </dependency>      
 
+
+<!-- TEST: -->
+<dependency>
+  <groupId>com.github.therapi</groupId>
+  <artifactId>therapi-runtime-javadoc</artifactId>
+  <version>0.15.0</version>
+</dependency>
+
       <!-- TODO: REMOVE THIS ONE IN FAVOR OF PICOCLI? -->
       <dependency>
         <groupId>commons-cli</groupId>
@@ -440,6 +448,13 @@
       <version>${lombok.version}</version>
       <scope>provided</scope>
     </dependency>
+
+<!-- TEST: -->
+<dependency>
+  <groupId>com.github.therapi</groupId>
+  <artifactId>therapi-runtime-javadoc</artifactId>
+</dependency>    
+    
   </dependencies>
 
   <build>

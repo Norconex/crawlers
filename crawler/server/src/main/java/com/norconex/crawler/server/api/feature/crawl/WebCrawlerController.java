@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,9 @@ import com.norconex.crawler.server.api.common.ServerSentEventName;
 import com.norconex.crawler.server.api.common.config.AppConfig;
 import com.norconex.crawler.server.api.feature.crawl.model.CrawlDocDTO;
 import com.norconex.crawler.server.api.feature.crawl.model.CrawlSampleRequest;
+import com.norconex.crawler.web.canon.CanonicalLinkDetector;
+import com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector;
+import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,6 +46,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Web crawling operations.
@@ -112,4 +117,28 @@ public class WebCrawlerController {
                     .data(data)
                     .build());
     }
+
+
+    @PostMapping(
+        value = "/tempPostConfig",
+        consumes = APPLICATION_JSON_VALUE
+    )
+    @ResponseStatus(HttpStatus.OK)
+    Mono<CanonicalLinkDetector> tempPostConfig(
+            @RequestBody WebCrawlerConfig webCrawlerConfig) {
+        // just for testing the REST API/swagger
+        return Mono.just(webCrawlerConfig.getCanonicalLinkDetector());
+    }
+
+    @GetMapping(
+        value = "/tempGetConfig",
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseStatus(HttpStatus.OK)
+    Mono<CanonicalLinkDetector> testGetConfig() {
+        // just for testing the REST API/swagger
+        return Mono.just(new GenericCanonicalLinkDetector());
+    }
+
+
 }

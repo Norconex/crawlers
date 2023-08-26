@@ -17,6 +17,8 @@ package com.norconex.crawler.web.canon;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
@@ -41,6 +43,62 @@ import com.norconex.crawler.web.crawler.WebCrawlerConfig;
  *
  * @since 2.2.0
  */
+//@Schema(
+//        name = "CanonicalLinkDetector",
+//
+//        subTypes = {
+//                GenericCanonicalLinkDetector.class
+//        },
+//        discriminatorProperty = "class"
+//      ,
+//        discriminatorMapping = {
+//                @DiscriminatorMapping(
+//                        value = "com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector",
+//                        schema = GenericCanonicalLinkDetector.class)
+//        }
+//)
+
+//@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY
+//)//   , property = "class") // <-- needed?
+
+//MAYBE implement PropertyCustomizer?
+
+//TODO automatic polymorphism via detection. See:
+// https://github.com/springdoc/springdoc-openapi/issues/1334#issuecomment-1424534821
+//@Schema
+
+
+
+
+
+
+
+//@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class")
+//@JsonSubTypes({
+//  @JsonSubTypes.Type(
+//          value = GenericCanonicalLinkDetector.class ,
+//          name = "com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector"),
+//  @JsonSubTypes.Type(
+//          value = DummyCanonicalLinkDetector.class ,
+//          name = "com.norconex.crawler.web.canon.impl.DummyCanonicalLinkDetector"),
+//})
+//@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY,  property = "structure_type")
+//@JsonTypeInfo(
+//        use = JsonTypeInfo.Id.CLASS,
+//        include = JsonTypeInfo.As.PROPERTY,
+//        property = "@class")
+
+//@JsonTypeInfo(
+//        use = JsonTypeInfo.Id.CLASS,
+//        include = JsonTypeInfo.As.PROPERTY,
+//        property = "class")
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = As.EXISTING_PROPERTY,
+    property = "class",
+    visible = true
+)
 public interface CanonicalLinkDetector {
 
     /**

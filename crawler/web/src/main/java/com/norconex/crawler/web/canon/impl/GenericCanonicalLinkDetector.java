@@ -18,7 +18,6 @@ import static org.apache.commons.lang3.StringUtils.substringBefore;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
 import com.norconex.commons.lang.EqualsUtil;
-import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
@@ -93,8 +92,12 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
+//@Schema(name = "com.norconex.crawler.web.canon.impl.GenericCanonicalLinkDetector",
+//  allOf = CanonicalLinkDetector.class)
+//@Schema(allOf = CanonicalLinkDetector.class)
 public class GenericCanonicalLinkDetector
-        implements CanonicalLinkDetector, XMLConfigurable {
+        implements CanonicalLinkDetector,
+            Configurable<GenericCanonicalLinkDetectorConfig>, XMLConfigurable {
 
     private static final List<ContentType> DEFAULT_CONTENT_TYPES =
             Collections.unmodifiableList(Arrays.asList(
@@ -104,21 +107,30 @@ public class GenericCanonicalLinkDetector
                 ContentType.valueOf("x-asp")
             ));
 
-    private final List<ContentType> contentTypes =
-            new ArrayList<>(DEFAULT_CONTENT_TYPES);
+    private final GenericCanonicalLinkDetectorConfig configuration =
+            new GenericCanonicalLinkDetectorConfig(DEFAULT_CONTENT_TYPES);
 
+//    private final List<ContentType> contentTypes =
+//            new ArrayList<>(DEFAULT_CONTENT_TYPES);
+//
+//
+//    public List<ContentType> getContentTypes() {
+//        return Collections.unmodifiableList(contentTypes);
+//    }
+//    /**
+//     * Sets the content types on which to perform canonical link detection.
+//     * @param contentTypes content types
+//     * @since 3.0.0
+//     */
+//    public void setContentTypes(List<ContentType> contentTypes) {
+//        CollectionUtil.setAll(this.contentTypes, contentTypes);
+//    }
 
-    public List<ContentType> getContentTypes() {
-        return Collections.unmodifiableList(contentTypes);
+    @Override
+    public GenericCanonicalLinkDetectorConfig getConfiguration() {
+        return configuration;
     }
-    /**
-     * Sets the content types on which to perform canonical link detection.
-     * @param contentTypes content types
-     * @since 3.0.0
-     */
-    public void setContentTypes(List<ContentType> contentTypes) {
-        CollectionUtil.setAll(this.contentTypes, contentTypes);
-    }
+
 
     @Override
     public String detectFromMetadata(String reference, Properties metadata) {
@@ -144,7 +156,7 @@ public class GenericCanonicalLinkDetector
     public String detectFromContent(
             String reference, InputStream is, ContentType contentType)
                     throws IOException {
-        var cTypes = contentTypes;
+        var cTypes = configuration.getContentTypes();
         if (cTypes.isEmpty()) {
             cTypes = DEFAULT_CONTENT_TYPES;
         }
@@ -194,11 +206,13 @@ public class GenericCanonicalLinkDetector
 
     @Override
     public void loadFromXML(XML xml) {
-        setContentTypes(xml.getDelimitedList(
-                "contentTypes", ContentType.class, contentTypes));
+        configuration.setContentTypes(xml.getDelimitedList(
+                "contentTypes",
+                ContentType.class, configuration.getContentTypes()));
     }
     @Override
     public void saveToXML(XML xml) {
-        xml.addDelimitedElementList("contentTypes", contentTypes);
+        xml.addDelimitedElementList(
+                "contentTypes", configuration.getContentTypes());
     }
 }

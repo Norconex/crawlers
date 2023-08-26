@@ -24,6 +24,7 @@ import java.util.Set;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
@@ -129,6 +130,7 @@ public class ExtensionReferenceFilter implements
     public Set<String> getExtensions() {
         return Collections.unmodifiableSet(extensions);
     }
+    @JsonIgnore
     public void setExtensions(String... extensions) {
         CollectionUtil.setAll(this.extensions, extensions);
     }
@@ -143,12 +145,14 @@ public class ExtensionReferenceFilter implements
         this.ignoreCase = ignoreCase;
     }
 
+    @JsonIgnore
     @Override
     public void loadFromXML(XML xml)  {
         setExtensions(xml.getDelimitedStringList("."));
         setOnMatch(xml.getEnum("@onMatch", OnMatch.class, onMatch));
         setIgnoreCase(xml.getBoolean("@ignoreCase", ignoreCase));
     }
+    @JsonIgnore
     @Override
     public void saveToXML(XML xml) {
         xml.setAttribute("onMatch", onMatch);
@@ -156,10 +160,12 @@ public class ExtensionReferenceFilter implements
         xml.setTextContent(StringUtils.join(extensions, ','));
     }
 
+    @JsonIgnore
     @Override
     public boolean acceptDocument(Doc document) {
         return acceptReference(document.getReference());
     }
+    @JsonIgnore
     @Override
     public boolean acceptMetadata(String reference, Properties metadata) {
         return acceptReference(reference);
