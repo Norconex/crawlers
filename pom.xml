@@ -23,6 +23,8 @@
   <packaging>pom</packaging>
   <name>Norconex Crawler Parent</name>
   
+  <!-- Change anything in this comment to trigger a full build. -->
+  
   <properties>
     <java.version>17</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
