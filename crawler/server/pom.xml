@@ -29,7 +29,7 @@
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     <openapi-generator.version>6.6.0</openapi-generator.version>
     <reactor-version>3.5.8</reactor-version>
-    <springboot.version>3.1.0</springboot.version>
+    <springboot.version>3.1.3</springboot.version>
     <swagger-annotations-version>1.5.8</swagger-annotations-version>
     
   </properties>
@@ -255,6 +255,7 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${springboot.version}</version>
         <configuration>
           <jvmArguments>-Dspring.application.admin.enabled=true</jvmArguments>
         </configuration>
