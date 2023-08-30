@@ -18,14 +18,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.checksum.AbstractMetadataChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.checksum.impl.BaseChecksummerConfig;
 import com.norconex.crawler.core.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -71,14 +70,17 @@ import lombok.extern.slf4j.Slf4j;
  * @since 2.2.0
  * @see GenericMetadataChecksummer
  */
+@SuppressWarnings("javadoc")
 @Slf4j
-@EqualsAndHashCode
-@ToString
+@Data
 public class LastModifiedMetadataChecksummer
-        extends AbstractMetadataChecksummer {
+        extends AbstractMetadataChecksummer<BaseChecksummerConfig> {
 
     /** HTTP header name used to perform checksum. */
     public static final String LAST_MODIFIED_FIELD = HttpHeaders.LAST_MODIFIED;
+
+    private final BaseChecksummerConfig configuration =
+            new BaseChecksummerConfig();
 
     @Override
     protected String doCreateMetaChecksum(Properties metadata) {
@@ -88,15 +90,5 @@ public class LastModifiedMetadataChecksummer
             return checksum;
         }
         return null;
-    }
-
-    @Override
-    protected void loadChecksummerFromXML(XML xml) {
-        //NOOP
-    }
-
-    @Override
-    protected void saveChecksummerToXML(XML xml) {
-        //NOOP
     }
 }

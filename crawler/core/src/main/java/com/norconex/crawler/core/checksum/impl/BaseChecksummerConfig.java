@@ -12,19 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.checksum;
+package com.norconex.crawler.core.checksum.impl;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.crawler.core.checksum.impl.BaseChecksummerConfig;
+import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.experimental.Accessors;
 
 /**
  * <p>Abstract implementation of {@link MetadataChecksummer} giving the option
@@ -49,29 +44,32 @@ import lombok.extern.slf4j.Slf4j;
  * <code>toField</code> is ignored unless the <code>keep</code>
  * attribute is set to <code>true</code>.
  * </p>
- * @param <T> configurable type
  */
 @Data
-@RequiredArgsConstructor
-@Slf4j
-public abstract class AbstractMetadataChecksummer
-        <T extends BaseChecksummerConfig>
-            implements MetadataChecksummer, Configurable<T> {
+@Accessors(chain = true)
+@SuppressWarnings("javadoc")
+public class BaseChecksummerConfig {
 
-    @Override
-    public final String createMetadataChecksum(Properties metadata) {
-        var checksum = doCreateMetaChecksum(metadata);
-        if (getConfiguration().isKeep()) {
-            var field = getConfiguration().getToField();
-            if (StringUtils.isBlank(field)) {
-                field = CrawlDocMetadata.CHECKSUM_METADATA;
-            }
-            PropertySetter.orAppend(getConfiguration().getOnSet()).apply(
-                    metadata, field, checksum);
-            LOG.debug("Meta checksum stored in {}", field);
-        }
-        return checksum;
-    }
+    /**
+     * Whether to keep the metadata checksum value as a new metadata field.
+     * @param keep <code>true</code> to keep the checksum
+     * @return <code>true</code> to keep the checksum
+     */
+    private boolean keep;
 
-    protected abstract String doCreateMetaChecksum(Properties metadata);
+    /**
+     * The metadata field to use to store the checksum value.
+     * Default value is set by checksummer implementations.
+     * Only applicable if {@link #isKeep()} returns {@code true}
+     * @param toField the metadata field name
+     * @return metadata field name
+     */
+	private String toField;
+
+    /**
+     * The property setter to use when a value is set.
+     * @param onSet property setter
+     * @return property setter
+     */
+    private PropertySetter onSet;
 }

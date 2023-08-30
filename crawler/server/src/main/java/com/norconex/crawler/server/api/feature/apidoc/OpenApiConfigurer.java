@@ -33,6 +33,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.norconex.commons.lang.ClassFinder;
 import com.norconex.commons.lang.config.Configurable;
+import com.norconex.crawler.core.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.filter.ReferenceFilter;
 import com.norconex.crawler.server.api.common.CrawlerServerException;
 import com.norconex.crawler.server.api.common.ServerSentEventName;
@@ -66,7 +68,8 @@ public class OpenApiConfigurer {
 
     private static final Set<Class<?>> POLYMORPHABLES = new HashSet<>(Set.of(
             CanonicalLinkDetector.class,
-//            EventListener<Event>
+            DocumentChecksummer.class,
+            MetadataChecksummer.class,
             ReferenceFilter.class,
             RobotsTxtProvider.class
     ));
@@ -156,6 +159,8 @@ public class OpenApiConfigurer {
             //TODO shall we support multi-nesting of configurables?
             if (hasRegisteredSchema(openApi, cls)) {
                 try {
+                    //TODO only works if "getConfiguration" is declared
+                    // on the class (no parent class). Investigate?
                     Class<?> subCls =
                             cls.getMethod("getConfiguration").getReturnType();
                     if (!hasRegisteredSchema(openApi, subCls)) {

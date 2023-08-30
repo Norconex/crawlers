@@ -46,8 +46,9 @@ class MetadataChecksumStageTest {
 
         // with a checksummer
         var checksummer = new GenericMetadataChecksummer();
-        checksummer.setFieldMatcher(TextMatcher.basic("myfield"));
-        checksummer.setKeep(true);
+        checksummer.getConfiguration()
+            .setFieldMatcher(TextMatcher.basic("myfield"))
+            .setKeep(true);
         crawler.getCrawlerConfig().setMetadataChecksummer(checksummer);
         new MetadataChecksumStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getMetadata().getString(

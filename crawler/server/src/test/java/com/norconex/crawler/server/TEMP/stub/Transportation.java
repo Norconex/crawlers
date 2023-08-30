@@ -12,19 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.cfgconverter.yaml;
+package com.norconex.crawler.server.TEMP.stub;
 
-import java.io.Writer;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
-import com.norconex.cfgconverter.ConfigConverter;
-import com.norconex.commons.lang.xml.XML;
-
-public class XmlToYamlConfigConverter implements ConfigConverter {
-
-    @Override
-    public void convert(XML input, Writer output) {
-        // TODO Auto-generated method stub
-
-    }
-
+@JsonTypeInfo(property = "class", include = As.PROPERTY, use = Id.NAME)
+@JsonSubTypes({
+    @JsonSubTypes.Type(name = "Automobile", value = Automobile.class),
+    @JsonSubTypes.Type(name = "Plane", value = Plane.class)
+})
+public interface Transportation {
+//    @JsonProperty("name")
+//    String getName();
 }

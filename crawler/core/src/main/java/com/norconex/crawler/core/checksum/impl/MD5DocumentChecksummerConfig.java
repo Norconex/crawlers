@@ -14,20 +14,12 @@
  */
 package com.norconex.crawler.core.checksum.impl;
 
-import java.io.IOException;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.text.TextMatcher.Method;
-import com.norconex.crawler.core.checksum.AbstractDocumentChecksummer;
-import com.norconex.crawler.core.checksum.ChecksumUtil;
 import com.norconex.crawler.core.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
-import com.norconex.crawler.core.session.CrawlSessionException;
-import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>Implementation of {@link DocumentChecksummer} which
@@ -87,51 +79,28 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class MD5DocumentChecksummer
-        extends AbstractDocumentChecksummer<MD5DocumentChecksummerConfig> {
+@Accessors(chain = true)
+public class MD5DocumentChecksummerConfig extends BaseChecksummerConfig {
 
-    private final MD5DocumentChecksummerConfig configuration =
-            new MD5DocumentChecksummerConfig();
+    /**
+     * The field matcher.
+     * @param fieldMatcher field matcher
+     * @return field matcher
+     */
+    private final TextMatcher fieldMatcher = new TextMatcher();
 
-    @Override
-    public String doCreateDocumentChecksum(Doc document) {
-
-        // fields
-        var fm = new TextMatcher(getConfiguration().getFieldMatcher());
-        var isSourceFieldsSet = isFieldMatcherSet();
-        if (getConfiguration().isCombineFieldsAndContent()
-                && !isSourceFieldsSet) {
-            fm.setMethod(Method.REGEX);
-            fm.setPattern(".*");
-        }
-        var b = new StringBuilder();
-        if (isSourceFieldsSet
-                || getConfiguration().isCombineFieldsAndContent()) {
-            var checksum = ChecksumUtil.metadataChecksumMD5(
-                    document.getMetadata(), fm);
-            if (checksum != null) {
-                b.append(checksum);
-                b.append('|');
-            }
-        }
-
-        // document
-        if (getConfiguration().isCombineFieldsAndContent()
-                || !isSourceFieldsSet) {
-            try {
-                b.append(ChecksumUtil.checksumMD5(document.getInputStream()));
-            } catch (IOException e) {
-                throw new CrawlSessionException(
-                        "Cannot create document checksum on : "
-                                + document.getReference(), e);
-            }
-        }
-
-        return StringUtils.trimToNull(b.toString());
+    public MD5DocumentChecksummerConfig setFieldMatcher(
+            TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
     }
 
-    private boolean isFieldMatcherSet() {
-        return StringUtils.isNotBlank(
-                getConfiguration().getFieldMatcher().getPattern());
-    }
+    /**
+     * Whether we are combining the fields and content checksums.
+     * @param combineFieldsAndContent <code>true</code> if combining fields
+     *        and content checksums
+     * @return <code>true</code> if combining fields and content checksums
+     */
+    private boolean combineFieldsAndContent;
+
 }

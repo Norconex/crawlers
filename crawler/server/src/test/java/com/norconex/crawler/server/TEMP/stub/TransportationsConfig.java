@@ -12,19 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.cfgconverter.json;
+package com.norconex.crawler.server.TEMP.stub;
 
-import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.norconex.cfgconverter.ConfigConverter;
-import com.norconex.commons.lang.xml.XML;
+import jakarta.validation.Valid;
+import lombok.Data;
 
-public class XmlToJsonConfigConverter implements ConfigConverter {
+@Data
+public class TransportationsConfig {
+    private String id;
 
-    @Override
-    public void convert(XML input, Writer output) {
-        // TODO Auto-generated method stub
-
-    }
-
+    @Valid
+    private final List<? extends Transportation> transportations = new ArrayList<>();
 }

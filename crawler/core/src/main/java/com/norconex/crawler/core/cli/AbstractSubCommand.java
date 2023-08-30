@@ -17,18 +17,27 @@ package com.norconex.crawler.core.cli;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.commons.lang.xml.ErrorHandlerCapturer;
+import com.norconex.crawler.core.crawler.CrawlerException;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import picocli.CommandLine;
+import picocli.CommandLine.Help.Visibility;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
@@ -40,6 +49,8 @@ import picocli.CommandLine.Spec;
 @EqualsAndHashCode
 @ToString
 public abstract class AbstractSubCommand implements Callable<Integer> {
+
+    public enum ConfigVersion { PRE_V4, V4 }
 
     @ParentCommand
     private MainCommand parent;
@@ -74,6 +85,15 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
     @Getter
     private final List<String> crawlers = new ArrayList<>();
 
+    @Option(
+        names = {"-cfgversion"},
+        paramLabel = "[PRE_V4|V4] (Default: ${DEFAULT-VALUE})",
+        description = "Version originaly targetted by configuration file.",
+        defaultValue = "PRE_V4",
+        showDefaultValue = Visibility.ON_DEMAND
+    )
+    private ConfigVersion configVersion = ConfigVersion.PRE_V4;
+
     private CrawlSession crawlSession;
 
     protected void printOut() {
@@ -104,18 +124,17 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
                     + getConfigFile().toFile().getAbsolutePath());
             return -1;
         }
-        var eh = new ErrorHandlerCapturer(getClass());
-        new ConfigurationLoader()
-                .setVariablesFile(getVariablesFile())
-                .loadFromXML(getConfigFile(), getCrawlSessionConfig(), eh);
-        if (!eh.getErrors().isEmpty()) {
-            printErr();
-            printErr(eh.getErrors().size()
-                    + " XML configuration errors detected:");
-            printErr();
-            eh.getErrors().stream().forEach(er ->
-                    printErr(er.getMessage()));
-            return  -1;
+
+        //TODO Support both config versions via a flag for now... until we
+        // figure out the final approach.
+        int returnValue;
+        if (configVersion == ConfigVersion.PRE_V4) {
+            returnValue = preV4ConfigLoader();
+        } else {
+            returnValue = v4ConfigLoader(); // default
+        }
+        if (returnValue != 0) {
+            return returnValue;
         }
 
         crawlSession = parent.getCrawlSessionBuilder().build();
@@ -130,6 +149,66 @@ public abstract class AbstractSubCommand implements Callable<Integer> {
             return exitVal;
         }
         runCommand();
+        return 0;
+    }
+
+    private int v4ConfigLoader() {
+        //TODO for now, we default to XML if we can't derive from file
+        // extension.
+        var path = getConfigFile().toString().toLowerCase();
+        ObjectMapper mapper;
+        if (path.endsWith(".json")) {
+            mapper = new ObjectMapper();
+        } else if (path.endsWith(".yaml") || path.endsWith(".yml")) {
+            mapper = new YAMLMapper();
+        } else {
+            mapper = new XmlMapper();
+        }
+
+        var cfg = getCrawlSessionConfig();
+
+        var cfgText = new ConfigurationLoader()
+            .setVariablesFile(getVariablesFile())
+            .loadString(getConfigFile());
+
+        try {
+            mapper.readerForUpdating(cfg).readValue(cfgText);
+        } catch (JsonProcessingException e) {
+            throw new CrawlerException("Could not parse config file: "
+                    + getConfigFile().toAbsolutePath().toString(), e);
+        }
+
+        var factory = Validation.buildDefaultValidatorFactory();
+        var validator = factory.getValidator();
+        Set<ConstraintViolation<CrawlSessionConfig>> violations =
+                validator.validate(cfg);
+
+        if (!violations.isEmpty()) {
+            printErr();
+            printErr(violations.size() + " configuration errors detected:");
+            printErr();
+            violations.forEach(cv -> printErr(cv.getMessage()));
+            return  -1;
+        }
+        return 0;
+    }
+
+    private int preV4ConfigLoader() {
+        //TODO convert from XMLv3 to XMLv4 first... then call 
+        // v4ConfigLoader
+        var eh = new ErrorHandlerCapturer(getClass());
+        new ConfigurationLoader()
+                .setVariablesFile(getVariablesFile())
+                .loadFromXML(getConfigFile(), getCrawlSessionConfig(), eh);
+        if (!eh.getErrors().isEmpty()) {
+            printErr();
+            printErr(eh.getErrors().size()
+                    + " XML configuration errors detected:");
+            printErr();
+            eh.getErrors().stream().forEach(er ->
+                    printErr(er.getMessage()));
+            return  -1;
+        }
         return 0;
     }
 

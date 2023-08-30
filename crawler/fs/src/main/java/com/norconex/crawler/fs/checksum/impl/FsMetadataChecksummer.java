@@ -22,9 +22,12 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.checksum.AbstractMetadataChecksummer;
 import com.norconex.crawler.core.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.checksum.impl.BaseChecksummerConfig;
 import com.norconex.crawler.core.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.CrawlDocMetadata;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
+
+import lombok.Data;
 
 /**
  * <p>Default implementation of {@link MetadataChecksummer} which by default
@@ -63,7 +66,12 @@ import com.norconex.crawler.fs.doc.FsDocMetadata;
  * @author Pascal Essiembre
  * @see GenericMetadataChecksummer
  */
-public class FsMetadataChecksummer extends AbstractMetadataChecksummer {
+@Data
+public class FsMetadataChecksummer
+        extends AbstractMetadataChecksummer<BaseChecksummerConfig> {
+
+    private final BaseChecksummerConfig configuration =
+            new BaseChecksummerConfig();
 
     @Override
     protected String doCreateMetaChecksum(Properties metadata) {
@@ -74,15 +82,5 @@ public class FsMetadataChecksummer extends AbstractMetadataChecksummer {
             return null;
         }
     	return lastMod + "_" + size;
-    }
-
-    @Override
-    protected void loadChecksummerFromXML(XML xml) {
-        //NOOP
-    }
-
-    @Override
-    protected void saveChecksummerToXML(XML xml) {
-        //NOOP
     }
 }

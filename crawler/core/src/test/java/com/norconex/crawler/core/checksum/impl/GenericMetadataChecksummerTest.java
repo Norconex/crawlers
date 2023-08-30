@@ -33,10 +33,11 @@ class GenericMetadataChecksummerTest {
     @Test
     void testWriteRead() {
         var c = new GenericMetadataChecksummer();
-        c.setKeep(true);
-        c.setToField("myToField");
-        c.setOnSet(PropertySetter.OPTIONAL);
-        c.setFieldMatcher(TextMatcher.basic("blah"));
+        c.getConfiguration()
+            .setFieldMatcher(TextMatcher.basic("blah"))
+            .setKeep(true)
+            .setToField("myToField")
+            .setOnSet(PropertySetter.OPTIONAL);
         XML.assertWriteRead(c, "metadataChecksummer");
     }
     @Test
@@ -53,9 +54,10 @@ class GenericMetadataChecksummerTest {
         props.set("field3", "value3");
 
         var c = new GenericMetadataChecksummer();
-        c.setKeep(true);
-        c.setToField("myfield");
-        c.setFieldMatcher(TextMatcher.regex("field.*"));
+        c.getConfiguration()
+            .setFieldMatcher(TextMatcher.regex("field.*"))
+            .setKeep(true)
+            .setToField("myfield");
 
         c.createMetadataChecksum(props);
 

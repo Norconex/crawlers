@@ -54,7 +54,7 @@ class MD5DocumentChecksummerTest {
         props.add("field2", "value2");
         var doc = new Doc("N/A", is, props);
         var cs = new MD5DocumentChecksummer();
-        cs.setCombineFieldsAndContent(true);
+        cs.getConfiguration().setCombineFieldsAndContent(true);
         var checksum = cs.createDocumentChecksum(doc);
         is.dispose();
         assertThat(checksum).isEqualTo("e75e091aff05a39a9c585e2b4b18c9bc"
@@ -72,34 +72,34 @@ class MD5DocumentChecksummerTest {
         var cs = new MD5DocumentChecksummer();
 
         // 2 matching fields
-        cs.setFieldMatcher(TextMatcher.csv("field1,field2"));
+        cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field1,field2"));
         var checksum1 = cs.createDocumentChecksum(doc);
         Assertions.assertTrue(
                 StringUtils.isNotBlank(checksum1),
                 "No checksum was generated for two matching fields.");
 
         // 1 out of 2 matching fields
-        cs.setFieldMatcher(TextMatcher.csv("field1,field3"));
+        cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field1,field3"));
         var checksum2 = cs.createDocumentChecksum(doc);
         Assertions.assertTrue(
                 StringUtils.isNotBlank(checksum2),
                 "No checksum was generated for 1 of two matching fields.");
 
         // No matching fields
-        cs.setFieldMatcher(TextMatcher.csv("field4,field5"));
+        cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field4,field5"));
         var checksum3 = cs.createDocumentChecksum(doc);
         Assertions.assertNull(checksum3,
                 "Checksum for no matching fields should have been null.");
 
         // Regex
-        cs.setFieldMatcher(TextMatcher.regex("field.*"));
+        cs.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         var checksum4 = cs.createDocumentChecksum(doc);
         Assertions.assertTrue(StringUtils.isNotBlank(checksum4),
                 "No checksum was generated.");
 
 
         // Regex only no match
-        cs.setFieldMatcher(TextMatcher.regex("NOfield.*"));
+        cs.getConfiguration().setFieldMatcher(TextMatcher.regex("NOfield.*"));
         var checksum5 = cs.createDocumentChecksum(doc);
         Assertions.assertNull(checksum5,
                 "Checksum for no matching regex should have been null.");
@@ -122,11 +122,11 @@ class MD5DocumentChecksummerTest {
         var contentChecksum = cs.createDocumentChecksum(doc);
 
         // With source fields, should use fields only.
-        cs.setFieldMatcher(TextMatcher.regex("field.*"));
+        cs.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         var fieldsChecksum = cs.createDocumentChecksum(doc);
 
         // When combining, should use both fields and content.
-        cs.setCombineFieldsAndContent(true);
+        cs.getConfiguration().setCombineFieldsAndContent(true);
         var combinedChecksum = cs.createDocumentChecksum(doc);
 
         // The 3 checksums should be non-null, but different.
@@ -146,11 +146,13 @@ class MD5DocumentChecksummerTest {
     @Test
     void testWriteRead() {
         var c = new MD5DocumentChecksummer();
-        c.setKeep(true);
-        c.setToField("myToField");
-        c.setFieldMatcher(TextMatcher.csv("field1,field2"));
-        c.setOnSet(PropertySetter.PREPEND);
-        c.setCombineFieldsAndContent(true);
+        c.getConfiguration()
+            .setFieldMatcher(TextMatcher.csv("field1,field2"))
+            .setCombineFieldsAndContent(true)
+            .setKeep(true)
+            .setToField("myToField")
+            .setOnSet(PropertySetter.PREPEND)
+            ;
         assertThatNoException().isThrownBy(
                 () -> XML.assertWriteRead(c, "documentChecksummer"));
     }

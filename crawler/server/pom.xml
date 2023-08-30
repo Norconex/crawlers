@@ -103,7 +103,6 @@
     <dependency>
       <groupId>com.github.therapi</groupId>
       <artifactId>therapi-runtime-javadoc</artifactId>
-      <version>0.15.0</version>
     </dependency>
 
     <!-- Jackson dependencies -->
@@ -124,6 +123,11 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
     </dependency>
 
 
@@ -225,6 +229,15 @@
       <scope>test</scope>
     </dependency>
     -->
+
+    <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
+      <version>5.0.1</version>
+    </dependency>
+
+    
+    
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-test</artifactId>
