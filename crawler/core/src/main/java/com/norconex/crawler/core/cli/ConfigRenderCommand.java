@@ -14,14 +14,13 @@
  */
 package com.norconex.crawler.core.cli;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.file.Path;
 
-import org.apache.commons.io.FileUtils;
-
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.ExceptionUtil;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -52,19 +51,21 @@ public class ConfigRenderCommand extends AbstractSubCommand {
 
     @Override
     public void runCommand() {
-        var xml = new XML("collector");
-        getCrawlSession().getCrawlSessionConfig().saveToXML(xml);
-
-        var renderedConfig = xml.toString(indent);
-
-        if (output != null) {
-            try {
-                FileUtils.write(output.toFile(), renderedConfig, UTF_8);
-            } catch (IOException e) {
-                e.printStackTrace(System.err);
+        //TODO support different format, either explicit, on file extension
+        // or default to XML
+        try (var out = output != null
+                ? new FileWriter(output.toFile())
+                : new StringWriter()) {
+            getBeanMapper().write(
+                    getCrawlSession().getCrawlSessionConfig(),
+                    out,
+                    Format.XML);
+            if (output == null) {
+                printOut(((StringWriter) out).toString());
             }
-        } else {
-            printOut(renderedConfig);
+        } catch (IOException e) {
+            printErr("Could not render config: "
+                    + ExceptionUtil.getFormattedMessages(e));
         }
     }
 }

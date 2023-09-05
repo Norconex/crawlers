@@ -243,7 +243,7 @@ public final class WebStubber {
     public static CrawlSessionConfig crawlSessionConfig(Path workDir) {
         List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
         crawlerConfigs.add(crawlerConfig());
-        var sessionConfig = new CrawlSessionConfig(WebCrawlerConfig.class);
+        var sessionConfig = new CrawlSessionConfig();
         sessionConfig.setWorkDir(workDir);
         sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
         sessionConfig.setCrawlerConfigs(crawlerConfigs);

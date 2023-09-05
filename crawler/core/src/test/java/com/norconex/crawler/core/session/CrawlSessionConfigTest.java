@@ -27,9 +27,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.fs.impl.JSONFileCommitter;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.crawler.core.CoreStubber;
-import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.filter.impl.ExtensionReferenceFilter;
 import com.norconex.importer.handler.HandlerConsumer;
 import com.norconex.importer.handler.transformer.impl.ReplaceTransformer;
@@ -40,12 +40,12 @@ class CrawlSessionConfigTest {
     void testCrawlSessionConfig() {
         var cfg = CoreStubber.randomize(CrawlSessionConfig.class);
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(cfg, "crawlSession"));
+                () -> BeanMapper.DEFAULT.assertWriteRead(cfg));
     }
 
     @Test
     void testOverwriteCrawlerDefaults() throws IOException {
-        var cfg = new CrawlSessionConfig(CrawlerConfig.class);
+        var cfg = new CrawlSessionConfig();
         try (Reader r = new InputStreamReader(getClass().getResourceAsStream(
                 "overwrite-crawlerDefaults.xml"))) {
             XML.of(r).create().populate(cfg);

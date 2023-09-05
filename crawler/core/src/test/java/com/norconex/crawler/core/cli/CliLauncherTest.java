@@ -29,7 +29,6 @@ import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.crawler.core.CoreStubber;
-import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.crawler.core.crawler.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
@@ -84,8 +83,7 @@ class CliLauncherTest {
         // Simulate Picocli Exception
         var captured = SystemUtil.callAndCaptureOutput(() -> CliLauncher.launch(
                 CrawlSession.builder()
-                    .crawlSessionConfig(
-                            new CrawlSessionConfig(CrawlerConfig.class))
+                    .crawlSessionConfig(new CrawlSessionConfig())
                     .crawlerFactory((s, c) -> {
                             throw new PicocliException("Fake exception.");
                     }),
@@ -178,6 +176,9 @@ class CliLauncherTest {
     void testStart() throws IOException {
         LOG.debug("=== Run 1: Start ===");
         var exit1 = testLaunch(tempDir, "start", "-config=" + configFile);
+        if (!exit1.ok()) {
+            LOG.error("Could not start crawler properly. Output:\n{}", exit1);
+        }
         assertThat(exit1.ok()).isTrue();
         assertThat(exit1.getEvents()).containsExactly(
                 CrawlSessionEvent.CRAWLSESSION_RUN_BEGIN,
@@ -291,7 +292,6 @@ class CliLauncherTest {
         assertThat(exit1.ok()).isTrue();
         // check that some entries not explicitely configured are present:
         assertThat(exit1.getStdOut()).contains(
-            "ignoreDiacritic=\"false\"",
             "<defaultParser ",
             ".impl.GenericSpoiledReferenceStrategizer"
         );

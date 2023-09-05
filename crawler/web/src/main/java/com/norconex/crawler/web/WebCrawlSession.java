@@ -15,14 +15,25 @@
 package com.norconex.crawler.web;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.cli.CliLauncher;
 import com.norconex.crawler.core.crawler.Crawler;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionBuilder;
 import com.norconex.crawler.core.session.CrawlSessionConfig;
+import com.norconex.crawler.web.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.crawler.WebCrawlerConfig;
 import com.norconex.crawler.web.crawler.impl.WebCrawlerImplFactory;
+import com.norconex.crawler.web.delay.DelayResolver;
+import com.norconex.crawler.web.link.LinkExtractor;
+import com.norconex.crawler.web.recrawl.RecrawlableResolver;
+import com.norconex.crawler.web.robot.RobotsMetaProvider;
+import com.norconex.crawler.web.robot.RobotsTxtProvider;
+import com.norconex.crawler.web.sitemap.SitemapLocator;
+import com.norconex.crawler.web.sitemap.SitemapResolver;
+import com.norconex.crawler.web.url.WebURLNormalizer;
 
 public class WebCrawlSession {
 
@@ -49,29 +60,48 @@ public class WebCrawlSession {
         return CliLauncher.launch(
                 initCrawlSessionBuilder(
                         CrawlSession.builder(),
-                        new CrawlSessionConfig(WebCrawlerConfig.class)),
+                        new CrawlSessionConfig()),
                 args);
     }
 
     public static CrawlSession createSession(CrawlSessionConfig sessionConfig) {
         return initCrawlSessionBuilder(
                 CrawlSession.builder(),
-                Optional.ofNullable(sessionConfig).orElseGet(() ->
-                        new CrawlSessionConfig(WebCrawlerConfig.class)))
+                Optional.ofNullable(sessionConfig)
+                    .orElseGet(CrawlSessionConfig::new))
                 .build();
     }
 
     // Return same builder, for chaining
     static CrawlSessionBuilder initCrawlSessionBuilder(
             CrawlSessionBuilder builder, CrawlSessionConfig sessionConfig) {
-        builder.crawlerFactory(
+        builder
+            .crawlerConfigClass(WebCrawlerConfig.class)
+            .crawlerFactory(
                 (sess, cfg) -> Crawler.builder()
                     .crawlSession(sess)
                     .crawlerConfig(cfg)
                     .crawlerImpl(WebCrawlerImplFactory.create())
                     .build()
             )
-            .crawlSessionConfig(sessionConfig);
+            .crawlSessionConfig(sessionConfig)
+            .beanMapperCustomizer(WebCrawlSession::customizeBeanMapper);
         return builder;
+    }
+
+    private static void customizeBeanMapper(
+            BeanMapper.BeanMapperBuilder builder) {
+        // Register polymorphic types
+        Predicate<String> p = nm -> nm.startsWith("com.norconex.");
+        builder
+            .polymorphicType(WebURLNormalizer.class, p)
+            .polymorphicType(DelayResolver.class, p)
+            .polymorphicType(CanonicalLinkDetector.class, p)
+            .polymorphicType(LinkExtractor.class, p)
+            .polymorphicType(RobotsTxtProvider.class, p)
+            .polymorphicType(RobotsMetaProvider.class, p)
+            .polymorphicType(SitemapResolver.class, p)
+            .polymorphicType(SitemapLocator.class, p)
+            .polymorphicType(RecrawlableResolver.class, p);
     }
 }

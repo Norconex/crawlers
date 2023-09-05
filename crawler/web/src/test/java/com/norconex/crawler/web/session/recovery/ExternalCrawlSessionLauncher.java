@@ -16,6 +16,9 @@ package com.norconex.crawler.web.session.recovery;
 
 import static java.lang.String.join;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -42,6 +45,8 @@ import com.norconex.committer.core.batch.queue.impl.FSQueueUtil;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
@@ -100,9 +105,11 @@ public class ExternalCrawlSessionLauncher {
 
         // Save session config to file so it can be used from command-line
         var configFile = sessionConfig.getWorkDir().resolve("config.xml");
-        var xml = new XML("crawlSession");
-        sessionConfig.saveToXML(xml);
-        xml.write(configFile.toFile());
+        try (var writer = new FileWriter(configFile.toFile())) {
+            BeanMapper.DEFAULT.write(sessionConfig, writer, Format.XML);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not save XML.", e);
+        }
 
         var project = new Project();
         project.setBaseDir(sessionConfig.getWorkDir().toFile());

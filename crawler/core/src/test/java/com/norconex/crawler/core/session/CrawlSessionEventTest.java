@@ -22,13 +22,12 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.crawler.Crawler;
-import com.norconex.crawler.core.crawler.CrawlerConfig;
 
 class CrawlSessionEventTest {
 
     @Test
     void testCrawlSessionEvent() {
-        var sessConfig = new CrawlSessionConfig(CrawlerConfig.class);
+        var sessConfig = new CrawlSessionConfig();
         sessConfig.setId("test-crawl-session");
 
         var crawlSession = CrawlSession.builder()

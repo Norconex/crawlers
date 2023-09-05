@@ -21,21 +21,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.crawler.core.crawler.CrawlerConfig;
 import com.norconex.importer.ImporterConfig;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
 
@@ -107,7 +100,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @FieldNameConstants
 @Slf4j
-public class CrawlSessionConfig implements XMLConfigurable {
+public class CrawlSessionConfig { // implements XMLConfigurable {
 
     /** Default relative directory where generated files are written. */
     public static final Path DEFAULT_WORK_DIR = Paths.get("./work");
@@ -179,6 +172,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
     private Duration crawlersStartInterval;
 
     // see methods for javadoc
+    @JsonProperty("crawlers")
     private final List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
     private final List<EventListener<?>> eventListeners = new ArrayList<>();
 
@@ -194,26 +188,11 @@ public class CrawlSessionConfig implements XMLConfigurable {
     @SuppressWarnings("javadoc")
     private Duration deferredShutdownDuration = Duration.ZERO;
 
-    //TODO check if there is a way to not have to do this?
-    // Replace with CrawlConfigFactory? Or set it at CrawlSession
-    // creation time via CrawlSessionBuilderMaybe?
-    @Setter(value = AccessLevel.NONE)
-    private Class<? extends CrawlerConfig> crawlerConfigClass;
-    // Need empty constructor so it is recognized as a "bean" whenever it
-    // matters (like when EventManager scans for listeners).
-    public CrawlSessionConfig() {
-        this(CrawlerConfig.class);
-    }
-    public CrawlSessionConfig(
-            @NonNull Class<? extends CrawlerConfig> crawlerConfigClass) {
-        this.crawlerConfigClass = crawlerConfigClass;
-    }
-
     /**
      * Configurations for each crawlers to be executed together in a crawl
      * session.
      * @return crawler configuration list (never <code>null</code>)
-         */
+     */
     public List<CrawlerConfig> getCrawlerConfigs() {
         return Collections.unmodifiableList(crawlerConfigs);
     }
@@ -221,7 +200,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Configurations for each crawlers to be executed together in a crawl
      * session.
      * @param crawlerConfigs crawler configuration list
-         */
+     */
     public void setCrawlerConfigs(List<CrawlerConfig> crawlerConfigs) {
         CollectionUtil.setAll(this.crawlerConfigs, crawlerConfigs);
     }
@@ -231,7 +210,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
      * @return event listeners.
-         */
+     */
     public List<EventListener<?>> getEventListeners() {
         return Collections.unmodifiableList(eventListeners);
     }
@@ -240,7 +219,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
      * @param eventListeners event listeners.
-         */
+     */
     public void setEventListeners(List<EventListener<?>> eventListeners) {
         CollectionUtil.setAll(this.eventListeners, eventListeners);
     }
@@ -249,7 +228,7 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
      * @param eventListeners event listeners.
-         */
+     */
     public void addEventListeners(List<EventListener<?>> eventListeners) {
         this.eventListeners.addAll(eventListeners);
     }
@@ -273,105 +252,105 @@ public class CrawlSessionConfig implements XMLConfigurable {
      * Clears all event listeners. The automatically
      * detected configuration objects implementing {@link EventListener}
      * are not cleared.
-         */
+     */
     public void clearEventListeners() {
         eventListeners.clear();
     }
 
-    @Override
-    public void saveToXML(XML xml) {
-        xml.setAttribute(Fields.id, getId());
-        // we convert to string here or it will think it is a configurable
-        // class and will add a "class" attribute.
-        xml.addElement(Fields.crawlerConfigClass,
-                getCrawlerConfigClass().getName());
-        xml.addElement(Fields.workDir, getWorkDir());
-        xml.addElement(
-                Fields.maxConcurrentCrawlers, getMaxConcurrentCrawlers());
-        xml.addElement(
-                Fields.crawlersStartInterval, getCrawlersStartInterval());
-        xml.addElement(
-                Fields.maxStreamCachePoolSize, getMaxStreamCachePoolSize());
-        xml.addElement(Fields.maxStreamCacheSize, getMaxStreamCacheSize());
-        xml.addElementList(Fields.eventListeners, "listener", eventListeners);
-        xml.addElement(
-                "deferredShutdownDuration", getDeferredShutdownDuration());
-        xml.addElementList("crawlers", "crawler", getCrawlerConfigs());
-    }
-
-    @Override
-    public final void loadFromXML(XML xml) {
-        var crawlSessionId = xml.getString("@" + Fields.id, null);
-        if (StringUtils.isBlank(crawlSessionId)) {
-            throw new CrawlSessionException(
-                    "Crawl session id attribute is mandatory.");
-        }
-        setId(crawlSessionId);
-        crawlerConfigClass = xml.getClass(
-                Fields.crawlerConfigClass, getCrawlerConfigClass());
-        setWorkDir(xml.getPath(Fields.workDir, getWorkDir()));
-        setMaxConcurrentCrawlers(xml.getInteger(
-                Fields.maxConcurrentCrawlers, getMaxConcurrentCrawlers()));
-        setCrawlersStartInterval(xml.getDuration(
-                Fields.crawlersStartInterval, getCrawlersStartInterval()));
-        setMaxStreamCachePoolSize(xml.getDataSize(
-                Fields.maxStreamCachePoolSize, getMaxStreamCachePoolSize()));
-        setMaxStreamCacheSize(xml.getDataSize(
-                Fields.maxStreamCacheSize, getMaxStreamCacheSize()));
-        setEventListeners(xml.getObjectListImpl(EventListener.class,
-                Fields.eventListeners + "/listener", eventListeners));
-        setDeferredShutdownDuration(
-                xml.getDuration("deferredShutdownDuration"));
-
-        if (crawlerConfigClass != null) {
-            var cfgs = loadCrawlerConfigs(xml);
-            if (CollectionUtils.isNotEmpty(cfgs)) {
-                setCrawlerConfigs(cfgs);
-            }
-        }
-    }
-
-    List<CrawlerConfig> loadCrawlerConfigs(XML xml) {
-        try {
-            var crawlerDefaultsXML = xml.getXML("crawlerDefaults");
-            var crawlersXML = xml.getXMLList("crawlers/crawler");
-            List<CrawlerConfig> configs = new ArrayList<>();
-            for (XML crawlerXML : crawlersXML) {
-                CrawlerConfig config = crawlerConfigClass
-                        .getDeclaredConstructor().newInstance();
-                LOG.debug("Loading crawler config for type: {}",
-                        config.getClass());
-                if (crawlerDefaultsXML != null) {
-                    populateCrawlerConfig(config, crawlerDefaultsXML);
-                    LOG.debug("Crawler defaults loaded for new crawler.");
-                }
-                populateCrawlerConfig(config, crawlerXML);
-                configs.add(config);
-                LOG.debug("Crawler configuration loaded: {}", config.getId());
-            }
-            return configs;
-        } catch (Exception e) {
-            throw new CrawlSessionException(
-                    "Cannot load crawler configurations.", e);
-        }
-    }
-
-    void populateCrawlerConfig(CrawlerConfig config, XML xml) {
-        if (xml == null) {
-            LOG.warn("Passing a null configuration for {}, skipping.",
-                    config.getId());
-            return;
-        }
-
-        // grab id only if we are not populating default crawler settings
-        if (!"crawlerDefaults".equalsIgnoreCase(xml.getName())) {
-            var crawlerId = xml.getString("@id", null);
-            if (StringUtils.isBlank(crawlerId)) {
-                throw new CrawlSessionException(
-                        "Crawler ID is missing in configuration.");
-            }
-        }
-
-        xml.populate(config);
-    }
+//    @Override
+//    public void saveToXML(XML xml) {
+//        xml.setAttribute(Fields.id, getId());
+//        // we convert to string here or it will think it is a configurable
+//        // class and will add a "class" attribute.
+//        xml.addElement(Fields.crawlerConfigClass,
+//                getCrawlerConfigClass().getName());
+//        xml.addElement(Fields.workDir, getWorkDir());
+//        xml.addElement(
+//                Fields.maxConcurrentCrawlers, getMaxConcurrentCrawlers());
+//        xml.addElement(
+//                Fields.crawlersStartInterval, getCrawlersStartInterval());
+//        xml.addElement(
+//                Fields.maxStreamCachePoolSize, getMaxStreamCachePoolSize());
+//        xml.addElement(Fields.maxStreamCacheSize, getMaxStreamCacheSize());
+//        xml.addElementList(Fields.eventListeners, "listener", eventListeners);
+//        xml.addElement(
+//                "deferredShutdownDuration", getDeferredShutdownDuration());
+//        xml.addElementList("crawlers", "crawler", getCrawlerConfigs());
+//    }
+//
+//    @Override
+//    public final void loadFromXML(XML xml) {
+//        var crawlSessionId = xml.getString("@" + Fields.id, null);
+//        if (StringUtils.isBlank(crawlSessionId)) {
+//            throw new CrawlSessionException(
+//                    "Crawl session id attribute is mandatory.");
+//        }
+//        setId(crawlSessionId);
+//        crawlerConfigClass = xml.getClass(
+//                Fields.crawlerConfigClass, getCrawlerConfigClass());
+//        setWorkDir(xml.getPath(Fields.workDir, getWorkDir()));
+//        setMaxConcurrentCrawlers(xml.getInteger(
+//                Fields.maxConcurrentCrawlers, getMaxConcurrentCrawlers()));
+//        setCrawlersStartInterval(xml.getDuration(
+//                Fields.crawlersStartInterval, getCrawlersStartInterval()));
+//        setMaxStreamCachePoolSize(xml.getDataSize(
+//                Fields.maxStreamCachePoolSize, getMaxStreamCachePoolSize()));
+//        setMaxStreamCacheSize(xml.getDataSize(
+//                Fields.maxStreamCacheSize, getMaxStreamCacheSize()));
+//        setEventListeners(xml.getObjectListImpl(EventListener.class,
+//                Fields.eventListeners + "/listener", eventListeners));
+//        setDeferredShutdownDuration(
+//                xml.getDuration("deferredShutdownDuration"));
+//
+//        if (crawlerConfigClass != null) {
+//            var cfgs = loadCrawlerConfigs(xml);
+//            if (CollectionUtils.isNotEmpty(cfgs)) {
+//                setCrawlerConfigs(cfgs);
+//            }
+//        }
+//    }
+//
+//    List<CrawlerConfig> loadCrawlerConfigs(XML xml) {
+//        try {
+//            var crawlerDefaultsXML = xml.getXML("crawlerDefaults");
+//            var crawlersXML = xml.getXMLList("crawlers/crawler");
+//            List<CrawlerConfig> configs = new ArrayList<>();
+//            for (XML crawlerXML : crawlersXML) {
+//                CrawlerConfig config = crawlerConfigClass
+//                        .getDeclaredConstructor().newInstance();
+//                LOG.debug("Loading crawler config for type: {}",
+//                        config.getClass());
+//                if (crawlerDefaultsXML != null) {
+//                    populateCrawlerConfig(config, crawlerDefaultsXML);
+//                    LOG.debug("Crawler defaults loaded for new crawler.");
+//                }
+//                populateCrawlerConfig(config, crawlerXML);
+//                configs.add(config);
+//                LOG.debug("Crawler configuration loaded: {}", config.getId());
+//            }
+//            return configs;
+//        } catch (Exception e) {
+//            throw new CrawlSessionException(
+//                    "Cannot load crawler configurations.", e);
+//        }
+//    }
+//
+//    void populateCrawlerConfig(CrawlerConfig config, XML xml) {
+//        if (xml == null) {
+//            LOG.warn("Passing a null configuration for {}, skipping.",
+//                    config.getId());
+//            return;
+//        }
+//
+//        // grab id only if we are not populating default crawler settings
+//        if (!"crawlerDefaults".equalsIgnoreCase(xml.getName())) {
+//            var crawlerId = xml.getString("@id", null);
+//            if (StringUtils.isBlank(crawlerId)) {
+//                throw new CrawlSessionException(
+//                        "Crawler ID is missing in configuration.");
+//            }
+//        }
+//
+//        xml.populate(config);
+//    }
 }

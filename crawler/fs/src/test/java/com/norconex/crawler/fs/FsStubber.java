@@ -155,7 +155,7 @@ public final class FsStubber {
     public static CrawlSessionConfig crawlSessionConfig(Path workDir) {
         List<CrawlerConfig> crawlerConfigs = new ArrayList<>();
         crawlerConfigs.add(crawlerConfig());
-        var sessionConfig = new CrawlSessionConfig(CrawlerConfig.class);
+        var sessionConfig = new CrawlSessionConfig();
         sessionConfig.setWorkDir(workDir);
         sessionConfig.setId(MOCK_CRAWL_SESSION_ID);
         sessionConfig.setCrawlerConfigs(crawlerConfigs);

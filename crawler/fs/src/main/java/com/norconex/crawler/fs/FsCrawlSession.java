@@ -45,22 +45,24 @@ public class FsCrawlSession {
         return CliLauncher.launch(
                 initCrawlSessionBuilder(
                         CrawlSession.builder(),
-                        new CrawlSessionConfig(CrawlerConfig.class)),
+                        new CrawlSessionConfig()),
                 args);
     }
 
     public static CrawlSession createSession(CrawlSessionConfig sessionConfig) {
         return initCrawlSessionBuilder(
                 CrawlSession.builder(),
-                Optional.ofNullable(sessionConfig).orElseGet(() ->
-                        new CrawlSessionConfig(CrawlerConfig.class)))
+                Optional.ofNullable(sessionConfig)
+                    .orElseGet(CrawlSessionConfig::new))
                 .build();
     }
 
     // Return same builder, for chaining
     static CrawlSessionBuilder initCrawlSessionBuilder(
             CrawlSessionBuilder builder, CrawlSessionConfig sessionConfig) {
-        builder.crawlerFactory(
+        builder
+            .crawlerConfigClass(CrawlerConfig.class)
+            .crawlerFactory(
                 (sess, cfg) -> Crawler.builder()
                     .crawlSession(sess)
                     .crawlerConfig(cfg)
