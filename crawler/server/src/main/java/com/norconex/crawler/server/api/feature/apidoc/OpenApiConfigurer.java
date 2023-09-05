@@ -53,8 +53,6 @@ import io.swagger.v3.oas.models.media.StringSchema;
 
 @Configuration
 public class OpenApiConfigurer {
-    //TODO if Configurable consider all props as being "ignored"
-    // (leaving it to Configuration class).
     //TODO check if in the ModelConverter or JSON object mapper config
     // , we can intercept when
     // there is no mapping for an ID and if a fully qualified
