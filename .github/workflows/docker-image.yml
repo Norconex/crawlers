@@ -1,0 +1,35 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "dk-actions-v4" ]
+  pull_request:
+    branches: [ "dk-actions-v4" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download Maven Artifact
+      id: download-maven-artifact
+      uses: clausnz/github-action-download-maven-artifact@master
+      with:
+        url: 'https://repo1.maven.org'
+        repository: 'maven2'
+        groupId: 'com.norconex.crawler'
+        artifactId: 'nx-crawler-web'
+        version: '4.0.0-SNAPSHOT'
+        extension: 'jar'
+
+    - name: Output file path in container
+      run: |
+        echo "File has been downloaded to ${{ steps.download-maven-artifact.outputs.file }}"
+        mv ${{ steps.download-maven-artifact.outputs.file }} /tmp/web.jar
+           
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag nxer-web-v4:$(date +%s)
