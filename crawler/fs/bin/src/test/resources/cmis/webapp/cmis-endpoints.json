@@ -1,0 +1,84 @@
+{
+  "endpoints": [
+    {
+      "displayName": "OpenCMIS CMIS 1.0 AtomPub Binding", 
+      "binding": "atompub",
+      "cmisVersion": "1.0", 
+      "cookies": "optional", 
+      "compression": "server", 
+      "url": "{webapp}/atom", 
+      "authentication": [
+        {
+          "displayName": "HTTP basic authentication", 
+          "type": "basic", 
+          "preference": 4, 
+          "documentationUrl": "https://chemistry.apache.org/java/opencmis.html"
+        }
+      ]
+    },
+    {
+      "displayName": "OpenCMIS CMIS 1.1 AtomPub Binding", 
+      "binding": "atompub",
+      "cmisVersion": "1.1", 
+      "cookies": "optional", 
+      "compression": "server", 
+      "url": "{webapp}/atom11", 
+      "authentication": [
+        {
+          "displayName": "HTTP basic authentication", 
+          "type": "basic", 
+          "preference": 2, 
+          "documentationUrl": "https://chemistry.apache.org/java/opencmis.html"
+        }
+      ]
+    },
+    {
+      "displayName": "OpenCMIS CMIS 1.0 Web Services Binding", 
+      "binding": "webservices",
+      "cmisVersion": "1.0", 
+      "cookies": "optional", 
+      "compression": "server", 
+      "url": "{webapp}/services/cmis?wsdl ", 
+      "authentication": [
+        {
+          "displayName": "UsernameToken authentication", 
+          "type": "usernameToken", 
+          "preference": 5, 
+          "documentationUrl": "https://chemistry.apache.org/java/opencmis.html"
+        }
+      ]
+    },
+    {
+      "displayName": "OpenCMIS CMIS 1.1 Web Services Binding", 
+      "binding": "webservices",
+      "cmisVersion": "1.1", 
+      "cookies": "optional", 
+      "compression": "server", 
+      "url": "{webapp}/services11/cmis?wsdl ", 
+      "authentication": [
+        {
+          "displayName": "UsernameToken authentication", 
+          "type": "usernameToken", 
+          "preference": 3, 
+          "documentationUrl": "https://chemistry.apache.org/java/opencmis.html"
+        }
+      ]
+    },
+    {
+      "displayName": "OpenCMIS CMIS 1.1 Browser Binding", 
+      "binding": "browser",
+      "cmisVersion": "1.1", 
+      "cookies": "optional", 
+      "compression": "server", 
+      "url": "{webapp}/browser", 
+      "authentication": [
+        {
+          "displayName": "HTTP basic authentication", 
+          "type": "basic", 
+          "preference": 1, 
+          "documentationUrl": "https://chemistry.apache.org/java/opencmis.html"
+        }
+      ]
+    }
+  ]
+}

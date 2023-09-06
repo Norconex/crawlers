@@ -1,0 +1,12 @@
+{
+    "domain": "WORKGROUP",
+    "users": [
+        { "name": "joe", "password": "joepwd" }
+    ],
+    "shares": [
+        { "name": "joefiles",
+          "path": "/share/joefiles",
+          "access": ["joe"]
+        }
+    ]
+}

@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<Configuration status="WARN" name="Norconex Web Crawler">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout>
+        <pattern>%d{HH:mm:ss.SSS} [%t] %highlight{%-5level %c{1} - %msg%n}</pattern>
+        <!-- Add -Dlog4j.skipJansi=false to your JVM properties for ANSI
+           - highlighting on Windows. The above pattern without highlighting is:
+           - 
+           -     %d{HH:mm:ss.SSS} [%t] %-5level %c{1} - %msg%n
+           -->
+      </PatternLayout>
+    </Console>
+    <!-- TODO: check for a format that displays logger name up to X characters, showing truncations as ... -->      
+  </Appenders>
+  <Loggers>
+
+    <!-- Events Types -->
+    <Logger name="CollectorEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="ImporterEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
+    <!-- Specific Events -->
+    
+    <Logger name="CollectorEvent.COLLECTOR_RUN_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_RUN_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STOP_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STOP_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_CLEAN_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_CLEAN_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STORE_EXPORT_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STORE_EXPORT_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STORE_IMPORT_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_STORE_IMPORT_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CollectorEvent.COLLECTOR_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
+    <Logger name="CrawlerEvent.CRAWLER_INIT_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_INIT_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_RUN_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_RUN_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_RUN_THREAD_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_STOP_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_STOP_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_CLEAN_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.CRAWLER_CLEAN_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <Logger name="CrawlerEvent.REJECTED_ROBOTS_TXT" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_ROBOTS_META_NOINDEX" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_NONCANONICAL" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_REDIRECTED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_FILTER" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_UNMODIFIED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_PREMATURE" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_NOTFOUND" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_BAD_STATUS" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.REJECTED_TOO_DEEP" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.URLS_EXTRACTED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_FETCHED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_QUEUED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_PROCESSED" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_COMMITTED_UPSERT" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CrawlerEvent.DOCUMENT_COMMITTED_DELETE" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>    
+
+    <Logger name="ImporterEvent.IMPORTER_HANDLER_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="ImporterEvent.IMPORTER_HANDLER_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="ImporterEvent.IMPORTER_HANDLER_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="ImporterEvent.IMPORTER_PARSER_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <Logger name="CommitterEvent.COMMITTER_ACCEPT_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_ACCEPT_NO" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_ACCEPT_YES" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_BATCH_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_BATCH_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_BATCH_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_CLEAN_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_CLEAN_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_CLEAN_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_CLOSE_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_CLOSE_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_CLOSE_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_DELETE_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_DELETE_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_DELETE_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_INIT_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_INIT_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_INIT_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_UPSERT_BEGIN" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_UPSERT_END" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterEvent.COMMITTER_UPSERT_ERROR" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- Others -->
+
+    <Logger name="com.norconex.crawler.fs" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.importer" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.committer" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.commons.lang" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.commons.lang.xml" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.mockserver" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.testcontainers" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.ftpserver" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.commons.vfs2" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.mina" level="ERROR" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="jcifs.smb" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+
+
+    <Root level="WARN">
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>

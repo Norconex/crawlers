@@ -1,0 +1,598 @@
+<!-- 
+   Copyright 2013-2023 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.norconex.crawler</groupId>
+    <artifactId>nx-crawler-parent</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+    <relativePath>../..</relativePath>    
+  </parent>  
+  <artifactId>nx-crawler-fs</artifactId>
+  <name>Norconex File System Crawler</name>
+
+  <properties>
+    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
+    <sonar.exclusions>/src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
+      
+    <commons-net.version>3.9.0</commons-net.version>
+    <commons-vfs.version>2.9.0</commons-vfs.version>
+    <ftpserver.version>1.2.0</ftpserver.version>
+    <hadoop.version>3.3.5</hadoop.version>
+    <jackrabbit.version>2.21.7</jackrabbit.version>
+    <javax-mail.version>1.6.2</javax-mail.version>
+    <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
+    <jcifs.version>1.3.17</jcifs.version>
+    <jetty.version>9.4.34.v20201102</jetty.version>
+    <opencmis.version>1.1.0</opencmis.version>
+    <log4j-over-slf4j.version>2.0.7</log4j-over-slf4j.version>
+  </properties>
+  <inceptionYear>2014</inceptionYear>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>log4j-over-slf4j</artifactId>
+        <version>${log4j-over-slf4j.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>com.norconex.commons</groupId>
+      <artifactId>norconex-commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-crawler-core</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+        	<groupId>org.apache.logging.log4j</groupId>
+        	<artifactId>log4j-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2</artifactId>
+      <version>${commons-vfs.version}</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>commons-logging</groupId>
+      		<artifactId>commons-logging</artifactId>
+      	</exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-net</groupId>
+      <artifactId>commons-net</artifactId>
+      <version>${commons-net.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+    </dependency>
+
+    <!-- WebDav support -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2-jackrabbit2</artifactId>
+      <version>${commons-vfs.version}</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>commons-logging</groupId>
+      		<artifactId>commons-logging</artifactId>
+      	</exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>    
+    </dependency>    
+    
+    <!-- HDFS support -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>org.slf4j</groupId>
+      		<artifactId>slf4j-log4j12</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>org.slf4j</groupId>
+      		<artifactId>slf4j-reload4j</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>commons-logging</groupId>
+      		<artifactId>commons-logging</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>log4j</groupId>
+      		<artifactId>log4j</artifactId>
+      	</exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs-client</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+    </dependency>
+
+    <!-- CIFS (Samba) support -->
+    <dependency>
+      <groupId>jcifs</groupId>
+      <artifactId>jcifs</artifactId>
+      <version>${jcifs.version}</version>
+    </dependency>
+    
+    <!-- MIME support -->
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>javax.mail-api</artifactId>
+      <version>${javax-mail.version}</version>
+    </dependency>
+
+
+    <!-- Test + provided dependencies: -->
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jeasy</groupId>
+      <artifactId>easy-random-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
+      <scope>test</scope>
+    </dependency>    
+    
+    <dependency>
+      <groupId>org.apache.ftpserver</groupId>
+      <artifactId>ftpserver-core</artifactId>
+      <version>${ftpserver.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
+    
+    <!-- Dependency for CMIS systems (e.g., Alfresco, Interwoven, Magnolia, 
+         SharePoint server, OpenCMS, OpenText Documentum, etc).
+         More at: https://en.wikipedia.org/wiki/Content_Management_Interoperability_Services#CMIS_Servers -->
+    <dependency>
+      <groupId>org.apache.chemistry.opencmis</groupId>
+      <artifactId>chemistry-opencmis-server-inmemory</artifactId>
+      <version>${opencmis.version}</version>
+      <classifier>classes</classifier>
+      <scope>test</scope>
+      <exclusions>
+      	<exclusion>
+      		<groupId>org.apache.logging.log4j</groupId>
+      		<artifactId>log4j-slf4j-impl</artifactId>
+      	</exclusion>
+      	<exclusion>
+      		<groupId>org.apache.logging.log4j</groupId>
+      		<artifactId>log4j-core</artifactId>
+      	</exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>${jaxb-api.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>com.norconex.commons</groupId>
+        <artifactId>norconex-commons-lang</artifactId>
+        <classifier>resources</classifier>
+        <type>zip</type>
+        <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
+  
+  <build>
+  <!--
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>2.5</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.3</version>
+          <configuration>
+            <generateReports>true</generateReports>
+            <inputEncoding>UTF-8</inputEncoding>
+            <outputEncoding>UTF-8</outputEncoding>
+            <templateFile>
+              ${basedir}/src/site/skinless.vm
+            </templateFile>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.apache.velocity</groupId>
+              <artifactId>velocity</artifactId>
+              <version>1.7</version>
+            </dependency>
+            <dependency>
+              <groupId>org.apache.maven.doxia</groupId>
+              <artifactId>doxia-site-renderer</artifactId>
+              <version>1.4</version>
+            </dependency>
+            <dependency>
+              <groupId>org.apache.maven.doxia</groupId>
+              <artifactId>doxia-module-markdown</artifactId>
+              <version>1.4</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin> 
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>download-licenses</id>
+            <goals>
+              <goal>download-licenses</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>create-license-list</id>
+            <goals>
+              <goal>add-third-party</goal>
+            </goals>
+            <phase>generate-resources</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.1</version>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/dist.xml</descriptor>
+          </descriptors>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.2</version>
+        <configuration>
+          <additionalJOptions>
+              <additionalJOption>&#45;&#45;allow-script-in-comments</additionalJOption>
+          </additionalJOptions>
+          <overview>${basedir}/src/main/javadoc/overview.html</overview>
+          <show>protected</show>
+          <nodeprecated>false</nodeprecated>
+          <source>1.7</source>
+          <detectLinks>false</detectLinks>
+          <links>
+            <link>https://www.norconex.com/product/commons-lang/apidocs/</link>
+            <link>https://www.norconex.com/jef/api/latest/apidocs/</link>
+            <link>https://www.norconex.com/collectors/importer/latest/apidocs/</link>
+            <link>https://www.norconex.com/collectors/committer-core/latest/apidocs/</link>
+            <link>https://www.norconex.com/collectors/collector-core/latest/apidocs/</link>
+            <link>https://commons.apache.org/proper/commons-lang/javadocs/api-3.4/</link>
+            <link>https://commons.apache.org/proper/commons-collections/apidocs/</link>
+            <link>https://commons.apache.org/proper/commons-vfs/apidocs/</link>
+            <link>https://commons.apache.org/proper/commons-configuration/javadocs/v1.10/apidocs/</link>
+            <link>http://www.joda.org/joda-time/apidocs/</link>
+          </links>
+          <excludePackageNames>org.apache.commons.*</excludePackageNames>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-javadoc</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <archive>                   
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+          <excludes>
+            <exclude>THIRD-PARTY.txt</exclude>
+          </excludes>
+        </configuration>        
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>id.post-site</id>
+            <phase>post-site</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <echo>Remove useless site files</echo>
+                <delete dir="${project.build.directory}/site/css" />
+                <delete dir="${project.build.directory}/site/images" />
+                <delete file="${project.build.directory}/site/project-reports.html" />
+                <copy file="${basedir}/src/changes/changes.xml" todir="${project.build.directory}/site/"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.3</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>unpack-shared-resources</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <classifier>resources</classifier>
+              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
+              <includeArtifacIds>norconex-commons-lang</includeArtifacIds>
+              <includeGroupIds>com.norconex.commons</includeGroupIds>
+              <excludeTransitive>true</excludeTransitive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    -->
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <!-- We are referencing doc from other projects with @nx.include so
+               we need to include those dependencies here to avoid
+               getting a ClassNotFoundException. -->
+<!-- Uncomment when importer V4 exists
+          <tagletArtifacts combine.children="append">
+            <tagletArtifact>
+              <groupId>com.norconex.collectors</groupId>
+              <artifactId>norconex-importer</artifactId>
+              <version>${norconex-importer.version}</version>
+            </tagletArtifact>
+            <tagletArtifact>
+              <groupId>com.norconex.collectors</groupId>
+              <artifactId>norconex-collector-core</artifactId>
+              <version>${norconex-collector-core.version}</version>
+            </tagletArtifact>
+          </tagletArtifacts>
+ -->
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+    
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
+      
+      <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+      </plugin>
+      
+      <!-- Uncomment when ready:
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-shared-resources</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <phase>prepare-package</phase>
+            <configuration>
+              <classifier>resources</classifier>
+              <outputDirectory>${project.build.directory}/shared-resources</outputDirectory>
+              <includeArtifactIds>norconex-commons-lang</includeArtifactIds>
+              <includeGroupIds>com.norconex.commons</includeGroupIds>
+              <excludeTransitive>true</excludeTransitive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      -->
+
+    </plugins>    
+  </build>
+  
+  <!-- Only used to publish javadoc with "site:deploy", 
+       after they were generated -->
+  <distributionManagement>
+    <site>
+      <id>norconex-site-deployment</id>
+      <url>${site.baseurl}/crawlers/filesystem/v4</url>
+    </site>
+  </distributionManagement>
+ 
+  <url>https://opensource.norconex.com/crawlers/filesystem</url>
+  <description>Norconex File System Crawler. Walks through directories and files and extracts their content for integration into any target repository.  It aims to be very flexible, easy to extend, and portable</description>
+  
+  <!-- TODO: UPDATE TO NEW LOCATION: -->
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/Norconex/collector-filesystem/issues</url>
+  </issueManagement>
+  <scm>
+    <url>https://github.com/Norconex/collector-filesystem</url>
+    <connection>scm:git:git@github.com:Norconex/collector-filesystem.git</connection>
+    <developerConnection>scm:git:git@github.com:Norconex/collector-filesystem.git</developerConnection>
+  </scm>
+</project>
