@@ -32,4 +32,4 @@ jobs:
         mv ${{ steps.download-maven-artifact.outputs.file }} /tmp/web.zip
            
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag nxer-web-v4:$(date +%s)
+      run: docker build . --file Dockerfile --build-arg DL_FILE=${{ steps.download-maven-artifact.outputs.file }} --tag nxer-web-v4:$(date +%s)
