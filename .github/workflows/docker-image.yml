@@ -31,5 +31,8 @@ jobs:
         sudo cp ${{ steps.download-maven-artifact.outputs.file }} /var/lib/docker/tmp/buildkit-mount*
         echo "File has been downloaded to ${{ steps.download-maven-artifact.outputs.file }}"
            
+    - name: debug
+      run: ls -l /var/lib/docker/tmp/buildkit-mount*
+          
     - name: Build the Docker image
       run: docker build . --file Dockerfile --build-arg DL_FILE=${{ steps.download-maven-artifact.outputs.file }} --tag nxer-web-v4:$(date +%s)
