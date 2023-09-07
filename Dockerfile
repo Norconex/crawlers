@@ -2,7 +2,7 @@ From ubuntu:22.04
 ARG DL_FILE
 
 
-COPY norconex-collector-http-3.0.2.zip /nxer
+COPY $DL_FILE /nxer
 
 RUN apt-get -y update && \
     apt-get install -y nano && \
