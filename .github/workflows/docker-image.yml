@@ -39,7 +39,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        build-contexts: /tmp
+        build-contexts: project=/tmp
         push: false  
         build-args: DL_FILE=${{ steps.download-maven-artifact.outputs.file }}     
          
