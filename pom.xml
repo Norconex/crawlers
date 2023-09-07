@@ -54,7 +54,7 @@
     <aws-java-sdk.version>1.12.457</aws-java-sdk.version>
     <ant.version>1.10.13</ant.version>
     <httpclient5.version>5.2.1</httpclient5.version>
-    <jackson.version>2.15.2</jackson.version>
+    <jackson.version>2.14.0</jackson.version>
     <jakarta-activation.version>2.1.1</jakarta-activation.version>
     <jaxb-runtime.version>2.3.5</jaxb-runtime.version>
     <java-cup.version>10k</java-cup.version>
@@ -374,7 +374,7 @@
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-slf4j2-impl</artifactId>
         <version>${log4j.version}</version>
-        <scope>test</scope>
+<!--        <scope>test</scope>-->
       </dependency>
 <!--
       <dependency>
@@ -870,43 +870,43 @@
         </plugin>
  -->
 
-        <plugin>
-          <groupId>org.projectlombok</groupId>
-          <artifactId>lombok-maven-plugin</artifactId>
-          <version>${lombok-maven-plugin.version}</version>
-          <dependencies>
-            <dependency>
-              <groupId>org.projectlombok</groupId>
-              <artifactId>lombok</artifactId>
-              <version>${lombok.version}</version>
-            </dependency>
-          </dependencies>
-          <executions>
-            <execution>
-              <id>delombok</id>
-              <phase>generate-sources</phase>
-              <goals>
-                <goal>delombok</goal>
-              </goals>
-              <configuration>
-                <addOutputDirectory>false</addOutputDirectory>
-                <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
-              </configuration>
-            </execution>
-            <execution>
-              <id>test-delombok</id>
-              <phase>generate-test-sources</phase>
-              <goals>
-                <goal>testDelombok</goal>
-              </goals>
-              <configuration>
-                <addOutputDirectory>false</addOutputDirectory>
-                <sourceDirectory>${project.basedir}/src/test/java</sourceDirectory>
-              </configuration>
-            </execution>
-          </executions>
-          <inherited>true</inherited>
-        </plugin>
+<!--        <plugin>-->
+<!--          <groupId>org.projectlombok</groupId>-->
+<!--          <artifactId>lombok-maven-plugin</artifactId>-->
+<!--          <version>${lombok-maven-plugin.version}</version>-->
+<!--          <dependencies>-->
+<!--            <dependency>-->
+<!--              <groupId>org.projectlombok</groupId>-->
+<!--              <artifactId>lombok</artifactId>-->
+<!--              <version>${lombok.version}</version>-->
+<!--            </dependency>-->
+<!--          </dependencies>-->
+<!--          <executions>-->
+<!--            <execution>-->
+<!--              <id>delombok</id>-->
+<!--              <phase>generate-sources</phase>-->
+<!--              <goals>-->
+<!--                <goal>delombok</goal>-->
+<!--              </goals>-->
+<!--              <configuration>-->
+<!--                <addOutputDirectory>false</addOutputDirectory>-->
+<!--                <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>-->
+<!--              </configuration>-->
+<!--            </execution>-->
+<!--            <execution>-->
+<!--              <id>test-delombok</id>-->
+<!--              <phase>generate-test-sources</phase>-->
+<!--              <goals>-->
+<!--                <goal>testDelombok</goal>-->
+<!--              </goals>-->
+<!--              <configuration>-->
+<!--                <addOutputDirectory>false</addOutputDirectory>-->
+<!--                <sourceDirectory>${project.basedir}/src/test/java</sourceDirectory>-->
+<!--              </configuration>-->
+<!--            </execution>-->
+<!--          </executions>-->
+<!--          <inherited>true</inherited>-->
+<!--        </plugin>-->
 
         <!-- From command-prompt:  
            mvn versions:display-dependency-updates ^

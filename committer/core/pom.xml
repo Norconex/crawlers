@@ -134,6 +134,7 @@
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
+      <!--suppress UnresolvedMavenProperty -->
       <url>${site.baseurl}/committers/core/v4</url>
     </site>
   </distributionManagement>
