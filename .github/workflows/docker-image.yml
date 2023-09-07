@@ -28,7 +28,7 @@ jobs:
 
     - name: Output file path in container
       run: |
-        cp ${{ steps.download-maven-artifact.outputs.file }} /var/lib/docker/tmp/buildkit-mount*
+        sudo cp ${{ steps.download-maven-artifact.outputs.file }} /var/lib/docker/tmp/buildkit-mount*
         echo "File has been downloaded to ${{ steps.download-maven-artifact.outputs.file }}"
            
     - name: Build the Docker image
