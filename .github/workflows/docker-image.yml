@@ -2,9 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "dk-actions-v4" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "dk-actions-v4" ]
+    branches: [ "master" ]
 
 jobs:
 
@@ -28,7 +28,6 @@ jobs:
 
     - name: Output file path in container
       run: |
-        sudo cp ${{ steps.download-maven-artifact.outputs.file }} /var/lib/docker/tmp/buildkit-mount*
         echo "File has been downloaded to ${{ steps.download-maven-artifact.outputs.file }}"
            
     - name: debug
@@ -39,7 +38,6 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        build-contexts: project=/tmp
         push: false  
         build-args: DL_FILE=${{ steps.download-maven-artifact.outputs.file }}     
          

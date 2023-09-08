@@ -1,8 +1,7 @@
 From ubuntu:22.04
 ARG DL_FILE
 
-
-COPY --from=project $DL_FILE /nxer
+COPY $DL_FILE /nxer
 
 RUN apt-get -y update && \
     apt-get install -y nano && \
