@@ -20,18 +20,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Check out repo
+      uses: actions/checkout@v3
+    
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-    - name: Build with Maven
+    
+    - name: Build Crawler We with Maven
       run: mvn clean package -Dmaven.test.skip --file crawler/web/pom.xml
 
-    - name: Build docker image
-      run: docker build .
+    - name: Build Committer ES with Maven
+      run: mvn clean package -Dmaven.test.skip --file committer/elasticsearch/pom.xml
+
    
     - uses: mr-smithers-excellent/docker-build-push@v6
       name: Build & push Docker image
