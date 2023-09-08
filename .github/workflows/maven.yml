@@ -31,4 +31,4 @@ jobs:
       run: mvn clean package -Dmaven.test.skip --file crawler/web/pom.xml
 
     - name: Build docker image
-      run: docker build -f crawler/web/DockerFile nxer-web-v4-image
+      run: docker build -f crawler/web/DockerFile . nxer-web-v4-image
