@@ -48,6 +48,7 @@
     <h2.version>2.0.204</h2.version>
     <hikaricp.version>4.0.3</hikaricp.version>
     <jdom2.version>2.0.6.1</jdom2.version>
+    <spark.scope>provided</spark.scope>
   </properties>
 
   <inceptionYear>2009</inceptionYear>
@@ -106,40 +107,47 @@
   </dependencyManagement>
 
   <dependencies>
+    <!-- TODO: (SPARK-LIBRARIES) Always add correct scope before building jar file -->
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_2.13</artifactId>
       <version>${spark.version}</version>
+      <scope>${spark.scope}</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-sql_2.13</artifactId>
       <version>${spark.version}</version>
+      <scope>${spark.scope}</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
       <version>${hadoop.version}</version>
+      <scope>${spark.scope}</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
+      <scope>${spark.scope}</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
       <version>${hadoop.version}</version>
+      <scope>${spark.scope}</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-aws</artifactId>
       <version>${hadoop.version}</version>
+      <scope>${spark.scope}</scope>
     </dependency>
 
     <dependency>
@@ -204,10 +212,11 @@
 
     <!-- Logging dependencies: -->
 
+    <!-- TODO: (LOGGING) Always add correct scope before building jar file-->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
-<!--      <scope>test</scope>-->
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -261,7 +270,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <!-- If we need fat jars
+<!--        &lt;!&ndash; If we need fat jars-->
         <executions>
           <execution>
             <phase>package</phase>
@@ -282,7 +291,7 @@
             </configuration>
           </execution>
         </executions>
-        -->
+<!--        &ndash;&gt;-->
       </plugin>
 
       <plugin>
@@ -360,6 +369,7 @@
   <distributionManagement>
     <site>
       <id>norconex-site-deployment</id>
+      <!--suppress UnresolvedMavenProperty -->
       <url>${site.baseurl}/crawlers/web/v4</url>
     </site>
   </distributionManagement>

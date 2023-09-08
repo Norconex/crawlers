@@ -129,7 +129,6 @@
 
   <dependencyManagement>
     <dependencies>
-    
       <!-- Norconex dependencies -->
     
       <dependency>
@@ -374,7 +373,7 @@
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-slf4j2-impl</artifactId>
         <version>${log4j.version}</version>
-<!--        <scope>test</scope>-->
+        <scope>test</scope>
       </dependency>
 <!--
       <dependency>
@@ -1092,6 +1091,7 @@
     <module>crawler/web</module>
     <module>crawler/fs</module>
     <module>crawler/server</module>
+    <module>tools/config-converter</module>
 <!--     <module>javadoc-resources</module>
  -->
   </modules>
