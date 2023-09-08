@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 COPY crawler/web/target/nx-crawler-web-4.0.0-SNAPSHOT.zip /nxer/
-COPY committer/elasticsearch/target/nx-committer-elasticsearch-4.0.0.zip /nxer/
+COPY committer/elasticsearch/target/nx-committer-elasticsearch-4.0.0-SNAPSHOT.zip /nxer/
 
 RUN apt-get -y update && \
     apt-get install -y nano && \

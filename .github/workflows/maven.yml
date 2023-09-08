@@ -30,7 +30,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     
-    - name: Build Crawler We with Maven
+    - name: Build Crawler Web with Maven
       run: mvn clean package -Dmaven.test.skip --file crawler/web/pom.xml
 
     - name: Build Committer ES with Maven
