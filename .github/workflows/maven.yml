@@ -37,7 +37,7 @@ jobs:
       name: Build & push Docker image
       with:
         image: bkmyuen21/docker-test
-        tags: v1, latest
+        tags: latest
         registry: docker.io        
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
