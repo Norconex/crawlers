@@ -48,7 +48,12 @@
     <h2.version>2.0.204</h2.version>
     <hikaricp.version>4.0.3</hikaricp.version>
     <jdom2.version>2.0.6.1</jdom2.version>
+    <!-- scope == provided while building jar, else compile to run from ide.-->
     <spark.scope>provided</spark.scope>
+    <!-- <spark.scope>compile</spark.scope>-->
+    <!-- scope == test while building jar, else compile to run from ide.-->
+    <logging.scope>test</logging.scope>
+    <!-- <logging.scope>compile</logging.scope>-->
   </properties>
 
   <inceptionYear>2009</inceptionYear>
@@ -150,6 +155,8 @@
       <scope>${spark.scope}</scope>
     </dependency>
 
+    <!-- Spark related libaries ended here. -->
+
     <dependency>
       <groupId>com.norconex.commons</groupId>
       <artifactId>norconex-commons-lang</artifactId>
@@ -172,9 +179,7 @@
     </dependency>
 
 
-    <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
-
-
+    <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->
     <dependency>
       <groupId>org.imgscalr</groupId>
       <artifactId>imgscalr-lib</artifactId>
@@ -216,7 +221,7 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
-      <scope>test</scope>
+      <scope>${logging.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
