@@ -32,3 +32,12 @@ jobs:
 
     - name: Build docker image
       run: docker build .
+
+    - name: Publish to Docker Hub
+      uses: docker/build-push-action@v4
+      with:
+       username: ${{ secrets.DOCKER_HUB_USERNAME }}
+       password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+       repository: bkmyuen21/docker-test
+       tags: nxer-web-v4:1.0.0
+    
