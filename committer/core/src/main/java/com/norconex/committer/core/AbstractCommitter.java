@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,19 @@
  */
 package com.norconex.committer.core;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
-import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.event.Level;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.map.PropertyMatcher;
-import com.norconex.commons.lang.map.PropertyMatchers;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * <p>
@@ -88,88 +81,13 @@ import lombok.NonNull;
  */
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode
-public abstract class AbstractCommitter
-        implements Committer, XMLConfigurable {
+@ToString
+public abstract class AbstractCommitter<T extends BaseCommitterConfig>
+        implements Committer, Configurable<T> {
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private CommitterContext committerContext;
-    private final PropertyMatchers restrictions = new PropertyMatchers();
-    private final Map<String, String> fieldMappings = new ListOrderedMap<>();
-
-    /**
-     * Adds one restriction this committer should be restricted to.
-     * @param restriction the restriction
-     */
-    public void addRestriction(PropertyMatcher restriction) {
-        restrictions.add(restriction);
-    }
-    /**
-     * Adds restrictions this committer should be restricted to.
-     * @param restrictions the restrictions
-     */
-    public void addRestrictions(List<PropertyMatcher> restrictions) {
-        if (restrictions != null) {
-            this.restrictions.addAll(restrictions);
-        }
-    }
-    /**
-     * Removes all restrictions on a given field.
-     * @param field the field to remove restrictions on
-     * @return how many elements were removed
-     */
-    public int removeRestriction(String field) {
-        return restrictions.remove(field);
-    }
-    /**
-     * Removes a restriction.
-     * @param restriction the restriction to remove
-     * @return <code>true</code> if this committer contained the restriction
-     */
-    public boolean removeRestriction(PropertyMatcher restriction) {
-        return restrictions.remove(restriction);
-    }
-    /**
-     * Clears all restrictions.
-     */
-    public void clearRestrictions() {
-        restrictions.clear();
-    }
-    /**
-     * Gets all restrictions
-     * @return the restrictions
-         */
-    public PropertyMatchers getRestrictions() {
-        return restrictions;
-    }
-
-    /**
-     * Gets an unmodifiable copy of the metadata mappings.
-     * @return metadata mappings
-     */
-    public Map<String, String> getFieldMappings() {
-        return Collections.unmodifiableMap(fieldMappings);
-    }
-    /**
-     * Sets a metadata field mapping.
-     * @param fromField source field
-     * @param toField target field
-     */
-    public void setFieldMapping(String fromField, String toField) {
-        fieldMappings.put(fromField, toField);
-    }
-    /**
-     * Sets a metadata field mappings, where the key is the source field and
-     * the value is the target field.
-     * @param mappings metadata field mappings
-     */
-    public void setFieldMappings(Map<String, String> mappings) {
-        fieldMappings.putAll(mappings);
-    }
-    public String removeFieldMapping(String fromField) {
-        return fieldMappings.remove(fromField);
-    }
-    public void clearFieldMappings() {
-        fieldMappings.clear();
-    }
 
     @Override
     public final void init(@NonNull CommitterContext committerContext)
@@ -188,8 +106,9 @@ public abstract class AbstractCommitter
     @Override
     public boolean accept(CommitterRequest request) throws CommitterException {
         try {
-            if (restrictions.isEmpty()
-                    || restrictions.matches(request.getMetadata())) {
+            if (getConfiguration().getRestrictions().isEmpty()
+                    || getConfiguration().getRestrictions().matches(
+                            request.getMetadata())) {
                 fireInfo(CommitterEvent.COMMITTER_ACCEPT_YES);
                 return true;
             }
@@ -232,8 +151,9 @@ public abstract class AbstractCommitter
         var props = new Properties();
         for (Entry<String, List<String>> en : req.getMetadata().entrySet()) {
             var fromField = en.getKey();
-            if (fieldMappings.containsKey(fromField)) {
-                var toField = fieldMappings.get(fromField);
+            if (getConfiguration().getFieldMappings().containsKey(fromField)) {
+                var toField = getConfiguration().getFieldMappings().get(
+                        fromField);
                 // if target undefined, do not set
                 if (StringUtils.isNotBlank(toField)) {
                     props.addList(toField, en.getValue());
@@ -338,52 +258,5 @@ public abstract class AbstractCommitter
         Optional.ofNullable(committerContext)
             .map(CommitterContext::getEventManager)
             .ifPresent(em -> em.fire(e, level));
-    }
-
-    @Override
-    public final void loadFromXML(XML xml) {
-        loadCommitterFromXML(xml);
-        var nodes = xml.getXMLList("restrictTo");
-        if (!nodes.isEmpty()) {
-            restrictions.clear();
-            for (XML node : nodes) {
-                node.checkDeprecated("@field", "fieldMatcher", true);
-                restrictions.add(PropertyMatcher.loadFromXML(node));
-            }
-        }
-
-        var xmlMappings = xml.getXMLList("fieldMappings/mapping");
-        for (XML xmlMapping : xmlMappings) {
-            setFieldMapping(
-                    xmlMapping.getString("@fromField", null),
-                    xmlMapping.getString("@toField", null));
-        }
-    }
-    @Override
-    public final void saveToXML(XML xml) {
-        saveCommitterToXML(xml);
-        restrictions.forEach(pm ->
-                PropertyMatcher.saveToXML(xml.addElement("restrictTo"), pm));
-
-        var fieldsXml = xml.addElement("fieldMappings");
-        for (Entry<String, String> en : fieldMappings.entrySet()) {
-            fieldsXml.addElement("mapping")
-                    .setAttribute("fromField", en.getKey())
-                    .setAttribute("toField", en.getValue());
-        }
-    }
-
-    public abstract void loadCommitterFromXML(XML xml);
-    public abstract void saveCommitterToXML(XML xml);
-
-    @Override
-    public String toString() {
-        // Cannot use ReflectionToStringBuilder here to prevent
-        // "An illegal reflective access operation has occurred"
-        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("committerContext", committerContext)
-                .append("restrictions", restrictions)
-                .append("fieldMappings", fieldMappings)
-                .build();
     }
 }

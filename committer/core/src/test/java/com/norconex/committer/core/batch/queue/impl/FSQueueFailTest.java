@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
 import com.norconex.committer.core.batch.FailingBatchCommitter;
@@ -38,11 +37,13 @@ class FSQueueFailTest {
     // No splitting attempt.
     @Test
     void testOnFailRetriable() throws CommitterException {
-        FailingBatchCommitter c = commitFailure(
+        var c = commitFailure(
                 /* fail at doc: */ 6,
                 /* recover at attempt: */ 3, q -> {
-            q.setMaxRetries(3);
-            q.setBatchSize(20);
+            q.getConfiguration()
+                .setBatchSize(20)
+                .getOnCommitFailure()
+                    .setMaxRetries(3);
         });
 
         Assertions.assertEquals(3, c.getAttemptCount());
@@ -54,12 +55,14 @@ class FSQueueFailTest {
     // No retrying.
     @Test
     void testOnFailSplitHalfDownTo2() throws CommitterException {
-        FailingBatchCommitter c = commitFailure(
+        var c = commitFailure(
                 /* fail at doc: */ 3,
                 /* recover at attempt: */ Integer.MAX_VALUE, q -> {
-            q.setMaxRetries(0);
-            q.setBatchSize(20);
-            q.setSplitBatch(SplitBatch.HALF);
+            q.getConfiguration()
+                .setBatchSize(20)
+                .getOnCommitFailure()
+                    .setMaxRetries(0)
+                    .setSplitBatch(SplitBatch.HALF);
         });
 
         // attempted batch sizes: 20, 10, 5, 3, 2(x6)
@@ -73,12 +76,14 @@ class FSQueueFailTest {
     // No retrying.
     @Test
     void testOnFailSplitHalfDownTo1() throws CommitterException {
-        FailingBatchCommitter c = commitFailure(
+        var c = commitFailure(
                 /* fail at doc: */ 2,
                 /* recover at attempt: */ Integer.MAX_VALUE, q -> {
-            q.setMaxRetries(0);
-            q.setBatchSize(20);
-            q.setSplitBatch(SplitBatch.HALF);
+            q.getConfiguration()
+                .setBatchSize(20)
+                .getOnCommitFailure()
+                    .setMaxRetries(0)
+                    .setSplitBatch(SplitBatch.HALF);
         });
 
         // attempted batch sizes: 20, 10, 5, 3, 2, 1(x11)
@@ -91,12 +96,14 @@ class FSQueueFailTest {
     // No retrying.
     @Test
     void testOnFailSplitOneByOne() throws CommitterException {
-        FailingBatchCommitter c = commitFailure(
+        var c = commitFailure(
                 /* fail at doc: */ 7,
                 /* recover at attempt: */ Integer.MAX_VALUE, q -> {
-            q.setMaxRetries(0);
-            q.setBatchSize(20);
-            q.setSplitBatch(SplitBatch.ONE);
+            q.getConfiguration()
+                .setBatchSize(20)
+                .getOnCommitFailure()
+                    .setMaxRetries(0)
+                    .setSplitBatch(SplitBatch.ONE);
         });
 
         // attempted batch sizes: 20, 1(x11)
@@ -108,12 +115,14 @@ class FSQueueFailTest {
     // Test that all retries fails before processing one by one.
     @Test
     void testOnFailSplitOneByOneRetry() throws CommitterException {
-        FailingBatchCommitter c = commitFailure(
+        var c = commitFailure(
                 /* fail at doc: */ 7,
                 /* recover at attempt: */ Integer.MAX_VALUE, q -> {
-            q.setMaxRetries(3);
-            q.setBatchSize(20);
-            q.setSplitBatch(SplitBatch.ONE);
+            q.getConfiguration()
+                .setBatchSize(20)
+                .getOnCommitFailure()
+                    .setMaxRetries(3)
+                    .setSplitBatch(SplitBatch.ONE);
         });
 
         // attempted batch sizes: 20, 1(x11)    + 3 retry
@@ -125,12 +134,14 @@ class FSQueueFailTest {
 
     @Test
     void testOnFailNoSplitNoRepeat() throws CommitterException {
-        FailingBatchCommitter c = buildCommitter(
+        var c = buildCommitter(
                 /* fail at doc: */ 2,
                 /* recover at attempt: */ Integer.MAX_VALUE, q -> {
-            q.setMaxRetries(0);
-            q.setBatchSize(4);
-            q.setSplitBatch(SplitBatch.OFF);
+            q.getConfiguration()
+                .setBatchSize(4)
+                .getOnCommitFailure()
+                    .setMaxRetries(0)
+                    .setSplitBatch(SplitBatch.OFF);
         });
         try {
             runCommitter(c);
@@ -145,13 +156,15 @@ class FSQueueFailTest {
 
     @Test
     void testOnFailIgnoreErrorsNoSplitNoRepeat() throws CommitterException {
-        FailingBatchCommitter c = commitFailure(
+        var c = commitFailure(
                 /* fail at doc: */ 2,
                 /* recover at attempt: */ 2, q -> {
-            q.setMaxRetries(0);
-            q.setBatchSize(3);
-            q.setSplitBatch(SplitBatch.OFF);
-            q.setIgnoreErrors(true);
+            q.getConfiguration()
+                .setBatchSize(3)
+                .getOnCommitFailure()
+                    .setMaxRetries(0)
+                    .setSplitBatch(SplitBatch.OFF)
+                    .setIgnoreErrors(true);
         });
 
         // attempted batch sizes: 3(x4)
@@ -167,7 +180,7 @@ class FSQueueFailTest {
     FailingBatchCommitter commitFailure(
             int failAtDoc, int recoverAtAttempt, Consumer<FSQueue> c)
                     throws CommitterException {
-        FailingBatchCommitter committer =
+        var committer =
                 buildCommitter(failAtDoc, recoverAtAttempt, c);
         runCommitter(committer);
         return committer;
@@ -176,9 +189,9 @@ class FSQueueFailTest {
     FailingBatchCommitter buildCommitter(
             int failAtDoc, int recoverAtAttempt, Consumer<FSQueue> c)
                     throws CommitterException {
-        FailingBatchCommitter committer = new FailingBatchCommitter(
+        var committer = new FailingBatchCommitter(
                 failAtDoc, recoverAtAttempt);
-        FSQueue fsqueue = (FSQueue) committer.getCommitterQueue();
+        var fsqueue = (FSQueue) committer.getConfiguration().getQueue();
         c.accept(fsqueue);
         return committer;
     }
@@ -192,7 +205,7 @@ class FSQueueFailTest {
             .map(StackTraceElement::getMethodName)
             .ifPresent(m -> Thread.currentThread().setName(m));
 
-        CommitterContext ctx = TestUtil.committerContext(null);
+        var ctx = TestUtil.committerContext(null);
         ctx.getEventManager().setStacktraceLoggingDisabled(true);
         committer.init(ctx);
         TestUtil.commitRequests(

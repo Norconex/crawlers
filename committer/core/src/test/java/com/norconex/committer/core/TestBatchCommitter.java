@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,20 @@ package com.norconex.committer.core;
 import java.util.Iterator;
 
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.committer.core.batch.BaseBatchCommitterConfig;
 
-public class TestBatchCommitter extends AbstractBatchCommitter {
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-    public TestBatchCommitter() {
-    }
+@EqualsAndHashCode
+@ToString
+public class TestBatchCommitter
+        extends AbstractBatchCommitter<BaseBatchCommitterConfig> {
 
-    @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        // NOOP
-    }
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        // NOOP
-    }
+    @Getter
+    private final BaseBatchCommitterConfig configuration =
+            new BaseBatchCommitterConfig();
 
     @Override
     protected void commitBatch(Iterator<CommitterRequest> it)

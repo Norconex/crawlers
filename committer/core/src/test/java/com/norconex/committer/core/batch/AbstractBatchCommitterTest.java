@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestBatchCommitter;
 import com.norconex.committer.core.TestMemoryQueue;
 import com.norconex.committer.core.TestUtil;
-import com.norconex.commons.lang.xml.XML;
 
 class AbstractBatchCommitterTest {
 
@@ -34,13 +33,13 @@ class AbstractBatchCommitterTest {
             var ctx = CommitterContext.builder().build();
 
             // no committer queue does not throw
-            c.setCommitterQueue(null);
+            c.getConfiguration().setQueue(null);
             assertThatNoException().isThrownBy(() -> {
                 c.init(ctx);
             });
 
             var queue = new TestMemoryQueue();
-            c.setCommitterQueue(queue);
+            c.getConfiguration().setQueue(queue);
 
             c.init(ctx);
 
@@ -60,14 +59,11 @@ class AbstractBatchCommitterTest {
             assertThat(queue.getUpsertRequests()).isEmpty();
             assertThat(queue.getDeleteRequests()).isEmpty();
 
-            assertThat(c.getCommitterQueue()).isSameAs(queue);
-
+            assertThat(c.getInitializedQueue()).isSameAs(queue);
 
             assertThatNoException().isThrownBy(() -> {
-                c.saveToXML(new XML("committer"));
-                c.loadFromXML(new XML("committer"));
+                TestUtil.beanMapper().assertWriteRead(c);
             });
-
         }
     }
 }

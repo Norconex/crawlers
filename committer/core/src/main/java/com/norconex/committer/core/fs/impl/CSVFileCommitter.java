@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  */
 package com.norconex.committer.core.fs.impl;
 
-import static com.norconex.commons.lang.xml.XPathUtil.attr;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVFormat.Builder;
@@ -32,13 +30,10 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.fs.AbstractFSCommitter;
-import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.committer.core.fs.impl.CSVFileCommitterConfig.Column;
 import com.norconex.commons.lang.convert.EnumConverter;
-import com.norconex.commons.lang.xml.XML;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
 /**
@@ -139,26 +134,13 @@ import lombok.experimental.FieldNameConstants;
 @SuppressWarnings("javadoc")
 @Data
 @FieldNameConstants
-public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
+public class CSVFileCommitter
+        extends AbstractFSCommitter<CSVPrinter, CSVFileCommitterConfig> {
 
     public static final int DEFAULT_TRUNCATE_AT = 5096;
 
-    private String format;
-    private Character delimiter;
-    private Character quote;
-    private boolean showHeaders;
-    private Character escape;
-    private int truncateAt = DEFAULT_TRUNCATE_AT;
-    private String multiValueJoinDelimiter;
-    private String typeHeader;
-    private final List<Column> columns = new ArrayList<>();
-
-    public List<Column> getColumns() {
-        return Collections.unmodifiableList(columns);
-    }
-    public void setColumns(List<Column> columns) {
-        CollectionUtil.setAll(this.columns, columns);
-    }
+    private final CSVFileCommitterConfig configuration =
+                new CSVFileCommitterConfig();
 
     @Override
     protected String getFileExtension() {
@@ -166,19 +148,20 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
     }
     @Override
     protected CSVPrinter createDocWriter(Writer writer) throws IOException {
-        var builder = Builder.create(StringUtils.isBlank(format)
+        var builder = Builder.create(isBlank(configuration.getFormat())
                 ? CSVFormat.newFormat(',')
                 : new EnumConverter().toType(
-                        format, CSVFormat.Predefined.class).getFormat());
+                        configuration.getFormat(),
+                        CSVFormat.Predefined.class).getFormat());
 
-        if (delimiter != null) {
-            builder.setDelimiter(delimiter);
+        if (configuration.getDelimiter() != null) {
+            builder.setDelimiter(configuration.getDelimiter());
         }
-        if (quote != null) {
-            builder.setQuote(quote);
+        if (configuration.getQuote() != null) {
+            builder.setQuote(configuration.getQuote());
         }
-        if (escape != null) {
-            builder.setEscape(escape);
+        if (configuration.getEscape() != null) {
+            builder.setEscape(configuration.getEscape());
         }
 
         builder.setRecordSeparator('\n');
@@ -188,14 +171,16 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
     }
 
     private void printHeaders(CSVPrinter csv) throws IOException {
-        if (!showHeaders) {
+        if (!configuration.isShowHeaders()) {
             return;
         }
 
-        if (StringUtils.isNotBlank(typeHeader) || !isSplitUpsertDelete()) {
-            csv.print(StringUtils.isNotBlank(typeHeader) ? typeHeader : "type");
+        if (StringUtils.isNotBlank(configuration.getTypeHeader())
+                || !configuration.isSplitUpsertDelete()) {
+            csv.print(isNotBlank(configuration.getTypeHeader())
+                    ? configuration.getTypeHeader() : "type");
         }
-        for (Column column : columns) {
+        for (Column column : configuration.getColumns()) {
             var header = column.getHeader();
             if (StringUtils.isBlank(header)) {
                 header = "content";
@@ -209,10 +194,11 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
     protected void writeUpsert(
             CSVPrinter csv, UpsertRequest upsertRequest) throws IOException {
 
-        if (StringUtils.isNotBlank(typeHeader) || !isSplitUpsertDelete()) {
+        if (isNotBlank(configuration.getTypeHeader())
+                || !configuration.isSplitUpsertDelete()) {
             csv.print("upsert");
         }
-        for (Column column : columns) {
+        for (Column column : configuration.getColumns()) {
             var field = column.getField();
             String value;
             // if blank field, we are dealing with content
@@ -221,7 +207,7 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
             } else {
                 value = StringUtils.join(
                         upsertRequest.getMetadata().getStrings(field),
-                        multiValueJoinDelimiter);
+                        configuration.getMultiValueJoinDelimiter());
             }
             value = truncate(value, column.getTruncateAt());
             csv.print(StringUtils.trimToEmpty(value));
@@ -234,10 +220,11 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
     protected void writeDelete(
             CSVPrinter csv, DeleteRequest deleteRequest) throws IOException {
 
-        if (StringUtils.isNotBlank(typeHeader) || !isSplitUpsertDelete()) {
+        if (isNotBlank(configuration.getTypeHeader())
+                || !configuration.isSplitUpsertDelete()) {
             csv.print("delete");
         }
-        for (Column column : columns) {
+        for (Column column : configuration.getColumns()) {
             var field = column.getField();
             // if blank field, we are dealing with content but delete has none,
             // so we store a blank value.
@@ -245,7 +232,7 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
             if (StringUtils.isNotBlank(field)) {
                 value = StringUtils.join(
                         deleteRequest.getMetadata().getStrings(field),
-                        multiValueJoinDelimiter);
+                        configuration.getMultiValueJoinDelimiter());
             }
             value = truncate(value, column.getTruncateAt());
             csv.print(StringUtils.trimToEmpty(value));
@@ -258,7 +245,7 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
         var max = colTruncateAt;
         // try global truncate
         if (max == 0) {
-            max = getTruncateAt();
+            max = configuration.getTruncateAt();
         }
         // if still zero, use default
         if (max == 0) {
@@ -277,83 +264,6 @@ public class CSVFileCommitter extends AbstractFSCommitter<CSVPrinter> {
         if (csv!= null) {
             csv.flush();
             csv.close();
-        }
-    }
-
-    @Override
-    public void loadFSCommitterFromXML(XML xml) {
-        setFormat(xml.getString(attr(Fields.format), getFormat()));
-        setDelimiter(xml.get(
-                attr(Fields.delimiter), Character.class, getDelimiter()));
-        setQuote(xml.get(attr(Fields.quote), Character.class, getQuote()));
-        setShowHeaders(xml.getBoolean(
-                attr(Fields.showHeaders), isShowHeaders()));
-        setEscape(xml.get(attr(Fields.escape), Character.class, getEscape()));
-        setTruncateAt(xml.getInteger(attr(Fields.truncateAt), getTruncateAt()));
-        setMultiValueJoinDelimiter(xml.getString(
-                attr(Fields.multiValueJoinDelimiter),
-                getMultiValueJoinDelimiter()));
-        setTypeHeader(xml.getString(attr(Fields.typeHeader), getTypeHeader()));
-
-        List<Column> cols = new ArrayList<>();
-        for (XML colXml : xml.getXMLList("col")) {
-            cols.add(new Column(
-                    colXml.getString(attr(Column.Fields.field), null),
-                    colXml.getString(attr(Column.Fields.header), null),
-                    colXml.getInteger(attr(Column.Fields.truncateAt), 0)));
-        }
-        setColumns(cols);
-    }
-    @Override
-    public void saveFSCommitterToXML(XML xml) {
-        xml.setAttribute(Fields.format, getFormat());
-        xml.setAttribute(Fields.delimiter, getDelimiter());
-        xml.setAttribute(Fields.quote, getQuote());
-        xml.setAttribute(Fields.showHeaders, isShowHeaders());
-        xml.setAttribute(Fields.escape, getEscape());
-        xml.setAttribute(Fields.truncateAt, getTruncateAt());
-        xml.setAttribute(Fields.multiValueJoinDelimiter,
-                getMultiValueJoinDelimiter());
-        xml.setAttribute(Fields.typeHeader, getTypeHeader());
-        for (Column column : columns) {
-            xml.addElement("col")
-                    .setAttribute(Column.Fields.field, column.getField())
-                    .setAttribute(Column.Fields.header, column.getHeader())
-                    .setAttribute(Column.Fields.truncateAt,
-                            column.getTruncateAt());
-        }
-    }
-
-    @EqualsAndHashCode
-    @ToString
-    @FieldNameConstants
-    public static class Column {
-        private final String field;
-        private final String header;
-        private final int truncateAt; // -1 is unlimited, 0 is using default.
-
-        public Column(String field) {
-            this(field, field, 0);
-        }
-        public Column(String field, int truncateAt) {
-            this(field, field, truncateAt);
-        }
-        public Column(String field, String header) {
-            this(field, header, 0);
-        }
-        public Column(String field, String header, int truncateAt) {
-            this.field = field;
-            this.header = header;
-            this.truncateAt = truncateAt;
-        }
-        public String getField() {
-            return field;
-        }
-        public String getHeader() {
-            return header;
-        }
-        public int getTruncateAt() {
-            return truncateAt;
         }
     }
 }

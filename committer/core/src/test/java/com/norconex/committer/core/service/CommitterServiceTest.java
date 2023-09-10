@@ -101,7 +101,7 @@ class CommitterServiceTest {
     void beforeEach() {
         // Case 1:
         var acceptOnlyAAA = new MemoryCommitter();
-        acceptOnlyAAA.addRestriction(new PropertyMatcher(
+        acceptOnlyAAA.getConfiguration().addRestriction(new PropertyMatcher(
               TextMatcher.basic("document.reference"),
               TextMatcher.basic("aaa")));
         testContexes.put("2committers", new TestContext(
@@ -306,7 +306,8 @@ class CommitterServiceTest {
         // a specific path.
 
         var overwrittenPath = new XMLFileCommitter();
-        overwrittenPath.setDirectory(tempDir.resolve("customOne"));
+        overwrittenPath.getConfiguration().setDirectory(
+                tempDir.resolve("customOne"));
 
         var service = CommitterService.builder()
                 .committers(List.of(

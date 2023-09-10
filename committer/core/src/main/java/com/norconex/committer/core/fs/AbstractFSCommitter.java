@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,12 @@ import com.norconex.committer.core.AbstractCommitter;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 
 import lombok.AccessLevel;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * <p>
@@ -54,45 +53,28 @@ import lombok.Setter;
  * }
  *
  * @param <T> type of file serializer
+ * @param <C> type of configuration object
  */
 @SuppressWarnings("javadoc")
-@Data
-public abstract class AbstractFSCommitter<T> extends AbstractCommitter
-        implements XMLConfigurable  {
+@EqualsAndHashCode
+@ToString
+public abstract class AbstractFSCommitter<T, C extends BaseFSCommitterConfig>
+        extends AbstractCommitter<C> {
 
     // These will share the same instance if not split.
     @Getter(value = AccessLevel.NONE) @Setter(value = AccessLevel.NONE)
     private FSDocWriterHandler<T> upsertHandler;
     @Getter(value = AccessLevel.NONE) @Setter(value = AccessLevel.NONE)
     private FSDocWriterHandler<T> deleteHandler;
-
-    // Configurable
-    /**
-     * The directory where files are committed.
-     * @param directory a directory
-     * @return a directory
-     */
+    @Getter
     private Path directory;
-    private int docsPerFile;
-    private boolean compress;
-    private boolean splitUpsertDelete;
-    /**
-     * The file name prefix (default is <code>null</code>).
-     * @param fileNamePrefix file name prefix
-     * @return file name prefix
-     */
-    private String fileNamePrefix;
-    /**
-     * The file name suffix (default is <code>null</code>).
-     * @param fileNameSuffix file name suffix
-     * @return file name suffix
-     */
-    private String fileNameSuffix;
 
     @Override
     protected void doInit() throws CommitterException {
-        if (directory == null) {
-            this.directory = getCommitterContext().getWorkDir();
+        if (getConfiguration().getDirectory() == null) {
+            directory = getCommitterContext().getWorkDir();
+        } else {
+            directory = getConfiguration().getDirectory();
         }
 
         try {
@@ -104,15 +86,15 @@ public abstract class AbstractFSCommitter<T> extends AbstractCommitter
 
         var fileBaseName = DateFormatUtils.format(
                 System.currentTimeMillis(), "yyyy-MM-dd'T'hh-mm-ss-SSS");
-        if (splitUpsertDelete) {
-            this.upsertHandler =
+        if (getConfiguration().isSplitUpsertDelete()) {
+            upsertHandler =
                     new FSDocWriterHandler<>(this, "upsert-" + fileBaseName);
-            this.deleteHandler =
+            deleteHandler =
                     new FSDocWriterHandler<>(this, "delete-" + fileBaseName);
         } else {
             // when using same file for both upsert and delete, share instance.
-            this.upsertHandler = new FSDocWriterHandler<>(this, fileBaseName);
-            this.deleteHandler = upsertHandler;
+            upsertHandler = new FSDocWriterHandler<>(this, fileBaseName);
+            deleteHandler = upsertHandler;
         }
     }
     @Override
@@ -155,36 +137,6 @@ public abstract class AbstractFSCommitter<T> extends AbstractCommitter
         // NOOP, no internal state is kept.
         // We do not clean previously committed files.
     }
-
-    @Override
-    public final void loadCommitterFromXML(XML xml) {
-        loadFSCommitterFromXML(xml);
-        setDirectory(xml.getPath("directory", directory));
-        setDocsPerFile(xml.getInteger("docsPerFile", docsPerFile));
-        setCompress(xml.getBoolean("compress", compress));
-        setSplitUpsertDelete(
-                xml.getBoolean("splitUpsertDelete", splitUpsertDelete));
-        setFileNamePrefix(xml.getString("fileNamePrefix", fileNamePrefix));
-        setFileNameSuffix(xml.getString("fileNameSuffix", fileNameSuffix));
-    }
-    @Override
-    public final void saveCommitterToXML(XML xml) {
-        saveFSCommitterToXML(xml);
-        xml.addElement("directory", directory);
-        xml.addElement("docsPerFile", docsPerFile);
-        xml.addElement("compress", compress);
-        xml.addElement("splitUpsertDelete", splitUpsertDelete);
-        xml.addElement("fileNamePrefix", fileNamePrefix);
-        xml.addElement("fileNameSuffix", fileNameSuffix);
-    }
-
-    public void loadFSCommitterFromXML(XML xml) {
-        //NOOP
-    }
-    public void saveFSCommitterToXML(XML xml) {
-        //NOOP
-    }
-
 
     protected abstract String getFileExtension();
     protected abstract T createDocWriter(Writer writer) throws IOException;

@@ -71,6 +71,20 @@
       <artifactId>log4j-slf4j2-impl</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- The following is to test write/read to/from XML/JSON/Yaml -->    
+    <dependency>
+      <groupId>jakarta.el</groupId>
+      <artifactId>jakarta.el-api</artifactId>
+      <version>5.0.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-el</artifactId>
+      <version>10.1.12</version>    
+      <scope>test</scope>
+    </dependency>
   </dependencies>
  
   <build>

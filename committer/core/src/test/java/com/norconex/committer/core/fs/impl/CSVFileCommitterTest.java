@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package com.norconex.committer.core.fs.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,8 +33,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.TestUtil;
-import com.norconex.committer.core.fs.impl.CSVFileCommitter.Column;
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.committer.core.fs.impl.CSVFileCommitterConfig.Column;
 
 /**
  * <p>CSV File Committer tests.</p>
@@ -120,14 +120,14 @@ class CSVFileCommitterTest  {
         var c = new CSVFileCommitter();
         // write 5 upserts and 2 deletes.
         // max docs per file being 2, so should generate 4 files.
-        c.setDocsPerFile(20);
-        c.setSplitUpsertDelete(splitUpsertDelete);
-        c.setShowHeaders(true);
-
-        c.setColumns(Arrays.asList(
-                new Column("document.reference", "URL"),
-                new Column("title"),
-                new Column(null)));
+        c.getConfiguration()
+            .setColumns(Arrays.asList(
+                    new Column("document.reference", "URL"),
+                    new Column("title"),
+                    new Column(null)))
+            .setShowHeaders(true)
+            .setDocsPerFile(20)
+            .setSplitUpsertDelete(splitUpsertDelete);
 
         c.init(TestUtil.committerContext(folder));
         TestUtil.commitRequests(c, reqs);
@@ -138,25 +138,26 @@ class CSVFileCommitterTest  {
     @Test
     void testWriteRead() {
         var c = new CSVFileCommitter();
-        c.setCompress(true);
-        c.setDirectory(Paths.get("c:\\temp"));
-        c.setDocsPerFile(5);
-        c.setFileNamePrefix("prefix");
-        c.setFileNamePrefix("suffix");
-        c.setSplitUpsertDelete(true);
-        c.setFormat("EXCEL");
-        c.setDelimiter('|');
-        c.setQuote('!');
-        c.setShowHeaders(true);
-        c.setEscape('%');
-        c.setTruncateAt(10);
-        c.setMultiValueJoinDelimiter("^^^");
-        c.setTypeHeader("Request Type");
-        c.setColumns(Arrays.asList(
-                new Column("document.reference", "URL", 2000),
-                new Column("title", "My Title", 100),
-                new Column(null, "My Content", 200)));
-        XML.assertWriteRead(c, "committer");
+        c.getConfiguration()
+            .setFormat("EXCEL")
+            .setDelimiter('|')
+            .setQuote('!')
+            .setShowHeaders(true)
+            .setEscape('%')
+            .setTruncateAt(10)
+            .setTypeHeader("Request Type")
+            .setMultiValueJoinDelimiter("^^^")
+            .setColumns(Arrays.asList(
+                    new Column("document.reference", "URL", 2000),
+                    new Column("title", "My Title", 100),
+                    new Column(null, "My Content", 200)))
+            .setDirectory(Paths.get("c:\\temp"))
+            .setDocsPerFile(5)
+            .setFileNamePrefix("prefix")
+            .setFileNamePrefix("suffix")
+            .setSplitUpsertDelete(true)
+            .setCompress(true);
+        assertThatNoException().isThrownBy(
+                () -> TestUtil.beanMapper().assertWriteRead(c));
     }
-
 }

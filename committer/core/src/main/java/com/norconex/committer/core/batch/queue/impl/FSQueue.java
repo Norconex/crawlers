@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,16 +38,15 @@ import com.norconex.committer.core.batch.BatchConsumer;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
 import com.norconex.committer.core.batch.queue.CommitterQueueException;
 import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.exec.RetriableException;
 import com.norconex.commons.lang.exec.Retrier;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -131,10 +130,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 @Slf4j
-public class FSQueue implements CommitterQueue, XMLConfigurable {
-
-    public static final int DEFAULT_BATCH_SIZE = 20;
-    public static final int DEFAULT_MAX_PER_FOLDER = 500;
+public class FSQueue implements CommitterQueue, Configurable<FSQueueConfig> {
 
     public enum SplitBatch { OFF, HALF, ONE }
 
@@ -160,67 +156,16 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
     @ToString.Exclude
     private Path activeDir;
 
-    private final Retrier retrier = new Retrier(0);
+    private Retrier retrier = new Retrier(0);
 
-    // Configurable
-
-    /**
-     * The number of documents to be queued in a batch on disk before
-     * consuming that batch.
-     * @param batchSize the batch size
-     * @return batch size
-     */
-    @SuppressWarnings("javadoc")
-    @Getter @Setter
-    private int batchSize = DEFAULT_BATCH_SIZE;
-
-    /**
-     * The maximum number of files to be queued on disk in a given folders.
-     * A batch size can sometimes be too big for some file systems to handle
-     * efficiently.  Having this number lower than the batch size allows
-     * to have large batches without having too many files in a single
-     * directory.
-     * @param maxPerFolder number of files queued per directory
-     * @return maximum number of files queued per directory
-     */
-    @SuppressWarnings("javadoc")
-    @Getter @Setter
-    private int maxPerFolder = DEFAULT_MAX_PER_FOLDER;
-
-    /**
-     * Whether to attempt committing any file leftovers in the committer
-     * queue from a previous session when the committer is initialized.
-     * Leftovers are typically associated with an abnormal termination.
-     * @param commitLeftoversOnInit <code>true</code> to commit leftovers
-     * @return <code>true</code> if committing leftovers
-     */
-    @SuppressWarnings("javadoc")
-    @Getter @Setter
-    private boolean commitLeftoversOnInit = false;
-
-    /**
-     * Whether and how to split batches when re-attempting them.
-     * See class documentation for details.
-     * @param splitBatch split batch strategy
-     * @return split batch strategy
-     */
-    @SuppressWarnings("javadoc")
-    @Getter @Setter
-    private SplitBatch splitBatch = SplitBatch.OFF;
-
-    /**
-     * Whether to ignore non-critical errors in an attempt to keep going.
-     * See class documentation for more details.
-     * @param ignoreErrors <code>true</code> to ignore errors
-     * @return <code>true</code> if ignoring errors
-     */
-    @SuppressWarnings("javadoc")
-    @Getter @Setter
-    private boolean ignoreErrors;
+    @Getter
+    private final FSQueueConfig configuration = new FSQueueConfig();
 
     @Override
-    public void init(CommitterContext committerContext,
-            BatchConsumer batchConsumer) throws CommitterQueueException {
+    public void init(
+            CommitterContext committerContext,
+            @NonNull BatchConsumer batchConsumer)
+                    throws CommitterQueueException {
 
         this.batchConsumer = Objects.requireNonNull(batchConsumer,
                 "'batchConsumer' must not be null.");
@@ -231,6 +176,13 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
         var workDir = Optional.ofNullable(committerContext.getWorkDir())
                 .orElseGet(() -> Paths.get(FileUtils.getTempDirectoryPath()));
         streamFactory = committerContext.getStreamFactory();
+
+        retrier = new Retrier();
+        retrier.setMaxRetries(
+                configuration.getOnCommitFailure().getMaxRetries());
+        retrier.setRetryDelay(
+                configuration.getOnCommitFailure().getRetryDelay());
+
 
         LOG.info("Committer working directory: {}",
                 workDir.toAbsolutePath());
@@ -246,7 +198,7 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
                             + workDir.toAbsolutePath());
         }
 
-        if (commitLeftoversOnInit) {
+        if (configuration.isCommitLeftoversOnInit()) {
             // Resume by first processing existing batches not yet committed
             // from previous execution.
             // "false" by default since we do not want to commit leftovers
@@ -272,19 +224,6 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
 
     public BatchConsumer getBatchConsumer() {
         return batchConsumer;
-    }
-
-    public int getMaxRetries() {
-        return retrier.getMaxRetries();
-    }
-    public void setMaxRetries(int maxRetries) {
-        retrier.setMaxRetries(maxRetries);
-    }
-    public long getRetryDelay() {
-        return retrier.getRetryDelay();
-    }
-    public void setRetryDelay(long retryDelay) {
-        retrier.setRetryDelay(retryDelay);
     }
 
     @Override
@@ -321,7 +260,7 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
             throws CommitterQueueException, IOException {
 
         var totalConsumed = 0;
-        var attemptDocConsumed = Math.max(1, batchSize);
+        var attemptDocConsumed = Math.max(1, configuration.getBatchSize());
         var batch = new FSBatch(streamFactory, dir, -1);
         var batchHadFailures = false;
         var batchRanSuccessfully = false;
@@ -398,7 +337,7 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
                 + "located at " + batch.getDir().toAbsolutePath()
                 + ". Moved them to error directory: "
                 + errorDir.toAbsolutePath();
-        if (!ignoreErrors) {
+        if (!configuration.getOnCommitFailure().isIgnoreErrors()) {
             throw new CommitterQueueException(msg, e);
         }
         LOG.error(msg, e);
@@ -410,7 +349,8 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
             return -1;
         }
 
-        var sb = ofNullable(splitBatch).orElse(SplitBatch.OFF);
+        var sb = ofNullable(configuration.getOnCommitFailure().getSplitBatch())
+                .orElse(SplitBatch.OFF);
         return switch (sb) {
         case HALF -> {
             var newMaxSize = (lastTriedSize + 1) / 2;
@@ -425,34 +365,6 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
         }
         default -> -1;
         };
-    }
-
-    @Override
-    public void loadFromXML(XML xml) {
-        setBatchSize(xml.getInteger("batchSize", batchSize));
-        setMaxPerFolder(xml.getInteger("maxPerFolder", maxPerFolder));
-        setCommitLeftoversOnInit(
-                xml.getBoolean("commitLeftoversOnInit", commitLeftoversOnInit));
-
-        xml.ifXML("onCommitFailure", x -> {
-            setMaxRetries(x.getInteger("maxRetries", retrier.getMaxRetries()));
-            setRetryDelay(x.getLong("retryDelay", retrier.getRetryDelay()));
-            setSplitBatch(x.getEnum(
-                    "splitBatch", SplitBatch.class, splitBatch));
-            setIgnoreErrors(x.getBoolean("ignoreErrors", isIgnoreErrors()));
-        });
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        xml.addElement("batchSize", batchSize);
-        xml.addElement("maxPerFolder", maxPerFolder);
-        xml.addElement("commitLeftoversOnInit", commitLeftoversOnInit);
-
-        var onFailXML = xml.addElement("onCommitFailure");
-        onFailXML.addElement("maxRetries", retrier.getMaxRetries());
-        onFailXML.addElement("retryDelay", retrier.getRetryDelay());
-        onFailXML.addElement("splitBatch", splitBatch);
-        onFailXML.addElement("ignoreErrors", ignoreErrors);
     }
 
     @Override
@@ -505,7 +417,7 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
                     throws CommitterQueueException {
         try {
             // If starting a new batch, create the folder for it
-            if (batchCount.get() == batchSize) {
+            if (batchCount.get() == configuration.getBatchSize()) {
                 consumeBatchDir.setValue(activeDir);
                 batchCount.set(0);
                 activeDir = createActiveDir();
@@ -534,8 +446,9 @@ public class FSQueue implements CommitterQueue, XMLConfigurable {
     // use max batch size to figure out how many level of directories.
     // so we do not have more than "maxFilesPerFolder" docs in a given folder
     private String filePath(long value) {
-        var nameLength = (int) ceil(log10(maxPerFolder));
-        var dirDepth = (int) ceil(log(batchSize) / log(maxPerFolder));
+        var nameLength = (int) ceil(log10(configuration.getMaxPerFolder()));
+        var dirDepth = (int) ceil(log(configuration.getBatchSize())
+                / log(configuration.getMaxPerFolder()));
         var pathLength = nameLength * dirDepth;
         var path = leftPad(Long.toString(value), pathLength, '0');
         return path.replaceAll(

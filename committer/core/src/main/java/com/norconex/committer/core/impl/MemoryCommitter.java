@@ -1,4 +1,4 @@
-/* Copyright 2019-2022 Norconex Inc.
+/* Copyright 2019-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,6 @@ import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -62,7 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("javadoc")
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class MemoryCommitter extends AbstractCommitter {
+public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
 
     private final List<CommitterRequest> requests = new ArrayList<>();
 
@@ -71,21 +69,12 @@ public class MemoryCommitter extends AbstractCommitter {
     @Getter @Setter
     private boolean closed;
 
-    private boolean ignoreContent;
-    private final TextMatcher fieldMatcher = new TextMatcher();
+    private final MemoryCommitterConfig configuration =
+            new MemoryCommitterConfig();
 
-    public boolean isIgnoreContent() {
-        return ignoreContent;
-    }
-    public void setIgnoreContent(boolean ignoreContent) {
-        this.ignoreContent = ignoreContent;
-    }
-
-    public TextMatcher getFieldMatcher() {
-        return fieldMatcher;
-    }
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
+    @Override
+    public MemoryCommitterConfig getConfiguration() {
+        return configuration;
     }
 
     @Override
@@ -131,7 +120,7 @@ public class MemoryCommitter extends AbstractCommitter {
 
         InputStream memContent = null;
         var reqContent = upsertRequest.getContent();
-        if (!ignoreContent && reqContent != null) {
+        if (!configuration.isIgnoreContent() && reqContent != null) {
             try {
                 memContent = new ByteArrayInputStream(
                         IOUtils.toByteArray(reqContent));
@@ -159,11 +148,12 @@ public class MemoryCommitter extends AbstractCommitter {
         var memMetadata = new Properties();
         if (reqMetadata != null) {
 
-            if (fieldMatcher.getPattern() == null) {
+            if (configuration.getFieldMatcher().getPattern() == null) {
                 memMetadata.loadFromMap(reqMetadata);
             } else {
                 memMetadata.loadFromMap(reqMetadata.entrySet().stream()
-                        .filter(en -> fieldMatcher.matches(en.getKey()))
+                        .filter(en -> configuration.getFieldMatcher()
+                                .matches(en.getKey()))
                         .collect(Collectors.toMap(
                                 Entry::getKey, Entry::getValue)));
             }
@@ -196,15 +186,5 @@ public class MemoryCommitter extends AbstractCommitter {
                 .append("upsertCount", upsertCount)
                 .append("deleteCount", deleteCount)
                 .build();
-    }
-
-    @Override
-    public void loadCommitterFromXML(XML xml) {
-        //NOOP
-    }
-
-    @Override
-    public void saveCommitterToXML(XML xml) {
-        //NOOP
     }
 }

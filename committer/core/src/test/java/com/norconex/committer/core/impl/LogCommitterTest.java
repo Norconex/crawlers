@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,11 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 
 /**
  * <p>LogCommitter tests.</p>
- *
  */
 class LogCommitterTest  {
 
@@ -45,10 +44,11 @@ class LogCommitterTest  {
     void testWriteRead() {
         assertThatNoException().isThrownBy(() -> {
             var c = new LogCommitter();
-            c.setFieldMatcher(TextMatcher.wildcard("pot?to"));
-            c.setIgnoreContent(true);
-            c.setLogLevel("ERROR");
-            XML.assertWriteRead(c, "committer");
+            c.getConfiguration()
+                .setFieldMatcher(TextMatcher.wildcard("pot?to"))
+                .setIgnoreContent(true)
+                .setLogLevel("ERROR");
+            BeanMapper.DEFAULT.assertWriteRead(c);
         });
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,17 +47,18 @@ class FSDocWriterHandler<T> implements AutoCloseable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private final AbstractFSCommitter<T> committer;
+    private final AbstractFSCommitter<T, ? extends BaseFSCommitterConfig>
+            committer;
 
-    FSDocWriterHandler(AbstractFSCommitter<T> committer, String fileBaseName) {
+    FSDocWriterHandler(
+            AbstractFSCommitter<T, ? extends BaseFSCommitterConfig> committer,
+            String fileBaseName) {
         this.committer = committer;
         this.fileBaseName = fileBaseName;
     }
     synchronized T withDocWriter() throws IOException {
-
-        var docPerFileReached =
-                committer.getDocsPerFile() > 0
-                        && writeCount == committer.getDocsPerFile();
+        var docPerFile = committer.getConfiguration().getDocsPerFile();
+        var docPerFileReached = docPerFile > 0 && writeCount == docPerFile;
 
         if (docPerFileReached) {
             close();
@@ -67,7 +68,7 @@ class FSDocWriterHandler<T> implements AutoCloseable {
         if (writeCount == 0) {
             file = new File(committer.getDirectory().toFile(), buildFileName());
             LOG.info("Creating file: {}", file);
-            if (committer.isCompress()) {
+            if (committer.getConfiguration().isCompress()) {
                 writer = new OutputStreamWriter(new GZIPOutputStream(
                         new FileOutputStream(file), true));
             } else {
@@ -81,11 +82,11 @@ class FSDocWriterHandler<T> implements AutoCloseable {
     }
     private String buildFileName() {
         var fileName = stripToEmpty(toSafeFileName(
-                committer.getFileNamePrefix()))
+                committer.getConfiguration().getFileNamePrefix()))
               + fileBaseName + stripToEmpty(toSafeFileName(
-                      committer.getFileNameSuffix()))
+                      committer.getConfiguration().getFileNameSuffix()))
               + "_" + fileNumber + "." + committer.getFileExtension();
-        if (committer.isCompress()) {
+        if (committer.getConfiguration().isCompress()) {
             fileName += ".gz";
         }
         return fileName;
