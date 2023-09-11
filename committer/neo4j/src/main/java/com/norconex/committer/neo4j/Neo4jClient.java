@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
@@ -29,20 +28,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.SessionConfig.Builder;
 import org.neo4j.driver.internal.value.NullValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.CommitterRequest;
+import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.security.Credentials;
+
+import lombok.NonNull;
 
 /**
  * <p>
@@ -60,16 +58,15 @@ class Neo4jClient {
     private final Driver neo4jDriver;
     private final SessionConfig sessionConfig;
 
-    public Neo4jClient(Neo4jCommitterConfig config) {
-        this.config = Objects.requireNonNull(
-                config, "'config' must not be null.");
-        this.neo4jDriver = createNeo4jDriver();
-        this.sessionConfig = createNeo4jSessionConfig();
+    public Neo4jClient(@NonNull Neo4jCommitterConfig config) {
+        this.config = config;
+        neo4jDriver = createNeo4jDriver();
+        sessionConfig = createNeo4jSessionConfig();
     }
 
     private Driver createNeo4jDriver() {
         Driver driver;
-        Credentials creds = config.getCredentials();
+        var creds = config.getCredentials();
         if (creds.isSet()) {
             driver = GraphDatabase.driver(config.getUri(), AuthTokens.basic(
                     creds.getUsername(),
@@ -83,8 +80,8 @@ class Neo4jClient {
         return driver;
     }
     private SessionConfig createNeo4jSessionConfig() {
-        Builder b = SessionConfig.builder();
-        if (StringUtils.isNotBlank(this.config.getDatabase())) {
+        var b = SessionConfig.builder();
+        if (StringUtils.isNotBlank(config.getDatabase())) {
             b.withDatabase(config.getDatabase());
         }
         return b.build();
@@ -93,7 +90,7 @@ class Neo4jClient {
     public void post(Iterator<CommitterRequest> it) throws CommitterException {
         while (it.hasNext()) {
             try {
-                CommitterRequest req = it.next();
+                var req = it.next();
                 if (req instanceof UpsertRequest upsert) {
                     postUpsert(upsert);
                 } else if (req instanceof DeleteRequest delete) {
@@ -114,7 +111,7 @@ class Neo4jClient {
     }
 
     private void postUpsert(UpsertRequest req) throws IOException {
-        Properties meta = req.getMetadata();
+        var meta = req.getMetadata();
         if (StringUtils.isNotBlank(config.getNodeIdProperty())) {
             meta.set(config.getNodeIdProperty(), req.getReference());
         }
@@ -122,7 +119,7 @@ class Neo4jClient {
             meta.set(config.getNodeContentProperty(), IOUtils.toString(
                     req.getContent(), StandardCharsets.UTF_8));
         }
-        try (Session session = neo4jDriver.session(sessionConfig)) {
+        try (var session = neo4jDriver.session(sessionConfig)) {
             session.executeWrite(tx -> {
                 tx.run(config.getUpsertCypher(), toObjectMap(meta));
                 return null;
@@ -131,10 +128,10 @@ class Neo4jClient {
     }
 
     private void postDelete(DeleteRequest req) {
-        Properties meta = req.getMetadata();
+        var meta = req.getMetadata();
         Optional.ofNullable(trimToNull(config.getNodeIdProperty())).ifPresent(
                 fld -> meta.set(fld, req.getReference()));
-        try (Session session = neo4jDriver.session(sessionConfig)) {
+        try (var session = neo4jDriver.session(sessionConfig)) {
             session.executeWrite(tx -> {
                 tx.run(config.getDeleteCypher(), toObjectMap(meta));
                 return null;
@@ -153,7 +150,7 @@ class Neo4jClient {
         });
 
         // Add optional parameters
-        config.getOptionalParameters().forEach(param -> 
+        config.getOptionalParameters().forEach(param ->
             map.computeIfAbsent(param, p -> NullValue.NULL)
         );
         return map;

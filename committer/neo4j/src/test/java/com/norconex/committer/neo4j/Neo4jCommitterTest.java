@@ -41,7 +41,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.types.InternalTypeSystem;
 import org.neo4j.driver.types.Node;
 import org.testcontainers.containers.Neo4jContainer;
@@ -115,7 +114,7 @@ class Neo4jCommitterTest {
                RETURN movie.id, movie.title, movie.year""").list();
         cnt = 0;
         for (Record rec : records) {
-            UpsertRequest req = movieUpsertRequest(prop(rec, "movie.id"));
+            var req = movieUpsertRequest(prop(rec, "movie.id"));
             assertThat(meta(req, "title")).isEqualTo(prop(rec, "movie.title"));
             assertThat(meta(req, "year")).isEqualTo(prop(rec, "movie.year"));
             cnt++;
@@ -135,7 +134,7 @@ class Neo4jCommitterTest {
 
         // Check all producers are there
         records = session.run("""
-                
+
                 MATCH (prod:Producer)
                 RETURN prod.name""").list();
         Set<String> producers = new HashSet<>();
@@ -159,29 +158,29 @@ class Neo4jCommitterTest {
     @Test
     void deleteTest() throws CommitterException, IOException {
         //setup
-        String queryFindAllKeanuMovies = ("""
+        var queryFindAllKeanuMovies = ("""
                 MATCH (a:Actor WHERE a.name='Keanu Reeves')-[:ACTED_IN]->(m:Movie)
                 WITH m.title as movieTitle
                 RETURN movieTitle""");
         commitAllMovies();
-        
-        List<Record> records = session.run(queryFindAllKeanuMovies).list();
+
+        var records = session.run(queryFindAllKeanuMovies).list();
         assertThat(records).hasSize(3);
-        
+
         //execute
         withinCommitterSession(c -> {
-            Neo4jCommitterConfig cfg = c.getConfig();
+            var cfg = c.getConfiguration();
             cfg.setDeleteCypher("""
                     MATCH (n:Movie {id: $movieId })
                     DETACH DELETE n
                     """);
-            
-            Properties meta = new Properties();
+
+            var meta = new Properties();
             meta.add("movieId", "matrix1");
-            
+
             c.delete(new DeleteRequest("matrix1", meta));
         });
-        
+
         //verify
         records = session.run(queryFindAllKeanuMovies).list();
         assertThat(records).hasSize(2);
@@ -193,7 +192,7 @@ class Neo4jCommitterTest {
         return req.getMetadata().getString(key);
     }
     private String prop(Record rec, String key) {
-        Value value = rec.get(key);
+        var value = rec.get(key);
         if (value.hasType(InternalTypeSystem.TYPE_SYSTEM.LIST())) {
             return value.asList().get(0).toString();
         }
@@ -202,10 +201,10 @@ class Neo4jCommitterTest {
 
     private void commitAllMovies() throws CommitterException {
         withinCommitterSession(c -> {
-            Neo4jCommitterConfig cfg = c.getConfig();
+            var cfg = c.getConfiguration();
             cfg.addOptionalParameter("producers");
             cfg.setUpsertCypher("""
-                MERGE (m:Movie { 
+                MERGE (m:Movie {
                      id: $movieId, title: $title, year: $year })
                     FOREACH (actor IN COALESCE($actors, []) |
                         MERGE (a:Actor{name: actor})
@@ -221,29 +220,29 @@ class Neo4jCommitterTest {
             c.upsert(movieUpsertRequest("matrix2"));
             c.upsert(movieUpsertRequest("devilsAdvocate"));
         });
-    }    
+    }
 
     private UpsertRequest movieUpsertRequest(String movieId)
             throws IOException {
-        Properties meta = new Properties();
+        var meta = new Properties();
         meta.loadFromProperties(getClass().getResourceAsStream(
                 "/movies/" + movieId + ".properties"), ", ");
         return upsertRequest(movieId, TEST_CONTENT, meta);
     }
     private UpsertRequest upsertRequest(
             String id, String content, Properties metadata) {
-        Properties p = metadata == null ? new Properties() : metadata;
+        var p = metadata == null ? new Properties() : metadata;
         return new UpsertRequest(id, p, content == null
                 ? new NullInputStream(0) : toInputStream(content, UTF_8));
     }
 
     protected Neo4jCommitter createNeo4jCommitter() throws CommitterException {
-        CommitterContext ctx = CommitterContext.builder()
+        var ctx = CommitterContext.builder()
                 .setWorkDir(new File(tempDir,
                         "" + TimeIdGenerator.next()).toPath())
                 .build();
-        Neo4jCommitter committer = new Neo4jCommitter();
-        Neo4jCommitterConfig cfg = committer.getConfig();
+        var committer = new Neo4jCommitter();
+        var cfg = committer.getConfiguration();
         cfg.setUri(neo4jContainer.getBoltUrl());
         cfg.setNodeIdProperty("movieId");
         cfg.setNodeContentProperty("movieContent");
@@ -254,7 +253,7 @@ class Neo4jCommitterTest {
 
     private Neo4jCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
-        Neo4jCommitter committer = createNeo4jCommitter();
+        var committer = createNeo4jCommitter();
         try {
             c.accept(committer);
         } catch (CommitterException e) {
@@ -269,7 +268,7 @@ class Neo4jCommitterTest {
     protected interface CommitterConsumer {
         void accept(Neo4jCommitter c) throws Exception;
     }
-    
+
     class Utils {
         // will consume result and will no longer be usable
         private Result getAllRecords() {
@@ -281,7 +280,7 @@ class Neo4jCommitterTest {
             renderResult(getAllRecords());
         }
         private void renderResult(Result result) {
-            List<Record> records = result.list();
+            var records = result.list();
             System.out.println("=== DUMP: ======================");
             for (Record rec : records) {
                 renderMap(0, rec.asMap());
@@ -289,11 +288,10 @@ class Neo4jCommitterTest {
         }
         public void renderMap(int depth, Map<String, Object> map) {
             for (Entry<String, Object> en : map.entrySet()) {
-                String key = en.getKey();
-                Object value = en.getValue();
-                String indent = StringUtils.repeat(' ', depth * 2);
-                if (value instanceof Node) {
-                    Node node = (Node) value;
+                var key = en.getKey();
+                var value = en.getValue();
+                var indent = StringUtils.repeat(' ', depth * 2);
+                if (value instanceof Node node) {
                     System.out.print(indent + key);
                     node.labels().forEach(l -> System.out.print(":" + l));
                     System.out.println(" {");
