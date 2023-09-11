@@ -8,9 +8,8 @@ on:
 
 jobs:
   build:
-
-  runs-on: ubuntu-latest
-  steps:
+    runs-on: ubuntu-latest
+    steps:
       - run: echo "Triggering Wokflow 2"
       - name: Checkout
         uses: actions/checkout@v3
