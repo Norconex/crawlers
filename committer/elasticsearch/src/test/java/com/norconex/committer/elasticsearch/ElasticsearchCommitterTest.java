@@ -35,7 +35,6 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -71,7 +70,7 @@ class ElasticsearchCommitterTest {
     private static final String TEST_CONTENT = "This is test content.";
     private static final String INDEX_ENDPOINT = "/" + TEST_INDEX + "/";
     private static final String CONTENT_FIELD =
-            ElasticsearchCommitter.DEFAULT_ELASTICSEARCH_CONTENT_FIELD;
+            ElasticsearchCommitterConfig.DEFAULT_ELASTICSEARCH_CONTENT_FIELD;
 
     @TempDir
     static File tempDir;
@@ -113,7 +112,7 @@ class ElasticsearchCommitterTest {
             c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
         });
 
-        JSONObject doc = getDocument(TEST_ID);
+        var doc = getDocument(TEST_ID);
         assertTrue(isFound(doc), "Not found.");
         assertTrue(hasTestContent(doc), "Bad content.");
     }
@@ -121,7 +120,7 @@ class ElasticsearchCommitterTest {
     @Test
     void testCommitDelete() throws Exception {
         // Add a document directly to ES
-        Request request = new Request(
+        var request = new Request(
                 "PUT", INDEX_ENDPOINT + "_doc/" + TEST_ID);
         request.setJsonEntity(
                 "{\"" + CONTENT_FIELD + "\":\"" + TEST_CONTENT + "\"}");
@@ -141,7 +140,7 @@ class ElasticsearchCommitterTest {
     @Test
     void testRemoveQueuedFilesAfterAdd() throws Exception {
         // Add new doc to ES
-        ElasticsearchCommitter esc = withinCommitterSession(c -> {
+        var esc = withinCommitterSession(c -> {
             c.upsert(upsertRequest(TEST_ID, null));
         });
 
@@ -152,7 +151,7 @@ class ElasticsearchCommitterTest {
     @Test
     void testRemoveQueuedFilesAfterDelete() throws Exception {
         // Delete doc from ES
-        ElasticsearchCommitter esc = withinCommitterSession(c -> {
+        var esc = withinCommitterSession(c -> {
             c.delete(new DeleteRequest(TEST_ID, new Properties()));
         });
 
@@ -164,21 +163,21 @@ class ElasticsearchCommitterTest {
     void testIdSourceFieldRemoval() throws Exception {
         // Force to use a reference field instead of the default
         // reference ID.
-        String sourceIdField = "customId";
-        Properties metadata = new Properties();
-        String customIdValue = "ABC";
+        var sourceIdField = "customId";
+        var metadata = new Properties();
+        var customIdValue = "ABC";
         metadata.set(sourceIdField, customIdValue);
 
         // Add new doc to ES with a difference id than the one we
         // assigned in source reference field. Set to keep that
         // field.
         withinCommitterSession(c -> {
-            c.setSourceIdField(sourceIdField);
+            c.getConfiguration().setSourceIdField(sourceIdField);
             c.upsert(upsertRequest(TEST_ID, TEST_CONTENT, metadata));
         });
 
         // Check that it's in ES using the custom ID
-        JSONObject doc = getDocument(customIdValue);
+        var doc = getDocument(customIdValue);
         assertTrue(isFound(doc), "Not found.");
         assertTrue(hasTestContent(doc), "Bad content.");
         assertFalse(
@@ -187,18 +186,18 @@ class ElasticsearchCommitterTest {
 
     @Test
     void testCustomTargetContentField() throws Exception {
-        String targetContentField = "customContent";
-        Properties metadata = new Properties();
+        var targetContentField = "customContent";
+        var metadata = new Properties();
         metadata.set(targetContentField, TEST_CONTENT);
 
         // Add new doc to ES
         withinCommitterSession(c -> {
-            c.setTargetContentField(targetContentField);
+            c.getConfiguration().setTargetContentField(targetContentField);
             c.upsert(upsertRequest(TEST_ID, TEST_CONTENT, metadata));
         });
 
         // Check that it's in ES
-        JSONObject doc = getDocument(TEST_ID);
+        var doc = getDocument(TEST_ID);
         assertTrue(isFound(doc), "Not found.");
 
         // Check content is available in custom content target field and
@@ -211,8 +210,8 @@ class ElasticsearchCommitterTest {
 
     @Test
 	void testMultiValueFields() throws Exception {
-    	Properties metadata = new Properties();
-        String fieldname = "multi";
+    	var metadata = new Properties();
+        var fieldname = "multi";
 		metadata.set(fieldname, "1", "2", "3");
 
         withinCommitterSession(c -> {
@@ -220,7 +219,7 @@ class ElasticsearchCommitterTest {
         });
 
         // Check that it's in ES
-        JSONObject doc = getDocument(TEST_ID);
+        var doc = getDocument(TEST_ID);
         assertTrue(isFound(doc), "Not found.");
 
         // Check multi values are still there
@@ -230,19 +229,19 @@ class ElasticsearchCommitterTest {
 
     @Test
     void testDotReplacement() throws Exception {
-        Properties metadata = new Properties();
-        String fieldNameDots = "with.dots.";
-        String fieldNameNoDots = "with_dots_";
-        String fieldValue = "some value";
+        var metadata = new Properties();
+        var fieldNameDots = "with.dots.";
+        var fieldNameNoDots = "with_dots_";
+        var fieldValue = "some value";
         metadata.set(fieldNameDots, fieldValue);
 
         withinCommitterSession(c -> {
-            c.setDotReplacement("_");
+            c.getConfiguration().setDotReplacement("_");
             c.upsert(upsertRequest(TEST_ID, null, metadata));
         });
 
         // Check that it's in ES
-        JSONObject doc = getDocument(TEST_ID);
+        var doc = getDocument(TEST_ID);
 
         assertTrue(isFound(doc), "Not found.");
 
@@ -308,8 +307,8 @@ class ElasticsearchCommitterTest {
     }
     private List<String> getFieldValues(JSONObject doc, String fieldName) {
         List<String> values = new ArrayList<>();
-        JSONArray array = doc.getJSONObject("_source").getJSONArray(fieldName);
-        for (int i = 0; i < array.length(); i++) {
+        var array = doc.getJSONObject("_source").getJSONArray(fieldName);
+        for (var i = 0; i < array.length(); i++) {
             values.add(array.getString(i));
         }
         return values;
@@ -331,14 +330,14 @@ class ElasticsearchCommitterTest {
             throws IOException {
         Response httpResponse;
         try {
-            Request request = new Request(method, endpoint);
+            var request = new Request(method, endpoint);
             httpResponse = restClient.performRequest(request);
         } catch (ResponseException e) {
             httpResponse = e.getResponse();
         }
-        String response = IOUtils.toString(
+        var response = IOUtils.toString(
                 httpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
-        JSONObject json = new JSONObject(response);
+        var json = new JSONObject(response);
         LOG.info("Response status: {}", httpResponse.getStatusLine());
         LOG.debug("Response body: {}", json);
         return json;
@@ -349,7 +348,7 @@ class ElasticsearchCommitterTest {
     }
     private UpsertRequest upsertRequest(
             String id, String content, Properties metadata) {
-        Properties p = metadata == null ? new Properties() : metadata;
+        var p = metadata == null ? new Properties() : metadata;
         return new UpsertRequest(id, p, content == null
                 ? new NullInputStream(0) : toInputStream(content, UTF_8));
     }
@@ -362,13 +361,14 @@ class ElasticsearchCommitterTest {
     protected ElasticsearchCommitter createESCommitter()
             throws CommitterException {
 
-        CommitterContext ctx = CommitterContext.builder()
+        var ctx = CommitterContext.builder()
                 .setWorkDir(new File(tempDir,
                         "" + TimeIdGenerator.next()).toPath())
                 .build();
-        ElasticsearchCommitter committer = new ElasticsearchCommitter();
-        committer.setNodes(container.getHttpHostAddress());
-        committer.setIndexName(TEST_INDEX);
+        var committer = new ElasticsearchCommitter();
+        committer.getConfiguration().setNodes(
+                List.of(container.getHttpHostAddress()));
+        committer.getConfiguration().setIndexName(TEST_INDEX);
         committer.init(ctx);
         return committer;
     }
@@ -376,7 +376,7 @@ class ElasticsearchCommitterTest {
 
     protected ElasticsearchCommitter withinCommitterSession(CommitterConsumer c)
             throws CommitterException {
-        ElasticsearchCommitter committer = createESCommitter();
+        var committer = createESCommitter();
         try {
             c.accept(committer);
         } catch (CommitterException e) {

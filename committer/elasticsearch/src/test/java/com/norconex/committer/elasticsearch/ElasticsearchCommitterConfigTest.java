@@ -14,9 +14,12 @@
  */
 package com.norconex.committer.elasticsearch;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -28,62 +31,65 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
 import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 
 class ElasticsearchCommitterConfigTest {
 
     @Test
     void testWriteRead() throws Exception {
         var c = new ElasticsearchCommitter();
+        var cfg = c.getConfiguration();
 
         var q = new FSQueue();
-        q.setBatchSize(10);
-        q.setMaxPerFolder(5);
-        c.setCommitterQueue(q);
+        q.getConfiguration()
+            .setBatchSize(10)
+            .setMaxPerFolder(5);
+        cfg.setQueue(q);
 
         var creds = new Credentials();
         creds.setPassword("mypassword");
         creds.setUsername("myusername");
-        c.setCredentials(creds);
+        cfg.setCredentials(creds);
 
-        c.setFieldMapping("subject", "title");
-        c.setFieldMapping("body", "content");
+        cfg.setFieldMapping("subject", "title");
+        cfg.setFieldMapping("body", "content");
 
-        c.getRestrictions().add(new PropertyMatcher(
+        cfg.getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("document.reference"),
                 TextMatcher.wildcard("*.pdf")));
-        c.getRestrictions().add(new PropertyMatcher(
+        cfg.getRestrictions().add(new PropertyMatcher(
                 TextMatcher.basic("title"),
                 TextMatcher.wildcard("Nah!")));
 
-        c.setSourceIdField("mySourceIdField");
-        c.setTargetContentField("myTargetContentField");
+        cfg.setSourceIdField("mySourceIdField");
+        cfg.setTargetContentField("myTargetContentField");
 
-        c.setIndexName("my-inxed");
-        c.setNodes("http://localhost:9200", "http://somewhere.com");
-        c.setDiscoverNodes(true);
-        c.setDotReplacement("_");
-        c.setIgnoreResponseErrors(true);
-        c.setJsonFieldsPattern("jsonFieldPattern");
-        c.setConnectionTimeout(Duration.ofMillis(200));
-        c.setSocketTimeout(Duration.ofMillis(300));
-        c.setFixBadIds(true);
+        cfg.setIndexName("my-inxed");
+        cfg.setNodes(List.of("http://localhost:9200", "http://somewhere.com"));
+        cfg.setDiscoverNodes(true);
+        cfg.setDotReplacement("_");
+        cfg.setIgnoreResponseErrors(true);
+        cfg.setJsonFieldsPattern("jsonFieldPattern");
+        cfg.setConnectionTimeout(Duration.ofMillis(200));
+        cfg.setSocketTimeout(Duration.ofMillis(300));
+        cfg.setFixBadIds(true);
 
-        Assertions.assertDoesNotThrow(
-                () -> XML.assertWriteRead(c, "committer"));
+        assertThatNoException().isThrownBy(
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     @Test
     void testValidation() {
         Assertions.assertDoesNotThrow(() -> {
-            try (var r = ResourceLoader.getXmlReader(getClass())) {
-                var xml = XML.of(r).create();
-                xml.toObjectImpl(ElasticsearchCommitter.class);
-            }
+            BeanMapper.DEFAULT.read(
+                    ElasticsearchCommitter.class,
+                    ResourceLoader.getXmlReader(getClass()),
+                    Format.XML);
         });
     }
 
@@ -95,17 +101,18 @@ class ElasticsearchCommitterConfigTest {
 
         @SuppressWarnings("resource")
         var c = new ElasticsearchCommitter();
+        var cfg = c.getConfiguration();
 
         Assertions.assertThrows(CommitterException.class, () ->
             c.init(CommitterContext.builder()
                     .setWorkDir(tempDir)
                     .build()));
 
-        c.setIndexName("index");
+        cfg.setIndexName("index");
         var fsQueue = new FSQueue();
-        fsQueue.setBatchSize(1);
-        c.setCommitterQueue(fsQueue);
-        c.setDiscoverNodes(true);
+        fsQueue.getConfiguration().setBatchSize(1);
+        cfg.setQueue(fsQueue);
+        cfg.setDiscoverNodes(true);
         c.init(CommitterContext.builder()
                 .setWorkDir(tempDir)
                 .build());
@@ -116,7 +123,7 @@ class ElasticsearchCommitterConfigTest {
         var reqOK = new UpsertRequest(
                 "AAA", new Properties(), InputStream.nullInputStream());
 
-        c.setFixBadIds(false);
+        cfg.setFixBadIds(false);
         Assertions.assertThrows(CommitterException.class, () -> { //NOSONAR
             c.upsert(reqWithIdTooLong);
             c.upsert(reqOK);

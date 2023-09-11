@@ -17,9 +17,6 @@ package com.norconex.committer.elasticsearch;
 import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -49,17 +46,13 @@ import com.norconex.committer.core.CommitterUtil;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
-import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.io.IOUtil;
-import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.StringUtil;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -208,17 +201,22 @@ import lombok.extern.slf4j.Slf4j;
  * @author Pascal Essiembre
  */
 @SuppressWarnings("javadoc")
-@Data
+@EqualsAndHashCode
+@ToString
 @Slf4j
-public class ElasticsearchCommitter extends AbstractBatchCommitter {
+public class ElasticsearchCommitter
+        extends AbstractBatchCommitter<ElasticsearchCommitterConfig> {
 
     public static final String ELASTICSEARCH_ID_FIELD = "_id";
-    public static final String DEFAULT_ELASTICSEARCH_CONTENT_FIELD = "content";
-    public static final String DEFAULT_NODE = "http://localhost:9200";
-    public static final Duration DEFAULT_CONNECTION_TIMEOUT =
-            Duration.ofSeconds(1);
-    public static final Duration DEFAULT_SOCKET_TIMEOUT =
-            Duration.ofSeconds(30);
+//    public static final String DEFAULT_ELASTICSEARCH_CONTENT_FIELD =
+//            "content";
+//    public static final String DEFAULT_NODE = "http://localhost:9200";
+//    /** 1 second. */
+//    public static final Duration DEFAULT_CONNECTION_TIMEOUT =
+//            Duration.ofSeconds(1);
+//    /** 30 seconds. */
+//    public static final Duration DEFAULT_SOCKET_TIMEOUT =
+//            Duration.ofSeconds(30);
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -227,160 +225,26 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
     @ToString.Exclude
     private Sniffer sniffer;
 
-    private final List<String> nodes = new ArrayList<>(List.of(DEFAULT_NODE));
-
-    /**
-     * The Elasticsearch index name.
-     * @param indexName the index name
-     * @return index name
-     */
-    private String indexName;
-
-    /**
-     * The type name. Type name is deprecated if you
-     * are using Elasticsearch 7.0 or higher and should be <code>null</code>.
-     * @param typeName type name
-     * @return type name
-     */
-    private String typeName;
-
-    /**
-     * Whether to ignore response errors.  By default, an exception is
-     * thrown if the Elasticsearch response contains an error.
-     * When <code>true</code> the errors are logged instead.
-     * @param ignoreResponseErrors <code>true</code> when ignoring response
-     *        errors
-     * @return <code>true</code> when ignoring response errors
-     */
-    private boolean ignoreResponseErrors;
-
-    /**
-     * Whether automatic discovery of Elasticsearch cluster nodes should be
-     * enabled.
-     * @param discoverNodes <code>true</code> if enabled
-     * @return <code>true</code> if enabled
-     */
-    private boolean discoverNodes;
-
-    private final Credentials credentials = new Credentials();
-
-    /**
-     * The character used to replace dots in field names.
-     * Default is <code>null</code> (does not replace dots).
-     * @param dotReplacement replacement character or <code>null</code>
-     * @return replacement character or <code>null</code>
-     */
-    private String dotReplacement;
-
-    /**
-     * The regular expression matching fields that contains a JSON
-     * object for its value (as opposed to a regular string).
-     * Default is <code>null</code>.
-     * @param jsonFieldsPattern regular expression
-     * @return regular expression
-     */
-    private String jsonFieldsPattern;
-
-    /**
-     * Elasticsearch connection timeout.
-     * @param connectionTimeout connection timeout duration
-     * @return connection duration
-     */
-    @NonNull
-    private Duration connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
-
-    /**
-     * Elasticsearch socket timeout.
-     * @param socketTimeout socket timeout duration
-     * @return socket timeout duration
-     */
-    @NonNull
-    private Duration socketTimeout = DEFAULT_SOCKET_TIMEOUT;
-
-    /**
-     * Whether to fix IDs that are too long for Elasticsearch
-     * ID limitation (512 bytes max). If <code>true</code>,
-     * long IDs will be truncated and a hash code representing the
-     * truncated part will be appended.
-     * @param fixBadIds <code>true</code> to fix IDs that are too long
-     * @return <code>true</code> to fix IDs that are too long
-     */
-    private boolean fixBadIds;
-
-    /**
-     * The document field name containing the value to be stored
-     * in Elasticsearch "_id" field. Set to <code>null</code> to use the
-     * document reference instead of a field (default).
-     * @param sourceIdField name of source document field containing id value,
-     *        or <code>null</code>
-     * @return name of field containing id value
-     */
-    private String sourceIdField;
-
-    /**
-     * The name of the Elasticsearch field where content will be stored.
-     * Default is "content". A <code>null</code> value disables storing
-     * the content.
-     * @param targetContentField Elasticsearch content field name
-     * @return Elasticsearch content field name
-     */
-    private String targetContentField = DEFAULT_ELASTICSEARCH_CONTENT_FIELD;
-
-    /**
-     * Gets an unmodifiable list of Elasticsearch cluster node URLs.
-     * Defaults to "http://localhost:9200".
-     * @return Elasticsearch nodes
-     */
-    public List<String> getNodes() {
-        return Collections.unmodifiableList(nodes);
-    }
-    /**
-     * Sets cluster node URLs.
-     * Node URLs with no port are assumed to be using port 80.
-     * @param nodes Elasticsearch cluster nodes
-     */
-    public void setNodes(String... nodes) {
-        CollectionUtil.setAll(this.nodes, nodes);
-    }
-    /**
-     * Sets cluster node URLs.
-     * Node URLs with no port are assumed to be using port 80.
-     * @param nodes Elasticsearch cluster nodes
-     */
-    public void setNodes(List<String> nodes) {
-        CollectionUtil.setAll(this.nodes, nodes);
-    }
-
-    /**
-     * Gets Elasticsearch authentication credentials.
-     * @return credentials
-     */
-    public Credentials getCredentials() {
-        return credentials;
-    }
-    /**
-     * Sets Elasticsearch authentication credentials.
-     * @param credentials the credentials
-     */
-    public void setCredentials(Credentials credentials) {
-        this.credentials.copyFrom(credentials);
-    }
+    @Getter
+    private final ElasticsearchCommitterConfig configuration =
+            new ElasticsearchCommitterConfig();
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
-        if (StringUtils.isBlank(getIndexName())) {
+        if (StringUtils.isBlank(configuration.getIndexName())) {
             throw new CommitterException("Index name is undefined.");
         }
         client = createRestClient();
-        if (isDiscoverNodes()) {
+        if (configuration.isDiscoverNodes()) {
             sniffer = createSniffer(client);
         }
     }
 
     private String extractId(CommitterRequest req) throws CommitterException {
-        return fixBadIdValue(
-                CommitterUtil.extractSourceIdValue(req, sourceIdField));
+        return fixBadIdValue(CommitterUtil.extractSourceIdValue(
+                req, configuration.getSourceIdField()));
     }
+
 
     @Override
     protected void commitBatch(Iterator<CommitterRequest> it)
@@ -397,7 +261,8 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
                 } else if (req instanceof DeleteRequest delete) {
                     appendDeleteRequest(json, delete);
                 } else {
-                    throw new CommitterException("Unsupported request: " + req);
+                    throw new CommitterException(
+                            "Unsupported request: " + req);
                 }
                 docCount++;
             }
@@ -444,7 +309,7 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
             if (StringUtils.substring(
                     responseAsString, 0, 100).contains("\"errors\":true")) {
                 var error = extractResponseErrors(responseAsString);
-                if (!ignoreResponseErrors) {
+                if (!configuration.isIgnoreResponseErrors()) {
                     throw new CommitterException(error);
                 }
                 LOG.error(error);
@@ -482,19 +347,21 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
     private void appendUpsertRequest(StringBuilder json, UpsertRequest req)
             throws CommitterException {
 
-        CommitterUtil.applyTargetContent(req, targetContentField);
+        CommitterUtil.applyTargetContent(
+                req, configuration.getTargetContentField());
 
         json.append("{\"index\":{");
-        append(json, "_index", getIndexName());
-        if (StringUtils.isNotBlank(getTypeName())) {
-            append(json.append(','), "_type", getTypeName());
+        append(json, "_index", configuration.getIndexName());
+        if (StringUtils.isNotBlank(configuration.getTypeName())) {
+            append(json.append(','), "_type", configuration.getTypeName());
         }
         append(json.append(','), ELASTICSEARCH_ID_FIELD, extractId(req));
         json.append("}}\n{");
         var first = true;
         for (Entry<String, List<String>> entry : req.getMetadata().entrySet()) {
             var field = entry.getKey();
-            field = StringUtils.replace(field, ".", dotReplacement);
+            field = StringUtils.replace(field, ".",
+                    configuration.getDotReplacement());
             // Do not store _id as a field since it is passed above already.
             if (ELASTICSEARCH_ID_FIELD.equals(field)) {
                 continue;
@@ -511,15 +378,16 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
     private void appendDeleteRequest(StringBuilder json, DeleteRequest req)
             throws CommitterException {
         json.append("{\"delete\":{");
-        append(json, "_index", getIndexName());
-        if (StringUtils.isNotBlank(getTypeName())) {
-            append(json.append(','), "_type", getTypeName());
+        append(json, "_index", configuration.getIndexName());
+        if (StringUtils.isNotBlank(configuration.getTypeName())) {
+            append(json.append(','), "_type", configuration.getTypeName());
         }
         append(json.append(','), ELASTICSEARCH_ID_FIELD, extractId(req));
         json.append("}}\n");
     }
 
-    private void append(StringBuilder json, String field, List<String> values) {
+    private void append(
+            StringBuilder json, String field, List<String> values) {
         if (values.size() == 1) {
             append(json, field, values.get(0));
             return;
@@ -528,12 +396,12 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
         json.append('"')
             .append(StringEscapeUtils.escapeJson(field))
             .append("\":[");
-        
+
         for (String value : values) {
             appendValue(json, field, value);
             json.append(',');
         }
-        
+
         json.deleteCharAt(json.length()-1);
         json.append(']');
     }
@@ -546,8 +414,8 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
     }
 
     private void appendValue(StringBuilder json, String field, String value) {
-        if (getJsonFieldsPattern() != null
-                && getJsonFieldsPattern().matches(field)) {
+        if (configuration.getJsonFieldsPattern() != null
+                && configuration.getJsonFieldsPattern().matches(field)) {
             json.append(value);
         } else {
             json.append('"')
@@ -560,7 +428,8 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
         if (StringUtils.isBlank(value)) {
             throw new CommitterException("Document id cannot be empty.");
         }
-        if (fixBadIds && value.getBytes(StandardCharsets.UTF_8).length > 512) {
+        if (configuration.isFixBadIds()
+                && value.getBytes(StandardCharsets.UTF_8).length > 512) {
             String v;
             try {
                 v = StringUtil.truncateBytesWithHash(
@@ -581,9 +450,8 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
         return value;
     }
 
-
     protected RestClient createRestClient() {
-        var elasticHosts = getNodes();
+        var elasticHosts = configuration.getNodes();
         var httpHosts = new HttpHost[elasticHosts.size()];
         for (var i = 0; i < elasticHosts.size(); i++) {
             httpHosts[i] = HttpHost.create(elasticHosts.get(i));
@@ -598,9 +466,12 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
             }
         });
         builder.setRequestConfigCallback(rcb -> rcb
-                .setConnectTimeout((int) connectionTimeout.toMillis())
-                .setSocketTimeout((int) socketTimeout.toMillis()));
+                .setConnectTimeout(
+                        (int) configuration.getConnectionTimeout().toMillis())
+                .setSocketTimeout(
+                        (int) configuration.getSocketTimeout().toMillis()));
 
+        var credentials = configuration.getCredentials();
         if (credentials.isSet()) {
             CredentialsProvider credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(
@@ -616,7 +487,8 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
 
     protected Sniffer createSniffer(RestClient client) {
         // here we assume a cluster is either all https, or all https (no mix).
-        if (!nodes.isEmpty() && nodes.get(0).startsWith("https:")) {
+        if (!configuration.getNodes().isEmpty()
+                && configuration.getNodes().get(0).startsWith("https:")) {
             NodesSniffer nodesSniffer = new ElasticsearchNodesSniffer(client,
                     ElasticsearchNodesSniffer.DEFAULT_SNIFF_REQUEST_TIMEOUT,
                     ElasticsearchNodesSniffer.Scheme.HTTPS);
@@ -624,42 +496,5 @@ public class ElasticsearchCommitter extends AbstractBatchCommitter {
                     client).setNodesSniffer(nodesSniffer).build();
         }
         return Sniffer.builder(client).build();
-    }
-
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        xml.addDelimitedElementList("nodes", getNodes());
-        xml.addElement("indexName", getIndexName());
-        xml.addElement("typeName", getTypeName());
-        xml.addElement("ignoreResponseErrors", isIgnoreResponseErrors());
-        xml.addElement("discoverNodes", isDiscoverNodes());
-        credentials.saveToXML(xml.addElement("credentials"));
-        xml.addElement("dotReplacement", getDotReplacement());
-        xml.addElement("jsonFieldsPattern", getJsonFieldsPattern());
-        xml.addElement("connectionTimeout", getConnectionTimeout());
-        xml.addElement("socketTimeout", getSocketTimeout());
-        xml.addElement("fixBadIds", isFixBadIds());
-        xml.addElement("sourceIdField", getSourceIdField());
-        xml.addElement("targetContentField", getTargetContentField());
-    }
-    @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        setNodes(xml.getDelimitedStringList("nodes"));
-        setIndexName(xml.getString("indexName", getIndexName()));
-        setTypeName(xml.getString("typeName", getTypeName()));
-        setIgnoreResponseErrors(xml.getBoolean(
-                "ignoreResponseErrors", isIgnoreResponseErrors()));
-        setDiscoverNodes(xml.getBoolean("discoverNodes", isDiscoverNodes()));
-        xml.ifXML("credentials", x -> x.populate(credentials));
-        setDotReplacement(xml.getString("dotReplacement", getDotReplacement()));
-        setJsonFieldsPattern(
-                xml.getString("jsonFieldsPattern", getJsonFieldsPattern()));
-        setConnectionTimeout(xml.getDuration(
-                "connectionTimeout", getConnectionTimeout()));
-        setSocketTimeout(xml.getDuration("socketTimeout", getSocketTimeout()));
-        setFixBadIds(xml.getBoolean("fixBadIds", isFixBadIds()));
-        setSourceIdField(xml.getString("sourceIdField", getSourceIdField()));
-        setTargetContentField(xml.getString(
-                "targetContentField", getTargetContentField()));
     }
 }
