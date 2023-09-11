@@ -2,7 +2,7 @@ name: build_docker_committer
 
 on:
   workflow_run:
-    workflows: [Java CI with Maven]
+    workflows: [maven]
     types:
       - completed
 
