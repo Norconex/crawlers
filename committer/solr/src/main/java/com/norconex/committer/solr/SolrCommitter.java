@@ -16,13 +16,9 @@
 package com.norconex.committer.solr;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.solr.client.solrj.SolrClient;
@@ -38,16 +34,12 @@ import com.norconex.committer.core.CommitterUtil;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;
-import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.io.IOUtil;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.commons.lang.xml.XML;
 
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -154,67 +146,11 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  */
 @SuppressWarnings("javadoc")
-@Data
+@EqualsAndHashCode
+@ToString
 @Slf4j
-public class SolrCommitter extends AbstractBatchCommitter {
-
-    /** Default Solr ID field */
-    public static final String DEFAULT_SOLR_ID_FIELD = "id";
-    /** Default Solr content field */
-    public static final String DEFAULT_SOLR_CONTENT_FIELD = "content";
-
-    /**
-     * The type of Solr client.
-     * @param solrClientType solr client type
-     * @return Solr client type
-     */
-    private SolrClientType solrClientType;
-
-    /**
-     * The endpoint URL used to connect to Solr (as per the client type
-     * selected).
-     * @param solrURL solrURL
-     * @return Solr URL
-     */
-    private String solrURL;
-
-    /**
-     * Whether to send an explicit commit request at the end of every
-     * batch, or let the server auto-commit.
-     * @param solrCommitDisabled <code>true</code> if sending Solr commit is
-     *        disabled
-     * @return <code>true</code> if disabling sending Solr commits.
-     */
-    private boolean solrCommitDisabled;
-
-    private final Map<String, String> updateUrlParams = new HashMap<>();
-    private final Credentials credentials = new Credentials();
-
-    /**
-     * The document field name containing the value to be stored
-     * in Solr ID field. A <code>null</code> value (default) will use the
-     * document reference instead of a document field.
-     * @param sourceIdField name of field containing id value,
-     *        or <code>null</code>
-     * @return name of field containing id value
-     */
-    private String sourceIdField;
-
-    /**
-     * The name of the Solr field where to store a document unique
-     * identifier (sourceIdField).  Default is "id".
-     * @param targetIdField name of Solr ID field
-     * @return name of Solr ID field
-     */
-    private String targetIdField = DEFAULT_SOLR_ID_FIELD;
-
-    /**
-     * The name of the Solr field where content will be stored. Default
-     * is "content". A <code>null</code> value will disable storing the content.
-     * @param targetContentField target content field name
-     * @return target content field name
-     */
-    private String targetContentField = DEFAULT_SOLR_CONTENT_FIELD;
+public class SolrCommitter
+        extends AbstractBatchCommitter<SolrCommitterConfig> {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -222,63 +158,15 @@ public class SolrCommitter extends AbstractBatchCommitter {
     @Setter(value = AccessLevel.NONE)
     private SolrClient solrClient;
 
-    /**
-     * Gets URL parameters to be added on Solr HTTP calls.
-     * @return a map of parameter names and values
-     */
-    public Map<String, String> getUpdateUrlParams() {
-        return Collections.unmodifiableMap(updateUrlParams);
-    }
-    /**
-     * Sets URL parameters to be added on Solr HTTP calls.
-     * @param updateUrlParams a map of parameter names and values
-     */
-    public void setUpdateUrlParams(Map<String, String> updateUrlParams) {
-        CollectionUtil.setAll(this.updateUrlParams, updateUrlParams);
-    }
-    /**
-     * Sets a URL parameter to be added on Solr HTTP calls.
-     * @param name parameter name
-     * @param value parameter value
-     */
-    public void setUpdateUrlParam(String name, String value) {
-        updateUrlParams.put(name, value);
-    }
-    /**
-     * Gets a URL parameter value by its parameter name.
-     * @param name parameter name
-     * @return parameter value
-     */
-    public String getUpdateUrlParam(String name) {
-        return updateUrlParams.get(name);
-    }
-    /**
-     * Gets the update URL parameter names.
-     * @return parameter names
-     */
-    public Set<String> getUpdateUrlParamNames() {
-        return updateUrlParams.keySet();
-    }
-
-    /**
-     * Gets Solr authentication credentials.
-     * @return credentials
-     */
-    public Credentials getCredentials() {
-        return credentials;
-    }
-    /**
-     * Sets Solr authentication credentials.
-     * @param credentials the credentials
-     */
-    public void setCredentials(Credentials credentials) {
-        this.credentials.copyFrom(credentials);
-    }
+    @Getter
+    private final SolrCommitterConfig configuration =
+            new SolrCommitterConfig();
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
-        solrClient = ObjectUtils.defaultIfNull(solrClientType,
-                SolrClientType.HTTP2).create(solrURL);
+        solrClient = ObjectUtils.defaultIfNull(
+                configuration.getSolrClientType(),
+                SolrClientType.HTTP2).create(configuration.getSolrURL());
     }
 
     @Override
@@ -335,17 +223,19 @@ public class SolrCommitter extends AbstractBatchCommitter {
     protected void pushSolrRequest(UpdateRequest solrBatchRequest)
             throws SolrServerException, IOException, CommitterException {
 
-        if (credentials.isSet()) {
+        if (configuration.getCredentials().isSet()) {
             solrBatchRequest.setBasicAuthCredentials(
-                    credentials.getUsername(),
-                    EncryptionUtil.decryptPassword(credentials));
+                    configuration.getCredentials().getUsername(),
+                    EncryptionUtil.decryptPassword(
+                            configuration.getCredentials()));
         }
-        for (Entry<String, String> entry : updateUrlParams.entrySet()) {
+        for (Entry<String, String> entry :
+                configuration.getUpdateUrlParams().entrySet()) {
             solrBatchRequest.setParam(entry.getKey(), entry.getValue());
         }
 
         handleResponse(solrBatchRequest.process(solrClient));
-        if (!isSolrCommitDisabled()) {
+        if (!configuration.isSolrCommitDisabled()) {
             handleResponse(solrBatchRequest.commit(solrClient, null));
         }
         solrBatchRequest.clear();
@@ -356,14 +246,19 @@ public class SolrCommitter extends AbstractBatchCommitter {
                     throws CommitterException {
 
         CommitterUtil.applyTargetId(
-                committerRequest, sourceIdField, targetIdField);
-        CommitterUtil.applyTargetContent(committerRequest, targetContentField);
+                committerRequest,
+                configuration.getSourceIdField(),
+                configuration.getTargetIdField());
+        CommitterUtil.applyTargetContent(
+                committerRequest, configuration.getTargetContentField());
         solrBatchRequest.add(buildSolrDocument(committerRequest.getMetadata()));
     }
     protected void addSolrDeleteRequest(
             UpdateRequest solrBatchRequest, DeleteRequest committerRequest) {
         CommitterUtil.applyTargetId(
-                committerRequest, sourceIdField, targetIdField);
+                committerRequest,
+                configuration.getSourceIdField(),
+                configuration.getTargetIdField());
         solrBatchRequest.deleteById(committerRequest.getReference());
     }
     protected SolrInputDocument buildSolrDocument(Properties fields) {
@@ -398,45 +293,4 @@ public class SolrCommitter extends AbstractBatchCommitter {
         }
     }
 
-    @Override
-    protected void loadBatchCommitterFromXML(XML xml) {
-        setSolrClientType(xml.getEnum("solrClientType",
-                SolrClientType.class, getSolrClientType()));
-        setSolrURL(xml.getString("solrURL", getSolrURL()));
-        setSolrCommitDisabled(xml.getBoolean(
-                "solrCommitDisabled", isSolrCommitDisabled()));
-
-        var paramsXML = xml.getXMLList("solrUpdateURLParams/param");
-        if (!paramsXML.isEmpty()) {
-            updateUrlParams.clear();
-            paramsXML.forEach(p -> setUpdateUrlParam(
-                    p.getString("@name"), p.getString(".")));
-        }
-
-        xml.ifXML("credentials", x -> x.populate(credentials));
-
-        setSourceIdField(xml.getString("sourceIdField", getSourceIdField()));
-        setTargetIdField(xml.getString("targetIdField", getTargetIdField()));
-        setTargetContentField(xml.getString(
-                "targetContentField", getTargetContentField()));
-    }
-
-    @Override
-    protected void saveBatchCommitterToXML(XML xml) {
-        xml.addElement("solrClientType", getSolrClientType());
-        xml.addElement("solrURL", solrURL);
-
-        if (!updateUrlParams.isEmpty()) {
-            var paramsXML = xml.addElement("solrUpdateURLParams");
-            updateUrlParams.forEach((k, v) -> {
-                paramsXML.addElement("param", v).setAttribute("name", k);
-            });
-        }
-
-        xml.addElement("solrCommitDisabled", isSolrCommitDisabled());
-        credentials.saveToXML(xml.addElement("credentials"));
-        xml.addElement("sourceIdField", getSourceIdField());
-        xml.addElement("targetIdField", getTargetIdField());
-        xml.addElement("targetContentField", getTargetContentField());
-    }
 }
