@@ -24,7 +24,6 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
 import com.norconex.committer.core.batch.queue.impl.FSQueue;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -52,7 +51,7 @@ import lombok.ToString;
  *
  * {@nx.include com.norconex.committer.core.AbstractCommitter#fieldMappings}
  *
- * <p>Subclasses inherits this {@link XMLConfigurable} configuration:</p>
+ * <p>Subclasses inherits this configuration:</p>
  *
  * {@nx.xml #options
  *   {@nx.include com.norconex.committer.core.AbstractCommitter@nx.xml.usage}

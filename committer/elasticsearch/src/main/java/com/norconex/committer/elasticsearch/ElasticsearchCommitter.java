@@ -208,15 +208,6 @@ public class ElasticsearchCommitter
         extends AbstractBatchCommitter<ElasticsearchCommitterConfig> {
 
     public static final String ELASTICSEARCH_ID_FIELD = "_id";
-//    public static final String DEFAULT_ELASTICSEARCH_CONTENT_FIELD =
-//            "content";
-//    public static final String DEFAULT_NODE = "http://localhost:9200";
-//    /** 1 second. */
-//    public static final Duration DEFAULT_CONNECTION_TIMEOUT =
-//            Duration.ofSeconds(1);
-//    /** 30 seconds. */
-//    public static final Duration DEFAULT_SOCKET_TIMEOUT =
-//            Duration.ofSeconds(30);
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
