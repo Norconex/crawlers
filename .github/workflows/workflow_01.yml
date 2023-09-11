@@ -1,5 +1,7 @@
 name: workflow_01
-
+on:
+  status
+  
 jobs:
   build:
     runs-on: ubuntu-latest
