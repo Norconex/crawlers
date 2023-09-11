@@ -1,0 +1,5 @@
+# Pull V4 crawler base image from dockerhub norconex public registry
+FROM V4_CRAWLER_IMAGE
+
+# Pull the v4 committer package from Maven or internet
+RUN curl -LO https://URL_OF_SOLR_PACKAGE
