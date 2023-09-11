@@ -1,0 +1,8 @@
+name: workflow_01
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: ls -la
