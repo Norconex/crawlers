@@ -58,6 +58,7 @@
     <httpclient5.version>5.2.1</httpclient5.version>
     <jackson.version>2.15.2</jackson.version>
     <jakarta-activation.version>2.1.1</jakarta-activation.version>
+    <jakarta-el-api.version>5.0.1</jakarta-el-api.version>
     <jaxb-runtime.version>2.3.5</jaxb-runtime.version>
     <java-cup.version>10k</java-cup.version>
     <jetty.version>11.0.15</jetty.version>
@@ -67,6 +68,8 @@
     <picocli.version>4.7.3</picocli.version>
     <slf4j.version>2.0.7</slf4j.version>
     <springdoc.version>2.1.0</springdoc.version>
+    <therapi.version>0.15.0</therapi.version>
+    <tomcat-embed-el.version>10.1.12</tomcat-embed-el.version>
     <velocity-engine.version>2.3</velocity-engine.version>
     <xerces.version>2.12.2</xerces.version>
     <xml-bind-api.version>4.0.0</xml-bind-api.version>
@@ -306,13 +309,11 @@
         <version>${jakarta-activation.version}</version>
       </dependency>      
 
-
-<!-- TEST: -->
-<dependency>
-  <groupId>com.github.therapi</groupId>
-  <artifactId>therapi-runtime-javadoc</artifactId>
-  <version>0.15.0</version>
-</dependency>
+      <dependency>
+        <groupId>com.github.therapi</groupId>
+        <artifactId>therapi-runtime-javadoc</artifactId>
+        <version>${therapi.version}</version>
+      </dependency>
 
       <!-- TODO: REMOVE THIS ONE IN FAVOR OF PICOCLI? -->
       <dependency>
@@ -328,6 +329,7 @@
       
       <!-- For XSD 1.1 support until Apache releases their Xerces version
            with 1.1 support to Maven central. -->
+      <!-- Still needed???? -->
       <dependency>
         <groupId>org.exist-db.thirdparty.xerces</groupId>
         <artifactId>xercesImpl</artifactId>
@@ -444,6 +446,22 @@
         <version>${mockserver.version}</version>
         <scope>test</scope>
       </dependency>
+
+      <!-- The following is to test write/read to/from XML/JSON/Yaml -->    
+      <dependency>
+        <groupId>jakarta.el</groupId>
+        <artifactId>jakarta.el-api</artifactId>
+        <version>${jakarta-el-api.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${tomcat-embed-el.version}</version>    
+        <scope>test</scope>
+      </dependency>
+
+
 
     </dependencies>
   </dependencyManagement>
