@@ -33,10 +33,6 @@ jobs:
     - name: Build Crawler Web with Maven
       run: mvn clean package -Dmaven.test.skip --file crawler/web/pom.xml
 
-    - name: Build Committer ES with Maven
-      run: mvn clean package -Dmaven.test.skip --file committer/elasticsearch/pom.xml
-
-   
     - uses: mr-smithers-excellent/docker-build-push@v6
       name: Build & push Docker image
       with:
