@@ -22,7 +22,7 @@ jobs:
           branch: dk-actions-v4
           name: collector.zip
           path: crawler/web/target
-          run_number: 2
+          run_number: 5
           if_no_artifact_found: fail
                  
       - name: 'Echo download path'
