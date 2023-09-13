@@ -26,3 +26,6 @@ jobs:
                  
       - name: List download location
         run: ls -l crawler/web/target
+
+      - name: build docker image
+        run: docker build -f Dockerfile.artifact .
