@@ -21,7 +21,7 @@ jobs:
 
     steps:
     - name: check our repository
-    - uses: actions/checkout@v3
+      uses: actions/checkout@v3
     
     - name: Set up JDK 17
       uses: actions/setup-java@v3
