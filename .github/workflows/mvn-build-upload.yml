@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: check our repository 
+    - name: check our repository
       uses: actions/checkout@v3
     
     - name: Set up JDK 17
