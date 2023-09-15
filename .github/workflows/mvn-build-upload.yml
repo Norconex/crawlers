@@ -36,7 +36,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: collector.zip
+        name: crawler-web
         path: crawler/web/target/*.zip
         if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
         
