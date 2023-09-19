@@ -30,7 +30,7 @@ jobs:
       run: echo "File has been downloaded to ${{ steps.download-maven-artifact.outputs.file }}"
            
     - name: debug
-      run: sudo ls -l /var/lib/docker/tmp/
+      run: sudo ls -l /home/runner/work/collector-http/collector-http/  
       
     - name: Move files
       run: cp ${{ steps.download-maven-artifact.outputs.file }} /home/runner/work/collector-http/collector-http/web/crawler/target/collector.zip
