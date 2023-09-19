@@ -33,7 +33,7 @@ jobs:
       run: sudo ls -l /var/lib/docker/tmp/
       
     - name: Move files
-      run: cp ${{ steps.download-maven-artifact.outputs.file }} /home/runner/work/collector-http/collector-http/web/crawler/target/
+      run: cp ${{ steps.download-maven-artifact.outputs.file }} /home/runner/work/collector-http/collector-http/web/crawler/target/collector.zip
 
     - name: list file
       run: ls -l /home/runner/work/collector-http/collector-http/web/crawler/target
