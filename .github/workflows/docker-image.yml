@@ -34,6 +34,7 @@ jobs:
         sudo ls -l /home/runner/work/collector-http/collector-http/  
         sudo ls -l /home/runner/work/collector-http/collector-http/crawler
         sudo ls -l /home/runner/work/collector-http/collector-http/crawler/web
+        mkdir /home/runner/work/collector-http/collector-http/crawler/web/target
         sudo ls -l /home/runner/work/collector-http/collector-http/crawler/web/target
 
 
