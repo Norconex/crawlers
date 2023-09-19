@@ -2,9 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "dk-actions-v4" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "dk-actions-v4" ]
 
 jobs:
 
@@ -27,13 +27,17 @@ jobs:
         extension: 'zip'
 
     - name: Output file path in container
-      run: |
-        echo "File has been downloaded to ${{ steps.download-maven-artifact.outputs.file }}"
+      run: echo "File has been downloaded to ${{ steps.download-maven-artifact.outputs.file }}"
            
     - name: debug
       run: sudo ls -l /var/lib/docker/tmp/
       
-      
+    - name: Move files
+      run: cp ${{ steps.download-maven-artifact.outputs.file }} /home/runner/work/collector-http/collector-http/web/crawler/target/
+
+    - name: list file
+      run: ls -l /home/runner/work/collector-http/collector-http/web/crawler/target
+         
     - name: Build the Docker image
       uses: docker/build-push-action@v4
       with:
