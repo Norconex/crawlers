@@ -33,15 +33,11 @@ jobs:
       run: sudo ls -l /home/runner/work/collector-http/collector-http/  
       
     - name: Move files
-      run: cp ${{ steps.download-maven-artifact.outputs.file }} /home/runner/work/collector-http/collector-http/web/crawler/target/collector.zip
+      run: cp ${{ steps.download-maven-artifact.outputs.file }} /home/runner/work/collector-http/collector-http/crawler/web/target/collector.zip
 
     - name: list file
-      run: ls -l /home/runner/work/collector-http/collector-http/web/crawler/target
+      run: ls -l /home/runner/work/collector-http/collector-http/crawler/web/target
          
     - name: Build the Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        push: false  
-        build-args: DL_FILE=${{ steps.download-maven-artifact.outputs.file }}     
+      run: docker built -t .
          
