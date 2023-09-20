@@ -46,5 +46,14 @@ jobs:
       run: ls -l /home/runner/work/collector-http/collector-http/crawler/web/target
          
     - name: Build the Docker image
-      run: docker build .
+      run: docker build . --tag crawler
+
+    - name: Build & push Docker image
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        image: bkmyuen21/docker-test
+        tags: v2
+        registry: docker.io
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_PASSWORD }}  
          
