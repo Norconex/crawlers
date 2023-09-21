@@ -1,4 +1,4 @@
-name: Greeting on variable day
+name: test assign variable
 
 on:
   workflow_dispatch
