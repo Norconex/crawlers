@@ -15,6 +15,21 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: extract version no from pom.xml file
+      run: cat pom.xml | grep -m2 "version" | tail -n1 | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g' > result.txt
+
+    - name: extract version no from pom.xml file - 2
+      run: echo "VERSION=$(cat pom.xml | grep -m2 "version" | tail -n1 | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g')" >> $GITHUB_ENV
+
+    - name: check what is inside result.txt
+      run: more result.txt
+
+    - name: show variable
+      run: echo "Version:${{env.VERSION}}"
+
+    - name: manually set the env.VERSION value
+      run: echo "VERSION=3.0.2" >> $GITHUB_ENV
+
     - name: Download Maven Artifact
       id: download-maven-artifact
       uses: clausnz/github-action-download-maven-artifact@master
@@ -23,7 +38,7 @@ jobs:
         repository: 'maven2'
         groupId: 'com.norconex.collectors'
         artifactId: 'norconex-collector-http'
-        version: '3.0.2'
+        version: ${{env.VERSION}}
         extension: 'zip'
 
     - name: Output file path in container
