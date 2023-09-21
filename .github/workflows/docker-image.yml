@@ -16,7 +16,8 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: extract version no from pom.xml file
-      run: cat pom.xml | grep -m2 "version" | tail -n1 | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g' > result.txt
+      #run: cat pom.xml | grep -m2 "version" | tail -n1 | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g' > result.txt
+      run: cat pom.xml | grep -m1 "version" | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g' > result.txt
 
     - name: extract version no from pom.xml file - 2
       run: echo "VERSION=$(cat pom.xml | grep -m2 "version" | tail -n1 | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g')" >> $GITHUB_ENV
