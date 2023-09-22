@@ -31,6 +31,9 @@ jobs:
     - name: manually set the env.VERSION value
       run: echo "VERSION=3.0.2" >> $GITHUB_ENV
 
+    - name: show variable new value
+      run: echo "Version:${{env.VERSION}}"
+      
     - name: Download Maven Artifact
       id: download-maven-artifact
       uses: clausnz/github-action-download-maven-artifact@master
