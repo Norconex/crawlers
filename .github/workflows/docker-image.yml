@@ -60,12 +60,13 @@ jobs:
     - name: Output file path in container
       run: echo "File has been downloaded to ${{ steps.download-maven-artifact.outputs.file }}"
            
-    - name: debug
+    - name: create /crawler/web/target directory
       run: |
+        mkdir /home/runner/work/collector-http/collector-http/crawler/web/target
         sudo ls -l /home/runner/work/collector-http/collector-http/crawler/web/target
 
     # copy the download files from temp location to the docker context location for use later 
-    - name: Move files
+    - name: Copy files from tmp to target dir
       run: cp ${{ steps.download-maven-artifact.outputs.file }} /home/runner/work/collector-http/collector-http/crawler/web/target/collector.zip
 
     - name: list file
