@@ -1,5 +1,12 @@
 name: Docker Image CI
 
+# auto triggering spec, this required workflow placed in main branch
+#on:
+#  workflow_run:
+#    workflows: [Maven Build & Upload]
+#    types:
+#      - completed
+      
 on:
   push:
     branches: [ "dk-actions-v4" ]
@@ -15,6 +22,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    # Extract the version number from the pom.xml file located in the v4-branch, this version will be used to download
+    # the right version of artifact from maven repo
     - name: extract version no from pom.xml file
       #run: cat pom.xml | grep -m2 "version" | tail -n1 | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g' > result.txt
       run: cat pom.xml | grep -m1 "version" | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g' > result.txt
@@ -22,6 +31,7 @@ jobs:
     - name: extract version no from pom.xml file - 2
       run: echo "VERSION=$(cat pom.xml | grep -m1 "version" | sed 's/<.*>\(.*\)<.*>/\1/' | sed 's/^[ ]*//g')" >> $GITHUB_ENV
 
+    # debugging, can be removed in prod
     - name: check what is inside result.txt
       run: more result.txt
 
@@ -33,7 +43,8 @@ jobs:
 
     - name: show variable new value
       run: echo "Version:${{env.VERSION}}"
-      
+
+    # download the artifacts from maven repo  
     - name: Download Maven Artifact
       id: download-maven-artifact
       uses: clausnz/github-action-download-maven-artifact@master
@@ -45,28 +56,26 @@ jobs:
         version: ${{env.VERSION}}
         extension: 'zip'
 
+    # confirm where all the files are saved
     - name: Output file path in container
       run: echo "File has been downloaded to ${{ steps.download-maven-artifact.outputs.file }}"
            
     - name: debug
       run: |
-        sudo ls -l /home/runner/work/collector-http/collector-http/  
-        sudo ls -l /home/runner/work/collector-http/collector-http/crawler
-        sudo ls -l /home/runner/work/collector-http/collector-http/crawler/web
-        mkdir /home/runner/work/collector-http/collector-http/crawler/web/target
         sudo ls -l /home/runner/work/collector-http/collector-http/crawler/web/target
 
-
-      
+    # copy the download files from temp location to the docker context location for use later 
     - name: Move files
       run: cp ${{ steps.download-maven-artifact.outputs.file }} /home/runner/work/collector-http/collector-http/crawler/web/target/collector.zip
 
     - name: list file
       run: ls -l /home/runner/work/collector-http/collector-http/crawler/web/target
-         
+
+    # debug docker build cmd, remove in future     
     - name: Build the Docker image
       run: docker build . --tag crawler
 
+    # build and upload to dockerhub
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v6
       with:
@@ -76,3 +85,4 @@ jobs:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}  
          
+    # other docker build cmds for other image: base+ES, base+solr
