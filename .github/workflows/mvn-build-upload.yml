@@ -33,11 +33,11 @@ jobs:
     - name: Build with Maven 
       run: mvn clean package -Dmaven.test.skip --file crawler/web/pom.xml
     
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: crawler-web
-        path: crawler/web/target/*.zip
-        if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
+    #- name: Upload artifact
+    #  uses: actions/upload-artifact@v3
+    #  with:
+    #    name: crawler-web
+    #    path: crawler/web/target/*.zip
+    #    if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
         
     
