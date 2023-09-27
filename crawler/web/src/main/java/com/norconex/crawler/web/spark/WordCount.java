@@ -16,11 +16,15 @@ public class WordCount {
         try (JavaSparkContext sc = new JavaSparkContext(sparkConf)) {
             String filePath = "C:\\Workspace\\Kafka\\apache-zookeeper-3.8.1-bin\\conf\\zoo.cfg";
 
+            JavaRDD<String> rdd = sc.textFile(filePath);
+            System.out.println("Num of Partitions: " + rdd.getNumPartitions());
+
             JavaRDD<String> filteredWords = sc.textFile(filePath)
                     .map(line -> line.replaceAll("[^a-zA-Z\\s]", "").toLowerCase())
                     .flatMap(line -> List.of(line.split("\\s+")).iterator())
                     .filter(word -> (word != null) && word.trim().length() > 0);
-
+            // (word1, the, and, or)
+            // (word1, 1),  (the,1), (the,1), and, or) (the,2)
             JavaPairRDD<String, Integer> wordCount = filteredWords.mapToPair(word -> new Tuple2<>(word, 1))
                     .reduceByKey(Integer::sum);
 
@@ -29,10 +33,13 @@ public class WordCount {
             // Sort by frequency in descending order.
             System.out.println("--------------------------------------------------");
             System.out.println("Top 10 words.");
+            //(2, the), (3, word)
             wordCount.mapToPair(tuple -> new Tuple2<>(tuple._2, tuple._1))
                     .sortByKey(false)
                     .take(10)
                     .forEach(tuple -> System.out.printf("(%s, %d)%n", tuple._2, tuple._1));
+
+            SparkUtil.awaitQuitCommand();
         }
     }
 }
