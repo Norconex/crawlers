@@ -3,11 +3,11 @@ ARG committer_type
 
 WORKDIR /nxer
 
-RUN if [ "$committer_type" = "es" ]; then \
+RUN if [ "$committer_type" = "crawler-es" ]; then \
       #COPY $committer_type /nxer && \
 	    mkdir /nxer/es_folder && \
       echo "es copy"; \
-	  elif [ "$committer_type" = "solr" ]; then \
+	  elif [ "$committer_type" = "crawler-solr" ]; then \
       echo "solr copy" && \
 	    mkdir /nxer/solr-folder; \
 	  else \
