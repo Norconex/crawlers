@@ -30,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.fs.AbstractFSCommitter;
-import com.norconex.committer.core.fs.impl.CSVFileCommitterConfig.Column;
 import com.norconex.commons.lang.convert.EnumConverter;
 
 import lombok.Data;
@@ -180,8 +179,8 @@ public class CSVFileCommitter
             csv.print(isNotBlank(configuration.getTypeHeader())
                     ? configuration.getTypeHeader() : "type");
         }
-        for (Column column : configuration.getColumns()) {
-            var header = column.getHeader();
+        for (CSVColumn col : configuration.getColumns()) {
+            var header = col.getHeader();
             if (StringUtils.isBlank(header)) {
                 header = "content";
             }
@@ -198,8 +197,8 @@ public class CSVFileCommitter
                 || !configuration.isSplitUpsertDelete()) {
             csv.print("upsert");
         }
-        for (Column column : configuration.getColumns()) {
-            var field = column.getField();
+        for (CSVColumn col : configuration.getColumns()) {
+            var field = col.getField();
             String value;
             // if blank field, we are dealing with content
             if (StringUtils.isBlank(field)) {
@@ -209,7 +208,7 @@ public class CSVFileCommitter
                         upsertRequest.getMetadata().getStrings(field),
                         configuration.getMultiValueJoinDelimiter());
             }
-            value = truncate(value, column.getTruncateAt());
+            value = truncate(value, col.getTruncateAt());
             csv.print(StringUtils.trimToEmpty(value));
         }
         csv.println();
@@ -224,8 +223,8 @@ public class CSVFileCommitter
                 || !configuration.isSplitUpsertDelete()) {
             csv.print("delete");
         }
-        for (Column column : configuration.getColumns()) {
-            var field = column.getField();
+        for (CSVColumn col : configuration.getColumns()) {
+            var field = col.getField();
             // if blank field, we are dealing with content but delete has none,
             // so we store a blank value.
             var value = "";
@@ -234,7 +233,7 @@ public class CSVFileCommitter
                         deleteRequest.getMetadata().getStrings(field),
                         configuration.getMultiValueJoinDelimiter());
             }
-            value = truncate(value, column.getTruncateAt());
+            value = truncate(value, col.getTruncateAt());
             csv.print(StringUtils.trimToEmpty(value));
         }
         csv.println();

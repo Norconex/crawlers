@@ -14,17 +14,14 @@
  */
 package com.norconex.committer.core.batch.queue;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.batch.BatchConsumer;
-import com.norconex.committer.core.batch.queue.impl.FSQueue;
 
 /**
  * A committer queue, accumulating requests before they are committed
  * in one or multiple batches.
  */
-@JsonDeserialize(as=FSQueue.class)
 public interface CommitterQueue extends AutoCloseable {
 
     //MAYBE: have abstract committer queue that takes care of initialization?

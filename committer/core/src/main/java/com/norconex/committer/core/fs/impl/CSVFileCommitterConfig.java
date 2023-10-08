@@ -18,12 +18,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.norconex.committer.core.fs.BaseFSCommitterConfig;
+import com.norconex.commons.lang.bean.module.JsonCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
@@ -126,6 +126,7 @@ import lombok.experimental.FieldNameConstants;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
+@NoArgsConstructor
 public class CSVFileCommitterConfig extends BaseFSCommitterConfig {
 
     public static final int DEFAULT_TRUNCATE_AT = 5096;
@@ -138,41 +139,18 @@ public class CSVFileCommitterConfig extends BaseFSCommitterConfig {
     private int truncateAt = DEFAULT_TRUNCATE_AT;
     private String multiValueJoinDelimiter;
     private String typeHeader;
-    private final List<Column> columns = new ArrayList<>();
 
-    public List<Column> getColumns() {
+    @JsonCollection
+//    @JacksonXmlElementWrapper(localName = "columns")
+//    @JacksonXmlProperty(localName = "XXX")
+    private final List<CSVColumn> columns = new ArrayList<>();
+
+    public List<CSVColumn> getColumns() {
         return Collections.unmodifiableList(columns);
     }
-    public CSVFileCommitterConfig setColumns(List<Column> columns) {
+    public CSVFileCommitterConfig setColumns(List<CSVColumn> columns) {
         CollectionUtil.setAll(this.columns, columns);
         return this;
     }
-
-    @Data
-    @Accessors(chain = true)
-    @FieldNameConstants
-    public static class Column {
-        private final String field;
-        private final String header;
-        private final int truncateAt; // -1 is unlimited, 0 is using default.
-
-        public Column(String field) {
-            this(field, field, 0);
-        }
-        public Column(String field, int truncateAt) {
-            this(field, field, truncateAt);
-        }
-        public Column(String field, String header) {
-            this(field, header, 0);
-        }
-        @JsonCreator()
-        public Column(
-                @JsonProperty(Column.Fields.field) String field,
-                @JsonProperty(Column.Fields.header) String header,
-                @JsonProperty(Column.Fields.truncateAt) int truncateAt) {
-            this.field = field;
-            this.header = header;
-            this.truncateAt = truncateAt;
-        }
-    }
 }
+

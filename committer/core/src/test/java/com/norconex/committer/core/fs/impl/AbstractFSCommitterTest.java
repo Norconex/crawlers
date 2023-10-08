@@ -65,7 +65,8 @@ public class AbstractFSCommitterTest  {
 
     @CommitterTest
     public void testMergedFileCommitter(
-            AbstractFSCommitter<?, ?> c, String name) throws CommitterException {
+            AbstractFSCommitter<?, ?> c, String name) 
+                    throws CommitterException {
         // write 5 upserts and 2 deletes.
         // max docs per file being 2, so should generate 4 files.
         c.getConfiguration().setDocsPerFile(2);
@@ -77,9 +78,11 @@ public class AbstractFSCommitterTest  {
         TestUtil.commitRequests(c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1));
         c.close();
 
-        assertEquals(4,  TestUtil.listFSFiles(c.getDirectory()).size());
-        assertEquals(0,  TestUtil.listFSUpsertFiles(c.getDirectory()).size());
-        assertEquals(0,  TestUtil.listFSDeleteFiles(c.getDirectory()).size());
+        assertEquals(4,  TestUtil.listFSFiles(c.getResolvedDirectory()).size());
+        assertEquals(0,  TestUtil.listFSUpsertFiles(
+                c.getResolvedDirectory()).size());
+        assertEquals(0,  TestUtil.listFSDeleteFiles(
+                c.getResolvedDirectory()).size());
     }
 
     @CommitterTest
@@ -97,9 +100,12 @@ public class AbstractFSCommitterTest  {
         TestUtil.commitRequests(c, TestUtil.mixedRequests(1, 0, 1, 1, 1, 0, 1));
         c.close();
 
-        assertEquals(4,  TestUtil.listFSFiles(c.getDirectory()).size());
-        assertEquals(3,  TestUtil.listFSUpsertFiles(c.getDirectory()).size());
-        assertEquals(1,  TestUtil.listFSDeleteFiles(c.getDirectory()).size());
+        assertEquals(4,  TestUtil.listFSFiles(
+                c.getResolvedDirectory()).size());
+        assertEquals(3,  TestUtil.listFSUpsertFiles(
+                c.getResolvedDirectory()).size());
+        assertEquals(1,  TestUtil.listFSDeleteFiles(
+                c.getResolvedDirectory()).size());
     }
 
     @CommitterTest
@@ -111,7 +117,7 @@ public class AbstractFSCommitterTest  {
             .setDirectory(Paths.get("c:\\temp"))
             .setDocsPerFile(5)
             .setFileNamePrefix("prefix")
-            .setFileNamePrefix("suffix")
+            .setFileNameSuffix("suffix")
             .setSplitUpsertDelete(true);
         setIndentIfPresent(c, 3);
         assertThatNoException().isThrownBy(

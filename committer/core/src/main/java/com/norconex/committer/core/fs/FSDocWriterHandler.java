@@ -66,7 +66,8 @@ class FSDocWriterHandler<T> implements AutoCloseable {
 
         // invocation count is zero or max reached, we need a new file.
         if (writeCount == 0) {
-            file = new File(committer.getDirectory().toFile(), buildFileName());
+            file = new File(committer.getResolvedDirectory().toFile(), 
+                    buildFileName());
             LOG.info("Creating file: {}", file);
             if (committer.getConfiguration().isCompress()) {
                 writer = new OutputStreamWriter(new GZIPOutputStream(

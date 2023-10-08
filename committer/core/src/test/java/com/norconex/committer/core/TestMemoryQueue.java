@@ -17,6 +17,7 @@ package com.norconex.committer.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.batch.BatchConsumer;
 import com.norconex.committer.core.batch.queue.CommitterQueue;
 import com.norconex.committer.core.batch.queue.CommitterQueueException;
@@ -28,10 +29,12 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class TestMemoryQueue implements CommitterQueue {
 
+    @JsonIgnore
     private final List<CommitterRequest> requests = new ArrayList<>();
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private BatchConsumer batchConsumer;
 
     @Override

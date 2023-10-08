@@ -328,7 +328,7 @@ class CommitterServiceTest {
 
         var actualDirNames = service.getCommitters().stream()
             .map(AbstractFSCommitter.class::cast)
-            .map(c -> c.getDirectory().getFileName().toString())
+            .map(c -> c.getResolvedDirectory().getFileName().toString())
             .toList();
         assertThat(actualDirNames).containsExactly(
                 "XMLFileCommitter",

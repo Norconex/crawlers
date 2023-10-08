@@ -25,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.AbstractCommitter;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
@@ -84,6 +85,7 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private final StopWatch watch = new StopWatch();
 
     @Override

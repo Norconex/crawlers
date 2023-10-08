@@ -66,22 +66,27 @@ public abstract class AbstractFSCommitter<T, C extends BaseFSCommitterConfig>
     private FSDocWriterHandler<T> upsertHandler;
     @Getter(value = AccessLevel.NONE) @Setter(value = AccessLevel.NONE)
     private FSDocWriterHandler<T> deleteHandler;
+    /**
+     * The directly from configuration, else, from the committer context
+     * working directory.
+     * @return directory used to store files to be committed
+     */
     @Getter
-    private Path directory;
+    private Path resolvedDirectory;
 
     @Override
     protected void doInit() throws CommitterException {
         if (getConfiguration().getDirectory() == null) {
-            directory = getCommitterContext().getWorkDir();
+            resolvedDirectory = getCommitterContext().getWorkDir();
         } else {
-            directory = getConfiguration().getDirectory();
+            resolvedDirectory = getConfiguration().getDirectory();
         }
 
         try {
-            Files.createDirectories(directory);
+            Files.createDirectories(resolvedDirectory);
         } catch (IOException e) {
-            throw new CommitterException("Could not create directory: "
-                    + directory.toAbsolutePath(), e);
+            throw new CommitterException("Could not create resolvedDirectory: "
+                    + resolvedDirectory.toAbsolutePath(), e);
         }
 
         var fileBaseName = DateFormatUtils.format(
