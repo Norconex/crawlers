@@ -28,6 +28,9 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.LBHttp2SolrClient;
 import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Supported
  * <a href="https://lucene.apache.org/solr/guide/8_1/using-solrj.html#types-of-solrclients">
@@ -112,6 +115,7 @@ public enum SolrClientType {
         clientFactory = f;
     }
 
+    @JsonValue
     @Override
     public String toString() {
         return type;
@@ -122,6 +126,7 @@ public enum SolrClientType {
         return clientFactory.apply(solrURL);
     }
 
+    @JsonCreator
     public static SolrClientType of(String type) {
         if (type == null) {
             return null;
