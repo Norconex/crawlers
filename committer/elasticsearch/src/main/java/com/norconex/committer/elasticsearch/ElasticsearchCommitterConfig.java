@@ -108,8 +108,8 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
     private String jsonFieldsPattern;
 
     /**
-     * Elasticsearch connection timeout.
-     * Defaults to {@link ElasticsearchCommitterConfig#DEFAULT_CONNECTION_TIMEOUT}
+     * Elasticsearch connection timeout. Defaults to
+     * {@link ElasticsearchCommitterConfig#DEFAULT_CONNECTION_TIMEOUT}
      * @param connectionTimeout connection timeout duration
      * @return connection duration
      */
@@ -184,5 +184,4 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
     public void setCredentials(Credentials credentials) {
         this.credentials.copyFrom(credentials);
     }
-
 }
