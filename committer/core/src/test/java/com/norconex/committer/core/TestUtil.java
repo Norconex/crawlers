@@ -27,7 +27,6 @@ import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.junit.jupiter.params.provider.Arguments;
 
-import com.norconex.committer.core.batch.queue.CommitterQueue;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.map.Properties;
@@ -37,12 +36,7 @@ import com.norconex.commons.lang.map.Properties;
  */
 public final class TestUtil {
 
-    private static final BeanMapper beanMapper =
-            BeanMapper.builder()
-                .polymorphicType(
-                        CommitterQueue.class,
-                        nm -> nm.startsWith("com.norconex.committer."))
-                .build();
+    private static final BeanMapper beanMapper = BeanMapper.DEFAULT;
 
     private TestUtil() {}
 
