@@ -16,6 +16,7 @@ package com.norconex.committer.core.batch;
 
 import java.util.Iterator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.committer.core.AbstractCommitter;
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.CommitterException;
@@ -70,6 +71,7 @@ public abstract class AbstractBatchCommitter<T extends BaseBatchCommitterConfig>
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private CommitterQueue initializedQueue;
 
     @Override

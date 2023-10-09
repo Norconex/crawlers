@@ -21,6 +21,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 
@@ -87,6 +88,7 @@ public abstract class AbstractCommitter<T extends BaseCommitterConfig>
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private CommitterContext committerContext;
 
     @Override

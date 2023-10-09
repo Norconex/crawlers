@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.norconex.committer.core.fs.BaseFSCommitterConfig;
-import com.norconex.commons.lang.bean.module.JsonCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 
 import lombok.Data;
@@ -140,9 +139,6 @@ public class CSVFileCommitterConfig extends BaseFSCommitterConfig {
     private String multiValueJoinDelimiter;
     private String typeHeader;
 
-    @JsonCollection
-//    @JacksonXmlElementWrapper(localName = "columns")
-//    @JacksonXmlProperty(localName = "XXX")
     private final List<CSVColumn> columns = new ArrayList<>();
 
     public List<CSVColumn> getColumns() {

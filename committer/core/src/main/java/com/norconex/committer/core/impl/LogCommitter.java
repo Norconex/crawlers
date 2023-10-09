@@ -73,7 +73,9 @@ public class LogCommitter extends AbstractCommitter<LogCommitterConfig>  {
 
     private static final int LOG_TIME_BATCH_SIZE = 100;
 
+    @JsonIgnore
     private long addCount = 0;
+    @JsonIgnore
     private long removeCount = 0;
 
     private final LogCommitterConfig configuration = new LogCommitterConfig();
