@@ -14,21 +14,10 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.io.IOUtil;
-import com.norconex.importer.handler.HandlerDoc;
-import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.ImporterCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.commons.lang.text.TextMatcher;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.experimental.FieldNameConstants;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -76,41 +65,15 @@ import lombok.experimental.FieldNameConstants;
  * <p>
  */
 @SuppressWarnings("javadoc")
-@FieldNameConstants
 @Data
-public class BlankCondition
-        implements ImporterCondition, Configurable<BlankConditionConfig> {
+@Accessors(chain = true)
+public class BlankConditionConfig {
 
-    @Getter
-    private final BlankConditionConfig configuration =
-            new BlankConditionConfig();
+    private final TextMatcher fieldMatcher = new TextMatcher();
 
-    @Override
-    public boolean testDocument(HandlerDoc doc, InputStream input,
-            ParseState parseState) throws ImporterHandlerException {
+    private boolean matchAnyBlank;
 
-        // do content
-        if (configuration.getFieldMatcher().getPattern() == null) {
-            try {
-                return IOUtil.isEmpty(input);
-            } catch (IOException e) {
-                throw new ImporterHandlerException(
-                        "Cannot check if document content is blank.", e);
-            }
-        }
-
-        // If no values returned, call it blank
-        var values = doc.getMetadata().matchKeys(
-                configuration.getFieldMatcher()).valueList();
-        if (values.isEmpty()) {
-            return true;
-        }
-
-        // if some fields are returned, check them all for blankness
-        // one at a time
-        if (configuration.isMatchAnyBlank()) {
-            return values.stream().anyMatch(StringUtils::isBlank);
-        }
-        return values.stream().allMatch(StringUtils::isBlank);
+    public void setFieldMatcher(TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
     }
 }
