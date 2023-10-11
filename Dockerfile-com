@@ -1,5 +1,9 @@
 # Pull V4 crawler base image from dockerhub norconex public registry
-FROM V4_CRAWLER_IMAGE
+FROM 4.0.0-crawler
 
 # Pull the v4 committer package from Maven or internet
-RUN curl -LO https://URL_OF_ES_PACKAGE
+WORKDIR /nxer
+
+RUN ls -l && \
+    mkdir test-folder && \
+    ls -l
