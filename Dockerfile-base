@@ -1,3 +1,5 @@
 From ubuntu:22.04
 
 WORKDIR /nxer
+
+RUN mkdir base-folder
