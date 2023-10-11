@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package com.norconex.importer.doc;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,7 +60,7 @@ public class DocRecord implements Serializable {
 
     @NonNull private String reference = null;
     private ContentType contentType;
-    private String contentEncoding;
+    private Charset charset;
 
     //MAYBE: remove prefix "embedded" and just keep parent* ?
 

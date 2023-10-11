@@ -1,4 +1,4 @@
-/* Copyright 2021-2020 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@ package com.norconex.importer.handler.condition;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.IOUtil;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -58,56 +57,24 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public abstract class AbstractCharStreamCondition
-        implements ImporterCondition, XMLConfigurable {
-
-    /**
-     * The presumed source character encoding.
-     * @param sourceCharset character encoding of the source to be transformed
-     * @return character encoding of the source to be transformed
-     */
-    private String sourceCharset = null;
+        <T extends CharStreamConditionConfig>
+                implements ImporterCondition, Configurable<T> {
 
     @Override
     public final boolean testDocument(
             HandlerDoc doc, InputStream input, ParseState parseState)
                     throws ImporterHandlerException {
-        var inputCharset = CharsetUtil.firstNonBlankOrUTF8(
+
+        var inputCharset = CharsetUtil.firstNonNullOrUTF8(
                 parseState,
-                sourceCharset,
-                doc.getDocInfo().getContentEncoding());
-        try {
-            var reader = new InputStreamReader(
-                    IOUtil.toNonNullInputStream(input), inputCharset);
-            return testDocument(doc, reader, parseState);
-        } catch (UnsupportedEncodingException e) {
-            throw new ImporterHandlerException(e);
-        }
+                getConfiguration().getSourceCharset(),
+                doc.getDocRecord().getCharset());
+        var reader = new InputStreamReader(
+                IOUtil.toNonNullInputStream(input), inputCharset);
+        return testDocument(doc, reader, parseState);
     }
 
     protected abstract boolean testDocument(
             HandlerDoc doc, Reader input, ParseState parseState)
             throws ImporterHandlerException;
-
-    @Override
-    public final void loadFromXML(XML xml) {
-        setSourceCharset(xml.getString("@sourceCharset", sourceCharset));
-        loadCharStreamConditionFromXML(xml);
-    }
-    @Override
-    public final void saveToXML(XML xml) {
-        xml.setAttribute("sourceCharset", sourceCharset);
-        saveCharStreamConditionToXML(xml);
-    }
-
-    /**
-     * Saves configuration settings specific to the implementing class.
-     * The parent tag along with the "class" attribute are already written.
-     * @param xml the XML
-     */
-    protected abstract void saveCharStreamConditionToXML(XML xml);
-    /**
-     * Loads configuration settings specific to the implementing class.
-     * @param xml XML configuration
-     */
-    protected abstract void loadCharStreamConditionFromXML(XML xml);
 }

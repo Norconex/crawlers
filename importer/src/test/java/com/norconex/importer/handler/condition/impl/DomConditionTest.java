@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.parser.ParseState;
 
-class DOMConditionTest {
+class DomConditionTest {
 
     private final String html = """
     	<html><head><title>Test page</title></head>\
@@ -41,21 +41,23 @@ class DOMConditionTest {
     @Test
     void testConditionHTML()
             throws ImporterHandlerException {
-        var cond = new DOMCondition();
+        var cond = new DomCondition();
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
 
-        cond.setSelector("div.disclaimer");
+        cond.getConfiguration().setSelector("div.disclaimer");
         Assertions.assertTrue(eval(cond, html, metadata),
                 "disclaimer should have been accepted.");
 
-        cond.setSelector("div.disclaimer");
-        cond.setValueMatcher(TextMatcher.regex("\\bskip me\\b").partial());
+        cond.getConfiguration().setSelector("div.disclaimer");
+        cond.getConfiguration().setValueMatcher(
+                TextMatcher.regex("\\bskip me\\b").partial());
         Assertions.assertTrue(eval(cond, html, metadata),
                 "disclaimer skip me should have been accepted.");
 
-        cond.setSelector("div.disclaimer");
-        cond.setValueMatcher(TextMatcher.regex("\\bdo not skip me\\b"));
+        cond.getConfiguration().setSelector("div.disclaimer");
+        cond.getConfiguration().setValueMatcher(
+                TextMatcher.regex("\\bdo not skip me\\b"));
         Assertions.assertFalse(eval(cond, html, metadata),
                 "disclaimer do not skip me should have been rejected.");
     }
@@ -64,27 +66,26 @@ class DOMConditionTest {
     @Test
     void testConditionXML()
             throws ImporterHandlerException {
-        var cond = new DOMCondition();
+        var cond = new DomCondition();
         var metadata = new Properties();
-        metadata.set(
-                DocMetadata.CONTENT_TYPE, "application/xml");
-//        cond.setOnMatch(OnMatch.INCLUDE);
+        metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
 
-        cond.setSelector("food > fruit[color=red]");
+        cond.getConfiguration().setSelector("food > fruit[color=red]");
         Assertions.assertTrue(eval(cond, xml, metadata),
                 "Red fruit should have been accepted.");
 
-        cond.setSelector("food > fruit[color=green]");
+        cond.getConfiguration().setSelector("food > fruit[color=green]");
         Assertions.assertFalse(eval(cond, xml, metadata),
                 "Green fruit should have been rejected.");
 
-        cond.setSelector("food > fruit");
-        cond.setValueMatcher(TextMatcher.regex("apple").partial());
+        cond.getConfiguration().setSelector("food > fruit");
+        cond.getConfiguration().setValueMatcher(
+                TextMatcher.regex("apple").partial());
         Assertions.assertTrue(eval(cond, xml, metadata),
                 "Apple should have been accepted.");
 
-        cond.setSelector("food > fruit");
-        cond.setValueMatcher(TextMatcher.regex("carrot"));
+        cond.getConfiguration().setSelector("food > fruit");
+        cond.getConfiguration().setValueMatcher(TextMatcher.regex("carrot"));
         Assertions.assertFalse(eval(cond, xml, metadata),
                 "Carrot should have been rejected.");
     }
@@ -92,34 +93,33 @@ class DOMConditionTest {
     @Test
     void testConditionXMLFromField()
             throws ImporterHandlerException {
-        var cond = new DOMCondition();
+        var cond = new DomCondition();
         var metadata = new Properties();
-        metadata.set(
-                DocMetadata.CONTENT_TYPE, "application/xml");
+        metadata.set(DocMetadata.CONTENT_TYPE, "application/xml");
         metadata.set("field1", xml);
-//        cond.setOnMatch(OnMatch.INCLUDE);
-        cond.setFieldMatcher(TextMatcher.basic("field1"));
+        cond.getConfiguration().setFieldMatcher(TextMatcher.basic("field1"));
 
-        cond.setSelector("food > fruit[color=red]");
+        cond.getConfiguration().setSelector("food > fruit[color=red]");
         Assertions.assertTrue(eval(cond, "n/a", metadata),
                 "Red fruit should have been accepted.");
 
-        cond.setSelector("food > fruit[color=green]");
+        cond.getConfiguration().setSelector("food > fruit[color=green]");
         Assertions.assertFalse(eval(cond, "n/a", metadata),
                 "Green fruit should have been rejected.");
 
-        cond.setSelector("food > fruit");
-        cond.setValueMatcher(TextMatcher.regex("apple").partial());
+        cond.getConfiguration().setSelector("food > fruit");
+        cond.getConfiguration().setValueMatcher(
+                TextMatcher.regex("apple").partial());
         Assertions.assertTrue(eval(cond, "n/a", metadata),
                 "Apple should have been accepted.");
 
-        cond.setSelector("food > fruit");
-        cond.setValueMatcher(TextMatcher.regex("carrot"));
+        cond.getConfiguration().setSelector("food > fruit");
+        cond.getConfiguration().setValueMatcher(TextMatcher.regex("carrot"));
         Assertions.assertFalse(eval(cond, "n/a", metadata),
                 "Carrot should have been rejected.");
     }
 
-    private boolean eval(DOMCondition cond,
+    private boolean eval(DomCondition cond,
             String content, Properties metadata)
                     throws ImporterHandlerException {
         return TestUtil.condition(cond, "n/a", IOUtils.toInputStream(
@@ -128,11 +128,11 @@ class DOMConditionTest {
 
     @Test
     void testWriteRead() {
-        var cond = new DOMCondition();
-        cond.setFieldMatcher(
+        var cond = new DomCondition();
+        cond.getConfiguration().setFieldMatcher(
                 TextMatcher.basic("document.contentType"));
-        cond.setValueMatcher(TextMatcher.regex("blah"));
-        cond.setSelector("selector");
-        XML.assertWriteRead(cond, "condition");
+        cond.getConfiguration().setValueMatcher(TextMatcher.regex("blah"));
+        cond.getConfiguration().setSelector("selector");
+        BeanMapper.DEFAULT.assertWriteRead(cond);
     }
 }

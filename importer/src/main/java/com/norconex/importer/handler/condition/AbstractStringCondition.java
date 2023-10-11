@@ -17,18 +17,14 @@ package com.norconex.importer.handler.condition;
 import java.io.IOException;
 import java.io.Reader;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
 import com.norconex.commons.lang.io.IOUtil;
 import com.norconex.commons.lang.io.TextReader;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.parser.ParseState;
+
+import lombok.Data;
 
 /**
  * <p>Base class to facilitate creating conditions based on text content,
@@ -73,28 +69,10 @@ import com.norconex.importer.parser.ParseState;
  *
  */
 @SuppressWarnings("javadoc")
+@Data
 public abstract class AbstractStringCondition
-            extends AbstractCharStreamCondition {
-
-    private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
-
-    /**
-     * Gets the maximum number of characters to read for filtering
-     * at once. Default is {@link TextReader#DEFAULT_MAX_READ_SIZE}.
-     * @return maximum read size
-     */
-    public int getMaxReadSize() {
-        return maxReadSize;
-    }
-    /**
-     * Sets the maximum number of characters to read for filtering
-     * at once.
-     * @param maxReadSize maximum read size
-     */
-    public void setMaxReadSize(int maxReadSize) {
-        this.maxReadSize = maxReadSize;
-    }
-
+        <T extends StringConditionConfig>
+                extends AbstractCharStreamCondition<T> {
 
     @Override
     protected final boolean testDocument(
@@ -104,7 +82,8 @@ public abstract class AbstractStringCondition
         var b = new StringBuilder();
         String text = null;
         try (var reader = new TextReader(
-                IOUtil.toNonNullReader(input), maxReadSize)) {
+                IOUtil.toNonNullReader(input),
+                getConfiguration().getMaxReadSize())) {
             while ((text = reader.readText()) != null) {
                 b.append(text);
                 var matched = testDocument(
@@ -135,43 +114,4 @@ public abstract class AbstractStringCondition
             ParseState parseState,
             int sectionIndex)
                     throws ImporterHandlerException;
-
-    @Override
-    protected final void loadCharStreamConditionFromXML(XML xml) {
-        setMaxReadSize(xml.getInteger("@maxReadSize", maxReadSize));
-        loadStringConditionFromXML(xml);
-    }
-    @Override
-    protected final void saveCharStreamConditionToXML(XML xml) {
-        xml.setAttribute("maxReadSize", maxReadSize);
-        saveStringConditionToXML(xml);
-    }
-
-    /**
-     * Saves configuration settings specific to the implementing class.
-     * The parent tag along with the "class" attribute are already written.
-     * Implementors must not close the writer.
-     *
-     * @param xml the XML
-     */
-    protected abstract void saveStringConditionToXML(XML xml);
-    /**
-     * Loads configuration settings specific to the implementing class.
-     * @param xml XML configuration
-     */
-    protected abstract void loadStringConditionFromXML(XML xml);
-
-    @Override
-    public boolean equals(final Object other) {
-        return EqualsBuilder.reflectionEquals(this, other);
-    }
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-    @Override
-    public String toString() {
-        return new ReflectionToStringBuilder(this,
-                ToStringStyle.SHORT_PREFIX_STYLE).toString();
-    }
 }

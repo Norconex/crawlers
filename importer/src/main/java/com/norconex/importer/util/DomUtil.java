@@ -23,16 +23,16 @@ import org.slf4j.LoggerFactory;
 /**
  * Utility methods related to JSoup/DOM manipulation.
  */
-public final class DOMUtil {
+public final class DomUtil {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DOMUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DomUtil.class);
 
     /** @since 2.8.0 */
     public static final String PARSER_HTML = "html";
     /** @since 2.8.0 */
     public static final String PARSER_XML = "xml";
 
-    private DOMUtil() {
+    private DomUtil() {
     }
 
     /**

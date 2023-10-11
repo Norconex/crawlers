@@ -22,18 +22,16 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.handler.CommonMatchers;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.AbstractCharStreamCondition;
-import com.norconex.importer.handler.filter.impl.TextFilter;
 import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.DOMUtil;
+import com.norconex.importer.util.DomUtil;
+import com.optimaize.langdetect.text.TextFilter;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -67,7 +65,7 @@ import lombok.ToString;
  * exactly for matching purposes thanks to the "extract" argument of the
  * new method {@link #setExtract(String)}. Possible values are:
  * </p>
- * {@nx.include com.norconex.importer.util.DOMUtil#extract}
+ * {@nx.include com.norconex.importer.util.DomUtil#extract}
  * <p>
  * Should be used as a pre-parse handler.
  * </p>
@@ -112,7 +110,7 @@ import lombok.ToString;
  * </p>
  *
  * {@nx.xml.usage
- * <handler class="com.norconex.importer.handler.condition.impl.DOMCondition"
+ * <handler class="com.norconex.importer.handler.condition.impl.DomCondition"
  *     {@nx.include com.norconex.importer.handler.condition.AbstractCharStreamCondition#attributes}
  *     selector="(selector syntax)"
  *     parser="[html|xml]"
@@ -132,114 +130,24 @@ import lombok.ToString;
  *
  * {@nx.xml.example
  * <!-- Matches an HTML page that has one or more GIF images in it: -->
- * <condition class="DOMCondition" selector="img[src$=.gif]" onMatch="exclude"/>
+ * <condition class="DomCondition" selector="img[src$=.gif]" onMatch="exclude"/>
  *
  * <!-- Matches an HTML page that has a paragraph tag with a class called
  *      "disclaimer" and a value containing "skip me": -->
- * <condition class="DOMCondition" selector="p.disclaimer" onMatch="exclude">
+ * <condition class="DomCondition" selector="p.disclaimer" onMatch="exclude">
  *   <valueMatcher method="regex">\bskip me\b</valueMatcher>
  * </condition>
  * }
  *
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class DOMCondition extends AbstractCharStreamCondition {
+@Data
+@Accessors(chain = true)
+public class DomCondition
+        extends AbstractCharStreamCondition<DomConditionConfig> {
 
-    private final TextMatcher fieldMatcher = new TextMatcher();
-    private final TextMatcher valueMatcher = new TextMatcher();
-    private final TextMatcher contentTypeMatcher =
-            CommonMatchers.domContentTypes();
-    private String selector;
-    private String extract;
-    private String parser = DOMUtil.PARSER_HTML;
-
-    /**
-     * Gets this filter field matcher.
-     * @return field matcher
-     */
-    public TextMatcher getFieldMatcher() {
-        return fieldMatcher;
-    }
-    /**
-     * Sets this condition field matcher.
-     * @param fieldMatcher field matcher
-     */
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
-    }
-
-    /**
-     * Gets this condition value matcher.
-     * @return value matcher
-     */
-    public TextMatcher getValueMatcher() {
-        return valueMatcher;
-    }
-    /**
-     * Sets this condition value matcher.
-     * @param valueMatcher value matcher
-     */
-    public void setValueMatcher(TextMatcher valueMatcher) {
-        this.valueMatcher.copyFrom(valueMatcher);
-    }
-
-    /**
-     * Gets this condition content-type matcher.
-     * @return content-type matcher
-     */
-    public TextMatcher getContentTypeMatcher() {
-        return contentTypeMatcher;
-    }
-    /**
-     * Sets this condition content-type matcher.
-     * @param contentTypeMatcher content-type matcher
-     */
-    public void setContentTypeMatcher(TextMatcher contentTypeMatcher) {
-        this.contentTypeMatcher.copyFrom(contentTypeMatcher);
-    }
-
-    /**
-     * Gets what should be extracted for the value. One of
-     * "text" (default), "html", or "outerHtml". <code>null</code> means
-     * this class will use the default ("text").
-     * @return what should be extracted for the value
-     */
-    public String getExtract() {
-        return extract;
-    }
-    /**
-     * Sets what should be extracted for the value. One of
-     * "text" (default), "html", or "outerHtml". <code>null</code> means
-     * this class will use the default ("text").
-     * @param extract what should be extracted for the value
-     */
-    public void setExtract(String extract) {
-        this.extract = extract;
-    }
-
-    /**
-     * Gets the parser to use when creating the DOM-tree.
-     * @return <code>html</code> (default) or <code>xml</code>.
-     */
-    public String getParser() {
-        return parser;
-    }
-    /**
-     * Sets the parser to use when creating the DOM-tree.
-     * @param parser <code>html</code> or <code>xml</code>.
-     */
-    public void setParser(String parser) {
-        this.parser = parser;
-    }
-
-    public String getSelector() {
-        return selector;
-    }
-    public void setSelector(String selector) {
-        this.selector = selector;
-    }
+    private final DomConditionConfig configuration =
+            new DomConditionConfig();
 
     @Override
     protected boolean testDocument(
@@ -247,18 +155,19 @@ public class DOMCondition extends AbstractCharStreamCondition {
                     throws ImporterHandlerException {
 
         // only proceed if we are dealing with a supported content type
-        if (!contentTypeMatcher.matches(
-                doc.getDocInfo().getContentType().toString())) {
+        if (!configuration.getContentTypeMatcher().matches(
+                doc.getDocRecord().getContentType().toString())) {
             return false;
         }
 
         try {
-            if (fieldMatcher.getPattern() != null) {
+            if (configuration.getFieldMatcher().getPattern() != null) {
                 // Dealing with field values
-                for (String value :
-                        doc.getMetadata().matchKeys(fieldMatcher).valueList()) {
+                for (String value : doc.getMetadata().matchKeys(
+                        configuration.getFieldMatcher()).valueList()) {
                     if (testDocument(Jsoup.parse(value, doc.getReference(),
-                            DOMUtil.toJSoupParser(getParser())))) {
+                            DomUtil.toJSoupParser(
+                                    configuration.getParser())))) {
                         return true;
                     }
                 }
@@ -266,7 +175,7 @@ public class DOMCondition extends AbstractCharStreamCondition {
             }
             return testDocument(Jsoup.parse(
                     IOUtils.toString(input), doc.getReference(),
-                    DOMUtil.toJSoupParser(getParser())));
+                    DomUtil.toJSoupParser(configuration.getParser())));
         } catch (IOException e) {
             throw new ImporterHandlerException(
                     "Cannot parse document into a DOM-tree.", e);
@@ -274,38 +183,39 @@ public class DOMCondition extends AbstractCharStreamCondition {
     }
 
     private boolean testDocument(Document doc) {
-        var elms = doc.select(selector);
+        var elms = doc.select(configuration.getSelector());
         // no elements matching
         if (elms.isEmpty()) {
             return false;
         }
         // one or more elements matching
         for (Element elm : elms) {
-            var value = DOMUtil.getElementValue(elm, getExtract());
-            if (valueMatcher.getPattern() == null
-                    || valueMatcher.matches(value)) {
+            var value =
+                    DomUtil.getElementValue(elm, configuration.getExtract());
+            if (configuration.getValueMatcher().getPattern() == null
+                    || configuration.getValueMatcher().matches(value)) {
                 return true;
             }
         }
         return false;
     }
 
-    @Override
-    protected void loadCharStreamConditionFromXML(XML xml) {
-        setSelector(xml.getString("@selector", selector));
-        setParser(xml.getString("@parser", parser));
-        setExtract(xml.getString("@extract", extract));
-        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
-        valueMatcher.loadFromXML(xml.getXML("valueMatcher"));
-        contentTypeMatcher.loadFromXML(xml.getXML("contentTypeMatcher"));
-    }
-    @Override
-    protected void saveCharStreamConditionToXML(XML xml) {
-        xml.setAttribute("selector", selector);
-        xml.setAttribute("parser", parser);
-        xml.setAttribute("extract", extract);
-        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
-        valueMatcher.saveToXML(xml.addElement("valueMatcher"));
-        contentTypeMatcher.saveToXML(xml.addElement("contentTypeMatcher"));
-    }
+//    @Override
+//    protected void loadCharStreamConditionFromXML(XML xml) {
+//        setSelector(xml.getString("@selector", selector));
+//        setParser(xml.getString("@parser", parser));
+//        setExtract(xml.getString("@extract", extract));
+//        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
+//        valueMatcher.loadFromXML(xml.getXML("valueMatcher"));
+//        contentTypeMatcher.loadFromXML(xml.getXML("contentTypeMatcher"));
+//    }
+//    @Override
+//    protected void saveCharStreamConditionToXML(XML xml) {
+//        xml.setAttribute("selector", selector);
+//        xml.setAttribute("parser", parser);
+//        xml.setAttribute("extract", extract);
+//        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
+//        valueMatcher.saveToXML(xml.addElement("valueMatcher"));
+//        contentTypeMatcher.saveToXML(xml.addElement("contentTypeMatcher"));
+//    }
 }

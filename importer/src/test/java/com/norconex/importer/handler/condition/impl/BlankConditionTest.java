@@ -22,9 +22,9 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -51,44 +51,44 @@ class BlankConditionTest {
 
     @Test
     void testAllBlankFieldsCondition() throws ImporterHandlerException {
-        c.setFieldMatcher(TextMatcher.regex("field.*"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
 
-        c.setFieldMatcher(TextMatcher.basic("field3"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.basic("field3"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
-        c.setFieldMatcher(TextMatcher.regex("field4\\..*"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
-        c.setFieldMatcher(TextMatcher.regex("field4\\.[123]"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\.[123]"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
-        c.setFieldMatcher(TextMatcher.basic("field4.4"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
     }
 
     @Test
     void testAnyBlankFieldsCondition() throws ImporterHandlerException {
-        c.setFieldMatcher(TextMatcher.regex("field.*"));
-        c.setMatchAnyBlank(true);
+        c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
+        c.getConfiguration().setMatchAnyBlank(true);
         assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
 
-        c.setFieldMatcher(TextMatcher.basic("field3"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.basic("field3"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
-        c.setFieldMatcher(TextMatcher.regex("field4\\..*"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
-        c.setFieldMatcher(TextMatcher.regex("field4\\.[123]"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\.[123]"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
-        c.setFieldMatcher(TextMatcher.basic("field4.4"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
     }
 
     @Test
     void testMisc() throws ImporterHandlerException {
         // Test non-existant
-        c.setFieldMatcher(TextMatcher.basic("doNotExist"));
+        c.getConfiguration().setFieldMatcher(TextMatcher.basic("doNotExist"));
         assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
 
         // Test write read
         assertThatNoException().isThrownBy(
-                () -> XML.assertWriteRead(c, "condition"));
+                () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
     private HandlerDoc newDoc() {

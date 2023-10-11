@@ -14,8 +14,6 @@
  */
 package com.norconex.importer.handler;
 
-import java.util.Objects;
-
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.builder.ToStringSummary;
@@ -26,6 +24,7 @@ import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocRecord;
 
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 /**
  * Lighter version of {@link Doc} which leaves content out to let each
@@ -37,11 +36,11 @@ public class HandlerDoc {
     @ToStringSummary
     private final Doc doc;
 
-    public HandlerDoc(Doc doc) {
-        this.doc = Objects.requireNonNull(doc, "'doc' must not be null.");
+    public HandlerDoc(@NonNull Doc doc) {
+        this.doc = doc;
     }
 
-    public DocRecord getDocInfo() {
+    public DocRecord getDocRecord() {
         return doc.getDocRecord();
     }
     public Properties getMetadata() {
@@ -55,7 +54,7 @@ public class HandlerDoc {
     }
     @Override
     public String toString() {
-        ReflectionToStringBuilder b = new ReflectionToStringBuilder(
+        var b = new ReflectionToStringBuilder(
                 this, ToStringStyle.SHORT_PREFIX_STYLE);
         b.setExcludeNullValues(true);
         return b.toString();
