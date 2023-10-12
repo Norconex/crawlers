@@ -16,15 +16,15 @@ package com.norconex.importer.handler.condition.impl;
 
 import java.io.InputStream;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.ImporterCondition;
 import com.norconex.importer.parser.ParseState;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 /**
@@ -55,42 +55,20 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class ReferenceCondition
-        implements ImporterCondition, XMLConfigurable {
+        implements ImporterCondition, Configurable<ReferenceConditionConfig> {
 
-    private final TextMatcher valueMatcher = new TextMatcher();
+    @Getter
+    private final ReferenceConditionConfig configuration =
+            new ReferenceConditionConfig();
 
-    public ReferenceCondition() {
-    }
+    public ReferenceCondition() {}
     public ReferenceCondition(TextMatcher valueMatcher) {
-        setValueMatcher(valueMatcher);
-    }
-
-    /**
-     * Gets the text matcher for field values.
-     * @return text matcher
-     */
-    public TextMatcher getValueMatcher() {
-        return valueMatcher;
-    }
-    /**
-     * Sets the text matcher for field values. Copies it.
-     * @param valueMatcher text matcher
-     */
-    public void setValueMatcher(TextMatcher valueMatcher) {
-        this.valueMatcher.copyFrom(valueMatcher);
+        configuration.setValueMatcher(valueMatcher);
     }
 
     @Override
     public boolean testDocument(HandlerDoc doc, InputStream input,
             ParseState parseState) throws ImporterHandlerException {
-        return valueMatcher.matches(doc.getReference());
-    }
-    @Override
-    public void loadFromXML(XML xml) {
-        valueMatcher.loadFromXML(xml.getXML("valueMatcher"));
-    }
-    @Override
-    public void saveToXML(XML xml) {
-        valueMatcher.saveToXML(xml.addElement("valueMatcher"));
+        return configuration.getValueMatcher().matches(doc.getReference());
     }
 }

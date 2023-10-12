@@ -199,23 +199,4 @@ public class DomCondition
         }
         return false;
     }
-
-//    @Override
-//    protected void loadCharStreamConditionFromXML(XML xml) {
-//        setSelector(xml.getString("@selector", selector));
-//        setParser(xml.getString("@parser", parser));
-//        setExtract(xml.getString("@extract", extract));
-//        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
-//        valueMatcher.loadFromXML(xml.getXML("valueMatcher"));
-//        contentTypeMatcher.loadFromXML(xml.getXML("contentTypeMatcher"));
-//    }
-//    @Override
-//    protected void saveCharStreamConditionToXML(XML xml) {
-//        xml.setAttribute("selector", selector);
-//        xml.setAttribute("parser", parser);
-//        xml.setAttribute("extract", extract);
-//        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
-//        valueMatcher.saveToXML(xml.addElement("valueMatcher"));
-//        contentTypeMatcher.saveToXML(xml.addElement("contentTypeMatcher"));
-//    }
 }

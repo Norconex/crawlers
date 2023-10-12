@@ -18,7 +18,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.norconex.commons.lang.Operator;
 import com.norconex.commons.lang.text.TextMatcher;
 
 import lombok.Data;
@@ -212,36 +211,12 @@ public class DateConditionConfig {
      */
     private ZoneId docZoneId;
 
-    public DateConditionConfig() {
-    }
-    public DateConditionConfig(TextMatcher fieldMatcher) {
-        this(fieldMatcher, null, null);
-    }
-    public DateConditionConfig(
-            TextMatcher fieldMatcher, DateValueMatcher dateValueMatcher) {
-        this(fieldMatcher, dateValueMatcher, null);
-    }
-    public DateConditionConfig(
-            TextMatcher fieldMatcher,
-            DateValueMatcher rangeStart,
-            DateValueMatcher rangeEnd) {
-        setFieldMatcher(fieldMatcher);
-        valueMatcher = rangeStart;
-        valueMatcherRangeEnd = rangeEnd;
-    }
-
     /**
      * Sets the text matcher of field names. Copies it.
      * @param fieldMatcher text matcher
      */
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
+    public DateConditionConfig setFieldMatcher(TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
-    }
-
-    @Data
-    @Accessors(chain = true)
-    public static class DateValueMatcherConfig {
-        private Operator operator;
-        private String dateExpression;
+        return this;
     }
 }

@@ -73,7 +73,8 @@ public class BlankConditionConfig {
 
     private boolean matchAnyBlank;
 
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
+    public BlankConditionConfig setFieldMatcher(TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
     }
 }

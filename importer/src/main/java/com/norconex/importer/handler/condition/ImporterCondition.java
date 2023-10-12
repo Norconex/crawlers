@@ -1,4 +1,4 @@
-/* Copyright 2021 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import com.norconex.importer.parser.ParseState;
  * A condition usually used in XML flow creation when configuring
  * importer handlers.
  */
+@FunctionalInterface
 public interface ImporterCondition {
 
-    //TODO make functional interface
     //TODO extend Predicate and replace method or have a default one?
 
     /**

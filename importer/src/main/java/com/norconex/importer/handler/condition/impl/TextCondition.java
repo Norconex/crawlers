@@ -16,15 +16,13 @@ package com.norconex.importer.handler.condition.impl;
 
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.condition.AbstractCharStreamCondition;
 import com.norconex.importer.handler.condition.AbstractStringCondition;
 import com.norconex.importer.parser.ParseState;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * <p>
@@ -58,50 +56,21 @@ import lombok.ToString;
  *
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class TextCondition extends AbstractStringCondition {
+@Data
+public class TextCondition
+        extends AbstractStringCondition<TextConditionConfig> {
 
-    private final TextMatcher fieldMatcher = new TextMatcher();
-    private final TextMatcher valueMatcher = new TextMatcher();
+    private final TextConditionConfig configuration =
+            new TextConditionConfig();
 
-    public TextCondition() {
-    }
+    public TextCondition() {}
     public TextCondition(TextMatcher valueMatcher) {
-        setValueMatcher(valueMatcher);
+        configuration.setValueMatcher(valueMatcher);
     }
     public TextCondition(TextMatcher fieldMatcher, TextMatcher valueMatcher) {
-        setValueMatcher(valueMatcher);
-        setFieldMatcher(fieldMatcher);
-    }
-
-    /**
-     * Gets the text matcher for content or field values.
-     * @return text matcher
-     */
-    public TextMatcher getValueMatcher() {
-        return valueMatcher;
-    }
-    /**
-     * Sets the text matcher for content or field values. Copies it.
-     * @param valueMatcher text matcher
-     */
-    public void setValueMatcher(TextMatcher valueMatcher) {
-        this.valueMatcher.copyFrom(valueMatcher);
-    }
-    /**
-     * Gets the text matcher of field names.
-     * @return field matcher
-     */
-    public TextMatcher getFieldMatcher() {
-        return fieldMatcher;
-    }
-    /**
-     * Sets the text matcher of field names. Copies it.
-     * @param fieldMatcher text matcher
-     */
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
-        this.fieldMatcher.copyFrom(fieldMatcher);
+        configuration
+            .setValueMatcher(valueMatcher)
+            .setFieldMatcher(fieldMatcher);
     }
 
     @Override
@@ -109,22 +78,14 @@ public class TextCondition extends AbstractStringCondition {
             String input, ParseState parseState, int sectionIndex)
                     throws ImporterHandlerException {
         // content
-        if (fieldMatcher.getPattern() == null) {
-            return valueMatcher.matches(input);
+        if (configuration.getFieldMatcher().getPattern() == null) {
+            return configuration.getValueMatcher().matches(input);
         }
 
         // field(s)
         return new PropertyMatcher(
-                fieldMatcher, valueMatcher).matches(doc.getMetadata());
-    }
-    @Override
-    protected void loadStringConditionFromXML(XML xml) {
-        fieldMatcher.loadFromXML(xml.getXML("fieldMatcher"));
-        valueMatcher.loadFromXML(xml.getXML("valueMatcher"));
-    }
-    @Override
-    protected void saveStringConditionToXML(XML xml) {
-        fieldMatcher.saveToXML(xml.addElement("fieldMatcher"));
-        valueMatcher.saveToXML(xml.addElement("valueMatcher"));
+                configuration.getFieldMatcher(),
+                configuration.getValueMatcher())
+                    .matches(doc.getMetadata());
     }
 }

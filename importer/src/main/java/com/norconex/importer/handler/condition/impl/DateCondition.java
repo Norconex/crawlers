@@ -258,7 +258,7 @@ public class DateCondition
             return false;
         }
 
-        var evalResult = matcher.matches(dt);
+        var evalResult = matcher.test(dt);
         LOG.debug("{}: {} [{}] {} = {}",
                 fieldName,
                 fieldValue,

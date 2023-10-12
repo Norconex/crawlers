@@ -14,18 +14,16 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
 import com.norconex.importer.handler.condition.AbstractStringCondition;
 import com.norconex.importer.parser.ParseState;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -111,19 +109,18 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SuppressWarnings("javadoc")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Slf4j
-public class ScriptCondition extends AbstractStringCondition {
+public class ScriptCondition
+        extends AbstractStringCondition<ScriptConditionConfig> {
 
     //TODO consider using composition so most of the logic
     // can be shared with other ScriptXXX classes.
-    // MAYBE: Use chaining like servlet filters... so you can wrap
-    // logic over logic in any way you want (layers of execution)
 
     //TODO add testing XML config in various unit tests
 
-    @NonNull
+    private final ScriptConditionConfig configuration =
+            new ScriptConditionConfig();
+
     private ScriptRunner<Object> scriptRunner;
 
     @Override
@@ -131,11 +128,7 @@ public class ScriptCondition extends AbstractStringCondition {
             ParseState parseState, int sectionIndex)
             throws ImporterHandlerException {
 
-        if (scriptRunner == null) {
-            throw new ImporterHandlerException("No ScriptRunner defined.");
-        }
-
-        var returnValue = scriptRunner.eval(b -> {
+        var returnValue = scriptRunner().eval(b -> {
             b.put("reference", doc.getReference());
             b.put("content", input);
             b.put("metadata", doc.getMetadata());
@@ -151,16 +144,22 @@ public class ScriptCondition extends AbstractStringCondition {
         }
         return Boolean.parseBoolean(returnValue.toString());
     }
-    @Override
-    protected void saveStringConditionToXML(final XML xml) {
-        if (scriptRunner != null) {
-            xml.setAttribute("engineName", scriptRunner.getEngineName());
-            xml.addElement("script", scriptRunner.getScript());
+
+    private synchronized ScriptRunner<Object> scriptRunner()
+            throws ImporterHandlerException {
+        if (scriptRunner ==  null) {
+            var engineName = configuration.getEngineName();
+            if (StringUtils.isBlank(configuration.getScript())) {
+                throw new ImporterHandlerException("No script provided.");
+            }
+            if (StringUtils.isBlank(engineName)) {
+                LOG.info("Script engine name not specified, defaulting to "
+                        + ScriptRunner.JAVASCRIPT_ENGINE);
+                engineName = ScriptRunner.JAVASCRIPT_ENGINE;
+            }
+            scriptRunner =
+                    new ScriptRunner<>(engineName, configuration.getScript());
         }
-    }
-    @Override
-    protected void loadStringConditionFromXML(final XML xml) {
-        scriptRunner = new ScriptRunner<>(
-                xml.getString("@engineName"), xml.getString("script"));
+        return scriptRunner;
     }
 }

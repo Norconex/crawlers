@@ -22,6 +22,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,7 +37,7 @@ import lombok.NonNull;
  * standard operators.
  */
 @Data
-public class DateValueMatcher {
+public class DateValueMatcher implements Predicate<ZonedDateTime> {
 
     private final Operator operator;
     @JsonIgnore
@@ -61,7 +62,8 @@ public class DateValueMatcher {
                 DateProviderFactory.create(dateTimeExpression, zoneId);
     }
 
-    public boolean matches(ZonedDateTime zdt) {
+    @Override
+    public boolean test(ZonedDateTime zdt) {
         if (zdt == null) {
             return false;
         }
