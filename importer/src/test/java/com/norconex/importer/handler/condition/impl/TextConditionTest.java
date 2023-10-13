@@ -1,4 +1,4 @@
-/* Copyright 2022 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.text.TextMatcher.Method;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.parser.ParseState;
@@ -34,7 +34,7 @@ class TextConditionTest {
     void testRegexContentMatches()
             throws ImporterHandlerException {
         var cond = newRegexTextCondition();
-        cond.getValueMatcher().setPattern(".*string.*");
+        cond.getConfiguration().getValueMatcher().setPattern(".*string.*");
         Assertions.assertTrue(TestUtil.condition(cond, "n/a",
                 IOUtils.toInputStream("a string that matches",
                         StandardCharsets.UTF_8), null, ParseState.PRE),
@@ -45,7 +45,7 @@ class TextConditionTest {
     void testRegexContentNoMatches()
             throws ImporterHandlerException {
         var cond = newRegexTextCondition();
-        cond.getValueMatcher().setPattern(".*string.*");
+        cond.getConfiguration().getValueMatcher().setPattern(".*string.*");
         Assertions.assertFalse(
                 TestUtil.condition(cond, "n/a", IOUtils.toInputStream(
                         "a text that does not match", StandardCharsets.UTF_8),
@@ -63,14 +63,14 @@ class TextConditionTest {
 
         var cond = newRegexTextCondition();
 
-        cond.getFieldMatcher().setPattern("field1");
-        cond.getValueMatcher().setPattern(".*string.*");
+        cond.getConfiguration().getFieldMatcher().setPattern("field1");
+        cond.getConfiguration().getValueMatcher().setPattern(".*string.*");
 
         Assertions.assertTrue(
                 TestUtil.condition(cond, "n/a", null, meta, ParseState.PRE),
                 "field1 not conditioned properly.");
 
-        cond.getFieldMatcher().setPattern("field2");
+        cond.getConfiguration().getFieldMatcher().setPattern("field2");
         Assertions.assertFalse(
                 TestUtil.condition(cond, "n/a", null, meta, ParseState.PRE),
                 "field2 not conditioned properly.");
@@ -79,14 +79,14 @@ class TextConditionTest {
     @Test
         void testWriteRead() {
         var cond = new TextCondition();
-        cond.setFieldMatcher(new TextMatcher()
+        cond.getConfiguration().setFieldMatcher(new TextMatcher()
                 .setMethod(Method.REGEX)
                 .setPartial(true));
-        cond.setValueMatcher(new TextMatcher()
+        cond.getConfiguration().setValueMatcher(new TextMatcher()
                 .setMethod(Method.REGEX)
                 .setPartial(true)
                 .setPattern("blah"));
-        XML.assertWriteRead(cond, "condition");
+        BeanMapper.DEFAULT.assertWriteRead(cond);
     }
 
     private TextCondition newRegexTextCondition() {

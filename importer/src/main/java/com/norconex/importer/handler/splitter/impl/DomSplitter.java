@@ -24,22 +24,21 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
+import com.norconex.importer.handler.splitter.DocumentSplitter;
 import com.norconex.importer.parser.ParseState;
 import com.norconex.importer.util.CharsetUtil;
-import com.norconex.importer.util.DOMUtil;
+import com.norconex.importer.util.DomUtil;
+import com.norconex.importer.util.MatchUtil;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 
 /**
  * <p>Splits HTML, XHTML, or XML document on elements matching a given
@@ -107,70 +106,32 @@ import lombok.ToString;
  * @see XMLStreamSplitter
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
-public class DOMSplitter extends AbstractDocumentSplitter
-        implements XMLConfigurable {
+@Data
+public class DomSplitter
+        implements DocumentSplitter, Configurable<DomSplitterConfig> {
 
-    private String selector;
-    private String sourceCharset = null;
-    private String parser = DOMUtil.PARSER_HTML;
-
-    public DOMSplitter() {
-        addRestrictions(
-                CommonRestrictions.domContentTypes(DocMetadata.CONTENT_TYPE));
-    }
-
-    public String getSelector() {
-        return selector;
-    }
-    public void setSelector(String selector) {
-        this.selector = selector;
-    }
-    /**
-     * Gets the assumed source character encoding.
-     * @return character encoding of the source to be transformed
-         */
-    public String getSourceCharset() {
-        return sourceCharset;
-    }
-    /**
-     * Sets the assumed source character encoding.
-     * @param sourceCharset character encoding of the source to be transformed
-         */
-    public void setSourceCharset(String sourceCharset) {
-        this.sourceCharset = sourceCharset;
-    }
-
-    /**
-     * Gets the parser to use when creating the DOM-tree.
-     * @return <code>html</code> (default) or <code>xml</code>.
-         */
-    public String getParser() {
-        return parser;
-    }
-    /**
-     * Sets the parser to use when creating the DOM-tree.
-     * @param parser <code>html</code> or <code>xml</code>.
-         */
-    public void setParser(String parser) {
-        this.parser = parser;
-    }
+    private final DomSplitterConfig configuration = new DomSplitterConfig();
 
     @Override
-    protected List<Doc> splitApplicableDocument(
-            HandlerDoc doc, InputStream input, OutputStream output,
-            ParseState parseState) throws ImporterHandlerException {
+    public List<Doc> splitDocument(HandlerDoc doc, InputStream docInput,
+            OutputStream docOutput, ParseState parseState)
+            throws ImporterHandlerException {
 
-        var inputCharset = CharsetUtil.firstNonBlankOrUTF8(
+        if (!MatchUtil.matchesContentType(
+                configuration.getContentTypeMatcher(), doc.getDocRecord())) {
+            return List.of();
+        }
+
+        var inputCharset = CharsetUtil.firstNonNullOrUTF8(
                 parseState,
-                sourceCharset,
-                doc.getDocInfo().getContentEncoding());
+                configuration.getSourceCharset(),
+                doc.getDocRecord().getCharset());
         List<Doc> docs = new ArrayList<>();
         try {
-            var soupDoc = Jsoup.parse(input, inputCharset,
-                    doc.getReference(), DOMUtil.toJSoupParser(getParser()));
-            var elms = soupDoc.select(selector);
+            var soupDoc = Jsoup.parse(docInput, inputCharset.toString(),
+                    doc.getReference(), DomUtil.toJSoupParser(
+                            configuration.getParser()));
+            var elms = soupDoc.select(configuration.getSelector());
 
             // if there only 1 element matched, make sure it is not the same as
             // the parent document to avoid infinite loops (the parent
@@ -197,20 +158,10 @@ public class DOMSplitter extends AbstractDocumentSplitter
                 } else {
                     content = doc.getStreamFactory().newInputStream();
                 }
-                var childDoc =
-                        new Doc(childRef, content, childMeta);
-
+                var childDoc = new Doc(childRef, content, childMeta);
                 var childInfo = childDoc.getDocRecord();
                 childInfo.addEmbeddedParentReference(doc.getReference());
-                childMeta.set(
-                        DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
-
-//                childInfo.setEmbeddedReference(childEmbedRef);
-
-//                childMeta.setReference(childRef);
-//                childMeta.setEmbeddedReference(childEmbedRef);
-//                childMeta.setEmbeddedParentReference(doc.getReference());
-//                childMeta.setEmbeddedParentRootReference(doc.getReference());
+                childMeta.set(DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
                 docs.add(childDoc);
             }
         } catch (IOException e) {
@@ -226,19 +177,5 @@ public class DOMSplitter extends AbstractDocumentSplitter
             return body.child(0);
         }
         return null;
-    }
-
-    @Override
-    protected void loadHandlerFromXML(XML xml) {
-        setSelector(xml.getString("@selector", selector));
-        setSourceCharset(xml.getString("@sourceCharset", sourceCharset));
-        setParser(xml.getString("@parser", parser));
-    }
-
-    @Override
-    protected void saveHandlerToXML(XML xml) {
-        xml.setAttribute("selector", selector);
-        xml.setAttribute("sourceCharset", sourceCharset);
-        xml.setAttribute("parser", parser);
     }
 }

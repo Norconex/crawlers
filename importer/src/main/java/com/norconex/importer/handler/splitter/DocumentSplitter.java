@@ -1,4 +1,4 @@
-/* Copyright 2014-2022 Norconex Inc.
+/* Copyright 2014-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandler;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.filter.DocumentFilter;
 import com.norconex.importer.parser.ParseState;
 
 /**

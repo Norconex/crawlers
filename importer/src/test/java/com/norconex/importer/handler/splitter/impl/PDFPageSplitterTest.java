@@ -1,4 +1,4 @@
-/* Copyright 2018-2022 Norconex Inc.
+/* Copyright 2018-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.ImporterHandlerException;
@@ -63,14 +63,14 @@ class PDFPageSplitterTest {
     @Test
     void testWriteRead() {
         var splitter = new PDFPageSplitter();
-        splitter.setReferencePagePrefix("#page");
-        XML.assertWriteRead(splitter, "handler");
+        splitter.getConfiguration().setReferencePagePrefix("#page");
+        BeanMapper.DEFAULT.assertWriteRead(splitter);
     }
 
     private List<Doc> split(PDFPageSplitter splitter)
             throws ImporterHandlerException {
         var metadata = new Properties();
-        return splitter.splitApplicableDocument(
+        return splitter.splitDocument(
                 TestUtil.newHandlerDoc("n/a", input, metadata),
                 input, NullOutputStream.INSTANCE, ParseState.PRE);
     }

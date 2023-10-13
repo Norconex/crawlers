@@ -26,10 +26,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.map.PropertyMatcher;
-import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
@@ -54,8 +52,9 @@ class CsvSplitterTest {
     @Test
     void testReferenceColumnByName() throws ImporterHandlerException {
         var splitter = new CsvSplitter();
-        splitter.setUseFirstRowAsFields(true);
-        splitter.setReferenceColumn("clientPhone");
+        splitter.getConfiguration()
+            .setUseFirstRowAsFields(true)
+            .setReferenceColumn("clientPhone");
         var docs = split(splitter);
         Assertions.assertEquals(
                 "654-0987", docs.get(2).getMetadata().getString(
@@ -66,8 +65,9 @@ class CsvSplitterTest {
     @Test
     void testReferenceColumnByPosition() throws ImporterHandlerException {
         var splitter = new CsvSplitter();
-        splitter.setUseFirstRowAsFields(false);
-        splitter.setReferenceColumn("2");
+        splitter.getConfiguration()
+            .setUseFirstRowAsFields(false)
+            .setReferenceColumn("2");
         var docs = split(splitter);
         Assertions.assertEquals("William Dalton",
                 docs.get(3).getMetadata().getString(
@@ -79,8 +79,9 @@ class CsvSplitterTest {
     @Test
     void testContentColumn() throws ImporterHandlerException, IOException {
         var splitter = new CsvSplitter();
-        splitter.setUseFirstRowAsFields(true);
-        splitter.setContentColumns("clientName", "3");
+        splitter.getConfiguration()
+            .setUseFirstRowAsFields(true)
+            .setContentColumns(List.of("clientName", "3"));
 
         var docs = split(splitter);
         Assertions.assertEquals("William Dalton 654-0987",
@@ -92,7 +93,7 @@ class CsvSplitterTest {
     @Test
     void testFirstRowHeader() throws ImporterHandlerException {
         var splitter = new CsvSplitter();
-        splitter.setUseFirstRowAsFields(true);
+        splitter.getConfiguration().setUseFirstRowAsFields(true);
         var docs = split(splitter);
 
         Assertions.assertEquals(4, docs.size(),
@@ -106,7 +107,7 @@ class CsvSplitterTest {
     private List<Doc> split(CsvSplitter splitter)
             throws ImporterHandlerException {
         var metadata = new Properties();
-        return splitter.splitApplicableDocument(
+        return splitter.splitDocument(
                 TestUtil.newHandlerDoc("n/a", input, metadata),
                 input, NullOutputStream.INSTANCE, ParseState.PRE);
 
@@ -115,14 +116,12 @@ class CsvSplitterTest {
     @Test
     void testWriteRead() {
         var splitter = new CsvSplitter();
-        splitter.setEscapeCharacter('.');
-        splitter.setLinesToSkip(10);
-        splitter.setQuoteCharacter('!');
-        splitter.addRestriction(new PropertyMatcher(
-                TextMatcher.basic("key").partial(),
-                TextMatcher.basic("value").partial().ignoreCase()));
-        splitter.setSeparatorCharacter('@');
-        splitter.setUseFirstRowAsFields(true);
-        XML.assertWriteRead(splitter, "handler");
+        splitter.getConfiguration()
+            .setEscapeCharacter('.')
+            .setLinesToSkip(10)
+            .setQuoteCharacter('!')
+            .setSeparatorCharacter('@')
+            .setUseFirstRowAsFields(true);
+        BeanMapper.DEFAULT.assertWriteRead(splitter);
     }
 }

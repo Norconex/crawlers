@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,9 @@ import javax.script.ScriptException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.EqualsUtil;
-import com.norconex.importer.handler.filter.impl.ScriptFilter;
-import com.norconex.importer.handler.tagger.impl.ScriptTagger;
-import com.norconex.importer.handler.transformer.impl.ScriptTransformer;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -165,7 +163,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ScriptRunner<T> {
 
-    //MAYBE: add more (e.g., PHP, Groovy, etc.)
+    //MAYBE: add more (e.g., PHP, Phython, Groovy, etc.)
     //TODO maybe log scripting languages dependency versions when
     // scripting is used
 
@@ -173,20 +171,23 @@ public class ScriptRunner<T> {
 
     public static final String JAVASCRIPT_ENGINE = "JavaScript";
     public static final String LUA_ENGINE = "lua";
-//    public static final String PYTHON_ENGINE = "python";
     public static final String VELOCITY_ENGINE = "velocity";
 
+    @Getter
     private final String engineName;
+    @Getter
+    private final String script;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private final ScriptEngine engine;
-
-    private final String script;
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private final CompiledScript compiledScript;
 
-    public ScriptRunner(@NonNull String engineName, @NonNull String script) {
+    public ScriptRunner(
+            @NonNull String engineName,
+            @NonNull String script) {
         this(createEngine(engineName), engineName, script);
     }
     private ScriptRunner(
@@ -194,15 +195,9 @@ public class ScriptRunner<T> {
         this.engine = engine;
         this.engineName = engineName;
         this.script = script;
-        this.compiledScript = compileScript(engine, script);
+        compiledScript = compileScript(engine, script);
     }
 
-    public String getEngineName() {
-        return engineName;
-    }
-    public String getScript() {
-        return script;
-    }
     public ScriptRunner<T> withScript(String script) {
         return new ScriptRunner<>(engine, engineName, script);
     }

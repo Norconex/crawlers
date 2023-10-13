@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,23 +24,22 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.ResourceLoader;
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.parser.ParseState;
 
-class DOMSplitterTest {
+class DomSplitterTest {
 
     @Test
     void testHtmlDOMSplit()
             throws ImporterHandlerException, IOException {
         var html = ResourceLoader.getHtmlString(getClass());
-        var splitter = new DOMSplitter();
-        splitter.setSelector("div.person");
+        var splitter = new DomSplitter();
+        splitter.getConfiguration().setSelector("div.person");
         var docs = split(html, splitter);
 
         Assertions.assertEquals(3, docs.size());
@@ -55,8 +54,8 @@ class DOMSplitterTest {
 
         var xml = ResourceLoader.getXmlString(getClass());
 
-        var splitter = new DOMSplitter();
-        splitter.setSelector("person");
+        var splitter = new DomSplitter();
+        splitter.getConfiguration().setSelector("person");
         var docs = split(xml, splitter);
 
         Assertions.assertEquals(3, docs.size());
@@ -65,22 +64,21 @@ class DOMSplitterTest {
         Assertions.assertTrue(content.contains("Dalton"));
     }
 
-    private List<Doc> split(String text, DOMSplitter splitter)
+    private List<Doc> split(String text, DomSplitter splitter)
             throws ImporterHandlerException {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
-        return splitter.splitApplicableDocument(
+        return splitter.splitDocument(
                 TestUtil.newHandlerDoc("n/a", is, metadata),
                 is, NullOutputStream.INSTANCE, ParseState.PRE);
     }
 
     @Test
         void testWriteRead() {
-        var splitter = new DOMSplitter();
-        splitter.setSelector("blah");
-        splitter.addRestriction(new PropertyMatcher(
-                TextMatcher.basic("key").partial(),
-                TextMatcher.basic("value").partial().ignoreCase()));
-        XML.assertWriteRead(splitter, "handler");
+        var splitter = new DomSplitter();
+        splitter.getConfiguration().setSelector("blah");
+        splitter.getConfiguration().setContentTypeMatcher(
+                TextMatcher.basic("value").partial().ignoreCase());
+        BeanMapper.DEFAULT.assertWriteRead(splitter);
     }
 }
