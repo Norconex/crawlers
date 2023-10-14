@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,15 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.parser.ParseState;
 
-class XMLStreamSplitterTest {
+class XmlStreamSplitterTest {
 
     private final String sampleXML = """
     	 <animals>
@@ -57,22 +56,23 @@ class XMLStreamSplitterTest {
     @Test
     void testStreamSplit() throws ImporterHandlerException, IOException {
 
-        var splitter = new XMLStreamSplitter();
-        splitter.setPath("/animals/species/animal");
-        splitter.clearRestrictions();
+        var splitter = new XmlStreamSplitter();
+        splitter.getConfiguration()
+            .setPath("/animals/species/animal")
+            .setContentTypeMatcher(TextMatcher.regex(".*"));
         var docs = split(sampleXML, splitter);
 
         Assertions.assertEquals(2, docs.size());
         var content = TestUtil.getContentAsString(docs.get(1));
         Assertions.assertTrue(content.contains("Scratchy"));
-
     }
 
     @Test
     void testErrorsAndEmpty() throws ImporterHandlerException, IOException {
-        var splitter = new XMLStreamSplitter();
-        splitter.setPath("/a/b/c");
-        splitter.clearRestrictions();
+        var splitter = new XmlStreamSplitter();
+        splitter.getConfiguration()
+            .setPath("/a/b/c")
+            .setContentTypeMatcher(TextMatcher.regex(".*"));
 
         // test failing stream
         assertThatExceptionOfType(ImporterHandlerException.class).isThrownBy(
@@ -83,9 +83,8 @@ class XMLStreamSplitterTest {
                         ParseState.PRE));
 
         // Test non applicable
-        splitter.addRestriction(new PropertyMatcher(
-                TextMatcher.basic("IdontExists"),
-                TextMatcher.basic("IdontExists")));
+        splitter.getConfiguration().setContentTypeMatcher(
+                TextMatcher.basic("IdontExists"));
         assertThat(splitter.splitDocument(
                 TestUtil.newHandlerDoc(),
                 TestUtil.toCachedInputStream(sampleXML),
@@ -93,7 +92,7 @@ class XMLStreamSplitterTest {
                 ParseState.PRE)).isEmpty();
     }
 
-    private List<Doc> split(String text, XMLStreamSplitter splitter)
+    private List<Doc> split(String text, XmlStreamSplitter splitter)
             throws ImporterHandlerException {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
@@ -104,11 +103,11 @@ class XMLStreamSplitterTest {
 
     @Test
     void testWriteRead() {
-        var splitter = new XMLStreamSplitter();
-        splitter.setPath("blah");
-        splitter.addRestriction(new PropertyMatcher(
-                TextMatcher.basic("key").partial(),
-                TextMatcher.basic("value").partial().ignoreCase()));
-        XML.assertWriteRead(splitter, "handler");
+        var splitter = new XmlStreamSplitter();
+        splitter.getConfiguration()
+            .setPath("blah")
+            .setContentTypeMatcher(
+                    TextMatcher.basic("value").partial().ignoreCase());
+        BeanMapper.DEFAULT.assertWriteRead(splitter);
     }
 }

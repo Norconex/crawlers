@@ -31,18 +31,18 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
 import com.norconex.commons.lang.xml.XMLUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
 import com.norconex.importer.handler.HandlerDoc;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
+import com.norconex.importer.handler.splitter.DocumentSplitter;
 import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.util.MatchUtil;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +54,7 @@ import lombok.extern.slf4j.Slf4j;
  * This class is suited for large XML documents. It will read the XML as a
  * stream and split as it is read, preserving memory during parsing.
  * For this reason, element matching is not as flexible as DOM-based XML
- * parsers, such as {@link DOMSplitter}, but is more efficient on large
+ * parsers, such as {@link DomSplitter}, but is more efficient on large
  * documents.
  * </p>
  *
@@ -114,47 +114,38 @@ import lombok.extern.slf4j.Slf4j;
  * sample XML given above.
  * </p>
  *
- * @see DOMSplitter
+ * @see DomSplitter
  */
 @SuppressWarnings("javadoc")
 @Slf4j
 @Data
-public class XMLStreamSplitter extends AbstractDocumentSplitter
-        implements XMLConfigurable {
+public class XmlStreamSplitter
+        implements DocumentSplitter, Configurable<XmlStreamSplitterConfig> {
 
-    private String path;
-
-    public XMLStreamSplitter() {
-        addRestrictions(
-                CommonRestrictions.xmlContentTypes(DocMetadata.CONTENT_TYPE));
-    }
+    private final XmlStreamSplitterConfig configuration =
+            new XmlStreamSplitterConfig();
 
     @Override
-    protected List<Doc> splitApplicableDocument(
-            HandlerDoc doc, InputStream input, OutputStream output,
-            ParseState parseState) throws ImporterHandlerException {
+    public List<Doc> splitDocument(HandlerDoc doc, InputStream docInput,
+            OutputStream docOutput, ParseState parseState)
+            throws ImporterHandlerException {
+
+        if (!MatchUtil.matchesContentType(
+                configuration.getContentTypeMatcher(), doc.getDocRecord())) {
+            return List.of();
+        }
 
         List<Doc> splitDocs = new ArrayList<>();
 
         try {
-            var h = new XmlHandler(doc,
-                    Arrays.asList(StringUtils.split(path, '/')), splitDocs);
-            XMLUtil.createSaxParserFactory().newSAXParser().parse(input, h);
+            var h = new XmlHandler(doc, Arrays.asList(StringUtils.split(
+                    configuration.getPath(), '/')), splitDocs);
+            XMLUtil.createSaxParserFactory().newSAXParser().parse(docInput, h);
         } catch (SAXException | IOException | ParserConfigurationException e) {
             throw new ImporterHandlerException(
                     "Could not split XML document: " + doc.getReference(), e);
         }
         return splitDocs;
-    }
-
-    @Override
-    protected void loadHandlerFromXML(XML xml) {
-        setPath(xml.getString("@path", path));
-    }
-
-    @Override
-    protected void saveHandlerToXML(XML xml) {
-        xml.setAttribute("path", path);
     }
 
     class XmlHandler extends DefaultHandler {

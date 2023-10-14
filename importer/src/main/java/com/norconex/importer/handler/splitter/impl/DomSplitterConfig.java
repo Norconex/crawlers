@@ -32,7 +32,7 @@ import lombok.experimental.Accessors;
  * This class constructs a DOM tree from the document content. That DOM tree
  * is loaded entirely into memory. Use this splitter with caution if you know
  * you'll need to parse huge files. It may be preferable to use a stream-based
- * approach if this is a concern (e.g., {@link XMLStreamSplitter}).
+ * approach if this is a concern (e.g., {@link XmlStreamSplitter}).
  * </p>
  * <p>
  * The <a href="http://jsoup.org/">jsoup</a> parser library is used to load a
@@ -87,7 +87,7 @@ import lombok.experimental.Accessors;
  * stored within a div with a class named "contact".
  * </p>
  *
- * @see XMLStreamSplitter
+ * @see XmlStreamSplitter
  */
 @SuppressWarnings("javadoc")
 @Data
