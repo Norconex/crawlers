@@ -14,19 +14,21 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import java.io.IOException;
-import java.io.Reader;
+import static com.norconex.importer.util.DomUtil.toJSoupParser;
 
-import org.apache.commons.io.IOUtils;
+import java.io.IOException;
+
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.CommonMatchers;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.AbstractCharStreamCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.util.DocChunkedTextReader;
 import com.norconex.importer.util.DomUtil;
 import com.optimaize.langdetect.text.TextFilter;
 
@@ -144,42 +146,42 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class DomCondition
-        extends AbstractCharStreamCondition<DomConditionConfig> {
+        implements Condition, Configurable<DomConditionConfig> {
 
     private final DomConditionConfig configuration =
             new DomConditionConfig();
 
     @Override
-    protected boolean testDocument(
-            HandlerDoc doc, Reader input, ParseState parseState)
-                    throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws ImporterHandlerException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocRecord().getContentType().toString())) {
+                docCtx.docRecord().getContentType().toString())) {
             return false;
         }
 
+        var matches = new MutableBoolean();
         try {
-            if (configuration.getFieldMatcher().getPattern() != null) {
-                // Dealing with field values
-                for (String value : doc.getMetadata().matchKeys(
-                        configuration.getFieldMatcher()).valueList()) {
-                    if (testDocument(Jsoup.parse(value, doc.getReference(),
-                            DomUtil.toJSoupParser(
-                                    configuration.getParser())))) {
-                        return true;
+            DocChunkedTextReader.builder()
+                .charset(configuration.getSourceCharset())
+                .fieldMatcher(configuration.getFieldMatcher())
+                .maxChunkSize(-1) // disable chunking to not break the DOM.
+                .build()
+                .read(docCtx, chunk -> {
+                    // only check if no successful match yet.
+                    if (matches.isFalse() && testDocument(Jsoup.parse(
+                            chunk.getText(),
+                            docCtx.reference(),
+                            toJSoupParser(configuration.getParser())))) {
+                        matches.setTrue();
                     }
-                }
-                return false;
-            }
-            return testDocument(Jsoup.parse(
-                    IOUtils.toString(input), doc.getReference(),
-                    DomUtil.toJSoupParser(configuration.getParser())));
+                    return true;
+                });
         } catch (IOException e) {
             throw new ImporterHandlerException(
                     "Cannot parse document into a DOM-tree.", e);
         }
+        return matches.booleanValue();
     }
 
     private boolean testDocument(Document doc) {

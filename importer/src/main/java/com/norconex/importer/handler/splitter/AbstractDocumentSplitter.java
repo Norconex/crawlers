@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,26 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.handler.transformer;
+package com.norconex.importer.handler.splitter;
 
-import org.apache.commons.lang3.function.FailableConsumer;
-
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandler;
 import com.norconex.importer.handler.ImporterHandlerException;
 
-/**
- * Transformers allow to manipulate and modify a document metadata or content.
- */
-public interface DocumentTransformer extends
-        ImporterHandler,
-        FailableConsumer<DocContext, ImporterHandlerException> {
+public abstract class AbstractDocumentSplitter
+        <T extends BaseDocumentSplitterConfig>
+                implements DocumentSplitter, Configurable<T> {
 
-    /**
-     * Transforms document content and metadata.
-     * @param context transformer context
-     * @throws ImporterHandlerException could not transform the document
-     */
     @Override
-    void accept(DocContext context) throws ImporterHandlerException;
+    public final void accept(DocContext docCtx)
+            throws ImporterHandlerException {
+        split(docCtx);
+        if (!docCtx.childDocs().isEmpty()
+                && getConfiguration().isDiscardOriginal()) {
+            docCtx.rejectedBy(this);
+        }
+    }
+    public abstract void split(DocContext docCtx)
+            throws ImporterHandlerException;
 }

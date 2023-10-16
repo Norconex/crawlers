@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.importer.handler.splitter.BaseDocumentSplitterConfig;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -70,11 +72,23 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class CsvSplitterConfig {
+public class CsvSplitterConfig extends BaseDocumentSplitterConfig {
 
     public static final char DEFAULT_SEPARATOR_CHARACTER = ',';
     public static final char DEFAULT_QUOTE_CHARACTER = '"';
     public static final char DEFAULT_ESCAPE_CHARACTER = '\\';
+
+    /**
+     * Matcher of one or more fields to use as the source of content to split
+     * into new documents, instead of the original document content.
+     * @param fieldMatcher field matcher
+     * @return field matcher
+     */
+    private final TextMatcher fieldMatcher = new TextMatcher();
+    public CsvSplitterConfig setFieldMatcher(TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
+    }
 
     /**
      * The value-separator character. Default is the comma character (,).

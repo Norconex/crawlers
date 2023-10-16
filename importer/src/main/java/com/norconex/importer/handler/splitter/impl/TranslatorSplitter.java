@@ -15,13 +15,9 @@
 package com.norconex.importer.handler.splitter.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +32,6 @@ import org.apache.tika.language.translate.impl.MosesTranslator;
 import org.apache.tika.language.translate.impl.YandexTranslator;
 
 import com.memetix.mst.language.Language;
-import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
@@ -45,10 +40,9 @@ import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.doc.DocRecord;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.splitter.DocumentSplitter;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -152,8 +146,8 @@ import lombok.ToString;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class TranslatorSplitter implements
-        DocumentSplitter, Configurable<TranslatorSplitterConfig> {
+public class TranslatorSplitter
+        extends AbstractDocumentSplitter<TranslatorSplitterConfig> {
 
     private final TranslatorSplitterConfig configuration =
             new TranslatorSplitterConfig();
@@ -256,41 +250,54 @@ public class TranslatorSplitter implements
 
 
     @Override
-    public List<Doc> splitDocument(HandlerDoc doc, InputStream docInput,
-            OutputStream docOutput, ParseState parseState)
-                    throws ImporterHandlerException {
+    public void split(DocContext docCtx) throws ImporterHandlerException {
 
         // Do not re-translate a document already translated
-        if (doc.getMetadata().containsKey(
-                DocMetadata.TRANSLATED_FROM)) {
-            return Collections.emptyList();
+        if (docCtx.metadata().containsKey(DocMetadata.TRANSLATED_FROM)) {
+            return;
         }
 
-        validateProperties(doc);
+        validateProperties(docCtx);
 
-        List<Doc> translatedDocs = new ArrayList<>();
-
-        try (var cachedInput =
-                docInput instanceof CachedInputStream cis
-                ? cis : doc.getStreamFactory().newInputStream(docInput)) {
-            for (String lang : configuration.getTargetLanguages()) {
-                var translatedDoc =
-                        translateDocumentFromStream(doc, cachedInput, lang);
-                if (translatedDoc != null) {
-                    translatedDocs.add(translatedDoc);
+        if (configuration.getFieldMatcher().isSet()) {
+            // Fields
+            try {
+                for (String lang : configuration.getTargetLanguages()) {
+                    translateFields(docCtx, lang);
                 }
+            } catch (ImporterHandlerException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new ImporterHandlerException(
+                        "Could not translate document: "
+                                + docCtx.reference(), e);
             }
-        } catch (ImporterHandlerException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ImporterHandlerException(
-                    "Could not translate document: " + doc.getReference(), e);
+        } else {
+            // Body
+            var translatedDocs = docCtx.childDocs();
+
+            var input = docCtx.readContent().asInputStream();
+            try (var cachedInput = input instanceof CachedInputStream cis
+                    ? cis : docCtx.streamFactory().newInputStream(input)) {
+                for (String lang : configuration.getTargetLanguages()) {
+                    var translatedDoc = translateDocumentFromStream(
+                            docCtx, cachedInput, lang);
+                    if (translatedDoc != null) {
+                        translatedDocs.add(translatedDoc);
+                    }
+                }
+            } catch (ImporterHandlerException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new ImporterHandlerException(
+                        "Could not translate document: "
+                                + docCtx.reference(), e);
+            }
         }
-        return translatedDocs;
     }
 
     private Doc translateDocumentFromStream(
-            HandlerDoc doc, CachedInputStream cachedInput, String targetLang)
+            DocContext docCtx, CachedInputStream cachedInput, String targetLang)
                     throws ImporterHandlerException {
         if (Objects.equals(configuration.getSourceLanguage(), targetLang)) {
             return null;
@@ -299,7 +306,7 @@ public class TranslatorSplitter implements
         try (var reader = new TextReader(
                 new InputStreamReader(cachedInput, StandardCharsets.UTF_8),
                 getTranslatorStrategy().getReadSize())) {
-            return translateDocumentFromReader(doc, targetLang, reader);
+            return translateDocumentFromReader(docCtx, targetLang, reader);
         } catch (Exception e) {
             var extra = "";
             if (TranslatorSplitterConfig.API_GOOGLE.equals(
@@ -312,50 +319,44 @@ public class TranslatorSplitter implements
                     .formatted(
                           configuration.getSourceLanguage(),
                           targetLang,
-                          doc.getReference(),
+                          docCtx.reference(),
                           extra), e);
         }
     }
 
     private Doc translateDocumentFromReader(
-            HandlerDoc doc, String targetLang, TextReader reader)
+            DocContext docCtx, String targetLang, TextReader reader)
                     throws Exception {
 
         var translator = getTranslatorStrategy().getTranslator();
-        var sourceLang = getResolvedSourceLanguage(doc);
+        var sourceLang = getResolvedSourceLanguage(docCtx);
 
-
-        //--- Do Fields ---
-        var childMeta = translateFields(
-                doc, translator, sourceLang, targetLang);
+        var childMeta = new Properties();
+        CachedInputStream childInput = null;
 
         //--- Do Content ---
-        CachedInputStream childInput = null;
-        if (!configuration.isIgnoreContent()) {
-            try (var childContent = doc.getStreamFactory().newOuputStream()) {
-                String text = null;
-                while ((text = reader.readText()) != null) {
-                    var txt = translator.translate(
-                            text, sourceLang, targetLang);
-                    childContent.write(txt.getBytes(StandardCharsets.UTF_8));
-                    childContent.flush();
-                }
-                try { reader.close(); } catch (IOException ie) {/*NOOP*/}
-                childInput = childContent.getInputStream();
+        try (var childContent = docCtx.streamFactory().newOuputStream()) {
+            String text = null;
+            while ((text = reader.readText()) != null) {
+                var txt = translator.translate(
+                        text, sourceLang, targetLang);
+                childContent.write(txt.getBytes(StandardCharsets.UTF_8));
+                childContent.flush();
             }
-        } else {
-            childInput = doc.getStreamFactory().newInputStream();
+            try { reader.close(); } catch (IOException ie) {/*NOOP*/}
+            childInput = childContent.getInputStream();
         }
+
 
         //--- Build child document ---
         var childEmbedRef = "translation-" + targetLang;
-        var childDocRef = doc.getReference() + "!" + childEmbedRef;
+        var childDocRef = docCtx.reference() + "!" + childEmbedRef;
 
         var childInfo = new DocRecord(childDocRef);
 
         childMeta.set(DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
 
-        childInfo.addEmbeddedParentReference(doc.getReference());
+        childInfo.addEmbeddedParentReference(docCtx.reference());
 
         childMeta.set(DocMetadata.LANGUAGE, targetLang);
         childMeta.set(DocMetadata.TRANSLATED_FROM, sourceLang);
@@ -364,12 +365,15 @@ public class TranslatorSplitter implements
     }
 
     private Properties translateFields(
-            HandlerDoc doc, Translator translator,
-            String sourceLang, String targetLang) throws Exception {
+            DocContext docCtx, String targetLang) throws Exception {
+
+        var translator = getTranslatorStrategy().getTranslator();
+        var sourceLang = getResolvedSourceLanguage(docCtx);
+
         var childMeta = new Properties();
 
         if (!configuration.isIgnoreNonTranslatedFields()) {
-            childMeta.loadFromMap(doc.getMetadata());
+            childMeta.loadFromMap(docCtx.metadata());
         }
 
         var fieldMatcher = configuration.getFieldMatcher();
@@ -377,7 +381,7 @@ public class TranslatorSplitter implements
             return childMeta;
         }
         var fieldsToTranslate =
-                List.copyOf(doc.getMetadata().matchKeys(fieldMatcher).keySet());
+                List.copyOf(docCtx.metadata().matchKeys(fieldMatcher).keySet());
         if (fieldsToTranslate.isEmpty()) {
             return childMeta;
         }
@@ -385,7 +389,7 @@ public class TranslatorSplitter implements
         var b = new StringBuilder();
 
         for (String fld : fieldsToTranslate) {
-            var values = doc.getMetadata().get(fld);
+            var values = docCtx.metadata().get(fld);
             for (String value : values) {
                 b.append("[" + value.replaceAll("[\n\\[\\]]", " ") + "]");
             }
@@ -417,7 +421,7 @@ public class TranslatorSplitter implements
         return strategy;
     }
 
-    private void validateProperties(HandlerDoc doc)
+    private void validateProperties(DocContext doc)
             throws ImporterHandlerException {
         if (StringUtils.isBlank(configuration.getApi())) {
             throw new ImporterHandlerException(
@@ -442,8 +446,8 @@ public class TranslatorSplitter implements
         getTranslatorStrategy().validateProperties();
     }
 
-    private String getResolvedSourceLanguage(HandlerDoc doc) {
-        var lang = doc.getMetadata().getString(
+    private String getResolvedSourceLanguage(DocContext docCtx) {
+        var lang = docCtx.metadata().getString(
                 configuration.getSourceLanguageField());
         if (StringUtils.isBlank(lang)) {
             lang = configuration.getSourceLanguage();

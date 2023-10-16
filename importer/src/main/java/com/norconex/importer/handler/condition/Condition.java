@@ -1,4 +1,4 @@
-/* Copyright 2010-2023 Norconex Inc.
+/* Copyright 2021-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,26 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.importer.handler.transformer;
+package com.norconex.importer.handler.condition;
 
-import org.apache.commons.lang3.function.FailableConsumer;
+import org.apache.commons.lang3.function.FailablePredicate;
 
 import com.norconex.importer.handler.DocContext;
-import com.norconex.importer.handler.ImporterHandler;
 import com.norconex.importer.handler.ImporterHandlerException;
 
 /**
- * Transformers allow to manipulate and modify a document metadata or content.
+ * A condition usually used in flow creation when configuring
+ * importer handlers.
  */
-public interface DocumentTransformer extends
-        ImporterHandler,
-        FailableConsumer<DocContext, ImporterHandlerException> {
+@FunctionalInterface
+public interface Condition
+        extends FailablePredicate<DocContext, ImporterHandlerException> {
 
-    /**
-     * Transforms document content and metadata.
-     * @param context transformer context
-     * @throws ImporterHandlerException could not transform the document
-     */
-    @Override
-    void accept(DocContext context) throws ImporterHandlerException;
+    //TODO needed?
+    //TODO extend Predicate and replace method or have a default one?
+    // or eliminate in favor of predicate?
+
 }

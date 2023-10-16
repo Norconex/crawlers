@@ -14,9 +14,10 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.nio.charset.Charset;
+
+import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.importer.handler.condition.AbstractCharStreamCondition;
-import com.norconex.importer.handler.condition.StringConditionConfig;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -55,10 +56,26 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class TextConditionConfig extends StringConditionConfig {
+public class TextConditionConfig {
 
     private final TextMatcher fieldMatcher = new TextMatcher();
     private final TextMatcher valueMatcher = new TextMatcher();
+
+    /**
+     * The presumed source character encoding. Usually ignored and presumed
+     * to be UTF-8 if the document has been parsed already.
+     * @param sourceCharset character encoding of the source to be transformed
+     * @return character encoding of the source to be transformed
+     */
+    private Charset sourceCharset;
+
+    /**
+     * The maximum number of characters to read at once, used for filtering.
+     * Default is {@link TextReader#DEFAULT_MAX_READ_SIZE}.
+     * @param maxReadSize maximum read size
+     * @return maximum read size
+     */
+    private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
 
     /**
      * Gets the text matcher for content or field values.

@@ -16,10 +16,11 @@ package com.norconex.importer.handler.splitter.impl;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,16 +29,15 @@ import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 
-import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.splitter.DocumentSplitter;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReaderBuilder;
 
@@ -89,25 +89,37 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class CsvSplitter
-        implements DocumentSplitter, Configurable<CsvSplitterConfig> {
+public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
 
     private final CsvSplitterConfig configuration = new CsvSplitterConfig();
 
     @Override
-    public List<Doc> splitDocument(HandlerDoc doc, InputStream docInput,
-            OutputStream docOutput, ParseState parseState)
-                    throws ImporterHandlerException {
+    public void split(DocContext docCtx) throws ImporterHandlerException {
         try {
-            return doSplitApplicableDocument(doc, docInput);
-        } catch (IOException e) {
+            var count = new MutableInt();
+            // Body
+            if (!configuration.getFieldMatcher().isSet()) {
+                 docCtx.childDocs().addAll(doSplitDocument(
+                        docCtx, docCtx.readContent().asInputStream(), count));
+                 return;
+            }
+            // Fields
+            var docs = docCtx.childDocs();
+            docCtx.metadata().matchKeys(
+                    configuration.getFieldMatcher()).forEach((k, vals) ->
+                vals.forEach(row -> docs.addAll(doSplitDocument(
+                        docCtx,
+                        new ByteArrayInputStream(row.getBytes()),
+                        count)))
+            );
+        } catch (Exception e) {
             throw new ImporterHandlerException(
-                    "Could not split document: " + doc.getReference(), e);
+                    "Could not split document: " + docCtx.reference(), e);
         }
     }
 
-    private List<Doc> doSplitApplicableDocument(
-            HandlerDoc doc, InputStream input) throws IOException {
+    private List<Doc> doSplitDocument(
+            DocContext doc, InputStream input, MutableInt count) {
 
         List<Doc> rows = new ArrayList<>();
 
@@ -129,27 +141,28 @@ public class CsvSplitter
 
             String [] rowColumns;
             String[] colNames = null;
-            var count = 0;
             while ((rowColumns = csvreader.readNextSilently()) != null) {
-                count++;
+                var cnt = count.incrementAndGet();
                 var childEmbedRef = "row-" + count;
-                if (count == 1 && configuration.isUseFirstRowAsFields()) {
+                if (cnt == 1 && configuration.isUseFirstRowAsFields()) {
                     colNames = rowColumns;
                 } else {
                     rows.add(parseRow(
                             doc, rowColumns, colNames, childEmbedRef));
                 }
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
         return rows;
     }
 
-    private Doc parseRow(HandlerDoc doc, String[] rowColumns,
+    private Doc parseRow(DocContext docCtx, String[] rowColumns,
             String[] colNames,
             String childEmbedRef) {
         var contentStr = new StringBuilder();
         var childMeta = new Properties();
-        childMeta.loadFromMap(doc.getMetadata());
+        childMeta.loadFromMap(docCtx.metadata());
 
         for (var i = 0; i < rowColumns.length; i++) {
             var colPos = i + 1;
@@ -177,18 +190,18 @@ public class CsvSplitter
             }
             childMeta.set(colName, colValue);
         }
-        var childDocRef = doc.getReference() + "!" + childEmbedRef;
+        var childDocRef = docCtx.reference() + "!" + childEmbedRef;
         CachedInputStream content = null;
         if (contentStr.length() > 0) {
-            content = doc.getStreamFactory().newInputStream(
+            content = docCtx.streamFactory().newInputStream(
                     contentStr.toString());
         } else {
-            content = doc.getStreamFactory().newInputStream();
+            content = docCtx.streamFactory().newInputStream();
         }
         var childDoc = new Doc(childDocRef, content, childMeta);
         var childInfo = childDoc.getDocRecord();
         childInfo.setReference(childDocRef);
-        childInfo.addEmbeddedParentReference(doc.getReference());
+        childInfo.addEmbeddedParentReference(docCtx.reference());
 
         childMeta.set(DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
 

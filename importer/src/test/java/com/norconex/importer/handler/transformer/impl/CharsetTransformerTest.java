@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,17 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.commons.lang.xml.XML;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
 
 class CharsetTransformerTest {
 
@@ -71,16 +71,15 @@ class CharsetTransformerTest {
         var startWith = "En télécommunications".getBytes("UTF-8");
 
         var t = new CharsetTransformer();
-        t.setSourceCharset("ISO-8859-1");
-        t.setTargetCharset("UTF-8");
+        t.getConfiguration()
+            .setSourceCharset(Charset.forName("ISO-8859-1"))
+            .setTargetCharset(StandardCharsets.UTF_8);
 
         var os = new ByteArrayOutputStream();
         var metadata = new Properties();
         var is = getFileStream("/charset/ISO-8859-1.txt");
 
-        t.transformDocument(
-                TestUtil.newHandlerDoc("ISO-8859-1.txt", is, metadata),
-                is, os, ParseState.PRE);
+        t.accept(TestUtil.newDocContext("ISO-8859-1.txt", is, os, metadata));
 
         var output = os.toByteArray();
 
@@ -98,16 +97,15 @@ class CharsetTransformerTest {
         var startWith = "En télécommunications".getBytes("UTF-8");
 
         var t = new CharsetTransformer();
-        t.setSourceCharset("KOI8-R");
-        t.setTargetCharset(null);  // using default: UTF-8
+        t.getConfiguration()
+            .setSourceCharset(Charset.forName("KOI8-R"))
+            .setTargetCharset(null);  // using default: UTF-8
 
         var os = new ByteArrayOutputStream();
         var metadata = new Properties();
         var is = getFileStream("/charset/ISO-8859-1.txt");
 
-        t.transformDocument(
-                TestUtil.newHandlerDoc("ISO-8859-1.txt", is, metadata),
-                is, os, ParseState.PRE);
+        t.accept(TestUtil.newDocContext("ISO-8859-1.txt", is, os, metadata));
 
         var output = os.toByteArray();
 
@@ -125,36 +123,37 @@ class CharsetTransformerTest {
     void testError()
             throws ImporterHandlerException, IOException {
         var t = new CharsetTransformer();
-        t.setSourceCharset(null);
-        t.setTargetCharset(null);
+        t.getConfiguration()
+            .setSourceCharset(null)
+            .setTargetCharset(null);
         assertThatExceptionOfType(ImporterHandlerException.class).isThrownBy(
-                () -> t.transformDocument(
-                        TestUtil.newHandlerDoc(),
-                        TestUtil.failingCachedInputStream(),
-                        nullOutputStream(),
-                        ParseState.PRE));
+                () -> t.accept(TestUtil.newDocContext(
+                        "N/A", TestUtil.failingCachedInputStream(),
+                        nullOutputStream(), new Properties())));
     }
 
     private void testCharsetTransformer(
-            String fromCharset, String toCharset, boolean detect)
+            String inCharset, String outCharset, boolean detect)
             throws ImporterHandlerException, IOException {
+
+        var fromCharset = Charset.forName(inCharset);
+        var toCharset = Charset.forName(outCharset);
 
         var startWith = "En télécommunications".getBytes(toCharset);
         var blankBytes = new byte[startWith.length];
 
         var t = new CharsetTransformer();
         if (!detect) {
-            t.setSourceCharset(fromCharset);
+            t.getConfiguration().setSourceCharset(fromCharset);
         }
-        t.setTargetCharset(toCharset);
+        t.getConfiguration().setTargetCharset(toCharset);
 
         var os = new ByteArrayOutputStream();
         var metadata = new Properties();
         var is = getFileStream("/charset/" + fromCharset + ".txt");
 
-        t.transformDocument(
-                TestUtil.newHandlerDoc(fromCharset + ".txt", is, metadata),
-                is, os, ParseState.PRE);
+        t.accept(
+                TestUtil.newDocContext(fromCharset + ".txt", is, os, metadata));
 
         var output = os.toByteArray();
 
@@ -184,7 +183,7 @@ class CharsetTransformerTest {
     @Test
     void testWriteRead() {
         var t = new CharsetTransformer();
-        t.setTargetCharset(StandardCharsets.ISO_8859_1.toString());
-        XML.assertWriteRead(t, "handler");
+        t.getConfiguration().setTargetCharset(StandardCharsets.ISO_8859_1);
+        BeanMapper.DEFAULT.assertWriteRead(t);
     }
 }

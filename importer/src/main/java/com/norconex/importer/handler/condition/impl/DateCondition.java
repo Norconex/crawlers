@@ -14,7 +14,6 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import java.io.InputStream;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -26,10 +25,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.time.ZonedDateTimeParser;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.ImporterCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.condition.Condition;
 
 import lombok.Data;
 import lombok.Getter;
@@ -184,7 +182,7 @@ import lombok.extern.slf4j.Slf4j;
 @FieldNameConstants
 @Slf4j
 public class DateCondition
-        implements ImporterCondition, Configurable<DateConditionConfig> {
+        implements Condition, Configurable<DateConditionConfig> {
 
     public enum TimeUnit {
         YEAR(ChronoUnit.YEARS, "Y"),
@@ -224,14 +222,12 @@ public class DateCondition
             new DateConditionConfig();
 
     @Override
-    public boolean testDocument( //NOSONAR false positive
-            HandlerDoc doc, InputStream input, ParseState parseState)
-                    throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws ImporterHandlerException {
         if (configuration.getFieldMatcher().getPattern() == null) {
             throw new IllegalArgumentException(
                     "\"fieldMatcher\" pattern cannot be empty.");
         }
-        for (Entry<String, List<String>> en : doc.getMetadata().matchKeys(
+        for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).entrySet()) {
             for (String value : en.getValue()) {
                 if (matches(configuration.getValueMatcher(), en.getKey(), value)

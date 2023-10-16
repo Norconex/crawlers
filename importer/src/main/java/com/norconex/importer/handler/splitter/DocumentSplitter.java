@@ -14,17 +14,13 @@
  */
 package com.norconex.importer.handler.splitter;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-
+import org.apache.commons.lang3.function.FailableConsumer;
 import org.apache.xmlbeans.impl.xb.xsdschema.ImportDocument;
 
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandler;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
 
 /**
  * Responsible for splitting a single document into several ones.  The
@@ -49,12 +45,8 @@ import com.norconex.importer.parser.ParseState;
  * example, to break some entities from XML data files into separate documents.
  *
  */
-public interface DocumentSplitter extends ImporterHandler {
-
-    List<Doc> splitDocument(
-            HandlerDoc doc,
-            InputStream docInput,
-            OutputStream docOutput,
-            ParseState parseState)
-                    throws ImporterHandlerException;
+//TODO Needed?
+public interface DocumentSplitter extends
+        ImporterHandler,
+        FailableConsumer<DocContext, ImporterHandlerException> {
 }

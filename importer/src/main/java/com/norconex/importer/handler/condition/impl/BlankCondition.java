@@ -15,16 +15,14 @@
 package com.norconex.importer.handler.condition.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.IOUtil;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.ImporterCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.condition.Condition;
 
 import lombok.Data;
 import lombok.Getter;
@@ -79,20 +77,18 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 @Data
 public class BlankCondition
-        implements ImporterCondition, Configurable<BlankConditionConfig> {
+        implements Condition, Configurable<BlankConditionConfig> {
 
     @Getter
     private final BlankConditionConfig configuration =
             new BlankConditionConfig();
 
     @Override
-    public boolean testDocument(HandlerDoc doc, InputStream input,
-            ParseState parseState) throws ImporterHandlerException {
-
+    public boolean test(DocContext docCtx) throws ImporterHandlerException {
         // do content
         if (configuration.getFieldMatcher().getPattern() == null) {
             try {
-                return IOUtil.isEmpty(input);
+                return IOUtil.isEmpty(docCtx.readContent().asInputStream());
             } catch (IOException e) {
                 throw new ImporterHandlerException(
                         "Cannot check if document content is blank.", e);
@@ -100,7 +96,7 @@ public class BlankCondition
         }
 
         // If no values returned, call it blank
-        var values = doc.getMetadata().matchKeys(
+        var values = docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).valueList();
         if (values.isEmpty()) {
             return true;

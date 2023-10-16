@@ -14,13 +14,17 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.io.IOException;
+
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.AbstractCharStreamCondition;
-import com.norconex.importer.handler.condition.AbstractStringCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.util.DocChunkedTextReader;
 
 import lombok.Data;
 
@@ -58,7 +62,7 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class TextCondition
-        extends AbstractStringCondition<TextConditionConfig> {
+        implements Condition, Configurable<TextConditionConfig> {
 
     private final TextConditionConfig configuration =
             new TextConditionConfig();
@@ -74,9 +78,30 @@ public class TextCondition
     }
 
     @Override
-    protected boolean testDocument(HandlerDoc doc,
-            String input, ParseState parseState, int sectionIndex)
-                    throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws ImporterHandlerException {
+        var matches = new MutableBoolean();
+        try {
+            DocChunkedTextReader.builder()
+                .charset(configuration.getSourceCharset())
+                .fieldMatcher(configuration.getFieldMatcher())
+                .maxChunkSize(configuration.getMaxReadSize())
+                .build()
+                .read(docCtx, chunk -> {
+                    if (matches.isFalse()
+                            && textMatches(docCtx, chunk.getText())) {
+                        matches.setTrue();
+                    }
+                    return true;
+                });
+        } catch (IOException e) {
+            throw new ImporterHandlerException(
+                    "Cannot parse document into a DOM-tree.", e);
+        }
+        return matches.booleanValue();
+    }
+
+    private boolean textMatches(DocContext docCtx, String input) {
+
         // content
         if (configuration.getFieldMatcher().getPattern() == null) {
             return configuration.getValueMatcher().matches(input);
@@ -86,6 +111,6 @@ public class TextCondition
         return new PropertyMatcher(
                 configuration.getFieldMatcher(),
                 configuration.getValueMatcher())
-                    .matches(doc.getMetadata());
+                    .matches(docCtx.metadata());
     }
 }

@@ -20,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +31,6 @@ import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
 
 class CsvSplitterTest {
 
@@ -107,10 +105,9 @@ class CsvSplitterTest {
     private List<Doc> split(CsvSplitter splitter)
             throws ImporterHandlerException {
         var metadata = new Properties();
-        return splitter.splitDocument(
-                TestUtil.newHandlerDoc("n/a", input, metadata),
-                input, NullOutputStream.INSTANCE, ParseState.PRE);
-
+        var ctx = TestUtil.newDocContext("n/a", input, metadata);
+        splitter.accept(ctx);
+        return ctx.childDocs();
     }
 
     @Test

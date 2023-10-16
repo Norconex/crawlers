@@ -15,6 +15,7 @@
 package com.norconex.importer.handler.splitter.impl;
 
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.importer.handler.splitter.BaseDocumentSplitterConfig;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -71,7 +72,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class PDFPageSplitterConfig {
+public class PDFPageSplitterConfig extends BaseDocumentSplitterConfig {
 
     private String referencePagePrefix =
             PDFPageSplitter.DEFAULT_REFERENCE_PAGE_PREFIX;

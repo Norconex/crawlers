@@ -14,12 +14,14 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.nio.charset.Charset;
+
+import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.handler.condition.StringConditionConfig;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 
 /**
@@ -106,11 +108,41 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class ScriptConditionConfig extends StringConditionConfig {
+public class ScriptConditionConfig {
 
-    @Getter
     private String engineName;
-    @Getter
     private String script;
+    private final TextMatcher fieldMatcher = new TextMatcher();
 
+    /**
+     * Gets this filter field matcher.
+     * @return field matcher
+     */
+    public TextMatcher getFieldMatcher() {
+        return fieldMatcher;
+    }
+    /**
+     * Sets this condition field matcher.
+     * @param fieldMatcher field matcher
+     */
+    public ScriptConditionConfig setFieldMatcher(TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
+    }
+
+    /**
+     * The presumed source character encoding. Usually ignored and presumed
+     * to be UTF-8 if the document has been parsed already.
+     * @param sourceCharset character encoding of the source to be transformed
+     * @return character encoding of the source to be transformed
+     */
+    private Charset sourceCharset;
+
+    /**
+     * The maximum number of characters to read at once, used for filtering.
+     * Default is {@link TextReader#DEFAULT_MAX_READ_SIZE}.
+     * @param maxReadSize maximum read size
+     * @return maximum read size
+     */
+    private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
 }

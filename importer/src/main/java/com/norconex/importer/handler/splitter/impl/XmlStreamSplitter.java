@@ -14,13 +14,14 @@
  */
 package com.norconex.importer.handler.splitter.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -31,17 +32,15 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.XMLUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.splitter.DocumentSplitter;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.MatchUtil;
 
 import lombok.Data;
@@ -120,45 +119,55 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 public class XmlStreamSplitter
-        implements DocumentSplitter, Configurable<XmlStreamSplitterConfig> {
+        extends AbstractDocumentSplitter<XmlStreamSplitterConfig> {
 
     private final XmlStreamSplitterConfig configuration =
             new XmlStreamSplitterConfig();
 
     @Override
-    public List<Doc> splitDocument(HandlerDoc doc, InputStream docInput,
-            OutputStream docOutput, ParseState parseState)
-            throws ImporterHandlerException {
+    public void split(DocContext docCtx) throws ImporterHandlerException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), doc.getDocRecord())) {
-            return List.of();
+                configuration.getContentTypeMatcher(), docCtx.docRecord())) {
         }
 
-        List<Doc> splitDocs = new ArrayList<>();
+        if (configuration.getFieldMatcher().isSet()) {
+            // Fields
+            for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                    configuration.getFieldMatcher()).entrySet()) {
+                for (String val : en.getValue()) {
+                    doSplit(docCtx, new ByteArrayInputStream(val.getBytes()));
+                }
+            }
+        } else {
+            // Body
+            doSplit(docCtx, docCtx.readContent().asInputStream());
+        }
+    }
 
-        try {
-            var h = new XmlHandler(doc, Arrays.asList(StringUtils.split(
-                    configuration.getPath(), '/')), splitDocs);
-            XMLUtil.createSaxParserFactory().newSAXParser().parse(docInput, h);
+    private void doSplit(DocContext docCtx, InputStream is)
+            throws ImporterHandlerException {
+        try (is) {
+            var h = new XmlHandler(docCtx, Arrays.asList(StringUtils.split(
+                    configuration.getPath(), '/')), docCtx.childDocs());
+            XMLUtil.createSaxParserFactory().newSAXParser().parse(is, h);
         } catch (SAXException | IOException | ParserConfigurationException e) {
             throw new ImporterHandlerException(
-                    "Could not split XML document: " + doc.getReference(), e);
+                    "Could not split XML document: " + docCtx.reference(), e);
         }
-        return splitDocs;
     }
 
     class XmlHandler extends DefaultHandler {
 
         private final List<String> splitPath;
         private final List<Doc> splitDocs;
-        private final HandlerDoc xmlDoc;
+        private final DocContext xmlDoc;
         private final List<String> currentPath = new ArrayList<>();
         private PrintWriter w;
         private CachedOutputStream out;
 
         public XmlHandler(
-                HandlerDoc xmlDoc,
+                DocContext xmlDoc,
                 List<String> splitPath,
                 List<Doc> splitDocs) {
             this.xmlDoc = xmlDoc;
@@ -173,7 +182,7 @@ public class XmlStreamSplitter
             currentPath.add(qName);
 
             if (currentPath.equals(splitPath)) {
-                out = xmlDoc.getStreamFactory().newOuputStream();
+                out = xmlDoc.streamFactory().newOuputStream();
                 w = new PrintWriter(out);
             }
 
@@ -207,10 +216,10 @@ public class XmlStreamSplitter
                     if (currentPath.equals(splitPath)) {
                         w.flush();
                         var childMeta = new Properties();
-                        childMeta.loadFromMap(xmlDoc.getMetadata());
+                        childMeta.loadFromMap(xmlDoc.metadata());
                         var embedRef = Integer.toString(splitDocs.size());
                         var childDoc = new Doc(
-                                xmlDoc.getReference() + "!" + embedRef,
+                                xmlDoc.reference() + "!" + embedRef,
                                 out.getInputStream(),
                                 childMeta);
                         w.close();
@@ -218,7 +227,7 @@ public class XmlStreamSplitter
                         w = null;
                         var childInfo = childDoc.getDocRecord();
                         childInfo.addEmbeddedParentReference(
-                                xmlDoc.getReference());
+                                xmlDoc.reference());
                         childMeta.set(
                                 DocMetadata.EMBEDDED_REFERENCE, embedRef);
                         splitDocs.add(childDoc);
@@ -226,7 +235,7 @@ public class XmlStreamSplitter
                 }
             } catch (IOException e) {
                 throw new SAXException("Cannot parse XML for document: "
-                        + xmlDoc.getReference(), e);
+                        + xmlDoc.reference(), e);
             }
 
             if (!currentPath.isEmpty()) {

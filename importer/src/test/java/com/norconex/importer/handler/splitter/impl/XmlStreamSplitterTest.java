@@ -18,12 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +31,6 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
 
 class XmlStreamSplitterTest {
 
@@ -76,29 +73,26 @@ class XmlStreamSplitterTest {
 
         // test failing stream
         assertThatExceptionOfType(ImporterHandlerException.class).isThrownBy(
-                () -> splitter.splitDocument(
-                        TestUtil.newHandlerDoc(),
-                        InputStream.nullInputStream(),
-                        NullOutputStream.INSTANCE,
-                        ParseState.PRE));
+                () -> splitter.accept(TestUtil.newDocContext()));
 
         // Test non applicable
         splitter.getConfiguration().setContentTypeMatcher(
                 TextMatcher.basic("IdontExists"));
-        assertThat(splitter.splitDocument(
-                TestUtil.newHandlerDoc(),
-                TestUtil.toCachedInputStream(sampleXML),
-                NullOutputStream.INSTANCE,
-                ParseState.PRE)).isEmpty();
+        var docCtx = TestUtil.newDocContext(
+                "N/A",
+                TestUtil.toCachedInputStream(sampleXML));
+        splitter.accept(docCtx);
+        assertThat(docCtx.childDocs()).isEmpty();
     }
 
     private List<Doc> split(String text, XmlStreamSplitter splitter)
             throws ImporterHandlerException {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
-        return splitter.splitDocument(
-                TestUtil.newHandlerDoc("n/a", is, metadata),
-                is, NullOutputStream.INSTANCE, ParseState.PRE);
+
+        var docCtx = TestUtil.newDocContext("N/A", is, metadata);
+        splitter.accept(docCtx);
+        return docCtx.childDocs();
     }
 
     @Test

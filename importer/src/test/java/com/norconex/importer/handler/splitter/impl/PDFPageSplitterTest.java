@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.apache.commons.io.output.NullOutputStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +28,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
 
 class PDFPageSplitterTest {
 
@@ -70,8 +68,8 @@ class PDFPageSplitterTest {
     private List<Doc> split(PDFPageSplitter splitter)
             throws ImporterHandlerException {
         var metadata = new Properties();
-        return splitter.splitDocument(
-                TestUtil.newHandlerDoc("n/a", input, metadata),
-                input, NullOutputStream.INSTANCE, ParseState.PRE);
+        var docCtx = TestUtil.newDocContext("n/a", input, metadata);
+        splitter.accept(docCtx);
+        return docCtx.childDocs();
     }
 }

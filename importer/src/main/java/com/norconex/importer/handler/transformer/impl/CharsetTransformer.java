@@ -1,4 +1,4 @@
-/* Copyright 2015-2022 Norconex Inc.
+/* Copyright 2015-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,25 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.utils.CharsetUtils;
-
-import com.norconex.commons.lang.xml.XML;
-import com.norconex.commons.lang.xml.XMLConfigurable;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.importer.charset.CharsetDetector;
+import com.norconex.importer.charset.CharsetUtil;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.tagger.impl.CharsetTagger;
-import com.norconex.importer.handler.transformer.AbstractDocumentTransformer;
-import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.CharsetUtil;
+import com.norconex.importer.handler.transformer.DocumentTransformer;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -88,83 +88,85 @@ import lombok.extern.slf4j.Slf4j;
  * @see CharsetTagger
  */
 @SuppressWarnings("javadoc")
-@EqualsAndHashCode
-@ToString
+@Data
 @Slf4j
-public class CharsetTransformer extends AbstractDocumentTransformer
-        implements XMLConfigurable {
+public class CharsetTransformer
+        implements DocumentTransformer, Configurable<CharsetTransformerConfig> {
 
-    public static final String DEFAULT_TARGET_CHARSET =
-            StandardCharsets.UTF_8.toString();
-
-    private String targetCharset = DEFAULT_TARGET_CHARSET;
-    private String sourceCharset = null;
+    private final CharsetTransformerConfig configuration =
+            new CharsetTransformerConfig();
 
     @Override
-    protected void transformApplicableDocument(
-            HandlerDoc doc, final InputStream input, final OutputStream output,
-            final ParseState parseState) throws ImporterHandlerException {
+    public void accept(DocContext docCtx) throws ImporterHandlerException {
+        if (configuration.getFieldMatcher().isSet()) {
+            // Fields
+            for (Entry<String, List<String>> en : docCtx.metadata().matchKeys(
+                    configuration.getFieldMatcher()).entrySet()) {
+                var key = en.getKey();
+                List<String> newVals = new ArrayList<>();
+                for (String val : en.getValue()) {
+                    var out = new ByteArrayOutputStream();
+                    var charset = doTransform(
+                            docCtx,
+                            new ByteArrayInputStream(val.getBytes()),
+                            out);
+                    newVals.add(new String(out.toByteArray(), charset));
+                }
+                docCtx.metadata().replace(key, newVals);
+            }
+        } else {
+            // Body
+            doTransform(
+                    docCtx,
+                    docCtx.readContent().asInputStream(),
+                    docCtx.writeContent().toOutputStream());
+        }
+    }
 
-        var inputCharset = detectCharsetIfBlank(input);
+    // returns final charset
+    private Charset doTransform(
+            DocContext docCtx, InputStream in, OutputStream out)
+                    throws ImporterHandlerException {
+
+        var inputCharset = detectCharsetIfNull(
+                docCtx.readContent().asInputStream());
 
         //--- Get target charset ---
-        var outputCharset = targetCharset;
-        if (StringUtils.isBlank(outputCharset)) {
-            outputCharset = StandardCharsets.UTF_8.toString();
+        var outputCharset =  configuration.getTargetCharset();
+        if (outputCharset == null) {
+            outputCharset = StandardCharsets.UTF_8;
         }
-        outputCharset = CharsetUtils.clean(outputCharset);
 
         // Do not proceed if encoding is already what we want
         if (inputCharset.equals(outputCharset)) {
             LOG.debug("Source and target encodings are the same for {}",
-                    doc.getReference());
-            return;
+                    docCtx.reference());
+            return outputCharset;
         }
 
         //--- Convert ---
         try {
             CharsetUtil.convertCharset(
-                    input, inputCharset, output, outputCharset);
+                    in, inputCharset,
+                    out, outputCharset);
         } catch (IOException e) {
             LOG.warn("Cannot convert character encoding from {} to {}. "
                     + "Encoding will remain unchanged. Reference: {}",
-                    inputCharset, outputCharset, doc.getReference(), e);
+                    inputCharset, outputCharset, docCtx.reference(), e);
         }
+        return outputCharset;
     }
 
-    public String getTargetCharset() {
-        return targetCharset;
-    }
-    public void setTargetCharset(final String targetCharset) {
-        this.targetCharset = targetCharset;
-    }
-
-    public String getSourceCharset() {
-        return sourceCharset;
-    }
-    public void setSourceCharset(final String sourceCharset) {
-        this.sourceCharset = sourceCharset;
-    }
-
-    private String detectCharsetIfBlank(InputStream input)
+    private Charset detectCharsetIfNull(InputStream input)
             throws ImporterHandlerException {
         try {
-            return CharsetUtil.detectCharsetIfBlank(sourceCharset, input);
+            return CharsetDetector.builder()
+                .priorityCharset(() -> configuration.getSourceCharset())
+                .build()
+                .detect(input);
         } catch (IOException e) {
             throw new ImporterHandlerException("Could not detect content "
                     + "character encoding.", e);
         }
-    }
-
-    @Override
-    protected void loadHandlerFromXML(final XML xml) {
-        setSourceCharset(xml.getString("@sourceCharset", sourceCharset));
-        setTargetCharset(xml.getString("@targetCharset", targetCharset));
-    }
-
-    @Override
-    protected void saveHandlerToXML(final XML xml) {
-        xml.setAttribute("sourceCharset", sourceCharset);
-        xml.setAttribute("targetCharset", targetCharset);
     }
 }

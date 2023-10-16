@@ -35,7 +35,6 @@ import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.parser.ParseState;
 
 class ScriptConditionTest {
 
@@ -51,9 +50,8 @@ class ScriptConditionTest {
         InputStream is = new BufferedInputStream(new FileInputStream(htmlFile));
         var metadata = new Properties();
         metadata.set(DocMetadata.CONTENT_TYPE, "text/html");
-        var returnValue = cond.testDocument(
-                TestUtil.newHandlerDoc(htmlFile.getAbsolutePath(), is, metadata),
-                is, ParseState.PRE);
+        var returnValue = cond.test(TestUtil.newDocContext(
+                htmlFile.getAbsolutePath(), is, metadata));
         is.close();
         Assertions.assertTrue(returnValue);
     }

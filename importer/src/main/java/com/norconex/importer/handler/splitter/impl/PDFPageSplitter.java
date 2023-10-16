@@ -17,24 +17,18 @@ package com.norconex.importer.handler.splitter.impl;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.pdfbox.multipdf.Splitter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
-import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.doc.DocRecord;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.splitter.DocumentSplitter;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.MatchUtil;
 
 import lombok.Data;
@@ -91,7 +85,7 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class PDFPageSplitter
-        implements DocumentSplitter, Configurable<PDFPageSplitterConfig> {
+        extends AbstractDocumentSplitter<PDFPageSplitterConfig> {
 
     public static final String DOC_PDF_PAGE_NO = "document.pdf.pageNumber";
     public static final String DOC_PDF_TOTAL_PAGES =
@@ -103,30 +97,25 @@ public class PDFPageSplitter
             new PDFPageSplitterConfig();
 
     @Override
-    public List<Doc> splitDocument(HandlerDoc doc, InputStream docInput,
-            OutputStream docOutput, ParseState parseState)
-            throws ImporterHandlerException {
-
-        if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), doc.getDocRecord())) {
-            return List.of();
-        }
-
-        List<Doc> pageDocs = new ArrayList<>();
+    public void split(DocContext docCtx) throws ImporterHandlerException {
 
         // Make sure we are not splitting a page that was already split
-        if (doc.getMetadata().getInteger(DOC_PDF_PAGE_NO, 0) > 0) {
-            return pageDocs;
+        if (!MatchUtil.matchesContentType(
+                configuration.getContentTypeMatcher(), docCtx.docRecord())
+                || (docCtx.metadata().getInteger(DOC_PDF_PAGE_NO, 0) > 0)) {
+            return;
         }
 
-        try (var document = PDDocument.load(docInput)) {
+        try (var document = PDDocument.load(
+                docCtx.readContent().asInputStream())) {
 
             // Make sure we are not splitting single pages.
             if (document.getNumberOfPages() <= 1) {
-                doc.getMetadata().set(DOC_PDF_PAGE_NO, 1);
-                doc.getMetadata().set(DOC_PDF_TOTAL_PAGES, 1);
-                return pageDocs;
+                docCtx.metadata().set(DOC_PDF_PAGE_NO, 1);
+                docCtx.metadata().set(DOC_PDF_TOTAL_PAGES, 1);
+                return;
             }
+            var pageDocs = docCtx.childDocs();
 
             var splitter = new Splitter();
             var splittedDocuments = splitter.split(document);
@@ -134,13 +123,13 @@ public class PDFPageSplitter
             for (PDDocument page : splittedDocuments) {
                 pageNo++;
 
-                var pageRef = doc.getReference()
+                var pageRef = docCtx.reference()
                         + trimToEmpty(configuration.getReferencePagePrefix())
                         + pageNo;
 
                 // metadata
                 var pageMeta = new Properties();
-                pageMeta.loadFromMap(doc.getMetadata());
+                pageMeta.loadFromMap(docCtx.metadata());
 
                 var pageInfo = new DocRecord(pageRef);
 
@@ -148,7 +137,7 @@ public class PDFPageSplitter
                         Integer.toString(pageNo));
 
 
-                pageInfo.addEmbeddedParentReference(doc.getReference());
+                pageInfo.addEmbeddedParentReference(docCtx.reference());
 
                 pageMeta.set(DOC_PDF_PAGE_NO, pageNo);
                 pageMeta.set(DOC_PDF_TOTAL_PAGES, document.getNumberOfPages());
@@ -160,15 +149,14 @@ public class PDFPageSplitter
                 }
                 var pageDoc = new Doc(
                         pageInfo,
-                        doc.getStreamFactory().newInputStream(
+                        docCtx.streamFactory().newInputStream(
                                 os.toInputStream()),
                         pageMeta);
                 pageDocs.add(pageDoc);
             }
         } catch (IOException e) {
             throw new ImporterHandlerException(
-                    "Could not split PDF: " + doc.getReference(), e);
+                    "Could not split PDF: " + docCtx.reference(), e);
         }
-        return pageDocs;
     }
 }

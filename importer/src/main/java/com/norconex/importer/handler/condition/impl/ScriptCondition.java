@@ -14,16 +14,24 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import org.apache.commons.lang3.StringUtils;
+import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.ScriptRunner;
-import com.norconex.importer.handler.condition.AbstractStringCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.condition.Condition;
+import com.norconex.importer.util.DocChunkedTextReader;
+import com.norconex.importer.util.DocChunkedTextReader.TextChunk;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -108,32 +116,62 @@ import lombok.extern.slf4j.Slf4j;
  * @see ScriptRunner
  */
 @SuppressWarnings("javadoc")
-@Data
+@ToString
+@EqualsAndHashCode
 @Slf4j
 public class ScriptCondition
-        extends AbstractStringCondition<ScriptConditionConfig> {
+        implements Condition, Configurable<ScriptConditionConfig> {
 
     //TODO consider using composition so most of the logic
     // can be shared with other ScriptXXX classes.
 
     //TODO add testing XML config in various unit tests
 
+    @Getter
     private final ScriptConditionConfig configuration =
             new ScriptConditionConfig();
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private ScriptRunner<Object> scriptRunner;
 
     @Override
-    protected boolean testDocument(HandlerDoc doc, String input,
-            ParseState parseState, int sectionIndex)
-            throws ImporterHandlerException {
+    public boolean test(DocContext docCtx) throws ImporterHandlerException {
 
+        var matches = new MutableBoolean();
+        try {
+            DocChunkedTextReader.builder()
+                .charset(configuration.getSourceCharset())
+                .fieldMatcher(configuration.getFieldMatcher())
+                .maxChunkSize(configuration.getMaxReadSize())
+                .build()
+                .read(docCtx, chunk -> {
+                    // only check if no successful match yet.
+                    try {
+                        if (matches.isFalse() && executeScript(docCtx, chunk)) {
+                            matches.setTrue();
+                        }
+                    } catch (ImporterHandlerException e) {
+                        throw new IOException(e);
+                    }
+                    return true;
+                });
+        } catch (IOException e) {
+            throw new ImporterHandlerException(
+                    "Cannot parse document into a DOM-tree.", e);
+        }
+        return matches.booleanValue();
+    }
+
+    private boolean executeScript(DocContext docCtx, TextChunk chunk)
+            throws ImporterHandlerException {
         var returnValue = scriptRunner().eval(b -> {
-            b.put("reference", doc.getReference());
-            b.put("content", input);
-            b.put("metadata", doc.getMetadata());
-            b.put("parsed", parseState);
-            b.put("sectionIndex", sectionIndex);
+            b.put("reference", docCtx.reference());
+            b.put("content", chunk.getText());
+            b.put("metadata", docCtx.metadata());
+            b.put("parsed", docCtx.parseState());
+            b.put("sectionIndex", chunk.getChunkIndex());
         });
         LOG.debug("Returned value from ScriptCondition: {}", returnValue);
         if (returnValue == null) {

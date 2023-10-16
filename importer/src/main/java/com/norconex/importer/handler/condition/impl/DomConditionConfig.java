@@ -14,9 +14,10 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
+import java.nio.charset.Charset;
+
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.CommonMatchers;
-import com.norconex.importer.handler.condition.CharStreamConditionConfig;
 import com.norconex.importer.util.DomUtil;
 import com.optimaize.langdetect.text.TextFilter;
 
@@ -133,7 +134,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class DomConditionConfig extends CharStreamConditionConfig {
+public class DomConditionConfig {
 
     private final TextMatcher fieldMatcher = new TextMatcher();
     private final TextMatcher valueMatcher = new TextMatcher();
@@ -142,6 +143,13 @@ public class DomConditionConfig extends CharStreamConditionConfig {
     private String selector;
     private String extract;
     private String parser = DomUtil.PARSER_HTML;
+    /**
+     * The presumed source character encoding. Usually ignored and presumed
+     * to be UTF-8 if the document has been parsed already.
+     * @param sourceCharset character encoding of the source to be transformed
+     * @return character encoding of the source to be transformed
+     */
+    private Charset sourceCharset;
 
     /**
      * Gets this filter field matcher.

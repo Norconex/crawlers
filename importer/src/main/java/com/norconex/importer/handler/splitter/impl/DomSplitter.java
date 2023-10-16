@@ -15,26 +15,20 @@
 package com.norconex.importer.handler.splitter.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.CommonRestrictions;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.splitter.DocumentSplitter;
-import com.norconex.importer.parser.ParseState;
-import com.norconex.importer.util.CharsetUtil;
+import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.DomUtil;
 import com.norconex.importer.util.MatchUtil;
 
@@ -107,68 +101,82 @@ import lombok.Data;
  */
 @SuppressWarnings("javadoc")
 @Data
-public class DomSplitter
-        implements DocumentSplitter, Configurable<DomSplitterConfig> {
+public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
 
     private final DomSplitterConfig configuration = new DomSplitterConfig();
 
     @Override
-    public List<Doc> splitDocument(HandlerDoc doc, InputStream docInput,
-            OutputStream docOutput, ParseState parseState)
-            throws ImporterHandlerException {
+    public void split(DocContext docCtx) throws ImporterHandlerException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), doc.getDocRecord())) {
-            return List.of();
+                configuration.getContentTypeMatcher(), docCtx.docRecord())) {
+            return;
         }
 
-        var inputCharset = CharsetUtil.firstNonNullOrUTF8(
-                parseState,
-                configuration.getSourceCharset(),
-                doc.getDocRecord().getCharset());
-        List<Doc> docs = new ArrayList<>();
-        try {
-            var soupDoc = Jsoup.parse(docInput, inputCharset.toString(),
-                    doc.getReference(), DomUtil.toJSoupParser(
-                            configuration.getParser()));
-            var elms = soupDoc.select(configuration.getSelector());
-
-            // if there only 1 element matched, make sure it is not the same as
-            // the parent document to avoid infinite loops (the parent
-            // matching itself recursively).
-            if (elms.size() == 1) {
-                var matchedElement = elms.get(0);
-                var parentElement = getBodyElement(soupDoc);
-                if (matchedElement.equals(parentElement)) {
-                    return docs;
-                }
+        // Fields
+        if (configuration.getFieldMatcher().isSet()) {
+            docCtx.childDocs();
+            docCtx.metadata().matchKeys(
+                    configuration.getFieldMatcher()).forEach((k, vals) ->
+                vals.forEach(v -> parse(docCtx, Jsoup.parse(
+                        v, docCtx.reference(), DomUtil.toJSoupParser(
+                                configuration.getParser())) ))
+            );
+        } else {
+            // Body
+            try {
+                var inputCharset = CharsetUtil.firstNonNullOrUTF8(
+                        docCtx.parseState(),
+                        configuration.getSourceCharset(),
+                        docCtx.docRecord().getCharset());
+                var soupDoc = Jsoup.parse(
+                        docCtx.readContent().asInputStream(),
+                        inputCharset.toString(),
+                        docCtx.reference(),
+                        DomUtil.toJSoupParser(configuration.getParser()));
+                parse(docCtx, soupDoc);
+            } catch (IOException e) {
+                throw new ImporterHandlerException(
+                        "Cannot parse document into a DOM-tree.", e);
             }
-
-            // process "legit" child elements
-            for (Element elm : elms) {
-                var childMeta = new Properties();
-                childMeta.loadFromMap(doc.getMetadata());
-                var childContent = elm.outerHtml();
-                var childEmbedRef = elm.cssSelector();
-                var childRef = doc.getReference() + "!" + childEmbedRef;
-                CachedInputStream content = null;
-                if (childContent.length() > 0) {
-                    content = doc.getStreamFactory().newInputStream(
-                            childContent);
-                } else {
-                    content = doc.getStreamFactory().newInputStream();
-                }
-                var childDoc = new Doc(childRef, content, childMeta);
-                var childInfo = childDoc.getDocRecord();
-                childInfo.addEmbeddedParentReference(doc.getReference());
-                childMeta.set(DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
-                docs.add(childDoc);
-            }
-        } catch (IOException e) {
-            throw new ImporterHandlerException(
-                    "Cannot parse document into a DOM-tree.", e);
         }
-        return docs;
+    }
+
+    private void parse(DocContext docCtx, Document soupDoc) {
+        var elms = soupDoc.select(configuration.getSelector());
+
+        // if there only 1 element matched, make sure it is not the same as
+        // the parent document to avoid infinite loops (the parent
+        // matching itself recursively).
+        if (elms.size() == 1) {
+            var matchedElement = elms.get(0);
+            var parentElement = getBodyElement(soupDoc);
+            if (matchedElement.equals(parentElement)) {
+                return;
+            }
+        }
+
+        // process "legit" child elements
+        var docs = docCtx.childDocs();
+        for (Element elm : elms) {
+            var childMeta = new Properties();
+            childMeta.loadFromMap(docCtx.metadata());
+            var childContent = elm.outerHtml();
+            var childEmbedRef = elm.cssSelector();
+            var childRef = docCtx.reference() + "!" + childEmbedRef;
+            CachedInputStream content = null;
+            if (childContent.length() > 0) {
+                content = docCtx.streamFactory().newInputStream(
+                        childContent);
+            } else {
+                content = docCtx.streamFactory().newInputStream();
+            }
+            var childDoc = new Doc(childRef, content, childMeta);
+            var childInfo = childDoc.getDocRecord();
+            childInfo.addEmbeddedParentReference(docCtx.reference());
+            childMeta.set(DocMetadata.EMBEDDED_REFERENCE, childEmbedRef);
+            docs.add(childDoc);
+        }
     }
 
     private Element getBodyElement(Document soupDoc) {

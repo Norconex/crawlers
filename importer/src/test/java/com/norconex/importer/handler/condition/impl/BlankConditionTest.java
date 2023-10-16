@@ -15,7 +15,6 @@
 package com.norconex.importer.handler.condition.impl;
 
 import static com.norconex.importer.TestUtil.toCachedInputStream;
-import static com.norconex.importer.parser.ParseState.PRE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
@@ -23,75 +22,84 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
+import com.norconex.importer.parser.ParseState;
 
 class BlankConditionTest {
 
     private CachedInputStream emptyInput = toCachedInputStream("");
-    private HandlerDoc doc;
+    private DocContext docCtx;
     private BlankCondition c;
 
     @BeforeEach
     void beforeEach() {
-        doc = newDoc();
+        docCtx = newDocContext();
         c = new BlankCondition();
     }
 
     @Test
     void testBlankContentCondition() throws ImporterHandlerException {
         // Test content
-        assertThat(c.testDocument(
-                doc, toCachedInputStream("blah"), PRE)).isFalse();
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
+
+        assertThat(c.test(newDocContext("blah"))).isFalse();
+
+        assertThat(c.test(docCtx)).isTrue();
     }
 
     @Test
     void testAllBlankFieldsCondition() throws ImporterHandlerException {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
+        assertThat(c.test(docCtx)).isFalse();
 
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field3"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
+        assertThat(c.test(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
-        c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\.[123]"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
+        assertThat(c.test(docCtx)).isFalse();
+        c.getConfiguration().setFieldMatcher(
+                TextMatcher.regex("field4\\.[123]"));
+        assertThat(c.test(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
+        assertThat(c.test(docCtx)).isFalse();
     }
 
     @Test
     void testAnyBlankFieldsCondition() throws ImporterHandlerException {
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
         c.getConfiguration().setMatchAnyBlank(true);
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
 
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field3"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isFalse();
+        assertThat(c.test(docCtx)).isFalse();
         c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\..*"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
-        c.getConfiguration().setFieldMatcher(TextMatcher.regex("field4\\.[123]"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
+        c.getConfiguration().setFieldMatcher(
+                TextMatcher.regex("field4\\.[123]"));
+        assertThat(c.test(docCtx)).isTrue();
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("field4.4"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
     }
 
     @Test
     void testMisc() throws ImporterHandlerException {
         // Test non-existant
         c.getConfiguration().setFieldMatcher(TextMatcher.basic("doNotExist"));
-        assertThat(c.testDocument(doc, emptyInput, PRE)).isTrue();
+        assertThat(c.test(docCtx)).isTrue();
 
         // Test write read
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(c));
     }
 
-    private HandlerDoc newDoc() {
+
+    private DocContext newDocContext() {
+        return newDocContext(null);
+    }
+    private DocContext newDocContext(String body) {
         var props = TestUtil.newMetadata();
         props.add("field4.1", "");
         props.add("field4.2", "    ");
@@ -101,7 +109,13 @@ class BlankConditionTest {
         props.add("field4.4", "value4.4");
         props.add("field4.4", "");
 
-        return TestUtil.newHandlerDoc(
-                "ref", toCachedInputStream("content1 content2"), props);
+        return DocContext.builder()
+                .doc(TestUtil.newDoc("ref",
+                    body == null
+                    ? emptyInput
+                    : toCachedInputStream(body), props))
+                .parseState(ParseState.PRE)
+                .eventManager(new EventManager())
+                .build();
     }
 }

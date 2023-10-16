@@ -19,7 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +29,6 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.parser.ParseState;
 
 class DomSplitterTest {
 
@@ -68,13 +66,13 @@ class DomSplitterTest {
             throws ImporterHandlerException {
         var metadata = new Properties();
         var is = IOUtils.toInputStream(text, StandardCharsets.UTF_8);
-        return splitter.splitDocument(
-                TestUtil.newHandlerDoc("n/a", is, metadata),
-                is, NullOutputStream.INSTANCE, ParseState.PRE);
+        var docCtx = TestUtil.newDocContext("n/a", is, metadata);
+        splitter.accept(docCtx);
+        return docCtx.childDocs();
     }
 
     @Test
-        void testWriteRead() {
+    void testWriteRead() {
         var splitter = new DomSplitter();
         splitter.getConfiguration().setSelector("blah");
         splitter.getConfiguration().setContentTypeMatcher(

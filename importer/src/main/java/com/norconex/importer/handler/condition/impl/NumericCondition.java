@@ -14,15 +14,12 @@
  */
 package com.norconex.importer.handler.condition.impl;
 
-import java.io.InputStream;
-
 import org.apache.commons.lang3.math.NumberUtils;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.importer.handler.HandlerDoc;
+import com.norconex.importer.handler.DocContext;
 import com.norconex.importer.handler.ImporterHandlerException;
-import com.norconex.importer.handler.condition.ImporterCondition;
-import com.norconex.importer.parser.ParseState;
+import com.norconex.importer.handler.condition.Condition;
 
 import lombok.Data;
 import lombok.Getter;
@@ -89,17 +86,15 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 @Data
 public class NumericCondition
-        implements ImporterCondition, Configurable<NumericConditionConfig> {
+        implements Condition, Configurable<NumericConditionConfig> {
 
     @Getter
     private final NumericConditionConfig configuration =
             new NumericConditionConfig();
 
     @Override
-    public boolean testDocument(
-            HandlerDoc doc, InputStream input, ParseState parseState)
-                    throws ImporterHandlerException {
-        for (String valueStr : doc.getMetadata().matchKeys(
+    public boolean test(DocContext docCtx) throws ImporterHandlerException {
+        for (String valueStr : docCtx.metadata().matchKeys(
                 configuration.getFieldMatcher()).valueList()) {
             if (!NumberUtils.isCreatable(valueStr)) {
                 continue;
@@ -119,50 +114,4 @@ public class NumericCondition
         }
         return true;
     }
-
-//    @Override
-//    public void loadFromXML(XML xml) {
-//        fieldMatcher.loadFromXML(xml.getXML(Fields.fieldMatcher));
-//        var nodes = xml.getXMLList(Fields.valueMatcher);
-//        if (nodes.size() >= 1) {
-//            setValueMatcher(toValueMatcher(nodes.get(0)));
-//        }
-//        if (nodes.size() >= 2) {
-//            setValueMatcherRangeEnd(toValueMatcher(nodes.get(1)));
-//        }
-//    }
-//    private ValueMatcher toValueMatcher(XML xml) {
-//        var operator = Operator.of(
-//                xml.getString("@operator", EQUALS.toString()));
-//        if (operator == null) {
-//            throw new IllegalArgumentException(
-//                    "Unsupported operator: " + xml.getString("@operator"));
-//        }
-//        var num = xml.getString("@number", null);
-//        if (StringUtils.isBlank(num)) {
-//            throw new IllegalArgumentException("\"number\" must not be blank.");
-//        }
-//        if (!NumberUtils.isCreatable(num)) {
-//            throw new IllegalArgumentException("Not a valid number: " + num);
-//        }
-//        var number = NumberUtils.toDouble(num);
-//        return new ValueMatcher(operator, number);
-//    }
-//
-//    @Override
-//    public void saveToXML(XML xml) {
-//        fieldMatcher.saveToXML(xml.addElement(Fields.fieldMatcher));
-//        if (valueMatcher != null) {
-//            xml.addElement(Fields.valueMatcher)
-//                    .setAttribute("operator", valueMatcher.operator)
-//                    .setAttribute("number", valueMatcher.number);
-//        }
-//        if (valueMatcherRangeEnd != null) {
-//            // Range share same start tag name in XML
-//            xml.addElement(Fields.valueMatcher)
-//                    .setAttribute("operator", valueMatcherRangeEnd.operator)
-//                    .setAttribute("number", valueMatcherRangeEnd.number);
-//        }
-//    }
-
 }

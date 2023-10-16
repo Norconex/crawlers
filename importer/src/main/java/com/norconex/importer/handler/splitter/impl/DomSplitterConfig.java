@@ -19,6 +19,7 @@ import java.nio.charset.Charset;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.handler.CommonMatchers;
 import com.norconex.importer.handler.CommonRestrictions;
+import com.norconex.importer.handler.splitter.BaseDocumentSplitterConfig;
 import com.norconex.importer.util.DomUtil;
 
 import lombok.Data;
@@ -92,7 +93,7 @@ import lombok.experimental.Accessors;
 @SuppressWarnings("javadoc")
 @Data
 @Accessors(chain = true)
-public class DomSplitterConfig {
+public class DomSplitterConfig extends BaseDocumentSplitterConfig {
 
     /**
      * The CSS-like selector (see class documentation) identifying which
@@ -118,6 +119,18 @@ public class DomSplitterConfig {
     private String parser = DomUtil.PARSER_HTML;
 
     /**
+     * Matcher of one or more fields to use as the source of content to split
+     * into new documents, instead of the original document content.
+     * @param fieldMatcher field matcher
+     * @return field matcher
+     */
+    private final TextMatcher fieldMatcher = new TextMatcher();
+    public DomSplitterConfig setFieldMatcher(TextMatcher fieldMatcher) {
+        this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
+    }
+
+    /**
      * The matcher of content types to apply splitting on. No attempt to
      * split documents of any other content types will be made. Default is
      * {@link CommonMatchers#DOM_CONTENT_TYPES}.
@@ -126,7 +139,6 @@ public class DomSplitterConfig {
      */
     private final TextMatcher contentTypeMatcher =
             CommonMatchers.domContentTypes();
-
     /**
      * The matcher of content types to apply splitting on. No attempt to
      * split documents of any other content types will be made. Default is
