@@ -3,6 +3,8 @@ ARG committer_type
 
 WORKDIR /nxer
 
+RUN ls -l
+
 RUN if [ "$committer_type" = "crawler-es" ]; then \
       #COPY $committer_type /nxer && \
 	  mkdir /nxer/es_folder && \
@@ -17,5 +19,4 @@ RUN if [ "$committer_type" = "crawler-es" ]; then \
 	fi
 
 
-RUN ls -l && \
-    ls -l
+RUN ls -l
