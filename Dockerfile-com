@@ -2,6 +2,7 @@ ARG committer_type
 ARG build_version
 
 #FROM $build_version-crawler-base
+FROM ubuntu:22.04
 
 RUN echo "committer type is: $committer_type"
 RUN echo "build_version is: $build_version"
