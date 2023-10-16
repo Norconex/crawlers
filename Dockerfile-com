@@ -1,4 +1,4 @@
-FROM 4.0.0-crawler
+FROM 4.0.0-crawler-base
 ARG committer_type
 
 WORKDIR /nxer
