@@ -1,5 +1,7 @@
-FROM 4.0.0-crawler-base
 ARG committer_type
+ARG build_version
+
+FROM $build_version-crawler-base
 
 WORKDIR /nxer
 
