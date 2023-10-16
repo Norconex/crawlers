@@ -3,18 +3,18 @@ ARG build_version
 
 FROM $build_version-crawler-base
 
-RUN echo "committer type is:" $committer_type
-RUN echo "build_version is:" $build_version
+RUN echo "committer type is: $committer_type"
+RUN echo "build_version is: $build_version"
 
 WORKDIR /nxer
 
 RUN ls -l
 
-RUN if [ $committer_type = "crawler-es" ]; then \
+RUN if [ "$committer_type" = "crawler-es" ]; then \
       #COPY $committer_type /nxer && \
 	  mkdir /nxer/es_folder && \
           echo "es copy"; \
-	elif [ $committer_type = "crawler-solr" ]; then \
+	elif [ "$committer_type" = "crawler-solr" ]; then \
           echo "solr copy" && \
           COPY fakefile . && \
 	  mkdir /nxer/solr-folder; \
