@@ -237,8 +237,8 @@ public class CharsetDetector {
         }
         cd.enableInputFilter(true);
         cd.setText(input);
-        rewind(input);
         var detectedCharset = doDetect(cd);
+        rewind(input);
 
         if (detectedCharset != null) {
             return detectedCharset;

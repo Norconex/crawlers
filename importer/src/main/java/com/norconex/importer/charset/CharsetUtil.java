@@ -112,10 +112,11 @@ public final class CharsetUtil {
         var encoder = Charset.forName(outputCharset).newEncoder();
         encoder.onMalformedInput(CodingErrorAction.REPLACE);
         encoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
-        Reader reader = new InputStreamReader(input, decoder);
-        Writer writer = new OutputStreamWriter(output, encoder);
-        IOUtils.copyLarge(reader, writer);
-        writer.flush();
+        try (Reader reader = new InputStreamReader(input, decoder);
+                Writer writer = new OutputStreamWriter(output, encoder)) {
+            IOUtils.copyLarge(reader, writer);
+            writer.flush();
+        }
         rewind(input);
     }
 

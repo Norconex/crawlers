@@ -20,53 +20,57 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import org.apache.commons.io.input.NullInputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
+import com.norconex.importer.doc.DocMetadata;
 import com.norconex.importer.handler.ImporterHandlerException;
 
 class CharsetTransformerTest {
 
     @Test
-    void testCharsetTransformer()
+    void testCharsetBodyTransformer()
             throws ImporterHandlerException, IOException {
 
-        testCharsetTransformer("ISO-8859-1",   "ISO-8859-1", true);
-        testCharsetTransformer("ISO-8859-2",   "ISO-8859-1", false);
-        testCharsetTransformer("windows-1250", "ISO-8859-1", true);
-        testCharsetTransformer("UTF-8",        "ISO-8859-1", true);
+        testCharsetBodyTransformer("ISO-8859-1",   "ISO-8859-1", true);
+        testCharsetBodyTransformer("ISO-8859-2",   "ISO-8859-1", false);
+        testCharsetBodyTransformer("windows-1250", "ISO-8859-1", true);
+        testCharsetBodyTransformer("UTF-8",        "ISO-8859-1", true);
 
-        testCharsetTransformer("ISO-8859-1",   "ISO-8859-2", true);
-        testCharsetTransformer("ISO-8859-2",   "ISO-8859-2", false);
-        testCharsetTransformer("windows-1250", "ISO-8859-2", true);
-        testCharsetTransformer("UTF-8",        "ISO-8859-2", true);
+        testCharsetBodyTransformer("ISO-8859-1",   "ISO-8859-2", true);
+        testCharsetBodyTransformer("ISO-8859-2",   "ISO-8859-2", false);
+        testCharsetBodyTransformer("windows-1250", "ISO-8859-2", true);
+        testCharsetBodyTransformer("UTF-8",        "ISO-8859-2", true);
 
-        testCharsetTransformer("ISO-8859-1",   "windows-1250", true);
-        testCharsetTransformer("ISO-8859-2",   "windows-1250", true);
-        testCharsetTransformer("windows-1250", "windows-1250", false);
-        testCharsetTransformer("UTF-8",        "windows-1250", true);
+        testCharsetBodyTransformer("ISO-8859-1",   "windows-1250", true);
+        testCharsetBodyTransformer("ISO-8859-2",   "windows-1250", true);
+        testCharsetBodyTransformer("windows-1250", "windows-1250", false);
+        testCharsetBodyTransformer("UTF-8",        "windows-1250", true);
 
-        testCharsetTransformer("ISO-8859-1",   "UTF-8", true);
-        testCharsetTransformer("ISO-8859-2",   "UTF-8", true);
-        testCharsetTransformer("windows-1250", "UTF-8", true);
-        testCharsetTransformer("UTF-8",        "UTF-8", true);
+        testCharsetBodyTransformer("ISO-8859-1",   "UTF-8", true);
+        testCharsetBodyTransformer("ISO-8859-2",   "UTF-8", true);
+        testCharsetBodyTransformer("windows-1250", "UTF-8", true);
+        testCharsetBodyTransformer("UTF-8",        "UTF-8", true);
 
-        testCharsetTransformer("ISO-8859-1",   "KOI8-R", true);
-        testCharsetTransformer("ISO-8859-2",   "KOI8-R", true);
-        testCharsetTransformer("windows-1250", "KOI8-R", true);
-        testCharsetTransformer("UTF-8",        "KOI8-R", true);
+        testCharsetBodyTransformer("ISO-8859-1",   "KOI8-R", true);
+        testCharsetBodyTransformer("ISO-8859-2",   "KOI8-R", true);
+        testCharsetBodyTransformer("windows-1250", "KOI8-R", true);
+        testCharsetBodyTransformer("UTF-8",        "KOI8-R", true);
     }
 
 
     @Test
-    void testCharsetWithGoodSourceTransformer()
+    void testCharsetWithGoodSourceBodyTransformer()
             throws ImporterHandlerException, IOException {
         var startWith = "En télécommunications".getBytes("UTF-8");
 
@@ -92,7 +96,7 @@ class CharsetTransformerTest {
     }
 
     @Test
-    void testCharsetWithBadSourceTransformer()
+    void testCharsetWithBadSourceBodyTransformer()
             throws ImporterHandlerException, IOException {
         var startWith = "En télécommunications".getBytes("UTF-8");
 
@@ -120,7 +124,7 @@ class CharsetTransformerTest {
     }
 
     @Test
-    void testError()
+    void testBodyError()
             throws ImporterHandlerException, IOException {
         var t = new CharsetTransformer();
         t.getConfiguration()
@@ -132,7 +136,78 @@ class CharsetTransformerTest {
                         nullOutputStream(), new Properties())));
     }
 
-    private void testCharsetTransformer(
+    @Test
+    void testCharsetFieldTransformer()
+            throws ImporterHandlerException, IOException {
+
+        testCharsetFieldTransformer("ISO-8859-1",   "ISO-8859-1");
+        testCharsetFieldTransformer("ISO-8859-2",   "ISO-8859-1");
+        testCharsetFieldTransformer("windows-1250", "ISO-8859-1");
+        testCharsetFieldTransformer("UTF-8",        "ISO-8859-1");
+
+        testCharsetFieldTransformer("ISO-8859-1",   "ISO-8859-2");
+        testCharsetFieldTransformer("ISO-8859-2",   "ISO-8859-2");
+        testCharsetFieldTransformer("windows-1250", "ISO-8859-2");
+        testCharsetFieldTransformer("UTF-8",        "ISO-8859-2");
+
+        testCharsetFieldTransformer("ISO-8859-1",   "windows-1250");
+        testCharsetFieldTransformer("ISO-8859-2",   "windows-1250");
+        testCharsetFieldTransformer("windows-1250", "windows-1250");
+        testCharsetFieldTransformer("UTF-8",        "windows-1250");
+
+        testCharsetFieldTransformer("ISO-8859-1",   "UTF-8");
+        testCharsetFieldTransformer("ISO-8859-2",   "UTF-8");
+        testCharsetFieldTransformer("windows-1250", "UTF-8");
+        testCharsetFieldTransformer("UTF-8",        "UTF-8");
+
+        testCharsetFieldTransformer("ISO-8859-1",   "KOI8-R");
+        testCharsetFieldTransformer("ISO-8859-2",   "KOI8-R");
+        testCharsetFieldTransformer("windows-1250", "KOI8-R");
+        testCharsetFieldTransformer("UTF-8",        "KOI8-R");
+    }
+
+
+    private void testCharsetFieldTransformer(
+            String inCharset, String outCharset)
+            throws ImporterHandlerException, UnsupportedEncodingException {
+
+        var fromCharset = Charset.forName(inCharset);
+        var toCharset = Charset.forName(outCharset);
+
+        var sourceBytes = "En télécommunications".getBytes(fromCharset);
+        var targetBytes = "En télécommunications".getBytes(toCharset);
+
+        var t = new CharsetTransformer();
+        t.getConfiguration()
+            .setTargetCharset(toCharset)
+            .setFieldMatcher(TextMatcher.basic("field1"));
+
+        var metadata = new Properties();
+        metadata.set("field1", new String(sourceBytes, fromCharset));
+        metadata.set(DocMetadata.CONTENT_ENCODING, fromCharset);
+
+        InputStream is = new NullInputStream(0);
+        t.accept(TestUtil.newDocContext(
+                "ref-" + fromCharset + "-" + toCharset, is, metadata));
+
+        var convertedValue = metadata.getString("field1");
+        var convertedBytes = convertedValue.getBytes(toCharset);
+
+        var sourceValue = new String(sourceBytes, fromCharset);
+        //new String(targetBytes, toCharset);
+        System.out.println("=== " + fromCharset + " > " + toCharset + "===");
+        System.out.println(" original value: " + sourceValue);
+        System.out.println("   target value: " + convertedValue);
+        System.out.println("converted value: " + convertedValue);
+        System.out.println(" original bytes: " + Arrays.toString(sourceBytes));
+        System.out.println("   target bytes: " + Arrays.toString(targetBytes));
+        System.out.println("converted bytes: " + Arrays.toString(convertedBytes));
+
+        Assertions.assertArrayEquals(
+                targetBytes, convertedBytes, fromCharset + " > " + toCharset);
+    }
+
+    private void testCharsetBodyTransformer(
             String inCharset, String outCharset, boolean detect)
             throws ImporterHandlerException, IOException {
 
@@ -140,7 +215,6 @@ class CharsetTransformerTest {
         var toCharset = Charset.forName(outCharset);
 
         var startWith = "En télécommunications".getBytes(toCharset);
-        var blankBytes = new byte[startWith.length];
 
         var t = new CharsetTransformer();
         if (!detect) {
@@ -166,24 +240,20 @@ class CharsetTransformerTest {
 //        System.out.println(Arrays.toString(startWith));
 //        System.out.println(Arrays.toString(targetStartWith));
 
-        if (fromCharset.equals(toCharset)) {
-            Assertions.assertArrayEquals(blankBytes, targetStartWith,
-                    fromCharset + " > " + toCharset);
-        } else {
-            Assertions.assertArrayEquals(startWith, targetStartWith,
-                    fromCharset + " > " + toCharset);
-        }
+        Assertions.assertArrayEquals(
+                startWith, targetStartWith, fromCharset + " > " + toCharset);
     }
 
     private InputStream getFileStream(String resourcePath) {
         return getClass().getResourceAsStream(resourcePath);
     }
 
-
     @Test
     void testWriteRead() {
         var t = new CharsetTransformer();
-        t.getConfiguration().setTargetCharset(StandardCharsets.ISO_8859_1);
+        t.getConfiguration()
+            .setTargetCharset(StandardCharsets.ISO_8859_1)
+            .setFieldMatcher(TextMatcher.regex(".*"));
         BeanMapper.DEFAULT.assertWriteRead(t);
     }
 }

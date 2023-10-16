@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.commons.io.IOUtils;
+
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.charset.CharsetUtil;
@@ -105,21 +107,24 @@ public class CharsetTransformer
                 var key = en.getKey();
                 List<String> newVals = new ArrayList<>();
                 for (String val : en.getValue()) {
-                    var out = new ByteArrayOutputStream();
-                    var charset = doTransform(
-                            docCtx,
-                            new ByteArrayInputStream(val.getBytes()),
-                            out);
-                    newVals.add(new String(out.toByteArray(), charset));
+                    try (var is = new ByteArrayInputStream(val.getBytes());
+                            var os = new ByteArrayOutputStream()) {
+                        var charset = doTransform(docCtx, is, os);
+                        newVals.add(new String(os.toByteArray(), charset));
+                    } catch (IOException e) {
+                        throw new ImporterHandlerException(e);
+                    }
                 }
                 docCtx.metadata().replace(key, newVals);
             }
         } else {
             // Body
-            doTransform(
-                    docCtx,
-                    docCtx.readContent().asInputStream(),
-                    docCtx.writeContent().toOutputStream());
+            try (var is  = docCtx.readContent().asInputStream();
+                    var os = docCtx.writeContent().toOutputStream()) {
+                doTransform(docCtx, is, os);
+            } catch (IOException e) {
+                throw new ImporterHandlerException(e);
+            }
         }
     }
 
@@ -128,8 +133,7 @@ public class CharsetTransformer
             DocContext docCtx, InputStream in, OutputStream out)
                     throws ImporterHandlerException {
 
-        var inputCharset = detectCharsetIfNull(
-                docCtx.readContent().asInputStream());
+        var inputCharset = detectCharsetIfNull(in);
 
         //--- Get target charset ---
         var outputCharset =  configuration.getTargetCharset();
@@ -141,6 +145,11 @@ public class CharsetTransformer
         if (inputCharset.equals(outputCharset)) {
             LOG.debug("Source and target encodings are the same for {}",
                     docCtx.reference());
+            try {
+                IOUtils.copyLarge(in, out);
+            } catch (IOException e) {
+                throw new ImporterHandlerException(e);
+            }
             return outputCharset;
         }
 
@@ -161,7 +170,7 @@ public class CharsetTransformer
             throws ImporterHandlerException {
         try {
             return CharsetDetector.builder()
-                .priorityCharset(() -> configuration.getSourceCharset())
+                .priorityCharset(configuration::getSourceCharset)
                 .build()
                 .detect(input);
         } catch (IOException e) {
