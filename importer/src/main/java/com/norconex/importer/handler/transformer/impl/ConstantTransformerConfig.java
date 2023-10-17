@@ -66,12 +66,6 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class ConstantTransformerConfig {
 
-    //TODO drop the onSet on constant idea... because we want to set
-    // constants for same key as a batch... else, what is the point
-    // to specify multiple at once?
-
-    //OR... maybe better... allow multivalues to constants
-
     private final List<Constant> constants = new ArrayList<>();
     /**
      * Default property setter when a constant does not specify one.
