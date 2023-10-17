@@ -34,7 +34,7 @@ jobs:
     #  run: mvn clean package -Dmaven.test.skip --file crawler/web/pom.xml
 
     - name: export crawler version
-      run: echo "<version>=3.0.0-test</version>" > crawler-info.xml
+      run: echo "<version>3.0.0-test</version>" > crawler-info.xml
     
     - name: Upload artifact
       uses: actions/upload-artifact@v3
