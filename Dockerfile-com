@@ -1,6 +1,7 @@
+ARG committer_type
+
 FROM ubuntu:22.04
 
-ARG committer_type
 ARG build_version
 
 #FROM $build_version-crawler-base
