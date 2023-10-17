@@ -7,6 +7,6 @@ RUN mkdir base-folder
 RUN apt-get -y update && \
     apt-get install -y nano && \
     apt-get install -y curl && \
-	  apt-get install -y iputils-ping && \
-	  curl -LO https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.deb && \
+    apt-get install -y iputils-ping && \
+    curl -LO https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.deb && \
     dpkg -i jdk-17_linux-x64_bin.deb
