@@ -1,4 +1,4 @@
-FROM $build_version-crawler-base
+FROM replace-this-crawler-base
 ARG committer_type
 ARG build_version
 
