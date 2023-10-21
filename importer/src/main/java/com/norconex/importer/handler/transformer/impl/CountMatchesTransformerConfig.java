@@ -14,6 +14,7 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
 import com.norconex.commons.lang.io.TextReader;
@@ -84,6 +85,7 @@ public class CountMatchesTransformerConfig {
 
     private TextMatcher fieldMatcher = new TextMatcher();
     private TextMatcher countMatcher = new TextMatcher();
+    private Charset sourceCharset;
 
     /**
      * The target field.

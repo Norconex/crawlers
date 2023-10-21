@@ -222,6 +222,9 @@ public class LanguageTransformer implements
         try {
             DocChunkedTextReader.builder()
                 .fieldMatcher(configuration.getFieldMatcher())
+                .maxChunkSize(configuration.getMaxReadSize())
+                .charset(docCtx.resolveCharset(
+                        configuration.getSourceCharset()))
                 .build()
                 .read(docCtx, chunk -> {
                     var results = detector.detectAll(chunk.getText());

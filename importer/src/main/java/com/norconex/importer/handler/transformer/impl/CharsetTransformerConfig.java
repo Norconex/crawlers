@@ -83,7 +83,7 @@ public class CharsetTransformerConfig {
     public static final Charset DEFAULT_TARGET_CHARSET = UTF_8;
 
     private Charset targetCharset = DEFAULT_TARGET_CHARSET;
-    private Charset sourceCharset = null;
+    private Charset sourceCharset;
     /**
      * Optional matcher of fields to convert the character set of their values.
      * When not specified, transformation is on the document content.

@@ -95,6 +95,7 @@ public class CountMatchesTransformer implements
     @Override
     public void accept(DocContext docCtx) throws ImporterHandlerException {
 
+
         // "toField" and value must be present.
         if (StringUtils.isBlank(configuration.getToField())) {
             throw new IllegalArgumentException("'toField' cannot be blank.");
@@ -106,7 +107,8 @@ public class CountMatchesTransformer implements
 
         var count = 0;
         if (configuration.getFieldMatcher().getPattern() == null) {
-            count = countContentMatches(docCtx.readContent().asReader());
+            count = countContentMatches(docCtx.readContent().asReader(
+                    configuration.getSourceCharset()));
         } else {
             count = countFieldMatches(docCtx.metadata());
         }

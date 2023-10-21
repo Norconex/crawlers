@@ -38,7 +38,7 @@ import lombok.experimental.Accessors;
  * This class constructs a DOM tree from a document or field content.
  * That DOM tree is loaded entirely into memory. Use this tagger with caution
  * if you know you'll need to parse huge files. It may be preferable to use
- * {@link RegexTagger} if this is a concern. Also, to help performance
+ * {@link RegexTransformer} if this is a concern. Also, to help performance
  * and avoid re-creating DOM tree before every DOM extraction you want to
  * perform, try to combine multiple extractions in a single instance
  * of this Tagger.

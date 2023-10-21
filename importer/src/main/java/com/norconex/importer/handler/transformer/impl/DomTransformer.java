@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -34,6 +33,7 @@ import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.handler.transformer.DocumentTransformer;
 import com.norconex.importer.util.DocChunkedTextReader;
 import com.norconex.importer.util.DocChunkedTextReader.TextChunk;
+import com.norconex.importer.util.DocContextUtil;
 import com.norconex.importer.util.DomUtil;
 
 import lombok.Data;
@@ -46,7 +46,7 @@ import lombok.Data;
  * This class constructs a DOM tree from a document or field content.
  * That DOM tree is loaded entirely into memory. Use this tagger with caution
  * if you know you'll need to parse huge files. It may be preferable to use
- * {@link RegexTagger} if this is a concern. Also, to help performance
+ * {@link RegexTransformer} if this is a concern. Also, to help performance
  * and avoid re-creating DOM tree before every DOM extraction you want to
  * perform, try to combine multiple extractions in a single instance
  * of this Tagger.
@@ -260,20 +260,7 @@ public class DomTransformer
             newSourceContent = StringUtils.join(preserveOnly, "\n");
         }
 
-        if (isNotBlank(chunk.getField())) {
-            // replace from field
-            var values = docCtx.metadata().get(chunk.getField());
-            if (CollectionUtils.isNotEmpty(values)
-                    && values.size() > chunk.getFieldValueIndex()) {
-                values.set(chunk.getFieldValueIndex(), newSourceContent);
-            }
-            docCtx.metadata().setList(chunk.getField(), values);
-        } else {
-            // replace body
-            try (var writer = docCtx.writeContent().toWriter()) {
-                writer.write(newSourceContent);
-            }
-        }
+        DocContextUtil.setTextChunk(docCtx, chunk, newSourceContent);
     }
 
     // return possibly modify original content and any extractions

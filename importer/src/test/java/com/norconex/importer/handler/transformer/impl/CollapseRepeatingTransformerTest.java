@@ -1,4 +1,4 @@
-/* Copyright 2010-2022 Norconex Inc.
+/* Copyright 2010-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -24,18 +26,26 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.xml.XML;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.ImporterHandlerException;
 import com.norconex.importer.parser.ParseState;
 
-class ReduceConsecutivesTransformerTest {
+class CollapseRepeatingTransformerTest {
 
-    private final String xml =
-              """
-    	<handler ignoreCase="true"><reduce>\\stext</reduce>\
-    	<reduce>\\t</reduce><reduce>\\n\\r</reduce>\
-    	<reduce>\\s</reduce><reduce>.</reduce></handler>""";
+    private final String xml = """
+        <handler>
+          <ignoreCase>true</ignoreCase>
+          <strings>
+            <string>\\stext</string>
+            <string>\\t</string>
+            <string>\\n\\r</string>
+            <string>\\s</string>
+            <string>.</string>
+          </strings>
+        </handler>""";
 
     @Test
     void testTransformTextDocument()
@@ -43,21 +53,19 @@ class ReduceConsecutivesTransformerTest {
         var text = "\t\tThis is the text TeXt I want to modify...\n\r\n\r"
                 + "     Too much space.";
 
-        var t = new ReduceConsecutivesTransformer();
+        var t = new CollapseRepeatingTransformer();
 
         try (Reader reader = new InputStreamReader(
                 IOUtils.toInputStream(xml, StandardCharsets.UTF_8))) {
-            t.loadFromXML(new XML(reader));
+            BeanMapper.DEFAULT.read(t, reader, Format.XML);
         }
 
         try (var is = IOUtils.toInputStream(
                 text, StandardCharsets.UTF_8);
                 var os = new ByteArrayOutputStream()) {
-            t.transformDocument(
-                    TestUtil.newHandlerDoc("dummyRef", is),
-                    is, os, ParseState.POST);
+            t.accept(TestUtil.newDocContext(
+                    "dummyRef", is, os, new Properties(), ParseState.POST));
             var response = os.toString();
-//            System.out.println(response);
             Assertions.assertEquals(
                     "\tthis is the text i want to modify.\n\r too much space.",
                     response.toLowerCase());
@@ -65,12 +73,13 @@ class ReduceConsecutivesTransformerTest {
     }
 
     @Test
-        void testWriteRead() throws IOException {
-        var t = new ReduceConsecutivesTransformer();
-        Reader reader = new InputStreamReader(
-                IOUtils.toInputStream(xml, StandardCharsets.UTF_8));
-        t.loadFromXML(new XML(reader));
-        reader.close();
-        XML.assertWriteRead(t, "handler");
+    void testWriteRead() throws IOException {
+        var t = new CollapseRepeatingTransformer();
+        try (Reader reader = new InputStreamReader(
+                IOUtils.toInputStream(xml, StandardCharsets.UTF_8))) {
+            BeanMapper.DEFAULT.read(t, reader, Format.XML);
+        }
+        assertThatNoException().isThrownBy(() ->
+            BeanMapper.DEFAULT.assertWriteRead(t));
     }
 }

@@ -14,11 +14,13 @@
  */
 package com.norconex.importer.handler.transformer.impl;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.text.TextMatcher;
 
 import lombok.Data;
@@ -176,6 +178,9 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class LanguageTransformerConfig {
 
+    private int maxReadSize = TextReader.DEFAULT_MAX_READ_SIZE;
+    private Charset sourceCharset = null;
+
     /**
      * Whether to keep the match probabilities for each languages
      * detected.  Default is <code>false</code>.
@@ -208,8 +213,9 @@ public class LanguageTransformerConfig {
      * The language candidates for language detection.
      * @param languages languages to consider for detection
      */
-    public void setLanguages(List<String> languages) {
+    public LanguageTransformerConfig setLanguages(List<String> languages) {
         CollectionUtil.setAll(this.languages, languages);
+        return this;
     }
 
     /**
@@ -225,7 +231,9 @@ public class LanguageTransformerConfig {
      * specified (default), use the document content instead.
      * @param fieldMatcher field matcher
      */
-    public void setFieldMatcher(TextMatcher fieldMatcher) {
+    public LanguageTransformerConfig setFieldMatcher(
+            TextMatcher fieldMatcher) {
         this.fieldMatcher.copyFrom(fieldMatcher);
+        return this;
     }
 }
